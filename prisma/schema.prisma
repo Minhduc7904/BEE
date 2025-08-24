@@ -1,0 +1,243 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  userId       Int       @id @default(autoincrement()) @map("user_id")
+  username     String    @unique @db.VarChar(50)
+  email        String?   @unique @db.VarChar(120)
+  passwordHash String    @map("password_hash") @db.VarChar(255)
+  firstName    String    @map("first_name") @db.VarChar(50)
+  lastName     String    @map("last_name") @db.VarChar(100)
+  isActive     Boolean   @default(true) @map("is_active")
+  lastLoginAt  DateTime? @map("last_login_at") @db.Timestamp(0)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // back-relations (đặt tên để tránh mơ hồ)
+  student          Student?           @relation("UserStudent")
+  admin            Admin?             @relation("UserAdmin")
+  UserRefreshToken UserRefreshToken[]
+
+  @@index([lastName, firstName], map: "idx_users_name")
+  @@map("users")
+}
+
+model Student {
+  studentId    Int           @id @default(autoincrement()) @map("student_id")
+  userId       Int           @unique @map("user_id")
+  user         User          @relation("UserStudent", fields: [userId], references: [userId], onDelete: Cascade)
+  studentPhone String        @map("student_phone") @db.VarChar(15)
+  parentPhone  String?       @map("parent_phone") @db.VarChar(15)
+  grade        Int           @db.TinyInt
+  highSchool   String        @map("high_school") @db.VarChar(120)
+  StudentRole  StudentRole[]
+
+  @@index([grade, highSchool], map: "idx_students_grade_school")
+  @@map("students")
+}
+
+model Admin {
+  adminId       Int             @id @default(autoincrement()) @map("admin_id")
+  userId        Int             @unique @map("user_id")
+  user          User            @relation("UserAdmin", fields: [userId], references: [userId], onDelete: Cascade)
+  subject       String          @db.VarChar(120)
+  adminRoles    AdminRole[]
+  AdminAuditLog AdminAuditLog[]
+  Document      Document[]
+  QuestionImage QuestionImage[]
+  SolutionImage SolutionImage[]
+  MediaImage    MediaImage[]
+
+  @@map("admins")
+}
+
+model Role {
+  roleId      Int      @id @default(autoincrement()) @map("role_id")
+  roleName    String   @unique @map("role_name") @db.VarChar(50)
+  description String?  @db.VarChar(255)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+
+  // back-relations
+  adminRoles   AdminRole[] // N–N qua bảng nối
+  studentRoles StudentRole[]
+
+  @@map("roles")
+}
+
+model AdminRole {
+  adminId    Int      @map("admin_id")
+  roleId     Int      @map("role_id")
+  assignedAt DateTime @default(now()) @map("assigned_at") @db.Timestamp(0)
+
+  // quan hệ
+  admin Admin @relation(fields: [adminId], references: [adminId], onDelete: Cascade)
+  role  Role  @relation(fields: [roleId], references: [roleId], onDelete: Cascade)
+
+  @@id([adminId, roleId]) // khóa chính tổng hợp
+  @@index([roleId], map: "idx_admin_roles_role_id") // index phụ
+  @@map("admin_roles")
+}
+
+model StudentRole {
+  studentId  Int      @map("student_id")
+  roleId     Int      @map("role_id")
+  assignedAt DateTime @default(now()) @map("assigned_at") @db.Timestamp(0)
+
+  // quan hệ
+  student Student @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  role    Role    @relation(fields: [roleId], references: [roleId], onDelete: Cascade)
+
+  @@id([studentId, roleId]) // khóa chính tổng hợp
+  @@index([roleId], map: "idx_student_roles_role_id") // index phụ
+  @@map("student_roles")
+}
+
+model UserRefreshToken {
+  tokenId           Int       @id @default(autoincrement()) @map("token_id")
+  userId            Int       @map("user_id")
+  familyId          String    @map("family_id") @db.VarChar(36) // UUID text
+  tokenHash         String    @unique @map("token_hash") @db.Char(60) // bcrypt/argon2 hash
+  expiresAt         DateTime  @map("expires_at") @db.Timestamp(0)
+  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  lastUsedAt        DateTime? @map("last_used_at") @db.Timestamp(0)
+  revokedAt         DateTime? @map("revoked_at") @db.Timestamp(0)
+  replacedByTokenId Int?      @map("replaced_by_token")
+  userAgent         String?   @map("user_agent") @db.VarChar(255)
+  ipAddress         String?   @map("ip_address") @db.VarChar(45)
+  deviceFingerprint String?   @map("device_fingerprint") @db.VarChar(128)
+
+  // Quan hệ
+  user            User               @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  replacedByToken UserRefreshToken?  @relation("UserTokenReplace", fields: [replacedByTokenId], references: [tokenId])
+  replaces        UserRefreshToken[] @relation("UserTokenReplace") // back-rel cho self-FK
+
+  @@index([userId], map: "idx_user_tokens_user_id")
+  @@index([familyId], map: "idx_user_tokens_family_id")
+  @@index([expiresAt], map: "idx_user_tokens_expires_at")
+  @@index([revokedAt], map: "idx_user_tokens_revoked_at")
+  @@map("user_refresh_tokens")
+}
+
+enum AuditStatus {
+  SUCCESS
+  FAIL
+}
+
+model AdminAuditLog {
+  logId        Int         @id @default(autoincrement()) @map("log_id")
+  adminId      Int         @map("admin_id")
+  actionKey    String      @map("action_key") @db.VarChar(64)
+  status       AuditStatus @default(SUCCESS)
+  errorMessage String?     @map("error_message") @db.Text
+  resourceType String      @map("resource_type") @db.VarChar(64)
+  resourceId   String?     @map("resource_id") @db.VarChar(64)
+  beforeData   Json?       @map("before_data")
+  afterData    Json?       @map("after_data")
+  createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamp(0)
+
+  // quan hệ
+  admin Admin @relation(fields: [adminId], references: [adminId], onDelete: Cascade)
+
+  // indexes
+  @@index([adminId, createdAt], map: "idx_admin_audit_admin_created")
+  @@index([resourceType, resourceId], map: "idx_admin_audit_resource")
+  @@index([actionKey, createdAt], map: "idx_admin_audit_action_created")
+  @@index([status], map: "idx_admin_audit_status")
+  @@map("admin_audit_logs")
+}
+
+enum StorageProvider {
+  LOCAL
+  S3
+  GCS
+  EXTERNAL
+}
+
+model Document {
+  documentId      Int             @id @default(autoincrement()) @map("document_id")
+  adminId         Int?            @map("admin_id")
+  admin           Admin?          @relation(fields: [adminId], references: [adminId], onDelete: SetNull)
+  description     String?         @db.Text
+  url             String          @db.VarChar(500)
+  anotherUrl      String?         @map("another_url") @db.VarChar(500) // URL phụ
+  mimeType        String?         @map("mime_type") @db.VarChar(100)
+  subject         String?         @db.VarChar(100)
+  relatedType     String?         @map("related_type") @db.VarChar(50)
+  relatedId       Int?            @map("related_id")
+  storageProvider StorageProvider @default(EXTERNAL) @map("storage_provider")
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@index([relatedType, relatedId], map: "idx_documents_related")
+  @@index([createdAt], map: "idx_documents_created_at")
+  @@map("documents")
+}
+
+model QuestionImage {
+  imageId         Int             @id @default(autoincrement()) @map("image_id")
+  adminId         Int?            @map("admin_id")
+  admin           Admin?          @relation(fields: [adminId], references: [adminId], onDelete: SetNull)
+  url             String          @unique @db.VarChar(500)
+  anotherUrl      String?         @map("another_url") @db.VarChar(500) // URL phụ
+  mimeType        String?         @map("mime_type") @db.VarChar(100)
+  storageProvider StorageProvider @default(EXTERNAL) @map("storage_provider")
+  relatedType     String?         @map("related_type") @db.VarChar(50)
+  relatedId       Int?            @map("related_id")
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@index([relatedType, relatedId], map: "idx_images_related")
+  @@index([createdAt], map: "idx_images_created_at")
+  @@map("question_images")
+}
+
+model SolutionImage {
+  imageId         Int             @id @default(autoincrement()) @map("image_id")
+  adminId         Int?            @map("admin_id")
+  admin           Admin?          @relation(fields: [adminId], references: [adminId], onDelete: SetNull)
+  url             String          @unique @db.VarChar(500)
+  anotherUrl      String?         @map("another_url") @db.VarChar(500) // URL phụ
+  mimeType        String?         @map("mime_type") @db.VarChar(100)
+  storageProvider StorageProvider @default(EXTERNAL) @map("storage_provider")
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@index([createdAt], map: "idx_images_created_at")
+  @@map("solution_images")
+}
+
+model MediaImage {
+  imageId         Int             @id @default(autoincrement()) @map("image_id")
+  adminId         Int?            @map("admin_id")
+  admin           Admin?          @relation(fields: [adminId], references: [adminId], onDelete: SetNull)
+  url             String          @unique @db.VarChar(500)
+  anotherUrl      String?         @map("another_url") @db.VarChar(500) // URL phụ
+  mimeType        String?         @map("mime_type") @db.VarChar(100)
+  storageProvider StorageProvider @default(EXTERNAL) @map("storage_provider")
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@index([createdAt], map: "idx_images_created_at")
+  @@map("media_images")
+}
+
+model Image {
+  imageId         Int             @id @default(autoincrement()) @map("image_id")
+  adminId         Int?            @map("admin_id")
+  url             String          @unique @db.VarChar(500)
+  anotherUrl      String?         @map("another_url") @db.VarChar(500) // URL phụ
+  mimeType        String?         @map("mime_type") @db.VarChar(100)
+  storageProvider StorageProvider @default(EXTERNAL) @map("storage_provider")
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@index([createdAt], map: "idx_images_created_at")
+  @@map("images")
+}
