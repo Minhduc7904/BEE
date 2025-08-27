@@ -4,10 +4,14 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { HttpExceptionFilter } from './shared/filters/http-exception.filter';
 import { SwaggerConfig } from './config/swagger.config';
+import { CorsConfig } from './config/cors.config';
 
 async function bootstrap() {
   dotenv.config();
   const app = await NestFactory.create(AppModule);
+
+  // Thiết lập CORS
+  app.enableCors(CorsConfig.getOptions());
 
   // Thiết lập global prefix cho tất cả routes
   app.setGlobalPrefix('api');
