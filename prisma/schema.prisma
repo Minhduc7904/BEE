@@ -53,6 +53,11 @@ model Admin {
   QuestionImage QuestionImage[]
   SolutionImage SolutionImage[]
   MediaImage    MediaImage[]
+  Exam          Exam[]          @relation("ExamCreatedBy")
+  Competition   Competition[]   @relation("CompetitionCreatedBy")
+  Course        Course[]        @relation("CourseTeacher")
+  Lesson        Lesson[]        @relation("LessonTeacher")
+  Question      Question[]      @relation("QuestionCreatedBy")
 
   @@map("admins")
 }
@@ -129,6 +134,12 @@ enum AuditStatus {
   FAIL
 }
 
+enum CourseVisibility {
+  DRAFT
+  PRIVATE
+  PUBLISHED
+}
+
 model AdminAuditLog {
   logId        Int         @id @default(autoincrement()) @map("log_id")
   adminId      Int         @map("admin_id")
@@ -173,6 +184,7 @@ model Document {
   storageProvider StorageProvider @default(EXTERNAL) @map("storage_provider")
   createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamp(0)
+  LearningItem    LearningItem[]
 
   @@index([relatedType, relatedId], map: "idx_documents_related")
   @@index([createdAt], map: "idx_documents_created_at")
@@ -239,4 +251,241 @@ model Image {
 
   @@index([createdAt], map: "idx_images_created_at")
   @@map("images")
+}
+
+enum LearningItemType {
+  HOMEWORK
+  DOCUMENT
+  YOUTUBE
+  EXERCISE
+}
+
+model Exam {
+  examId         Int      @id @default(autoincrement()) @map("exam_id") @db.Int
+  title          String   @map("title") @db.VarChar(255)
+  description    String?  @map("description") @db.Text
+  grade          Int      @map("grade") @db.TinyInt
+  subject        String   @map("subject") @db.VarChar(100)
+  fileId         Int?     @map("file_id")
+  solutionFileId Int?     @map("solution_file_id")
+  createdBy      Int      @map("created_by")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  admin        Admin          @relation("ExamCreatedBy", fields: [createdBy], references: [adminId], onDelete: Cascade)
+  competitions Competition[]
+  questions    QuestionExam[]
+
+  @@index([grade, subject], map: "idx_exams_grade_subject")
+  @@index([createdBy], map: "idx_exams_created_by")
+  @@index([createdAt], map: "idx_exams_created_at")
+  @@map("exams")
+}
+
+enum QuestionType {
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  FILL_IN_THE_BLANK
+  SHORT_ANSWER
+  ESSAY
+}
+
+enum Difficulty {
+  TH
+  NB
+  VD
+  VDC
+}
+
+model Question {
+  questionId         Int          @id @default(autoincrement()) @map("question_id")
+  content            String       @map("content") @db.Text
+  type               QuestionType @map("type")
+  imageId            Int?         @map("image_id")
+  correctAnswer      String?      @map("correct_answer") @db.Text
+  solution           String?      @map("solution") @db.Text
+  chapter            String?      @map("chapter") @db.VarChar(100)
+  difficulty         Difficulty   @map("difficulty")
+  solutionYoutubeUrl String?      @map("solution_youtube_url") @db.VarChar(500)
+  solutionImageId    Int?         @map("solution_image_id")
+  grade              Int          @map("grade") @db.TinyInt
+  subject            String?      @map("subject") @db.VarChar(100)
+  createdBy          Int?         @map("created_by") // admin tạo câu hỏi
+  createdAt          DateTime     @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt          DateTime     @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  admin         Admin?         @relation("QuestionCreatedBy", fields: [createdBy], references: [adminId], onDelete: SetNull)
+  statements    Statement[]
+  examQuestions QuestionExam[]
+
+  @@index([subject, grade], map: "idx_questions_subject_grade")
+  @@index([type], map: "idx_questions_type")
+  @@index([difficulty], map: "idx_questions_difficulty")
+  @@index([createdBy], map: "idx_questions_created_by")
+  @@index([createdAt], map: "idx_questions_created_at")
+  @@map("questions")
+}
+
+model Statement {
+  statementId Int         @id @default(autoincrement()) @map("statement_id")
+  content     String      @map("content") @db.Text
+  questionId  Int         @map("question_id")
+  isCorrect   Boolean     @map("is_correct")
+  order       Int?        @map("order")
+  difficulty  Difficulty? @map("difficulty")
+  imageId     Int?        @map("image_id")
+  createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  question Question @relation(fields: [questionId], references: [questionId], onDelete: Cascade)
+
+  @@index([questionId], map: "idx_statements_question_id")
+  @@index([isCorrect], map: "idx_statements_is_correct")
+  @@map("statements")
+}
+
+model QuestionExam {
+  questionId Int      @map("question_id")
+  examId     Int      @map("exam_id")
+  order      Int      @map("order") // thứ tự câu hỏi trong đề thi
+  points     Int?     @map("points") // điểm số riêng cho câu hỏi này 
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+
+  // Relations
+  question Question @relation(fields: [questionId], references: [questionId], onDelete: Cascade)
+  exam     Exam     @relation(fields: [examId], references: [examId], onDelete: Cascade)
+
+  @@id([questionId, examId])
+  @@index([examId], map: "idx_question_exams_exam_id")
+  @@index([questionId], map: "idx_question_exams_question_id")
+  @@map("questions_exams")
+}
+
+model Competition {
+  competitionId Int      @id @default(autoincrement()) @map("competition_id") @db.Int
+  examId        Int?     @map("exam_id") @db.Int
+  title         String   @map("title") @db.VarChar(255)
+  subtitle      String?  @map("subtitle") @db.VarChar(255)
+  startDate     DateTime @map("start_date") @db.Timestamp(0)
+  endDate       DateTime @map("end_date") @db.Timestamp(0)
+  policies      String?  @map("policies") @db.Text
+  createdBy     Int      @map("created_by")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  exam         Exam?          @relation(fields: [examId], references: [examId], onDelete: Cascade)
+  admin        Admin          @relation("CompetitionCreatedBy", fields: [createdBy], references: [adminId], onDelete: Cascade)
+  LearningItem LearningItem[]
+
+  @@index([examId], map: "idx_competitions_exam_id")
+  @@index([startDate, endDate], map: "idx_competitions_date_range")
+  @@index([createdBy], map: "idx_competitions_created_by")
+  @@index([createdAt], map: "idx_competitions_created_at")
+  @@map("competitions")
+}
+
+model LearningItem {
+  learningItemId Int              @id @default(autoincrement()) @map("learning_item_id")
+  type           LearningItemType @map("type")
+  title          String           @map("title") @db.VarChar(255)
+  description    String?          @map("description") @db.Text
+  documentId     Int?             @map("document_id")
+  competitionId  Int?             @map("competition_id") @db.Int
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  document    Document?            @relation(fields: [documentId], references: [documentId], onDelete: Cascade)
+  competition Competition?         @relation(fields: [competitionId], references: [competitionId], onDelete: Cascade)
+  lessons     LessonLearningItem[]
+
+  @@index([type], map: "idx_learning_items_type")
+  @@index([createdAt], map: "idx_learning_items_created_at")
+  @@map("learning_items")
+}
+
+model Course {
+  courseId       Int              @id @default(autoincrement()) @map("course_id")
+  title          String           @map("title") @db.VarChar(200)
+  subtitle       String?          @map("subtitle") @db.VarChar(255)
+  thumbImageId   Int?             @map("thumb_image_id")
+  academicYear   String?          @map("academic_year") @db.VarChar(9) // ví dụ '2024-2025'
+  grade          String?          @map("grade") @db.VarChar(10) // ví dụ '12'
+  subject        String?          @map("subject") @db.VarChar(50)
+  priceCents     Int              @default(0) @map("price_cents")
+  compareAtCents Int?             @map("compare_at_cents")
+  visibility     CourseVisibility @default(DRAFT) @map("visibility")
+  teacherId      Int?             @map("teacher_id") // FK tới admin_users nếu admin là giảng viên
+  isUpdatable    Boolean          @default(true) @map("is_updatable")
+  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  teacher   Admin?           @relation("CourseTeacher", fields: [teacherId], references: [adminId], onDelete: SetNull)
+  schedules CourseSchedule[]
+  lessons   Lesson[]
+
+  @@index([visibility], map: "idx_courses_visibility")
+  @@index([grade, subject], map: "idx_courses_grade_subject")
+  @@index([teacherId], map: "idx_courses_teacher_id")
+  @@index([createdAt], map: "idx_courses_created_at")
+  @@map("courses")
+}
+
+model CourseSchedule {
+  scheduleId Int      @id @default(autoincrement()) @map("schedule_id")
+  courseId   Int      @map("course_id")
+  dayOfWeek  Int      @map("day_of_week") @db.TinyInt // 1=Mon ... 7=Sun
+  startTime  DateTime @map("start_time") @db.Time
+  endTime    DateTime @map("end_time") @db.Time
+  room       String?  @map("room") @db.VarChar(100)
+
+  // Relations
+  course Course @relation(fields: [courseId], references: [courseId], onDelete: Cascade)
+
+  @@unique([courseId, dayOfWeek, startTime], map: "unique_course_schedule")
+  @@index([courseId], map: "idx_course_schedules_course_id")
+  @@map("courses_schedules")
+}
+
+model Lesson {
+  lessonId    Int       @id @default(autoincrement()) @map("lesson_id")
+  courseId    Int       @map("course_id")
+  title       String    @map("title") @db.VarChar(200)
+  description String?   @map("description") @db.Text
+  teacherId   Int?      @map("teacher_id") // nếu bài học do GV khác dạy
+  scheduledAt DateTime? @map("scheduled_at") @db.DateTime // nếu bạn muốn gắn ngày/giờ cụ thể
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  course        Course               @relation(fields: [courseId], references: [courseId], onDelete: Cascade)
+  teacher       Admin?               @relation("LessonTeacher", fields: [teacherId], references: [adminId], onDelete: SetNull)
+  learningItems LessonLearningItem[]
+
+  @@index([courseId], map: "idx_lessons_course_id")
+  @@index([teacherId], map: "idx_lessons_teacher_id")
+  @@index([scheduledAt], map: "idx_lessons_scheduled_at")
+  @@index([createdAt], map: "idx_lessons_created_at")
+  @@map("lessons")
+}
+
+model LessonLearningItem {
+  lessonId       Int      @map("lesson_id")
+  learningItemId Int      @map("learning_item_id")
+  order          Int?     @map("order")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+
+  // Relations
+  lesson       Lesson       @relation(fields: [lessonId], references: [lessonId], onDelete: Cascade)
+  learningItem LearningItem @relation(fields: [learningItemId], references: [learningItemId], onDelete: Cascade)
+
+  @@id([lessonId, learningItemId])
+  @@index([lessonId], map: "idx_lesson_learning_items_lesson")
+  @@index([learningItemId], map: "idx_lesson_learning_items_learning_item")
+  @@map("lesson_learning_items")
 }

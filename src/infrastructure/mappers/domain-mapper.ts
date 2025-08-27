@@ -3,6 +3,11 @@ import { User } from '../../domain/entities/user.entity';
 import { Admin } from '../../domain/entities/admin.entity';
 import { Student } from '../../domain/entities/student.entity';
 import { UserRefreshToken } from '../../domain/entities/user-refresh-token.entity';
+import { Document } from '../../domain/entities/document.entity';
+import { QuestionImage } from '../../domain/entities/question-image.entity';
+import { SolutionImage } from '../../domain/entities/solution-image.entity';
+import { MediaImage } from '../../domain/entities/media-image.entity';
+import { Image } from '../../domain/entities/image.entity';
 
 /**
  * Mapper class để convert từ Prisma models sang Domain entities
@@ -123,5 +128,101 @@ export class DomainMapper {
      */
     static toDomainRefreshTokens(prismaTokens: any[]): UserRefreshToken[] {
         return prismaTokens.map(token => this.toDomainRefreshToken(token)).filter(Boolean) as UserRefreshToken[];
+    }
+
+    /**
+     * Convert Prisma Document model sang Domain Document entity
+     */
+    toDocumentDomain(prismaDocument: any): Document | null {
+        if (!prismaDocument) return null;
+
+        return new Document({
+            documentId: prismaDocument.documentId,
+            adminId: prismaDocument.adminId,
+            description: prismaDocument.description,
+            url: prismaDocument.url,
+            anotherUrl: prismaDocument.anotherUrl,
+            mimeType: prismaDocument.mimeType,
+            subject: prismaDocument.subject,
+            relatedType: prismaDocument.relatedType,
+            relatedId: prismaDocument.relatedId,
+            storageProvider: prismaDocument.storageProvider,
+            createdAt: prismaDocument.createdAt,
+            updatedAt: prismaDocument.updatedAt
+        });
+    }
+
+    /**
+     * Convert Prisma QuestionImage model sang Domain QuestionImage entity
+     */
+    toQuestionImageDomain(prismaQuestionImage: any): QuestionImage | null {
+        if (!prismaQuestionImage) return null;
+
+        return new QuestionImage(
+            prismaQuestionImage.imageId,
+            prismaQuestionImage.adminId,
+            prismaQuestionImage.url,
+            prismaQuestionImage.anotherUrl,
+            prismaQuestionImage.mimeType,
+            prismaQuestionImage.storageProvider,
+            prismaQuestionImage.relatedType,
+            prismaQuestionImage.relatedId,
+            prismaQuestionImage.createdAt,
+            prismaQuestionImage.updatedAt
+        );
+    }
+
+    /**
+     * Convert Prisma SolutionImage model sang Domain SolutionImage entity
+     */
+    toSolutionImageDomain(prismaSolutionImage: any): SolutionImage | null {
+        if (!prismaSolutionImage) return null;
+
+        return new SolutionImage(
+            prismaSolutionImage.imageId,
+            prismaSolutionImage.adminId,
+            prismaSolutionImage.url,
+            prismaSolutionImage.anotherUrl,
+            prismaSolutionImage.mimeType,
+            prismaSolutionImage.storageProvider,
+            prismaSolutionImage.createdAt,
+            prismaSolutionImage.updatedAt
+        );
+    }
+
+    /**
+     * Convert Prisma MediaImage model sang Domain MediaImage entity
+     */
+    toMediaImageDomain(prismaMediaImage: any): MediaImage | null {
+        if (!prismaMediaImage) return null;
+
+        return new MediaImage(
+            prismaMediaImage.imageId,
+            prismaMediaImage.adminId,
+            prismaMediaImage.url,
+            prismaMediaImage.anotherUrl,
+            prismaMediaImage.mimeType,
+            prismaMediaImage.storageProvider,
+            prismaMediaImage.createdAt,
+            prismaMediaImage.updatedAt
+        );
+    }
+
+    /**
+     * Convert Prisma Image model sang Domain Image entity
+     */
+    toImageDomain(prismaImage: any): Image | null {
+        if (!prismaImage) return null;
+
+        return new Image(
+            prismaImage.imageId,
+            prismaImage.adminId,
+            prismaImage.url,
+            prismaImage.anotherUrl,
+            prismaImage.mimeType,
+            prismaImage.storageProvider,
+            prismaImage.createdAt,
+            prismaImage.updatedAt
+        );
     }
 }

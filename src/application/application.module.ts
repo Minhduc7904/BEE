@@ -7,6 +7,11 @@ import { LoginAdminUseCase } from './use-cases/login-admin.use-case';
 import { LoginStudentUseCase } from './use-cases/login-student.use-case';
 import { RefreshTokenUseCase } from './use-cases/refresh-token.use-case';
 import { LogoutUseCase } from './use-cases/logout.use-case';
+import { CreateDocumentUseCase } from './use-cases/create-document.use-case';
+import { CreateQuestionImageUseCase } from './use-cases/create-question-image.use-case';
+import { CreateSolutionImageUseCase } from './use-cases/create-solution-image.use-case';
+import { CreateMediaImageUseCase } from './use-cases/create-media-image.use-case';
+import { CreateImageUseCase } from './use-cases/create-image.use-case';
 
 @Module({
     imports: [InfrastructureModule],
@@ -17,6 +22,11 @@ import { LogoutUseCase } from './use-cases/logout.use-case';
         LoginStudentUseCase,
         RefreshTokenUseCase,
         LogoutUseCase,
+        CreateDocumentUseCase,
+        CreateQuestionImageUseCase,
+        CreateSolutionImageUseCase,
+        CreateMediaImageUseCase,
+        CreateImageUseCase,
     ],
     exports: [
         RegisterAdminUseCase,
@@ -25,6 +35,11 @@ import { LogoutUseCase } from './use-cases/logout.use-case';
         LoginStudentUseCase,
         RefreshTokenUseCase,
         LogoutUseCase,
+        CreateDocumentUseCase,
+        CreateQuestionImageUseCase,
+        CreateSolutionImageUseCase,
+        CreateMediaImageUseCase,
+        CreateImageUseCase,
     ],
 })
 export class ApplicationModule {}
