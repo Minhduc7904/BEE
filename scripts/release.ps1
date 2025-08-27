@@ -3,10 +3,27 @@
 
 param(
     [string]$Version = "v1.0.0",
-    [string]$Message = "Release $Version"
+    [string]$Message = "Release $Version",
+    [switch]$Beta = $false,
+    [switch]$Alpha = $false
 )
 
 Write-Host "🚀 Creating release $Version" -ForegroundColor Green
+
+# Handle pre-release versions
+if ($Beta) {
+    if ($Version -notmatch "beta") {
+        $Version = "$Version-beta"
+    }
+    Write-Host "🧪 Beta release mode" -ForegroundColor Yellow
+}
+
+if ($Alpha) {
+    if ($Version -notmatch "alpha") {
+        $Version = "$Version-alpha"
+    }
+    Write-Host "⚠️ Alpha release mode" -ForegroundColor Yellow
+}
 
 try {
     # 1. Ensure we're on main branch
