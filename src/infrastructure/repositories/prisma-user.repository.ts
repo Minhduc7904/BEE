@@ -1,0 +1,115 @@
+// src/infrastructure/repositories/prisma-user.repository.ts
+import { PrismaService } from '../../prisma/prisma.service';
+import type { IUserRepository, CreateUserData } from '../../domain/repositories/user.repository';
+import { User } from '../../domain/entities/user.entity';
+import { Admin } from '../../domain/entities/admin.entity';
+import { Student } from '../../domain/entities/student.entity';
+import { DomainMapper } from '../mappers/domain-mapper';
+
+export class PrismaUserRepository implements IUserRepository {
+    constructor(private readonly prisma: PrismaService | any) { } // any để hỗ trợ transaction client
+
+    async create(data: CreateUserData): Promise<User> {
+        const prismaUser = await this.prisma.user.create({
+            data: {
+                username: data.username,
+                email: data.email,
+                passwordHash: data.passwordHash,
+                firstName: data.firstName,
+                lastName: data.lastName,
+            },
+        });
+
+        return DomainMapper.toDomainUser(prismaUser)!;
+    }
+
+    async findById(id: number): Promise<User | null> {
+        const prismaUser = await this.prisma.user.findUnique({
+            where: { userId: id },
+        });
+
+        return DomainMapper.toDomainUser(prismaUser);
+    }
+
+    async findByUsername(username: string): Promise<User | null> {
+        const prismaUser = await this.prisma.user.findUnique({
+            where: { username },
+        });
+
+        return DomainMapper.toDomainUser(prismaUser);
+    }
+
+    async findByUsernameWithDetails(username: string): Promise<{
+        user: User;
+        admin?: Admin;
+        student?: Student;
+    } | null> {
+        const result = await this.prisma.user.findUnique({
+            where: { username },
+            include: {
+                admin: true,
+                student: true,
+            },
+        });
+
+        return DomainMapper.toDomainUserWithDetails(result);
+    }
+
+    async updateLastLogin(userId: number): Promise<void> {
+        await this.prisma.user.update({
+            where: { userId },
+            data: {
+                lastLoginAt: new Date(),
+            },
+        });
+    }
+
+    async findByEmail(email: string): Promise<User | null> {
+        const prismaUser = await this.prisma.user.findUnique({
+            where: { email },
+        });
+
+        return DomainMapper.toDomainUser(prismaUser);
+    }
+
+    async update(id: number, data: Partial<User>): Promise<User> {
+        const prismaUser = await this.prisma.user.update({
+            where: { userId: id },
+            data: {
+                username: data.username,
+                email: data.email,
+                passwordHash: data.passwordHash,
+                firstName: data.firstName,
+                lastName: data.lastName,
+                isActive: data.isActive,
+            },
+        });
+
+        return DomainMapper.toDomainUser(prismaUser)!;
+    }
+
+    async delete(id: number): Promise<boolean> {
+        try {
+            await this.prisma.user.delete({
+                where: { userId: id },
+            });
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    async existsByUsername(username: string): Promise<boolean> {
+        const count = await this.prisma.user.count({
+            where: { username },
+        });
+        return count > 0;
+    }
+
+    async existsByEmail(email: string): Promise<boolean> {
+        const count = await this.prisma.user.count({
+            where: { email },
+        });
+        return count > 0;
+    }
+}

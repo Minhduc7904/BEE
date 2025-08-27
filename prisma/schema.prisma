@@ -1,6 +1,5 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -33,13 +32,13 @@ model Student {
   studentId    Int           @id @default(autoincrement()) @map("student_id")
   userId       Int           @unique @map("user_id")
   user         User          @relation("UserStudent", fields: [userId], references: [userId], onDelete: Cascade)
-  studentPhone String        @map("student_phone") @db.VarChar(15)
+  studentPhone String?       @map("student_phone") @db.VarChar(15)
   parentPhone  String?       @map("parent_phone") @db.VarChar(15)
   grade        Int           @db.TinyInt
-  highSchool   String        @map("high_school") @db.VarChar(120)
+  school       String?       @map("school") @db.VarChar(120)
   StudentRole  StudentRole[]
 
-  @@index([grade, highSchool], map: "idx_students_grade_school")
+  @@index([grade, school], map: "idx_students_grade_school")
   @@map("students")
 }
 
@@ -47,7 +46,7 @@ model Admin {
   adminId       Int             @id @default(autoincrement()) @map("admin_id")
   userId        Int             @unique @map("user_id")
   user          User            @relation("UserAdmin", fields: [userId], references: [userId], onDelete: Cascade)
-  subject       String          @db.VarChar(120)
+  subject       String?         @db.VarChar(120)
   adminRoles    AdminRole[]
   AdminAuditLog AdminAuditLog[]
   Document      Document[]

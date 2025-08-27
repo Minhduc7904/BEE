@@ -1,28 +1,25 @@
 import { NestFactory } from '@nestjs/core';
 import * as dotenv from 'dotenv';
 import { AppModule } from './app.module';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
+import { HttpExceptionFilter } from './shared/filters/http-exception.filter';
+import { SwaggerConfig } from './config/swagger.config';
 
 async function bootstrap() {
   dotenv.config();
   const app = await NestFactory.create(AppModule);
 
+  // Thiết lập global prefix cho tất cả routes
+  app.setGlobalPrefix('api');
+
   // bật validation toàn cục (khuyên dùng)
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
 
-  // cấu hình Swagger
-  const config = new DocumentBuilder()
-    .setTitle('Bee API')
-    .setDescription('NestJS + Prisma + Swagger API docs')
-    .setVersion('1.0')
-    .addBearerAuth() // nếu sau này bạn có auth
-    .build();
+  // bật exception filter toàn cục
+  app.useGlobalFilters(new HttpExceptionFilter());
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document, {
-    swaggerOptions: { persistAuthorization: true },
-  });
+  // Thiết lập Swagger documentation
+  SwaggerConfig.setup(app);
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
