@@ -9,10 +9,12 @@ export class SwaggerConfig {
      * Thiết lập Swagger cho ứng dụng
      */
     static setup(app: INestApplication): void {
+        const port = process.env.PORT || 3000;
         const config = new DocumentBuilder()
             .setTitle('Bee API')
             .setDescription('NestJS + Prisma + Swagger API Documentation')
-            .setVersion('1.0.0')
+            .setVersion('1.0.0-beta.1')
+            .addTag('auth', 'Authentication endpoints')
             .addBearerAuth(
                 {
                     type: 'http',
@@ -24,7 +26,7 @@ export class SwaggerConfig {
                 },
                 'JWT-auth', // This name here is important for matching up with @ApiBearerAuth() in your controller!
             )
-            .addServer('http://localhost:3000', 'Development server')
+            .addServer(`http://localhost:${port}`, 'Development server')
             .addServer('https://api.yourapp.com', 'Production server')
             .build();
 
@@ -38,16 +40,15 @@ export class SwaggerConfig {
                 showRequestDuration: true,
                 tagsSorter: 'alpha',
                 operationsSorter: 'alpha',
+                tryItOutEnabled: true,
+                requestInterceptor: (req: any) => {
+                    // Ensure proper headers for CORS
+                    req.headers['Content-Type'] = 'application/json';
+                    return req;
+                },
             },
             customSiteTitle: 'Bee API Documentation',
-            customfavIcon: '/favicon.ico',
-            customJs: [
-                'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-bundle.min.js',
-                'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-standalone-preset.min.js',
-            ],
-            customCssUrl: [
-                'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css',
-            ],
+            explorer: true,
         });
     }
 

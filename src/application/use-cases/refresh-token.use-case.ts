@@ -23,7 +23,7 @@ export class RefreshTokenUseCase {
     ) { }
 
     async execute(refreshDto: RefreshTokenRequestDto): Promise<BaseResponseDto<RefreshTokenResponseDto>> {
-        return await this.unitOfWork.executeInTransaction(async () => {
+        return await this.unitOfWork.executeInTransaction(async (repos) => {
             // 1. Verify refresh token format và decode
             let decodedToken;
             try {
@@ -34,7 +34,7 @@ export class RefreshTokenUseCase {
 
             // 2. Tìm tất cả active refresh tokens của user
             const userId = decodedToken.sub;
-            const allUserTokens = await this.unitOfWork.userRefreshTokenRepository.findByUserId(userId);
+            const allUserTokens = await repos.userRefreshTokenRepository.findByUserId(userId);
 
             // 3. Tìm token match bằng cách verify hash trong tất cả tokens (bao gồm revoked)
             let matchedToken: any = null;
@@ -56,7 +56,7 @@ export class RefreshTokenUseCase {
             }
 
             // 6. Verify user vẫn tồn tại
-            const user = await this.unitOfWork.userRepository.findById(matchedToken.userId);
+            const user = await repos.userRepository.findById(matchedToken.userId);
             if (!user) {
                 throw new NotFoundException('Người dùng không tồn tại');
             }
@@ -88,13 +88,13 @@ export class RefreshTokenUseCase {
                 deviceFingerprint: matchedToken.deviceFingerprint
             };
 
-            const newStoredToken = await this.unitOfWork.userRefreshTokenRepository.create(refreshTokenData);
+            const newStoredToken = await repos.userRefreshTokenRepository.create(refreshTokenData);
 
             // 9. Revoke token cũ với replacement tracking
-            await this.unitOfWork.userRefreshTokenRepository.revokeTokenWithReplacement(matchedToken.tokenHash, newStoredToken.tokenId);
+            await repos.userRefreshTokenRepository.revokeTokenWithReplacement(matchedToken.tokenHash, newStoredToken.tokenId);
 
             // 10. Update last used cho token cũ
-            await this.unitOfWork.userRefreshTokenRepository.updateLastUsed(matchedToken.tokenHash);
+            await repos.userRefreshTokenRepository.updateLastUsed(matchedToken.tokenHash);
 
             // 11. Tạo response
             const refreshTokenResponse: RefreshTokenResponseDto = {

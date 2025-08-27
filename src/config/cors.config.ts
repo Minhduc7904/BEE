@@ -22,16 +22,28 @@ export class CorsConfig {
      */
     private static getDevelopmentOptions(): CorsOptions {
         return {
-            origin: [
-                'http://localhost:3000',
-                'http://localhost:3001',
-                'http://127.0.0.1:3000',
-                'http://127.0.0.1:3001',
-                'http://localhost:4200', // Angular dev server
-                'http://localhost:3000', // React dev server
-                'http://localhost:8080', // Vue dev server
-                'http://localhost:5173', // Vite dev server
-            ],
+            origin: (origin, callback) => {
+                // Allow requests with no origin (Swagger UI, Postman, mobile apps, etc.)
+                if (!origin) {
+                    return callback(null, true);
+                }
+                
+                const allowedOrigins = [
+                    'http://localhost:3000',
+                    'http://localhost:3001',
+                    'http://127.0.0.1:3000',
+                    'http://127.0.0.1:3001',
+                    'http://localhost:4200', // Angular dev server
+                    'http://localhost:8080', // Vue dev server
+                    'http://localhost:5173', // Vite dev server
+                ];
+                
+                if (allowedOrigins.includes(origin)) {
+                    return callback(null, true);
+                } else {
+                    return callback(null, true); // Allow all in development
+                }
+            },
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
             allowedHeaders: [
                 'Origin',
@@ -41,6 +53,8 @@ export class CorsConfig {
                 'Authorization',
                 'X-API-Key',
                 'X-Client-Version',
+                'Cache-Control',
+                'Pragma',
             ],
             exposedHeaders: [
                 'X-Total-Count',

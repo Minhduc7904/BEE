@@ -22,7 +22,7 @@ export class LogoutUseCase {
     ) { }
 
     async execute(logoutDto: LogoutRequestDto): Promise<BaseResponseDto<LogoutResponseDto>> {
-        return await this.unitOfWork.executeInTransaction(async () => {
+        return await this.unitOfWork.executeInTransaction(async (repos) => {
             // 1. Verify refresh token format và decode
             let decodedToken;
             try {
@@ -33,7 +33,7 @@ export class LogoutUseCase {
 
             // 2. Tìm tất cả active refresh tokens của user
             const userId = decodedToken.sub;
-            const allUserTokens = await this.unitOfWork.userRefreshTokenRepository.findByUserId(userId);
+            const allUserTokens = await repos.userRefreshTokenRepository.findByUserId(userId);
 
             // Lọc chỉ lấy tokens còn active
             const activeTokens = allUserTokens.filter(token => token.isActive());
@@ -57,24 +57,24 @@ export class LogoutUseCase {
             }
 
             // 5. Verify user vẫn tồn tại
-            const user = await this.unitOfWork.userRepository.findById(matchedToken.userId);
+            const user = await repos.userRepository.findById(matchedToken.userId);
             if (!user) {
                 throw new NotFoundException('Người dùng không tồn tại');
             }
 
             // 6. Revoke token hiện tại
-            await this.unitOfWork.userRefreshTokenRepository.revokeToken(matchedToken.tokenHash);
+            await repos.userRefreshTokenRepository.revokeToken(matchedToken.tokenHash);
 
             // 7. Option: Revoke all tokens in same family (logout from all devices with same session)
             // Uncomment dòng dưới nếu muốn logout khỏi tất cả devices cùng family
-            // await this.unitOfWork.userRefreshTokenRepository.revokeTokenFamily(matchedToken.familyId);
+            // await repos.userRefreshTokenRepository.revokeTokenFamily(matchedToken.familyId);
 
             // 8. Option: Revoke all tokens của user (logout from all devices)
             // Uncomment dòng dưới nếu muốn logout khỏi tất cả devices
-            // await this.unitOfWork.userRefreshTokenRepository.revokeAllUserTokens(userId);
+            // await repos.userRefreshTokenRepository.revokeAllUserTokens(userId);
 
             // 9. Update last used cho token
-            await this.unitOfWork.userRefreshTokenRepository.updateLastUsed(matchedToken.tokenHash);
+            await repos.userRefreshTokenRepository.updateLastUsed(matchedToken.tokenHash);
 
             // 10. Tạo response
             const logoutResponse: LogoutResponseDto = {
@@ -92,7 +92,7 @@ export class LogoutUseCase {
      * Logout khỏi tất cả devices (revoke all user tokens)
      */
     async executeLogoutAllDevices(logoutDto: LogoutRequestDto): Promise<BaseResponseDto<LogoutResponseDto>> {
-        return await this.unitOfWork.executeInTransaction(async () => {
+        return await this.unitOfWork.executeInTransaction(async (repos) => {
             // 1. Verify refresh token để lấy userId
             let decodedToken;
             try {
@@ -104,13 +104,13 @@ export class LogoutUseCase {
             const userId = decodedToken.sub;
 
             // 2. Verify user tồn tại
-            const user = await this.unitOfWork.userRepository.findById(userId);
+            const user = await repos.userRepository.findById(userId);
             if (!user) {
                 throw new NotFoundException('Người dùng không tồn tại');
             }
 
             // 3. Revoke tất cả tokens của user
-            await this.unitOfWork.userRefreshTokenRepository.revokeAllUserTokens(userId);
+            await repos.userRefreshTokenRepository.revokeAllUserTokens(userId);
 
             // 4. Tạo response
             const logoutResponse: LogoutResponseDto = {

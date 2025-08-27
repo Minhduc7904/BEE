@@ -14,15 +14,15 @@ export class RegisterAdminUseCase {
     ) {}
 
     async execute(dto: RegisterAdminDto): Promise<RegisterAdminResponseDto> {
-        return this.unitOfWork.executeInTransaction(async () => {
+        return this.unitOfWork.executeInTransaction(async (repos) => {
             // Validate unique constraints
-            const usernameExists = await this.unitOfWork.userRepository.existsByUsername(dto.username);
+            const usernameExists = await repos.userRepository.existsByUsername(dto.username);
             if (usernameExists) {
                 throw new ConflictException('Username đã tồn tại');
             }
 
             if (dto.email) {
-                const emailExists = await this.unitOfWork.userRepository.existsByEmail(dto.email);
+                const emailExists = await repos.userRepository.existsByEmail(dto.email);
                 if (emailExists) {
                     throw new ConflictException('Email đã tồn tại');
                 }
@@ -32,7 +32,7 @@ export class RegisterAdminUseCase {
             const passwordHash = await this.passwordService.hashPassword(dto.password);
 
             // Create user (trong transaction)
-            const user = await this.unitOfWork.userRepository.create({
+            const user = await repos.userRepository.create({
                 username: dto.username,
                 email: dto.email,
                 passwordHash,
@@ -41,7 +41,7 @@ export class RegisterAdminUseCase {
             });
 
             // Create admin (trong cùng transaction)
-            const admin = await this.unitOfWork.adminRepository.create({
+            const admin = await repos.adminRepository.create({
                 userId: user.userId,
                 subject: dto.subject,
             });

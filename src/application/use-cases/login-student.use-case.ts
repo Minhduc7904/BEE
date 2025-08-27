@@ -26,9 +26,9 @@ export class LoginStudentUseCase {
     ) {}
 
     async execute(loginDto: LoginRequestDto): Promise<LoginResponseDto> {
-        return await this.unitOfWork.executeInTransaction(async () => {
+        return await this.unitOfWork.executeInTransaction(async (repos) => {
             // 1. Tìm user với student details
-            const userWithDetails = await this.unitOfWork.userRepository.findByUsernameWithDetails(loginDto.username);
+            const userWithDetails = await repos.userRepository.findByUsernameWithDetails(loginDto.username);
             
             if (!userWithDetails?.student) {
                 throw new NotFoundException('Student không tồn tại');
@@ -47,7 +47,7 @@ export class LoginStudentUseCase {
             }
 
             // 3. Single device login: Revoke tất cả refresh tokens cũ của user
-            await this.unitOfWork.userRefreshTokenRepository.revokeAllUserTokens(user.userId);
+            await repos.userRefreshTokenRepository.revokeAllUserTokens(user.userId);
 
             // 4. Generate JWT tokens
             const payload = {
@@ -78,7 +78,7 @@ export class LoginStudentUseCase {
                 deviceFingerprint: undefined // Sẽ implement sau nếu cần
             };
 
-            await this.unitOfWork.userRefreshTokenRepository.create(refreshTokenData);
+            await repos.userRefreshTokenRepository.create(refreshTokenData);
 
             // 6. Tạo response theo format mới
             const tokens: TokensDto = {

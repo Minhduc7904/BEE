@@ -14,15 +14,15 @@ export class RegisterStudentUseCase {
     ) {}
 
     async execute(dto: RegisterStudentDto): Promise<RegisterStudentResponseDto> {
-        return this.unitOfWork.executeInTransaction(async () => {
+        return this.unitOfWork.executeInTransaction(async (repos) => {
             // Validate unique constraints
-            const usernameExists = await this.unitOfWork.userRepository.existsByUsername(dto.username);
+            const usernameExists = await repos.userRepository.existsByUsername(dto.username);
             if (usernameExists) {
                 throw new ConflictException('Username đã tồn tại');
             }
 
             if (dto.email) {
-                const emailExists = await this.unitOfWork.userRepository.existsByEmail(dto.email);
+                const emailExists = await repos.userRepository.existsByEmail(dto.email);
                 if (emailExists) {
                     throw new ConflictException('Email đã tồn tại');
                 }
@@ -31,7 +31,7 @@ export class RegisterStudentUseCase {
             // Hash password
             const passwordHash = await this.passwordService.hashPassword(dto.password);
             // Create user (trong transaction)
-            const user = await this.unitOfWork.userRepository.create({
+            const user = await repos.userRepository.create({
                 username: dto.username,
                 email: dto.email,
                 passwordHash,
@@ -40,7 +40,7 @@ export class RegisterStudentUseCase {
             });
 
             // Create student (trong cùng transaction)
-            const student = await this.unitOfWork.studentRepository.create({
+            const student = await repos.studentRepository.create({
                 userId: user.userId,
                 studentPhone: dto.studentPhone,
                 parentPhone: dto.parentPhone,
