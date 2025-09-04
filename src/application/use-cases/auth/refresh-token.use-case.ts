@@ -1,14 +1,14 @@
 // src/application/use-cases/refresh-token.use-case.ts
 import { Injectable, Inject } from '@nestjs/common';
-import type { IUnitOfWork } from '../../domain/repositories/unit-of-work.repository';
-import { JwtTokenService } from '../../infrastructure/services/jwt.service';
-import { TokenHashService } from '../../infrastructure/services/token-hash.service';
-import { RefreshTokenRequestDto, RefreshTokenResponseDto } from '../dtos/auth/refresh-token.dto';
+import type { IUnitOfWork } from '../../../domain/repositories/unit-of-work.repository';
+import { JwtTokenService } from '../../../infrastructure/services/jwt.service';
+import { TokenHashService } from '../../../infrastructure/services/token-hash.service';
+import { RefreshTokenRequestDto, RefreshTokenResponseDto } from '../../dtos/auth/refresh-token.dto';
 import {
     UnauthorizedException,
     NotFoundException
-} from '../../shared/exceptions/custom-exceptions';
-import { BaseResponseDto } from '../dtos/base-response.dto';
+} from '../../../shared/exceptions/custom-exceptions';
+import { BaseResponseDto } from '../../dtos/base-response.dto';
 import { v4 as uuidv4 } from 'uuid';
 
 /**

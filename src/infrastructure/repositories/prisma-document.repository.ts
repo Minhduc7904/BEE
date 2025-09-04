@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { IDocumentRepository } from '../../domain/repositories/document.repository';
 import { Document } from '../../domain/entities/document.entity';
-import { PrismaService } from '../../prisma/prisma.service';
-import { StorageProvider } from '../../constants/storage-provider.constant';
 
 @Injectable()
 export class PrismaDocumentRepository implements IDocumentRepository {

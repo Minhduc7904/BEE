@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional, IsEnum, IsUrl, IsInt } from 'class-validator';
-import { StorageProvider } from '@prisma/client';
+import { IsString, IsOptional, IsUrl, IsInt } from 'class-validator';
+import { StorageProvider } from '../../../shared/enums/storage-provider.enum';
+import { IsEnumValue } from '../../../shared/decorators/is-enum-value.decorator';
 
 export class CreateImageDto {
   @ApiProperty({ 
@@ -35,7 +36,7 @@ export class CreateImageDto {
     enum: StorageProvider,
     example: StorageProvider.EXTERNAL
   })
-  @IsEnum(StorageProvider)
+  @IsEnumValue(StorageProvider)
   storageProvider: StorageProvider;
 
   @ApiProperty({ 

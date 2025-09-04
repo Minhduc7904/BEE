@@ -7,6 +7,7 @@ import { PrismaUnitOfWork } from './repositories/prisma-unit-of-work.repository'
 import { PasswordService } from './services/password.service';
 import { JwtTokenService } from './services/jwt.service';
 import { TokenHashService } from './services/token-hash.service';
+import { HttpClientService } from './services/http-client.service';
 import jwtConfig from '../config/jwt.config';
 
 @Module({
@@ -32,12 +33,17 @@ import jwtConfig from '../config/jwt.config';
             provide: 'TOKEN_HASH_SERVICE',
             useClass: TokenHashService,
         },
+        {
+            provide: 'HTTP_CLIENT_SERVICE',
+            useClass: HttpClientService,
+        },
     ],
     exports: [
         'UNIT_OF_WORK',
         'PASSWORD_SERVICE',
         'JWT_TOKEN_SERVICE',
         'TOKEN_HASH_SERVICE',
+        'HTTP_CLIENT_SERVICE',
     ],
 })
-export class InfrastructureModule {}
+export class InfrastructureModule { }

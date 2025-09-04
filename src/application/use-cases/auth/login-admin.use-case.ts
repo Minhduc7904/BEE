@@ -1,23 +1,23 @@
-// src/application/use-cases/login-student.use-case.ts
+// src/application/use-cases/login-admin.use-case.ts
 import { Injectable, Inject } from '@nestjs/common';
-import type { IUnitOfWork } from '../../domain/repositories/unit-of-work.repository';
-import { PasswordService } from '../../infrastructure/services/password.service';
-import { JwtTokenService } from '../../infrastructure/services/jwt.service';
-import { TokenHashService } from '../../infrastructure/services/token-hash.service';
-import { LoginRequestDto } from '../dtos/auth/login-request.dto';
-import { LoginResponseDto, TokensDto, UserInfoDto, LoginDataDto } from '../dtos/auth/login-response.dto';
+import type { IUnitOfWork } from '../../../domain/repositories/unit-of-work.repository';
+import { PasswordService } from '../../../infrastructure/services/password.service';
+import { JwtTokenService } from '../../../infrastructure/services/jwt.service';
+import { TokenHashService } from '../../../infrastructure/services/token-hash.service';
+import { LoginRequestDto } from '../../dtos/auth/login-request.dto';
+import { LoginResponseDto, TokensDto, UserInfoDto, LoginDataDto } from '../../dtos/auth/login-response.dto';
 import { 
     NotFoundException, 
     ValidationException 
-} from '../../shared/exceptions/custom-exceptions';
-import { UserRefreshToken } from '../../domain/entities/user-refresh-token.entity';
+} from '../../../shared/exceptions/custom-exceptions';
+import { UserRefreshToken } from '../../../domain/entities/user-refresh-token.entity';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
- * Use case cho student login với single device login
+ * Use case cho admin login với single device login
  */
 @Injectable()
-export class LoginStudentUseCase {
+export class LoginAdminUseCase {
     constructor(
         @Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork,
         @Inject('PASSWORD_SERVICE') private readonly passwordService: PasswordService,
@@ -27,14 +27,14 @@ export class LoginStudentUseCase {
 
     async execute(loginDto: LoginRequestDto): Promise<LoginResponseDto> {
         return await this.unitOfWork.executeInTransaction(async (repos) => {
-            // 1. Tìm user với student details
+            // 1. Tìm user với admin details
             const userWithDetails = await repos.userRepository.findByUsernameWithDetails(loginDto.username);
             
-            if (!userWithDetails?.student) {
-                throw new NotFoundException('Student không tồn tại');
+            if (!userWithDetails?.admin) {
+                throw new NotFoundException('Admin không tồn tại');
             }
 
-            const { user, student } = userWithDetails;
+            const { user, admin } = userWithDetails;
 
             // 2. Verify password
             const isPasswordValid = await this.passwordService.comparePassword(
@@ -53,12 +53,12 @@ export class LoginStudentUseCase {
             const payload = {
                 sub: user.userId,
                 username: user.username,
-                role: 'student' as const,
-                roleId: student.studentId
+                role: 'admin' as const,
+                roleId: admin.adminId
             };
 
-            const accessToken = this.jwtTokenService.generateAccessToken(payload);
-            const refreshToken = this.jwtTokenService.generateRefreshToken(payload);
+            const accessToken = await this.jwtTokenService.generateAccessToken(payload);
+            const refreshToken = await this.jwtTokenService.generateRefreshToken(payload);
 
             // 5. Lưu refresh token mới vào database
             const expiresAt = new Date();
@@ -93,11 +93,10 @@ export class LoginStudentUseCase {
                 email: user.email,
                 firstName: user.firstName,
                 lastName: user.lastName,
-                role: 'student',
+                role: 'admin',
                 roleDetails: {
-                    studentId: student.studentId,
-                    grade: student.grade,
-                    school: student.school
+                    adminId: admin.adminId,
+                    subject: admin.subject
                 }
             };
 

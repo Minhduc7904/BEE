@@ -1,4 +1,4 @@
-import { StorageProvider } from '../../constants/storage-provider.constant';
+import { StorageProvider } from '../../shared/enums/storage-provider.enum';
 
 
 export class Document {

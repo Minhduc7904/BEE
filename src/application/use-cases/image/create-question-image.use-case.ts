@@ -1,11 +1,12 @@
-import { Injectable } from '@nestjs/common';
-import { CreateQuestionImageDto } from '../dtos/image/create-question-image.dto';
-import type { IUnitOfWork } from '../../domain/repositories/unit-of-work.repository';
-import { BaseResponseDto } from '../dtos/base-response.dto';
+import { Injectable, Inject } from '@nestjs/common';
+import { CreateQuestionImageDto } from '../../dtos/image/create-question-image.dto';
+import type { IUnitOfWork } from '../../../domain/repositories/unit-of-work.repository';
+import { BaseResponseDto } from '../../dtos/base-response.dto';
 
 @Injectable()
 export class CreateQuestionImageUseCase {
   constructor(
+    @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
   ) {}
 

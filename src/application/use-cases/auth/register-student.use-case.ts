@@ -1,10 +1,10 @@
 // src/application/use-cases/register-student.use-case.ts
 import { Injectable, Inject } from '@nestjs/common';
-import type { IUnitOfWork } from '../../domain/repositories/unit-of-work.repository';
-import { RegisterStudentDto } from '../dtos/auth/register-request.dto';
-import { RegisterStudentResponseDto } from '../dtos/auth/register-response.dto';
-import { ConflictException } from '../../shared/exceptions/custom-exceptions';
-import { PasswordService } from '../../infrastructure/services/password.service';
+import type { IUnitOfWork } from '../../../domain/repositories/unit-of-work.repository';
+import { RegisterStudentDto } from '../../dtos/auth/register-request.dto';
+import { RegisterStudentResponseDto } from '../../dtos/auth/register-response.dto';
+import { ConflictException } from '../../../shared/exceptions/custom-exceptions';
+import { PasswordService } from '../../../infrastructure/services/password.service';
 
 @Injectable()
 export class RegisterStudentUseCase {

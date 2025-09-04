@@ -11,11 +11,11 @@ import { CreateSolutionImageDto } from '../../application/dtos/image/create-solu
 import { CreateMediaImageDto } from '../../application/dtos/image/create-media-image.dto';
 import { CreateImageDto } from '../../application/dtos/image/create-image.dto';
 import { BaseResponseDto } from '../../application/dtos/base-response.dto';
-import { CreateDocumentUseCase } from '../../application/use-cases/create-document.use-case';
-import { CreateQuestionImageUseCase } from '../../application/use-cases/create-question-image.use-case';
-import { CreateSolutionImageUseCase } from '../../application/use-cases/create-solution-image.use-case';
-import { CreateMediaImageUseCase } from '../../application/use-cases/create-media-image.use-case';
-import { CreateImageUseCase } from '../../application/use-cases/create-image.use-case';
+import { CreateDocumentUseCase } from '../../application/use-cases/document/create-document.use-case';
+import { CreateQuestionImageUseCase } from '../../application/use-cases/image/create-question-image.use-case';
+import { CreateSolutionImageUseCase } from '../../application/use-cases/image/create-solution-image.use-case';
+import { CreateMediaImageUseCase } from '../../application/use-cases/image/create-media-image.use-case';
+import { CreateImageUseCase } from '../../application/use-cases/image/create-image.use-case';
 
 @ApiTags('Resources')
 @Controller('resources')

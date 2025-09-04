@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
-import type { IUnitOfWork } from '../../domain/repositories/unit-of-work.repository';
-import { BaseResponseDto } from '../dtos/base-response.dto';
-import { CreateImageDto } from '../dtos/image/create-image.dto';
+import { Injectable, Inject } from '@nestjs/common';
+import type { IUnitOfWork } from '../../../domain/repositories/unit-of-work.repository';
+import { BaseResponseDto } from '../../dtos/base-response.dto';
+import { CreateImageDto } from '../../dtos/image/create-image.dto';
 
 export interface CreateImageUseCaseResponse {
   imageId: number;
@@ -16,7 +16,7 @@ export interface CreateImageUseCaseResponse {
 
 @Injectable()
 export class CreateImageUseCase {
-  constructor(private readonly unitOfWork: IUnitOfWork) {}
+  constructor(@Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork) {}
 
   async execute(data: CreateImageDto): Promise<BaseResponseDto<CreateImageUseCaseResponse>> {
     try {
