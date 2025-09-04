@@ -3,7 +3,7 @@ import {
   IMediaImageRepository, 
   CreateMediaImageData 
 } from '../../domain/repositories/media-image.repository';
-import { MediaImage } from '../../domain/entities/media-image.entity';
+import { MediaImage } from '../../domain/entities/image/media-image.entity';
 
 @Injectable()
 export class PrismaMediaImageRepository implements IMediaImageRepository {

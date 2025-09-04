@@ -12,6 +12,7 @@ import { PrismaQuestionImageRepository } from './prisma-question-image.repositor
 import { PrismaSolutionImageRepository } from './prisma-solution-image.repository';
 import { PrismaMediaImageRepository } from './prisma-media-image.repository';
 import { PrismaImageRepository } from './prisma-image.repository';
+import { PrismaRoleRepository } from './prisma-role.repository';
 import { DomainMapper } from '../mappers/domain-mapper';
 
 type Prismaish = Prisma.TransactionClient | PrismaService; // chỉ cần các delegate CRUD
@@ -33,6 +34,7 @@ export class PrismaUnitOfWork implements IUnitOfWork {
             solutionImageRepository: new PrismaSolutionImageRepository(client),
             mediaImageRepository: new PrismaMediaImageRepository(client),
             imageRepository: new PrismaImageRepository(client),
+            roleRepository: new PrismaRoleRepository(client),
         };
     }
 

@@ -1,7 +1,7 @@
 // src/infrastructure/repositories/prisma-admin.repository.ts
 import { PrismaService } from '../../prisma/prisma.service';
 import type { IAdminRepository, CreateAdminData } from '../../domain/repositories/admin.repository';
-import { Admin } from '../../domain/entities/admin.entity';
+import { Admin } from '../../domain/entities/user/admin.entity';
 import { DomainMapper } from '../mappers/domain-mapper';
 
 export class PrismaAdminRepository implements IAdminRepository {

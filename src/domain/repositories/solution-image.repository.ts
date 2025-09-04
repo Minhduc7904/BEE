@@ -1,4 +1,4 @@
-import { SolutionImage } from '../entities/solution-image.entity';
+import { SolutionImage } from '../entities/image/solution-image.entity';
 
 export interface CreateSolutionImageData {
   url: string;

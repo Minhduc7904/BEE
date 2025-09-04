@@ -4,6 +4,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from '../prisma/prisma.module';
 import { PrismaUnitOfWork } from './repositories/prisma-unit-of-work.repository';
+import { PrismaRoleRepository } from './repositories/prisma-role.repository';
 import { PasswordService } from './services/password.service';
 import { JwtTokenService } from './services/jwt.service';
 import { TokenHashService } from './services/token-hash.service';
@@ -20,6 +21,10 @@ import jwtConfig from '../config/jwt.config';
         {
             provide: 'UNIT_OF_WORK',
             useClass: PrismaUnitOfWork,
+        },
+        {
+            provide: 'ROLE_REPOSITORY',
+            useClass: PrismaRoleRepository,
         },
         {
             provide: 'PASSWORD_SERVICE',
@@ -40,6 +45,7 @@ import jwtConfig from '../config/jwt.config';
     ],
     exports: [
         'UNIT_OF_WORK',
+        'ROLE_REPOSITORY',
         'PASSWORD_SERVICE',
         'JWT_TOKEN_SERVICE',
         'TOKEN_HASH_SERVICE',

@@ -1,9 +1,9 @@
 // src/infrastructure/repositories/prisma-user.repository.ts
 import { PrismaService } from '../../prisma/prisma.service';
 import type { IUserRepository, CreateUserData } from '../../domain/repositories/user.repository';
-import { User } from '../../domain/entities/user.entity';
-import { Admin } from '../../domain/entities/admin.entity';
-import { Student } from '../../domain/entities/student.entity';
+import { User } from '../../domain/entities/user/user.entity';
+import { Admin } from '../../domain/entities/user/admin.entity';
+import { Student } from '../../domain/entities/user/student.entity';
 import { DomainMapper } from '../mappers/domain-mapper';
 
 export class PrismaUserRepository implements IUserRepository {

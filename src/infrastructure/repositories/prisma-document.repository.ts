@@ -1,27 +1,40 @@
 import { Injectable } from '@nestjs/common';
-import { IDocumentRepository } from '../../domain/repositories/document.repository';
-import { Document } from '../../domain/entities/document.entity';
+import { IDocumentRepository, CreateDocumentData } from '../../domain/repositories/document.repository';
+import { Document } from '../../domain/entities/document/document.entity';
 
 @Injectable()
 export class PrismaDocumentRepository implements IDocumentRepository {
     constructor(private readonly prisma: any) { } // PrismaClient or TransactionClient
 
-    async create(document: Omit<Document, 'documentId' | 'createdAt' | 'updatedAt'>): Promise<Document> {
+    async create(data: CreateDocumentData): Promise<Document> {
         const created = await this.prisma.document.create({
             data: {
-                adminId: document.adminId,
-                description: document.description,
-                url: document.url,
-                anotherUrl: document.anotherUrl,
-                mimeType: document.mimeType,
-                subject: document.subject,
-                relatedType: document.relatedType,
-                relatedId: document.relatedId,
-                storageProvider: document.storageProvider,
+                adminId: data.adminId,
+                description: data.description,
+                url: data.url,
+                anotherUrl: data.anotherUrl,
+                mimeType: data.mimeType,
+                subject: data.subject,
+                relatedType: data.relatedType,
+                relatedId: data.relatedId,
+                storageProvider: data.storageProvider,
             },
         });
 
-        return new Document(created);
+        return new Document(
+            created.documentId,
+            created.url,
+            created.storageProvider,
+            created.createdAt,
+            created.updatedAt,
+            created.adminId,
+            created.description,
+            created.anotherUrl,
+            created.mimeType,
+            created.subject,
+            created.relatedType,
+            created.relatedId
+        );
     }
 
     async findById(id: number): Promise<Document | null> {
@@ -29,7 +42,20 @@ export class PrismaDocumentRepository implements IDocumentRepository {
             where: { documentId: id },
         });
 
-        return document ? new Document(document) : null;
+        return document ? new Document(
+            document.documentId,
+            document.url,
+            document.storageProvider,
+            document.createdAt,
+            document.updatedAt,
+            document.adminId,
+            document.description,
+            document.anotherUrl,
+            document.mimeType,
+            document.subject,
+            document.relatedType,
+            document.relatedId
+        ) : null;
     }
 
     async findAll(limit = 10, offset = 0): Promise<Document[]> {
@@ -39,16 +65,42 @@ export class PrismaDocumentRepository implements IDocumentRepository {
             orderBy: { createdAt: 'desc' },
         });
 
-        return documents.map((doc: any) => new Document(doc));
+        return documents.map((doc: any) => new Document(
+            doc.documentId,
+            doc.url,
+            doc.storageProvider,
+            doc.createdAt,
+            doc.updatedAt,
+            doc.adminId,
+            doc.description,
+            doc.anotherUrl,
+            doc.mimeType,
+            doc.subject,
+            doc.relatedType,
+            doc.relatedId
+        ));
     }
 
-    async update(id: number, data: Partial<Document>): Promise<Document> {
+    async update(id: number, data: Partial<CreateDocumentData>): Promise<Document> {
         const updated = await this.prisma.document.update({
             where: { documentId: id },
             data,
         });
 
-        return new Document(updated);
+        return new Document(
+            updated.documentId,
+            updated.url,
+            updated.storageProvider,
+            updated.createdAt,
+            updated.updatedAt,
+            updated.adminId,
+            updated.description,
+            updated.anotherUrl,
+            updated.mimeType,
+            updated.subject,
+            updated.relatedType,
+            updated.relatedId
+        );
     }
 
     async delete(id: number): Promise<void> {
@@ -66,6 +118,19 @@ export class PrismaDocumentRepository implements IDocumentRepository {
             orderBy: { createdAt: 'desc' },
         });
 
-        return documents.map((doc: any) => new Document(doc));
+        return documents.map((doc: any) => new Document(
+            doc.documentId,
+            doc.url,
+            doc.storageProvider,
+            doc.createdAt,
+            doc.updatedAt,
+            doc.adminId,
+            doc.description,
+            doc.anotherUrl,
+            doc.mimeType,
+            doc.subject,
+            doc.relatedType,
+            doc.relatedId
+        ));
     }
 }

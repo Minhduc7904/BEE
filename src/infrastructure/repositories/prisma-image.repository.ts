@@ -3,7 +3,7 @@ import {
   IImageRepository, 
   CreateImageData 
 } from '../../domain/repositories/image.repository';
-import { Image } from '../../domain/entities/image.entity';
+import { Image } from '../../domain/entities/image/image.entity';
 
 @Injectable()
 export class PrismaImageRepository implements IImageRepository {

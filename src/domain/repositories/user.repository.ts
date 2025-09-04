@@ -1,7 +1,7 @@
 // src/domain/repositories/user.repository.ts
-import { User } from '../entities/user.entity';
-import { Admin } from '../entities/admin.entity';
-import { Student } from '../entities/student.entity';
+import { User } from '../entities/user/user.entity';
+import { Admin } from '../entities/user/admin.entity';
+import { Student } from '../entities/user/student.entity';
 
 export interface CreateUserData {
     username: string;

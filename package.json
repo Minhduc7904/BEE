@@ -20,6 +20,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
+    "seed": "ts-node prisma/seed.ts",
+    "db:reset": "npx prisma migrate reset --force && npm run seed",
     "release": "powershell -ExecutionPolicy Bypass -File scripts/release.ps1",
     "release:patch": "powershell -ExecutionPolicy Bypass -File scripts/release.ps1 -Version patch",
     "release:minor": "powershell -ExecutionPolicy Bypass -File scripts/release.ps1 -Version minor",
@@ -94,5 +96,8 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   }
 }

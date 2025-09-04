@@ -3,7 +3,7 @@ import {
   IQuestionImageRepository, 
   CreateQuestionImageData 
 } from '../../domain/repositories/question-image.repository';
-import { QuestionImage } from '../../domain/entities/question-image.entity';
+import { QuestionImage } from '../../domain/entities/image/question-image.entity';
 
 @Injectable()
 export class PrismaQuestionImageRepository implements IQuestionImageRepository {

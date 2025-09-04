@@ -20,23 +20,24 @@ model User {
   updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // back-relations (đặt tên để tránh mơ hồ)
-  student          Student?           @relation("UserStudent")
-  admin            Admin?             @relation("UserAdmin")
-  UserRefreshToken UserRefreshToken[]
+  student           Student?           @relation("UserStudent")
+  admin             Admin?             @relation("UserAdmin")
+  UserRefreshToken  UserRefreshToken[]
+  userRoles         UserRole[] // Roles của user này
+  assignedUserRoles UserRole[]         @relation("UserRoleAssigner") // Roles mà user này đã cấp cho người khác
 
   @@index([lastName, firstName], map: "idx_users_name")
   @@map("users")
 }
 
 model Student {
-  studentId    Int           @id @default(autoincrement()) @map("student_id")
-  userId       Int           @unique @map("user_id")
-  user         User          @relation("UserStudent", fields: [userId], references: [userId], onDelete: Cascade)
-  studentPhone String?       @map("student_phone") @db.VarChar(15)
-  parentPhone  String?       @map("parent_phone") @db.VarChar(15)
-  grade        Int           @db.TinyInt
-  school       String?       @map("school") @db.VarChar(120)
-  StudentRole  StudentRole[]
+  studentId    Int     @id @default(autoincrement()) @map("student_id")
+  userId       Int     @unique @map("user_id")
+  user         User    @relation("UserStudent", fields: [userId], references: [userId], onDelete: Cascade)
+  studentPhone String? @map("student_phone") @db.VarChar(15)
+  parentPhone  String? @map("parent_phone") @db.VarChar(15)
+  grade        Int     @db.TinyInt
+  school       String? @map("school") @db.VarChar(120)
 
   @@index([grade, school], map: "idx_students_grade_school")
   @@map("students")
@@ -47,7 +48,6 @@ model Admin {
   userId        Int             @unique @map("user_id")
   user          User            @relation("UserAdmin", fields: [userId], references: [userId], onDelete: Cascade)
   subject       String?         @db.VarChar(120)
-  adminRoles    AdminRole[]
   AdminAuditLog AdminAuditLog[]
   Document      Document[]
   QuestionImage QuestionImage[]
@@ -63,44 +63,42 @@ model Admin {
 }
 
 model Role {
-  roleId      Int      @id @default(autoincrement()) @map("role_id")
-  roleName    String   @unique @map("role_name") @db.VarChar(50)
-  description String?  @db.VarChar(255)
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  roleId           Int      @id @default(autoincrement()) @map("role_id")
+  roleName         String   @unique @map("role_name") @db.VarChar(50)
+  description      String?  @db.VarChar(255)
+  isAssignable     Boolean  @default(true) @map("is_assignable") // role có thể được cấp hay không
+  requiredByRoleId Int?     @map("required_by_role_id") // cần có role nào để cấp role này
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamp(0)
 
   // back-relations
-  adminRoles   AdminRole[] // N–N qua bảng nối
-  studentRoles StudentRole[]
+  userRoles      UserRole[] // N–N qua bảng nối
+  // Self-reference cho role hierarchy
+  requiredByRole Role?      @relation("RoleHierarchy", fields: [requiredByRoleId], references: [roleId], onDelete: SetNull)
+  childRoles     Role[]     @relation("RoleHierarchy") // Roles mà role này có thể cấp
 
+  @@index([requiredByRoleId], map: "idx_roles_required_by")
   @@map("roles")
 }
 
-model AdminRole {
-  adminId    Int      @map("admin_id")
-  roleId     Int      @map("role_id")
-  assignedAt DateTime @default(now()) @map("assigned_at") @db.Timestamp(0)
+model UserRole {
+  userId     Int       @map("user_id")
+  roleId     Int       @map("role_id")
+  assignedAt DateTime  @default(now()) @map("assigned_at") @db.Timestamp(0)
+  expiresAt  DateTime? @map("expires_at") @db.Timestamp(0) // null = không hết hạn
+  assignedBy Int?      @map("assigned_by") // user nào cấp role này
+  isActive   Boolean   @default(true) @map("is_active")
 
-  // quan hệ
-  admin Admin @relation(fields: [adminId], references: [adminId], onDelete: Cascade)
-  role  Role  @relation(fields: [roleId], references: [roleId], onDelete: Cascade)
+  // Relations
+  user           User  @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  role           Role  @relation(fields: [roleId], references: [roleId], onDelete: Cascade)
+  assignedByUser User? @relation("UserRoleAssigner", fields: [assignedBy], references: [userId], onDelete: SetNull)
 
-  @@id([adminId, roleId]) // khóa chính tổng hợp
-  @@index([roleId], map: "idx_admin_roles_role_id") // index phụ
-  @@map("admin_roles")
-}
-
-model StudentRole {
-  studentId  Int      @map("student_id")
-  roleId     Int      @map("role_id")
-  assignedAt DateTime @default(now()) @map("assigned_at") @db.Timestamp(0)
-
-  // quan hệ
-  student Student @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
-  role    Role    @relation(fields: [roleId], references: [roleId], onDelete: Cascade)
-
-  @@id([studentId, roleId]) // khóa chính tổng hợp
-  @@index([roleId], map: "idx_student_roles_role_id") // index phụ
-  @@map("student_roles")
+  @@id([userId, roleId]) // khóa chính tổng hợp
+  @@index([roleId], map: "idx_user_roles_role_id")
+  @@index([userId, isActive], map: "idx_user_roles_user_active")
+  @@index([expiresAt], map: "idx_user_roles_expires")
+  @@index([assignedBy], map: "idx_user_roles_assigned_by")
+  @@map("user_roles")
 }
 
 model UserRefreshToken {

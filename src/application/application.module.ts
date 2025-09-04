@@ -12,6 +12,7 @@ import { CreateQuestionImageUseCase } from './use-cases/image/create-question-im
 import { CreateSolutionImageUseCase } from './use-cases/image/create-solution-image.use-case';
 import { CreateMediaImageUseCase } from './use-cases/image/create-media-image.use-case';
 import { CreateImageUseCase } from './use-cases/image/create-image.use-case';
+import { CreateRoleUseCase } from './use-cases/role/create-role.use-case';
 
 @Module({
     imports: [InfrastructureModule],
@@ -27,6 +28,7 @@ import { CreateImageUseCase } from './use-cases/image/create-image.use-case';
         CreateSolutionImageUseCase,
         CreateMediaImageUseCase,
         CreateImageUseCase,
+        CreateRoleUseCase,
     ],
     exports: [
         RegisterAdminUseCase,
@@ -40,6 +42,7 @@ import { CreateImageUseCase } from './use-cases/image/create-image.use-case';
         CreateSolutionImageUseCase,
         CreateMediaImageUseCase,
         CreateImageUseCase,
+        CreateRoleUseCase,
     ],
 })
 export class ApplicationModule {}

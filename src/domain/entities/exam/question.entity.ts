@@ -1,7 +1,7 @@
 // src/domain/entities/question.entity.ts
 
-import { QuestionType } from '../../shared/enums/question-type.enum';
-import { Difficulty } from '../../shared/enums/difficulty.enum';
+import { QuestionType } from '../../../shared/enums/question-type.enum';
+import { Difficulty } from '../../../shared/enums/difficulty.enum';
 
 export class Question {
     questionId: number;

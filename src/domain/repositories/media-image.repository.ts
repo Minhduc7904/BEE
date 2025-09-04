@@ -1,4 +1,4 @@
-import { MediaImage } from '../entities/media-image.entity';
+import { MediaImage } from '../entities/image/media-image.entity';
 
 export interface CreateMediaImageData {
   url: string;

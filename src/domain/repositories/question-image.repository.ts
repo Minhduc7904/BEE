@@ -1,4 +1,4 @@
-import { QuestionImage } from '../entities/question-image.entity';
+import { QuestionImage } from '../entities/image/question-image.entity';
 
 export interface CreateQuestionImageData {
   url: string;

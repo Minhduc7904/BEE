@@ -1,5 +1,5 @@
 // src/domain/repositories/student.repository.ts
-import { Student } from '../entities/student.entity';
+import { Student } from '../entities/user/student.entity';
 
 export interface CreateStudentData {
     userId: number;

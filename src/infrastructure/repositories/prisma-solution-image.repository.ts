@@ -3,7 +3,7 @@ import {
   ISolutionImageRepository, 
   CreateSolutionImageData 
 } from '../../domain/repositories/solution-image.repository';
-import { SolutionImage } from '../../domain/entities/solution-image.entity';
+import { SolutionImage } from '../../domain/entities/image/solution-image.entity';
 
 @Injectable()
 export class PrismaSolutionImageRepository implements ISolutionImageRepository {

@@ -1,5 +1,5 @@
 // src/domain/repositories/admin.repository.ts
-import { Admin } from '../entities/admin.entity';
+import { Admin } from '../entities/user/admin.entity';
 
 export interface CreateAdminData {
     userId: number;

@@ -1,7 +1,7 @@
 // src/infrastructure/repositories/prisma-student.repository.ts
 import { PrismaService } from '../../prisma/prisma.service';
 import type { IStudentRepository, CreateStudentData } from '../../domain/repositories/student.repository';
-import { Student } from '../../domain/entities/student.entity';
+import { Student } from '../../domain/entities/user/student.entity';
 import { DomainMapper } from '../mappers/domain-mapper';
 
 export class PrismaStudentRepository implements IStudentRepository {
