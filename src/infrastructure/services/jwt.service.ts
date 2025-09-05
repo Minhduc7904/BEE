@@ -8,8 +8,9 @@ import jwtConfig from '../../config/jwt.config';
 export interface JwtPayload {
     sub: number; // userId
     username: string;
-    role: 'admin' | 'student';
-    roleId: number; // adminId hoặc studentId
+    userType: 'admin' | 'student';
+    adminId?: number;
+    studentId?: number;
     aud: string; // audience
     iss: string; // issuer
     jti?: string; // JWT ID để đảm bảo unique

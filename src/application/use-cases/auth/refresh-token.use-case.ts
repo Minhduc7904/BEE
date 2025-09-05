@@ -65,8 +65,10 @@ export class RefreshTokenUseCase {
             const newTokenPayload = {
                 sub: user.userId,
                 username: user.username,
-                role: decodedToken.role,
-                roleId: decodedToken.roleId
+                userType: decodedToken.userType,
+                adminId: decodedToken.adminId,
+                studentId: decodedToken.studentId,
+                roles: decodedToken.roles || []
             };
 
             const newAccessToken = this.jwtTokenService.generateAccessToken(newTokenPayload);

@@ -1,4 +1,5 @@
 import { Role } from '../entities/role/role.entity';
+import { UserRole } from '../entities/role/user-role.entity';
 
 export interface CreateRoleData {
     roleName: string;
@@ -17,4 +18,5 @@ export interface IRoleRepository {
     findAll(limit?: number, offset?: number): Promise<Role[]>;
     update(id: number, data: UpdateRoleData): Promise<Role>;
     delete(id: number): Promise<void>;
+    getUserRoles(userId: number): Promise<UserRole[]>;
 }

@@ -73,7 +73,7 @@ async function main() {
         where: { username: 'minhduc7904' },
         update: {},
         create: {
-            username: 'superadmin',
+            username: 'minhduc7904',
             email: 'nmduc7904@gmail.com',
             passwordHash: hashedPassword,
             firstName: 'Đức',

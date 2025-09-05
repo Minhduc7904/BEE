@@ -3,12 +3,15 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from '../prisma/prisma.module';
+import { PrismaService } from '../prisma/prisma.service';
 import { PrismaUnitOfWork } from './repositories/prisma-unit-of-work.repository';
+import { PrismaUserRepository } from './repositories/prisma-user.repository';
 import { PrismaRoleRepository } from './repositories/prisma-role.repository';
 import { PasswordService } from './services/password.service';
 import { JwtTokenService } from './services/jwt.service';
 import { TokenHashService } from './services/token-hash.service';
 import { HttpClientService } from './services/http-client.service';
+import { AuthService } from './services/auth.service';
 import jwtConfig from '../config/jwt.config';
 
 @Module({
@@ -23,8 +26,14 @@ import jwtConfig from '../config/jwt.config';
             useClass: PrismaUnitOfWork,
         },
         {
+            provide: 'USER_REPOSITORY',
+            useFactory: (prisma: PrismaService) => new PrismaUserRepository(prisma),
+            inject: [PrismaService],
+        },
+        {
             provide: 'ROLE_REPOSITORY',
-            useClass: PrismaRoleRepository,
+            useFactory: (prisma: PrismaService) => new PrismaRoleRepository(prisma),
+            inject: [PrismaService],
         },
         {
             provide: 'PASSWORD_SERVICE',
@@ -42,14 +51,20 @@ import jwtConfig from '../config/jwt.config';
             provide: 'HTTP_CLIENT_SERVICE',
             useClass: HttpClientService,
         },
+        {
+            provide: 'AUTH_SERVICE',
+            useClass: AuthService,
+        },
     ],
     exports: [
         'UNIT_OF_WORK',
+        'USER_REPOSITORY',
         'ROLE_REPOSITORY',
         'PASSWORD_SERVICE',
         'JWT_TOKEN_SERVICE',
         'TOKEN_HASH_SERVICE',
         'HTTP_CLIENT_SERVICE',
+        'AUTH_SERVICE',
     ],
 })
 export class InfrastructureModule { }

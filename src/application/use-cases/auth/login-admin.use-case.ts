@@ -49,12 +49,16 @@ export class LoginAdminUseCase {
             // 3. Single device login: Revoke tất cả refresh tokens cũ của user
             await repos.userRefreshTokenRepository.revokeAllUserTokens(user.userId);
 
-            // 4. Generate JWT tokens
+            // 4. Single device login: Revoke tất cả refresh tokens cũ của user
+            await repos.userRefreshTokenRepository.revokeAllUserTokens(user.userId);
+
+            // 5. Generate JWT tokens
             const payload = {
                 sub: user.userId,
                 username: user.username,
-                role: 'admin' as const,
-                roleId: admin.adminId
+                userType: 'admin' as const,
+                adminId: admin.adminId,
+                studentId: undefined
             };
 
             const accessToken = await this.jwtTokenService.generateAccessToken(payload);

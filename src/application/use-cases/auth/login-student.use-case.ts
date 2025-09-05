@@ -49,18 +49,22 @@ export class LoginStudentUseCase {
             // 3. Single device login: Revoke tất cả refresh tokens cũ của user
             await repos.userRefreshTokenRepository.revokeAllUserTokens(user.userId);
 
-            // 4. Generate JWT tokens
+            // 4. Single device login: Revoke tất cả refresh tokens cũ của user
+            await repos.userRefreshTokenRepository.revokeAllUserTokens(user.userId);
+
+            // 5. Generate JWT tokens
             const payload = {
                 sub: user.userId,
                 username: user.username,
-                role: 'student' as const,
-                roleId: student.studentId
+                userType: 'student' as const,
+                adminId: undefined,
+                studentId: student.studentId
             };
 
-            const accessToken = this.jwtTokenService.generateAccessToken(payload);
-            const refreshToken = this.jwtTokenService.generateRefreshToken(payload);
+            const accessToken = await this.jwtTokenService.generateAccessToken(payload);
+            const refreshToken = await this.jwtTokenService.generateRefreshToken(payload);
 
-            // 5. Lưu refresh token mới vào database
+            // 6. Lưu refresh token mới vào database
             const expiresAt = new Date();
             expiresAt.setDate(expiresAt.getDate() + 7); // Refresh token hết hạn sau 7 ngày
 
@@ -80,7 +84,7 @@ export class LoginStudentUseCase {
 
             await repos.userRefreshTokenRepository.create(refreshTokenData);
 
-            // 6. Tạo response theo format mới
+            // 7. Tạo response theo format mới
             const tokens: TokensDto = {
                 accessToken,
                 refreshToken,

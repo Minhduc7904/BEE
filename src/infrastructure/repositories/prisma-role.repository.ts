@@ -1,5 +1,6 @@
 import { Injectable, Inject } from "@nestjs/common";
 import { Role } from "../../domain/entities/role/role.entity";
+import { UserRole } from "../../domain/entities/role/user-role.entity";
 import { CreateRoleData, IRoleRepository, UpdateRoleData } from "../../domain/repositories/role.repository";
 import { PrismaService } from "../../prisma/prisma.service";
 import { DomainMapper } from "../mappers/domain-mapper";
@@ -7,7 +8,7 @@ import { DomainMapper } from "../mappers/domain-mapper";
 @Injectable()
 export class PrismaRoleRepository implements IRoleRepository {
     constructor(
-        @Inject(PrismaService) 
+        @Inject(PrismaService)
         private readonly prisma: PrismaService | any
     ) { } // ← Flexible: PrismaService hoặc TransactionClient
 
@@ -78,5 +79,48 @@ export class PrismaRoleRepository implements IRoleRepository {
 
     async count(): Promise<number> {
         return await this.prisma.role.count();
+    }
+
+    async getUserRoles(userId: number): Promise<UserRole[]> {
+        // Truy cập UserRole thông qua User relationship
+        const user = await this.prisma.user.findUnique({
+            where: { userId, isActive: true },
+            include: {
+                userRoles: {
+                    where: {
+                        isActive: true,
+                        OR: [
+                            { expiresAt: null },
+                            { expiresAt: { gt: new Date() } }
+                        ]
+                    },
+                    include: {
+                        role: true,
+                    },
+                }
+            }
+        });
+
+        if (!user || !user.userRoles) {
+            console.log('No user or userRoles found for userId:', userId);
+            return [];
+        }
+
+        return user.userRoles.map(userRole => new UserRole(
+            userRole.userId,
+            userRole.roleId,
+            userRole.assignedAt,
+            userRole.expiresAt,
+            userRole.assignedBy,
+            userRole.isActive,
+            new Role(
+                userRole.role.roleId,
+                userRole.role.roleName,
+                userRole.role.description,
+                userRole.role.isAssignable,
+                userRole.role.requiredByRoleId,
+                userRole.role.createdAt
+            )
+        ));
     }
 }
