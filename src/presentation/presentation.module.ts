@@ -5,6 +5,7 @@ import { InfrastructureModule } from '../infrastructure/infrastructure.module';
 import { AuthController } from './controllers/auth.controller';
 import { ResourceController } from './controllers/resource.controller';
 import { RoleController } from './controllers/role.controller';
+import { GoogleAuthController } from './controllers/google-auth.controller';
 import { SharedModule } from '../shared/shared.module';
 import { AdminAuditLogController } from './controllers/admin-audit-log.controller';
 import { StudentController } from './controllers/student.controller';

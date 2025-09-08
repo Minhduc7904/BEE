@@ -10,7 +10,7 @@ datasource db {
 model User {
   userId       Int       @id @default(autoincrement()) @map("user_id")
   username     String    @unique @db.VarChar(50)
-  email        String?   @unique @db.VarChar(120)
+  email        String?   @unique @db.VarChar(120) // 1 user 1 email (unique toàn hệ thống)
   passwordHash String    @map("password_hash") @db.VarChar(255)
   firstName    String    @map("first_name") @db.VarChar(50)
   lastName     String    @map("last_name") @db.VarChar(100)
@@ -19,16 +19,35 @@ model User {
   createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamp(0)
 
-  // back-relations (đặt tên để tránh mơ hồ)
+  // NEW: trạng thái xác minh email
+  isEmailVerified Boolean   @default(false) @map("is_email_verified")
+  emailVerifiedAt DateTime? @map("email_verified_at") @db.Timestamp(0)
+
+  // relations khác giữ nguyên…
   student           Student?           @relation("UserStudent")
   admin             Admin?             @relation("UserAdmin")
   UserRefreshToken  UserRefreshToken[]
-  userRoles         UserRole[] // Roles của user này
-  assignedUserRoles UserRole[]         @relation("UserRoleAssigner") // Roles mà user này đã cấp cho người khác
+  userRoles         UserRole[]
+  assignedUserRoles UserRole[]         @relation("UserRoleAssigner")
 
   @@index([lastName, firstName], map: "idx_users_name")
   @@map("users")
 }
+
+model EmailVerificationToken {
+  id          String    @id @default(uuid())
+  userId      Int
+  tokenHash   String    @db.VarChar(255) // LƯU HASH thay vì raw token
+  expiresAt   DateTime
+  createdAt   DateTime  @default(now())
+  consumedAt  DateTime?
+
+  user        User      @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@unique([userId]) // mỗi user chỉ có 1 token đang chờ (nếu muốn cho phép nhiều lần song song, bỏ unique này)
+  @@map("email_verification_tokens")
+}
+
 
 model Student {
   studentId    Int     @id @default(autoincrement()) @map("student_id")
@@ -488,3 +507,5 @@ model LessonLearningItem {
   @@index([learningItemId], map: "idx_lesson_learning_items_learning_item")
   @@map("lesson_learning_items")
 }
+
+model 

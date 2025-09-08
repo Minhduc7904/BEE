@@ -13,12 +13,15 @@ import { JwtTokenService } from './services/jwt.service';
 import { TokenHashService } from './services/token-hash.service';
 import { HttpClientService } from './services/http-client.service';
 import { AuthService } from './services/auth.service';
+import { GoogleStrategy } from './strategies/google.strategy';
 import jwtConfig from '../config/jwt.config';
+import googleOAuthConfig from '../config/google-oauth.config';
 
 @Module({
     imports: [
         PrismaModule,
         ConfigModule.forFeature(jwtConfig),
+        ConfigModule.forFeature(googleOAuthConfig),
         JwtModule.register({}), // Empty config, sẽ override trong service
     ],
     providers: [
@@ -61,6 +64,7 @@ import jwtConfig from '../config/jwt.config';
             provide: 'AUTH_SERVICE',
             useClass: AuthService,
         },
+        GoogleStrategy,
     ],
     exports: [
         'UNIT_OF_WORK',
