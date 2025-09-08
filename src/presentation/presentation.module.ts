@@ -5,10 +5,11 @@ import { InfrastructureModule } from '../infrastructure/infrastructure.module';
 import { AuthController } from './controllers/auth.controller';
 import { ResourceController } from './controllers/resource.controller';
 import { RoleController } from './controllers/role.controller';
+import { GoogleAuthController } from './controllers/google-auth.controller';
 import { SharedModule } from '../shared/shared.module';
 
 @Module({
     imports: [ApplicationModule, InfrastructureModule, SharedModule],
-    controllers: [AuthController, ResourceController, RoleController],
+    controllers: [AuthController, ResourceController, RoleController, GoogleAuthController],
 })
 export class PresentationModule { }

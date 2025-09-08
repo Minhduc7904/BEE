@@ -13,6 +13,7 @@ import { CreateSolutionImageUseCase } from './use-cases/image/create-solution-im
 import { CreateMediaImageUseCase } from './use-cases/image/create-media-image.use-case';
 import { CreateImageUseCase } from './use-cases/image/create-image.use-case';
 import { CreateRoleUseCase } from './use-cases/role/create-role.use-case';
+import { GoogleOAuthUseCase } from './use-cases/auth/google-oauth.use-case';
 
 @Module({
     imports: [InfrastructureModule],
@@ -29,6 +30,7 @@ import { CreateRoleUseCase } from './use-cases/role/create-role.use-case';
         CreateMediaImageUseCase,
         CreateImageUseCase,
         CreateRoleUseCase,
+        GoogleOAuthUseCase,
     ],
     exports: [
         RegisterAdminUseCase,
@@ -43,6 +45,7 @@ import { CreateRoleUseCase } from './use-cases/role/create-role.use-case';
         CreateMediaImageUseCase,
         CreateImageUseCase,
         CreateRoleUseCase,
+        GoogleOAuthUseCase,
     ],
 })
 export class ApplicationModule {}
