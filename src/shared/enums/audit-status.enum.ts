@@ -7,6 +7,7 @@
 export enum AuditStatus {
   SUCCESS = 'SUCCESS',
   FAIL = 'FAIL',
+  ROLLBACK = 'ROLLBACK',
 }
 
 /**
@@ -15,6 +16,7 @@ export enum AuditStatus {
 export const AuditStatusLabels: Record<AuditStatus, string> = {
   [AuditStatus.SUCCESS]: 'Thành công',
   [AuditStatus.FAIL]: 'Thất bại',
+  [AuditStatus.ROLLBACK]: 'Đã rollback',
 };
 
 /**
@@ -23,4 +25,5 @@ export const AuditStatusLabels: Record<AuditStatus, string> = {
 export const AuditStatusColors: Record<AuditStatus, string> = {
   [AuditStatus.SUCCESS]: 'green',
   [AuditStatus.FAIL]: 'red',
+  [AuditStatus.ROLLBACK]: 'orange',
 };

@@ -13,6 +13,8 @@ import { CreateSolutionImageUseCase } from './use-cases/image/create-solution-im
 import { CreateMediaImageUseCase } from './use-cases/image/create-media-image.use-case';
 import { CreateImageUseCase } from './use-cases/image/create-image.use-case';
 import { CreateRoleUseCase } from './use-cases/role/create-role.use-case';
+import { RollbackUseCase } from './use-cases/log/roll-back.use-case';
+import { GetAllStudentUseCase } from './use-cases/student/get-all-student.use-case';
 
 @Module({
     imports: [InfrastructureModule],
@@ -29,6 +31,8 @@ import { CreateRoleUseCase } from './use-cases/role/create-role.use-case';
         CreateMediaImageUseCase,
         CreateImageUseCase,
         CreateRoleUseCase,
+        RollbackUseCase,
+        GetAllStudentUseCase,
     ],
     exports: [
         RegisterAdminUseCase,
@@ -43,6 +47,8 @@ import { CreateRoleUseCase } from './use-cases/role/create-role.use-case';
         CreateMediaImageUseCase,
         CreateImageUseCase,
         CreateRoleUseCase,
+        RollbackUseCase,
+        GetAllStudentUseCase,
     ],
 })
 export class ApplicationModule {}

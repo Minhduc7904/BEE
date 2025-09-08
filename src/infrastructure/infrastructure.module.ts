@@ -7,6 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { PrismaUnitOfWork } from './repositories/prisma-unit-of-work.repository';
 import { PrismaUserRepository } from './repositories/prisma-user.repository';
 import { PrismaRoleRepository } from './repositories/prisma-role.repository';
+import { PrismaStudentRepository } from './repositories/prisma-student.repository';
 import { PasswordService } from './services/password.service';
 import { JwtTokenService } from './services/jwt.service';
 import { TokenHashService } from './services/token-hash.service';
@@ -36,6 +37,11 @@ import jwtConfig from '../config/jwt.config';
             inject: [PrismaService],
         },
         {
+            provide: 'STUDENT_REPOSITORY',
+            useFactory: (prisma: PrismaService) => new PrismaStudentRepository(prisma),
+            inject: [PrismaService],
+        },
+        {
             provide: 'PASSWORD_SERVICE',
             useClass: PasswordService,
         },
@@ -60,6 +66,7 @@ import jwtConfig from '../config/jwt.config';
         'UNIT_OF_WORK',
         'USER_REPOSITORY',
         'ROLE_REPOSITORY',
+        'STUDENT_REPOSITORY',
         'PASSWORD_SERVICE',
         'JWT_TOKEN_SERVICE',
         'TOKEN_HASH_SERVICE',

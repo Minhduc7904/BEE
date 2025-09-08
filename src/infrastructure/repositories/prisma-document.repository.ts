@@ -1,15 +1,18 @@
 import { Injectable } from '@nestjs/common';
 import { IDocumentRepository, CreateDocumentData } from '../../domain/repositories/document.repository';
 import { Document } from '../../domain/entities/document/document.entity';
+import { NumberUtil } from '../../shared/utils/number.util';
 
 @Injectable()
 export class PrismaDocumentRepository implements IDocumentRepository {
     constructor(private readonly prisma: any) { } // PrismaClient or TransactionClient
 
     async create(data: CreateDocumentData): Promise<Document> {
+        const numericAdminId = NumberUtil.ensureValidId(data.adminId, 'Admin ID');
+        
         const created = await this.prisma.document.create({
             data: {
-                adminId: data.adminId,
+                adminId: numericAdminId,
                 description: data.description,
                 url: data.url,
                 anotherUrl: data.anotherUrl,
@@ -38,8 +41,10 @@ export class PrismaDocumentRepository implements IDocumentRepository {
     }
 
     async findById(id: number): Promise<Document | null> {
+        const numericId = NumberUtil.ensureValidId(id, 'Document ID');
+        
         const document = await this.prisma.document.findUnique({
-            where: { documentId: id },
+            where: { documentId: numericId },
         });
 
         return document ? new Document(
@@ -82,8 +87,10 @@ export class PrismaDocumentRepository implements IDocumentRepository {
     }
 
     async update(id: number, data: Partial<CreateDocumentData>): Promise<Document> {
+        const numericId = NumberUtil.ensureValidId(id, 'Document ID');
+        
         const updated = await this.prisma.document.update({
-            where: { documentId: id },
+            where: { documentId: numericId },
             data,
         });
 
@@ -104,16 +111,20 @@ export class PrismaDocumentRepository implements IDocumentRepository {
     }
 
     async delete(id: number): Promise<void> {
+        const numericId = NumberUtil.ensureValidId(id, 'Document ID');
+        
         await this.prisma.document.delete({
-            where: { documentId: id },
+            where: { documentId: numericId },
         });
     }
 
     async findByRelated(relatedType: string, relatedId: number): Promise<Document[]> {
+        const numericRelatedId = NumberUtil.ensureValidId(relatedId, 'Related ID');
+        
         const documents = await this.prisma.document.findMany({
             where: {
                 relatedType,
-                relatedId,
+                relatedId: numericRelatedId,
             },
             orderBy: { createdAt: 'desc' },
         });

@@ -3,6 +3,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import type { IUnitOfWork } from '../../../domain/repositories/unit-of-work.repository';
 import { RegisterAdminDto } from '../../dtos/auth/register-request.dto';
 import { RegisterAdminResponseDto } from '../../dtos/auth/register-response.dto';
+import { AdminResponseDto } from '../../dtos/admin/admin-response.dto';
 import { ConflictException } from '../../../shared/exceptions/custom-exceptions';
 import { PasswordService } from '../../../infrastructure/services/password.service';
 
@@ -49,17 +50,7 @@ export class RegisterAdminUseCase {
             return {
                 success: true,
                 message: 'Đăng ký admin thành công',
-                data: {
-                    userId: user.userId,
-                    username: user.username,
-                    email: user.email,
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    isActive: user.isActive,
-                    createdAt: user.createdAt,
-                    adminId: admin.adminId,
-                    subject: admin.subject,
-                },
+                data: AdminResponseDto.fromUserWithAdmin(user, admin),
             };
         });
     }

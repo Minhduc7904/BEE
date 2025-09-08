@@ -3,6 +3,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import type { IUnitOfWork } from '../../../domain/repositories/unit-of-work.repository';
 import { RegisterStudentDto } from '../../dtos/auth/register-request.dto';
 import { RegisterStudentResponseDto } from '../../dtos/auth/register-response.dto';
+import { StudentResponseDto } from '../../dtos/student/student.dto';
 import { ConflictException } from '../../../shared/exceptions/custom-exceptions';
 import { PasswordService } from '../../../infrastructure/services/password.service';
 
@@ -51,20 +52,7 @@ export class RegisterStudentUseCase {
             return {
                 success: true,
                 message: 'Đăng ký học sinh thành công',
-                data: {
-                    userId: user.userId,
-                    username: user.username,
-                    email: user.email,
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    isActive: user.isActive,
-                    createdAt: user.createdAt,
-                    studentId: student.studentId,
-                    grade: student.grade,
-                    school: student.school,
-                    studentPhone: student.studentPhone,
-                    parentPhone: student.parentPhone,
-                },
+                data: StudentResponseDto.fromUserWithStudent(user, student),
             };
         });
     }

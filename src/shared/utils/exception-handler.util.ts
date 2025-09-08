@@ -18,7 +18,6 @@ export class ExceptionHandler {
             if (process.env.NODE_ENV !== 'production') {
                 console.error('Exception Handler caught error:', error);
             }
-            console.log('env:', process.env.NODE_ENV);
             
             // Các lỗi khác chuyển thành Internal Server Error
             throw new HttpException(

@@ -2,14 +2,14 @@
 import { User } from '../../domain/entities/user/user.entity';
 import { Admin } from '../../domain/entities/user/admin.entity';
 import { Student } from '../../domain/entities/user/student.entity';
-import { UserRefreshToken } from '../../domain/entities/user-refresh-token.entity';
+import { UserRefreshToken } from '../../domain/entities/token/user-refresh-token.entity';
 import { Document } from '../../domain/entities/document/document.entity';
 import { Role } from '../../domain/entities/role/role.entity';
 import { QuestionImage } from '../../domain/entities/image/question-image.entity';
 import { SolutionImage } from '../../domain/entities/image/solution-image.entity';
 import { MediaImage } from '../../domain/entities/image/media-image.entity';
 import { Image } from '../../domain/entities/image/image.entity';
-
+import { AdminAuditLog } from '../../domain/entities/log/admin-audit-log.entity';
 /**
  * Mapper class để convert từ Prisma models sang Domain entities
  */
@@ -80,6 +80,16 @@ export class DomainMapper {
      */
     static toDomainStudents(prismaStudents: any[]): Student[] {
         return prismaStudents.map(student => this.toDomainStudent(student)).filter(Boolean) as Student[];
+    }
+
+    static toDomainDataWithPagination(data: any[], pagination: any): object {
+        return {
+            data,
+            total: pagination.total,
+            page: pagination.page,
+            limit: pagination.limit,
+            totalPages: pagination.totalPages
+        }
     }
 
     /**
@@ -163,6 +173,24 @@ export class DomainMapper {
             prismaRole.isAssignable,
             prismaRole.requiredByRoleId ?? undefined,
             prismaRole.createdAt
+        );
+    }
+
+    static toAdminAuditLogDomain(prismaLog: any): AdminAuditLog | null {
+        if (!prismaLog) return null;
+
+        return new AdminAuditLog(
+            prismaLog.logId,
+            prismaLog.adminId,
+            prismaLog.actionKey,
+            prismaLog.status,
+            prismaLog.resourceType,
+            prismaLog.errorMessage ?? undefined,
+            prismaLog.resourceId ?? undefined,
+            prismaLog.beforeData ?? undefined,
+            prismaLog.afterData ?? undefined,
+            prismaLog.createdAt,
+            this.toDomainAdmin(prismaLog.admin)
         );
     }
 }

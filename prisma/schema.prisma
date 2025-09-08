@@ -128,8 +128,9 @@ model UserRefreshToken {
 }
 
 enum AuditStatus {
-  SUCCESS
-  FAIL
+  SUCCESS // ✅ Thành công
+  FAIL // ❌ Thất bại
+  ROLLBACK // 🔄 Đã rollback
 }
 
 enum CourseVisibility {
@@ -142,7 +143,7 @@ model AdminAuditLog {
   logId        Int         @id @default(autoincrement()) @map("log_id")
   adminId      Int         @map("admin_id")
   actionKey    String      @map("action_key") @db.VarChar(64)
-  status       AuditStatus @default(SUCCESS)
+  status       AuditStatus @default(SUCCESS) @map("status")
   errorMessage String?     @map("error_message") @db.Text
   resourceType String      @map("resource_type") @db.VarChar(64)
   resourceId   String?     @map("resource_id") @db.VarChar(64)

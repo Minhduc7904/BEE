@@ -5,12 +5,12 @@ import { PasswordService } from '../../../infrastructure/services/password.servi
 import { JwtTokenService } from '../../../infrastructure/services/jwt.service';
 import { TokenHashService } from '../../../infrastructure/services/token-hash.service';
 import { LoginRequestDto } from '../../dtos/auth/login-request.dto';
-import { LoginResponseDto, TokensDto, UserInfoDto, LoginDataDto } from '../../dtos/auth/login-response.dto';
-import { 
-    NotFoundException, 
-    ValidationException 
+import { TokensDto, UserInfoDto, LoginResponseDto } from '../../dtos/auth/login-response.dto';
+import { BaseResponseDto } from '../../dtos/base-response.dto';
+import {
+    NotFoundException,
+    ValidationException
 } from '../../../shared/exceptions/custom-exceptions';
-import { UserRefreshToken } from '../../../domain/entities/user-refresh-token.entity';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -23,13 +23,13 @@ export class LoginAdminUseCase {
         @Inject('PASSWORD_SERVICE') private readonly passwordService: PasswordService,
         @Inject('JWT_TOKEN_SERVICE') private readonly jwtTokenService: JwtTokenService,
         @Inject('TOKEN_HASH_SERVICE') private readonly tokenHashService: TokenHashService,
-    ) {}
+    ) { }
 
-    async execute(loginDto: LoginRequestDto): Promise<LoginResponseDto> {
+    async execute(loginDto: LoginRequestDto): Promise<BaseResponseDto<LoginResponseDto>> {
         return await this.unitOfWork.executeInTransaction(async (repos) => {
             // 1. Tìm user với admin details
             const userWithDetails = await repos.userRepository.findByUsernameWithDetails(loginDto.username);
-            
+
             if (!userWithDetails?.admin) {
                 throw new NotFoundException('Admin không tồn tại');
             }
@@ -38,7 +38,7 @@ export class LoginAdminUseCase {
 
             // 2. Verify password
             const isPasswordValid = await this.passwordService.comparePassword(
-                loginDto.password, 
+                loginDto.password,
                 user.passwordHash
             );
 
@@ -49,10 +49,7 @@ export class LoginAdminUseCase {
             // 3. Single device login: Revoke tất cả refresh tokens cũ của user
             await repos.userRefreshTokenRepository.revokeAllUserTokens(user.userId);
 
-            // 4. Single device login: Revoke tất cả refresh tokens cũ của user
-            await repos.userRefreshTokenRepository.revokeAllUserTokens(user.userId);
-
-            // 5. Generate JWT tokens
+            // 4. Generate JWT tokens
             const payload = {
                 sub: user.userId,
                 username: user.username,
@@ -104,10 +101,10 @@ export class LoginAdminUseCase {
                 }
             };
 
-            return LoginResponseDto.success(
+            return BaseResponseDto.success(
                 'Đăng nhập thành công',
-                { tokens, user: userInfo } as LoginDataDto
-            ) as LoginResponseDto;
+                { tokens, user: userInfo } as LoginResponseDto
+            );
         });
     }
 }

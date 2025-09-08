@@ -20,7 +20,7 @@ export class BaseResponseDto<TData = any> {
         return new BaseResponseDto(true, message, data);
     }
 
-    static error<T>(message: string, data?: T): BaseResponseDto<T> {
-        return new BaseResponseDto(false, message, data);
+    static error<T>(message: string): BaseResponseDto<T> {
+        return new BaseResponseDto(false, message, undefined) as BaseResponseDto<T>;
     }
 }

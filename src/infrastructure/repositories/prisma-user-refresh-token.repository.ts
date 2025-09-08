@@ -1,16 +1,19 @@
 // src/infrastructure/repositories/prisma-user-refresh-token.repository.ts
 import { PrismaService } from '../../prisma/prisma.service';
 import type { IUserRefreshTokenRepository, CreateRefreshTokenData } from '../../domain/repositories/user-refresh-token.repository';
-import { UserRefreshToken } from '../../domain/entities/user-refresh-token.entity';
+import { UserRefreshToken } from '../../domain/entities/token/user-refresh-token.entity';
 import { DomainMapper } from '../mappers/domain-mapper';
+import { NumberUtil } from '../../shared/utils/number.util';
 
 export class PrismaUserRefreshTokenRepository implements IUserRefreshTokenRepository {
     constructor(private readonly prisma: PrismaService | any) { } // any để hỗ trợ transaction client
 
     async create(data: CreateRefreshTokenData): Promise<UserRefreshToken> {
+        const numericUserId = NumberUtil.ensureValidId(data.userId, 'User ID');
+        
         const token = await this.prisma.userRefreshToken.create({
             data: {
-                userId: data.userId,
+                userId: numericUserId,
                 familyId: data.familyId,
                 tokenHash: data.tokenHash,
                 expiresAt: data.expiresAt,
@@ -32,8 +35,10 @@ export class PrismaUserRefreshTokenRepository implements IUserRefreshTokenReposi
     }
 
     async findByUserId(userId: number): Promise<UserRefreshToken[]> {
+        const numericUserId = NumberUtil.ensureValidId(userId, 'User ID');
+        
         const tokens = await this.prisma.userRefreshToken.findMany({
-            where: { userId },
+            where: { userId: numericUserId },
             orderBy: { createdAt: 'desc' },
         });
 
@@ -50,8 +55,10 @@ export class PrismaUserRefreshTokenRepository implements IUserRefreshTokenReposi
     }
 
     async deleteByUserId(userId: number): Promise<void> {
+        const numericUserId = NumberUtil.ensureValidId(userId, 'User ID');
+        
         await this.prisma.userRefreshToken.deleteMany({
-            where: { userId },
+            where: { userId: numericUserId },
         });
     }
 
@@ -96,9 +103,11 @@ export class PrismaUserRefreshTokenRepository implements IUserRefreshTokenReposi
     }
 
     async revokeAllUserTokens(userId: number): Promise<number> {
+        const numericUserId = NumberUtil.ensureValidId(userId, 'User ID');
+        
         const result = await this.prisma.userRefreshToken.updateMany({
             where: {
-                userId,
+                userId: numericUserId,
                 revokedAt: null // Chỉ revoke những token chưa bị revoke
             },
             data: { revokedAt: new Date() },
@@ -107,9 +116,11 @@ export class PrismaUserRefreshTokenRepository implements IUserRefreshTokenReposi
     }
 
     async replaceUserTokens(userId: number, data: CreateRefreshTokenData): Promise<UserRefreshToken> {
+        const numericUserId = NumberUtil.ensureValidId(userId, 'User ID');
+        
         // Xóa tất cả tokens cũ của user (single device login)
         await this.prisma.userRefreshToken.deleteMany({
-            where: { userId },
+            where: { userId: numericUserId },
         });
 
         // Tạo token mới
@@ -117,10 +128,12 @@ export class PrismaUserRefreshTokenRepository implements IUserRefreshTokenReposi
     }
 
     async revokeTokenWithReplacement(tokenHash: string, replacedByTokenId: number): Promise<boolean> {
+        const numericReplacedByTokenId = NumberUtil.ensureValidId(replacedByTokenId, 'Replaced By Token ID');
+        
         try {
             await this.prisma.userRefreshToken.update({
                 where: { tokenHash },
-                data: { revokedAt: new Date(), replacedByTokenId },
+                data: { revokedAt: new Date(), replacedByTokenId: numericReplacedByTokenId },
             });
             return true;
         } catch (error) {

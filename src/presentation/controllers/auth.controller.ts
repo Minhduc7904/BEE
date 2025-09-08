@@ -15,6 +15,7 @@ import { LoginResponseDto } from '../../application/dtos/auth/login-response.dto
 import { BaseResponseDto } from '../../application/dtos/base-response.dto';
 import { ErrorResponseDto } from '../../application/dtos/error-response.dto';
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util';
+import { AuthOnly } from '../../shared/decorators/permission.decorator';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -32,18 +33,18 @@ export class AuthController {
     @Post('/admin/register')
     @HttpCode(HttpStatus.CREATED)
     @ApiOperation({ summary: 'Đăng ký tài khoản admin' })
-    @ApiResponse({ 
-        status: 201, 
+    @ApiResponse({
+        status: HttpStatus.CREATED,
         description: 'Đăng ký admin thành công',
-        type: RegisterAdminResponseDto 
+        type: RegisterAdminResponseDto
     })
-    @ApiResponse({ 
-        status: 400, 
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
         description: 'Dữ liệu không hợp lệ',
         type: ErrorResponseDto
     })
-    @ApiResponse({ 
-        status: 409, 
+    @ApiResponse({
+        status: HttpStatus.CONFLICT,
         description: 'Username hoặc email đã tồn tại',
         type: ErrorResponseDto
     })
@@ -54,18 +55,18 @@ export class AuthController {
     @Post('/student/register')
     @HttpCode(HttpStatus.CREATED)
     @ApiOperation({ summary: 'Đăng ký tài khoản học sinh' })
-    @ApiResponse({ 
-        status: 201, 
+    @ApiResponse({
+        status: HttpStatus.CREATED,
         description: 'Đăng ký student thành công',
-        type: RegisterStudentResponseDto 
+        type: RegisterStudentResponseDto
     })
-    @ApiResponse({ 
-        status: 400, 
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
         description: 'Dữ liệu không hợp lệ',
         type: ErrorResponseDto
     })
-    @ApiResponse({ 
-        status: 409, 
+    @ApiResponse({
+        status: HttpStatus.CONFLICT,
         description: 'Username hoặc email đã tồn tại',
         type: ErrorResponseDto
     })
@@ -76,62 +77,62 @@ export class AuthController {
     @Post('/admin/login')
     @HttpCode(HttpStatus.OK)
     @ApiOperation({ summary: 'Đăng nhập tài khoản admin' })
-    @ApiResponse({ 
-        status: 200, 
+    @ApiResponse({
+        status: HttpStatus.OK,
         description: 'Đăng nhập admin thành công',
-        type: LoginResponseDto 
+        type: LoginResponseDto
     })
-    @ApiResponse({ 
-        status: 404, 
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
         description: 'Admin không tồn tại',
         type: ErrorResponseDto
     })
-    @ApiResponse({ 
-        status: 400, 
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
         description: 'Mật khẩu không đúng',
         type: ErrorResponseDto
     })
-    async loginAdmin(@Body() loginDto: LoginRequestDto): Promise<LoginResponseDto> {
+    async loginAdmin(@Body() loginDto: LoginRequestDto): Promise<BaseResponseDto<LoginResponseDto>> {
         return ExceptionHandler.execute(() => this.loginAdminUseCase.execute(loginDto));
     }
 
     @Post('/student/login')
     @HttpCode(HttpStatus.OK)
     @ApiOperation({ summary: 'Đăng nhập tài khoản học sinh' })
-    @ApiResponse({ 
-        status: 200, 
+    @ApiResponse({
+        status: HttpStatus.OK,
         description: 'Đăng nhập student thành công',
-        type: LoginResponseDto 
+        type: LoginResponseDto
     })
-    @ApiResponse({ 
-        status: 404, 
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
         description: 'Student không tồn tại',
         type: ErrorResponseDto
     })
-    @ApiResponse({ 
-        status: 400, 
+    @ApiResponse({
+        status: HttpStatus.BAD_REQUEST,
         description: 'Mật khẩu không đúng',
         type: ErrorResponseDto
     })
-    async loginStudent(@Body() loginDto: LoginRequestDto): Promise<LoginResponseDto> {
+    async loginStudent(@Body() loginDto: LoginRequestDto): Promise<BaseResponseDto<LoginResponseDto>> {
         return ExceptionHandler.execute(() => this.loginStudentUseCase.execute(loginDto));
     }
 
     @Post('/refresh')
     @HttpCode(HttpStatus.OK)
     @ApiOperation({ summary: 'Làm mới access token bằng refresh token' })
-    @ApiResponse({ 
-        status: 200, 
+    @ApiResponse({
+        status: HttpStatus.OK,
         description: 'Làm mới token thành công',
         type: BaseResponseDto<RefreshTokenResponseDto>
     })
-    @ApiResponse({ 
-        status: 401, 
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
         description: 'Refresh token không hợp lệ hoặc đã hết hạn',
         type: ErrorResponseDto
     })
-    @ApiResponse({ 
-        status: 404, 
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
         description: 'Người dùng không tồn tại',
         type: ErrorResponseDto
     })
@@ -142,21 +143,22 @@ export class AuthController {
     @Post('/logout')
     @HttpCode(HttpStatus.OK)
     @ApiOperation({ summary: 'Đăng xuất và revoke refresh token' })
-    @ApiResponse({ 
-        status: 200, 
+    @ApiResponse({
+        status: HttpStatus.OK,
         description: 'Đăng xuất thành công',
         type: BaseResponseDto<LogoutResponseDto>
     })
-    @ApiResponse({ 
-        status: 401, 
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
         description: 'Refresh token không hợp lệ hoặc đã hết hạn',
         type: ErrorResponseDto
     })
-    @ApiResponse({ 
-        status: 404, 
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
         description: 'Người dùng không tồn tại',
         type: ErrorResponseDto
     })
+    @AuthOnly()
     async logout(@Body() logoutDto: LogoutRequestDto): Promise<BaseResponseDto<LogoutResponseDto>> {
         return ExceptionHandler.execute(() => this.logoutUseCase.execute(logoutDto));
     }
@@ -164,21 +166,22 @@ export class AuthController {
     @Post('/logout/all-devices')
     @HttpCode(HttpStatus.OK)
     @ApiOperation({ summary: 'Đăng xuất khỏi tất cả thiết bị' })
-    @ApiResponse({ 
-        status: 200, 
+    @ApiResponse({
+        status: HttpStatus.OK,
         description: 'Đăng xuất khỏi tất cả thiết bị thành công',
         type: BaseResponseDto<LogoutResponseDto>
     })
-    @ApiResponse({ 
-        status: 401, 
+    @ApiResponse({
+        status: HttpStatus.UNAUTHORIZED,
         description: 'Refresh token không hợp lệ hoặc đã hết hạn',
         type: ErrorResponseDto
     })
-    @ApiResponse({ 
-        status: 404, 
+    @ApiResponse({
+        status: HttpStatus.NOT_FOUND,
         description: 'Người dùng không tồn tại',
         type: ErrorResponseDto
     })
+    @AuthOnly()
     async logoutAllDevices(@Body() logoutDto: LogoutRequestDto): Promise<BaseResponseDto<LogoutResponseDto>> {
         return ExceptionHandler.execute(() => this.logoutUseCase.executeLogoutAllDevices(logoutDto));
     }

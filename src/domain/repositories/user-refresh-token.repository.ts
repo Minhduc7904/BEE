@@ -1,5 +1,5 @@
 // src/domain/repositories/user-refresh-token.repository.ts
-import { UserRefreshToken } from '../entities/user-refresh-token.entity';
+import { UserRefreshToken } from '../entities/token/user-refresh-token.entity';
 
 export interface CreateRefreshTokenData {
     userId: number;

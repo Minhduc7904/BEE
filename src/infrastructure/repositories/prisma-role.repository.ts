@@ -4,6 +4,7 @@ import { UserRole } from "../../domain/entities/role/user-role.entity";
 import { CreateRoleData, IRoleRepository, UpdateRoleData } from "../../domain/repositories/role.repository";
 import { PrismaService } from "../../prisma/prisma.service";
 import { DomainMapper } from "../mappers/domain-mapper";
+import { NumberUtil } from "../../shared/utils/number.util";
 
 @Injectable()
 export class PrismaRoleRepository implements IRoleRepository {
@@ -24,8 +25,11 @@ export class PrismaRoleRepository implements IRoleRepository {
     }
 
     async findById(id: number): Promise<Role | null> {
+        // Ensure id is a number
+        const numericId = NumberUtil.ensureValidId(id, 'Role ID');
+        
         const role = await this.prisma.role.findUnique({
-            where: { roleId: id },
+            where: { roleId: numericId },
         });
 
         if (!role) return null;
@@ -53,8 +57,10 @@ export class PrismaRoleRepository implements IRoleRepository {
     }
 
     async update(id: number, data: UpdateRoleData): Promise<Role> {
+        const numericId = NumberUtil.ensureValidId(id, 'Role ID');
+        
         const updated = await this.prisma.role.update({
-            where: { roleId: id },
+            where: { roleId: numericId },
             data: {
                 roleName: data.roleName,
                 description: data.description,
@@ -65,14 +71,18 @@ export class PrismaRoleRepository implements IRoleRepository {
     }
 
     async delete(id: number): Promise<void> {
+        const numericId = NumberUtil.ensureValidId(id, 'Role ID');
+        
         await this.prisma.role.delete({
-            where: { roleId: id },
+            where: { roleId: numericId },
         });
     }
 
     async exists(id: number): Promise<boolean> {
+        const numericId = NumberUtil.ensureValidId(id, 'Role ID');
+        
         const count = await this.prisma.role.count({
-            where: { roleId: id },
+            where: { roleId: numericId },
         });
         return count > 0;
     }
@@ -82,9 +92,11 @@ export class PrismaRoleRepository implements IRoleRepository {
     }
 
     async getUserRoles(userId: number): Promise<UserRole[]> {
+        const numericUserId = NumberUtil.ensureValidId(userId, 'User ID');
+        
         // Truy cập UserRole thông qua User relationship
         const user = await this.prisma.user.findUnique({
-            where: { userId, isActive: true },
+            where: { userId: numericUserId, isActive: true },
             include: {
                 userRoles: {
                     where: {
@@ -102,7 +114,7 @@ export class PrismaRoleRepository implements IRoleRepository {
         });
 
         if (!user || !user.userRoles) {
-            console.log('No user or userRoles found for userId:', userId);
+            console.log('No user or userRoles found for userId:', numericUserId);
             return [];
         }
 

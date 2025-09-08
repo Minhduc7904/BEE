@@ -1,7 +1,7 @@
-// src/infrastructure/services/auth.service.ts
 import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
 import { JwtTokenService } from './jwt.service';
 import type { IRoleRepository } from '../../domain/repositories/role.repository';
+import { TokenExpiredError, JsonWebTokenError } from 'jsonwebtoken';
 
 export interface AuthenticatedUser {
     userId: number;
@@ -45,7 +45,18 @@ export class AuthService {
             };
         } catch (error) {
             console.error('AuthService error:', error);
-            throw new UnauthorizedException('Invalid token');
+            
+            // Handle specific JWT errors
+            if (error instanceof TokenExpiredError) {
+                throw new UnauthorizedException('Token đã hết hạn, vui lòng đăng nhập lại');
+            }
+            
+            if (error instanceof JsonWebTokenError) {
+                throw new UnauthorizedException('Token không hợp lệ');
+            }
+            
+            // Handle other errors
+            throw new UnauthorizedException('Xác thực thất bại');
         }
     }
 }

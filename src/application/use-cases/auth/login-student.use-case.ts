@@ -5,13 +5,13 @@ import { PasswordService } from '../../../infrastructure/services/password.servi
 import { JwtTokenService } from '../../../infrastructure/services/jwt.service';
 import { TokenHashService } from '../../../infrastructure/services/token-hash.service';
 import { LoginRequestDto } from '../../dtos/auth/login-request.dto';
-import { LoginResponseDto, TokensDto, UserInfoDto, LoginDataDto } from '../../dtos/auth/login-response.dto';
-import { 
-    NotFoundException, 
-    ValidationException 
+import { LoginResponseDto, TokensDto, UserInfoDto } from '../../dtos/auth/login-response.dto';
+import {
+    NotFoundException,
+    ValidationException
 } from '../../../shared/exceptions/custom-exceptions';
-import { UserRefreshToken } from '../../../domain/entities/user-refresh-token.entity';
 import { v4 as uuidv4 } from 'uuid';
+import { BaseResponseDto } from '../../dtos/base-response.dto';
 
 /**
  * Use case cho student login với single device login
@@ -23,13 +23,13 @@ export class LoginStudentUseCase {
         @Inject('PASSWORD_SERVICE') private readonly passwordService: PasswordService,
         @Inject('JWT_TOKEN_SERVICE') private readonly jwtTokenService: JwtTokenService,
         @Inject('TOKEN_HASH_SERVICE') private readonly tokenHashService: TokenHashService,
-    ) {}
+    ) { }
 
-    async execute(loginDto: LoginRequestDto): Promise<LoginResponseDto> {
+    async execute(loginDto: LoginRequestDto): Promise<BaseResponseDto<LoginResponseDto>> {
         return await this.unitOfWork.executeInTransaction(async (repos) => {
             // 1. Tìm user với student details
             const userWithDetails = await repos.userRepository.findByUsernameWithDetails(loginDto.username);
-            
+
             if (!userWithDetails?.student) {
                 throw new NotFoundException('Student không tồn tại');
             }
@@ -38,7 +38,7 @@ export class LoginStudentUseCase {
 
             // 2. Verify password
             const isPasswordValid = await this.passwordService.comparePassword(
-                loginDto.password, 
+                loginDto.password,
                 user.passwordHash
             );
 
@@ -105,10 +105,10 @@ export class LoginStudentUseCase {
                 }
             };
 
-            return LoginResponseDto.success(
+            return BaseResponseDto.success(
                 'Đăng nhập thành công',
-                { tokens, user: userInfo } as LoginDataDto
-            ) as LoginResponseDto;
+                { tokens, user: userInfo } as LoginResponseDto
+            );
         });
     }
 }

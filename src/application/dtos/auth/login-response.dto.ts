@@ -58,7 +58,10 @@ export class LoginDataDto {
     user: UserInfoDto;
 }
 
-export class LoginResponseDto extends BaseResponseDto<LoginDataDto> {
-    @ApiProperty({ type: LoginDataDto })
-    declare data: LoginDataDto;
+export class LoginResponseDto {
+    @ApiProperty({ type: TokensDto })
+    tokens: TokensDto;
+
+    @ApiProperty({ type: UserInfoDto })
+    user: UserInfoDto;
 }

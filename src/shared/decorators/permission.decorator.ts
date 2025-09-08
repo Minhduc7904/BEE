@@ -6,6 +6,7 @@ import { RolesGuard } from '../guards/roles.guard';
 import { RequireRoles } from './roles.decorator';
 import { ErrorResponseDto } from '../../application/dtos/error-response.dto';
 import { ROLE_NAMES, ADMIN_ROLES, CONTENT_CREATOR_ROLES } from '../constants/roles.constant';
+import { HttpStatus } from '@nestjs/common';
 
 /**
  * Decorator tổng hợp để áp dụng authentication và authorization
@@ -16,7 +17,7 @@ export function RequireAuth(...roles: string[]) {
         RequireRoles(...roles),
         ApiBearerAuth('JWT-auth'),
         ApiResponse({
-            status: 401,
+            status: HttpStatus.UNAUTHORIZED,
             description: 'Không có token hoặc token không hợp lệ',
             type: ErrorResponseDto,
             example: {
@@ -28,7 +29,7 @@ export function RequireAuth(...roles: string[]) {
             }
         }),
         ApiResponse({
-            status: 403,
+            status: HttpStatus.FORBIDDEN,
             description: `Không có quyền truy cập - Yêu cầu role: ${roles.join(', ')} (SUPER_ADMIN tự động có quyền)`,
             type: ErrorResponseDto,
             example: {

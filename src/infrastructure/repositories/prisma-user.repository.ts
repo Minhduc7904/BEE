@@ -5,6 +5,7 @@ import { User } from '../../domain/entities/user/user.entity';
 import { Admin } from '../../domain/entities/user/admin.entity';
 import { Student } from '../../domain/entities/user/student.entity';
 import { DomainMapper } from '../mappers/domain-mapper';
+import { NumberUtil } from '../../shared/utils/number.util';
 
 export class PrismaUserRepository implements IUserRepository {
     constructor(private readonly prisma: PrismaService | any) { } // any để hỗ trợ transaction client
@@ -24,8 +25,10 @@ export class PrismaUserRepository implements IUserRepository {
     }
 
     async findById(id: number): Promise<User | null> {
+        const numericId = NumberUtil.ensureValidId(id, 'User ID');
+        
         const prismaUser = await this.prisma.user.findUnique({
-            where: { userId: id },
+            where: { userId: numericId },
         });
 
         return DomainMapper.toDomainUser(prismaUser);
@@ -56,8 +59,10 @@ export class PrismaUserRepository implements IUserRepository {
     }
 
     async updateLastLogin(userId: number): Promise<void> {
+        const numericUserId = NumberUtil.ensureValidId(userId, 'User ID');
+        
         await this.prisma.user.update({
-            where: { userId },
+            where: { userId: numericUserId },
             data: {
                 lastLoginAt: new Date(),
             },
@@ -73,8 +78,10 @@ export class PrismaUserRepository implements IUserRepository {
     }
 
     async update(id: number, data: Partial<User>): Promise<User> {
+        const numericId = NumberUtil.ensureValidId(id, 'User ID');
+        
         const prismaUser = await this.prisma.user.update({
-            where: { userId: id },
+            where: { userId: numericId },
             data: {
                 username: data.username,
                 email: data.email,
@@ -89,9 +96,11 @@ export class PrismaUserRepository implements IUserRepository {
     }
 
     async delete(id: number): Promise<boolean> {
+        const numericId = NumberUtil.ensureValidId(id, 'User ID');
+        
         try {
             await this.prisma.user.delete({
-                where: { userId: id },
+                where: { userId: numericId },
             });
             return true;
         } catch (error) {

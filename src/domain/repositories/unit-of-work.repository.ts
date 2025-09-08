@@ -9,6 +9,7 @@ import { ISolutionImageRepository } from './solution-image.repository';
 import { IMediaImageRepository } from './media-image.repository';
 import { IImageRepository } from './image.repository';
 import { IRoleRepository } from './role.repository';
+import { IAdminAuditLogRepository } from './admin-audit-log.repository';
 
 // src/domain/repositories/unit-of-work.repository.ts
 export interface UnitOfWorkRepos {
@@ -22,6 +23,7 @@ export interface UnitOfWorkRepos {
     mediaImageRepository: IMediaImageRepository;
     imageRepository: IImageRepository;
     roleRepository: IRoleRepository;
+    adminAuditLogRepository: IAdminAuditLogRepository;
 }
 
 export interface IUnitOfWork {

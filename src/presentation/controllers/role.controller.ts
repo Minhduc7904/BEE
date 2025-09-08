@@ -21,7 +21,7 @@ export class RoleController {
     @AdminOnly() // Sử dụng decorator mới - chỉ ADMIN, SUPER_ADMIN tự động có quyền
     @ApiOperation({ summary: 'Tạo role mới - Yêu cầu quyền ADMIN (SUPER_ADMIN tự động có quyền)' })
     @ApiResponse({
-        status: 201,
+        status: HttpStatus.CREATED,
         description: 'Role được tạo thành công',
         schema: {
             type: 'object',
@@ -46,46 +46,46 @@ export class RoleController {
         }
     })
     @ApiResponse({
-        status: 400,
+        status: HttpStatus.BAD_REQUEST,
         description: 'Dữ liệu không hợp lệ',
         type: ErrorResponseDto,
         example: {
             success: false,
             message: 'Dữ liệu không hợp lệ',
-            statusCode: 400,
+            statusCode: HttpStatus.BAD_REQUEST,
             timestamp: '2025-09-05T13:30:00.000Z',
             path: '/roles',
             errors: ['roleName không được để trống']
         }
     })
     @ApiResponse({
-        status: 403,
+        status: HttpStatus.FORBIDDEN,
         description: 'Không có quyền truy cập',
         type: ErrorResponseDto,
         example: {
             success: false,
             message: 'Không có quyền truy cập - Yêu cầu role: ADMIN (SUPER_ADMIN tự động có quyền)',
-            statusCode: 403,
+            statusCode: HttpStatus.FORBIDDEN,
             timestamp: '2025-09-05T13:30:00.000Z',
             path: '/roles'
         }
     })
     @ApiResponse({
-        status: 409,
+        status: HttpStatus.CONFLICT,
         description: 'Role đã tồn tại',
         type: ErrorResponseDto,
         example: {
             success: false,
             message: 'Role đã tồn tại',
-            statusCode: 409,
+            statusCode: HttpStatus.CONFLICT,
             timestamp: '2025-09-05T13:30:00.000Z',
             path: '/roles'
         }
     })
     async createRole(
         @Body() dto: CreateRoleDto,
-        @CurrentUser() currentUser: AuthenticatedUser
+        @CurrentUser('adminId') adminId: number,
     ): Promise<BaseResponseDto<RoleResponseDto>> {
-        return ExceptionHandler.execute(() => this.createRoleUseCase.execute(dto));
+        return ExceptionHandler.execute(() => this.createRoleUseCase.execute(dto, adminId));
     }
 }
