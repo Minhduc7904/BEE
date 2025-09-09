@@ -33,13 +33,22 @@ export class HttpExceptionFilter implements ExceptionFilter {
                     ? exceptionResponse['message'].join(', ')
                     : exceptionResponse['message'];
             }
+        } else if (exception instanceof Error) {
+            // Xử lý các lỗi không phải HttpException
+            message = exception.message || 'Đã xảy ra lỗi không mong muốn';
+            this.logger.error(`Unhandled error: ${exception.message}`, exception.stack);
         }
 
         // Log lỗi nếu là server error
-        if (status >= 500) {
+        if (status >= HttpStatus.INTERNAL_SERVER_ERROR) {
             this.logger.error(
-                `${request.method} ${request.url}`,
+                `${request.method} ${request.url} - Status: ${status}`,
                 exception instanceof Error ? exception.stack : exception,
+            );
+        } else if (status >= HttpStatus.BAD_REQUEST) {
+            // Log warning cho client errors
+            this.logger.warn(
+                `${request.method} ${request.url} - Status: ${status} - Message: ${message}`
             );
         }
 

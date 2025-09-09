@@ -1,11 +1,12 @@
 // src/presentation/controllers/google-auth-admin.controller.ts
-import { Controller, Get, UseGuards, Req, Res, HttpStatus } from '@nestjs/common';
+import { Controller, Get, UseGuards, Req, Res, HttpStatus, HttpCode } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { GoogleOAuthAdminGuard } from '../../shared/guards/google-oauth-admin.guard';
 import { GoogleOAuthAdminUseCase } from '../../application/use-cases/auth/admin/google-oauth-admin.use-case';
 import { GoogleUserProfileDto, GoogleAuthResponseDto } from '../../application/dtos/auth/google-auth.dto';
 import { ErrorResponseDto } from '../../application/dtos/error-response.dto';
+import { ExceptionHandler } from '../../shared/utils/exception-handler.util';
 
 @ApiTags('Google Authentication - Admin')
 @Controller('auth/google/admin')
@@ -21,7 +22,7 @@ export class GoogleAuthAdminController {
         description: 'Redirect admin đến Google để đăng nhập'
     })
     @ApiResponse({
-        status: 302,
+        status: HttpStatus.FOUND,
         description: 'Redirect đến Google OAuth'
     })
     async googleAuthAdmin() {
@@ -29,13 +30,14 @@ export class GoogleAuthAdminController {
     }
 
     @Get('callback')
+    @HttpCode(HttpStatus.OK)
     @UseGuards(GoogleOAuthAdminGuard)
     @ApiOperation({ 
         summary: 'Google OAuth callback cho Admin',
         description: 'Xử lý callback từ Google sau khi admin đăng nhập. Chỉ cho phép tài khoản admin hoặc tạo admin mới.'
     })
     @ApiResponse({
-        status: 200,
+        status: HttpStatus.OK,
         description: 'Đăng nhập Google Admin thành công',
         type: GoogleAuthResponseDto,
         example: {
@@ -53,7 +55,7 @@ export class GoogleAuthAdminController {
         }
     })
     @ApiResponse({
-        status: 400,
+        status: HttpStatus.BAD_REQUEST,
         description: 'Lỗi xác thực Google',
         type: ErrorResponseDto,
         example: {
@@ -65,7 +67,7 @@ export class GoogleAuthAdminController {
         }
     })
     @ApiResponse({
-        status: 401,
+        status: HttpStatus.UNAUTHORIZED,
         description: 'Tài khoản không có quyền admin',
         type: ErrorResponseDto,
         example: {
@@ -77,7 +79,7 @@ export class GoogleAuthAdminController {
         }
     })
     @ApiResponse({
-        status: 409,
+        status: HttpStatus.CONFLICT,
         description: 'Username đã tồn tại',
         type: ErrorResponseDto,
         example: {
@@ -92,7 +94,7 @@ export class GoogleAuthAdminController {
         @Req() req: Request,
         @Res() res: Response
     ) {
-        try {
+        return ExceptionHandler.execute(async () => {
             const googleProfile = req.user as GoogleUserProfileDto;
             
             if (!googleProfile) {
@@ -114,19 +116,6 @@ export class GoogleAuthAdminController {
             // const frontendUrl = process.env.ADMIN_FRONTEND_URL || 'http://localhost:3000/admin';
             // const redirectUrl = `${frontendUrl}/auth/success?token=${result.accessToken}&refresh=${result.refreshToken}`;
             // return res.redirect(redirectUrl);
-            
-        } catch (error) {
-            console.error('Google OAuth Admin error:', error);
-            
-            const statusCode = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-            
-            return res.status(statusCode).json({
-                success: false,
-                message: error.message || 'Lỗi đăng nhập Google Admin',
-                statusCode,
-                timestamp: new Date().toISOString(),
-                path: '/auth/google/admin/callback'
-            });
-        }
+        });
     }
 }
