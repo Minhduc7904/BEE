@@ -24,11 +24,12 @@ model User {
   emailVerifiedAt DateTime? @map("email_verified_at") @db.Timestamp(0)
 
   // relations khác giữ nguyên…
-  student           Student?           @relation("UserStudent")
-  admin             Admin?             @relation("UserAdmin")
-  UserRefreshToken  UserRefreshToken[]
-  userRoles         UserRole[]
-  assignedUserRoles UserRole[]         @relation("UserRoleAssigner")
+  student                 Student?                 @relation("UserStudent")
+  admin                   Admin?                   @relation("UserAdmin")
+  UserRefreshToken        UserRefreshToken[]
+  userRoles               UserRole[]
+  assignedUserRoles       UserRole[]               @relation("UserRoleAssigner")
+  EmailVerificationToken  EmailVerificationToken[]
 
   @@index([lastName, firstName], map: "idx_users_name")
   @@map("users")
@@ -507,5 +508,3 @@ model LessonLearningItem {
   @@index([learningItemId], map: "idx_lesson_learning_items_learning_item")
   @@map("lesson_learning_items")
 }
-
-model 

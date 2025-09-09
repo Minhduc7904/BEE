@@ -69,6 +69,18 @@ export class PrismaUserRepository implements IUserRepository {
         });
     }
 
+    async updateEmailVerification(userId: number, isVerified: boolean): Promise<void> {
+        const numericUserId = NumberUtil.ensureValidId(userId, 'User ID');
+        
+        await this.prisma.user.update({
+            where: { userId: numericUserId },
+            data: {
+                isEmailVerified: isVerified,
+                emailVerifiedAt: isVerified ? new Date() : null,
+            },
+        });
+    }
+
     async findByEmail(email: string): Promise<User | null> {
         const prismaUser = await this.prisma.user.findUnique({
             where: { email },

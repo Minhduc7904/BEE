@@ -20,7 +20,7 @@ export interface AuthenticatedUser {
 export class AuthService {
     constructor(
         @Inject('JWT_TOKEN_SERVICE') private readonly jwtTokenService: JwtTokenService,
-        @Inject('ROLE_REPOSITORY') private readonly roleRepository: IRoleRepository,
+        @Inject('IRoleRepository') private readonly roleRepository: IRoleRepository,
     ) {}
 
     async verifyTokenAndGetUser(token: string): Promise<AuthenticatedUser> {

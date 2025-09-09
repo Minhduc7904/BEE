@@ -1,9 +1,9 @@
 import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiResponse, ApiOperation } from '@nestjs/swagger';
-import { RegisterAdminUseCase } from '../../application/use-cases/auth/register-admin.use-case';
-import { RegisterStudentUseCase } from '../../application/use-cases/auth/register-student.use-case';
-import { LoginAdminUseCase } from '../../application/use-cases/auth/login-admin.use-case';
-import { LoginStudentUseCase } from '../../application/use-cases/auth/login-student.use-case';
+import { RegisterAdminUseCase } from '../../application/use-cases/auth/admin/register-admin.use-case';
+import { RegisterStudentUseCase } from '../../application/use-cases/auth/student/register-student.use-case';
+import { LoginAdminUseCase } from '../../application/use-cases/auth/admin/login-admin.use-case';
+import { LoginStudentUseCase } from '../../application/use-cases/auth/student/login-student.use-case';
 import { RefreshTokenUseCase } from '../../application/use-cases/auth/refresh-token.use-case';
 import { LogoutUseCase } from '../../application/use-cases/auth/logout.use-case';
 import { RegisterAdminDto, RegisterStudentDto } from '../../application/dtos/auth/register-request.dto';

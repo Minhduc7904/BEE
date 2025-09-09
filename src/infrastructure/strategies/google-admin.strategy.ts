@@ -1,4 +1,4 @@
-// src/infrastructure/strategies/google.strategy.ts
+// src/infrastructure/strategies/google-admin.strategy.ts
 import { Injectable, Inject } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback } from 'passport-google-oauth20';
@@ -7,16 +7,16 @@ import googleOAuthConfig from '../../config/google-oauth.config';
 import { GoogleUserProfileDto } from '../../application/dtos/auth/google-auth.dto';
 
 @Injectable()
-export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
+export class GoogleAdminStrategy extends PassportStrategy(Strategy, 'google-admin') {
     constructor(
         @Inject(googleOAuthConfig.KEY)
         private readonly googleConfig: ConfigType<typeof googleOAuthConfig>,
     ) {
         // Debug log để kiểm tra config
-        console.log('Google OAuth Config:', {
+        console.log('Google OAuth Admin Config:', {
             clientID: googleConfig.clientID ? 'PRESENT' : 'MISSING',
             clientSecret: googleConfig.clientSecret ? 'PRESENT' : 'MISSING',
-            callbackURL: googleConfig.callbackURL
+            callbackURL: `${googleConfig.callbackURL.replace('/callback', '/admin/callback')}`
         });
 
         if (!googleConfig.clientID || !googleConfig.clientSecret) {
@@ -26,7 +26,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
         super({
             clientID: googleConfig.clientID,
             clientSecret: googleConfig.clientSecret,
-            callbackURL: googleConfig.callbackURL,
+            callbackURL: googleConfig.callbackURL.replace('/callback', '/admin/callback'),
             scope: ['email', 'profile'],
         });
     }

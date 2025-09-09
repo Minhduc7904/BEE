@@ -10,6 +10,7 @@ import { SolutionImage } from '../../domain/entities/image/solution-image.entity
 import { MediaImage } from '../../domain/entities/image/media-image.entity';
 import { Image } from '../../domain/entities/image/image.entity';
 import { AdminAuditLog } from '../../domain/entities/log/admin-audit-log.entity';
+import { EmailVerificationToken } from '../../domain/entities/token/email-verification-token.entity';
 /**
  * Mapper class để convert từ Prisma models sang Domain entities
  */
@@ -28,7 +29,11 @@ export class DomainMapper {
             prismaUser.lastName,
             prismaUser.isActive,
             prismaUser.email ?? undefined,
-            prismaUser.createdAt
+            prismaUser.createdAt,
+            prismaUser.isEmailVerified ?? false,
+            prismaUser.emailVerifiedAt ?? undefined,
+            prismaUser.lastLoginAt ?? undefined,
+            prismaUser.updatedAt ?? undefined
         );
     }
 
@@ -192,5 +197,21 @@ export class DomainMapper {
             prismaLog.createdAt,
             this.toDomainAdmin(prismaLog.admin)
         );
+    }
+
+    /**
+     * Convert Prisma EmailVerificationToken model sang Domain EmailVerificationToken entity
+     */
+    static toEmailVerificationTokenDomain(prismaToken: any): EmailVerificationToken | null {
+        if (!prismaToken) return null;
+
+        return new EmailVerificationToken({
+            id: prismaToken.id,
+            userId: prismaToken.userId,
+            tokenHash: prismaToken.tokenHash,
+            expiresAt: prismaToken.expiresAt,
+            createdAt: prismaToken.createdAt,
+            consumedAt: prismaToken.consumedAt ?? undefined,
+        });
     }
 }

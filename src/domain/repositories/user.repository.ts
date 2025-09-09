@@ -23,6 +23,7 @@ export interface IUserRepository {
     } | null>;
 
     updateLastLogin(userId: number): Promise<void>;
+    updateEmailVerification(userId: number, isVerified: boolean): Promise<void>;
     update(id: number, data: Partial<User>): Promise<User>;
     delete(id: number): Promise<boolean>;
     existsByUsername(username: string): Promise<boolean>;

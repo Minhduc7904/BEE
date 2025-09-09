@@ -1,8 +1,8 @@
 // src/application/dtos/student/student-response.dto.ts
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { UserResponseDto } from '../user/user.dto';
+import { UserResponseDto, UpdateUserDto } from '../user/user.dto';
 import { PaginationResponseDto } from '../pagination/pagination-response.dto';
-import { IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, IsInt, Min, Max, Matches } from 'class-validator';
 
 export class StudentResponseDto extends UserResponseDto {
     @ApiProperty({ description: 'ID của student', example: 1 })
@@ -71,28 +71,45 @@ export class StudentListResponseDto extends PaginationResponseDto<StudentRespons
     declare data: StudentResponseDto[];
 }
 
-export class UpdateStudentDto {
-    @ApiPropertyOptional({
-        description: 'Số điện thoại học sinh',
-        example: '0123456789'
+export class UpdateStudentDto extends UpdateUserDto {
+    @ApiPropertyOptional({ 
+        description: 'Số điện thoại sinh viên mới',
+        example: '0123456789',
+        pattern: '^[0-9]{10,11}$'
     })
     @IsOptional()
-    @IsString({ message: 'Số điện thoại học sinh phải là chuỗi' })
+    @IsString({ message: 'Số điện thoại sinh viên phải là chuỗi ký tự' })
+    @Matches(/^[0-9]{10,11}$/, { message: 'Số điện thoại sinh viên phải có 10-11 chữ số' })
     studentPhone?: string;
 
-    @ApiPropertyOptional({
-        description: 'Số điện thoại phụ huynh',
-        example: '0987654321'
+    @ApiPropertyOptional({ 
+        description: 'Số điện thoại phụ huynh mới',
+        example: '0987654321',
+        pattern: '^[0-9]{10,11}$'
     })
     @IsOptional()
-    @IsString({ message: 'Số điện thoại phụ huynh phải là chuỗi' })
+    @IsString({ message: 'Số điện thoại phụ huynh phải là chuỗi ký tự' })
+    @Matches(/^[0-9]{10,11}$/, { message: 'Số điện thoại phụ huynh phải có 10-11 chữ số' })
     parentPhone?: string;
-    
-    @ApiPropertyOptional({
-        description: 'Trường học',
-        example: 'THPT Chu Văn An'
+
+    @ApiPropertyOptional({ 
+        description: 'Khối lớp mới',
+        example: 12,
+        minimum: 1,
+        maximum: 12
     })
     @IsOptional()
-    @IsString({ message: 'Trường học phải là chuỗi' })
+    @IsInt({ message: 'Khối lớp phải là số nguyên' })
+    @Min(1, { message: 'Khối lớp phải từ 1 đến 12' })
+    @Max(12, { message: 'Khối lớp phải từ 1 đến 12' })
+    grade?: number;
+
+    @ApiPropertyOptional({ 
+        description: 'Trường học mới',
+        example: 'THPT Lý Thái Tổ',
+        maxLength: 120
+    })
+    @IsOptional()
+    @IsString({ message: 'Trường học phải là chuỗi ký tự' })
     school?: string;
 }

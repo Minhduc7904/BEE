@@ -7,7 +7,7 @@ import { StudentListResponseDto, StudentResponseDto } from '../../dtos/student/s
 @Injectable()
 export class GetAllStudentUseCase {
     constructor(
-        @Inject('STUDENT_REPOSITORY') private readonly studentRepository: IStudentRepository,
+        @Inject('IStudentRepository') private readonly studentRepository: IStudentRepository,
     ) { }
 
     async execute(query: StudentListQueryDto): Promise<StudentListResponseDto> {

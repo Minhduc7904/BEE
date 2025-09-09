@@ -33,3 +33,9 @@ export * from './role/user-role.dto';
 // Student DTOs
 export * from './student/student.dto';
 export * from './student/student-list-query.dto';
+
+// User DTOs
+export * from './user/user.dto';
+
+// Admin DTOs
+export * from './admin/admin.dto';

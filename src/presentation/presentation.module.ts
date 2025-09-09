@@ -5,10 +5,14 @@ import { InfrastructureModule } from '../infrastructure/infrastructure.module';
 import { AuthController } from './controllers/auth.controller';
 import { ResourceController } from './controllers/resource.controller';
 import { RoleController } from './controllers/role.controller';
-import { GoogleAuthController } from './controllers/google-auth.controller';
+import { GoogleAuthAdminController } from './controllers/google-auth-admin.controller';
+import { GoogleAuthStudentController } from './controllers/google-auth-student.controller';
 import { SharedModule } from '../shared/shared.module';
 import { AdminAuditLogController } from './controllers/admin-audit-log.controller';
 import { StudentController } from './controllers/student.controller';
+import { UserController } from './controllers/user.controller';
+import { EmailController } from './controllers/email.controller';
+import { EmailVerificationController } from './controllers/email-verification.controller';
 
 @Module({
     imports: [ApplicationModule, InfrastructureModule, SharedModule],
@@ -18,6 +22,11 @@ import { StudentController } from './controllers/student.controller';
         RoleController,
         AdminAuditLogController,
         StudentController,
+        UserController,
+        GoogleAuthAdminController,
+        GoogleAuthStudentController,
+        EmailController,
+        EmailVerificationController,
     ],
 })
 export class PresentationModule { }

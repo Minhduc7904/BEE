@@ -1,6 +1,6 @@
 // src/auth/dto/register-response.dto.ts
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { AdminResponseDto } from '../admin/admin-response.dto';
+import { AdminResponseDto } from '../admin/admin.dto';
 import { StudentResponseDto } from '../student/student.dto';
 import { BaseResponseDto } from '../base-response.dto';
 

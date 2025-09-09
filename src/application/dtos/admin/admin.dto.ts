@@ -7,17 +7,8 @@ export class AdminResponseDto extends UserResponseDto {
     @ApiProperty({ description: 'ID của admin', example: 1 })
     adminId: number;
 
-    @ApiProperty({ description: 'Môn học', example: 'Mathematics' })
-    subject: string;
-
-    @ApiProperty({ description: 'Mô tả về admin', example: 'Giáo viên toán học', required: false })
-    description?: string;
-
-    @ApiProperty({ description: 'Số năm kinh nghiệm', example: 5, required: false })
-    experienceYears?: number;
-
-    @ApiProperty({ description: 'Chuyên môn', example: 'Algebra, Geometry', required: false })
-    specialization?: string;
+    @ApiPropertyOptional({ description: 'Môn học', example: 'Mathematics', required: false })
+    subject?: string;
 
     constructor(partial: Partial<AdminResponseDto>) {
         super(partial);
@@ -34,9 +25,6 @@ export class AdminResponseDto extends UserResponseDto {
             ...baseUser,
             adminId: admin.adminId,
             subject: admin.subject,
-            description: admin.description,
-            experienceYears: admin.experienceYears,
-            specialization: admin.specialization
         });
     }
 
@@ -62,24 +50,4 @@ export class UpdateAdminDto extends UpdateUserDto {
     @IsString({ message: 'Môn học phải là chuỗi ký tự' })
     @MaxLength(120, { message: 'Môn học không được vượt quá 120 ký tự' })
     subject?: string;
-
-    @ApiPropertyOptional({ 
-        description: 'Mô tả về admin mới',
-        example: 'Giáo viên vật lý với 10 năm kinh nghiệm',
-        maxLength: 500
-    })
-    @IsOptional()
-    @IsString({ message: 'Mô tả phải là chuỗi ký tự' })
-    @MaxLength(500, { message: 'Mô tả không được vượt quá 500 ký tự' })
-    description?: string;
-
-    @ApiPropertyOptional({ 
-        description: 'Chuyên môn mới',
-        example: 'Cơ học, Điện học, Quang học',
-        maxLength: 300
-    })
-    @IsOptional()
-    @IsString({ message: 'Chuyên môn phải là chuỗi ký tự' })
-    @MaxLength(300, { message: 'Chuyên môn không được vượt quá 300 ký tự' })
-    specialization?: string;
 }
