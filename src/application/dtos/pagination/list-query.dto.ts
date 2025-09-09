@@ -3,95 +3,65 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsOptional, IsPositive, Min, Max, IsString, MaxLength, IsIn, IsDateString } from 'class-validator';
 import { Trim } from 'src/shared/decorators/trim.decorator';
+import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants';
+import { VALIDATION_MESSAGES } from '../../../shared/constants/validation-messages';
 /**
  * DTO flat cho các query list có pagination, sort và filter
  */
 export class ListQueryDto {
     // Pagination properties
-    @ApiPropertyOptional({
-        description: 'Số trang (bắt đầu từ 1)',
-        example: 1,
-        minimum: 1,
-        default: 1
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.PAGE)
     @IsOptional()
     @Type(() => Number)
-    @IsPositive({ message: 'Số trang phải là số nguyên dương' })
-    @Min(1, { message: 'Số trang phải bắt đầu từ 1' })
+    @IsPositive({ message: VALIDATION_MESSAGES.FIELD_INVALID('Số trang') })
+    @Min(1, { message: VALIDATION_MESSAGES.FIELD_INVALID('Số trang') })
     page?: number = 1;
 
-    @ApiPropertyOptional({
-        description: 'Số bản ghi trên mỗi trang',
-        example: 10,
-        minimum: 1,
-        maximum: 100,
-        default: 10
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.LIMIT)
     @IsOptional()
     @Type(() => Number)
-    @IsPositive({ message: 'Kích thước trang phải là số nguyên dương' })
-    @Min(1, { message: 'Kích thước trang tối thiểu là 1' })
-    @Max(100, { message: 'Kích thước trang tối đa là 100' })
+    @IsPositive({ message: VALIDATION_MESSAGES.FIELD_INVALID('Kích thước trang') })
+    @Min(1, { message: VALIDATION_MESSAGES.FIELD_INVALID('Kích thước trang') })
+    @Max(100, { message: VALIDATION_MESSAGES.FIELD_INVALID('Kích thước trang') })
     limit?: number = 10;
 
     // Search property
-    @ApiPropertyOptional({
-        description: 'Từ khóa tìm kiếm',
-        example: 'admin',
-        maxLength: 255
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.SEARCH)
     @IsOptional()
-    @IsString({ message: 'Từ khóa tìm kiếm phải là chuỗi' })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Từ khóa tìm kiếm') })
     @Trim()
-    @MaxLength(255, { message: 'Từ khóa tìm kiếm không được vượt quá 255 ký tự' })
+    @MaxLength(255, { message: VALIDATION_MESSAGES.FIELD_MAX('Từ khóa tìm kiếm', 255) })
     search?: string;
 
     // Sort properties
-    @ApiPropertyOptional({
-        description: 'Trường để sắp xếp',
-        example: 'createdAt'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.SORT_BY)
     @IsOptional()
-    @IsString({ message: 'Trường sắp xếp phải là chuỗi' })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Trường sắp xếp') })
     @Trim()
-    @MaxLength(50, { message: 'Tên trường sắp xếp không được vượt quá 50 ký tự' })
+    @MaxLength(50, { message: VALIDATION_MESSAGES.FIELD_MAX('Tên trường sắp xếp', 50) })
     sortBy?: string;
 
-    @ApiPropertyOptional({
-        description: 'Thứ tự sắp xếp',
-        example: 'desc',
-        enum: ['asc', 'desc'],
-        default: 'desc'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.SORT_ORDER)
     @IsOptional()
-    @IsString({ message: 'Thứ tự sắp xếp phải là chuỗi' })
-    @IsIn(['asc', 'desc'], { message: 'Thứ tự sắp xếp phải là "asc" hoặc "desc"' })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Thứ tự sắp xếp') })
+    @IsIn(['asc', 'desc'], { message: VALIDATION_MESSAGES.FIELD_INVALID('Thứ tự sắp xếp') })
     sortOrder?: 'asc' | 'desc' = 'desc';
 
     // Filter properties
-    @ApiPropertyOptional({
-        description: 'Lọc theo trạng thái',
-        example: 'active'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.STATUS)
     @IsOptional()
-    @IsString({ message: 'Trạng thái phải là chuỗi' })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái') })
     @Trim()
     status?: string;
 
-    @ApiPropertyOptional({
-        description: 'Lọc từ ngày (ISO 8601)',
-        example: '2024-01-01T00:00:00.000Z'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.FROM_DATE)
     @IsOptional()
-    @IsDateString({}, { message: 'Từ ngày phải có định dạng ISO 8601' })
+    @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Từ ngày') })
     fromDate?: string;
 
-    @ApiPropertyOptional({
-        description: 'Lọc đến ngày (ISO 8601)',
-        example: '2024-12-31T23:59:59.999Z'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.TO_DATE)
     @IsOptional()
-    @IsDateString({}, { message: 'Đến ngày phải có định dạng ISO 8601' })
+    @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Đến ngày') })
     toDate?: string;
 
     /**

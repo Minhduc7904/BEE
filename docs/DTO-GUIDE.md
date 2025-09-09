@@ -247,6 +247,71 @@ export class QueryDto {
 
 ---
 
+## 🎯 Swagger Properties Constants
+
+### **Sử dụng Constants để tái sử dụng**
+
+```typescript
+// src/shared/constants/swagger-properties.constants.ts
+export const SWAGGER_PROPERTIES = {
+    USERNAME: {
+        description: 'Tên đăng nhập',
+        example: 'admin123'
+    },
+    
+    EMAIL: {
+        description: 'Địa chỉ email',
+        example: 'user@example.com'
+    },
+    
+    PHONE: {
+        description: 'Số điện thoại',
+        example: '0123456789'
+    }
+    // ... more properties
+};
+
+// Sử dụng trong DTO
+export class LoginDto {
+    @ApiProperty(SWAGGER_PROPERTIES.USERNAME)
+    @Trim()
+    @IsString()
+    username: string;
+
+    @ApiProperty(SWAGGER_PROPERTIES.EMAIL)
+    @Trim()
+    @IsEmail()
+    email: string;
+
+    // Override properties nếu cần
+    @ApiProperty({
+        ...SWAGGER_PROPERTIES.PHONE,
+        description: 'Số điện thoại sinh viên' // Override description
+    })
+    @Trim()
+    @IsString()
+    studentPhone: string;
+}
+
+// Helper functions
+export const createApiProperty = (baseProperty: any, overrides?: any) => ({
+    ...baseProperty,
+    ...overrides
+});
+
+export const createOptionalApiProperty = (baseProperty: any, overrides?: any) => ({
+    ...baseProperty,
+    required: false,
+    ...overrides
+});
+```
+
+**Lợi ích:**
+- **DRY Principle**: Không lặp lại description/example
+- **Consistency**: Đảm bảo tất cả DTO có cùng format
+- **Maintainability**: Chỉ cần sửa 1 chỗ khi thay đổi
+- **Scalability**: Dễ dàng thêm properties mới
+
 ## 🛠️ Custom Decorators
 
 ### 1. **@Trim Decorator**
@@ -389,12 +454,14 @@ export class CreateUserDto {
 ```typescript
 // Base DTO
 export class BaseUserDto {
+    @ApiProperty(SWAGGER_PROPERTIES.USERNAME)
     @Trim()
     @IsString()
     @MinLength(3)
     @MaxLength(50)
     username: string;
 
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.EMAIL)
     @Trim()
     @IsOptional()
     @IsEmail()
@@ -403,6 +470,7 @@ export class BaseUserDto {
 
 // Extend base DTO
 export class CreateUserDto extends BaseUserDto {
+    @ApiProperty(SWAGGER_PROPERTIES.PASSWORD)
     @IsString()
     @MinLength(8)
     password: string;
@@ -411,6 +479,25 @@ export class CreateUserDto extends BaseUserDto {
 export class UpdateUserDto extends BaseUserDto {
     // Tất cả fields từ BaseUserDto đã là optional trong update
 }
+```
+
+### 5. **Constants Usage Pattern**
+```typescript
+// ✅ Good - Sử dụng constants
+@ApiProperty(SWAGGER_PROPERTIES.USERNAME)
+@ApiPropertyOptional(SWAGGER_PROPERTIES.EMAIL)
+
+// ✅ Good - Override với spread operator
+@ApiProperty({
+    ...SWAGGER_PROPERTIES.PHONE,
+    description: 'Số điện thoại sinh viên'
+})
+
+// ❌ Bad - Hard-code values
+@ApiProperty({
+    description: 'Tên đăng nhập',
+    example: 'admin123'
+})
 ```
 
 ### 5. **Query DTO Pattern**

@@ -2,22 +2,18 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNotEmpty } from 'class-validator';
 import { Trim } from '../../../shared/decorators/trim.decorator';
+import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants';
+import { VALIDATION_MESSAGES } from '../../../shared/constants/validation-messages';
 
 export class LogoutRequestDto {
-    @ApiProperty({ 
-        description: 'Refresh token để revoke',
-        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.REFRESH_TOKEN)
     @Trim()
-    @IsString()
-    @IsNotEmpty({ message: 'Refresh token là bắt buộc' })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Refresh token') })
+    @IsNotEmpty({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Refresh token') })
     refreshToken: string;
 }
 
 export class LogoutResponseDto {
-    @ApiProperty({ 
-        description: 'Thông báo logout thành công',
-        example: 'Đăng xuất thành công'
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.LOGOUT_MESSAGE)
     message: string;
 }

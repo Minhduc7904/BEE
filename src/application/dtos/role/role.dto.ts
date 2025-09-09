@@ -1,27 +1,26 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsOptional, IsString, MaxLength, MinLength, IsBoolean, IsNumber, Min } from "class-validator";
 import { Trim } from "../../../shared/decorators/trim.decorator";
+import { SWAGGER_PROPERTIES } from "../../../shared/constants/swagger-properties.constants";
+import { VALIDATION_MESSAGES } from "../../../shared/constants/validation-messages";
+
 export class CreateRoleDto {
     @ApiProperty({
-        description: 'Tên role',
-        example: 'TEACHER',
+        ...SWAGGER_PROPERTIES.ROLE_NAME,
         minLength: 2,
         maxLength: 50
     })
     @Trim()
-    @IsString()
-    @MinLength(2, { message: 'Tên role phải có ít nhất 2 ký tự' })
-    @MaxLength(50, { message: 'Tên role không được quá 50 ký tự' })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Tên role') })
+    @MinLength(2, { message: VALIDATION_MESSAGES.FIELD_MIN('Tên role', 2) })
+    @MaxLength(50, { message: VALIDATION_MESSAGES.FIELD_MAX('Tên role', 50) })
     roleName: string;
 
-    @ApiPropertyOptional({
-        description: 'Mô tả role',
-        example: 'Role dành cho giảng viên'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.ROLE_DESCRIPTION)
     @Trim()
     @IsOptional()
-    @IsString()
-    @MaxLength(255, { message: 'Mô tả không được quá 255 ký tự' })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Mô tả role') })
+    @MaxLength(255, { message: VALIDATION_MESSAGES.FIELD_MAX('Mô tả', 255) })
     description?: string;
 
     @ApiPropertyOptional({

@@ -3,128 +3,85 @@ import { IsNumber, IsOptional, IsString } from "class-validator";
 import { AuditStatus } from "../../../shared/enums/audit-status.enum";
 import { IsEnumValue } from '../../../shared/decorators/is-enum-value.decorator';
 import { Trim } from '../../../shared/decorators/trim.decorator';
+import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants';
+import { VALIDATION_MESSAGES } from '../../../shared/constants/validation-messages';
 
 export class CreateLogDto {
-    @ApiProperty({
-        description: 'Key của hành động',
-        example: 'CREATE_USER'
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.ACTION_KEY)
     @Trim()
-    @IsString()
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Key hành động') })
     actionKey: string;
 
     @ApiProperty({
-        description: 'Trạng thái của hành động',
+        ...SWAGGER_PROPERTIES.STATUS,
         enum: AuditStatus,
         example: AuditStatus.SUCCESS
     })
     @Trim()
-    @IsEnumValue(AuditStatus)
+    @IsEnumValue(AuditStatus, { message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái') })
     status: AuditStatus;
 
-    @ApiPropertyOptional({
-        description: 'Lỗi nếu có',
-        example: 'User already exists'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.ERROR_MESSAGE)
     @Trim()
     @IsOptional()
-    @IsString()
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Thông báo lỗi') })
     errorMessage?: string;
 
-    @ApiProperty({
-        description: 'Loại tài nguyên',
-        example: 'user'
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.RESOURCE_TYPE)
     @Trim()
-    @IsString()
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Loại tài nguyên') })
     resourceType: string;
 
-    @ApiPropertyOptional({
-        description: 'ID của tài nguyên',
-        example: '1'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.RESOURCE_ID)
     @Trim()
     @IsOptional()
-    @IsString()
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('ID tài nguyên') })
     resourceId?: string;
 
-    @ApiPropertyOptional({
-        description: 'Dữ liệu trước khi thay đổi',
-        example: { name: 'John Doe' }
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.BEFORE_DATA)
     @Trim()
     @IsOptional()
     beforeData?: any;
 
-    @ApiPropertyOptional({
-        description: 'Dữ liệu sau khi thay đổi',
-        example: { name: 'John Smith' }
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.AFTER_DATA)
     @Trim()
     @IsOptional()
     afterData?: any;
 
-    @ApiProperty({
-        description: 'ID của admin thực hiện hành động',
-        example: 1
-    })
-    @IsNumber()
+    @ApiProperty(SWAGGER_PROPERTIES.ADMIN_ID)
+    @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_REQUIRED('ID admin') })
     adminId: number;
 }
 
 export class LogResponseDto {
-    @ApiProperty({
-        description: 'ID của log',
-        example: 1
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.LOG_ID)
     logId: number;
 
-    @ApiProperty({
-        description: 'Key của hành động',
-        example: 'CREATE_USER'
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.ACTION_KEY)
     actionKey: string;
 
     @ApiProperty({
-        description: 'Trạng thái của hành động',
+        ...SWAGGER_PROPERTIES.STATUS,
         enum: AuditStatus,
         example: AuditStatus.SUCCESS
     })
     status: AuditStatus;
 
-    @ApiPropertyOptional({
-        description: 'Lỗi nếu có',
-        example: 'User already exists'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.ERROR_MESSAGE)
     errorMessage?: string;
 
-    @ApiProperty({
-        description: 'Loại tài nguyên',
-        example: 'user'
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.RESOURCE_TYPE)
     resourceType: string;
 
-    @ApiPropertyOptional({
-        description: 'ID của tài nguyên',
-        example: '1'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.RESOURCE_ID)
     resourceId?: string;
 
-    @ApiPropertyOptional({
-        description: 'Dữ liệu trước khi thay đổi',
-        example: { name: 'John Doe' }
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.BEFORE_DATA)
     beforeData?: any;
 
-    @ApiPropertyOptional({
-        description: 'Dữ liệu sau khi thay đổi',
-        example: { name: 'John Smith' }
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.AFTER_DATA)
     afterData?: any;
 
-    @ApiProperty({
-        description: 'Thời gian tạo',
-        example: '2025-09-04T05:36:25.000Z'
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.CREATED_AT)
     createdAt: Date;
 }

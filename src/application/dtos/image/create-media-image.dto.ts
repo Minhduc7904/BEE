@@ -3,51 +3,35 @@ import { IsString, IsOptional, IsUrl, IsNumber } from 'class-validator';
 import { StorageProvider } from '../../../shared/enums/storage-provider.enum';
 import { IsEnumValue } from '../../../shared/decorators/is-enum-value.decorator';
 import { Trim } from '../../../shared/decorators/trim.decorator';
+import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants';
+import { VALIDATION_MESSAGES } from '../../../shared/constants/validation-messages';
 
 export class CreateMediaImageDto {
-  @ApiProperty({ 
-    description: 'URL của ảnh media',
-    example: 'https://example.com/media-image.jpg'
-  })
+  @ApiProperty(SWAGGER_PROPERTIES.URL)
   @Trim()
-  @IsUrl({}, { message: 'URL không hợp lệ' })
-  @IsString()
+  @IsUrl({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('URL') })
+  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('URL') })
   url: string;
 
-  @ApiProperty({ 
-    description: 'URL phụ của ảnh (tùy chọn)',
-    example: 'https://example.com/media-image-alt.jpg',
-    required: false
-  })
+  @ApiProperty(SWAGGER_PROPERTIES.ANOTHER_URL)
   @Trim()
   @IsOptional()
-  @IsUrl({}, { message: 'Another URL không hợp lệ' })
-  @IsString()
+  @IsUrl({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('URL phụ') })
+  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('URL phụ') })
   anotherUrl?: string;
 
-  @ApiProperty({ 
-    description: 'MIME type của file ảnh',
-    example: 'image/jpeg',
-    required: false
-  })
+  @ApiProperty(SWAGGER_PROPERTIES.MIME_TYPE)
   @Trim()
   @IsOptional()
-  @IsString()
+  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('MIME type') })
   mimeType?: string;
 
-  @ApiProperty({ 
-    description: 'Nhà cung cấp lưu trữ',
-    enum: StorageProvider,
-    example: StorageProvider.EXTERNAL
-  })
+  @ApiProperty(SWAGGER_PROPERTIES.STORAGE_PROVIDER)
   @Trim()
-  @IsEnumValue(StorageProvider)
+  @IsEnumValue(StorageProvider, { message: VALIDATION_MESSAGES.FIELD_INVALID('Nhà cung cấp lưu trữ') })
   storageProvider: StorageProvider;
 
-  @ApiProperty({
-    description: 'ID của admin tạo image',
-    example: 1,
-  })
-  @IsNumber()
+  @ApiProperty(SWAGGER_PROPERTIES.ADMIN_ID)
+  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('ID admin') })
   adminId: number;
 }

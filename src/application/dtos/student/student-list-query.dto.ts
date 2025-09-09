@@ -4,123 +4,84 @@ import { Type } from 'class-transformer';
 import { IsOptional, IsString, IsNumber, IsBoolean, IsDateString, Min, Max } from 'class-validator';
 import { ListQueryDto } from '../pagination/list-query.dto';
 import { Trim } from '../../../shared/decorators/trim.decorator';
+import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants';
+import { VALIDATION_MESSAGES } from '../../../shared/constants/validation-messages';
 
 export class StudentListQueryDto extends ListQueryDto {
-    @ApiPropertyOptional({
-        description: 'Lọc theo lớp',
-        example: 12,
-        minimum: 1,
-        maximum: 12
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.GRADE)
     @IsOptional()
     @Type(() => Number)
-    @IsNumber({}, { message: 'Lớp phải là số' })
-    @Min(1, { message: 'Lớp tối thiểu là 1' })
-    @Max(12, { message: 'Lớp tối đa là 12' })
+    @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Lớp') })
+    @Min(1, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Lớp', 1) })
+    @Max(12, { message: VALIDATION_MESSAGES.FIELD_MAX_VALUE('Lớp', 12) })
     grade?: number;
 
-    @ApiPropertyOptional({
-        description: 'Lọc theo trường học',
-        example: 'THPT Nguyễn Huệ'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.SCHOOL)
     @Trim()
     @IsOptional()
-    @IsString({ message: 'Tên trường phải là chuỗi' })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tên trường') })
     school?: string;
 
-    @ApiPropertyOptional({
-        description: 'Lọc theo số điện thoại học sinh',
-        example: '0123456789'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.STUDENT_PHONE)
     @Trim()
     @IsOptional()
-    @IsString({ message: 'Số điện thoại học sinh phải là chuỗi' })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Số điện thoại học sinh') })
     studentPhone?: string;
 
-    @ApiPropertyOptional({
-        description: 'Lọc theo số điện thoại phụ huynh',
-        example: '0987654321'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.PARENT_PHONE)
     @Trim()
     @IsOptional()
-    @IsString({ message: 'Số điện thoại phụ huynh phải là chuỗi' })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Số điện thoại phụ huynh') })
     parentPhone?: string;
 
-    @ApiPropertyOptional({
-        description: 'Lọc theo username',
-        example: 'student01'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.USERNAME)
     @Trim()
     @IsOptional()
-    @IsString({ message: 'Username phải là chuỗi' })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Username') })
     username?: string;
 
-    @ApiPropertyOptional({
-        description: 'Lọc theo email',
-        example: 'student@example.com'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.EMAIL)
     @Trim()
     @IsOptional()
-    @IsString({ message: 'Email phải là chuỗi' })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Email') })
     email?: string;
 
-    @ApiPropertyOptional({
-        description: 'Lọc theo tên',
-        example: 'Nguyễn'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.FIRST_NAME)
     @Trim()
     @IsOptional()
-    @IsString({ message: 'Tên phải là chuỗi' })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tên') })
     firstName?: string;
 
-    @ApiPropertyOptional({
-        description: 'Lọc theo họ',
-        example: 'Văn A'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.LAST_NAME)
     @Trim()
     @IsOptional()
-    @IsString({ message: 'Họ phải là chuỗi' })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Họ') })
     lastName?: string;
 
-    @ApiPropertyOptional({
-        description: 'Lọc theo trạng thái hoạt động',
-        example: true
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.IS_ACTIVE)
     @IsOptional()
     @Type(() => Boolean)
-    @IsBoolean({ message: 'Trạng thái hoạt động phải là boolean' })
+    @IsBoolean({ message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái hoạt động') })
     isActive?: boolean;
 
-    @ApiPropertyOptional({
-        description: 'Lọc từ ngày tạo (ISO 8601)',
-        example: '2024-01-01T00:00:00.000Z'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.CREATED_AFTER)
     @IsOptional()
-    @IsDateString({}, { message: 'Ngày tạo từ phải có định dạng ISO 8601' })
+    @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Ngày tạo từ') })
     createdAfter?: string;
 
-    @ApiPropertyOptional({
-        description: 'Lọc đến ngày tạo (ISO 8601)',
-        example: '2024-12-31T23:59:59.999Z'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.CREATED_BEFORE)
     @IsOptional()
-    @IsDateString({}, { message: 'Ngày tạo đến phải có định dạng ISO 8601' })
+    @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Ngày tạo đến') })
     createdBefore?: string;
 
-    @ApiPropertyOptional({
-        description: 'Lọc từ ngày đăng nhập cuối (ISO 8601)',
-        example: '2024-01-01T00:00:00.000Z'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.LAST_LOGIN_AFTER)
     @IsOptional()
-    @IsDateString({}, { message: 'Ngày đăng nhập từ phải có định dạng ISO 8601' })
+    @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Ngày đăng nhập từ') })
     lastLoginAfter?: string;
 
-    @ApiPropertyOptional({
-        description: 'Lọc đến ngày đăng nhập cuối (ISO 8601)',
-        example: '2024-12-31T23:59:59.999Z'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.LAST_LOGIN_BEFORE)
     @IsOptional()
-    @IsDateString({}, { message: 'Ngày đăng nhập đến phải có định dạng ISO 8601' })
+    @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Ngày đăng nhập đến') })
     lastLoginBefore?: string;
 
     /**

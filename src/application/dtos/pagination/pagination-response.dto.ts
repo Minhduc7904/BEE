@@ -1,29 +1,30 @@
 // src/application/dtos/pagination-response.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
+import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants';
 
 export class PaginationMetaDto {
-    @ApiProperty({ description: 'Trang hiện tại', example: 1 })
+    @ApiProperty(SWAGGER_PROPERTIES.PAGE)
     page: number;
 
-    @ApiProperty({ description: 'Số bản ghi trên mỗi trang', example: 10 })
+    @ApiProperty(SWAGGER_PROPERTIES.LIMIT)
     limit: number;
 
-    @ApiProperty({ description: 'Tổng số bản ghi', example: 100 })
+    @ApiProperty(SWAGGER_PROPERTIES.TOTAL)
     total: number;
 
-    @ApiProperty({ description: 'Tổng số trang', example: 10 })
+    @ApiProperty(SWAGGER_PROPERTIES.TOTAL_PAGES)
     totalPages: number;
 
-    @ApiProperty({ description: 'Có trang trước không', example: false })
+    @ApiProperty(SWAGGER_PROPERTIES.HAS_PREVIOUS)
     hasPrevious: boolean;
 
-    @ApiProperty({ description: 'Có trang sau không', example: true })
+    @ApiProperty(SWAGGER_PROPERTIES.HAS_NEXT)
     hasNext: boolean;
 
-    @ApiProperty({ description: 'Trang trước (nếu có)', example: null, required: false })
+    @ApiProperty(SWAGGER_PROPERTIES.PREVIOUS_PAGE)
     previousPage?: number;
 
-    @ApiProperty({ description: 'Trang sau (nếu có)', example: 2, required: false })
+    @ApiProperty(SWAGGER_PROPERTIES.NEXT_PAGE)
     nextPage?: number;
 
     constructor(page: number, limit: number, total: number) {
@@ -39,16 +40,16 @@ export class PaginationMetaDto {
 }
 
 export class PaginationResponseDto<TData = any> {
-    @ApiProperty({ description: 'Trạng thái thành công', example: true })
+    @ApiProperty(SWAGGER_PROPERTIES.SUCCESS)
     success: boolean;
 
-    @ApiProperty({ description: 'Thông báo kết quả', example: 'Lấy dữ liệu thành công' })
+    @ApiProperty(SWAGGER_PROPERTIES.MESSAGE)
     message: string;
 
     @ApiProperty({ description: 'Danh sách dữ liệu', type: 'array' })
     data: TData[];
 
-    @ApiProperty({ description: 'Thông tin phân trang', type: PaginationMetaDto })
+    @ApiProperty({ ...SWAGGER_PROPERTIES.META, type: PaginationMetaDto })
     meta: PaginationMetaDto;
 
     constructor(

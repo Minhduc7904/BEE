@@ -2,34 +2,24 @@
 import { IsString, IsNotEmpty } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Trim } from '../../../shared/decorators/trim.decorator';
+import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants';
+import { VALIDATION_MESSAGES } from '../../../shared/constants/validation-messages';
 
 export class RefreshTokenRequestDto {
-    @ApiProperty({
-        description: 'Refresh Token',
-        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.REFRESH_TOKEN)
     @Trim()
-    @IsString({ message: 'Refresh token phải là chuỗi ký tự' })
-    @IsNotEmpty({ message: 'Refresh token không được để trống' })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Refresh token') })
+    @IsNotEmpty({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Refresh token') })
     refreshToken: string;
 }
 
 export class RefreshTokenResponseDto {
-    @ApiProperty({
-        description: 'JWT Access Token mới',
-        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.ACCESS_TOKEN)
     accessToken: string;
 
-    @ApiProperty({
-        description: 'Refresh Token mới',
-        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.REFRESH_TOKEN)
     refreshToken: string;
 
-    @ApiProperty({
-        description: 'Thời gian hết hạn Access Token (giây)',
-        example: 3600
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.EXPIRES_IN)
     expiresIn: number;
 }

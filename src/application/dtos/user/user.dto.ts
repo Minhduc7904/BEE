@@ -2,42 +2,44 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, IsEmail, MaxLength, MinLength } from 'class-validator';
 import { Trim } from '../../../shared/decorators/trim.decorator';
+import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants';
+import { VALIDATION_MESSAGES } from '../../../shared/constants/validation-messages';
 
 export class UserResponseDto {
-    @ApiProperty({ description: 'ID của user', example: 1 })
+    @ApiProperty(SWAGGER_PROPERTIES.USER_ID)
     userId: number;
 
-    @ApiProperty({ description: 'Tên đăng nhập', example: 'john_doe' })
+    @ApiProperty(SWAGGER_PROPERTIES.USERNAME)
     username: string;
 
-    @ApiProperty({ description: 'Email', example: 'john@example.com', required: false })
+    @ApiProperty(SWAGGER_PROPERTIES.EMAIL)
     email?: string;
 
-    @ApiProperty({ description: 'Họ', example: 'Nguyen' })
+    @ApiProperty(SWAGGER_PROPERTIES.FIRST_NAME)
     firstName: string;
 
-    @ApiProperty({ description: 'Tên', example: 'Van A' })
+    @ApiProperty(SWAGGER_PROPERTIES.LAST_NAME)
     lastName: string;
 
-    @ApiProperty({ description: 'Họ và tên đầy đủ', example: 'Nguyen Van A' })
+    @ApiProperty(SWAGGER_PROPERTIES.FULL_NAME)
     fullName: string;
 
-    @ApiProperty({ description: 'Trạng thái hoạt động', example: true })
+    @ApiProperty(SWAGGER_PROPERTIES.IS_ACTIVE)
     isActive: boolean;
 
-    @ApiProperty({ description: 'Email đã được xác nhận', example: true })
+    @ApiProperty(SWAGGER_PROPERTIES.IS_EMAIL_VERIFIED)
     isEmailVerified: boolean;
 
-    @ApiPropertyOptional({ description: 'Thời gian xác nhận email', example: '2024-01-01T00:00:00.000Z' })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.EMAIL_VERIFIED_AT)
     emailVerifiedAt?: Date;
 
-    @ApiPropertyOptional({ description: 'Lần đăng nhập cuối', example: '2024-01-01T00:00:00.000Z' })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.LAST_LOGIN_AT)
     lastLoginAt?: Date;
 
-    @ApiProperty({ description: 'Ngày tạo', example: '2024-01-01T00:00:00.000Z' })
+    @ApiProperty(SWAGGER_PROPERTIES.CREATED_AT)
     createdAt: Date;
 
-    @ApiProperty({ description: 'Ngày cập nhật', example: '2024-01-02T00:00:00.000Z' })
+    @ApiProperty(SWAGGER_PROPERTIES.UPDATED_AT)
     updatedAt: Date;
 
     constructor(partial: Partial<UserResponseDto>) {
@@ -67,48 +69,44 @@ export class UserResponseDto {
 
 export class UpdateUserDto {
     @ApiPropertyOptional({ 
-        description: 'Tên đăng nhập mới',
-        example: 'john_doe_new',
+        ...SWAGGER_PROPERTIES.USERNAME,
         minLength: 3,
         maxLength: 50
     })
     @Trim()
     @IsOptional()
-    @IsString({ message: 'Username phải là chuỗi ký tự' })
-    @MinLength(3, { message: 'Username phải có ít nhất 3 ký tự' })
-    @MaxLength(50, { message: 'Username không được vượt quá 50 ký tự' })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Username') })
+    @MinLength(3, { message: VALIDATION_MESSAGES.FIELD_MIN('Username', 3) })
+    @MaxLength(50, { message: VALIDATION_MESSAGES.FIELD_MAX('Username', 50) })
     username?: string;
 
     @ApiPropertyOptional({ 
-        description: 'Email mới',
-        example: 'john.new@example.com',
+        ...SWAGGER_PROPERTIES.EMAIL,
         maxLength: 120
     })
     @Trim()
     @IsOptional()
-    @IsEmail({}, { message: 'Email không hợp lệ' })
-    @MaxLength(120, { message: 'Email không được vượt quá 120 ký tự' })
+    @IsEmail({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Email') })
+    @MaxLength(120, { message: VALIDATION_MESSAGES.FIELD_MAX('Email', 120) })
     email?: string;
 
     @ApiPropertyOptional({ 
-        description: 'Họ mới',
-        example: 'Tran',
+        ...SWAGGER_PROPERTIES.LAST_NAME,
         maxLength: 100
     })
     @Trim()
     @IsOptional()
-    @IsString({ message: 'Họ phải là chuỗi ký tự' })
-    @MaxLength(100, { message: 'Họ không được vượt quá 100 ký tự' })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Họ') })
+    @MaxLength(100, { message: VALIDATION_MESSAGES.FIELD_MAX('Họ', 100) })
     lastName?: string;
 
     @ApiPropertyOptional({ 
-        description: 'Tên mới',
-        example: 'Van B',
+        ...SWAGGER_PROPERTIES.FIRST_NAME,
         maxLength: 50
     })
     @Trim()
     @IsOptional()
-    @IsString({ message: 'Tên phải là chuỗi ký tự' })
-    @MaxLength(50, { message: 'Tên không được vượt quá 50 ký tự' })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tên') })
+    @MaxLength(50, { message: VALIDATION_MESSAGES.FIELD_MAX('Tên', 50) })
     firstName?: string;
 }

@@ -3,12 +3,14 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserResponseDto, UpdateUserDto } from '../user/user.dto';
 import { IsOptional, IsString, MaxLength } from 'class-validator';
 import { Trim } from '../../../shared/decorators/trim.decorator';
+import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants';
+import { VALIDATION_MESSAGES } from '../../../shared/constants/validation-messages';
 
 export class AdminResponseDto extends UserResponseDto {
-    @ApiProperty({ description: 'ID của admin', example: 1 })
+    @ApiProperty(SWAGGER_PROPERTIES.ADMIN_ID)
     adminId: number;
 
-    @ApiPropertyOptional({ description: 'Môn học', example: 'Mathematics', required: false })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.SUBJECT)
     subject?: string;
 
     constructor(partial: Partial<AdminResponseDto>) {
@@ -21,7 +23,7 @@ export class AdminResponseDto extends UserResponseDto {
      */
     static fromUserWithAdmin(user: any, admin: any): AdminResponseDto {
         const baseUser = UserResponseDto.fromUser(user);
-        
+
         return new AdminResponseDto({
             ...baseUser,
             adminId: admin.adminId,
@@ -42,14 +44,13 @@ export class AdminResponseDto extends UserResponseDto {
 }
 
 export class UpdateAdminDto extends UpdateUserDto {
-    @ApiPropertyOptional({ 
-        description: 'Môn học mới',
-        example: 'Physics',
+    @ApiPropertyOptional({
+        ...SWAGGER_PROPERTIES.SUBJECT,
         maxLength: 120
     })
-    @IsOptional()
-    @IsString({ message: 'Môn học phải là chuỗi ký tự' })
     @Trim()
-    @MaxLength(120, { message: 'Môn học không được vượt quá 120 ký tự' })
+    @IsOptional()
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Môn học') })
+    @MaxLength(120, { message: VALIDATION_MESSAGES.FIELD_MAX('Môn học', 120) })
     subject?: string;
 }

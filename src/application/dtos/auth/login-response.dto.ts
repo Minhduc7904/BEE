@@ -1,43 +1,41 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { BaseResponseDto } from '../base-response.dto';
+import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants';
 
 export class TokensDto {
-    @ApiProperty({
-        description: 'JWT Access Token',
-        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.ACCESS_TOKEN)
     accessToken: string;
 
-    @ApiProperty({
-        description: 'Refresh Token',
-        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.REFRESH_TOKEN)
     refreshToken: string;
 
-    @ApiProperty({
-        description: 'Thời gian hết hạn Access Token (giây)',
-        example: 3600
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.EXPIRES_IN)
     expiresIn: number;
 }
 
 export class UserInfoDto {
-    @ApiProperty({ description: 'ID người dùng', example: 1 })
+    @ApiProperty(SWAGGER_PROPERTIES.USER_ID)
     userId: number;
 
-    @ApiProperty({ description: 'Tên đăng nhập', example: 'admin123' })
+    @ApiProperty(SWAGGER_PROPERTIES.USERNAME)
     username: string;
 
-    @ApiProperty({ description: 'Email', example: 'admin@example.com', required: false })
+    @ApiProperty({
+        ...SWAGGER_PROPERTIES.EMAIL,
+        required: false
+    })
     email?: string;
 
-    @ApiProperty({ description: 'Họ', example: 'Nguyễn' })
+    @ApiProperty(SWAGGER_PROPERTIES.FIRST_NAME)
     firstName: string;
 
-    @ApiProperty({ description: 'Tên', example: 'Văn A' })
+    @ApiProperty(SWAGGER_PROPERTIES.LAST_NAME)
     lastName: string;
 
-    @ApiProperty({ description: 'Vai trò', example: 'admin' })
+    @ApiProperty({
+        ...SWAGGER_PROPERTIES.USER_TYPE,
+        description: 'Vai trò'
+    })
     role: 'admin' | 'student';
 
     @ApiProperty({ description: 'Thông tin chi tiết vai trò' })

@@ -4,21 +4,23 @@ import { UserResponseDto, UpdateUserDto } from '../user/user.dto';
 import { PaginationResponseDto } from '../pagination/pagination-response.dto';
 import { IsOptional, IsString, IsInt, Min, Max, Matches } from 'class-validator';
 import { Trim } from '../../../shared/decorators/trim.decorator';
+import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants';
+import { VALIDATION_MESSAGES } from '../../../shared/constants/validation-messages';
 
 export class StudentResponseDto extends UserResponseDto {
-    @ApiProperty({ description: 'ID của student', example: 1 })
+    @ApiProperty(SWAGGER_PROPERTIES.STUDENT_ID)
     studentId: number;
 
-    @ApiPropertyOptional({ description: 'Số điện thoại sinh viên', example: '0123456789' })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.STUDENT_PHONE)
     studentPhone?: string;
 
-    @ApiPropertyOptional({ description: 'Số điện thoại phụ huynh', example: '0987654321' })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.PARENT_PHONE)
     parentPhone?: string;
 
-    @ApiProperty({ description: 'Khối lớp', example: 12 })
+    @ApiProperty(SWAGGER_PROPERTIES.GRADE)
     grade: number;
 
-    @ApiPropertyOptional({ description: 'Trường học', example: 'THPT Chu Văn An' })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.SCHOOL)
     school?: string;
 
     constructor(partial: Partial<StudentResponseDto>) {
@@ -74,46 +76,35 @@ export class StudentListResponseDto extends PaginationResponseDto<StudentRespons
 
 export class UpdateStudentDto extends UpdateUserDto {
     @ApiPropertyOptional({ 
-        description: 'Số điện thoại sinh viên mới',
-        example: '0123456789',
+        ...SWAGGER_PROPERTIES.STUDENT_PHONE,
         pattern: '^[0-9]{10,11}$'
     })
     @Trim()
     @IsOptional()
-    @IsString({ message: 'Số điện thoại sinh viên phải là chuỗi ký tự' })
-    @Matches(/^[0-9]{10,11}$/, { message: 'Số điện thoại sinh viên phải có 10-11 chữ số' })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Số điện thoại sinh viên') })
+    @Matches(/^[0-9]{10,11}$/, { message: VALIDATION_MESSAGES.FIELD_INVALID('Số điện thoại sinh viên') })
     studentPhone?: string;
 
     @ApiPropertyOptional({ 
-        description: 'Số điện thoại phụ huynh mới',
-        example: '0987654321',
+        ...SWAGGER_PROPERTIES.PARENT_PHONE,
         pattern: '^[0-9]{10,11}$'
     })
     @Trim()
     @IsOptional()
-    @IsString({ message: 'Số điện thoại phụ huynh phải là chuỗi ký tự' })
-    @Matches(/^[0-9]{10,11}$/, { message: 'Số điện thoại phụ huynh phải có 10-11 chữ số' })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Số điện thoại phụ huynh') })
+    @Matches(/^[0-9]{10,11}$/, { message: VALIDATION_MESSAGES.FIELD_INVALID('Số điện thoại phụ huynh') })
     parentPhone?: string;
 
-    @ApiPropertyOptional({ 
-        description: 'Khối lớp mới',
-        example: 12,
-        minimum: 1,
-        maximum: 12
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.GRADE)
     @IsOptional()
-    @IsInt({ message: 'Khối lớp phải là số nguyên' })
-    @Min(1, { message: 'Khối lớp phải từ 1 đến 12' })
-    @Max(12, { message: 'Khối lớp phải từ 1 đến 12' })
+    @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('Khối lớp') })
+    @Min(1, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Khối lớp', 1) })
+    @Max(12, { message: VALIDATION_MESSAGES.FIELD_MAX_VALUE('Khối lớp', 12) })
     grade?: number;
 
-    @ApiPropertyOptional({ 
-        description: 'Trường học mới',
-        example: 'THPT Lý Thái Tổ',
-        maxLength: 120
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.SCHOOL)
     @Trim()
     @IsOptional()
-    @IsString({ message: 'Trường học phải là chuỗi ký tự' })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Trường học') })
     school?: string;
 }

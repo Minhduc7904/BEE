@@ -3,6 +3,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { AdminResponseDto } from '../admin/admin.dto';
 import { StudentResponseDto } from '../student/student.dto';
 import { BaseResponseDto } from '../base-response.dto';
+import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants';
 
 export class RegisterAdminResponseDto extends BaseResponseDto<AdminResponseDto> {
     @ApiProperty({
@@ -10,12 +11,12 @@ export class RegisterAdminResponseDto extends BaseResponseDto<AdminResponseDto> 
         type: () => AdminResponseDto,
         example: {
             userId: 1,
-            username: 'admin123',
+            username: SWAGGER_PROPERTIES.USERNAME.example,
             email: null, // có thể null
-            firstName: 'Nguyễn',
-            lastName: 'Văn A',
+            firstName: SWAGGER_PROPERTIES.FIRST_NAME.example,
+            lastName: SWAGGER_PROPERTIES.LAST_NAME.example,
             isActive: true,
-            createdAt: '2025-08-27T10:30:00.000Z',
+            createdAt: SWAGGER_PROPERTIES.CREATED_AT.example,
             adminId: 1,
             subject: null, // có thể null
         },
@@ -33,10 +34,10 @@ export class RegisterStudentResponseDto extends BaseResponseDto<StudentResponseD
             email: null, // có thể null
             firstName: 'Trần',
             lastName: 'Thị B',
-            isActive: true,
-            createdAt: '2025-08-27T10:30:00.000Z',
+            isActive: SWAGGER_PROPERTIES.IS_ACTIVE.example,
+            createdAt: SWAGGER_PROPERTIES.CREATED_AT.example,
             studentId: 1,
-            grade: 11,
+            grade: SWAGGER_PROPERTIES.GRADE_6_12.example,
             school: null, // có thể null
             studentPhone: null, // có thể null
             parentPhone: null, // có thể null

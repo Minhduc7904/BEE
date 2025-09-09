@@ -2,55 +2,37 @@ import { IsString, IsEmail, MinLength, IsOptional, Matches, IsInt, Min, Max } fr
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { VALIDATION_MESSAGES, PHONE_VN_REGEX } from '../../../shared/constants/validation-messages';
 import { Trim } from '../../../shared/decorators/trim.decorator';
+import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants';
 
 export class RegisterAdminDto {
-    @ApiProperty({
-        description: 'Tên đăng nhập',
-        example: 'admin123'
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.USERNAME)
     @Trim()
-    @IsString({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Tên đăng nhập') })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tên đăng nhập') })
     username: string;
 
-    @ApiPropertyOptional({
-        description: 'Email (không bắt buộc)',
-        example: 'admin@example.com'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.EMAIL)
     @Trim()
     @IsOptional()
     @IsEmail({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Email') })
     email?: string;
 
-    @ApiProperty({
-        description: 'Mật khẩu (tối thiểu 6 ký tự)',
-        example: 'password123',
-        minLength: 6
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.PASSWORD)
     @Trim()
-    @IsString({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Mật khẩu') })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Mật khẩu') })
     @MinLength(6, { message: VALIDATION_MESSAGES.FIELD_MIN('Mật khẩu', 6) })
     password: string;
 
-    @ApiProperty({
-        description: 'Họ',
-        example: 'Nguyễn'
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.FIRST_NAME)
     @Trim()
-    @IsString({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Họ') })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Họ') })
     firstName: string;
 
-    @ApiProperty({
-        description: 'Tên',
-        example: 'Văn A'
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.LAST_NAME)
     @Trim()
-    @IsString({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Tên') })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tên') })
     lastName: string;
 
-    @ApiProperty({
-        description: 'Môn phụ trách',
-        example: 'Toán học'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.SUBJECT)
     @Trim()
     @IsOptional()
     @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Môn phụ trách') })
@@ -58,54 +40,37 @@ export class RegisterAdminDto {
 }
 
 export class RegisterStudentDto {
-    @ApiProperty({
-        description: 'Tên đăng nhập',
-        example: 'student123'
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.USERNAME)
     @Trim()
-    @IsString({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Tên đăng nhập') })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tên đăng nhập') })
     username: string;
 
-    @ApiPropertyOptional({
-        description: 'Email (không bắt buộc)',
-        example: 'student@example.com'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.EMAIL)
     @Trim()
     @IsOptional()
     @IsEmail({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Email') })
     email?: string;
 
     @ApiProperty({
-        description: 'Mật khẩu (tối thiểu 6 ký tự)',
-        example: 'password123',
+        ...SWAGGER_PROPERTIES.PASSWORD,
         minLength: 6
     })
     @Trim()
-    @IsString({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Mật khẩu') })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Mật khẩu') })
     @MinLength(6, { message: VALIDATION_MESSAGES.FIELD_MIN('Mật khẩu', 6) })
     password: string;
 
-    @ApiProperty({
-        description: 'Họ',
-        example: 'Trần'
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.FIRST_NAME)
     @Trim()
-    @IsString({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Họ') })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Họ') })
     firstName: string;
 
-    @ApiProperty({
-        description: 'Tên',
-        example: 'Thị B'
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.LAST_NAME)
     @Trim()
-    @IsString({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Tên') })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tên') })
     lastName: string;
 
-    @ApiPropertyOptional({
-        description: 'Số điện thoại học sinh (không bắt buộc)',
-        example: '0987654321',
-        pattern: '^(\\+84|84|0)(3[2-9]|5[2689]|7[06-9]|8[1-9]|9[0-46-9])[0-9]{7}$'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.STUDENT_PHONE)
     @Trim()
     @IsOptional()
     @Matches(PHONE_VN_REGEX, {
@@ -113,11 +78,7 @@ export class RegisterStudentDto {
     })
     studentPhone?: string;
 
-    @ApiPropertyOptional({
-        description: 'Số điện thoại phụ huynh (không bắt buộc)',
-        example: '0912345678',
-        pattern: '^(\\+84|84|0)(3[2-9]|5[2689]|7[06-9]|8[1-9]|9[0-46-9])[0-9]{7}$'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.PARENT_PHONE)
     @Trim()
     @IsOptional()
     @Matches(PHONE_VN_REGEX, {
@@ -125,21 +86,13 @@ export class RegisterStudentDto {
     })
     parentPhone?: string;
 
-    @ApiPropertyOptional({
-        description: 'Trường THPT (không bắt buộc)',
-        example: 'THPT Chu Văn An'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.SCHOOL)
     @Trim()
     @IsOptional()
     @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Trường') })
     school?: string;
 
-    @ApiProperty({
-        description: 'Khối lớp (6-12)',
-        example: 11,
-        minimum: 6,
-        maximum: 12
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.GRADE_6_12)
     @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('Khối lớp') })
     @Min(6, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Khối lớp', 6) })
     @Max(12, { message: VALIDATION_MESSAGES.FIELD_MAX_VALUE('Khối lớp', 12) })

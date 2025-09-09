@@ -1,11 +1,12 @@
 // src/application/dtos/base-response.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
+import { SWAGGER_PROPERTIES } from '../../shared/constants/swagger-properties.constants';
 
 export class BaseResponseDto<TData = any> {
-    @ApiProperty({ description: 'Trạng thái thành công', example: true })
+    @ApiProperty(SWAGGER_PROPERTIES.SUCCESS)
     success: boolean;
 
-    @ApiProperty({ description: 'Thông báo kết quả', example: 'Thao tác thành công' })
+    @ApiProperty(SWAGGER_PROPERTIES.MESSAGE)
     message: string;
 
     data?: TData;

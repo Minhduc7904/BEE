@@ -1,86 +1,55 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsOptional, IsNumber, Min, IsDateString, IsBoolean } from "class-validator";
 import { RoleResponseDto } from "./role.dto";
+import { SWAGGER_PROPERTIES } from "../../../shared/constants/swagger-properties.constants";
+import { VALIDATION_MESSAGES } from "../../../shared/constants/validation-messages";
 
 export class AssignUserRoleDto {
-    @ApiProperty({
-        description: 'ID của user cần cấp role',
-        example: 1
-    })
-    @IsNumber()
-    @Min(1, { message: 'User ID phải lớn hơn 0' })
+    @ApiProperty(SWAGGER_PROPERTIES.USER_ID)
+    @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_REQUIRED('User ID') })
+    @Min(1, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('User ID', 1) })
     userId: number;
 
-    @ApiProperty({
-        description: 'ID của role cần cấp',
-        example: 2
-    })
-    @IsNumber()
-    @Min(1, { message: 'Role ID phải lớn hơn 0' })
+    @ApiProperty(SWAGGER_PROPERTIES.ROLE_ID)
+    @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_REQUIRED('Role ID') })
+    @Min(1, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Role ID', 1) })
     roleId: number;
 
-    @ApiPropertyOptional({
-        description: 'Thời gian hết hạn role (ISO string)',
-        example: '2025-09-04T05:36:25.000Z'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.EXPIRES_AT)
     @IsOptional()
-    @IsDateString()
+    @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Thời gian hết hạn') })
     expiresAt?: string;
 }
 
 export class UpdateUserRoleDto {
-    @ApiPropertyOptional({
-        description: 'Thời gian hết hạn role (ISO string)',
-        example: '2025-09-04T05:36:25.000Z'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.EXPIRES_AT)
     @IsOptional()
-    @IsDateString()
+    @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Thời gian hết hạn') })
     expiresAt?: string;
 
-    @ApiPropertyOptional({
-        description: 'Trạng thái active của role',
-        example: true
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.IS_ACTIVE)
     @IsOptional()
-    @IsBoolean()
+    @IsBoolean({ message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái active') })
     isActive?: boolean;
 }
 
 export class UserRoleResponseDto {
-    @ApiProperty({
-        description: 'ID của user',
-        example: 1
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.USER_ID)
     userId: number;
 
-    @ApiProperty({
-        description: 'ID của role',
-        example: 2
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.ROLE_ID)
     roleId: number;
 
-    @ApiProperty({
-        description: 'Thời gian được cấp role',
-        example: '2025-09-04T05:36:25.000Z'
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.ASSIGNED_AT)
     assignedAt: Date;
 
-    @ApiPropertyOptional({
-        description: 'Thời gian hết hạn role',
-        example: '2025-09-04T05:36:25.000Z'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.EXPIRES_AT)
     expiresAt?: Date;
 
-    @ApiPropertyOptional({
-        description: 'ID của user đã cấp role này',
-        example: 3
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.ASSIGNED_BY)
     assignedBy?: number;
 
-    @ApiProperty({
-        description: 'Trạng thái active của role',
-        example: true
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.IS_ACTIVE)
     isActive: boolean;
 
     @ApiPropertyOptional({
@@ -118,21 +87,12 @@ export class UserRoleListResponseDto {
     })
     data: UserRoleResponseDto[];
 
-    @ApiProperty({
-        description: 'Tổng số records',
-        example: 10
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.TOTAL)
     total: number;
 
-    @ApiProperty({
-        description: 'Số trang hiện tại',
-        example: 1
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.PAGE)
     page: number;
 
-    @ApiProperty({
-        description: 'Số items per page',
-        example: 10
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.LIMIT)
     limit: number;
 }

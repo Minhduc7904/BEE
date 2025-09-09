@@ -2,73 +2,57 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsOptional, IsString } from 'class-validator';
 import { Trim } from 'src/shared/decorators/trim.decorator';
+import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants';
+import { VALIDATION_MESSAGES } from '../../../shared/constants/validation-messages';
 
 export class GoogleUserProfileDto {
-    @ApiProperty({
-        description: 'Google ID của user',
-        example: '123456789012345678901'
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.GOOGLE_ID)
     @Trim()
-    @IsString()
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Google ID') })
     googleId: string;
 
     @ApiProperty({
-        description: 'Email của user từ Google',
-        example: 'user@gmail.com'
+        ...SWAGGER_PROPERTIES.EMAIL,
+        description: 'Email của user từ Google'
     })
     @Trim()
-    @IsEmail()
+    @IsEmail({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Email') })
     email: string;
 
-    @ApiProperty({
-        description: 'Tên của user',
-        example: 'Nguyen Van A'
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.FIRST_NAME)
     @Trim()
-    @IsString()
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tên') })
     firstName: string;
 
-    @ApiProperty({
-        description: 'Họ của user',
-        example: 'Nguyen'
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.LAST_NAME)
     @Trim()
-    @IsString()
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Họ') })
     lastName: string;
 
     @ApiProperty({
-        description: 'Avatar URL từ Google',
-        example: 'https://lh3.googleusercontent.com/...'
+        ...SWAGGER_PROPERTIES.AVATAR_URL,
+        description: 'Avatar URL từ Google'
     })
     @Trim()
     @IsOptional()
-    @IsString()
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Avatar URL') })
     picture?: string;
 
     @ApiProperty({
-        description: 'Verified email status từ Google',
-        example: true
+        ...SWAGGER_PROPERTIES.VERIFIED_STATUS,
+        description: 'Verified email status từ Google'
     })
     verified: boolean;
 }
 
 export class GoogleAuthResponseDto {
-    @ApiProperty({
-        description: 'Thông báo kết quả',
-        example: 'Đăng nhập Google thành công'
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.GOOGLE_LOGIN_MESSAGE)
     message: string;
 
-    @ApiProperty({
-        description: 'Access Token',
-        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.ACCESS_TOKEN)
     accessToken: string;
 
-    @ApiProperty({
-        description: 'Refresh Token',
-        example: 'refresh_token_here...'
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.REFRESH_TOKEN)
     refreshToken: string;
 
     @ApiProperty({

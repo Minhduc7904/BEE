@@ -4,70 +4,51 @@ import { StorageProvider } from '../../../shared/enums/storage-provider.enum';
 import { IsEnumValue } from '../../../shared/decorators/is-enum-value.decorator';
 import { Trim } from '../../../shared/decorators/trim.decorator';
 import { ListQueryDto } from '../pagination/list-query.dto';
+import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants';
+import { VALIDATION_MESSAGES } from '../../../shared/constants/validation-messages';
 
 export class CreateDocumentDto {
-    @ApiProperty({
-        description: 'URL chính của document',
-        example: 'https://example.com/document.pdf'
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.URL)
     @Trim()
-    @IsUrl({}, { message: 'URL không hợp lệ' })
-    @IsString()
+    @IsUrl({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('URL') })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('URL') })
     url: string;
 
-    @ApiPropertyOptional({
-        description: 'URL phụ của document (tùy chọn)',
-        example: 'https://example.com/document-backup.pdf'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.ANOTHER_URL)
     @Trim()
     @IsOptional()
-    @IsUrl({}, { message: 'Another URL không hợp lệ' })
-    @IsString()
+    @IsUrl({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('URL phụ') })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('URL phụ') })
     anotherUrl?: string;
 
-    @ApiPropertyOptional({
-        description: 'Mô tả document',
-        example: 'Tài liệu toán học lớp 10 - Chương 1: Hàm số'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.DESCRIPTION)
     @Trim()
     @IsOptional()
-    @IsString()
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Mô tả') })
     description?: string;
 
-    @ApiPropertyOptional({
-        description: 'MIME type của document',
-        example: 'application/pdf'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.MIME_TYPE)
     @Trim()
     @IsOptional()
-    @IsMimeType()
-    @IsString()
+    @IsMimeType({ message: VALIDATION_MESSAGES.FIELD_INVALID('MIME type') })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('MIME type') })
     mimeType?: string;
 
-    @ApiPropertyOptional({
-        description: 'Môn học liên quan',
-        example: 'Toán học'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.SUBJECT)
     @Trim()
     @IsOptional()
-    @IsString()
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Môn học') })
     subject?: string;
 
-    @ApiPropertyOptional({
-        description: 'Loại đối tượng liên kết (question, exam, lesson, etc.)',
-        example: 'question'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.RELATED_TYPE)
     @Trim()
     @IsOptional()
-    @IsString()
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Loại liên kết') })
     relatedType?: string;
 
-    @ApiPropertyOptional({
-        description: 'ID của đối tượng liên kết',
-        example: 123
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.RELATED_ID)
     @IsOptional()
-    @IsNumber()
+    @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('ID liên kết') })
     relatedId?: number;
 
     @ApiProperty({
@@ -75,209 +56,130 @@ export class CreateDocumentDto {
         enum: StorageProvider,
         example: StorageProvider.EXTERNAL
     })
-    @IsEnumValue(StorageProvider)
+    @IsEnumValue(StorageProvider, { message: VALIDATION_MESSAGES.FIELD_INVALID('Nhà cung cấp lưu trữ') })
     storageProvider: StorageProvider;
 
-    @ApiPropertyOptional({
-        description: 'ID admin tạo document',
-        example: 1
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.ADMIN_ID)
     @IsOptional()
-    @IsNumber()
+    @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('ID admin') })
     adminId?: number;
 }
 
 export class UpdateDocumentDto {
-    @ApiPropertyOptional({
-        description: 'URL chính của document',
-        example: 'https://example.com/document-updated.pdf'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.URL)
     @Trim()
     @IsOptional()
-    @IsUrl({}, { message: 'URL không hợp lệ' })
-    @IsString()
+    @IsUrl({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('URL') })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('URL') })
     url?: string;
 
-    @ApiPropertyOptional({
-        description: 'URL phụ của document',
-        example: 'https://example.com/document-backup-updated.pdf'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.ANOTHER_URL)
     @Trim()
     @IsOptional()
-    @IsUrl({}, { message: 'Another URL không hợp lệ' })
-    @IsString()
+    @IsUrl({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('URL phụ') })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('URL phụ') })
     anotherUrl?: string;
 
-    @ApiPropertyOptional({
-        description: 'Mô tả document',
-        example: 'Tài liệu toán học lớp 10 - Chương 1: Hàm số (cập nhật)'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.DESCRIPTION)
     @Trim()
     @IsOptional()
-    @IsString()
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Mô tả') })
     description?: string;
 
-    @ApiPropertyOptional({
-        description: 'MIME type của document',
-        example: 'application/pdf'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.MIME_TYPE)
     @Trim()
     @IsOptional()
-    @IsMimeType()
-    @IsString()
+    @IsMimeType({ message: VALIDATION_MESSAGES.FIELD_INVALID('MIME type') })
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('MIME type') })
     mimeType?: string;
 
-    @ApiPropertyOptional({
-        description: 'Môn học liên quan',
-        example: 'Toán học'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.SUBJECT)
     @Trim()
     @IsOptional()
-    @IsString()
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Môn học') })
     subject?: string;
 
-    @ApiPropertyOptional({
-        description: 'Loại đối tượng liên kết',
-        example: 'question'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.RELATED_TYPE)
     @Trim()
     @IsOptional()
-    @IsString()
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Loại liên kết') })
     relatedType?: string;
 
-    @ApiPropertyOptional({
-        description: 'ID của đối tượng liên kết',
-        example: 123
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.RELATED_ID)
     @IsOptional()
-    @IsNumber()
+    @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('ID liên kết') })
     relatedId?: number;
 
-    @ApiPropertyOptional({
-        description: 'Nhà cung cấp lưu trữ',
-        enum: StorageProvider
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.STORAGE_PROVIDER)
     @Trim()
     @IsOptional()
-    @IsEnumValue(StorageProvider)
+    @IsEnumValue(StorageProvider, { message: VALIDATION_MESSAGES.FIELD_INVALID('Nhà cung cấp lưu trữ') })
     storageProvider?: StorageProvider;
 }
 
 export class DocumentResponseDto {
-    @ApiProperty({
-        description: 'ID của document',
-        example: 1
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.DOCUMENT_ID)
     documentId: number;
 
-    @ApiPropertyOptional({
-        description: 'ID admin tạo document',
-        example: 1
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.ADMIN_ID)
     adminId?: number;
 
-    @ApiProperty({
-        description: 'URL chính của document',
-        example: 'https://example.com/document.pdf'
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.URL)
     url: string;
 
-    @ApiPropertyOptional({
-        description: 'URL phụ của document',
-        example: 'https://example.com/document-backup.pdf'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.ANOTHER_URL)
     anotherUrl?: string;
 
-    @ApiPropertyOptional({
-        description: 'Mô tả document',
-        example: 'Tài liệu toán học lớp 10'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.DESCRIPTION)
     description?: string;
 
-    @ApiPropertyOptional({
-        description: 'MIME type của document',
-        example: 'application/pdf'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.MIME_TYPE)
     mimeType?: string;
 
-    @ApiPropertyOptional({
-        description: 'Môn học liên quan',
-        example: 'Toán học'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.SUBJECT)
     subject?: string;
 
-    @ApiPropertyOptional({
-        description: 'Loại đối tượng liên kết',
-        example: 'question'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.RELATED_TYPE)
     relatedType?: string;
 
-    @ApiPropertyOptional({
-        description: 'ID của đối tượng liên kết',
-        example: 123
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.RELATED_ID)
     relatedId?: number;
 
-    @ApiProperty({
-        description: 'Nhà cung cấp lưu trữ',
-        enum: StorageProvider,
-        example: StorageProvider.EXTERNAL
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.STORAGE_PROVIDER)
     storageProvider: StorageProvider;
 
-    @ApiProperty({
-        description: 'Thời gian tạo',
-        example: '2024-08-28T10:30:00Z'
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.CREATED_AT)
     createdAt: Date;
 
-    @ApiProperty({
-        description: 'Thời gian cập nhật',
-        example: '2024-08-28T10:30:00Z'
-    })
+    @ApiProperty(SWAGGER_PROPERTIES.UPDATED_AT)
     updatedAt: Date;
 }
 
 export class DocumentQueryDto extends ListQueryDto {
-    @ApiPropertyOptional({
-        description: 'Môn học để filter',
-        example: 'Toán học'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.SUBJECT)
     @IsOptional()
-    @IsString()
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Môn học') })
     @Trim()
     subject?: string;
 
-    @ApiPropertyOptional({
-        description: 'Loại đối tượng liên kết để filter',
-        example: 'question'
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.RELATED_TYPE)
     @IsOptional()
-    @IsString()
+    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Loại liên kết') })
     @Trim()
     relatedType?: string;
 
-    @ApiPropertyOptional({
-        description: 'ID của đối tượng liên kết để filter',
-        example: 123
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.RELATED_ID)
     @IsOptional()
-    @IsNumber()
+    @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('ID liên kết') })
     relatedId?: number;
 
-    @ApiPropertyOptional({
-        description: 'Nhà cung cấp lưu trữ để filter',
-        enum: StorageProvider
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.STORAGE_PROVIDER)
     @IsOptional()
-    @IsEnumValue(StorageProvider)
+    @IsEnumValue(StorageProvider, { message: VALIDATION_MESSAGES.FIELD_INVALID('Nhà cung cấp lưu trữ') })
     storageProvider?: StorageProvider;
 
-    @ApiPropertyOptional({
-        description: 'ID admin để filter',
-        example: 1
-    })
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.ADMIN_ID)
     @IsOptional()
-    @IsNumber()
+    @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('ID admin') })
     adminId?: number;
 }

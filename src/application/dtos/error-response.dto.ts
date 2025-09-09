@@ -1,20 +1,21 @@
 // src/application/dtos/error-response.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
+import { SWAGGER_PROPERTIES } from '../../shared/constants/swagger-properties.constants';
 
 export class ErrorResponseDto {
-    @ApiProperty({ description: 'Trạng thái thành công', example: false })
+    @ApiProperty({ ...SWAGGER_PROPERTIES.SUCCESS, example: false })
     success: boolean;
 
-    @ApiProperty({ description: 'Thông báo lỗi', example: 'Username đã tồn tại' })
+    @ApiProperty({ ...SWAGGER_PROPERTIES.MESSAGE, example: 'Lỗi rồi' })
     message: string;
 
-    @ApiProperty({ description: 'Mã lỗi HTTP', example: 409 })
+    @ApiProperty(SWAGGER_PROPERTIES.STATUS_CODE)
     statusCode: number;
 
-    @ApiProperty({ description: 'Timestamp lỗi', example: '2025-08-27T10:30:00.000Z' })
+    @ApiProperty(SWAGGER_PROPERTIES.TIMESTAMP)
     timestamp: string;
 
-    @ApiProperty({ description: 'Đường dẫn API', example: '/auth/register/admin' })
+    @ApiProperty(SWAGGER_PROPERTIES.PATH)
     path: string;
 
     constructor(message: string, statusCode: number, path: string) {

@@ -3,63 +3,42 @@ import { IsString, IsOptional, IsUrl, IsInt } from 'class-validator';
 import { StorageProvider } from '../../../shared/enums/storage-provider.enum';
 import { IsEnumValue } from '../../../shared/decorators/is-enum-value.decorator';
 import { Trim } from '../../../shared/decorators/trim.decorator';
+import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants';
+import { VALIDATION_MESSAGES } from '../../../shared/constants/validation-messages';
 
 export class CreateQuestionImageDto {
-  @ApiProperty({ 
-    description: 'URL của ảnh câu hỏi',
-    example: 'https://example.com/question-image.jpg'
-  })
+  @ApiProperty(SWAGGER_PROPERTIES.URL)
   @Trim()
-  @IsUrl({}, { message: 'URL không hợp lệ' })
-  @IsString()
+  @IsUrl({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('URL') })
+  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('URL') })
   url: string;
 
-  @ApiProperty({ 
-    description: 'URL phụ của ảnh (tùy chọn)',
-    example: 'https://example.com/question-image-alt.jpg',
-    required: false
-  })
+  @ApiProperty(SWAGGER_PROPERTIES.ANOTHER_URL)
   @Trim()
   @IsOptional()
-  @IsUrl({}, { message: 'Another URL không hợp lệ' })
-  @IsString()
+  @IsUrl({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('URL phụ') })
+  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('URL phụ') })
   anotherUrl?: string;
 
-  @ApiProperty({ 
-    description: 'MIME type của file ảnh',
-    example: 'image/jpeg',
-    required: false
-  })
+  @ApiProperty(SWAGGER_PROPERTIES.MIME_TYPE)
   @Trim()
   @IsOptional()
-  @IsString()
+  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('MIME type') })
   mimeType?: string;
 
-  @ApiProperty({ 
-    description: 'Nhà cung cấp lưu trữ',
-    enum: StorageProvider,
-    example: StorageProvider.EXTERNAL
-  })
+  @ApiProperty(SWAGGER_PROPERTIES.STORAGE_PROVIDER)
   @Trim()
-  @IsEnumValue(StorageProvider)
+  @IsEnumValue(StorageProvider, { message: VALIDATION_MESSAGES.FIELD_INVALID('Nhà cung cấp lưu trữ') })
   storageProvider: StorageProvider;
 
-  @ApiProperty({ 
-    description: 'Loại liên quan',
-    example: 'question',
-    required: false
-  })
+  @ApiProperty(SWAGGER_PROPERTIES.RELATED_TYPE)
   @Trim()
   @IsOptional()
-  @IsString()
+  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Loại liên kết') })
   relatedType?: string;
 
-  @ApiProperty({ 
-    description: 'ID liên quan',
-    example: 123,
-    required: false
-  })
+  @ApiProperty(SWAGGER_PROPERTIES.RELATED_ID)
   @IsOptional()
-  @IsInt()
+  @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('ID liên kết') })
   relatedId?: number;
 }
