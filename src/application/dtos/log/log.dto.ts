@@ -2,12 +2,14 @@ import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsNumber, IsOptional, IsString } from "class-validator";
 import { AuditStatus } from "../../../shared/enums/audit-status.enum";
 import { IsEnumValue } from '../../../shared/decorators/is-enum-value.decorator';
+import { Trim } from '../../../shared/decorators/trim.decorator';
 
 export class CreateLogDto {
     @ApiProperty({
         description: 'Key của hành động',
         example: 'CREATE_USER'
     })
+    @Trim()
     @IsString()
     actionKey: string;
 
@@ -16,6 +18,7 @@ export class CreateLogDto {
         enum: AuditStatus,
         example: AuditStatus.SUCCESS
     })
+    @Trim()
     @IsEnumValue(AuditStatus)
     status: AuditStatus;
 
@@ -23,6 +26,7 @@ export class CreateLogDto {
         description: 'Lỗi nếu có',
         example: 'User already exists'
     })
+    @Trim()
     @IsOptional()
     @IsString()
     errorMessage?: string;
@@ -31,6 +35,7 @@ export class CreateLogDto {
         description: 'Loại tài nguyên',
         example: 'user'
     })
+    @Trim()
     @IsString()
     resourceType: string;
 
@@ -38,6 +43,7 @@ export class CreateLogDto {
         description: 'ID của tài nguyên',
         example: '1'
     })
+    @Trim()
     @IsOptional()
     @IsString()
     resourceId?: string;
@@ -46,6 +52,7 @@ export class CreateLogDto {
         description: 'Dữ liệu trước khi thay đổi',
         example: { name: 'John Doe' }
     })
+    @Trim()
     @IsOptional()
     beforeData?: any;
 
@@ -53,6 +60,7 @@ export class CreateLogDto {
         description: 'Dữ liệu sau khi thay đổi',
         example: { name: 'John Smith' }
     })
+    @Trim()
     @IsOptional()
     afterData?: any;
 

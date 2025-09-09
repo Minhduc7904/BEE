@@ -1,6 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { IsOptional, IsString, MaxLength, MinLength, IsBoolean, IsNumber, Min } from "class-validator";
-
+import { Trim } from "../../../shared/decorators/trim.decorator";
 export class CreateRoleDto {
     @ApiProperty({
         description: 'Tên role',
@@ -8,6 +8,7 @@ export class CreateRoleDto {
         minLength: 2,
         maxLength: 50
     })
+    @Trim()
     @IsString()
     @MinLength(2, { message: 'Tên role phải có ít nhất 2 ký tự' })
     @MaxLength(50, { message: 'Tên role không được quá 50 ký tự' })
@@ -17,6 +18,7 @@ export class CreateRoleDto {
         description: 'Mô tả role',
         example: 'Role dành cho giảng viên'
     })
+    @Trim()
     @IsOptional()
     @IsString()
     @MaxLength(255, { message: 'Mô tả không được quá 255 ký tự' })
@@ -46,6 +48,7 @@ export class UpdateRoleDto {
         description: 'Tên role',
         example: 'TEACHER'
     })
+    @Trim()
     @IsOptional()
     @IsString()
     @MinLength(2)
@@ -56,6 +59,7 @@ export class UpdateRoleDto {
         description: 'Mô tả role',
         example: 'Role dành cho giảng viên'
     })
+    @Trim()
     @IsOptional()
     @IsString()
     @MaxLength(255)

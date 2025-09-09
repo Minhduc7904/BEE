@@ -2,12 +2,15 @@ import { IsString, IsOptional, IsNumber, IsUrl, IsMimeType } from 'class-validat
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { StorageProvider } from '../../../shared/enums/storage-provider.enum';
 import { IsEnumValue } from '../../../shared/decorators/is-enum-value.decorator';
+import { Trim } from '../../../shared/decorators/trim.decorator';
+import { ListQueryDto } from '../pagination/list-query.dto';
 
 export class CreateDocumentDto {
     @ApiProperty({
         description: 'URL chính của document',
         example: 'https://example.com/document.pdf'
     })
+    @Trim()
     @IsUrl({}, { message: 'URL không hợp lệ' })
     @IsString()
     url: string;
@@ -16,6 +19,7 @@ export class CreateDocumentDto {
         description: 'URL phụ của document (tùy chọn)',
         example: 'https://example.com/document-backup.pdf'
     })
+    @Trim()
     @IsOptional()
     @IsUrl({}, { message: 'Another URL không hợp lệ' })
     @IsString()
@@ -25,6 +29,7 @@ export class CreateDocumentDto {
         description: 'Mô tả document',
         example: 'Tài liệu toán học lớp 10 - Chương 1: Hàm số'
     })
+    @Trim()
     @IsOptional()
     @IsString()
     description?: string;
@@ -33,6 +38,7 @@ export class CreateDocumentDto {
         description: 'MIME type của document',
         example: 'application/pdf'
     })
+    @Trim()
     @IsOptional()
     @IsMimeType()
     @IsString()
@@ -42,6 +48,7 @@ export class CreateDocumentDto {
         description: 'Môn học liên quan',
         example: 'Toán học'
     })
+    @Trim()
     @IsOptional()
     @IsString()
     subject?: string;
@@ -50,6 +57,7 @@ export class CreateDocumentDto {
         description: 'Loại đối tượng liên kết (question, exam, lesson, etc.)',
         example: 'question'
     })
+    @Trim()
     @IsOptional()
     @IsString()
     relatedType?: string;
@@ -84,6 +92,7 @@ export class UpdateDocumentDto {
         description: 'URL chính của document',
         example: 'https://example.com/document-updated.pdf'
     })
+    @Trim()
     @IsOptional()
     @IsUrl({}, { message: 'URL không hợp lệ' })
     @IsString()
@@ -93,6 +102,7 @@ export class UpdateDocumentDto {
         description: 'URL phụ của document',
         example: 'https://example.com/document-backup-updated.pdf'
     })
+    @Trim()
     @IsOptional()
     @IsUrl({}, { message: 'Another URL không hợp lệ' })
     @IsString()
@@ -102,6 +112,7 @@ export class UpdateDocumentDto {
         description: 'Mô tả document',
         example: 'Tài liệu toán học lớp 10 - Chương 1: Hàm số (cập nhật)'
     })
+    @Trim()
     @IsOptional()
     @IsString()
     description?: string;
@@ -110,6 +121,7 @@ export class UpdateDocumentDto {
         description: 'MIME type của document',
         example: 'application/pdf'
     })
+    @Trim()
     @IsOptional()
     @IsMimeType()
     @IsString()
@@ -119,6 +131,7 @@ export class UpdateDocumentDto {
         description: 'Môn học liên quan',
         example: 'Toán học'
     })
+    @Trim()
     @IsOptional()
     @IsString()
     subject?: string;
@@ -127,6 +140,7 @@ export class UpdateDocumentDto {
         description: 'Loại đối tượng liên kết',
         example: 'question'
     })
+    @Trim()
     @IsOptional()
     @IsString()
     relatedType?: string;
@@ -143,6 +157,7 @@ export class UpdateDocumentDto {
         description: 'Nhà cung cấp lưu trữ',
         enum: StorageProvider
     })
+    @Trim()
     @IsOptional()
     @IsEnumValue(StorageProvider)
     storageProvider?: StorageProvider;
@@ -223,13 +238,14 @@ export class DocumentResponseDto {
     updatedAt: Date;
 }
 
-export class DocumentQueryDto {
+export class DocumentQueryDto extends ListQueryDto {
     @ApiPropertyOptional({
         description: 'Môn học để filter',
         example: 'Toán học'
     })
     @IsOptional()
     @IsString()
+    @Trim()
     subject?: string;
 
     @ApiPropertyOptional({
@@ -238,6 +254,7 @@ export class DocumentQueryDto {
     })
     @IsOptional()
     @IsString()
+    @Trim()
     relatedType?: string;
 
     @ApiPropertyOptional({
@@ -263,25 +280,4 @@ export class DocumentQueryDto {
     @IsOptional()
     @IsNumber()
     adminId?: number;
-
-    @ApiPropertyOptional({
-        description: 'Số trang (bắt đầu từ 1)',
-        example: 1,
-        minimum: 1,
-        default: 1
-    })
-    @IsOptional()
-    @IsNumber()
-    page?: number = 1;
-
-    @ApiPropertyOptional({
-        description: 'Số lượng items per page',
-        example: 10,
-        minimum: 1,
-        maximum: 100,
-        default: 10
-    })
-    @IsOptional()
-    @IsNumber()
-    limit?: number = 10;
 }

@@ -2,6 +2,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNotEmpty, IsUUID } from 'class-validator';
 import { BaseResponseDto } from '../base-response.dto';
+import { Trim } from '../../../shared/decorators/trim.decorator';
 
 export class SendVerificationEmailRequestDto {
     @ApiProperty({
@@ -17,6 +18,7 @@ export class VerifyEmailRequestDto {
         example: 'abc123-def456-ghi789',
     })
     @IsString()
+    @Trim()
     @IsNotEmpty()
     token: string;
 }

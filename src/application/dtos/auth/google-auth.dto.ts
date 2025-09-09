@@ -1,12 +1,14 @@
 // src/application/dtos/auth/google-auth.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsOptional, IsString } from 'class-validator';
+import { Trim } from 'src/shared/decorators/trim.decorator';
 
 export class GoogleUserProfileDto {
     @ApiProperty({
         description: 'Google ID của user',
         example: '123456789012345678901'
     })
+    @Trim()
     @IsString()
     googleId: string;
 
@@ -14,6 +16,7 @@ export class GoogleUserProfileDto {
         description: 'Email của user từ Google',
         example: 'user@gmail.com'
     })
+    @Trim()
     @IsEmail()
     email: string;
 
@@ -21,6 +24,7 @@ export class GoogleUserProfileDto {
         description: 'Tên của user',
         example: 'Nguyen Van A'
     })
+    @Trim()
     @IsString()
     firstName: string;
 
@@ -28,6 +32,7 @@ export class GoogleUserProfileDto {
         description: 'Họ của user',
         example: 'Nguyen'
     })
+    @Trim()
     @IsString()
     lastName: string;
 
@@ -35,6 +40,7 @@ export class GoogleUserProfileDto {
         description: 'Avatar URL từ Google',
         example: 'https://lh3.googleusercontent.com/...'
     })
+    @Trim()
     @IsOptional()
     @IsString()
     picture?: string;

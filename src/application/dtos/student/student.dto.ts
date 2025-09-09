@@ -3,6 +3,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserResponseDto, UpdateUserDto } from '../user/user.dto';
 import { PaginationResponseDto } from '../pagination/pagination-response.dto';
 import { IsOptional, IsString, IsInt, Min, Max, Matches } from 'class-validator';
+import { Trim } from '../../../shared/decorators/trim.decorator';
 
 export class StudentResponseDto extends UserResponseDto {
     @ApiProperty({ description: 'ID của student', example: 1 })
@@ -77,6 +78,7 @@ export class UpdateStudentDto extends UpdateUserDto {
         example: '0123456789',
         pattern: '^[0-9]{10,11}$'
     })
+    @Trim()
     @IsOptional()
     @IsString({ message: 'Số điện thoại sinh viên phải là chuỗi ký tự' })
     @Matches(/^[0-9]{10,11}$/, { message: 'Số điện thoại sinh viên phải có 10-11 chữ số' })
@@ -87,6 +89,7 @@ export class UpdateStudentDto extends UpdateUserDto {
         example: '0987654321',
         pattern: '^[0-9]{10,11}$'
     })
+    @Trim()
     @IsOptional()
     @IsString({ message: 'Số điện thoại phụ huynh phải là chuỗi ký tự' })
     @Matches(/^[0-9]{10,11}$/, { message: 'Số điện thoại phụ huynh phải có 10-11 chữ số' })
@@ -109,6 +112,7 @@ export class UpdateStudentDto extends UpdateUserDto {
         example: 'THPT Lý Thái Tổ',
         maxLength: 120
     })
+    @Trim()
     @IsOptional()
     @IsString({ message: 'Trường học phải là chuỗi ký tự' })
     school?: string;

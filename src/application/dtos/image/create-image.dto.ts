@@ -2,12 +2,14 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsOptional, IsUrl, IsInt } from 'class-validator';
 import { StorageProvider } from '../../../shared/enums/storage-provider.enum';
 import { IsEnumValue } from '../../../shared/decorators/is-enum-value.decorator';
+import { Trim } from '../../../shared/decorators/trim.decorator';
 
 export class CreateImageDto {
   @ApiProperty({ 
     description: 'URL của ảnh',
     example: 'https://example.com/image.jpg'
   })
+  @Trim()
   @IsUrl({}, { message: 'URL không hợp lệ' })
   @IsString()
   url: string;
@@ -17,6 +19,7 @@ export class CreateImageDto {
     example: 'https://example.com/image-alt.jpg',
     required: false
   })
+  @Trim()
   @IsOptional()
   @IsUrl({}, { message: 'Another URL không hợp lệ' })
   @IsString()
@@ -27,6 +30,7 @@ export class CreateImageDto {
     example: 'image/jpeg',
     required: false
   })
+  @Trim()
   @IsOptional()
   @IsString()
   mimeType?: string;
@@ -36,6 +40,7 @@ export class CreateImageDto {
     enum: StorageProvider,
     example: StorageProvider.EXTERNAL
   })
+  @Trim()
   @IsEnumValue(StorageProvider)
   storageProvider: StorageProvider;
 

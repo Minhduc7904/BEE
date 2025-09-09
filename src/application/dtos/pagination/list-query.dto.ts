@@ -2,7 +2,7 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsOptional, IsPositive, Min, Max, IsString, MaxLength, IsIn, IsDateString } from 'class-validator';
-
+import { Trim } from 'src/shared/decorators/trim.decorator';
 /**
  * DTO flat cho các query list có pagination, sort và filter
  */
@@ -42,6 +42,7 @@ export class ListQueryDto {
     })
     @IsOptional()
     @IsString({ message: 'Từ khóa tìm kiếm phải là chuỗi' })
+    @Trim()
     @MaxLength(255, { message: 'Từ khóa tìm kiếm không được vượt quá 255 ký tự' })
     search?: string;
 
@@ -52,6 +53,7 @@ export class ListQueryDto {
     })
     @IsOptional()
     @IsString({ message: 'Trường sắp xếp phải là chuỗi' })
+    @Trim()
     @MaxLength(50, { message: 'Tên trường sắp xếp không được vượt quá 50 ký tự' })
     sortBy?: string;
 
@@ -73,6 +75,7 @@ export class ListQueryDto {
     })
     @IsOptional()
     @IsString({ message: 'Trạng thái phải là chuỗi' })
+    @Trim()
     status?: string;
 
     @ApiPropertyOptional({

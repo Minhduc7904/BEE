@@ -14,7 +14,6 @@ export class SwaggerConfig {
             .setTitle('Bee API')
             .setDescription('NestJS + Prisma + Swagger API Documentation')
             .setVersion('1.0.0-beta.1')
-            .addTag('auth', 'Authentication endpoints')
             .addBearerAuth(
                 {
                     type: 'http',
@@ -31,7 +30,7 @@ export class SwaggerConfig {
             .build();
 
         const document = SwaggerModule.createDocument(app, config);
-        
+
         SwaggerModule.setup('docs', app, document, {
             swaggerOptions: {
                 persistAuthorization: true,

@@ -3,6 +3,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsOptional, IsString, IsNumber, IsBoolean, IsDateString, Min, Max } from 'class-validator';
 import { ListQueryDto } from '../pagination/list-query.dto';
+import { Trim } from '../../../shared/decorators/trim.decorator';
 
 export class StudentListQueryDto extends ListQueryDto {
     @ApiPropertyOptional({
@@ -22,6 +23,7 @@ export class StudentListQueryDto extends ListQueryDto {
         description: 'Lọc theo trường học',
         example: 'THPT Nguyễn Huệ'
     })
+    @Trim()
     @IsOptional()
     @IsString({ message: 'Tên trường phải là chuỗi' })
     school?: string;
@@ -30,6 +32,7 @@ export class StudentListQueryDto extends ListQueryDto {
         description: 'Lọc theo số điện thoại học sinh',
         example: '0123456789'
     })
+    @Trim()
     @IsOptional()
     @IsString({ message: 'Số điện thoại học sinh phải là chuỗi' })
     studentPhone?: string;
@@ -38,6 +41,7 @@ export class StudentListQueryDto extends ListQueryDto {
         description: 'Lọc theo số điện thoại phụ huynh',
         example: '0987654321'
     })
+    @Trim()
     @IsOptional()
     @IsString({ message: 'Số điện thoại phụ huynh phải là chuỗi' })
     parentPhone?: string;
@@ -46,6 +50,7 @@ export class StudentListQueryDto extends ListQueryDto {
         description: 'Lọc theo username',
         example: 'student01'
     })
+    @Trim()
     @IsOptional()
     @IsString({ message: 'Username phải là chuỗi' })
     username?: string;
@@ -54,6 +59,7 @@ export class StudentListQueryDto extends ListQueryDto {
         description: 'Lọc theo email',
         example: 'student@example.com'
     })
+    @Trim()
     @IsOptional()
     @IsString({ message: 'Email phải là chuỗi' })
     email?: string;
@@ -62,6 +68,7 @@ export class StudentListQueryDto extends ListQueryDto {
         description: 'Lọc theo tên',
         example: 'Nguyễn'
     })
+    @Trim()
     @IsOptional()
     @IsString({ message: 'Tên phải là chuỗi' })
     firstName?: string;
@@ -70,6 +77,7 @@ export class StudentListQueryDto extends ListQueryDto {
         description: 'Lọc theo họ',
         example: 'Văn A'
     })
+    @Trim()
     @IsOptional()
     @IsString({ message: 'Họ phải là chuỗi' })
     lastName?: string;

@@ -1,6 +1,7 @@
 // src/application/dtos/user/user-response.dto.ts
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, IsEmail, MaxLength, MinLength } from 'class-validator';
+import { Trim } from '../../../shared/decorators/trim.decorator';
 
 export class UserResponseDto {
     @ApiProperty({ description: 'ID của user', example: 1 })
@@ -71,6 +72,7 @@ export class UpdateUserDto {
         minLength: 3,
         maxLength: 50
     })
+    @Trim()
     @IsOptional()
     @IsString({ message: 'Username phải là chuỗi ký tự' })
     @MinLength(3, { message: 'Username phải có ít nhất 3 ký tự' })
@@ -82,6 +84,7 @@ export class UpdateUserDto {
         example: 'john.new@example.com',
         maxLength: 120
     })
+    @Trim()
     @IsOptional()
     @IsEmail({}, { message: 'Email không hợp lệ' })
     @MaxLength(120, { message: 'Email không được vượt quá 120 ký tự' })
@@ -92,6 +95,7 @@ export class UpdateUserDto {
         example: 'Tran',
         maxLength: 100
     })
+    @Trim()
     @IsOptional()
     @IsString({ message: 'Họ phải là chuỗi ký tự' })
     @MaxLength(100, { message: 'Họ không được vượt quá 100 ký tự' })
@@ -102,6 +106,7 @@ export class UpdateUserDto {
         example: 'Van B',
         maxLength: 50
     })
+    @Trim()
     @IsOptional()
     @IsString({ message: 'Tên phải là chuỗi ký tự' })
     @MaxLength(50, { message: 'Tên không được vượt quá 50 ký tự' })

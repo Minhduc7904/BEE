@@ -2,6 +2,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserResponseDto, UpdateUserDto } from '../user/user.dto';
 import { IsOptional, IsString, MaxLength } from 'class-validator';
+import { Trim } from '../../../shared/decorators/trim.decorator';
 
 export class AdminResponseDto extends UserResponseDto {
     @ApiProperty({ description: 'ID của admin', example: 1 })
@@ -48,6 +49,7 @@ export class UpdateAdminDto extends UpdateUserDto {
     })
     @IsOptional()
     @IsString({ message: 'Môn học phải là chuỗi ký tự' })
+    @Trim()
     @MaxLength(120, { message: 'Môn học không được vượt quá 120 ký tự' })
     subject?: string;
 }
