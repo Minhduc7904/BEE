@@ -11,7 +11,6 @@ import { SharedModule } from '../shared/shared.module';
 import { AdminAuditLogController } from './controllers/admin-audit-log.controller';
 import { StudentController } from './controllers/student.controller';
 import { UserController } from './controllers/user.controller';
-import { EmailController } from './controllers/email.controller';
 import { EmailVerificationController } from './controllers/email-verification.controller';
 
 @Module({
@@ -25,7 +24,6 @@ import { EmailVerificationController } from './controllers/email-verification.co
         UserController,
         GoogleAuthAdminController,
         GoogleAuthStudentController,
-        EmailController,
         EmailVerificationController,
     ],
 })

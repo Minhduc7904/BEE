@@ -1,7 +1,7 @@
 {
   "name": "BEE",
-  "version": "1.0.0-beta.1",
-  "description": "BEE API - A robust NestJS authentication system with JWT and Clean Architecture",
+  "version": "2.0.0",
+  "description": "BEE API - Complete education platform with authentication, email verification, Google OAuth, and advanced user management",
   "author": "Development Team",
   "private": true,
   "license": "UNLICENSED",
