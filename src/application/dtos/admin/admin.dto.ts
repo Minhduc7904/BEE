@@ -1,7 +1,7 @@
 // src/application/dtos/admin/admin-response.dto.ts
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { UserResponseDto, UpdateUserDto } from '../user/user.dto';
-import { IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsOptional, IsString, MaxLength, IsNumber, IsPositive } from 'class-validator';
 import { Trim } from '../../../shared/decorators/trim.decorator';
 import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants';
 import { VALIDATION_MESSAGES } from '../../../shared/constants/validation-messages';
@@ -9,6 +9,9 @@ import { VALIDATION_MESSAGES } from '../../../shared/constants/validation-messag
 export class AdminResponseDto extends UserResponseDto {
     @ApiProperty(SWAGGER_PROPERTIES.ADMIN_ID)
     adminId: number;
+
+    @ApiPropertyOptional()
+    subjectId?: number;
 
     @ApiPropertyOptional(SWAGGER_PROPERTIES.SUBJECT)
     subject?: string;
@@ -27,7 +30,8 @@ export class AdminResponseDto extends UserResponseDto {
         return new AdminResponseDto({
             ...baseUser,
             adminId: admin.adminId,
-            subject: admin.subject,
+            subjectId: admin.subjectId,
+            subject: admin.getSubjectName ? admin.getSubjectName() : admin.subject?.name,
         });
     }
 
@@ -45,12 +49,11 @@ export class AdminResponseDto extends UserResponseDto {
 
 export class UpdateAdminDto extends UpdateUserDto {
     @ApiPropertyOptional({
-        ...SWAGGER_PROPERTIES.SUBJECT,
-        maxLength: 120
+        description: 'ID của môn học (null để bỏ gán môn học)',
+        example: 1
     })
-    @Trim()
     @IsOptional()
-    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Môn học') })
-    @MaxLength(120, { message: VALIDATION_MESSAGES.FIELD_MAX('Môn học', 120) })
-    subject?: string;
+    @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Subject ID') })
+    @IsPositive({ message: 'Subject ID phải là số dương' })
+    subjectId?: number | null;
 }

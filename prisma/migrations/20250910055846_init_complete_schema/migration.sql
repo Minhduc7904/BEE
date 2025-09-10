@@ -1,6 +1,7 @@
 -- CreateTable
 CREATE TABLE `users` (
     `user_id` INTEGER NOT NULL AUTO_INCREMENT,
+    `old_user_id` INTEGER NULL,
     `username` VARCHAR(50) NOT NULL,
     `email` VARCHAR(120) NULL,
     `password_hash` VARCHAR(255) NOT NULL,
@@ -10,11 +11,27 @@ CREATE TABLE `users` (
     `last_login_at` TIMESTAMP(0) NULL,
     `created_at` TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
     `updated_at` TIMESTAMP(0) NOT NULL,
+    `is_email_verified` BOOLEAN NOT NULL DEFAULT false,
+    `email_verified_at` TIMESTAMP(0) NULL,
 
+    UNIQUE INDEX `users_old_user_id_key`(`old_user_id`),
     UNIQUE INDEX `users_username_key`(`username`),
     UNIQUE INDEX `users_email_key`(`email`),
     INDEX `idx_users_name`(`last_name`, `first_name`),
     PRIMARY KEY (`user_id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `email_verification_tokens` (
+    `id` VARCHAR(191) NOT NULL,
+    `userId` INTEGER NOT NULL,
+    `tokenHash` VARCHAR(255) NOT NULL,
+    `expiresAt` DATETIME(3) NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `consumedAt` DATETIME(3) NULL,
+
+    UNIQUE INDEX `email_verification_tokens_userId_key`(`userId`),
+    PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
@@ -35,9 +52,10 @@ CREATE TABLE `students` (
 CREATE TABLE `admins` (
     `admin_id` INTEGER NOT NULL AUTO_INCREMENT,
     `user_id` INTEGER NOT NULL,
-    `subject` VARCHAR(120) NULL,
+    `subject_id` INTEGER NULL,
 
     UNIQUE INDEX `admins_user_id_key`(`user_id`),
+    INDEX `idx_admins_subject_id`(`subject_id`),
     PRIMARY KEY (`admin_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -46,30 +64,29 @@ CREATE TABLE `roles` (
     `role_id` INTEGER NOT NULL AUTO_INCREMENT,
     `role_name` VARCHAR(50) NOT NULL,
     `description` VARCHAR(255) NULL,
+    `is_assignable` BOOLEAN NOT NULL DEFAULT true,
+    `required_by_role_id` INTEGER NULL,
     `created_at` TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
 
     UNIQUE INDEX `roles_role_name_key`(`role_name`),
+    INDEX `idx_roles_required_by`(`required_by_role_id`),
     PRIMARY KEY (`role_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `admin_roles` (
-    `admin_id` INTEGER NOT NULL,
+CREATE TABLE `user_roles` (
+    `user_id` INTEGER NOT NULL,
     `role_id` INTEGER NOT NULL,
     `assigned_at` TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
+    `expires_at` TIMESTAMP(0) NULL,
+    `assigned_by` INTEGER NULL,
+    `is_active` BOOLEAN NOT NULL DEFAULT true,
 
-    INDEX `idx_admin_roles_role_id`(`role_id`),
-    PRIMARY KEY (`admin_id`, `role_id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
-CREATE TABLE `student_roles` (
-    `student_id` INTEGER NOT NULL,
-    `role_id` INTEGER NOT NULL,
-    `assigned_at` TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
-
-    INDEX `idx_student_roles_role_id`(`role_id`),
-    PRIMARY KEY (`student_id`, `role_id`)
+    INDEX `idx_user_roles_role_id`(`role_id`),
+    INDEX `idx_user_roles_user_active`(`user_id`, `is_active`),
+    INDEX `idx_user_roles_expires`(`expires_at`),
+    INDEX `idx_user_roles_assigned_by`(`assigned_by`),
+    PRIMARY KEY (`user_id`, `role_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
@@ -100,7 +117,7 @@ CREATE TABLE `admin_audit_logs` (
     `log_id` INTEGER NOT NULL AUTO_INCREMENT,
     `admin_id` INTEGER NOT NULL,
     `action_key` VARCHAR(64) NOT NULL,
-    `status` ENUM('SUCCESS', 'FAIL') NOT NULL DEFAULT 'SUCCESS',
+    `status` ENUM('SUCCESS', 'FAIL', 'ROLLBACK') NOT NULL DEFAULT 'SUCCESS',
     `error_message` TEXT NULL,
     `resource_type` VARCHAR(64) NOT NULL,
     `resource_id` VARCHAR(64) NULL,
@@ -123,7 +140,7 @@ CREATE TABLE `documents` (
     `url` VARCHAR(500) NOT NULL,
     `another_url` VARCHAR(500) NULL,
     `mime_type` VARCHAR(100) NULL,
-    `subject` VARCHAR(100) NULL,
+    `subject_id` INTEGER NULL,
     `related_type` VARCHAR(50) NULL,
     `related_id` INTEGER NULL,
     `storage_provider` ENUM('LOCAL', 'S3', 'GCS', 'EXTERNAL') NOT NULL DEFAULT 'EXTERNAL',
@@ -132,6 +149,7 @@ CREATE TABLE `documents` (
 
     INDEX `idx_documents_related`(`related_type`, `related_id`),
     INDEX `idx_documents_created_at`(`created_at`),
+    INDEX `idx_documents_subject_id`(`subject_id`),
     PRIMARY KEY (`document_id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -203,19 +221,52 @@ CREATE TABLE `images` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
+CREATE TABLE `subjects` (
+    `subject_id` INTEGER NOT NULL AUTO_INCREMENT,
+    `name` VARCHAR(191) NOT NULL,
+    `code` VARCHAR(191) NULL,
+
+    UNIQUE INDEX `subjects_name_key`(`name`),
+    UNIQUE INDEX `subjects_code_key`(`code`),
+    INDEX `idx_subjects_name`(`name`),
+    PRIMARY KEY (`subject_id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `chapters` (
+    `chapter_id` INTEGER NOT NULL AUTO_INCREMENT,
+    `subject_id` INTEGER NOT NULL,
+    `code` VARCHAR(191) NULL,
+    `name` VARCHAR(191) NOT NULL,
+    `slug` VARCHAR(191) NOT NULL,
+    `parent_chapter_id` INTEGER NULL,
+    `order_in_parent` INTEGER NOT NULL,
+    `level` INTEGER NOT NULL DEFAULT 0,
+
+    UNIQUE INDEX `chapters_code_key`(`code`),
+    UNIQUE INDEX `chapters_slug_key`(`slug`),
+    INDEX `idx_chapters_subject_id`(`subject_id`),
+    INDEX `idx_chapters_parent_id`(`parent_chapter_id`),
+    UNIQUE INDEX `chapters_subject_id_name_parent_chapter_id_key`(`subject_id`, `name`, `parent_chapter_id`),
+    UNIQUE INDEX `chapters_subject_id_parent_chapter_id_order_in_parent_key`(`subject_id`, `parent_chapter_id`, `order_in_parent`),
+    PRIMARY KEY (`chapter_id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
 CREATE TABLE `exams` (
     `exam_id` INTEGER NOT NULL AUTO_INCREMENT,
     `title` VARCHAR(255) NOT NULL,
     `description` TEXT NULL,
     `grade` TINYINT NOT NULL,
-    `subject` VARCHAR(100) NOT NULL,
+    `subject_id` INTEGER NULL,
     `file_id` INTEGER NULL,
     `solution_file_id` INTEGER NULL,
     `created_by` INTEGER NOT NULL,
     `created_at` TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
     `updated_at` TIMESTAMP(0) NOT NULL,
 
-    INDEX `idx_exams_grade_subject`(`grade`, `subject`),
+    INDEX `idx_exams_grade_subject`(`grade`, `subject_id`),
+    INDEX `idx_exams_subject_id`(`subject_id`),
     INDEX `idx_exams_created_by`(`created_by`),
     INDEX `idx_exams_created_at`(`created_at`),
     PRIMARY KEY (`exam_id`)
@@ -234,12 +285,13 @@ CREATE TABLE `questions` (
     `solution_youtube_url` VARCHAR(500) NULL,
     `solution_image_id` INTEGER NULL,
     `grade` TINYINT NOT NULL,
-    `subject` VARCHAR(100) NULL,
+    `subject_id` INTEGER NULL,
     `created_by` INTEGER NULL,
     `created_at` TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
     `updated_at` TIMESTAMP(0) NOT NULL,
 
-    INDEX `idx_questions_subject_grade`(`subject`, `grade`),
+    INDEX `idx_questions_subject_grade`(`subject_id`, `grade`),
+    INDEX `idx_questions_subject_id`(`subject_id`),
     INDEX `idx_questions_type`(`type`),
     INDEX `idx_questions_difficulty`(`difficulty`),
     INDEX `idx_questions_created_by`(`created_by`),
@@ -321,7 +373,7 @@ CREATE TABLE `courses` (
     `thumb_image_id` INTEGER NULL,
     `academic_year` VARCHAR(9) NULL,
     `grade` VARCHAR(10) NULL,
-    `subject` VARCHAR(50) NULL,
+    `subject_id` INTEGER NULL,
     `price_cents` INTEGER NOT NULL DEFAULT 0,
     `compare_at_cents` INTEGER NULL,
     `visibility` ENUM('DRAFT', 'PRIVATE', 'PUBLISHED') NOT NULL DEFAULT 'DRAFT',
@@ -331,7 +383,8 @@ CREATE TABLE `courses` (
     `updated_at` TIMESTAMP(0) NOT NULL,
 
     INDEX `idx_courses_visibility`(`visibility`),
-    INDEX `idx_courses_grade_subject`(`grade`, `subject`),
+    INDEX `idx_courses_grade_subject`(`grade`, `subject_id`),
+    INDEX `idx_courses_subject_id`(`subject_id`),
     INDEX `idx_courses_teacher_id`(`teacher_id`),
     INDEX `idx_courses_created_at`(`created_at`),
     PRIMARY KEY (`course_id`)
@@ -382,22 +435,28 @@ CREATE TABLE `lesson_learning_items` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- AddForeignKey
+ALTER TABLE `email_verification_tokens` ADD CONSTRAINT `email_verification_tokens_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `users`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE `students` ADD CONSTRAINT `students_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `admins` ADD CONSTRAINT `admins_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `admin_roles` ADD CONSTRAINT `admin_roles_admin_id_fkey` FOREIGN KEY (`admin_id`) REFERENCES `admins`(`admin_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `admins` ADD CONSTRAINT `admins_subject_id_fkey` FOREIGN KEY (`subject_id`) REFERENCES `subjects`(`subject_id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `admin_roles` ADD CONSTRAINT `admin_roles_role_id_fkey` FOREIGN KEY (`role_id`) REFERENCES `roles`(`role_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `roles` ADD CONSTRAINT `roles_required_by_role_id_fkey` FOREIGN KEY (`required_by_role_id`) REFERENCES `roles`(`role_id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `student_roles` ADD CONSTRAINT `student_roles_student_id_fkey` FOREIGN KEY (`student_id`) REFERENCES `students`(`student_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `user_roles` ADD CONSTRAINT `user_roles_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `student_roles` ADD CONSTRAINT `student_roles_role_id_fkey` FOREIGN KEY (`role_id`) REFERENCES `roles`(`role_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE `user_roles` ADD CONSTRAINT `user_roles_role_id_fkey` FOREIGN KEY (`role_id`) REFERENCES `roles`(`role_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `user_roles` ADD CONSTRAINT `user_roles_assigned_by_fkey` FOREIGN KEY (`assigned_by`) REFERENCES `users`(`user_id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `user_refresh_tokens` ADD CONSTRAINT `user_refresh_tokens_user_id_fkey` FOREIGN KEY (`user_id`) REFERENCES `users`(`user_id`) ON DELETE CASCADE ON UPDATE CASCADE;
@@ -412,6 +471,9 @@ ALTER TABLE `admin_audit_logs` ADD CONSTRAINT `admin_audit_logs_admin_id_fkey` F
 ALTER TABLE `documents` ADD CONSTRAINT `documents_admin_id_fkey` FOREIGN KEY (`admin_id`) REFERENCES `admins`(`admin_id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE `documents` ADD CONSTRAINT `documents_subject_id_fkey` FOREIGN KEY (`subject_id`) REFERENCES `subjects`(`subject_id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE `question_images` ADD CONSTRAINT `question_images_admin_id_fkey` FOREIGN KEY (`admin_id`) REFERENCES `admins`(`admin_id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -421,7 +483,19 @@ ALTER TABLE `solution_images` ADD CONSTRAINT `solution_images_admin_id_fkey` FOR
 ALTER TABLE `media_images` ADD CONSTRAINT `media_images_admin_id_fkey` FOREIGN KEY (`admin_id`) REFERENCES `admins`(`admin_id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE `chapters` ADD CONSTRAINT `chapters_subject_id_fkey` FOREIGN KEY (`subject_id`) REFERENCES `subjects`(`subject_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `chapters` ADD CONSTRAINT `chapters_parent_chapter_id_fkey` FOREIGN KEY (`parent_chapter_id`) REFERENCES `chapters`(`chapter_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `exams` ADD CONSTRAINT `exams_subject_id_fkey` FOREIGN KEY (`subject_id`) REFERENCES `subjects`(`subject_id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE `exams` ADD CONSTRAINT `exams_created_by_fkey` FOREIGN KEY (`created_by`) REFERENCES `admins`(`admin_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `questions` ADD CONSTRAINT `questions_subject_id_fkey` FOREIGN KEY (`subject_id`) REFERENCES `subjects`(`subject_id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `questions` ADD CONSTRAINT `questions_created_by_fkey` FOREIGN KEY (`created_by`) REFERENCES `admins`(`admin_id`) ON DELETE SET NULL ON UPDATE CASCADE;
@@ -446,6 +520,9 @@ ALTER TABLE `learning_items` ADD CONSTRAINT `learning_items_document_id_fkey` FO
 
 -- AddForeignKey
 ALTER TABLE `learning_items` ADD CONSTRAINT `learning_items_competition_id_fkey` FOREIGN KEY (`competition_id`) REFERENCES `competitions`(`competition_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `courses` ADD CONSTRAINT `courses_subject_id_fkey` FOREIGN KEY (`subject_id`) REFERENCES `subjects`(`subject_id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `courses` ADD CONSTRAINT `courses_teacher_id_fkey` FOREIGN KEY (`teacher_id`) REFERENCES `admins`(`admin_id`) ON DELETE SET NULL ON UPDATE CASCADE;

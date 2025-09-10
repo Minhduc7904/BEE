@@ -2,7 +2,7 @@
 import { PrismaService } from '../../prisma/prisma.service';
 import type { IUserRefreshTokenRepository, CreateRefreshTokenData } from '../../domain/repositories/user-refresh-token.repository';
 import { UserRefreshToken } from '../../domain/entities/token/user-refresh-token.entity';
-import { DomainMapper } from '../mappers/domain-mapper';
+import { RefreshTokenMapper } from '../mappers/refresh-token.mapper';
 import { NumberUtil } from '../../shared/utils/number.util';
 
 export class PrismaUserRefreshTokenRepository implements IUserRefreshTokenRepository {
@@ -23,7 +23,7 @@ export class PrismaUserRefreshTokenRepository implements IUserRefreshTokenReposi
             },
         });
 
-        return DomainMapper.toDomainRefreshToken(token)!;
+        return RefreshTokenMapper.toDomainRefreshToken(token)!;
     }
 
     async findByTokenHash(tokenHash: string): Promise<UserRefreshToken | null> {
@@ -31,7 +31,7 @@ export class PrismaUserRefreshTokenRepository implements IUserRefreshTokenReposi
             where: { tokenHash },
         });
 
-        return DomainMapper.toDomainRefreshToken(refreshToken);
+        return RefreshTokenMapper.toDomainRefreshToken(refreshToken);
     }
 
     async findByUserId(userId: number): Promise<UserRefreshToken[]> {
@@ -42,7 +42,7 @@ export class PrismaUserRefreshTokenRepository implements IUserRefreshTokenReposi
             orderBy: { createdAt: 'desc' },
         });
 
-        return DomainMapper.toDomainRefreshTokens(tokens);
+        return RefreshTokenMapper.toDomainRefreshTokens(tokens);
     }
 
     async findByFamilyId(familyId: string): Promise<UserRefreshToken[]> {
@@ -51,7 +51,7 @@ export class PrismaUserRefreshTokenRepository implements IUserRefreshTokenReposi
             orderBy: { createdAt: 'desc' },
         });
 
-        return DomainMapper.toDomainRefreshTokens(tokens);
+        return RefreshTokenMapper.toDomainRefreshTokens(tokens);
     }
 
     async deleteByUserId(userId: number): Promise<void> {

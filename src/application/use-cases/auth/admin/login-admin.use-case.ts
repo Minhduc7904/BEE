@@ -97,7 +97,7 @@ export class LoginAdminUseCase {
                 role: 'admin',
                 roleDetails: {
                     adminId: admin.adminId,
-                    subject: admin.subject
+                    subject: admin.getSubjectName ? admin.getSubjectName() : admin.subject?.name
                 }
             };
 

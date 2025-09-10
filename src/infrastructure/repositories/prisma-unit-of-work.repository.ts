@@ -13,7 +13,6 @@ import { PrismaSolutionImageRepository } from './prisma-solution-image.repositor
 import { PrismaMediaImageRepository } from './prisma-media-image.repository';
 import { PrismaImageRepository } from './prisma-image.repository';
 import { PrismaRoleRepository } from './prisma-role.repository';
-import { DomainMapper } from '../mappers/domain-mapper';
 import { PrismaAdminLogRepository } from './prisma-admin-log.repository';
 
 type Prismaish = Prisma.TransactionClient | PrismaService; // chỉ cần các delegate CRUD

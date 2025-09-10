@@ -4,7 +4,7 @@ import type { IUserRepository, CreateUserData } from '../../domain/repositories/
 import { User } from '../../domain/entities/user/user.entity';
 import { Admin } from '../../domain/entities/user/admin.entity';
 import { Student } from '../../domain/entities/user/student.entity';
-import { DomainMapper } from '../mappers/domain-mapper';
+import { UserMapper } from '../mappers/user.mapper';
 import { NumberUtil } from '../../shared/utils/number.util';
 
 export class PrismaUserRepository implements IUserRepository {
@@ -26,7 +26,7 @@ export class PrismaUserRepository implements IUserRepository {
             },
         });
 
-        return DomainMapper.toDomainUser(prismaUser)!;
+        return UserMapper.toDomainUser(prismaUser)!;
     }
 
     async findById(id: number): Promise<User | null> {
@@ -36,7 +36,7 @@ export class PrismaUserRepository implements IUserRepository {
             where: { userId: numericId },
         });
 
-        return DomainMapper.toDomainUser(prismaUser);
+        return UserMapper.toDomainUser(prismaUser);
     }
 
     async findByUsername(username: string): Promise<User | null> {
@@ -44,7 +44,7 @@ export class PrismaUserRepository implements IUserRepository {
             where: { username },
         });
 
-        return DomainMapper.toDomainUser(prismaUser);
+        return UserMapper.toDomainUser(prismaUser);
     }
 
     async findByUsernameWithDetails(username: string): Promise<{
@@ -60,7 +60,7 @@ export class PrismaUserRepository implements IUserRepository {
             },
         });
 
-        return DomainMapper.toDomainUserWithDetails(result);
+        return UserMapper.toDomainUserWithDetails(result);
     }
 
     async updateLastLogin(userId: number): Promise<void> {
@@ -91,7 +91,7 @@ export class PrismaUserRepository implements IUserRepository {
             where: { email },
         });
 
-        return DomainMapper.toDomainUser(prismaUser);
+        return UserMapper.toDomainUser(prismaUser);
     }
 
     async findByOldUserId(oldUserId: number): Promise<User | null> {
@@ -101,7 +101,7 @@ export class PrismaUserRepository implements IUserRepository {
             where: { oldUserId: numericOldUserId },
         });
 
-        return DomainMapper.toDomainUser(prismaUser);
+        return UserMapper.toDomainUser(prismaUser);
     }
 
     async update(id: number, data: Partial<User>): Promise<User> {
@@ -119,7 +119,7 @@ export class PrismaUserRepository implements IUserRepository {
             },
         });
 
-        return DomainMapper.toDomainUser(prismaUser)!;
+        return UserMapper.toDomainUser(prismaUser)!;
     }
 
     async delete(id: number): Promise<boolean> {

@@ -5,7 +5,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { IAdminAuditLogRepository } from '../../domain/repositories/admin-audit-log.repository';
 import { AdminAuditLog } from '../../domain/entities/log/admin-audit-log.entity';
 import { CreateLogDto } from '../../application/dtos/log/log.dto';
-import { DomainMapper } from '../mappers/domain-mapper';
+import { AdminAuditLogMapper } from '../mappers/admin-audit-log.mapper';
 import { AuditStatus } from '../../shared/enums/audit-status.enum';
 import { NumberUtil } from '../../shared/utils/number.util';
 
@@ -26,7 +26,7 @@ export class PrismaAdminLogRepository implements IAdminAuditLogRepository {
             },
         });
 
-        return DomainMapper.toAdminAuditLogDomain(created)!;
+        return AdminAuditLogMapper.toDomainAdminAuditLog(created)!;
     }
 
     async updateStatus(id: number, status: AuditStatus): Promise<AdminAuditLog> {
@@ -39,7 +39,7 @@ export class PrismaAdminLogRepository implements IAdminAuditLogRepository {
             },
         });
 
-        return DomainMapper.toAdminAuditLogDomain(updated)!;
+        return AdminAuditLogMapper.toDomainAdminAuditLog(updated)!;
     }
 
     async findById(id: number): Promise<AdminAuditLog | null> {
@@ -50,7 +50,7 @@ export class PrismaAdminLogRepository implements IAdminAuditLogRepository {
             include: { admin: true },
         });
 
-        return DomainMapper.toAdminAuditLogDomain(log);
+        return AdminAuditLogMapper.toDomainAdminAuditLog(log);
     }
 
     async findByAdminId(adminId: number): Promise<AdminAuditLog[]> {
@@ -61,7 +61,7 @@ export class PrismaAdminLogRepository implements IAdminAuditLogRepository {
             include: { admin: true },
         });
 
-        return logs.map(log => DomainMapper.toAdminAuditLogDomain(log)!).filter(Boolean) as AdminAuditLog[];
+        return AdminAuditLogMapper.toDomainAdminAuditLogs(logs);
     }
 
     async findByActionKey(actionKey: string): Promise<AdminAuditLog[]> {
@@ -70,26 +70,26 @@ export class PrismaAdminLogRepository implements IAdminAuditLogRepository {
             include: { admin: true },
         });
 
-        return logs.map(log => DomainMapper.toAdminAuditLogDomain(log)!).filter(Boolean) as AdminAuditLog[];
+        return AdminAuditLogMapper.toDomainAdminAuditLogs(logs);
     }
     async findByResourceType(resourceType: string): Promise<AdminAuditLog[]> {
         const logs = await this.prisma.adminAuditLog.findMany({
             where: { resourceType },
             include: { admin: true },
         });
-        return logs.map(log => DomainMapper.toAdminAuditLogDomain(log)!).filter(Boolean) as AdminAuditLog[];
+        return AdminAuditLogMapper.toDomainAdminAuditLogs(logs);
     }
     async findByResourceId(resourceId: string): Promise<AdminAuditLog[]> {
         const logs = await this.prisma.adminAuditLog.findMany({
             where: { resourceId },
             include: { admin: true },
         });
-        return logs.map(log => DomainMapper.toAdminAuditLogDomain(log)!).filter(Boolean) as AdminAuditLog[];
+        return AdminAuditLogMapper.toDomainAdminAuditLogs(logs);
     }
     async findAll(): Promise<AdminAuditLog[]> {
         const logs = await this.prisma.adminAuditLog.findMany({
             include: { admin: true },
         });
-        return logs.map(log => DomainMapper.toAdminAuditLogDomain(log)!).filter(Boolean) as AdminAuditLog[];
+        return AdminAuditLogMapper.toDomainAdminAuditLogs(logs);
     }
 }

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { IDocumentRepository, CreateDocumentData } from '../../domain/repositories/document.repository';
 import { Document } from '../../domain/entities/document/document.entity';
 import { NumberUtil } from '../../shared/utils/number.util';
+import { DocumentMapper } from '../mappers/document.mapper';
 
 @Injectable()
 export class PrismaDocumentRepository implements IDocumentRepository {
@@ -9,7 +10,7 @@ export class PrismaDocumentRepository implements IDocumentRepository {
 
     async create(data: CreateDocumentData): Promise<Document> {
         const numericAdminId = NumberUtil.ensureValidId(data.adminId, 'Admin ID');
-        
+
         const created = await this.prisma.document.create({
             data: {
                 adminId: numericAdminId,
@@ -17,50 +18,32 @@ export class PrismaDocumentRepository implements IDocumentRepository {
                 url: data.url,
                 anotherUrl: data.anotherUrl,
                 mimeType: data.mimeType,
-                subject: data.subject,
+                subjectId: data.subjectId,
                 relatedType: data.relatedType,
                 relatedId: data.relatedId,
                 storageProvider: data.storageProvider,
             },
+            include: {
+                subject: true,
+                admin: true,
+            },
         });
 
-        return new Document(
-            created.documentId,
-            created.url,
-            created.storageProvider,
-            created.createdAt,
-            created.updatedAt,
-            created.adminId,
-            created.description,
-            created.anotherUrl,
-            created.mimeType,
-            created.subject,
-            created.relatedType,
-            created.relatedId
-        );
+        return DocumentMapper.toDomainDocument(created)!;
     }
 
     async findById(id: number): Promise<Document | null> {
         const numericId = NumberUtil.ensureValidId(id, 'Document ID');
-        
+
         const document = await this.prisma.document.findUnique({
             where: { documentId: numericId },
+            include: {
+                subject: true,
+                admin: true,
+            },
         });
 
-        return document ? new Document(
-            document.documentId,
-            document.url,
-            document.storageProvider,
-            document.createdAt,
-            document.updatedAt,
-            document.adminId,
-            document.description,
-            document.anotherUrl,
-            document.mimeType,
-            document.subject,
-            document.relatedType,
-            document.relatedId
-        ) : null;
+        return DocumentMapper.toDomainDocument(document);
     }
 
     async findAll(limit = 10, offset = 0): Promise<Document[]> {
@@ -68,51 +51,33 @@ export class PrismaDocumentRepository implements IDocumentRepository {
             take: limit,
             skip: offset,
             orderBy: { createdAt: 'desc' },
+            include: {
+                subject: true,
+                admin: true,
+            },
         });
 
-        return documents.map((doc: any) => new Document(
-            doc.documentId,
-            doc.url,
-            doc.storageProvider,
-            doc.createdAt,
-            doc.updatedAt,
-            doc.adminId,
-            doc.description,
-            doc.anotherUrl,
-            doc.mimeType,
-            doc.subject,
-            doc.relatedType,
-            doc.relatedId
-        ));
+        return DocumentMapper.toDomainDocuments(documents);
     }
 
     async update(id: number, data: Partial<CreateDocumentData>): Promise<Document> {
         const numericId = NumberUtil.ensureValidId(id, 'Document ID');
-        
+
         const updated = await this.prisma.document.update({
             where: { documentId: numericId },
             data,
+            include: {
+                subject: true,
+                admin: true,
+            },
         });
 
-        return new Document(
-            updated.documentId,
-            updated.url,
-            updated.storageProvider,
-            updated.createdAt,
-            updated.updatedAt,
-            updated.adminId,
-            updated.description,
-            updated.anotherUrl,
-            updated.mimeType,
-            updated.subject,
-            updated.relatedType,
-            updated.relatedId
-        );
+        return DocumentMapper.toDomainDocument(updated)!;
     }
 
     async delete(id: number): Promise<void> {
         const numericId = NumberUtil.ensureValidId(id, 'Document ID');
-        
+
         await this.prisma.document.delete({
             where: { documentId: numericId },
         });
@@ -120,28 +85,19 @@ export class PrismaDocumentRepository implements IDocumentRepository {
 
     async findByRelated(relatedType: string, relatedId: number): Promise<Document[]> {
         const numericRelatedId = NumberUtil.ensureValidId(relatedId, 'Related ID');
-        
+
         const documents = await this.prisma.document.findMany({
             where: {
                 relatedType,
                 relatedId: numericRelatedId,
             },
             orderBy: { createdAt: 'desc' },
+            include: {
+                subject: true,
+                admin: true,
+            },
         });
 
-        return documents.map((doc: any) => new Document(
-            doc.documentId,
-            doc.url,
-            doc.storageProvider,
-            doc.createdAt,
-            doc.updatedAt,
-            doc.adminId,
-            doc.description,
-            doc.anotherUrl,
-            doc.mimeType,
-            doc.subject,
-            doc.relatedType,
-            doc.relatedId
-        ));
+        return DocumentMapper.toDomainDocuments(documents);
     }
 }

@@ -307,6 +307,7 @@ model Subject {
 model Chapter {
   chapterId       Int    @id @default(autoincrement()) @map("chapter_id")
   subjectId       Int    @map("subject_id")
+  code            String? @unique
   name            String
   slug            String @unique // ví dụ: "ham-so", "dao-ham"
   parentChapterId Int?   @map("parent_chapter_id") // self-FK
@@ -317,9 +318,10 @@ model Chapter {
   level Int @default(0)
 
   // Quan hệ
-  subject  Subject   @relation(fields: [subjectId], references: [subjectId], onDelete: Cascade)
-  parent   Chapter?  @relation("ChapterToChildren", fields: [parentChapterId], references: [chapterId], onDelete: Cascade)
-  children Chapter[] @relation("ChapterToChildren")
+  subject   Subject    @relation(fields: [subjectId], references: [subjectId], onDelete: Cascade)
+  parent    Chapter?   @relation("ChapterToChildren", fields: [parentChapterId], references: [chapterId], onDelete: Cascade)
+  children  Chapter[]  @relation("ChapterToChildren")
+  questions Question[] @relation("QuestionChapter")
 
   @@unique([subjectId, name, parentChapterId]) // tên chương không trùng trong cùng 1 cha của 1 môn
   @@unique([subjectId, parentChapterId, orderInParent]) // đảm bảo thứ tự duy nhất trong nhóm anh/chị em
@@ -375,7 +377,7 @@ model Question {
   imageId            Int?         @map("image_id")
   correctAnswer      String?      @map("correct_answer") @db.Text
   solution           String?      @map("solution") @db.Text
-  chapter            String?      @map("chapter") @db.VarChar(100)
+  chapterId          Int?         @map("chapter_id")
   difficulty         Difficulty   @map("difficulty")
   solutionYoutubeUrl String?      @map("solution_youtube_url") @db.VarChar(500)
   solutionImageId    Int?         @map("solution_image_id")
@@ -387,12 +389,14 @@ model Question {
 
   // Relations
   subject       Subject?       @relation("QuestionSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
+  chapter       Chapter?       @relation("QuestionChapter", fields: [chapterId], references: [chapterId], onDelete: SetNull)
   admin         Admin?         @relation("QuestionCreatedBy", fields: [createdBy], references: [adminId], onDelete: SetNull)
   statements    Statement[]
   examQuestions QuestionExam[]
 
   @@index([subjectId, grade], map: "idx_questions_subject_grade")
   @@index([subjectId], map: "idx_questions_subject_id")
+  @@index([chapterId], map: "idx_questions_chapter_id")
   @@index([type], map: "idx_questions_type")
   @@index([difficulty], map: "idx_questions_difficulty")
   @@index([createdBy], map: "idx_questions_created_by")

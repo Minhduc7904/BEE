@@ -7,7 +7,7 @@ export interface CreateDocumentData {
     url: string;
     anotherUrl?: string;
     mimeType?: string;
-    subject?: string;
+    subjectId?: number;
     relatedType?: string;
     relatedId?: number;
     storageProvider: StorageProvider;

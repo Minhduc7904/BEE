@@ -2,7 +2,7 @@
 import { PrismaService } from '../../prisma/prisma.service';
 import type { IAdminRepository, CreateAdminData } from '../../domain/repositories/admin.repository';
 import { Admin } from '../../domain/entities/user/admin.entity';
-import { DomainMapper } from '../mappers/domain-mapper';
+import { AdminMapper } from '../mappers/admin.mapper';
 import { NumberUtil } from '../../shared/utils/number.util';
 
 export class PrismaAdminRepository implements IAdminRepository {
@@ -18,7 +18,7 @@ export class PrismaAdminRepository implements IAdminRepository {
             },
         });
 
-        return DomainMapper.toDomainAdmin(prismaAdmin)!;
+        return AdminMapper.toDomainAdmin(prismaAdmin)!;
     }
 
     async findById(id: number): Promise<Admin | null> {
@@ -31,7 +31,7 @@ export class PrismaAdminRepository implements IAdminRepository {
 
         if (!prismaAdmin) return null;
 
-        return DomainMapper.toDomainAdmin(prismaAdmin)!;
+        return AdminMapper.toDomainAdmin(prismaAdmin)!;
     }
 
     async findByUserId(userId: number): Promise<Admin | null> {
@@ -44,7 +44,7 @@ export class PrismaAdminRepository implements IAdminRepository {
 
         if (!prismaAdmin) return null;
 
-        return DomainMapper.toDomainAdmin(prismaAdmin)!;
+        return AdminMapper.toDomainAdmin(prismaAdmin)!;
     }
 
     async update(id: number, data: Partial<Admin>): Promise<Admin> {
@@ -57,7 +57,7 @@ export class PrismaAdminRepository implements IAdminRepository {
             },
         });
 
-        return DomainMapper.toDomainAdmin(prismaAdmin)!;
+        return AdminMapper.toDomainAdmin(prismaAdmin)!;
     }
 
     async delete(id: number): Promise<boolean> {
@@ -78,6 +78,6 @@ export class PrismaAdminRepository implements IAdminRepository {
             include: { user: true },
         });
 
-        return DomainMapper.toDomainAdmins(prismaAdmins);
+        return AdminMapper.toDomainAdmins(prismaAdmins);
     }
 }

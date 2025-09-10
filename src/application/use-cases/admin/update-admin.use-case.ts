@@ -1,5 +1,6 @@
 // src/application/use-cases/admin/update-admin.use-case.ts
 import { Injectable, Inject } from '@nestjs/common';
+import { IsNumber, IsOptional } from 'class-validator';
 import type { IUnitOfWork } from '../../../domain/repositories/unit-of-work.repository';
 import { AdminResponseDto, UpdateAdminDto } from '../../dtos/admin/admin.dto';
 import { UpdateUserDto } from '../../dtos/user/user.dto';
@@ -32,7 +33,7 @@ export class UpdateAdminUseCase {
 
             // 3. Tách data cho User và Admin
             const userUpdateData: UpdateUserDto = {};
-            const adminUpdateData: Partial<UpdateAdminDto> = {};
+            const adminUpdateData: { subjectId?: number | null } = {};
 
             // Tách các trường của User
             if (dto.username !== undefined) userUpdateData.username = dto.username;
@@ -41,7 +42,7 @@ export class UpdateAdminUseCase {
             if (dto.lastName !== undefined) userUpdateData.lastName = dto.lastName;
 
             // Tách các trường của Admin
-            if (dto.subject !== undefined) adminUpdateData.subject = dto.subject;
+            if (dto.subjectId !== undefined) adminUpdateData.subjectId = dto.subjectId;
 
             // 4. Kiểm tra xem có thay đổi thực sự không
             const hasUserChanges = this.hasRealChanges(admin.user, userUpdateData);
@@ -73,7 +74,7 @@ export class UpdateAdminUseCase {
     }
 
     /**
-     * Validate unique constraints cho username và email
+     * Validate unique constraints cho username và email, và kiểm tra subjectId tồn tại
      */
     private async validateUniqueConstraints(repos: any, currentUserId: number, dto: UpdateAdminDto): Promise<void> {
         // Kiểm tra username unique
@@ -90,6 +91,18 @@ export class UpdateAdminUseCase {
             if (existingUser && existingUser.userId !== currentUserId) {
                 throw new ConflictException(`Email '${dto.email}' đã được sử dụng bởi user khác`);
             }
+        }
+
+        // Kiểm tra subjectId tồn tại
+        if (dto.subjectId !== undefined) {
+            if (dto.subjectId !== null) {
+                // Nếu subjectId không phải null, kiểm tra subject có tồn tại không
+                const subject = await repos.subjectRepository.findById(dto.subjectId);
+                if (!subject) {
+                    throw new NotFoundException(`Môn học với ID ${dto.subjectId} không tồn tại`);
+                }
+            }
+            // Nếu subjectId là null thì cho phép (unassign subject)
         }
     }
 

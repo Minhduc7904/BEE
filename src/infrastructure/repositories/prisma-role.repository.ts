@@ -1,10 +1,11 @@
-import { Injectable, Inject } from "@nestjs/common";
-import { Role } from "../../domain/entities/role/role.entity";
-import { UserRole } from "../../domain/entities/role/user-role.entity";
-import { CreateRoleData, IRoleRepository, UpdateRoleData } from "../../domain/repositories/role.repository";
-import { PrismaService } from "../../prisma/prisma.service";
-import { DomainMapper } from "../mappers/domain-mapper";
-import { NumberUtil } from "../../shared/utils/number.util";
+import { Injectable, Inject } from '@nestjs/common';
+import { Role } from '../../domain/entities/role/role.entity';
+import { UserRole } from '../../domain/entities/role/user-role.entity';
+import { CreateRoleData, IRoleRepository, UpdateRoleData } from '../../domain/repositories/role.repository';
+import { PrismaService } from '../../prisma/prisma.service';
+import { RoleMapper } from "../mappers/role.mapper";
+import { NumberUtil } from '../../shared/utils/number.util';
+import { UserRoleMapper } from '../mappers/user-role.mapper';
 
 @Injectable()
 export class PrismaRoleRepository implements IRoleRepository {
@@ -21,7 +22,7 @@ export class PrismaRoleRepository implements IRoleRepository {
             },
         });
 
-        return DomainMapper.toRoleDomain(created)!;
+        return RoleMapper.toDomainRole(created)!;
     }
 
     async findById(id: number): Promise<Role | null> {
@@ -34,7 +35,7 @@ export class PrismaRoleRepository implements IRoleRepository {
 
         if (!role) return null;
 
-        return DomainMapper.toRoleDomain(role)!;
+        return RoleMapper.toDomainRole(role)!;
     }
 
     async findByName(name: string): Promise<Role | null> {
@@ -44,7 +45,7 @@ export class PrismaRoleRepository implements IRoleRepository {
 
         if (!role) return null;
 
-        return DomainMapper.toRoleDomain(role)!;
+        return RoleMapper.toDomainRole(role)!;
     }
 
     async findAll(limit?: number, offset?: number): Promise<Role[]> {
@@ -53,7 +54,7 @@ export class PrismaRoleRepository implements IRoleRepository {
             skip: offset,
         });
 
-        return roles.map(r => DomainMapper.toRoleDomain(r)!).filter(Boolean) as Role[];
+        return RoleMapper.toDomainRoles(roles);
     }
 
     async update(id: number, data: UpdateRoleData): Promise<Role> {
@@ -67,7 +68,7 @@ export class PrismaRoleRepository implements IRoleRepository {
             },
         });
 
-        return DomainMapper.toRoleDomain(updated)!;
+        return RoleMapper.toDomainRole(updated)!;
     }
 
     async delete(id: number): Promise<void> {
@@ -118,22 +119,7 @@ export class PrismaRoleRepository implements IRoleRepository {
             return [];
         }
 
-        return user.userRoles.map(userRole => new UserRole(
-            userRole.userId,
-            userRole.roleId,
-            userRole.assignedAt,
-            userRole.expiresAt,
-            userRole.assignedBy,
-            userRole.isActive,
-            new Role(
-                userRole.role.roleId,
-                userRole.role.roleName,
-                userRole.role.description,
-                userRole.role.isAssignable,
-                userRole.role.requiredByRoleId,
-                userRole.role.createdAt
-            )
-        ));
+        return UserRoleMapper.toDomainUserRoles(user.userRoles);
     }
 
     async assignRoleToUser(userId: number, roleId: number, assignedBy?: number, expiresAt?: Date): Promise<UserRole> {

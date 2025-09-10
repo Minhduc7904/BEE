@@ -34,11 +34,13 @@ export class CreateDocumentDto {
     @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('MIME type') })
     mimeType?: string;
 
-    @ApiPropertyOptional(SWAGGER_PROPERTIES.SUBJECT)
-    @Trim()
+    @ApiPropertyOptional({
+        description: 'ID của môn học',
+        example: 1
+    })
     @IsOptional()
-    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Môn học') })
-    subject?: string;
+    @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Subject ID') })
+    subjectId?: number;
 
     @ApiPropertyOptional(SWAGGER_PROPERTIES.RELATED_TYPE)
     @Trim()
@@ -93,11 +95,13 @@ export class UpdateDocumentDto {
     @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('MIME type') })
     mimeType?: string;
 
-    @ApiPropertyOptional(SWAGGER_PROPERTIES.SUBJECT)
-    @Trim()
+    @ApiPropertyOptional({
+        description: 'ID của môn học',
+        example: 1
+    })
     @IsOptional()
-    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Môn học') })
-    subject?: string;
+    @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Subject ID') })
+    subjectId?: number;
 
     @ApiPropertyOptional(SWAGGER_PROPERTIES.RELATED_TYPE)
     @Trim()
@@ -136,6 +140,9 @@ export class DocumentResponseDto {
     @ApiPropertyOptional(SWAGGER_PROPERTIES.MIME_TYPE)
     mimeType?: string;
 
+    @ApiPropertyOptional()
+    subjectId?: number;
+
     @ApiPropertyOptional(SWAGGER_PROPERTIES.SUBJECT)
     subject?: string;
 
@@ -156,11 +163,13 @@ export class DocumentResponseDto {
 }
 
 export class DocumentQueryDto extends ListQueryDto {
-    @ApiPropertyOptional(SWAGGER_PROPERTIES.SUBJECT)
+    @ApiPropertyOptional({
+        description: 'ID của môn học để lọc',
+        example: 1
+    })
     @IsOptional()
-    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Môn học') })
-    @Trim()
-    subject?: string;
+    @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Subject ID') })
+    subjectId?: number;
 
     @ApiPropertyOptional(SWAGGER_PROPERTIES.RELATED_TYPE)
     @IsOptional()

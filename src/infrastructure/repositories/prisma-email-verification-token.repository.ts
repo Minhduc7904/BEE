@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { IEmailVerificationTokenRepository } from '../../domain/repositories/email-verification-token.repository';
 import { EmailVerificationToken } from '../../domain/entities/token/email-verification-token.entity';
-import { DomainMapper } from '../mappers/domain-mapper';
+import { EmailVerificationTokenMapper } from '../mappers/email-verification-token.mapper';
 
 @Injectable()
 export class PrismaEmailVerificationTokenRepository implements IEmailVerificationTokenRepository {
@@ -25,7 +25,7 @@ export class PrismaEmailVerificationTokenRepository implements IEmailVerificatio
             },
         });
 
-        const domainToken = DomainMapper.toEmailVerificationTokenDomain(token);
+        const domainToken = EmailVerificationTokenMapper.toDomainEmailVerificationToken(token);
         if (!domainToken) {
             throw new Error('Failed to create email verification token');
         }
@@ -38,7 +38,7 @@ export class PrismaEmailVerificationTokenRepository implements IEmailVerificatio
             where: { userId },
         });
 
-        return token ? DomainMapper.toEmailVerificationTokenDomain(token) : null;
+        return EmailVerificationTokenMapper.toDomainEmailVerificationToken(token) 
     }
 
     async findByTokenHash(tokenHash: string): Promise<EmailVerificationToken | null> {
@@ -46,7 +46,7 @@ export class PrismaEmailVerificationTokenRepository implements IEmailVerificatio
             where: { tokenHash },
         });
 
-        return token ? DomainMapper.toEmailVerificationTokenDomain(token) : null;
+        return EmailVerificationTokenMapper.toDomainEmailVerificationToken(token) 
     }
 
     async markAsConsumed(id: string): Promise<EmailVerificationToken> {
@@ -55,7 +55,7 @@ export class PrismaEmailVerificationTokenRepository implements IEmailVerificatio
             data: { consumedAt: new Date() },
         });
 
-        const domainToken = DomainMapper.toEmailVerificationTokenDomain(token);
+        const domainToken = EmailVerificationTokenMapper.toDomainEmailVerificationToken(token);
         if (!domainToken) {
             throw new Error('Failed to mark email verification token as consumed');
         }

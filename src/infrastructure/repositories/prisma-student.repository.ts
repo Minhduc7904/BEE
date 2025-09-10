@@ -9,8 +9,9 @@ import type {
     StudentSortOptions
 } from '../../domain/repositories/student.repository';
 import { Student } from '../../domain/entities/user/student.entity';
-import { DomainMapper } from '../mappers/domain-mapper';
+import { StudentMapper } from '../mappers/student.mapper';
 import { NumberUtil } from '../../shared/utils/number.util';
+import { PaginationMapper } from '../mappers/pagination.mapper';
 
 export class PrismaStudentRepository implements IStudentRepository {
     constructor(private readonly prisma: PrismaService | any) { } // any để hỗ trợ transaction client
@@ -28,7 +29,7 @@ export class PrismaStudentRepository implements IStudentRepository {
             },
         });
 
-        return DomainMapper.toDomainStudent(prismaStudent)!;
+        return StudentMapper.toDomainStudent(prismaStudent)!;
     }
 
     async findById(id: number): Promise<Student | null> {
@@ -55,7 +56,7 @@ export class PrismaStudentRepository implements IStudentRepository {
 
         if (!prismaStudent) return null;
 
-        return DomainMapper.toDomainStudent(prismaStudent)!;
+        return StudentMapper.toDomainStudent(prismaStudent)!;
     }
 
     async findByUserId(userId: number): Promise<Student | null> {
@@ -82,7 +83,7 @@ export class PrismaStudentRepository implements IStudentRepository {
 
         if (!prismaStudent) return null;
 
-        return DomainMapper.toDomainStudent(prismaStudent)!;
+        return StudentMapper.toDomainStudent(prismaStudent)!;
     }
 
     async update(id: number, data: Partial<Student>): Promise<Student> {
@@ -98,7 +99,7 @@ export class PrismaStudentRepository implements IStudentRepository {
             },
         });
 
-        return DomainMapper.toDomainStudent(prismaStudent)!;
+        return StudentMapper.toDomainStudent(prismaStudent)!;
     }
 
     async delete(id: number): Promise<boolean> {
@@ -134,7 +135,7 @@ export class PrismaStudentRepository implements IStudentRepository {
             },
         });
 
-        return DomainMapper.toDomainStudents(prismaStudents);
+        return StudentMapper.toDomainStudents(prismaStudents);
     }
 
     async findAll(): Promise<Student[]> {
@@ -156,7 +157,7 @@ export class PrismaStudentRepository implements IStudentRepository {
             },
         });
 
-        return DomainMapper.toDomainStudents(prismaStudents);
+        return StudentMapper.toDomainStudents(prismaStudents);
     }
 
     // New pagination methods with case-insensitive search
@@ -201,7 +202,7 @@ export class PrismaStudentRepository implements IStudentRepository {
             this.prisma.student.count({ where })
         ]);
 
-        return DomainMapper.toDomainDataWithPagination(students, {
+        return PaginationMapper.toDomainDataWithPagination(students, {
             total,
             page,
             limit,
@@ -216,7 +217,7 @@ export class PrismaStudentRepository implements IStudentRepository {
     ): Promise<StudentListResult> {
         const { page, limit } = pagination;
         const skip = (page - 1) * limit;
-        
+
         // Build WHERE conditions for raw query
         const conditions: string[] = [];
         const params: any[] = [];
@@ -317,11 +318,11 @@ export class PrismaStudentRepository implements IStudentRepository {
         }
 
         const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-        
+
         // Build ORDER BY clause
         const { sortBy } = pagination;
         let orderByClause = 'ORDER BY u.created_at DESC'; // Default
-        
+
         if (sortBy) {
             const { field, direction } = sortBy;
             if (['studentId', 'grade', 'school'].includes(field)) {
@@ -329,7 +330,7 @@ export class PrismaStudentRepository implements IStudentRepository {
             } else if (['userId', 'username', 'email', 'firstName', 'lastName', 'createdAt', 'updatedAt', 'lastLoginAt'].includes(field)) {
                 const columnMap: { [key: string]: string } = {
                     userId: 'user_id',
-                    firstName: 'first_name', 
+                    firstName: 'first_name',
                     lastName: 'last_name',
                     createdAt: 'created_at',
                     updatedAt: 'updated_at',
@@ -402,7 +403,7 @@ export class PrismaStudentRepository implements IStudentRepository {
             }
         }));
 
-        return DomainMapper.toDomainDataWithPagination(students, {
+        return PaginationMapper.toDomainDataWithPagination(students, {
             total,
             page,
             limit,
@@ -447,7 +448,7 @@ export class PrismaStudentRepository implements IStudentRepository {
             `SELECT COUNT(*) as total FROM students WHERE LOWER(school) LIKE LOWER(?)`,
             `%${school}%`
         ) as [{ total: bigint }];
-        
+
         return Number(result[0].total);
     }
 
