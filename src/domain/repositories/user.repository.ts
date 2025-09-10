@@ -9,6 +9,13 @@ export interface CreateUserData {
     passwordHash: string;
     firstName: string;
     lastName: string;
+    oldUserId?: number;
+    isActive?: boolean;
+    isEmailVerified?: boolean;
+    emailVerifiedAt?: Date;
+    lastLoginAt?: Date;
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
 export interface IUserRepository {
@@ -16,6 +23,7 @@ export interface IUserRepository {
     findById(id: number): Promise<User | null>;
     findByUsername(username: string): Promise<User | null>;
     findByEmail(email: string): Promise<User | null>;
+    findByOldUserId(oldUserId: number): Promise<User | null>;
     findByUsernameWithDetails(username: string): Promise<{
         user: User;
         admin?: Admin;

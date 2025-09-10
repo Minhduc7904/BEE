@@ -33,7 +33,8 @@ export class DomainMapper {
             prismaUser.isEmailVerified ?? false,
             prismaUser.emailVerifiedAt ?? undefined,
             prismaUser.lastLoginAt ?? undefined,
-            prismaUser.updatedAt ?? undefined
+            prismaUser.updatedAt ?? undefined,
+            prismaUser.oldUserId ?? undefined
         );
     }
 

@@ -22,6 +22,7 @@ import { GoogleOAuthAdminUseCase } from './use-cases/auth/admin/google-oauth-adm
 import { GoogleOAuthStudentUseCase } from './use-cases/auth/student/google-oauth-student.use-case';
 import { SendVerificationEmailUseCase } from './use-cases/email-verification/send-verification-email.use-case';
 import { VerifyEmailUseCase } from './use-cases/email-verification/verify-email.use-case';
+import { FetchStudentFromApiUseCase } from './use-cases/student/fetch-student-from-api.use-case';
 
 @Module({
     imports: [InfrastructureModule],
@@ -47,6 +48,7 @@ import { VerifyEmailUseCase } from './use-cases/email-verification/verify-email.
         GoogleOAuthStudentUseCase,
         SendVerificationEmailUseCase,
         VerifyEmailUseCase,
+        FetchStudentFromApiUseCase,
     ],
     exports: [
         RegisterAdminUseCase,
@@ -70,6 +72,7 @@ import { VerifyEmailUseCase } from './use-cases/email-verification/verify-email.
         GoogleOAuthStudentUseCase,
         SendVerificationEmailUseCase,
         VerifyEmailUseCase,
+        FetchStudentFromApiUseCase,
     ],
 })
-export class ApplicationModule {}
+export class ApplicationModule { }

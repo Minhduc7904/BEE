@@ -1,6 +1,7 @@
 // src/domain/entities/user.entity.ts
 export class User {
     userId: number;
+    oldUserId?: number;
     username: string;
     email?: string;
     passwordHash: string;
@@ -25,9 +26,11 @@ export class User {
         isEmailVerified: boolean = false,
         emailVerifiedAt?: Date,
         lastLoginAt?: Date,
-        updatedAt?: Date
+        updatedAt?: Date,
+        oldUserId?: number
     ) {
         this.userId = userId;
+        this.oldUserId = oldUserId;
         this.username = username;
         this.email = email;
         this.passwordHash = passwordHash;

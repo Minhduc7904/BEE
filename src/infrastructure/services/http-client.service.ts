@@ -1,5 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
+import type { ConfigType } from '@nestjs/config';
 import axios from 'axios';
+import httpClientConfig from '../../config/http-client.config';
 
 export interface HttpClientOptions {
     timeout?: number;
@@ -22,14 +24,26 @@ export class HttpClientService {
     private readonly logger = new Logger(HttpClientService.name);
     private readonly axiosInstance: any;
 
-    constructor() {
+    constructor(
+        @Inject(httpClientConfig.KEY)
+        private readonly config: ConfigType<typeof httpClientConfig>,
+    ) {
         this.axiosInstance = axios.create({
-            timeout: 30000, // 30 seconds default timeout
+            baseURL: this.config.baseURL,
+            timeout: this.config.timeout,
             headers: {
                 'Content-Type': 'application/json',
-                'User-Agent': 'BEE-Service/1.0',
+                'User-Agent': 'BEE-Service/2.0',
+                ...(this.config.bearerToken && {
+                    'Authorization': `Bearer ${this.config.bearerToken}`
+                }),
             },
         });
+
+        this.logger.log(`HTTP Client initialized with baseURL: ${this.config.baseURL}`);
+        if (this.config.bearerToken) {
+            this.logger.log('Bearer token configured for authentication');
+        }
 
         // Response interceptor for logging
         this.axiosInstance.interceptors.response.use(
@@ -46,6 +60,30 @@ export class HttpClientService {
                 return Promise.reject(error);
             }
         );
+    }
+
+    /**
+     * Update Bearer token for authentication
+     */
+    updateBearerToken(token: string): void {
+        this.axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        this.logger.log('Bearer token updated');
+    }
+
+    /**
+     * Remove Bearer token
+     */
+    removeBearerToken(): void {
+        delete this.axiosInstance.defaults.headers.common['Authorization'];
+        this.logger.log('Bearer token removed');
+    }
+
+    /**
+     * Get current Bearer token
+     */
+    getCurrentBearerToken(): string | undefined {
+        const authHeader = this.axiosInstance.defaults.headers.common['Authorization'];
+        return typeof authHeader === 'string' ? authHeader.replace('Bearer ', '') : undefined;
     }
 
     /**
@@ -292,9 +330,29 @@ export class HttpClientService {
     /**
      * Create a new instance with custom configuration
      */
-    createCustomInstance(config: any): HttpClientService {
-        const customService = new HttpClientService();
-        customService.axiosInstance.defaults = { ...customService.axiosInstance.defaults, ...config };
+    createCustomInstance(customConfig: any): HttpClientService {
+        // This method would need to be implemented differently with dependency injection
+        // For now, we'll create a basic instance with merged config
+        const mergedConfig = { ...this.config, ...customConfig };
+        const newAxiosInstance = axios.create({
+            baseURL: mergedConfig.baseURL,
+            timeout: mergedConfig.timeout,
+            headers: {
+                'Content-Type': 'application/json',
+                'User-Agent': 'BEE-Service/2.0',
+                ...(mergedConfig.bearerToken && {
+                    'Authorization': `Bearer ${mergedConfig.bearerToken}`
+                }),
+            },
+        });
+        
+        // Note: This returns a partial implementation
+        // In a real scenario, you'd want to use NestJS factory providers
+        const customService = Object.create(HttpClientService.prototype);
+        customService.axiosInstance = newAxiosInstance;
+        customService.config = mergedConfig;
+        customService.logger = this.logger;
+        
         return customService;
     }
 }

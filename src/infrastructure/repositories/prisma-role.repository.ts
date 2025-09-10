@@ -135,4 +135,40 @@ export class PrismaRoleRepository implements IRoleRepository {
             )
         ));
     }
+
+    async assignRoleToUser(userId: number, roleId: number, assignedBy?: number, expiresAt?: Date): Promise<UserRole> {
+        const numericUserId = NumberUtil.ensureValidId(userId, 'User ID');
+        const numericRoleId = NumberUtil.ensureValidId(roleId, 'Role ID');
+        
+        const created = await this.prisma.userRole.create({
+            data: {
+                userId: numericUserId,
+                roleId: numericRoleId,
+                assignedAt: new Date(),
+                isActive: true,
+                assignedBy: assignedBy || null,
+                expiresAt: expiresAt || null,
+            },
+            include: {
+                role: true,
+            }
+        });
+
+        return new UserRole(
+            created.userId,
+            created.roleId,
+            created.assignedAt,
+            created.expiresAt,
+            created.assignedBy,
+            created.isActive,
+            new Role(
+                created.role.roleId,
+                created.role.roleName,
+                created.role.description,
+                created.role.isAssignable,
+                created.role.requiredByRoleId,
+                created.role.createdAt
+            )
+        );
+    }
 }

@@ -21,6 +21,7 @@ import { GoogleStudentStrategy } from './strategies/google-student.strategy';
 import jwtConfig from '../config/jwt.config';
 import googleOAuthConfig from '../config/google-oauth.config';
 import emailConfig from '../config/email.config';
+import httpClientConfig from '../config/http-client.config';
 
 @Module({
     imports: [
@@ -28,6 +29,7 @@ import emailConfig from '../config/email.config';
         ConfigModule.forFeature(jwtConfig),
         ConfigModule.forFeature(googleOAuthConfig),
         ConfigModule.forFeature(emailConfig),
+        ConfigModule.forFeature(httpClientConfig),
         JwtModule.register({}), // Empty config, sẽ override trong service
     ],
     providers: [

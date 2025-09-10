@@ -18,6 +18,11 @@ export class PrismaUserRepository implements IUserRepository {
                 passwordHash: data.passwordHash,
                 firstName: data.firstName,
                 lastName: data.lastName,
+                oldUserId: data.oldUserId,
+                isActive: data.isActive ?? true,
+                isEmailVerified: data.isEmailVerified ?? false,
+                emailVerifiedAt: data.emailVerifiedAt,
+                lastLoginAt: data.lastLoginAt,
             },
         });
 
@@ -84,6 +89,16 @@ export class PrismaUserRepository implements IUserRepository {
     async findByEmail(email: string): Promise<User | null> {
         const prismaUser = await this.prisma.user.findUnique({
             where: { email },
+        });
+
+        return DomainMapper.toDomainUser(prismaUser);
+    }
+
+    async findByOldUserId(oldUserId: number): Promise<User | null> {
+        const numericOldUserId = NumberUtil.ensureValidId(oldUserId, 'Old User ID');
+        
+        const prismaUser = await this.prisma.user.findUnique({
+            where: { oldUserId: numericOldUserId },
         });
 
         return DomainMapper.toDomainUser(prismaUser);

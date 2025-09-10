@@ -9,6 +9,7 @@ datasource db {
 
 model User {
   userId       Int       @id @default(autoincrement()) @map("user_id")
+  oldUserId    Int?      @unique @map("old_user_id")
   username     String    @unique @db.VarChar(50)
   email        String?   @unique @db.VarChar(120) // 1 user 1 email (unique toàn hệ thống)
   passwordHash String    @map("password_hash") @db.VarChar(255)
@@ -24,31 +25,30 @@ model User {
   emailVerifiedAt DateTime? @map("email_verified_at") @db.Timestamp(0)
 
   // relations khác giữ nguyên…
-  student                 Student?                 @relation("UserStudent")
-  admin                   Admin?                   @relation("UserAdmin")
-  UserRefreshToken        UserRefreshToken[]
-  userRoles               UserRole[]
-  assignedUserRoles       UserRole[]               @relation("UserRoleAssigner")
-  EmailVerificationToken  EmailVerificationToken[]
+  student                Student?                 @relation("UserStudent")
+  admin                  Admin?                   @relation("UserAdmin")
+  UserRefreshToken       UserRefreshToken[]
+  userRoles              UserRole[]
+  assignedUserRoles      UserRole[]               @relation("UserRoleAssigner")
+  EmailVerificationToken EmailVerificationToken[]
 
   @@index([lastName, firstName], map: "idx_users_name")
   @@map("users")
 }
 
 model EmailVerificationToken {
-  id          String    @id @default(uuid())
-  userId      Int
-  tokenHash   String    @db.VarChar(255) // LƯU HASH thay vì raw token
-  expiresAt   DateTime
-  createdAt   DateTime  @default(now())
-  consumedAt  DateTime?
+  id         String    @id @default(uuid())
+  userId     Int
+  tokenHash  String    @db.VarChar(255) // LƯU HASH thay vì raw token
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+  consumedAt DateTime?
 
-  user        User      @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@unique([userId]) // mỗi user chỉ có 1 token đang chờ (nếu muốn cho phép nhiều lần song song, bỏ unique này)
   @@map("email_verification_tokens")
 }
-
 
 model Student {
   studentId    Int     @id @default(autoincrement()) @map("student_id")
@@ -64,10 +64,13 @@ model Student {
 }
 
 model Admin {
-  adminId       Int             @id @default(autoincrement()) @map("admin_id")
-  userId        Int             @unique @map("user_id")
-  user          User            @relation("UserAdmin", fields: [userId], references: [userId], onDelete: Cascade)
-  subject       String?         @db.VarChar(120)
+  adminId   Int  @id @default(autoincrement()) @map("admin_id")
+  userId    Int  @unique @map("user_id")
+  user      User @relation("UserAdmin", fields: [userId], references: [userId], onDelete: Cascade)
+  subjectId Int? @map("subject_id")
+
+  // Relations
+  subject       Subject?        @relation("AdminSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
   AdminAuditLog AdminAuditLog[]
   Document      Document[]
   QuestionImage QuestionImage[]
@@ -79,6 +82,7 @@ model Admin {
   Lesson        Lesson[]        @relation("LessonTeacher")
   Question      Question[]      @relation("QuestionCreatedBy")
 
+  @@index([subjectId], map: "idx_admins_subject_id")
   @@map("admins")
 }
 
@@ -197,16 +201,20 @@ model Document {
   url             String          @db.VarChar(500)
   anotherUrl      String?         @map("another_url") @db.VarChar(500) // URL phụ
   mimeType        String?         @map("mime_type") @db.VarChar(100)
-  subject         String?         @db.VarChar(100)
+  subjectId       Int?            @map("subject_id")
   relatedType     String?         @map("related_type") @db.VarChar(50)
   relatedId       Int?            @map("related_id")
   storageProvider StorageProvider @default(EXTERNAL) @map("storage_provider")
   createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamp(0)
+  
+  // Relations
+  subject         Subject?        @relation("DocumentSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
   LearningItem    LearningItem[]
 
   @@index([relatedType, relatedId], map: "idx_documents_related")
   @@index([createdAt], map: "idx_documents_created_at")
+  @@index([subjectId], map: "idx_documents_subject_id")
   @@map("documents")
 }
 
@@ -279,12 +287,53 @@ enum LearningItemType {
   EXERCISE
 }
 
+model Subject {
+  subjectId Int       @id @default(autoincrement()) @map("subject_id")
+  name      String    @unique
+  code      String?   @unique
+  
+  // Relations
+  chapters  Chapter[]
+  admins    Admin[]    @relation("AdminSubject")
+  documents Document[] @relation("DocumentSubject")
+  exams     Exam[]     @relation("ExamSubject")
+  questions Question[] @relation("QuestionSubject")
+  courses   Course[]   @relation("CourseSubject")
+
+  @@index([name], map: "idx_subjects_name")
+  @@map("subjects")
+}
+
+model Chapter {
+  chapterId       Int    @id @default(autoincrement()) @map("chapter_id")
+  subjectId       Int    @map("subject_id")
+  name            String
+  slug            String @unique // ví dụ: "ham-so", "dao-ham"
+  parentChapterId Int?   @map("parent_chapter_id") // self-FK
+  // Thứ tự chỉ trong cùng 1 cha (không nên unique toàn bảng)
+  orderInParent   Int    @map("order_in_parent")
+
+  // Tuỳ chọn: cấp độ để hiển thị nhanh (0=root, 1=con của root, ...)
+  level Int @default(0)
+
+  // Quan hệ
+  subject  Subject   @relation(fields: [subjectId], references: [subjectId], onDelete: Cascade)
+  parent   Chapter?  @relation("ChapterToChildren", fields: [parentChapterId], references: [chapterId], onDelete: Cascade)
+  children Chapter[] @relation("ChapterToChildren")
+
+  @@unique([subjectId, name, parentChapterId]) // tên chương không trùng trong cùng 1 cha của 1 môn
+  @@unique([subjectId, parentChapterId, orderInParent]) // đảm bảo thứ tự duy nhất trong nhóm anh/chị em
+  @@index([subjectId], map: "idx_chapters_subject_id")
+  @@index([parentChapterId], map: "idx_chapters_parent_id")
+  @@map("chapters")
+}
+
 model Exam {
   examId         Int      @id @default(autoincrement()) @map("exam_id") @db.Int
   title          String   @map("title") @db.VarChar(255)
   description    String?  @map("description") @db.Text
   grade          Int      @map("grade") @db.TinyInt
-  subject        String   @map("subject") @db.VarChar(100)
+  subjectId      Int?     @map("subject_id")
   fileId         Int?     @map("file_id")
   solutionFileId Int?     @map("solution_file_id")
   createdBy      Int      @map("created_by")
@@ -292,11 +341,13 @@ model Exam {
   updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
+  subject      Subject?       @relation("ExamSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
   admin        Admin          @relation("ExamCreatedBy", fields: [createdBy], references: [adminId], onDelete: Cascade)
   competitions Competition[]
   questions    QuestionExam[]
 
-  @@index([grade, subject], map: "idx_exams_grade_subject")
+  @@index([grade, subjectId], map: "idx_exams_grade_subject")
+  @@index([subjectId], map: "idx_exams_subject_id")
   @@index([createdBy], map: "idx_exams_created_by")
   @@index([createdAt], map: "idx_exams_created_at")
   @@map("exams")
@@ -329,17 +380,19 @@ model Question {
   solutionYoutubeUrl String?      @map("solution_youtube_url") @db.VarChar(500)
   solutionImageId    Int?         @map("solution_image_id")
   grade              Int          @map("grade") @db.TinyInt
-  subject            String?      @map("subject") @db.VarChar(100)
+  subjectId          Int?         @map("subject_id")
   createdBy          Int?         @map("created_by") // admin tạo câu hỏi
   createdAt          DateTime     @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt          DateTime     @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
+  subject       Subject?       @relation("QuestionSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
   admin         Admin?         @relation("QuestionCreatedBy", fields: [createdBy], references: [adminId], onDelete: SetNull)
   statements    Statement[]
   examQuestions QuestionExam[]
 
-  @@index([subject, grade], map: "idx_questions_subject_grade")
+  @@index([subjectId, grade], map: "idx_questions_subject_grade")
+  @@index([subjectId], map: "idx_questions_subject_id")
   @@index([type], map: "idx_questions_type")
   @@index([difficulty], map: "idx_questions_difficulty")
   @@index([createdBy], map: "idx_questions_created_by")
@@ -434,7 +487,7 @@ model Course {
   thumbImageId   Int?             @map("thumb_image_id")
   academicYear   String?          @map("academic_year") @db.VarChar(9) // ví dụ '2024-2025'
   grade          String?          @map("grade") @db.VarChar(10) // ví dụ '12'
-  subject        String?          @map("subject") @db.VarChar(50)
+  subjectId      Int?             @map("subject_id")
   priceCents     Int              @default(0) @map("price_cents")
   compareAtCents Int?             @map("compare_at_cents")
   visibility     CourseVisibility @default(DRAFT) @map("visibility")
@@ -444,12 +497,14 @@ model Course {
   updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
+  subject   Subject?         @relation("CourseSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
   teacher   Admin?           @relation("CourseTeacher", fields: [teacherId], references: [adminId], onDelete: SetNull)
   schedules CourseSchedule[]
   lessons   Lesson[]
 
   @@index([visibility], map: "idx_courses_visibility")
-  @@index([grade, subject], map: "idx_courses_grade_subject")
+  @@index([grade, subjectId], map: "idx_courses_grade_subject")
+  @@index([subjectId], map: "idx_courses_subject_id")
   @@index([teacherId], map: "idx_courses_teacher_id")
   @@index([createdAt], map: "idx_courses_created_at")
   @@map("courses")

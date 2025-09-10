@@ -19,4 +19,5 @@ export interface IRoleRepository {
     update(id: number, data: UpdateRoleData): Promise<Role>;
     delete(id: number): Promise<void>;
     getUserRoles(userId: number): Promise<UserRole[]>;
+    assignRoleToUser(userId: number, roleId: number, assignedBy?: number, expiresAt?: Date): Promise<UserRole>;
 }
