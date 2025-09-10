@@ -1,6 +1,6 @@
 // src/infrastructure/repositories/prisma-user.repository.ts
 import { PrismaService } from '../../prisma/prisma.service';
-import type { IUserRepository, CreateUserData } from '../../domain/repositories/user.repository';
+import type { IUserRepository, CreateUserData, UpdateUserData } from '../../domain/repositories/user.repository';
 import { User } from '../../domain/entities/user/user.entity';
 import { Admin } from '../../domain/entities/user/admin.entity';
 import { Student } from '../../domain/entities/user/student.entity';
@@ -31,7 +31,7 @@ export class PrismaUserRepository implements IUserRepository {
 
     async findById(id: number): Promise<User | null> {
         const numericId = NumberUtil.ensureValidId(id, 'User ID');
-        
+
         const prismaUser = await this.prisma.user.findUnique({
             where: { userId: numericId },
         });
@@ -63,32 +63,25 @@ export class PrismaUserRepository implements IUserRepository {
         return UserMapper.toDomainUserWithDetails(result);
     }
 
-    async updateLastLogin(userId: number): Promise<void> {
-        const numericUserId = NumberUtil.ensureValidId(userId, 'User ID');
-        
-        await this.prisma.user.update({
-            where: { userId: numericUserId },
-            data: {
-                lastLoginAt: new Date(),
+    async findByEmailWithDetails(email: string): Promise<{
+        user: User;
+        admin?: Admin;
+        student?: Student;
+    } | null> {
+        const result = await this.prisma.user.findUnique({
+            where: { email },
+            include: {
+                admin: true,
+                student: true,
             },
         });
-    }
 
-    async updateEmailVerification(userId: number, isVerified: boolean): Promise<void> {
-        const numericUserId = NumberUtil.ensureValidId(userId, 'User ID');
-        
-        await this.prisma.user.update({
-            where: { userId: numericUserId },
-            data: {
-                isEmailVerified: isVerified,
-                emailVerifiedAt: isVerified ? new Date() : null,
-            },
-        });
+        return UserMapper.toDomainUserWithDetails(result);
     }
 
     async findByEmail(email: string): Promise<User | null> {
-        const prismaUser = await this.prisma.user.findUnique({
-            where: { email },
+        const prismaUser = await this.prisma.user.findFirst({
+            where: { email, isEmailVerified: true },
         });
 
         return UserMapper.toDomainUser(prismaUser);
@@ -96,7 +89,7 @@ export class PrismaUserRepository implements IUserRepository {
 
     async findByOldUserId(oldUserId: number): Promise<User | null> {
         const numericOldUserId = NumberUtil.ensureValidId(oldUserId, 'Old User ID');
-        
+
         const prismaUser = await this.prisma.user.findUnique({
             where: { oldUserId: numericOldUserId },
         });
@@ -104,18 +97,21 @@ export class PrismaUserRepository implements IUserRepository {
         return UserMapper.toDomainUser(prismaUser);
     }
 
-    async update(id: number, data: Partial<User>): Promise<User> {
+    async update(id: number, data: UpdateUserData): Promise<User> {
         const numericId = NumberUtil.ensureValidId(id, 'User ID');
-        
+
         const prismaUser = await this.prisma.user.update({
             where: { userId: numericId },
             data: {
                 username: data.username,
                 email: data.email,
-                passwordHash: data.passwordHash,
                 firstName: data.firstName,
                 lastName: data.lastName,
                 isActive: data.isActive,
+                isEmailVerified: data.isEmailVerified,
+                emailVerifiedAt: data.emailVerifiedAt,
+                lastLoginAt: data.lastLoginAt,
+                updatedAt: new Date(),
             },
         });
 
@@ -124,7 +120,7 @@ export class PrismaUserRepository implements IUserRepository {
 
     async delete(id: number): Promise<boolean> {
         const numericId = NumberUtil.ensureValidId(id, 'User ID');
-        
+
         try {
             await this.prisma.user.delete({
                 where: { userId: numericId },

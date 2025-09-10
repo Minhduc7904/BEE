@@ -2,7 +2,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { AdminResponseDto } from '../admin/admin.dto';
 import { StudentResponseDto } from '../student/student.dto';
-import { BaseResponseDto } from '../base-response.dto';
+import { BaseResponseDto } from '../common/base-response.dto';
 import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants';
 
 export class RegisterAdminResponseDto extends BaseResponseDto<AdminResponseDto> {

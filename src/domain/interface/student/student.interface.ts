@@ -1,3 +1,6 @@
+import { PaginationOptions, PaginationResult, BaseFilterOptions, SortOptions } from '../common/pagination.interface';
+// Note: Import Student entity when needed, avoiding circular dependency
+
 export interface CreateStudentData {
     userId: number;
     studentPhone?: string;
@@ -6,8 +9,26 @@ export interface CreateStudentData {
     school?: string;
 }
 
-export interface StudentFilterOptions {
-    // Student fields
+// Student-specific sort fields
+export type StudentSortField = 
+    | 'studentId' 
+    | 'userId' 
+    | 'grade' 
+    | 'school' 
+    | 'username' 
+    | 'email' 
+    | 'firstName' 
+    | 'lastName' 
+    | 'createdAt' 
+    | 'updatedAt' 
+    | 'lastLoginAt';
+
+// Student sort options
+export type StudentSortOptions = SortOptions<StudentSortField>;
+
+// Student filter options extending base filters
+export interface StudentFilterOptions extends BaseFilterOptions {
+    // Student-specific fields
     grade?: number;
     school?: string;
     studentPhone?: string;
@@ -18,33 +39,14 @@ export interface StudentFilterOptions {
     email?: string;
     firstName?: string;
     lastName?: string;
-    isActive?: boolean;
 
-    // Date range filters
-    createdAfter?: Date;
-    createdBefore?: Date;
+    // Additional date filters
     lastLoginAfter?: Date;
     lastLoginBefore?: Date;
-
-    // Search across multiple fields
-    search?: string; // Tìm kiếm trong username, email, firstName, lastName, school
 }
 
-export interface StudentSortOptions {
-    field: 'studentId' | 'userId' | 'grade' | 'school' | 'username' | 'email' | 'firstName' | 'lastName' | 'createdAt' | 'updatedAt' | 'lastLoginAt';
-    direction: 'asc' | 'desc';
-}
+// Student pagination options
+export interface StudentPaginationOptions extends PaginationOptions<StudentSortField> {}
 
-export interface StudentPaginationOptions {
-    page: number;
-    limit: number;
-    sortBy?: StudentSortOptions;
-}
-
-export interface StudentListResult {
-    data: Student[];
-    total: number;
-    page: number;
-    limit: number;
-    totalPages: number;
-}
+// Student list result (generic type will be resolved at usage)
+export interface StudentListResult extends PaginationResult<any> {}

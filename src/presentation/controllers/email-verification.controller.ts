@@ -8,7 +8,7 @@ import {
     SendVerificationEmailResponseDto,
     VerifyEmailResponseDto
 } from '../../application/dtos/auth/email-verification.dto';
-import { ErrorResponseDto } from '../../application/dtos/error-response.dto';
+import { ErrorResponseDto } from '../../application/dtos/common/error-response.dto';
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util';
 
 @ApiTags('Email Verification')

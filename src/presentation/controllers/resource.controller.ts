@@ -10,7 +10,7 @@ import { CreateQuestionImageDto } from '../../application/dtos/image/create-ques
 import { CreateSolutionImageDto } from '../../application/dtos/image/create-solution-image.dto';
 import { CreateMediaImageDto } from '../../application/dtos/image/create-media-image.dto';
 import { CreateImageDto } from '../../application/dtos/image/create-image.dto';
-import { BaseResponseDto } from '../../application/dtos/base-response.dto';
+import { BaseResponseDto } from '../../application/dtos/common/base-response.dto';
 import { CreateDocumentUseCase } from '../../application/use-cases/document/create-document.use-case';
 import { CreateQuestionImageUseCase } from '../../application/use-cases/image/create-question-image.use-case';
 import { CreateSolutionImageUseCase } from '../../application/use-cases/image/create-solution-image.use-case';

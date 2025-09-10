@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, MinLength } from "class-validator";
+import { IsString, IsNotEmpty, MinLength, IsOptional, IsEmail } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { VALIDATION_MESSAGES } from '../../../shared/constants/validation-messages';
 import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants';
@@ -7,9 +7,16 @@ import { Trim } from '../../../shared/decorators/trim.decorator';
 export class LoginRequestDto {
     @ApiProperty(SWAGGER_PROPERTIES.USERNAME)
     @Trim()
+    @IsOptional()
     @IsNotEmpty({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Tên đăng nhập') })
     @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tên đăng nhập') })
-    username: string;
+    username?: string;
+
+    @ApiPropertyOptional(SWAGGER_PROPERTIES.EMAIL)
+    @Trim()
+    @IsOptional()
+    @IsEmail({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Email') })
+    email?: string;
 
     @ApiProperty(SWAGGER_PROPERTIES.PASSWORD)
     @Trim()

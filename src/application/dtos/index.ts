@@ -1,7 +1,7 @@
 // src/application/dtos/index.ts
 // Base DTOs
-export * from './base-response.dto';
-export * from './error-response.dto';
+export * from './common/base-response.dto';
+export * from './common/error-response.dto';
 
 // Pagination DTOs
 export * from './pagination/list-query.dto';

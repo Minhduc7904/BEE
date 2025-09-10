@@ -1,10 +1,10 @@
 import { Controller, Post, Body, HttpCode, HttpStatus, Param, ParseIntPipe } from '@nestjs/common';
 import { ApiTags, ApiResponse, ApiOperation } from '@nestjs/swagger';
 import { CreateLogDto, LogResponseDto } from '../../application/dtos/log/log.dto';
-import { BaseResponseDto } from '../../application/dtos/base-response.dto';
+import { BaseResponseDto } from '../../application/dtos/common/base-response.dto';
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util';
 import { RollbackUseCase } from '../../application/use-cases/log/roll-back.use-case';
-import { ErrorResponseDto } from '../../application/dtos/error-response.dto';
+import { ErrorResponseDto } from '../../application/dtos/common/error-response.dto';
 import { ROLE_NAMES } from '../../shared/constants/roles.constant';
 import { AnyOf } from '../../shared/decorators/permission.decorator';
 

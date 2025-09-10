@@ -7,7 +7,7 @@ import { HttpClientService } from 'src/infrastructure/services/http-client.servi
 import { PasswordService } from 'src/infrastructure/services/password.service';
 import type { IRoleRepository } from 'src/domain/repositories/role.repository';
 import { ROLE_IDS } from 'src/shared/constants/roles.constant';
-import type { ApiUserData, ApiResponse, ApiRequestOptions } from '../../interfaces/api';
+import type { ApiUserData, ApiResponse, ApiRequestOptions } from '../../../domain/interface/api';
 
 
 @Injectable()
@@ -111,7 +111,6 @@ export class FetchStudentFromApiUseCase {
                     firstName: apiData.firstName,
                     lastName: apiData.lastName,
                     isActive: apiData.isActive,
-                    updatedAt: new Date(apiData.updatedAt),
                 });
 
                 this.logger.debug(`Updated user: ${user.username} (ID: ${user.userId})`);

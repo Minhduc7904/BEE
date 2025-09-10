@@ -4,8 +4,9 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { GoogleOAuthAdminGuard } from '../../shared/guards/google-oauth-admin.guard';
 import { GoogleOAuthAdminUseCase } from '../../application/use-cases/auth/admin/google-oauth-admin.use-case';
-import { GoogleUserProfileDto, GoogleAuthResponseDto } from '../../application/dtos/auth/google-auth.dto';
-import { ErrorResponseDto } from '../../application/dtos/error-response.dto';
+import { GoogleUserProfileDto } from '../../application/dtos/auth/google-auth.dto';
+import { LoginResponseDto } from '../../application/dtos/auth/login-response.dto';
+import { ErrorResponseDto } from '../../application/dtos/common/error-response.dto';
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util';
 
 @ApiTags('Google Authentication - Admin')
@@ -13,11 +14,11 @@ import { ExceptionHandler } from '../../shared/utils/exception-handler.util';
 export class GoogleAuthAdminController {
     constructor(
         private readonly googleOAuthAdminUseCase: GoogleOAuthAdminUseCase,
-    ) {}
+    ) { }
 
     @Get()
     @UseGuards(GoogleOAuthAdminGuard)
-    @ApiOperation({ 
+    @ApiOperation({
         summary: 'Khởi tạo Google OAuth flow cho Admin',
         description: 'Redirect admin đến Google để đăng nhập'
     })
@@ -32,14 +33,14 @@ export class GoogleAuthAdminController {
     @Get('callback')
     @HttpCode(HttpStatus.OK)
     @UseGuards(GoogleOAuthAdminGuard)
-    @ApiOperation({ 
+    @ApiOperation({
         summary: 'Google OAuth callback cho Admin',
         description: 'Xử lý callback từ Google sau khi admin đăng nhập. Chỉ cho phép tài khoản admin hoặc tạo admin mới.'
     })
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'Đăng nhập Google Admin thành công',
-        type: GoogleAuthResponseDto,
+        type: LoginResponseDto,
         example: {
             message: 'Đăng nhập Google Admin thành công',
             accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
@@ -96,7 +97,7 @@ export class GoogleAuthAdminController {
     ) {
         return ExceptionHandler.execute(async () => {
             const googleProfile = req.user as GoogleUserProfileDto;
-            
+
             if (!googleProfile) {
                 return res.status(HttpStatus.BAD_REQUEST).json({
                     success: false,
@@ -111,7 +112,7 @@ export class GoogleAuthAdminController {
 
             // Option 1: Return JSON (for API)
             return res.status(HttpStatus.OK).json(result);
-            
+
             // Option 2: Redirect to admin frontend with token (uncomment nếu cần)
             // const frontendUrl = process.env.ADMIN_FRONTEND_URL || 'http://localhost:3000/admin';
             // const redirectUrl = `${frontendUrl}/auth/success?token=${result.accessToken}&refresh=${result.refreshToken}`;

@@ -4,7 +4,7 @@ import { ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { AuthGuard } from '../guards/auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
 import { RequireRoles } from './roles.decorator';
-import { ErrorResponseDto } from '../../application/dtos/error-response.dto';
+import { ErrorResponseDto } from '../../application/dtos/common/error-response.dto';
 import { ROLE_NAMES, ADMIN_ROLES, CONTENT_CREATOR_ROLES } from '../constants/roles.constant';
 import { HttpStatus } from '@nestjs/common';
 

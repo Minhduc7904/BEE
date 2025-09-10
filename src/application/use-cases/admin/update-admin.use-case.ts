@@ -4,10 +4,10 @@ import { IsNumber, IsOptional } from 'class-validator';
 import type { IUnitOfWork } from '../../../domain/repositories/unit-of-work.repository';
 import { AdminResponseDto, UpdateAdminDto } from '../../dtos/admin/admin.dto';
 import { UpdateUserDto } from '../../dtos/user/user.dto';
-import { 
-    NotFoundException, 
-    ConflictException, 
-    BusinessLogicException 
+import {
+    NotFoundException,
+    ConflictException,
+    BusinessLogicException
 } from '../../../shared/exceptions/custom-exceptions';
 
 @Injectable()
@@ -33,7 +33,7 @@ export class UpdateAdminUseCase {
 
             // 3. Tách data cho User và Admin
             const userUpdateData: UpdateUserDto = {};
-            const adminUpdateData: { subjectId?: number | null } = {};
+            const adminUpdateData: { subjectId?: number | undefined } = {};
 
             // Tách các trường của User
             if (dto.username !== undefined) userUpdateData.username = dto.username;

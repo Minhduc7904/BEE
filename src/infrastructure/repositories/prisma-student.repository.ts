@@ -1,13 +1,14 @@
 // src/infrastructure/repositories/prisma-student.repository.ts
 import { PrismaService } from '../../prisma/prisma.service';
+import type { IStudentRepository } from '../../domain/repositories/student.repository';
 import type {
-    IStudentRepository,
     CreateStudentData,
     StudentFilterOptions,
     StudentPaginationOptions,
     StudentListResult,
     StudentSortOptions
-} from '../../domain/repositories/student.repository';
+} from '../../domain/interface/student/student.interface';
+
 import { Student } from '../../domain/entities/user/student.entity';
 import { StudentMapper } from '../mappers/student.mapper';
 import { NumberUtil } from '../../shared/utils/number.util';

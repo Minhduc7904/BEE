@@ -11,7 +11,7 @@ model User {
   userId       Int       @id @default(autoincrement()) @map("user_id")
   oldUserId    Int?      @unique @map("old_user_id")
   username     String    @unique @db.VarChar(50)
-  email        String?   @unique @db.VarChar(120) // 1 user 1 email (unique toàn hệ thống)
+  email        String?   @db.VarChar(120) // 1 user có thể có hoặc không có email
   passwordHash String    @map("password_hash") @db.VarChar(255)
   firstName    String    @map("first_name") @db.VarChar(50)
   lastName     String    @map("last_name") @db.VarChar(100)
@@ -207,10 +207,10 @@ model Document {
   storageProvider StorageProvider @default(EXTERNAL) @map("storage_provider")
   createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamp(0)
-  
+
   // Relations
-  subject         Subject?        @relation("DocumentSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
-  LearningItem    LearningItem[]
+  subject      Subject?       @relation("DocumentSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
+  LearningItem LearningItem[]
 
   @@index([relatedType, relatedId], map: "idx_documents_related")
   @@index([createdAt], map: "idx_documents_created_at")
@@ -288,10 +288,10 @@ enum LearningItemType {
 }
 
 model Subject {
-  subjectId Int       @id @default(autoincrement()) @map("subject_id")
-  name      String    @unique
-  code      String?   @unique
-  
+  subjectId Int     @id @default(autoincrement()) @map("subject_id")
+  name      String  @unique
+  code      String? @unique
+
   // Relations
   chapters  Chapter[]
   admins    Admin[]    @relation("AdminSubject")
@@ -305,14 +305,14 @@ model Subject {
 }
 
 model Chapter {
-  chapterId       Int    @id @default(autoincrement()) @map("chapter_id")
-  subjectId       Int    @map("subject_id")
+  chapterId       Int     @id @default(autoincrement()) @map("chapter_id")
+  subjectId       Int     @map("subject_id")
   code            String? @unique
   name            String
-  slug            String @unique // ví dụ: "ham-so", "dao-ham"
-  parentChapterId Int?   @map("parent_chapter_id") // self-FK
+  slug            String  @unique // ví dụ: "ham-so", "dao-ham"
+  parentChapterId Int?    @map("parent_chapter_id") // self-FK
   // Thứ tự chỉ trong cùng 1 cha (không nên unique toàn bảng)
-  orderInParent   Int    @map("order_in_parent")
+  orderInParent   Int     @map("order_in_parent")
 
   // Tuỳ chọn: cấp độ để hiển thị nhanh (0=root, 1=con của root, ...)
   level Int @default(0)

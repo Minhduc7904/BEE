@@ -12,7 +12,7 @@ export class RegisterStudentUseCase {
     constructor(
         @Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork,
         @Inject('PASSWORD_SERVICE') private readonly passwordService: PasswordService,
-    ) {}
+    ) { }
 
     async execute(dto: RegisterStudentDto): Promise<RegisterStudentResponseDto> {
         return this.unitOfWork.executeInTransaction(async (repos) => {
@@ -38,6 +38,8 @@ export class RegisterStudentUseCase {
                 passwordHash,
                 firstName: dto.firstName,
                 lastName: dto.lastName,
+                isActive: true,
+                isEmailVerified: false,
             });
 
             // Create student (trong cùng transaction)

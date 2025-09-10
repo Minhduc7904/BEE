@@ -18,6 +18,17 @@ export interface CreateUserData {
     updatedAt?: Date;
 }
 
+export interface UpdateUserData {
+    username?: string;
+    email?: string;
+    firstName?: string;
+    lastName?: string;
+    isActive?: boolean;
+    isEmailVerified?: boolean;
+    emailVerifiedAt?: Date;
+    lastLoginAt?: Date;
+}
+
 export interface IUserRepository {
     create(data: CreateUserData): Promise<User>;
     findById(id: number): Promise<User | null>;
@@ -29,10 +40,13 @@ export interface IUserRepository {
         admin?: Admin;
         student?: Student;
     } | null>;
+    findByEmailWithDetails(email: string): Promise<{
+        user: User;
+        admin?: Admin;
+        student?: Student;
+    } | null>;
 
-    updateLastLogin(userId: number): Promise<void>;
-    updateEmailVerification(userId: number, isVerified: boolean): Promise<void>;
-    update(id: number, data: Partial<User>): Promise<User>;
+    update(id: number, data: UpdateUserData): Promise<User>;
     delete(id: number): Promise<boolean>;
     existsByUsername(username: string): Promise<boolean>;
     existsByEmail(email: string): Promise<boolean>;

@@ -8,7 +8,7 @@ import {
     UnauthorizedException,
     NotFoundException
 } from '../../../shared/exceptions/custom-exceptions';
-import { BaseResponseDto } from '../../dtos/base-response.dto';
+import { BaseResponseDto } from '../../dtos/common/base-response.dto';
 import { v4 as uuidv4 } from 'uuid';
 
 /**

@@ -55,5 +55,5 @@ export class UpdateAdminDto extends UpdateUserDto {
     @IsOptional()
     @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Subject ID') })
     @IsPositive({ message: 'Subject ID phải là số dương' })
-    subjectId?: number | null;
+    subjectId?: number;
 }

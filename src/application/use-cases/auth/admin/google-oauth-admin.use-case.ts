@@ -4,13 +4,16 @@ import type { IUnitOfWork } from '../../../../domain/repositories/unit-of-work.r
 import { PasswordService } from '../../../../infrastructure/services/password.service';
 import { JwtTokenService } from '../../../../infrastructure/services/jwt.service';
 import { TokenHashService } from '../../../../infrastructure/services/token-hash.service';
-import { GoogleUserProfileDto, GoogleAuthResponseDto } from '../../../dtos/auth/google-auth.dto';
-import { 
+import { GoogleUserProfileDto } from '../../../dtos/auth/google-auth.dto';
+import { LoginResponseDto, TokensDto } from '../../../dtos/auth/login-response.dto';
+import { BaseResponseDto } from '../../../dtos/common/base-response.dto';
+import {
     ConflictException,
     ValidationException,
-    UnauthorizedException 
+    UnauthorizedException
 } from '../../../../shared/exceptions/custom-exceptions';
 import { v4 as uuidv4 } from 'uuid';
+import { AdminResponseDto } from '../../../dtos/admin/admin.dto';
 
 @Injectable()
 export class GoogleOAuthAdminUseCase {
@@ -19,35 +22,34 @@ export class GoogleOAuthAdminUseCase {
         @Inject('PASSWORD_SERVICE') private readonly passwordService: PasswordService,
         @Inject('JWT_TOKEN_SERVICE') private readonly jwtTokenService: JwtTokenService,
         @Inject('TOKEN_HASH_SERVICE') private readonly tokenHashService: TokenHashService,
-    ) {}
+    ) { }
 
-    async execute(googleProfile: GoogleUserProfileDto): Promise<GoogleAuthResponseDto> {
+    async execute(googleProfile: GoogleUserProfileDto): Promise<BaseResponseDto<LoginResponseDto>> {
         return await this.unitOfWork.executeInTransaction(async (repos) => {
             // 1. Kiểm tra user đã tồn tại chưa
             let existingUser = await repos.userRepository.findByEmail(googleProfile.email);
-            
-            let user, adminId: number;
+
+            let user, admin, adminId: number;
 
             if (existingUser) {
                 // User đã tồn tại, kiểm tra có phải admin không
                 user = existingUser;
-                
-                // Cập nhật email verification nếu chưa được verify
-                if (!user.isEmailVerified) {
-                    await repos.userRepository.updateEmailVerification(user.userId, true);
+                if (!existingUser.isActive) {
+                    throw new UnauthorizedException('Tài khoản này đã bị khóa. Vui lòng liên hệ admin.');
                 }
-                
                 // Kiểm tra user type - chỉ cho phép admin
                 const userWithDetails = await repos.userRepository.findByUsernameWithDetails(user.username);
                 if (userWithDetails?.admin) {
                     adminId = userWithDetails.admin.adminId;
+                    admin = userWithDetails.admin;
+                    user = userWithDetails.user;
                 } else {
                     throw new UnauthorizedException('Tài khoản này không có quyền admin. Vui lòng sử dụng đăng nhập cho sinh viên.');
                 }
             } else {
                 // Tạo user mới với role admin
                 const username = this.generateUsernameFromEmail(googleProfile.email);
-                
+
                 // Kiểm tra username đã tồn tại chưa
                 const existingByUsername = await repos.userRepository.existsByUsername(username);
                 if (existingByUsername) {
@@ -65,15 +67,15 @@ export class GoogleOAuthAdminUseCase {
                     passwordHash: hashedPassword,
                     firstName: googleProfile.firstName,
                     lastName: googleProfile.lastName,
+                    isActive: true,
+                    isEmailVerified: true,
+                    emailVerifiedAt: new Date(),
                 });
 
-                // Cập nhật email verification ngay sau khi tạo (vì Google đã verify)
-                await repos.userRepository.updateEmailVerification(user.userId, true);
-
                 // Tạo admin profile
-                const admin = await repos.adminRepository.create({
+                admin = await repos.adminRepository.create({
                     userId: user.userId,
-                    subject: undefined, // Có thể set sau
+                    subjectId: undefined, // Có thể set sau
                 });
 
                 adminId = admin.adminId;
@@ -81,6 +83,23 @@ export class GoogleOAuthAdminUseCase {
 
             // 2. Revoke tất cả refresh tokens cũ (single device login)
             await repos.userRefreshTokenRepository.revokeAllUserTokens(user.userId);
+
+            const isEmailVerified = user.isEmailVerified;
+            if (!isEmailVerified) {
+                const existingVerifiedUser = await repos.userRepository.findByEmail(user.email!);
+                if (existingVerifiedUser) {
+                    throw new ConflictException('Email is already verified by another user');
+                }
+                await repos.userRepository.update(user.userId, {
+                    isEmailVerified: true,
+                    emailVerifiedAt: new Date(),
+                });
+                user.isEmailVerified = true;
+                user.emailVerifiedAt = new Date();
+            }
+            await repos.userRepository.update(user.userId, {
+                lastLoginAt: new Date(),
+            });
 
             // 3. Generate JWT tokens
             const payload = {
@@ -111,20 +130,16 @@ export class GoogleOAuthAdminUseCase {
                 deviceFingerprint: undefined
             });
 
-            // 5. Update last login
-            await repos.userRepository.updateLastLogin(user.userId);
-
             return {
+                success: true,
                 message: 'Đăng nhập Google Admin thành công',
-                accessToken,
-                refreshToken,
-                user: {
-                    userId: user.userId,
-                    email: user.email,
-                    firstName: user.firstName,
-                    lastName: user.lastName,
-                    username: user.username,
-                    userType: 'admin',
+                data: {
+                    tokens: {
+                        accessToken,
+                        refreshToken,
+                        expiresIn: 3600
+                    },
+                    user: AdminResponseDto.fromUserWithAdmin(user, admin)
                 }
             };
         });

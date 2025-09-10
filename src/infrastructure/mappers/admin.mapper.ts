@@ -16,7 +16,6 @@ export class AdminMapper {
             adminId: prismaAdmin.adminId,
             userId: prismaAdmin.userId,
             subjectId: prismaAdmin.subjectId ?? undefined,
-            subject: prismaAdmin.subject || undefined,
             user: UserMapper.toDomainUser(prismaAdmin.user) || undefined,
         });
     }

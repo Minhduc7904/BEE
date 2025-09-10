@@ -5,13 +5,14 @@ import { PasswordService } from '../../../../infrastructure/services/password.se
 import { JwtTokenService } from '../../../../infrastructure/services/jwt.service';
 import { TokenHashService } from '../../../../infrastructure/services/token-hash.service';
 import { LoginRequestDto } from '../../../dtos/auth/login-request.dto';
-import { TokensDto, UserInfoDto, LoginResponseDto } from '../../../dtos/auth/login-response.dto';
-import { BaseResponseDto } from '../../../dtos/base-response.dto';
+import { TokensDto, LoginResponseDto } from '../../../dtos/auth/login-response.dto';
+import { BaseResponseDto } from '../../../dtos/common/base-response.dto';
 import {
     NotFoundException,
     ValidationException
 } from '../../../../shared/exceptions/custom-exceptions';
 import { v4 as uuidv4 } from 'uuid';
+import { AdminResponseDto } from 'src/application/dtos';
 
 /**
  * Use case cho admin login với single device login
@@ -27,11 +28,31 @@ export class LoginAdminUseCase {
 
     async execute(loginDto: LoginRequestDto): Promise<BaseResponseDto<LoginResponseDto>> {
         return await this.unitOfWork.executeInTransaction(async (repos) => {
+            if (!loginDto.username && !loginDto.email) {
+                throw new ValidationException('Tên đăng nhập hoặc email không được để trống');
+            }
+            if (loginDto.username && loginDto.email) {
+                throw new ValidationException('Vui lòng chỉ nhập tên đăng nhập hoặc email, không cả hai');
+            }
+
             // 1. Tìm user với admin details
-            const userWithDetails = await repos.userRepository.findByUsernameWithDetails(loginDto.username);
+            let userWithDetails;
+            if (loginDto.username) {
+                userWithDetails = await repos.userRepository.findByUsernameWithDetails(loginDto.username);
+            } else if (loginDto.email) {
+                userWithDetails = await repos.userRepository.findByEmailWithDetails(loginDto.email);
+            }
+
+            if (!userWithDetails) {
+                throw new NotFoundException('User không tồn tại');
+            }
 
             if (!userWithDetails?.admin) {
                 throw new NotFoundException('Admin không tồn tại');
+            }
+
+            if (!userWithDetails.user.isActive) {
+                throw new NotFoundException('Tài khoản này đã bị khóa. Vui lòng liên hệ admin.');
             }
 
             const { user, admin } = userWithDetails;
@@ -88,18 +109,11 @@ export class LoginAdminUseCase {
                 expiresIn: 3600 // 1 hour
             };
 
-            const userInfo: UserInfoDto = {
-                userId: user.userId,
-                username: user.username,
-                email: user.email,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                role: 'admin',
-                roleDetails: {
-                    adminId: admin.adminId,
-                    subject: admin.getSubjectName ? admin.getSubjectName() : admin.subject?.name
-                }
-            };
+            await repos.userRepository.update(user.userId, {
+                lastLoginAt: new Date(),
+            });
+
+            const userInfo: AdminResponseDto = AdminResponseDto.fromUserWithAdmin(user, admin);
 
             return BaseResponseDto.success(
                 'Đăng nhập thành công',

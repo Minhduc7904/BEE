@@ -39,12 +39,14 @@ export class RegisterAdminUseCase {
                 passwordHash,
                 firstName: dto.firstName,
                 lastName: dto.lastName,
+                isActive: true,
+                isEmailVerified: false,
             });
 
             // Create admin (trong cùng transaction)
             const admin = await repos.adminRepository.create({
                 userId: user.userId,
-                subject: dto.subject,
+                subjectId: dto.subjectId,
             });
 
             return {

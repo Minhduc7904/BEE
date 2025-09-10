@@ -5,7 +5,7 @@ import { AuditStatus } from '../../../shared/enums/audit-status.enum';
 import { getRollbackAction } from '../../../shared/constants/action-key.constants';
 import { isReversibleAction } from '../../../shared/constants/action-key.constants';
 import { getRepositoryName, getResourceInfo } from 'src/shared/constants/resource-type.constants';
-import { BaseResponseDto } from '../../dtos/base-response.dto';
+import { BaseResponseDto } from '../../dtos/common/base-response.dto';
 import { ConflictException, BusinessLogicException, NotFoundException } from "src/shared/exceptions/custom-exceptions";
 
 @Injectable()

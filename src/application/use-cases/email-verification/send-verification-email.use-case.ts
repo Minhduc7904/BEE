@@ -49,23 +49,29 @@ export class SendVerificationEmailUseCase {
             throw new ConflictException('Email is already verified');
         }
 
-        // 4. Generate token
+        // 4. Kiểm tra xem đã có email nào trong database verify chưa
+        const existingVerifiedUser = await this.userRepository.findByEmail(user.email!);
+        if (existingVerifiedUser) {
+            throw new ConflictException('Email is already verified by another user');
+        }
+
+        // 5. Generate token
         const { rawToken, tokenHash } = this.tokenService.generateToken();
         const expiresAt = this.tokenService.generateExpiryTime();
 
-        // 5. Lưu token vào database
+        // 6. Lưu token vào database
         await this.emailVerificationRepository.create({
             userId: command.userId,
             tokenHash,
             expiresAt,
         });
 
-        // 6. Tạo verification URL
+        // 7. Tạo verification URL
         const verificationUrl = `${command.baseUrl}/api/auth/verify-email?token=${rawToken}`;
 
-        // 7. Gửi email
+        // 8. Gửi email
         await this.emailService.sendVerificationEmail({
-            email: user.email,
+            email: user.email!,
             firstName: user.firstName,
             verificationUrl,
             appName: 'BeeMath',

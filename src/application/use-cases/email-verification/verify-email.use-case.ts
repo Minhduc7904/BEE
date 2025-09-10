@@ -5,7 +5,8 @@ import type { IEmailVerificationTokenRepository } from '../../../domain/reposito
 import { EmailVerificationTokenService } from '../../../infrastructure/services/email-verification-token.service';
 import {
     NotFoundException,
-    BusinessLogicException
+    BusinessLogicException,
+    ConflictException,
 } from '../../../shared/exceptions/custom-exceptions';
 
 export interface VerifyEmailCommand {
@@ -54,19 +55,25 @@ export class VerifyEmailUseCase {
 
         // 5. Kiểm tra email đã verified chưa
         if (user.isEmailVerified) {
-            throw new BusinessLogicException('Email is already verified');
+            throw new ConflictException('Email is already verified');
         }
 
-        // 6. Verify time
+        // 6. Kiểm tra xem đã có email nào trong database verify chưa
+        const existingVerifiedUser = await this.userRepository.findByEmail(user.email!);
+        if (existingVerifiedUser) {
+            throw new ConflictException('Email is already verified by another user');
+        }
+
+        // 7. Verify time
         const verifiedAt = new Date();
 
-        // 7. Update user email verification status
+        // 8. Update user email verification status
         await this.userRepository.update(user.userId, {
             isEmailVerified: true,
             emailVerifiedAt: verifiedAt,
         });
 
-        // 8. Mark token as consumed
+        // 9. Mark token as consumed
         await this.emailVerificationRepository.markAsConsumed(verificationToken.id);
 
         return {

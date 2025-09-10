@@ -1,6 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common';
 import type { IUnitOfWork } from '../../../domain/repositories/unit-of-work.repository';
-import { BaseResponseDto } from '../../dtos/base-response.dto';
+import { BaseResponseDto } from '../../dtos/common/base-response.dto';
 import { CreateMediaImageDto } from '../../dtos/image/create-media-image.dto';
 
 export interface CreateMediaImageUseCaseResponse {

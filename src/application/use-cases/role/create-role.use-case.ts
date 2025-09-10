@@ -1,5 +1,5 @@
 import { Injectable, Inject } from "@nestjs/common";
-import { BaseResponseDto } from "src/application/dtos/base-response.dto";
+import { BaseResponseDto } from "src/application/dtos/common/base-response.dto";
 import { CreateRoleDto, RoleResponseDto } from "src/application/dtos/role/role.dto";
 import { ConflictException } from "src/shared/exceptions/custom-exceptions";
 import type { IUnitOfWork } from "src/domain/repositories/unit-of-work.repository";

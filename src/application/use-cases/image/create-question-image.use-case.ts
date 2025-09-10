@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { CreateQuestionImageDto } from '../../dtos/image/create-question-image.dto';
 import type { IUnitOfWork } from '../../../domain/repositories/unit-of-work.repository';
-import { BaseResponseDto } from '../../dtos/base-response.dto';
+import { BaseResponseDto } from '../../dtos/common/base-response.dto';
 
 @Injectable()
 export class CreateQuestionImageUseCase {

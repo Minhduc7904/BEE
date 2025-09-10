@@ -35,8 +35,8 @@ export class RegisterAdminDto {
     @ApiPropertyOptional(SWAGGER_PROPERTIES.SUBJECT)
     @Trim()
     @IsOptional()
-    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Môn phụ trách') })
-    subject?: string;
+    @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('Môn học') })
+    subjectId?: number;
 }
 
 export class RegisterStudentDto {

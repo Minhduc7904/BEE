@@ -3,7 +3,7 @@ import { Controller, Get, Query, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiResponse, ApiOperation } from '@nestjs/swagger';
 import { StudentListQueryDto } from 'src/application/dtos/student/student-list-query.dto';
 import { StudentListResponseDto } from 'src/application/dtos/student/student.dto';
-import { ErrorResponseDto } from 'src/application/dtos/error-response.dto';
+import { ErrorResponseDto } from 'src/application/dtos/common/error-response.dto';
 import { ExceptionHandler } from 'src/shared/utils/exception-handler.util';
 import { GetAllStudentUseCase } from 'src/application/use-cases/student/get-all-student.use-case';
 import { AdminRoles } from 'src/shared/decorators/permission.decorator';

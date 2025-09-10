@@ -4,8 +4,9 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
 import { GoogleOAuthStudentGuard } from '../../shared/guards/google-oauth-student.guard';
 import { GoogleOAuthStudentUseCase } from '../../application/use-cases/auth/student/google-oauth-student.use-case';
-import { GoogleUserProfileDto, GoogleAuthResponseDto } from '../../application/dtos/auth/google-auth.dto';
-import { ErrorResponseDto } from '../../application/dtos/error-response.dto';
+import { GoogleUserProfileDto } from '../../application/dtos/auth/google-auth.dto';
+import { LoginResponseDto } from '../../application/dtos/auth/login-response.dto';
+import { ErrorResponseDto } from '../../application/dtos/common/error-response.dto';
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util';
 
 @ApiTags('Google Authentication - Student')
@@ -39,7 +40,7 @@ export class GoogleAuthStudentController {
     @ApiResponse({
         status: HttpStatus.OK,
         description: 'Đăng nhập Google Student thành công',
-        type: GoogleAuthResponseDto,
+        type: LoginResponseDto,
         example: {
             message: 'Đăng nhập Google Student thành công',
             accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
