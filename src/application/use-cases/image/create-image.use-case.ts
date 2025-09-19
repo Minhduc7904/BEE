@@ -1,17 +1,17 @@
-import { Injectable, Inject } from '@nestjs/common';
-import type { IUnitOfWork } from '../../../domain/repositories/unit-of-work.repository';
-import { BaseResponseDto } from '../../dtos/common/base-response.dto';
-import { CreateImageDto } from '../../dtos/image/create-image.dto';
+import { Injectable, Inject } from '@nestjs/common'
+import type { IUnitOfWork } from '../../../domain/repositories/unit-of-work.repository'
+import { BaseResponseDto } from '../../dtos/common/base-response.dto'
+import { CreateImageDto } from '../../dtos/image/create-image.dto'
 
 export interface CreateImageUseCaseResponse {
-  imageId: number;
-  adminId?: number;
-  url: string;
-  anotherUrl?: string;
-  mimeType?: string;
-  storageProvider: string;
-  createdAt: Date;
-  updatedAt: Date;
+  imageId: number
+  adminId?: number
+  url: string
+  anotherUrl?: string
+  mimeType?: string
+  storageProvider: string
+  createdAt: Date
+  updatedAt: Date
 }
 
 @Injectable()
@@ -27,7 +27,7 @@ export class CreateImageUseCase {
           mimeType: data.mimeType,
           storageProvider: data.storageProvider,
           adminId: data.adminId,
-        });
+        })
 
         return {
           imageId: image.imageId,
@@ -38,20 +38,20 @@ export class CreateImageUseCase {
           storageProvider: image.storageProvider,
           createdAt: image.createdAt,
           updatedAt: image.updatedAt,
-        };
-      });
+        }
+      })
 
       return {
         success: true,
         message: 'Image created successfully',
         data: result,
-      };
+      }
     } catch (error) {
       return {
         success: false,
         message: 'Failed to create image',
         data: undefined,
-      };
+      }
     }
   }
 }

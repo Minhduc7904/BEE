@@ -1,6 +1,6 @@
-import { SetMetadata } from '@nestjs/common';
+import { SetMetadata } from '@nestjs/common'
 
-export const CORS_METADATA_KEY = 'cors';
+export const CORS_METADATA_KEY = 'cors'
 
 /**
  * Custom CORS configuration decorator for specific routes
@@ -10,4 +10,4 @@ export const CORS_METADATA_KEY = 'cors';
  * @Get('specific-endpoint')
  * async specificEndpoint() { ... }
  */
-export const CustomCors = (origins: string[]) => SetMetadata(CORS_METADATA_KEY, origins);
+export const CustomCors = (origins: string[]) => SetMetadata(CORS_METADATA_KEY, origins)

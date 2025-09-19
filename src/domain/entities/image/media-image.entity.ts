@@ -1,4 +1,4 @@
-import { StorageProvider } from '@prisma/client';
+import { StorageProvider } from '@prisma/client'
 
 export class MediaImage {
   constructor(
@@ -13,49 +13,49 @@ export class MediaImage {
   ) {}
 
   hasAlternativeUrl(): boolean {
-    return !!this.anotherUrl;
+    return !!this.anotherUrl
   }
 
   getMimeTypeDisplay(): string {
-    return this.mimeType || 'Không xác định';
+    return this.mimeType || 'Không xác định'
   }
 
   isImage(): boolean {
-    return this.mimeType?.startsWith('image/') || false;
+    return this.mimeType?.startsWith('image/') || false
   }
 
   isJpeg(): boolean {
-    return this.mimeType === 'image/jpeg';
+    return this.mimeType === 'image/jpeg'
   }
 
   isPng(): boolean {
-    return this.mimeType === 'image/png';
+    return this.mimeType === 'image/png'
   }
 
   isWebp(): boolean {
-    return this.mimeType === 'image/webp';
+    return this.mimeType === 'image/webp'
   }
 
   getStorageProviderDisplay(): string {
     switch (this.storageProvider) {
       case StorageProvider.S3:
-        return 'Amazon S3';
+        return 'Amazon S3'
       case StorageProvider.GCS:
-        return 'Google Cloud Storage';
+        return 'Google Cloud Storage'
       case StorageProvider.LOCAL:
-        return 'Local Storage';
+        return 'Local Storage'
       case StorageProvider.EXTERNAL:
-        return 'External Storage';
+        return 'External Storage'
       default:
-        return 'Unknown';
+        return 'Unknown'
     }
   }
 
   isExternalStorage(): boolean {
-    return this.storageProvider === StorageProvider.EXTERNAL;
+    return this.storageProvider === StorageProvider.EXTERNAL
   }
 
   hasAdminOwner(): boolean {
-    return !!this.adminId;
+    return !!this.adminId
   }
 }

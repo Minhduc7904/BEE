@@ -1,7 +1,7 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { CreateQuestionImageDto } from '../../dtos/image/create-question-image.dto';
-import type { IUnitOfWork } from '../../../domain/repositories/unit-of-work.repository';
-import { BaseResponseDto } from '../../dtos/common/base-response.dto';
+import { Injectable, Inject } from '@nestjs/common'
+import { CreateQuestionImageDto } from '../../dtos/image/create-question-image.dto'
+import type { IUnitOfWork } from '../../../domain/repositories/unit-of-work.repository'
+import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 
 @Injectable()
 export class CreateQuestionImageUseCase {
@@ -22,23 +22,20 @@ export class CreateQuestionImageUseCase {
           relatedType: dto.relatedType,
           relatedId: dto.relatedId,
           adminId: adminId,
-        });
+        })
 
-        return questionImage;
-      });
+        return questionImage
+      })
 
-      return BaseResponseDto.success(
-        'Tạo ảnh câu hỏi thành công',
-        {
-          imageId: result.imageId,
-          url: result.url,
-          mimeType: result.mimeType,
-          storageProvider: result.storageProvider,
-          createdAt: result.createdAt
-        }
-      );
+      return BaseResponseDto.success('Tạo ảnh câu hỏi thành công', {
+        imageId: result.imageId,
+        url: result.url,
+        mimeType: result.mimeType,
+        storageProvider: result.storageProvider,
+        createdAt: result.createdAt,
+      })
     } catch (error) {
-      throw error;
+      throw error
     }
   }
 }

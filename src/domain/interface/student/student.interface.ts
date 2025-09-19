@@ -1,48 +1,48 @@
-import { PaginationOptions, PaginationResult, BaseFilterOptions, SortOptions } from '../common/pagination.interface';
+import { PaginationOptions, PaginationResult, BaseFilterOptions, SortOptions } from '../common/pagination.interface'
 // Note: Import Student entity when needed, avoiding circular dependency
 
 export interface CreateStudentData {
-    userId: number;
-    studentPhone?: string;
-    parentPhone?: string;
-    grade: number;
-    school?: string;
+  userId: number
+  studentPhone?: string
+  parentPhone?: string
+  grade: number
+  school?: string
 }
 
 // Student-specific sort fields
-export type StudentSortField = 
-    | 'studentId' 
-    | 'userId' 
-    | 'grade' 
-    | 'school' 
-    | 'username' 
-    | 'email' 
-    | 'firstName' 
-    | 'lastName' 
-    | 'createdAt' 
-    | 'updatedAt' 
-    | 'lastLoginAt';
+export type StudentSortField =
+  | 'studentId'
+  | 'userId'
+  | 'grade'
+  | 'school'
+  | 'username'
+  | 'email'
+  | 'firstName'
+  | 'lastName'
+  | 'createdAt'
+  | 'updatedAt'
+  | 'lastLoginAt'
 
 // Student sort options
-export type StudentSortOptions = SortOptions<StudentSortField>;
+export type StudentSortOptions = SortOptions<StudentSortField>
 
 // Student filter options extending base filters
 export interface StudentFilterOptions extends BaseFilterOptions {
-    // Student-specific fields
-    grade?: number;
-    school?: string;
-    studentPhone?: string;
-    parentPhone?: string;
+  // Student-specific fields
+  grade?: number
+  school?: string
+  studentPhone?: string
+  parentPhone?: string
 
-    // User fields (từ relation)
-    username?: string;
-    email?: string;
-    firstName?: string;
-    lastName?: string;
+  // User fields (từ relation)
+  username?: string
+  email?: string
+  firstName?: string
+  lastName?: string
 
-    // Additional date filters
-    lastLoginAfter?: Date;
-    lastLoginBefore?: Date;
+  // Additional date filters
+  lastLoginAfter?: Date
+  lastLoginBefore?: Date
 }
 
 // Student pagination options

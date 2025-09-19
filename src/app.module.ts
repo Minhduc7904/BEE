@@ -1,13 +1,13 @@
-import { Module } from '@nestjs/common';
-import { PassportModule } from '@nestjs/passport';
-import { PresentationModule } from './presentation/presentation.module';
-import { ApplicationModule } from './application/application.module';
-import { InfrastructureModule } from './infrastructure/infrastructure.module';
-import { PrismaModule } from './prisma/prisma.module';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtModule } from '@nestjs/jwt';
-import jwtConfig from './config/jwt.config';
-import googleOAuthConfig from './config/google-oauth.config';
+import { Module } from '@nestjs/common'
+import { PassportModule } from '@nestjs/passport'
+import { PresentationModule } from './presentation/presentation.module'
+import { ApplicationModule } from './application/application.module'
+import { InfrastructureModule } from './infrastructure/infrastructure.module'
+import { PrismaModule } from './prisma/prisma.module'
+import { ConfigModule, ConfigService } from '@nestjs/config'
+import { JwtModule } from '@nestjs/jwt'
+import jwtConfig from './config/jwt.config'
+import googleOAuthConfig from './config/google-oauth.config'
 
 @Module({
   imports: [
@@ -33,4 +33,4 @@ import googleOAuthConfig from './config/google-oauth.config';
     }),
   ],
 })
-export class AppModule { }
+export class AppModule {}

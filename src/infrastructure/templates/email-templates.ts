@@ -1,10 +1,10 @@
 // src/infrastructure/templates/email-templates.ts
-import { EmailVerificationData, WelcomeEmailData, PasswordResetData } from '../interfaces/email.interface';
+import { EmailVerificationData, WelcomeEmailData, PasswordResetData } from '../interfaces/email.interface'
 
 export class EmailTemplates {
   static verificationEmail(data: EmailVerificationData): { subject: string; html: string; text: string } {
-    const subject = `Xác nhận email - ${data.appName}`;
-    
+    const subject = `Xác nhận email - ${data.appName}`
+
     const html = `
       <!DOCTYPE html>
       <html>
@@ -45,7 +45,7 @@ export class EmailTemplates {
         </div>
       </body>
       </html>
-    `;
+    `
 
     const text = `
       Xin chào ${data.firstName},
@@ -61,15 +61,15 @@ export class EmailTemplates {
       
       Trân trọng,
       ${data.appName} Team
-    `;
+    `
 
-    return { subject, html, text };
+    return { subject, html, text }
   }
 
   static welcomeEmail(data: WelcomeEmailData): { subject: string; html: string; text: string } {
-    const subject = `Chào mừng đến với ${data.appName}! 🎉`;
-    const roleText = data.role === 'admin' ? 'Quản trị viên' : 'Học sinh';
-    
+    const subject = `Chào mừng đến với ${data.appName}! 🎉`
+    const roleText = data.role === 'admin' ? 'Quản trị viên' : 'Học sinh'
+
     const html = `
       <!DOCTYPE html>
       <html>
@@ -102,21 +102,25 @@ export class EmailTemplates {
               <p>Tài khoản của bạn đã sẵn sàng sử dụng. Hãy đăng nhập và khám phá các tính năng tuyệt vời!</p>
             </div>
 
-            ${data.role === 'student' ? `
+            ${
+              data.role === 'student'
+                ? `
             <div class="feature">
               <h3>📚 Dành cho học sinh</h3>
               <p>• Học toán với các bài giảng interactive<br>
               • Làm bài tập và kiểm tra<br>
               • Theo dõi tiến độ học tập</p>
             </div>
-            ` : `
+            `
+                : `
             <div class="feature">
               <h3>⚙️ Dành cho quản trị viên</h3>
               <p>• Quản lý học sinh và nội dung<br>
               • Tạo và chỉnh sửa bài giảng<br>
               • Xem báo cáo và thống kê</p>
             </div>
-            `}
+            `
+            }
 
             <p style="text-align: center;">
               <a href="${data.loginUrl}" class="button">Đăng nhập ngay</a>
@@ -131,7 +135,7 @@ export class EmailTemplates {
         </div>
       </body>
       </html>
-    `;
+    `
 
     const text = `
       Xin chào ${data.firstName},
@@ -143,14 +147,14 @@ export class EmailTemplates {
       
       Trân trọng,
       ${data.appName} Team
-    `;
+    `
 
-    return { subject, html, text };
+    return { subject, html, text }
   }
 
   static passwordResetEmail(data: PasswordResetData): { subject: string; html: string; text: string } {
-    const subject = `Đặt lại mật khẩu - ${data.appName}`;
-    
+    const subject = `Đặt lại mật khẩu - ${data.appName}`
+
     const html = `
       <!DOCTYPE html>
       <html>
@@ -203,7 +207,7 @@ export class EmailTemplates {
         </div>
       </body>
       </html>
-    `;
+    `
 
     const text = `
       Xin chào ${data.firstName},
@@ -220,8 +224,8 @@ export class EmailTemplates {
       
       Trân trọng,
       ${data.appName} Team
-    `;
+    `
 
-    return { subject, html, text };
+    return { subject, html, text }
   }
 }

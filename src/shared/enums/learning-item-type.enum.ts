@@ -19,7 +19,7 @@ export const LearningItemTypeLabels: Record<LearningItemType, string> = {
   [LearningItemType.DOCUMENT]: 'Tài liệu',
   [LearningItemType.YOUTUBE]: 'Video YouTube',
   [LearningItemType.EXERCISE]: 'Bài tập',
-};
+}
 
 /**
  * Learning Item Type Icons
@@ -29,4 +29,4 @@ export const LearningItemTypeIcons: Record<LearningItemType, string> = {
   [LearningItemType.DOCUMENT]: '📄',
   [LearningItemType.YOUTUBE]: '🎥',
   [LearningItemType.EXERCISE]: '✏️',
-};
+}

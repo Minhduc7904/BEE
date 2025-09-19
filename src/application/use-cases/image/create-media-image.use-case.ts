@@ -1,17 +1,17 @@
-import { Injectable, Inject } from '@nestjs/common';
-import type { IUnitOfWork } from '../../../domain/repositories/unit-of-work.repository';
-import { BaseResponseDto } from '../../dtos/common/base-response.dto';
-import { CreateMediaImageDto } from '../../dtos/image/create-media-image.dto';
+import { Injectable, Inject } from '@nestjs/common'
+import type { IUnitOfWork } from '../../../domain/repositories/unit-of-work.repository'
+import { BaseResponseDto } from '../../dtos/common/base-response.dto'
+import { CreateMediaImageDto } from '../../dtos/image/create-media-image.dto'
 
 export interface CreateMediaImageUseCaseResponse {
-  imageId: number;
-  adminId?: number;
-  url: string;
-  anotherUrl?: string;
-  mimeType?: string;
-  storageProvider: string;
-  createdAt: Date;
-  updatedAt: Date;
+  imageId: number
+  adminId?: number
+  url: string
+  anotherUrl?: string
+  mimeType?: string
+  storageProvider: string
+  createdAt: Date
+  updatedAt: Date
 }
 
 @Injectable()
@@ -27,7 +27,7 @@ export class CreateMediaImageUseCase {
           mimeType: data.mimeType,
           storageProvider: data.storageProvider,
           adminId: data.adminId,
-        });
+        })
 
         return {
           imageId: mediaImage.imageId,
@@ -38,20 +38,20 @@ export class CreateMediaImageUseCase {
           storageProvider: mediaImage.storageProvider,
           createdAt: mediaImage.createdAt,
           updatedAt: mediaImage.updatedAt,
-        };
-      });
+        }
+      })
 
       return {
         success: true,
         message: 'Media image created successfully',
         data: result,
-      };
+      }
     } catch (error) {
       return {
         success: false,
         message: 'Failed to create media image',
         data: undefined,
-      };
+      }
     }
   }
 }

@@ -1,53 +1,48 @@
 // src/infrastructure/strategies/google-admin.strategy.ts
-import { Injectable, Inject } from '@nestjs/common';
-import { PassportStrategy } from '@nestjs/passport';
-import { Strategy, VerifyCallback } from 'passport-google-oauth20';
-import type { ConfigType } from '@nestjs/config';
-import googleOAuthConfig from '../../config/google-oauth.config';
-import { GoogleUserProfileDto } from '../../application/dtos/auth/google-auth.dto';
+import { Injectable, Inject } from '@nestjs/common'
+import { PassportStrategy } from '@nestjs/passport'
+import { Strategy, VerifyCallback } from 'passport-google-oauth20'
+import type { ConfigType } from '@nestjs/config'
+import googleOAuthConfig from '../../config/google-oauth.config'
+import { GoogleUserProfileDto } from '../../application/dtos/auth/google-auth.dto'
 
 @Injectable()
 export class GoogleAdminStrategy extends PassportStrategy(Strategy, 'google-admin') {
-    constructor(
-        @Inject(googleOAuthConfig.KEY)
-        private readonly googleConfig: ConfigType<typeof googleOAuthConfig>,
-    ) {
-        // Debug log để kiểm tra config
-        console.log('Google OAuth Admin Config:', {
-            clientID: googleConfig.clientID ? 'PRESENT' : 'MISSING',
-            clientSecret: googleConfig.clientSecret ? 'PRESENT' : 'MISSING',
-            callbackURL: `${googleConfig.callbackURL.replace('/callback', '/admin/callback')}`
-        });
+  constructor(
+    @Inject(googleOAuthConfig.KEY)
+    private readonly googleConfig: ConfigType<typeof googleOAuthConfig>,
+  ) {
+    // Debug log để kiểm tra config
+    console.log('Google OAuth Admin Config:', {
+      clientID: googleConfig.clientID ? 'PRESENT' : 'MISSING',
+      clientSecret: googleConfig.clientSecret ? 'PRESENT' : 'MISSING',
+      callbackURL: `${googleConfig.callbackURL.replace('/callback', '/admin/callback')}`,
+    })
 
-        if (!googleConfig.clientID || !googleConfig.clientSecret) {
-            throw new Error('Google OAuth credentials are missing. Please check your environment variables.');
-        }
-
-        super({
-            clientID: googleConfig.clientID,
-            clientSecret: googleConfig.clientSecret,
-            callbackURL: googleConfig.callbackURL.replace('/callback', '/admin/callback'),
-            scope: ['email', 'profile'],
-        });
+    if (!googleConfig.clientID || !googleConfig.clientSecret) {
+      throw new Error('Google OAuth credentials are missing. Please check your environment variables.')
     }
 
-    async validate(
-        accessToken: string,
-        refreshToken: string,
-        profile: any,
-        done: VerifyCallback,
-    ): Promise<any> {
-        const { id, name, emails, photos } = profile;
-        
-        const user: GoogleUserProfileDto = {
-            googleId: id,
-            email: emails[0].value,
-            firstName: name.givenName,
-            lastName: name.familyName,
-            picture: photos[0]?.value,
-            verified: emails[0].verified,
-        };
+    super({
+      clientID: googleConfig.clientID,
+      clientSecret: googleConfig.clientSecret,
+      callbackURL: googleConfig.callbackURL.replace('/callback', '/admin/callback'),
+      scope: ['email', 'profile'],
+    })
+  }
 
-        done(null, user);
+  async validate(accessToken: string, refreshToken: string, profile: any, done: VerifyCallback): Promise<any> {
+    const { id, name, emails, photos } = profile
+
+    const user: GoogleUserProfileDto = {
+      googleId: id,
+      email: emails[0].value,
+      firstName: name.givenName,
+      lastName: name.familyName,
+      picture: photos[0]?.value,
+      verified: emails[0].verified,
     }
+
+    done(null, user)
+  }
 }

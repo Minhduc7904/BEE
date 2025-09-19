@@ -21,7 +21,7 @@ export const QuestionTypeLabels: Record<QuestionType, string> = {
   [QuestionType.FILL_IN_THE_BLANK]: 'Điền vào chỗ trống',
   [QuestionType.SHORT_ANSWER]: 'Trả lời ngắn',
   [QuestionType.ESSAY]: 'Tự luận',
-};
+}
 
 /**
  * Question Type Icons for UI
@@ -32,4 +32,4 @@ export const QuestionTypeIcons: Record<QuestionType, string> = {
   [QuestionType.FILL_IN_THE_BLANK]: '📝',
   [QuestionType.SHORT_ANSWER]: '💬',
   [QuestionType.ESSAY]: '📄',
-};
+}

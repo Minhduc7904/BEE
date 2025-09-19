@@ -5,9 +5,9 @@
  * Đồng bộ với Prisma schema enum Difficulty
  */
 export enum Difficulty {
-  TH = 'TH',   // Thông hiểu
-  NB = 'NB',   // Nhận biết  
-  VD = 'VD',   // Vận dụng
+  TH = 'TH', // Thông hiểu
+  NB = 'NB', // Nhận biết
+  VD = 'VD', // Vận dụng
   VDC = 'VDC', // Vận dụng cao
 }
 
@@ -19,7 +19,7 @@ export const DifficultyLabels: Record<Difficulty, string> = {
   [Difficulty.NB]: 'Nhận biết',
   [Difficulty.VD]: 'Vận dụng',
   [Difficulty.VDC]: 'Vận dụng cao',
-};
+}
 
 /**
  * Difficulty Levels (từ dễ đến khó)
@@ -29,7 +29,7 @@ export const DifficultyLevels: Record<Difficulty, number> = {
   [Difficulty.TH]: 2,
   [Difficulty.VD]: 3,
   [Difficulty.VDC]: 4,
-};
+}
 
 /**
  * Difficulty Colors for UI
@@ -39,4 +39,4 @@ export const DifficultyColors: Record<Difficulty, string> = {
   [Difficulty.TH]: 'green',
   [Difficulty.VD]: 'orange',
   [Difficulty.VDC]: 'red',
-};
+}
