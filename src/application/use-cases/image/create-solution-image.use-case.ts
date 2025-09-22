@@ -13,8 +13,6 @@ import {
   NotFoundException,
   BusinessLogicException
 } from '../../../shared/exceptions/custom-exceptions'
-import { StorageProvider } from '../../../shared/enums'
-import { SolutionImageMapper } from '../../../infrastructure/mappers'
 
 @Injectable()
 export class CreateSolutionImageUseCase {
@@ -55,7 +53,7 @@ export class CreateSolutionImageUseCase {
       newSolutionImage = await this.solutionImageRepository.create({
         url: uploadResult.url,
         adminId: adminId,
-        storageProvider: StorageProvider.SUPABASE,
+        storageProvider: uploadResult.storageProvider,
         mimeType: mimeType,
       })
     } catch (error) {

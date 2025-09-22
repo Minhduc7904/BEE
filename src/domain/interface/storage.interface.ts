@@ -1,5 +1,5 @@
 // src/domain/interface/storage.interface.ts
-
+import { StorageProvider } from "../../shared/enums"
 export interface UploadFileOptions {
   fileName?: string
   folder?: string
@@ -13,6 +13,7 @@ export interface FileUploadResult {
   url: string
   size: number
   contentType?: string
+  storageProvider: StorageProvider
 }
 
 export interface FileInfo {

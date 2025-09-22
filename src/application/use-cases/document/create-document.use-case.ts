@@ -3,14 +3,19 @@ import {
   DocumentResponseDto,
   BaseResponseDto,
 } from '../../dtos'
-import type { IDocumentRepository, IAdminRepository } from '../../../domain/repositories'
+import type {
+  IDocumentRepository, 
+  IAdminRepository 
+  } from '../../../domain/repositories'
 import type { IStorageService } from '../../../domain/interface/storage.interface'
-import { getFileExtension, generateFileName } from '../../../shared/utils'
+import { 
+  getFileExtension, 
+  generateFileName 
+} from '../../../shared/utils'
 import {
   NotFoundException,
   BusinessLogicException
 } from '../../../shared/exceptions/custom-exceptions'
-import { StorageProvider } from '../../../shared/enums'
 
 @Injectable()
 export class CreateDocumentUseCase {
@@ -45,7 +50,7 @@ export class CreateDocumentUseCase {
       newDocument = await this.documentRepository.create({
         url: uploadResult.url,
         adminId: adminId,
-        storageProvider: StorageProvider.SUPABASE,
+        storageProvider: uploadResult.storageProvider,
         mimeType: mimeType
       })
     } catch (error) {

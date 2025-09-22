@@ -13,8 +13,6 @@ import {
   NotFoundException,
   BusinessLogicException
 } from '../../../shared/exceptions/custom-exceptions'
-import { StorageProvider } from '../../../shared/enums'
-import { MediaImageMapper } from '../../../infrastructure/mappers'
 
 @Injectable()
 export class CreateMediaImageUseCase {
@@ -55,7 +53,7 @@ export class CreateMediaImageUseCase {
       newMediaImage = await this.mediaImageRepository.create({
         url: uploadResult.url,
         adminId: adminId,
-        storageProvider: StorageProvider.SUPABASE,
+        storageProvider: uploadResult.storageProvider,
         mimeType: mimeType,
       })
     } catch (error) {

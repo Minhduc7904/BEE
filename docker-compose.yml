@@ -7,8 +7,6 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: "070904"
       MYSQL_DATABASE: "beedatabase"
-      MYSQL_USER: "duck"
-      MYSQL_PASSWORD: "070904"
       TZ: "Asia/Ho_Chi_Minh"
     command: [
       "--default-authentication-plugin=caching_sha2_password",
@@ -21,7 +19,7 @@ services:
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p070904", "-uduck"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-proot", "-u070904"]
       interval: 5s
       timeout: 3s
       retries: 30

@@ -8,6 +8,7 @@ import {
     FileUploadResult,
     FileInfo
 } from '../../domain/interface/storage.interface'
+import { StorageProvider } from '../../shared/enums'
 
 @Injectable()
 export class SupabaseStorageService implements IStorageService {
@@ -58,6 +59,7 @@ export class SupabaseStorageService implements IStorageService {
                 url: urlData.publicUrl,
                 size: file instanceof Buffer ? file.length : file instanceof Uint8Array ? file.byteLength : file.size || 0,
                 contentType: options.contentType,
+                storageProvider: StorageProvider.SUPABASE
             }
         } catch (error) {
             this.logger.error('Upload file error:', error)
