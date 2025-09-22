@@ -1,5 +1,5 @@
 // src/domain/entities/exam/exam.entity.ts
-import { SubjectEntity } from '../subject/subject.entity'
+import { Subject } from '../subject/subject.entity'
 
 export class Exam {
   // Required properties
@@ -17,7 +17,7 @@ export class Exam {
   solutionFileId?: number
 
   // Relations (optional - sẽ được populate khi cần)
-  subject?: SubjectEntity
+  subject?: Subject
   admin?: any // AdminEntity
 
   constructor(data: {
@@ -31,7 +31,7 @@ export class Exam {
     description?: string
     fileId?: number
     solutionFileId?: number
-    subject?: SubjectEntity
+    subject?: Subject
     admin?: any
   }) {
     this.examId = data.examId
@@ -93,7 +93,7 @@ export class Exam {
   /**
    * Lấy thông tin môn học
    */
-  getSubject(): SubjectEntity | undefined {
+  getSubject(): Subject | undefined {
     return this.subject
   }
 
@@ -276,7 +276,7 @@ export class Exam {
       solutionFileId: data.solutionFileId,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
-      subject: data.subject ? SubjectEntity.fromPrisma(data.subject) : undefined,
+      subject: data.subject ? Subject.fromPrisma(data.subject) : undefined,
       admin: data.admin,
     })
   }

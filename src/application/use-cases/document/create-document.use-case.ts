@@ -1,54 +1,65 @@
 import { Injectable, Inject } from '@nestjs/common'
-import { CreateDocumentDto, DocumentResponseDto } from '../../dtos/document/document.dto'
-import type { IUnitOfWork } from '../../../domain/repositories/unit-of-work.repository'
-import { BaseResponseDto } from '../../dtos/common/base-response.dto'
-import { EnumMapper } from '../../../shared/utils/enum-mapper.util'
+import {
+  DocumentResponseDto,
+  BaseResponseDto,
+} from '../../dtos'
+import type { IDocumentRepository, IAdminRepository } from '../../../domain/repositories'
+import type { IStorageService } from '../../../domain/interface/storage.interface'
+import { getFileExtension, generateFileName } from '../../../shared/utils'
+import {
+  NotFoundException,
+  BusinessLogicException
+} from '../../../shared/exceptions/custom-exceptions'
+import { StorageProvider } from '../../../shared/enums'
 
 @Injectable()
 export class CreateDocumentUseCase {
   constructor(
-    @Inject('UNIT_OF_WORK')
-    private readonly unitOfWork: IUnitOfWork,
-  ) {}
+    @Inject('IDocumentRepository') private readonly documentRepository: IDocumentRepository,
+    @Inject('IStorageService') private readonly storageService: IStorageService,
+    @Inject('IAdminRepository') private readonly adminRepository: IAdminRepository,
+  ) { }
 
-  async execute(dto: CreateDocumentDto, adminId?: number): Promise<BaseResponseDto<DocumentResponseDto>> {
-    try {
-      const result = await this.unitOfWork.executeInTransaction(async (repos) => {
-        // Tạo document mới
-        const document = await repos.documentRepository.create({
-          description: dto.description,
-          url: dto.url,
-          anotherUrl: dto.anotherUrl,
-          mimeType: dto.mimeType,
-          subjectId: dto.subjectId,
-          relatedType: dto.relatedType,
-          relatedId: dto.relatedId,
-          storageProvider: dto.storageProvider,
-          adminId: dto.adminId || adminId,
-        })
-
-        return document
-      })
-
-      const responseData: DocumentResponseDto = {
-        documentId: result.documentId,
-        adminId: result.adminId || undefined,
-        url: result.url,
-        anotherUrl: result.anotherUrl || undefined,
-        description: result.description || undefined,
-        mimeType: result.mimeType || undefined,
-        subjectId: result.subjectId || undefined,
-        subject: result.getSubjectName ? result.getSubjectName() : result.subject?.name,
-        relatedType: result.relatedType || undefined,
-        relatedId: result.relatedId || undefined,
-        storageProvider: result.storageProvider,
-        createdAt: result.createdAt,
-        updatedAt: result.updatedAt,
-      }
-
-      return BaseResponseDto.success('Tạo document thành công', responseData)
-    } catch (error) {
-      throw error
+  async execute(
+    file: Buffer,
+    originalName: string,
+    mimeType: string,
+    adminId: number
+  ): Promise<BaseResponseDto<DocumentResponseDto>> {
+    const admin = await this.adminRepository.findById(adminId)
+    if (!admin) {
+      throw new NotFoundException('Admin không tồn tại')
     }
+    const fileExtension = getFileExtension(originalName)
+    const fileName = generateFileName(originalName, fileExtension)
+
+    const uploadResult = await this.storageService.uploadFile(file, {
+      fileName,
+      folder: 'document',
+      contentType: mimeType,
+      upsert: true
+    })
+
+    let newDocument
+    try {
+      newDocument = await this.documentRepository.create({
+        url: uploadResult.url,
+        adminId: adminId,
+        storageProvider: StorageProvider.SUPABASE,
+        mimeType: mimeType
+      })
+    } catch (error) {
+      await this.storageService.deleteFile(uploadResult.filePath)
+      throw new BusinessLogicException('Lỗi up ảnh: ' + error)
+    }
+
+    const response = DocumentResponseDto.fromEntity(newDocument)
+
+    return BaseResponseDto.success(
+      'Tạo tài liệu thành công',
+      response
+    )
+
   }
 }
+

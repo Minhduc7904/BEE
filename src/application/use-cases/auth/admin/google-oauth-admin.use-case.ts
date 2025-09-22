@@ -1,19 +1,22 @@
 // src/application/use-cases/auth/google-oauth-admin.use-case.ts
 import { Injectable, Inject } from '@nestjs/common'
-import type { IUnitOfWork } from '../../../../domain/repositories/unit-of-work.repository'
-import { PasswordService } from '../../../../infrastructure/services/password.service'
-import { JwtTokenService } from '../../../../infrastructure/services/jwt.service'
-import { TokenHashService } from '../../../../infrastructure/services/token-hash.service'
-import { GoogleUserProfileDto } from '../../../dtos/auth/google-auth.dto'
-import { LoginResponseDto, TokensDto } from '../../../dtos/auth/login-response.dto'
-import { BaseResponseDto } from '../../../dtos/common/base-response.dto'
+import type { IUnitOfWork } from '../../../../domain/repositories'
+import {
+  TokenHashService,
+  JwtTokenService,
+  PasswordService
+} from '../../../../infrastructure/services'
+import {
+  LoginResponseDto,
+  AdminResponseDto,
+  BaseResponseDto,
+  GoogleUserProfileDto
+} from '../../../dtos'
 import {
   ConflictException,
-  ValidationException,
   UnauthorizedException,
 } from '../../../../shared/exceptions/custom-exceptions'
 import { v4 as uuidv4 } from 'uuid'
-import { AdminResponseDto } from '../../../dtos/admin/admin.dto'
 
 @Injectable()
 export class GoogleOAuthAdminUseCase {
@@ -22,7 +25,7 @@ export class GoogleOAuthAdminUseCase {
     @Inject('PASSWORD_SERVICE') private readonly passwordService: PasswordService,
     @Inject('JWT_TOKEN_SERVICE') private readonly jwtTokenService: JwtTokenService,
     @Inject('TOKEN_HASH_SERVICE') private readonly tokenHashService: TokenHashService,
-  ) {}
+  ) { }
 
   async execute(googleProfile: GoogleUserProfileDto): Promise<BaseResponseDto<LoginResponseDto>> {
     return await this.unitOfWork.executeInTransaction(async (repos) => {

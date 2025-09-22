@@ -1,9 +1,8 @@
 // src/application/use-cases/email-verification/send-verification-email.use-case.ts
 import { Injectable, Inject } from '@nestjs/common'
-import type { IUserRepository } from '../../../domain/repositories/user.repository'
-import type { IEmailVerificationTokenRepository } from '../../../domain/repositories/email-verification-token.repository'
+import type { IEmailVerificationTokenRepository, IUserRepository } from '../../../domain/repositories'
 import type { IEmailService } from '../../../infrastructure/interfaces/email.interface'
-import { EmailVerificationTokenService } from '../../../infrastructure/services/email-verification-token.service'
+import { EmailVerificationTokenService } from '../../../infrastructure/services'
 import {
   NotFoundException,
   ConflictException,
@@ -30,7 +29,7 @@ export class SendVerificationEmailUseCase {
     @Inject('IEmailService')
     private readonly emailService: IEmailService,
     private readonly tokenService: EmailVerificationTokenService,
-  ) {}
+  ) { }
 
   async execute(command: SendVerificationEmailCommand): Promise<SendVerificationEmailResult> {
     // 1. Tìm user

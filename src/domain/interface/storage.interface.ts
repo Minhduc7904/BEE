@@ -28,7 +28,7 @@ export interface IStorageService {
    * Upload file to storage
    */
   uploadFile(
-    file: Buffer | Uint8Array | File, 
+    file: Buffer | Uint8Array | File,
     options: UploadFileOptions
   ): Promise<FileUploadResult>
 
@@ -71,4 +71,6 @@ export interface IStorageService {
    * Move/rename file
    */
   moveFile(fromPath: string, toPath: string): Promise<boolean>
+
+  extractFilePathFromUrl(url: string): string | null
 }

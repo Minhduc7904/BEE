@@ -1,9 +1,8 @@
 // src/application/dtos/auth/google-auth.dto.ts
 import { ApiProperty } from '@nestjs/swagger'
 import { IsEmail, IsOptional, IsString } from 'class-validator'
-import { Trim } from 'src/shared/decorators/trim.decorator'
-import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants'
-import { VALIDATION_MESSAGES } from '../../../shared/constants/validation-messages'
+import { Trim } from '../../../shared/decorators'
+import { SWAGGER_PROPERTIES, VALIDATION_MESSAGES } from '../../../shared/constants'
 
 export class GoogleUserProfileDto {
   @ApiProperty(SWAGGER_PROPERTIES.GOOGLE_ID)

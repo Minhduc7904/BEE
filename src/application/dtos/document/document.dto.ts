@@ -1,71 +1,11 @@
 import { IsString, IsOptional, IsNumber, IsUrl, IsMimeType } from 'class-validator'
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
-import { StorageProvider } from '../../../shared/enums/storage-provider.enum'
-import { IsEnumValue } from '../../../shared/decorators/is-enum-value.decorator'
-import { Trim } from '../../../shared/decorators/trim.decorator'
-import { ListQueryDto } from '../pagination/list-query.dto'
-import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants'
-import { VALIDATION_MESSAGES } from '../../../shared/constants/validation-messages'
-
-export class CreateDocumentDto {
-  @ApiProperty(SWAGGER_PROPERTIES.URL)
-  @Trim()
-  @IsUrl({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('URL') })
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('URL') })
-  url: string
-
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.ANOTHER_URL)
-  @Trim()
-  @IsOptional()
-  @IsUrl({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('URL phụ') })
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('URL phụ') })
-  anotherUrl?: string
-
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.DESCRIPTION)
-  @Trim()
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Mô tả') })
-  description?: string
-
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.MIME_TYPE)
-  @Trim()
-  @IsOptional()
-  @IsMimeType({ message: VALIDATION_MESSAGES.FIELD_INVALID('MIME type') })
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('MIME type') })
-  mimeType?: string
-
-  @ApiPropertyOptional({
-    description: 'ID của môn học',
-    example: 1,
-  })
-  @IsOptional()
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Subject ID') })
-  subjectId?: number
-
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.RELATED_TYPE)
-  @Trim()
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Loại liên kết') })
-  relatedType?: string
-
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.RELATED_ID)
-  @IsOptional()
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('ID liên kết') })
-  relatedId?: number
-
-  @ApiProperty({
-    description: 'Nhà cung cấp lưu trữ',
-    enum: StorageProvider,
-    example: StorageProvider.EXTERNAL,
-  })
-  @IsEnumValue(StorageProvider, { message: VALIDATION_MESSAGES.FIELD_INVALID('Nhà cung cấp lưu trữ') })
-  storageProvider: StorageProvider
-
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.ADMIN_ID)
-  @IsOptional()
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('ID admin') })
-  adminId?: number
-}
+import { StorageProvider } from '../../../shared/enums'
+import { Trim, IsEnumValue } from '../../../shared/decorators'
+import { ListQueryDto } from '..'
+import { SWAGGER_PROPERTIES, VALIDATION_MESSAGES } from '../../../shared/constants'
+import { Document } from '../../../domain/entities'
+import { FileResponseDto } from '..'
 
 export class UpdateDocumentDto {
   @ApiPropertyOptional(SWAGGER_PROPERTIES.URL)
@@ -121,30 +61,18 @@ export class UpdateDocumentDto {
   storageProvider?: StorageProvider
 }
 
-export class DocumentResponseDto {
+export class DocumentResponseDto extends FileResponseDto {
   @ApiProperty(SWAGGER_PROPERTIES.DOCUMENT_ID)
   documentId: number
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.ADMIN_ID)
-  adminId?: number
-
-  @ApiProperty(SWAGGER_PROPERTIES.URL)
-  url: string
-
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.ANOTHER_URL)
-  anotherUrl?: string
-
   @ApiPropertyOptional(SWAGGER_PROPERTIES.DESCRIPTION)
   description?: string
-
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.MIME_TYPE)
-  mimeType?: string
 
   @ApiPropertyOptional()
   subjectId?: number
 
   @ApiPropertyOptional(SWAGGER_PROPERTIES.SUBJECT)
-  subject?: string
+  subject?: any
 
   @ApiPropertyOptional(SWAGGER_PROPERTIES.RELATED_TYPE)
   relatedType?: string
@@ -152,14 +80,28 @@ export class DocumentResponseDto {
   @ApiPropertyOptional(SWAGGER_PROPERTIES.RELATED_ID)
   relatedId?: number
 
-  @ApiProperty(SWAGGER_PROPERTIES.STORAGE_PROVIDER)
-  storageProvider: StorageProvider
+  constructor(partial: Partial<DocumentResponseDto>) {
+    super()
+    Object.assign(this, partial)
+  }
 
-  @ApiProperty(SWAGGER_PROPERTIES.CREATED_AT)
-  createdAt: Date
-
-  @ApiProperty(SWAGGER_PROPERTIES.UPDATED_AT)
-  updatedAt: Date
+  static fromEntity(document: Document): DocumentResponseDto {
+    return new DocumentResponseDto({
+      documentId: document.documentId,
+      adminId: document.adminId ?? undefined,
+      url: document.url,
+      anotherUrl: document.anotherUrl ?? undefined,
+      description: document.description ?? undefined,
+      mimeType: document.mimeType ?? undefined,
+      subjectId: document.subjectId ?? undefined,
+      subject: document.subject ?? undefined,
+      relatedType: document.relatedType ?? undefined,
+      relatedId: document.relatedId ?? undefined,
+      storageProvider: document.storageProvider,
+      createdAt: document.createdAt,
+      updatedAt: document.updatedAt,
+    })
+  }
 }
 
 export class DocumentQueryDto extends ListQueryDto {

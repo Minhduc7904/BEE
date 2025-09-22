@@ -1,10 +1,14 @@
 // src/infrastructure/mappers/user.mapper.ts
-import { User } from '../../domain/entities/user/user.entity'
-import { Admin } from '../../domain/entities/user/admin.entity'
-import { Student } from '../../domain/entities/user/student.entity'
-import { Image } from '../../domain/entities/image/image.entity'
-import { StudentMapper } from './student.mapper'
-import { AdminMapper } from './admin.mapper'
+import {
+  User,
+  Admin,
+  Student,
+  Image
+} from '../../domain/entities'
+import {
+  AdminMapper,
+  StudentMapper
+} from '../mappers'
 
 /**
  * Mapper class để convert từ Prisma User models sang Domain User entities

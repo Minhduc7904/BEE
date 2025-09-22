@@ -1,57 +1,72 @@
 import { Injectable, Inject } from '@nestjs/common'
-import type { IUnitOfWork } from '../../../domain/repositories/unit-of-work.repository'
-import { BaseResponseDto } from '../../dtos/common/base-response.dto'
-import { CreateImageDto } from '../../dtos/image/create-image.dto'
-
-export interface CreateImageUseCaseResponse {
-  imageId: number
-  adminId?: number
-  url: string
-  anotherUrl?: string
-  mimeType?: string
-  storageProvider: string
-  createdAt: Date
-  updatedAt: Date
-}
+import {
+  ImageResponseDto,
+  BaseResponseDto,
+} from '../../dtos'
+import type {
+  IImageRepository,
+  IAdminRepository
+} from '../../../domain/repositories'
+import type { IStorageService } from '../../../domain/interface/storage.interface'
+import { getFileExtension, generateFileName } from '../../../shared/utils'
+import {
+  NotFoundException,
+  BusinessLogicException
+} from '../../../shared/exceptions/custom-exceptions'
+import { StorageProvider } from '../../../shared/enums'
 
 @Injectable()
 export class CreateImageUseCase {
-  constructor(@Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork) {}
+  constructor(
+    @Inject('IImageRepository')
+    private readonly imageRepository: IImageRepository,
 
-  async execute(data: CreateImageDto): Promise<BaseResponseDto<CreateImageUseCaseResponse>> {
-    try {
-      const result = await this.unitOfWork.executeInTransaction(async (repos) => {
-        const image = await repos.imageRepository.create({
-          url: data.url,
-          anotherUrl: data.anotherUrl,
-          mimeType: data.mimeType,
-          storageProvider: data.storageProvider,
-          adminId: data.adminId,
-        })
+    @Inject('IStorageService')
+    private readonly storageService: IStorageService,
 
-        return {
-          imageId: image.imageId,
-          adminId: image.adminId,
-          url: image.url,
-          anotherUrl: image.anotherUrl,
-          mimeType: image.mimeType,
-          storageProvider: image.storageProvider,
-          createdAt: image.createdAt,
-          updatedAt: image.updatedAt,
-        }
-      })
+    @Inject('IAdminRepository')
+    private readonly adminRepository: IAdminRepository,
+  ) { }
 
-      return {
-        success: true,
-        message: 'Image created successfully',
-        data: result,
-      }
-    } catch (error) {
-      return {
-        success: false,
-        message: 'Failed to create image',
-        data: undefined,
-      }
+  async execute(
+    file: Buffer,
+    originalName: string,
+    mimeType: string,
+    adminId: number
+  ): Promise<BaseResponseDto<ImageResponseDto>> {
+    const admin = await this.adminRepository.findById(adminId)
+    if (!admin) {
+      throw new NotFoundException('Admin không tồn tại')
     }
+
+    const fileExtension = getFileExtension(originalName)
+    const fileName = generateFileName(originalName, fileExtension)
+
+    const uploadResult = await this.storageService.uploadFile(file, {
+      fileName,
+      folder: 'image',
+      contentType: mimeType,
+      upsert: true,
+    })
+
+    let newImage
+    try {
+      newImage = await this.imageRepository.create({
+        url: uploadResult.url,
+        adminId: adminId,
+        storageProvider: StorageProvider.SUPABASE,
+        mimeType: mimeType,
+      })
+    } catch (error) {
+      await this.storageService.deleteFile(uploadResult.filePath)
+      throw new BusinessLogicException('Lỗi upload ảnh: ' + error)
+    }
+
+    const response = ImageResponseDto.fromEntity(newImage)
+
+    return BaseResponseDto.success(
+      'Tạo ảnh thành công',
+      response,
+    )
   }
 }

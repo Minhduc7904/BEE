@@ -8,6 +8,8 @@ export interface CreateQuestionImageData {
   relatedType?: string
   relatedId?: number
   adminId: number
+  caption?: string
+
 }
 
 export interface IQuestionImageRepository {

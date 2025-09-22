@@ -2,3 +2,4 @@
 
 export * from './exception-handler.util'
 export * from './number.util'
+export * from './file.until'

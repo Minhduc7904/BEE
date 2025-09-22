@@ -1,18 +1,20 @@
-import { Injectable, Inject } from '@nestjs/common'
-import { Role } from '../../domain/entities/role/role.entity'
-import { UserRole } from '../../domain/entities/role/user-role.entity'
-import { CreateRoleData, IRoleRepository, UpdateRoleData } from '../../domain/repositories/role.repository'
+import { Injectable } from '@nestjs/common'
+import { UserRole, Role } from '../../domain/entities'
+import {
+  CreateRoleData,
+  IRoleRepository,
+  UpdateRoleData
+} from '../../domain/repositories'
 import { PrismaService } from '../../prisma/prisma.service'
-import { RoleMapper } from '../mappers/role.mapper'
-import { NumberUtil } from '../../shared/utils/number.util'
-import { UserRoleMapper } from '../mappers/user-role.mapper'
+import {
+  RoleMapper,
+  UserRoleMapper
+} from '../mappers'
+import { NumberUtil } from '../../shared/utils'
 
 @Injectable()
 export class PrismaRoleRepository implements IRoleRepository {
-  constructor(
-    @Inject(PrismaService)
-    private readonly prisma: PrismaService | any,
-  ) {} // ← Flexible: PrismaService hoặc TransactionClient
+  constructor(private readonly prisma: PrismaService | any) { } // any để hỗ trợ transaction client
 
   async create(data: CreateRoleData): Promise<Role> {
     const created = await this.prisma.role.create({

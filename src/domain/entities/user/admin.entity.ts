@@ -1,20 +1,20 @@
 // src/domain/entities/admin.entity.ts
 import { User } from './user.entity'
-import { SubjectEntity } from '../subject/subject.entity'
+import { Subject } from '../subject/subject.entity'
 
 export class Admin {
   adminId: number
   userId: number
   subjectId?: number | null
   user?: User
-  subject?: SubjectEntity
+  subject?: Subject
 
   constructor(data: {
     adminId: number
     userId: number
     subjectId?: number | null
     user?: User
-    subject?: SubjectEntity
+    subject?: Subject
   }) {
     this.adminId = data.adminId
     this.userId = data.userId
@@ -33,7 +33,7 @@ export class Admin {
   /**
    * Lấy thông tin môn học
    */
-  getSubject(): SubjectEntity | undefined {
+  getSubject(): Subject | undefined {
     return this.subject
   }
 
@@ -137,7 +137,7 @@ export class Admin {
       userId: data.userId,
       subjectId: data.subjectId,
       user: data.user,
-      subject: data.subject ? SubjectEntity.fromPrisma(data.subject) : undefined,
+      subject: data.subject ? Subject.fromPrisma(data.subject) : undefined,
     })
   }
 

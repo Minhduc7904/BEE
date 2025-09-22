@@ -1,11 +1,17 @@
 // src/infrastructure/repositories/prisma-user.repository.ts
 import { PrismaService } from '../../prisma/prisma.service'
-import type { IUserRepository, CreateUserData, UpdateUserData } from '../../domain/repositories/user.repository'
-import { User } from '../../domain/entities/user/user.entity'
-import { Admin } from '../../domain/entities/user/admin.entity'
-import { Student } from '../../domain/entities/user/student.entity'
-import { UserMapper } from '../mappers/user.mapper'
-import { NumberUtil } from '../../shared/utils/number.util'
+import type {
+  IUserRepository,
+  CreateUserData,
+  UpdateUserData
+} from '../../domain/repositories'
+import {
+  User,
+  Admin,
+  Student
+} from '../../domain/entities'
+import { UserMapper } from '../mappers'
+import { NumberUtil } from '../../shared/utils'
 
 export class PrismaUserRepository implements IUserRepository {
   constructor(private readonly prisma: PrismaService | any) { } // any để hỗ trợ transaction client

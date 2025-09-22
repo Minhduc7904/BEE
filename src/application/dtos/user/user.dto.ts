@@ -1,10 +1,10 @@
-// src/application/dtos/user/user-response.dto.ts
+// src/application/dtos/user/user.dto.ts
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { IsOptional, IsString, IsEmail, MaxLength, MinLength, IsBoolean } from 'class-validator'
-import { Trim } from '../../../shared/decorators/trim.decorator'
-import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants'
-import { VALIDATION_MESSAGES } from '../../../shared/constants/validation-messages'
-import { ImageUrlDto } from '../image/image.dto'
+import { Trim } from '../../../shared/decorators'
+import { SWAGGER_PROPERTIES, VALIDATION_MESSAGES } from '../../../shared/constants'
+import { ImageUrlDto } from '..'
+import { User } from '../../../domain/entities'
 
 export class UserResponseDto {
   @ApiProperty(SWAGGER_PROPERTIES.USER_ID)
@@ -54,7 +54,7 @@ export class UserResponseDto {
   /**
    * Factory method tạo từ User entity
    */
-  static fromUser(user: any): UserResponseDto {
+  static fromUser(user: User): UserResponseDto {
     // Map avatar if exists
     let imageUrls: ImageUrlDto | undefined
     if (user.avatar) {

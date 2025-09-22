@@ -1,12 +1,19 @@
 // src/application/use-cases/refresh-token.use-case.ts
 import { Injectable, Inject } from '@nestjs/common'
-import type { IUnitOfWork } from '../../../domain/repositories/unit-of-work.repository'
-import { JwtTokenService } from '../../../infrastructure/services/jwt.service'
-import { TokenHashService } from '../../../infrastructure/services/token-hash.service'
-import { RefreshTokenRequestDto, RefreshTokenResponseDto } from '../../dtos/auth/refresh-token.dto'
-import { UnauthorizedException, NotFoundException } from '../../../shared/exceptions/custom-exceptions'
-import { BaseResponseDto } from '../../dtos/common/base-response.dto'
-import { v4 as uuidv4 } from 'uuid'
+import type { IUnitOfWork } from '../../../domain/repositories'
+import {
+  TokenHashService,
+  JwtTokenService
+} from '../../../infrastructure/services'
+import {
+  RefreshTokenRequestDto,
+  RefreshTokenResponseDto,
+  BaseResponseDto
+} from '../../dtos'
+import {
+  UnauthorizedException,
+  NotFoundException
+} from '../../../shared/exceptions/custom-exceptions'
 
 /**
  * Use case cho refresh token với rotation mechanism

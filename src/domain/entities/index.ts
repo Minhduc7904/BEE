@@ -2,3 +2,24 @@
 export * from './subject/subject.entity'
 export * from './chapter/chapter.entity'
 export * from './user/admin.entity'
+export * from './document/document.entity'
+export * from './exam/exam.entity'
+export * from './exam/question-exam.entity'
+export * from './exam/question.entity'
+export * from './exam/statement.entity'
+export * from './image/image.entity'
+export * from './image/media-image.entity'
+export * from './image/question-image.entity'
+export * from './image/solution-image.entity'
+export * from './log/admin-audit-log.entity'
+export * from './role/role.entity'
+export * from './role/user-role.entity'
+export * from './user/admin.entity'
+export * from './user/student.entity'
+export * from './user/user.entity'
+export * from './token/email-verification-token.entity'
+export * from './token/user-refresh-token.entity'
+
+
+
+

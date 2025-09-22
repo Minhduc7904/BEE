@@ -1,10 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { IsNumber, IsOptional, IsString } from 'class-validator'
-import { AuditStatus } from '../../../shared/enums/audit-status.enum'
-import { IsEnumValue } from '../../../shared/decorators/is-enum-value.decorator'
-import { Trim } from '../../../shared/decorators/trim.decorator'
-import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants'
-import { VALIDATION_MESSAGES } from '../../../shared/constants/validation-messages'
+import { AuditStatus } from '../../../shared/enums'
+import { IsEnumValue, Trim } from '../../../shared/decorators'
+import { SWAGGER_PROPERTIES, VALIDATION_MESSAGES } from '../../../shared/constants'
 
 export class CreateLogDto {
   @ApiProperty(SWAGGER_PROPERTIES.ACTION_KEY)

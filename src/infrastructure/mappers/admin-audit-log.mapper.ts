@@ -1,5 +1,5 @@
-import { AdminAuditLog } from '../../domain/entities/log/admin-audit-log.entity'
-import { AdminMapper } from './admin.mapper'
+import { AdminAuditLog } from '../../domain/entities'
+import { AdminMapper } from '../mappers'
 
 export class AdminAuditLogMapper {
   static toDomainAdminAuditLog(prismaLog: any): AdminAuditLog | null {

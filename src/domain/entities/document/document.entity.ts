@@ -1,5 +1,5 @@
 import { StorageProvider } from '../../../shared/enums/storage-provider.enum'
-import { SubjectEntity } from '../subject/subject.entity'
+import { Subject } from '../subject/subject.entity'
 import { Admin } from '../user/admin.entity'
 
 export class Document {
@@ -17,8 +17,8 @@ export class Document {
   updatedAt: Date
 
   // Relations (optional - sẽ được populate khi cần)
-  subject?: SubjectEntity
-  admin?: Admin // AdminEntity - avoid circular dependency
+  subject?: Subject
+  admin?: Admin // Admin - avoid circular dependency
 
   constructor(data: {
     documentId: number
@@ -33,7 +33,7 @@ export class Document {
     subjectId?: number | null
     relatedType?: string | null
     relatedId?: number | null
-    subject?: SubjectEntity
+    subject?: Subject
     admin?: Admin
   }) {
     this.documentId = data.documentId
@@ -76,7 +76,7 @@ export class Document {
   /**
    * Lấy thông tin môn học
    */
-  getSubject(): SubjectEntity | undefined {
+  getSubject(): Subject | undefined {
     return this.subject
   }
 
@@ -112,7 +112,7 @@ export class Document {
   }
 
   /**
-   * Kiểm tra document có liên quan đến entity cụ thể không
+   * Kiểm tra document có liên quan đến  cụ thể không
    */
   isRelatedTo(type: string, id: number): boolean {
     return this.relatedType === type && this.relatedId === id
@@ -255,7 +255,7 @@ export class Document {
   }
 
   /**
-   * Tạo entity từ Prisma model data
+   * Tạo  từ Prisma model data
    */
   static fromPrisma(data: any): Document {
     return new Document({
@@ -271,7 +271,7 @@ export class Document {
       storageProvider: data.storageProvider,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
-      subject: data.subject ? SubjectEntity.fromPrisma(data.subject) : undefined,
+      subject: data.subject ? Subject.fromPrisma(data.subject) : undefined,
       admin: data.admin ? Admin.fromPrisma(data.admin) : undefined,
     })
   }

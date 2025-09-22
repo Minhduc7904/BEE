@@ -1,15 +1,23 @@
 // src/application/use-cases/login-student.use-case.ts
 import { Injectable, Inject } from '@nestjs/common'
-import type { IUnitOfWork } from '../../../../domain/repositories/unit-of-work.repository'
-import { PasswordService } from '../../../../infrastructure/services/password.service'
-import { JwtTokenService } from '../../../../infrastructure/services/jwt.service'
-import { TokenHashService } from '../../../../infrastructure/services/token-hash.service'
-import { LoginRequestDto } from '../../../dtos/auth/login-request.dto'
-import { LoginResponseDto, TokensDto } from '../../../dtos/auth/login-response.dto'
-import { NotFoundException, ValidationException } from '../../../../shared/exceptions/custom-exceptions'
+import type { IUnitOfWork } from '../../../../domain/repositories'
+import {
+  TokenHashService,
+  JwtTokenService,
+  PasswordService
+} from '../../../../infrastructure/services'
+import {
+  LoginRequestDto,
+  LoginResponseDto,
+  TokensDto,
+  BaseResponseDto,
+  StudentResponseDto
+} from '../../../dtos'
+import {
+  NotFoundException,
+  ValidationException
+} from '../../../../shared/exceptions/custom-exceptions'
 import { v4 as uuidv4 } from 'uuid'
-import { BaseResponseDto } from '../../../dtos/common/base-response.dto'
-import { StudentResponseDto } from 'src/application/dtos/student/student.dto'
 /**
  * Use case cho student login với single device login
  */
@@ -20,7 +28,7 @@ export class LoginStudentUseCase {
     @Inject('PASSWORD_SERVICE') private readonly passwordService: PasswordService,
     @Inject('JWT_TOKEN_SERVICE') private readonly jwtTokenService: JwtTokenService,
     @Inject('TOKEN_HASH_SERVICE') private readonly tokenHashService: TokenHashService,
-  ) {}
+  ) { }
 
   async execute(loginDto: LoginRequestDto): Promise<BaseResponseDto<LoginResponseDto>> {
     return await this.unitOfWork.executeInTransaction(async (repos) => {

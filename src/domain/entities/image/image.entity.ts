@@ -1,19 +1,50 @@
-import { StorageProvider } from '@prisma/client'
+import { Admin } from '..'
+import { StorageProvider } from '../../../shared/enums'
 
 export class Image {
+  imageId: number
+  adminId?: number
+  admin?: Admin
+  url: string
+  anotherUrl?: string    // URL phụ
+  caption?: string      // phụ đề / chú thích
+  mimeType?: string
+  storageProvider: StorageProvider
+  createdAt: Date
+  updatedAt: Date
+
   constructor(
-    public readonly imageId: number,
-    public readonly adminId?: number,
-    public readonly url: string = '',
-    public readonly anotherUrl?: string,
-    public readonly mimeType?: string,
-    public readonly storageProvider: StorageProvider = StorageProvider.EXTERNAL,
-    public readonly createdAt: Date = new Date(),
-    public readonly updatedAt: Date = new Date(),
-  ) { }
+    imageId: number,
+    url: string,
+    adminId?: number,
+    admin?: Admin,
+    anotherUrl?: string,
+    caption?: string,
+    mimeType?: string,
+    storageProvider: StorageProvider = StorageProvider.EXTERNAL,
+    createdAt?: Date,
+    updatedAt?: Date,
+  ) {
+    this.imageId = imageId
+    this.adminId = adminId
+    this.admin = admin
+    this.url = url
+    this.anotherUrl = anotherUrl
+    this.caption = caption
+    this.mimeType = mimeType
+    this.storageProvider = storageProvider
+    this.createdAt = createdAt || new Date()
+    this.updatedAt = updatedAt || new Date()
+  }
+
+  // --------- Helpers ---------
 
   hasAlternativeUrl(): boolean {
     return !!this.anotherUrl
+  }
+
+  hascaption(): boolean {
+    return !!this.caption
   }
 
   getMimeTypeDisplay(): string {
@@ -40,6 +71,14 @@ export class Image {
     return this.mimeType === 'image/svg+xml'
   }
 
+  getImageTypeDisplay(): string {
+    if (this.isJpeg()) return 'JPEG Image'
+    if (this.isPng()) return 'PNG Image'
+    if (this.isWebp()) return 'WebP Image'
+    if (this.isSvg()) return 'SVG Vector'
+    return 'Unknown Image Format'
+  }
+
   getStorageProviderDisplay(): string {
     switch (this.storageProvider) {
       case StorageProvider.S3:
@@ -60,18 +99,13 @@ export class Image {
   }
 
   isCloudStorage(): boolean {
-    return this.storageProvider === StorageProvider.S3 || this.storageProvider === StorageProvider.GCS
+    return (
+      this.storageProvider === StorageProvider.S3 ||
+      this.storageProvider === StorageProvider.GCS
+    )
   }
 
   hasAdminOwner(): boolean {
     return !!this.adminId
-  }
-
-  getImageTypeDisplay(): string {
-    if (this.isJpeg()) return 'JPEG Image'
-    if (this.isPng()) return 'PNG Image'
-    if (this.isWebp()) return 'WebP Image'
-    if (this.isSvg()) return 'SVG Vector'
-    return 'Unknown Image Format'
   }
 }

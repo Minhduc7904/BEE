@@ -1,23 +1,31 @@
-// src/infrastructure/infrastructure.module.ts
 import { Module } from '@nestjs/common'
 import { JwtModule } from '@nestjs/jwt'
 import { ConfigModule } from '@nestjs/config'
 import { PrismaModule } from '../prisma/prisma.module'
 import { PrismaService } from '../prisma/prisma.service'
-import { PrismaUnitOfWork } from './repositories/prisma-unit-of-work.repository'
-import { PrismaUserRepository } from './repositories/prisma-user.repository'
-import { PrismaRoleRepository } from './repositories/prisma-role.repository'
-import { PrismaStudentRepository } from './repositories/prisma-student.repository'
-import { PrismaEmailVerificationTokenRepository } from './repositories/prisma-email-verification-token.repository'
-import { PrismaImageRepository } from './repositories/prisma-image.repository'
-import { PasswordService } from './services/password.service'
-import { JwtTokenService } from './services/jwt.service'
-import { TokenHashService } from './services/token-hash.service'
-import { EmailVerificationTokenService } from './services/email-verification-token.service'
-import { HttpClientService } from './services/http-client.service'
-import { AuthService } from './services/auth.service'
-import { ResendEmailService } from './services/resend-email.service'
-import { SupabaseStorageService } from './services/supabase-storage.service'
+import {
+  PrismaUnitOfWork,
+  PrismaUserRepository,
+  PrismaRoleRepository,
+  PrismaStudentRepository,
+  PrismaEmailVerificationTokenRepository,
+  PrismaImageRepository,
+  PrismaDocumentRepository,
+  PrismaAdminRepository,
+  PrismaQuestionImageRepository,
+  PrismaSolutionImageRepository,
+  PrismaMediaImageRepository,
+} from './repositories'
+import {
+  PasswordService,
+  JwtTokenService,
+  TokenHashService,
+  EmailVerificationTokenService,
+  HttpClientService,
+  AuthService,
+  ResendEmailService,
+  SupabaseStorageService
+} from './services'
 import { GoogleAdminStrategy } from './strategies/google-admin.strategy'
 import { GoogleStudentStrategy } from './strategies/google-student.strategy'
 import jwtConfig from '../config/jwt.config'
@@ -47,6 +55,11 @@ import supabaseConfig from '../config/supabase.config'
       inject: [PrismaService],
     },
     {
+      provide: 'IAdminRepository',
+      useFactory: (prisma: PrismaService) => new PrismaAdminRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
       provide: 'IRoleRepository',
       useFactory: (prisma: PrismaService) => new PrismaRoleRepository(prisma),
       inject: [PrismaService],
@@ -62,8 +75,28 @@ import supabaseConfig from '../config/supabase.config'
       inject: [PrismaService],
     },
     {
+      provide: 'IDocumentRepository',
+      useFactory: (prisma: PrismaService) => new PrismaDocumentRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
       provide: 'IImageRepository',
       useFactory: (prisma: PrismaService) => new PrismaImageRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IQuestionImageRepository',
+      useFactory: (prisma: PrismaService) => new PrismaQuestionImageRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'ISolutionImageRepository',
+      useFactory: (prisma: PrismaService) => new PrismaSolutionImageRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IMediaImageRepository',
+      useFactory: (prisma: PrismaService) => new PrismaMediaImageRepository(prisma),
       inject: [PrismaService],
     },
     {
@@ -101,9 +134,14 @@ import supabaseConfig from '../config/supabase.config'
   exports: [
     'UNIT_OF_WORK',
     'IUserRepository',
+    'IAdminRepository',
     'IRoleRepository',
     'IStudentRepository',
     'IImageRepository',
+    'IQuestionImageRepository',
+    'ISolutionImageRepository',
+    'IMediaImageRepository',
+    'IDocumentRepository',
     'IEmailVerificationTokenRepository',
     'PASSWORD_SERVICE',
     'JWT_TOKEN_SERVICE',

@@ -5,9 +5,7 @@ import type { Request, Response } from 'express'
 import { GoogleOAuthStudentGuard } from '../../shared/guards/google-oauth-student.guard'
 import { GoogleOAuthStudentUseCase } from '../../application/use-cases/auth/student/google-oauth-student.use-case'
 import { GoogleUserProfileDto } from '../../application/dtos/auth/google-auth.dto'
-import { LoginResponseDto } from '../../application/dtos/auth/login-response.dto'
-import { ErrorResponseDto } from '../../application/dtos/common/error-response.dto'
-import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
+import { LoginResponseDto, ErrorResponseDto } from '../../application/dtos'
 
 @ApiTags('Google Authentication - Student')
 @Controller('auth/google/student')

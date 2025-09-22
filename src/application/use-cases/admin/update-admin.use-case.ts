@@ -1,9 +1,11 @@
 // src/application/use-cases/admin/update-admin.use-case.ts
 import { Injectable, Inject } from '@nestjs/common'
-import { IsNumber, IsOptional } from 'class-validator'
-import type { IUnitOfWork } from '../../../domain/repositories/unit-of-work.repository'
-import { AdminResponseDto, UpdateAdminDto } from '../../dtos/admin/admin.dto'
-import { UpdateUserDto } from '../../dtos/user/user.dto'
+import type { IUnitOfWork } from '../../../domain/repositories'
+import {
+  AdminResponseDto,
+  UpdateAdminDto,
+  UpdateUserDto
+} from '../../dtos'
 import {
   NotFoundException,
   ConflictException,
@@ -12,7 +14,7 @@ import {
 
 @Injectable()
 export class UpdateAdminUseCase {
-  constructor(@Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork) {}
+  constructor(@Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork) { }
 
   async execute(adminId: number, dto: UpdateAdminDto): Promise<AdminResponseDto> {
     return this.unitOfWork.executeInTransaction(async (repos) => {

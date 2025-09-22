@@ -13,6 +13,7 @@ model User {
   username     String    @unique @db.VarChar(50)
   email        String?   @db.VarChar(120) // 1 user có thể có hoặc không có email
   passwordHash String    @map("password_hash") @db.VarChar(255)
+  avatarId     Int?      @unique @map("avatar_id") // 👈 thêm @unique để giữ quan hệ 1–1
   firstName    String    @map("first_name") @db.VarChar(50)
   lastName     String    @map("last_name") @db.VarChar(100)
   isActive     Boolean   @default(true) @map("is_active")
@@ -24,7 +25,8 @@ model User {
   isEmailVerified Boolean   @default(false) @map("is_email_verified")
   emailVerifiedAt DateTime? @map("email_verified_at") @db.Timestamp(0)
 
-  // relations khác giữ nguyên…
+  // Relations
+  avatar                 Image?                   @relation("UserAvatar", fields: [avatarId], references: [imageId], onDelete: SetNull)
   student                Student?                 @relation("UserStudent")
   admin                  Admin?                   @relation("UserAdmin")
   UserRefreshToken       UserRefreshToken[]
@@ -33,6 +35,7 @@ model User {
   EmailVerificationToken EmailVerificationToken[]
 
   @@index([lastName, firstName], map: "idx_users_name")
+  @@index([avatarId], map: "idx_users_avatar_id")
   @@map("users")
 }
 
@@ -81,6 +84,7 @@ model Admin {
   Course        Course[]        @relation("CourseTeacher")
   Lesson        Lesson[]        @relation("LessonTeacher")
   Question      Question[]      @relation("QuestionCreatedBy")
+  Image         Image[]
 
   @@index([subjectId], map: "idx_admins_subject_id")
   @@map("admins")
@@ -190,6 +194,7 @@ enum StorageProvider {
   LOCAL
   S3
   GCS
+  SUPABASE
   EXTERNAL
 }
 
@@ -219,50 +224,68 @@ model Document {
 }
 
 model QuestionImage {
-  imageId         Int             @id @default(autoincrement()) @map("image_id")
-  adminId         Int?            @map("admin_id")
-  admin           Admin?          @relation(fields: [adminId], references: [adminId], onDelete: SetNull)
+  imageId Int    @id @default(autoincrement()) @map("image_id")
+  adminId Int?   @map("admin_id")
+  admin   Admin? @relation(fields: [adminId], references: [adminId], onDelete: SetNull)
+
   url             String          @unique @db.VarChar(500)
   anotherUrl      String?         @map("another_url") @db.VarChar(500) // URL phụ
+  caption         String?         @map("caption") @db.VarChar(200) // chú thích ảnh
   mimeType        String?         @map("mime_type") @db.VarChar(100)
   storageProvider StorageProvider @default(EXTERNAL) @map("storage_provider")
-  relatedType     String?         @map("related_type") @db.VarChar(50)
-  relatedId       Int?            @map("related_id")
-  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamp(0)
 
-  @@index([relatedType, relatedId], map: "idx_images_related")
-  @@index([createdAt], map: "idx_images_created_at")
+  // Polymorphic relation (ảnh có thể gắn vào nhiều loại thực thể)
+  relatedType String? @map("related_type") @db.VarChar(50) // ví dụ: "QUESTION", "ANSWER", "EXAM"
+  relatedId   Int?    @map("related_id")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@index([relatedType, relatedId], map: "idx_question_images_related")
+  @@index([createdAt], map: "idx_question_images_created_at")
   @@map("question_images")
 }
 
 model SolutionImage {
-  imageId         Int             @id @default(autoincrement()) @map("image_id")
-  adminId         Int?            @map("admin_id")
-  admin           Admin?          @relation(fields: [adminId], references: [adminId], onDelete: SetNull)
+  imageId Int    @id @default(autoincrement()) @map("image_id")
+  adminId Int?   @map("admin_id")
+  admin   Admin? @relation(fields: [adminId], references: [adminId], onDelete: SetNull)
+
   url             String          @unique @db.VarChar(500)
   anotherUrl      String?         @map("another_url") @db.VarChar(500) // URL phụ
+  caption         String?         @map("caption") @db.VarChar(200) // chú thích ảnh
   mimeType        String?         @map("mime_type") @db.VarChar(100)
   storageProvider StorageProvider @default(EXTERNAL) @map("storage_provider")
-  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamp(0)
 
-  @@index([createdAt], map: "idx_images_created_at")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Sau này nếu mỗi Solution có 1 ảnh minh họa thì có thể tạo quan hệ 1–1:
+  // solution Solution? @relation(fields: [solutionId], references: [solutionId])
+  // solutionId Int?    @map("solution_id")
+
+  @@index([createdAt], map: "idx_solution_images_created_at")
   @@map("solution_images")
 }
 
 model MediaImage {
-  imageId         Int             @id @default(autoincrement()) @map("image_id")
-  adminId         Int?            @map("admin_id")
-  admin           Admin?          @relation(fields: [adminId], references: [adminId], onDelete: SetNull)
+  imageId Int    @id @default(autoincrement()) @map("image_id")
+  adminId Int?   @map("admin_id")
+  admin   Admin? @relation(fields: [adminId], references: [adminId], onDelete: SetNull)
+
   url             String          @unique @db.VarChar(500)
   anotherUrl      String?         @map("another_url") @db.VarChar(500) // URL phụ
+  caption         String?         @map("caption") @db.VarChar(200) // chú thích ảnh
   mimeType        String?         @map("mime_type") @db.VarChar(100)
   storageProvider StorageProvider @default(EXTERNAL) @map("storage_provider")
-  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamp(0)
 
-  @@index([createdAt], map: "idx_images_created_at")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Nếu sau này có quan hệ 1–1 với bảng khác (ví dụ: Post, Banner, Slide, ...)
+  // thì ta sẽ khai báo thêm giống như User-Avatar ở bảng Image.
+
+  @@index([createdAt], map: "idx_media_images_created_at")
   @@map("media_images")
 }
 
@@ -271,10 +294,15 @@ model Image {
   adminId         Int?            @map("admin_id")
   url             String          @unique @db.VarChar(500)
   anotherUrl      String?         @map("another_url") @db.VarChar(500) // URL phụ
+  caption         String?         @map("caption") @db.VarChar(200) // chú thích ảnh
   mimeType        String?         @map("mime_type") @db.VarChar(100)
   storageProvider StorageProvider @default(EXTERNAL) @map("storage_provider")
   createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  admin Admin? @relation(fields: [adminId], references: [adminId])
+  user  User?  @relation("UserAvatar")
 
   @@index([createdAt], map: "idx_images_created_at")
   @@map("images")

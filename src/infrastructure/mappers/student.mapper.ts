@@ -1,6 +1,6 @@
 // src/infrastructure/mappers/student.mapper.ts
-import { Student } from '../../domain/entities/user/student.entity'
-import { UserMapper } from './user.mapper'
+import { Student } from '../../domain/entities'
+import { UserMapper } from '../mappers'
 
 /**
  * Mapper class để convert từ Prisma Student models sang Domain Student entities

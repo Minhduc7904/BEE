@@ -5,8 +5,7 @@ import type { Request, Response } from 'express'
 import { GoogleOAuthAdminGuard } from '../../shared/guards/google-oauth-admin.guard'
 import { GoogleOAuthAdminUseCase } from '../../application/use-cases/auth/admin/google-oauth-admin.use-case'
 import { GoogleUserProfileDto } from '../../application/dtos/auth/google-auth.dto'
-import { LoginResponseDto } from '../../application/dtos/auth/login-response.dto'
-import { ErrorResponseDto } from '../../application/dtos/common/error-response.dto'
+import { LoginResponseDto, ErrorResponseDto } from '../../application/dtos'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 
 @ApiTags('Google Authentication - Admin')

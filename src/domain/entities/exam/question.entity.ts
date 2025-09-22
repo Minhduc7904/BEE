@@ -2,8 +2,8 @@
 
 import { QuestionType } from '../../../shared/enums/question-type.enum'
 import { Difficulty } from '../../../shared/enums/difficulty.enum'
-import { SubjectEntity } from '../subject/subject.entity'
-import { ChapterEntity } from '../chapter/chapter.entity'
+import { Subject } from '../subject/subject.entity'
+import { Chapter } from '../chapter/chapter.entity'
 
 export class Question {
   // Required properties
@@ -26,8 +26,8 @@ export class Question {
   createdBy?: number
 
   // Relations (optional - sẽ được populate khi cần)
-  subject?: SubjectEntity
-  chapter?: ChapterEntity
+  subject?: Subject
+  chapter?: Chapter
   admin?: any // AdminEntity
   image?: any // ImageEntity
   solutionImage?: any // ImageEntity
@@ -48,8 +48,8 @@ export class Question {
     solutionYoutubeUrl?: string
     solutionImageId?: number
     createdBy?: number
-    subject?: SubjectEntity
-    chapter?: ChapterEntity
+    subject?: Subject
+    chapter?: Chapter
     admin?: any
     image?: any
     solutionImage?: any
@@ -149,7 +149,7 @@ export class Question {
   /**
    * Lấy thông tin chương
    */
-  getChapter(): ChapterEntity | undefined {
+  getChapter(): Chapter | undefined {
     return this.chapter
   }
 
@@ -180,7 +180,7 @@ export class Question {
   /**
    * Lấy thông tin môn học
    */
-  getSubject(): SubjectEntity | undefined {
+  getSubject(): Subject | undefined {
     return this.subject
   }
 
@@ -499,8 +499,8 @@ export class Question {
       createdBy: data.createdBy,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
-      subject: data.subject ? SubjectEntity.fromPrisma(data.subject) : undefined,
-      chapter: data.chapter ? ChapterEntity.fromPrisma(data.chapter) : undefined,
+      subject: data.subject ? Subject.fromPrisma(data.subject) : undefined,
+      chapter: data.chapter ? Chapter.fromPrisma(data.chapter) : undefined,
       admin: data.admin,
       image: data.image,
       solutionImage: data.solutionImage,

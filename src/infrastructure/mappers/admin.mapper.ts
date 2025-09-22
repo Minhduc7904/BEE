@@ -1,6 +1,6 @@
 // src/infrastructure/mappers/admin.mapper.ts
-import { Admin } from '../../domain/entities/user/admin.entity'
-import { UserMapper } from './user.mapper'
+import { Admin } from '../../domain/entities'
+import { UserMapper } from '../mappers'
 
 /**
  * Mapper class để convert từ Prisma Admin models sang Domain Admin entities

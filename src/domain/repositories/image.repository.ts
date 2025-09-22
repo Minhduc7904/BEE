@@ -1,11 +1,13 @@
 import { Image } from '../entities/image/image.entity'
+import { StorageProvider } from '../../shared/enums/storage-provider.enum'
 
 export interface CreateImageData {
   url: string
   anotherUrl?: string
   mimeType?: string
-  storageProvider: string
+  storageProvider: StorageProvider
   adminId?: number
+  caption?: string
 }
 
 export interface IImageRepository {

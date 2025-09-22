@@ -1,13 +1,13 @@
 // src/infrastructure/repositories/prisma-admin.repository.ts
 import { PrismaService } from '../../prisma/prisma.service'
-import type { IAdminRepository } from '../../domain/repositories/admin.repository'
-import type { CreateAdminData, UpdateAdminData } from '../../domain/interface/admin/admin.interface'
-import { Admin } from '../../domain/entities/user/admin.entity'
-import { AdminMapper } from '../mappers/admin.mapper'
-import { NumberUtil } from '../../shared/utils/number.util'
+import type { IAdminRepository } from '../../domain/repositories'
+import type { CreateAdminData, UpdateAdminData } from '../../domain/interface'
+import { Admin } from '../../domain/entities'
+import { AdminMapper } from '../mappers'
+import { NumberUtil } from '../../shared/utils'
 
 export class PrismaAdminRepository implements IAdminRepository {
-  constructor(private readonly prisma: PrismaService | any) {} // any để hỗ trợ transaction client
+  constructor(private readonly prisma: PrismaService | any) { } // any để hỗ trợ transaction client
 
   async create(data: CreateAdminData): Promise<Admin> {
     const numericUserId = NumberUtil.ensureValidId(data.userId, 'User ID')

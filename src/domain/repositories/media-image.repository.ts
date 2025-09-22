@@ -6,6 +6,8 @@ export interface CreateMediaImageData {
   mimeType?: string
   storageProvider: string
   adminId: number
+  caption?: string
+
 }
 
 export interface IMediaImageRepository {

@@ -1,75 +1,48 @@
 import { Injectable } from '@nestjs/common'
-import { IImageRepository, CreateImageData } from '../../domain/repositories/image.repository'
-import { Image } from '../../domain/entities/image/image.entity'
-import { NumberUtil } from '../../shared/utils/number.util'
+import { IImageRepository, CreateImageData } from '../../domain/repositories'
+import { Image } from '../../domain/entities'
+import { NumberUtil } from '../../shared/utils'
+import { ImageMapper } from '../mappers'
+import { PrismaService } from '../../prisma/prisma.service'
 
 @Injectable()
 export class PrismaImageRepository implements IImageRepository {
-  constructor(
-    private readonly prisma: any, // PrismaService or TransactionClient
-  ) { }
+  constructor(private readonly prisma: PrismaService | any) { } // any để hỗ trợ transaction client
 
   async create(data: CreateImageData): Promise<Image> {
     const image = await this.prisma.image.create({
       data: {
         url: data.url,
         anotherUrl: data.anotherUrl,
+        caption: data.caption,
         mimeType: data.mimeType,
         storageProvider: data.storageProvider,
         adminId: data.adminId,
       },
+      include: { admin: true }, // để mapper convert luôn Admin nếu cần
     })
 
-    return new Image(
-      image.imageId,
-      image.adminId,
-      image.url,
-      image.anotherUrl,
-      image.mimeType,
-      image.storageProvider,
-      image.createdAt,
-      image.updatedAt,
-    )
+    return ImageMapper.toDomainImage(image)!
   }
 
   async findById(id: number): Promise<Image | null> {
-    const numericUserId = NumberUtil.ensureValidId(id, 'Image')
+    const numericId = NumberUtil.ensureValidId(id, 'Image')
 
     const image = await this.prisma.image.findUnique({
-      where: { imageId: numericUserId },
+      where: { imageId: numericId },
+      include: { admin: true },
     })
 
-    if (!image) return null
-
-    return new Image(
-      image.imageId,
-      image.adminId,
-      image.url,
-      image.anotherUrl,
-      image.mimeType,
-      image.storageProvider,
-      image.createdAt,
-      image.updatedAt,
-    )
+    return ImageMapper.toDomainImage(image)
   }
 
   async findByUrl(url: string): Promise<Image | null> {
     const image = await this.prisma.image.findUnique({
       where: { url },
+      include: { admin: true },
     })
 
-    if (!image) return null
-
-    return new Image(
-      image.imageId,
-      image.adminId,
-      image.url,
-      image.anotherUrl,
-      image.mimeType,
-      image.storageProvider,
-      image.createdAt,
-      image.updatedAt,
-    )
+    return ImageMapper.toDomainImage(image)
   }
 
   async findByAdmin(adminId: number): Promise<Image[]> {
@@ -78,56 +51,38 @@ export class PrismaImageRepository implements IImageRepository {
     const images = await this.prisma.image.findMany({
       where: { adminId: numericAdminId },
       orderBy: { createdAt: 'desc' },
+      include: { admin: true },
     })
 
-    return images.map(
-      (img) =>
-        new Image(
-          img.imageId,
-          img.adminId,
-          img.url,
-          img.anotherUrl,
-          img.mimeType,
-          img.storageProvider,
-          img.createdAt,
-          img.updatedAt,
-        ),
-    )
+    return ImageMapper.toDomainImages(images)
   }
 
   async update(id: number, data: Partial<CreateImageData>): Promise<Image> {
-    const numericUserId = NumberUtil.ensureValidId(id, 'Image')
+    const numericId = NumberUtil.ensureValidId(id, 'Image')
 
     const image = await this.prisma.image.update({
-      where: { imageId: numericUserId },
+      where: { imageId: numericId },
       data: {
         url: data.url,
         anotherUrl: data.anotherUrl,
+        caption: data.caption,
         mimeType: data.mimeType,
         storageProvider: data.storageProvider,
       },
+      include: { admin: true },
     })
 
-    return new Image(
-      image.imageId,
-      image.adminId,
-      image.url,
-      image.anotherUrl,
-      image.mimeType,
-      image.storageProvider,
-      image.createdAt,
-      image.updatedAt,
-    )
+    return ImageMapper.toDomainImage(image)!
   }
 
   async delete(id: number): Promise<boolean> {
-    const numericUserId = NumberUtil.ensureValidId(id, 'Image')
+    const numericId = NumberUtil.ensureValidId(id, 'Image')
     try {
       await this.prisma.image.delete({
-        where: { imageId: numericUserId },
+        where: { imageId: numericId },
       })
       return true
-    } catch (error) {
+    } catch {
       return false
     }
   }

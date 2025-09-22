@@ -1,8 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { IsOptional, IsNumber, Min, IsDateString, IsBoolean } from 'class-validator'
 import { RoleResponseDto } from './role.dto'
-import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants'
-import { VALIDATION_MESSAGES } from '../../../shared/constants/validation-messages'
+import { SWAGGER_PROPERTIES, VALIDATION_MESSAGES } from '../../../shared/constants'
 
 export class AssignUserRoleDto {
   @ApiProperty(SWAGGER_PROPERTIES.USER_ID)

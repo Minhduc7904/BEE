@@ -1,4 +1,4 @@
-import { UserRefreshToken } from '../../domain/entities/token/user-refresh-token.entity'
+import { UserRefreshToken } from '../../domain/entities'
 
 export class RefreshTokenMapper {
   static toDomainRefreshToken(prismaToken: any): UserRefreshToken | null {

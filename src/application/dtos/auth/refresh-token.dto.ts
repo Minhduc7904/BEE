@@ -1,9 +1,8 @@
 // src/application/dtos/auth/refresh-token.dto.ts
 import { IsString, IsNotEmpty } from 'class-validator'
 import { ApiProperty } from '@nestjs/swagger'
-import { Trim } from '../../../shared/decorators/trim.decorator'
-import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants'
-import { VALIDATION_MESSAGES } from '../../../shared/constants/validation-messages'
+import { Trim } from '../../../shared/decorators'
+import { SWAGGER_PROPERTIES, VALIDATION_MESSAGES } from '../../../shared/constants'
 
 export class RefreshTokenRequestDto {
   @ApiProperty(SWAGGER_PROPERTIES.REFRESH_TOKEN)

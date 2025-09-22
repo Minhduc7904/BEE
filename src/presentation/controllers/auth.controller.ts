@@ -6,14 +6,17 @@ import { LoginAdminUseCase } from '../../application/use-cases/auth/admin/login-
 import { LoginStudentUseCase } from '../../application/use-cases/auth/student/login-student.use-case'
 import { RefreshTokenUseCase } from '../../application/use-cases/auth/refresh-token.use-case'
 import { LogoutUseCase } from '../../application/use-cases/auth/logout.use-case'
-import { RegisterAdminDto, RegisterStudentDto } from '../../application/dtos/auth/register-request.dto'
-import { LoginRequestDto } from '../../application/dtos/auth/login-request.dto'
+import { RegisterAdminDto, RegisterStudentDto } from '../../application/dtos/auth/register.dto'
+import { LoginRequestDto } from '../../application/dtos/auth/login.dto'
 import { RefreshTokenRequestDto, RefreshTokenResponseDto } from '../../application/dtos/auth/refresh-token.dto'
 import { LogoutRequestDto, LogoutResponseDto } from '../../application/dtos/auth/logout.dto'
-import { RegisterAdminResponseDto, RegisterStudentResponseDto } from '../../application/dtos/auth/register-response.dto'
-import { LoginResponseDto } from '../../application/dtos/auth/login-response.dto'
-import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
-import { ErrorResponseDto } from '../../application/dtos/common/error-response.dto'
+import {
+  LoginResponseDto,
+  BaseResponseDto,
+  ErrorResponseDto,
+  RegisterAdminResponseDto,
+  RegisterStudentResponseDto
+} from '../../application/dtos'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { AuthOnly } from '../../shared/decorators/permission.decorator'
 
@@ -27,7 +30,7 @@ export class AuthController {
     private readonly loginStudentUseCase: LoginStudentUseCase,
     private readonly refreshTokenUseCase: RefreshTokenUseCase,
     private readonly logoutUseCase: LogoutUseCase,
-  ) {}
+  ) { }
 
   @Post('/admin/register')
   @HttpCode(HttpStatus.CREATED)

@@ -1,18 +1,16 @@
 // src/infrastructure/repositories/prisma-student.repository.ts
 import { PrismaService } from '../../prisma/prisma.service'
-import type { IStudentRepository } from '../../domain/repositories/student.repository'
+import type { IStudentRepository } from '../../domain/repositories'
 import type {
   CreateStudentData,
   StudentFilterOptions,
   StudentPaginationOptions,
   StudentListResult,
   StudentSortOptions,
-} from '../../domain/interface/student/student.interface'
-
-import { Student } from '../../domain/entities/user/student.entity'
-import { StudentMapper } from '../mappers/student.mapper'
-import { NumberUtil } from '../../shared/utils/number.util'
-import { PaginationMapper } from '../mappers/pagination.mapper'
+} from '../../domain/interface'
+import { Student } from '../../domain/entities'
+import { StudentMapper, PaginationMapper } from '../mappers'
+import { NumberUtil } from '../../shared/utils'
 
 export class PrismaStudentRepository implements IStudentRepository {
   constructor(private readonly prisma: PrismaService | any) { } // any để hỗ trợ transaction client

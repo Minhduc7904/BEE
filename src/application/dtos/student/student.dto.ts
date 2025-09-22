@@ -3,9 +3,8 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { UserResponseDto, UpdateUserDto } from '../user/user.dto'
 import { PaginationResponseDto } from '../pagination/pagination-response.dto'
 import { IsOptional, IsString, IsInt, Min, Max, Matches } from 'class-validator'
-import { Trim } from '../../../shared/decorators/trim.decorator'
-import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants'
-import { VALIDATION_MESSAGES } from '../../../shared/constants/validation-messages'
+import { Trim } from '../../../shared/decorators'
+import { SWAGGER_PROPERTIES, VALIDATION_MESSAGES } from '../../../shared/constants'
 
 export class StudentResponseDto extends UserResponseDto {
   @ApiProperty(SWAGGER_PROPERTIES.STUDENT_ID)

@@ -1,11 +1,19 @@
 // src/application/use-cases/logout.use-case.ts
 import { Injectable, Inject } from '@nestjs/common'
-import type { IUnitOfWork } from '../../../domain/repositories/unit-of-work.repository'
-import { JwtTokenService } from '../../../infrastructure/services/jwt.service'
-import { TokenHashService } from '../../../infrastructure/services/token-hash.service'
-import { LogoutRequestDto, LogoutResponseDto } from '../../dtos/auth/logout.dto'
-import { UnauthorizedException, NotFoundException } from '../../../shared/exceptions/custom-exceptions'
-import { BaseResponseDto } from '../../dtos/common/base-response.dto'
+import type { IUnitOfWork } from '../../../domain/repositories'
+import {
+  TokenHashService,
+  JwtTokenService
+} from '../../../infrastructure/services'
+import {
+  LogoutRequestDto,
+  LogoutResponseDto,
+  BaseResponseDto
+} from '../../dtos'
+import {
+  UnauthorizedException,
+  NotFoundException
+} from '../../../shared/exceptions/custom-exceptions'
 
 /**
  * Use case cho logout - revoke refresh token và invalidate token family
@@ -16,7 +24,7 @@ export class LogoutUseCase {
     @Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork,
     @Inject('JWT_TOKEN_SERVICE') private readonly jwtTokenService: JwtTokenService,
     @Inject('TOKEN_HASH_SERVICE') private readonly tokenHashService: TokenHashService,
-  ) {}
+  ) { }
 
   async execute(logoutDto: LogoutRequestDto): Promise<BaseResponseDto<LogoutResponseDto>> {
     return await this.unitOfWork.executeInTransaction(async (repos) => {

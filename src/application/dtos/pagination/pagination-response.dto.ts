@@ -1,6 +1,6 @@
 // src/application/dtos/pagination-response.dto.ts
 import { ApiProperty } from '@nestjs/swagger'
-import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants'
+import { SWAGGER_PROPERTIES } from '../../../shared/constants'
 
 export class PaginationMetaDto {
   @ApiProperty(SWAGGER_PROPERTIES.PAGE)

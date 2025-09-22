@@ -6,6 +6,8 @@ export interface CreateSolutionImageData {
   mimeType?: string
   storageProvider: string
   adminId: number
+  caption?: string
+
 }
 
 export interface ISolutionImageRepository {

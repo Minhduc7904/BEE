@@ -1,25 +1,19 @@
 // src/infrastructure/repositories/prisma-unit-of-work.repository.ts
 import { Injectable } from '@nestjs/common'
-import { PrismaService } from '../../prisma/prisma.service'
-import { IUnitOfWork, UnitOfWorkRepos } from '../../domain/repositories/unit-of-work.repository'
 import { Prisma } from '@prisma/client'
-import { PrismaUserRepository } from './prisma-user.repository'
-import { PrismaAdminRepository } from './prisma-admin.repository'
-import { PrismaStudentRepository } from './prisma-student.repository'
-import { PrismaUserRefreshTokenRepository } from './prisma-user-refresh-token.repository'
-import { PrismaDocumentRepository } from './prisma-document.repository'
-import { PrismaQuestionImageRepository } from './prisma-question-image.repository'
-import { PrismaSolutionImageRepository } from './prisma-solution-image.repository'
-import { PrismaMediaImageRepository } from './prisma-media-image.repository'
-import { PrismaImageRepository } from './prisma-image.repository'
-import { PrismaRoleRepository } from './prisma-role.repository'
-import { PrismaAdminLogRepository } from './prisma-admin-log.repository'
+import { PrismaService } from '../../prisma/prisma.service'
+import {
+  IUnitOfWork,
+  UnitOfWorkRepos,
+} from '../../domain/repositories/unit-of-work.repository'
+
+import * as Repositories from '../repositories'
 
 type Prismaish = Prisma.TransactionClient | PrismaService // chỉ cần các delegate CRUD
 
 @Injectable()
 export class PrismaUnitOfWork implements IUnitOfWork {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   private buildRepos(client: Prismaish): UnitOfWorkRepos {
     // Simple factory pattern - balance giữa performance và simplicity
@@ -27,22 +21,22 @@ export class PrismaUnitOfWork implements IUnitOfWork {
 
     // Chỉ expose các repositories thường dùng nhất
     Object.defineProperty(repos, 'userRepository', {
-      get: () => new PrismaUserRepository(client),
+      get: () => new Repositories.PrismaUserRepository(client),
       enumerable: true,
     })
 
     Object.defineProperty(repos, 'adminRepository', {
-      get: () => new PrismaAdminRepository(client),
+      get: () => new Repositories.PrismaAdminRepository(client),
       enumerable: true,
     })
 
     Object.defineProperty(repos, 'roleRepository', {
-      get: () => new PrismaRoleRepository(client),
+      get: () => new Repositories.PrismaRoleRepository(client),
       enumerable: true,
     })
 
     Object.defineProperty(repos, 'adminAuditLogRepository', {
-      get: () => new PrismaAdminLogRepository(client),
+      get: () => new Repositories.PrismaAdminLogRepository(client),
       enumerable: true,
     })
 
@@ -52,37 +46,37 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _userRefreshTokenRepository: any
 
     Object.defineProperty(repos, 'studentRepository', {
-      get: () => (_studentRepository ??= new PrismaStudentRepository(client)),
+      get: () => (_studentRepository ??= new Repositories.PrismaStudentRepository(client)),
       enumerable: true,
     })
 
     Object.defineProperty(repos, 'documentRepository', {
-      get: () => (_documentRepository ??= new PrismaDocumentRepository(client)),
+      get: () => (_documentRepository ??= new Repositories.PrismaDocumentRepository(client)),
       enumerable: true,
     })
 
     Object.defineProperty(repos, 'userRefreshTokenRepository', {
-      get: () => (_userRefreshTokenRepository ??= new PrismaUserRefreshTokenRepository(client)),
+      get: () => (_userRefreshTokenRepository ??= new Repositories.PrismaUserRefreshTokenRepository(client)),
       enumerable: true,
     })
 
     Object.defineProperty(repos, 'questionImageRepository', {
-      get: () => new PrismaQuestionImageRepository(client),
+      get: () => new Repositories.PrismaQuestionImageRepository(client),
       enumerable: true,
     })
 
     Object.defineProperty(repos, 'solutionImageRepository', {
-      get: () => new PrismaSolutionImageRepository(client),
+      get: () => new Repositories.PrismaSolutionImageRepository(client),
       enumerable: true,
     })
 
     Object.defineProperty(repos, 'mediaImageRepository', {
-      get: () => new PrismaMediaImageRepository(client),
+      get: () => new Repositories.PrismaMediaImageRepository(client),
       enumerable: true,
     })
 
     Object.defineProperty(repos, 'imageRepository', {
-      get: () => new PrismaImageRepository(client),
+      get: () => new Repositories.PrismaImageRepository(client),
       enumerable: true,
     })
 

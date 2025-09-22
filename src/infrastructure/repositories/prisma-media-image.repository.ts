@@ -1,93 +1,55 @@
 import { Injectable } from '@nestjs/common'
-import { IMediaImageRepository, CreateMediaImageData } from '../../domain/repositories/media-image.repository'
-import { MediaImage } from '../../domain/entities/image/media-image.entity'
+import { IMediaImageRepository, CreateMediaImageData } from '../../domain/repositories'
+import { MediaImage } from '../../domain/entities'
+import { MediaImageMapper } from '../mappers'
+import { PrismaService } from '../../prisma/prisma.service'
 
 @Injectable()
 export class PrismaMediaImageRepository implements IMediaImageRepository {
-  constructor(
-    private readonly prisma: any, // PrismaService or TransactionClient
-  ) {}
+  constructor(private readonly prisma: PrismaService | any) { } // any để hỗ trợ transaction client
 
   async create(data: CreateMediaImageData): Promise<MediaImage> {
     const mediaImage = await this.prisma.mediaImage.create({
       data: {
         url: data.url,
         anotherUrl: data.anotherUrl,
+        caption: data.caption,
         mimeType: data.mimeType,
         storageProvider: data.storageProvider,
         adminId: data.adminId,
       },
+      include: { admin: true },
     })
 
-    return new MediaImage(
-      mediaImage.imageId,
-      mediaImage.adminId,
-      mediaImage.url,
-      mediaImage.anotherUrl,
-      mediaImage.mimeType,
-      mediaImage.storageProvider,
-      mediaImage.createdAt,
-      mediaImage.updatedAt,
-    )
+    return MediaImageMapper.toDomainMediaImage(mediaImage)!
   }
 
   async findById(id: number): Promise<MediaImage | null> {
     const mediaImage = await this.prisma.mediaImage.findUnique({
       where: { imageId: id },
+      include: { admin: true },
     })
 
-    if (!mediaImage) return null
-
-    return new MediaImage(
-      mediaImage.imageId,
-      mediaImage.adminId,
-      mediaImage.url,
-      mediaImage.anotherUrl,
-      mediaImage.mimeType,
-      mediaImage.storageProvider,
-      mediaImage.createdAt,
-      mediaImage.updatedAt,
-    )
+    return MediaImageMapper.toDomainMediaImage(mediaImage)
   }
 
   async findByUrl(url: string): Promise<MediaImage | null> {
     const mediaImage = await this.prisma.mediaImage.findUnique({
       where: { url },
+      include: { admin: true },
     })
 
-    if (!mediaImage) return null
-
-    return new MediaImage(
-      mediaImage.imageId,
-      mediaImage.adminId,
-      mediaImage.url,
-      mediaImage.anotherUrl,
-      mediaImage.mimeType,
-      mediaImage.storageProvider,
-      mediaImage.createdAt,
-      mediaImage.updatedAt,
-    )
+    return MediaImageMapper.toDomainMediaImage(mediaImage)
   }
 
   async findByAdmin(adminId: number): Promise<MediaImage[]> {
     const mediaImages = await this.prisma.mediaImage.findMany({
       where: { adminId },
       orderBy: { createdAt: 'desc' },
+      include: { admin: true },
     })
 
-    return mediaImages.map(
-      (mi) =>
-        new MediaImage(
-          mi.imageId,
-          mi.adminId,
-          mi.url,
-          mi.anotherUrl,
-          mi.mimeType,
-          mi.storageProvider,
-          mi.createdAt,
-          mi.updatedAt,
-        ),
-    )
+    return MediaImageMapper.toDomainMediaImages(mediaImages)
   }
 
   async update(id: number, data: Partial<CreateMediaImageData>): Promise<MediaImage> {
@@ -96,21 +58,14 @@ export class PrismaMediaImageRepository implements IMediaImageRepository {
       data: {
         url: data.url,
         anotherUrl: data.anotherUrl,
+        caption: data.caption,
         mimeType: data.mimeType,
         storageProvider: data.storageProvider,
       },
+      include: { admin: true },
     })
 
-    return new MediaImage(
-      mediaImage.imageId,
-      mediaImage.adminId,
-      mediaImage.url,
-      mediaImage.anotherUrl,
-      mediaImage.mimeType,
-      mediaImage.storageProvider,
-      mediaImage.createdAt,
-      mediaImage.updatedAt,
-    )
+    return MediaImageMapper.toDomainMediaImage(mediaImage)!
   }
 
   async delete(id: number): Promise<boolean> {
@@ -119,7 +74,7 @@ export class PrismaMediaImageRepository implements IMediaImageRepository {
         where: { imageId: id },
       })
       return true
-    } catch (error) {
+    } catch {
       return false
     }
   }

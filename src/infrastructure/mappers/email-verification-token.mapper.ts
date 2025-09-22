@@ -1,4 +1,4 @@
-import { EmailVerificationToken } from '../../domain/entities/token/email-verification-token.entity'
+import { EmailVerificationToken } from '../../domain/entities'
 
 export class EmailVerificationTokenMapper {
   static toDomainEmailVerificationToken(prismaToken: any): EmailVerificationToken | null {

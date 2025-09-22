@@ -10,3 +10,4 @@ export * from './email-verification-token.repository';
 export * from './role.repository';
 export * from './media-image.repository';
 export * from './solution-image.repository'
+export * from './question-image.repository'

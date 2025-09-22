@@ -1,18 +1,20 @@
 // src/application/use-cases/register-admin.use-case.ts
 import { Injectable, Inject } from '@nestjs/common'
-import type { IUnitOfWork } from '../../../../domain/repositories/unit-of-work.repository'
-import { RegisterAdminDto } from '../../../dtos/auth/register-request.dto'
-import { RegisterAdminResponseDto } from '../../../dtos/auth/register-response.dto'
-import { AdminResponseDto } from '../../../dtos/admin/admin.dto'
+import type { IUnitOfWork } from '../../../../domain/repositories'
+import {
+  RegisterAdminResponseDto,
+  AdminResponseDto,
+  RegisterAdminDto
+} from '../../../dtos'
 import { ConflictException } from '../../../../shared/exceptions/custom-exceptions'
-import { PasswordService } from '../../../../infrastructure/services/password.service'
+import { PasswordService } from '../../../../infrastructure/services'
 
 @Injectable()
 export class RegisterAdminUseCase {
   constructor(
     @Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork,
     @Inject('PASSWORD_SERVICE') private readonly passwordService: PasswordService,
-  ) {}
+  ) { }
 
   async execute(dto: RegisterAdminDto): Promise<RegisterAdminResponseDto> {
     return this.unitOfWork.executeInTransaction(async (repos) => {

@@ -1,13 +1,12 @@
 // src/infrastructure/repositories/prisma-admin-log.repository.ts
-
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../../prisma/prisma.service'
-import { IAdminAuditLogRepository } from '../../domain/repositories/admin-audit-log.repository'
-import { AdminAuditLog } from '../../domain/entities/log/admin-audit-log.entity'
-import { CreateLogDto } from '../../application/dtos/log/log.dto'
-import { AdminAuditLogMapper } from '../mappers/admin-audit-log.mapper'
-import { AuditStatus } from '../../shared/enums/audit-status.enum'
-import { NumberUtil } from '../../shared/utils/number.util'
+import { IAdminAuditLogRepository } from '../../domain/repositories'
+import { AdminAuditLog } from '../../domain/entities'
+import { CreateLogDto } from '../../application/dtos'
+import { AdminAuditLogMapper } from '../mappers'
+import { AuditStatus } from '../../shared/enums'
+import { NumberUtil } from '../../shared/utils'
 
 export class PrismaAdminLogRepository implements IAdminAuditLogRepository {
   constructor(private readonly prisma: PrismaService | any) {}

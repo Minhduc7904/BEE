@@ -1,93 +1,59 @@
 import { Injectable } from '@nestjs/common'
-import { ISolutionImageRepository, CreateSolutionImageData } from '../../domain/repositories/solution-image.repository'
-import { SolutionImage } from '../../domain/entities/image/solution-image.entity'
+import {
+  ISolutionImageRepository,
+  CreateSolutionImageData,
+} from '../../domain/repositories'
+import { SolutionImage } from '../../domain/entities'
+import { SolutionImageMapper } from '../mappers'
+import { PrismaService } from '../../prisma/prisma.service'
 
 @Injectable()
 export class PrismaSolutionImageRepository implements ISolutionImageRepository {
-  constructor(
-    private readonly prisma: any, // PrismaService or TransactionClient
-  ) {}
+  constructor(private readonly prisma: PrismaService | any) { } // any để hỗ trợ transaction client
+
 
   async create(data: CreateSolutionImageData): Promise<SolutionImage> {
     const solutionImage = await this.prisma.solutionImage.create({
       data: {
         url: data.url,
         anotherUrl: data.anotherUrl,
+        caption: data.caption,
         mimeType: data.mimeType,
         storageProvider: data.storageProvider,
         adminId: data.adminId,
       },
+      include: { admin: true },
     })
 
-    return new SolutionImage(
-      solutionImage.imageId,
-      solutionImage.adminId,
-      solutionImage.url,
-      solutionImage.anotherUrl,
-      solutionImage.mimeType,
-      solutionImage.storageProvider,
-      solutionImage.createdAt,
-      solutionImage.updatedAt,
-    )
+    return SolutionImageMapper.toDomainSolutionImage(solutionImage)!
   }
 
   async findById(id: number): Promise<SolutionImage | null> {
     const solutionImage = await this.prisma.solutionImage.findUnique({
       where: { imageId: id },
+      include: { admin: true },
     })
 
-    if (!solutionImage) return null
-
-    return new SolutionImage(
-      solutionImage.imageId,
-      solutionImage.adminId,
-      solutionImage.url,
-      solutionImage.anotherUrl,
-      solutionImage.mimeType,
-      solutionImage.storageProvider,
-      solutionImage.createdAt,
-      solutionImage.updatedAt,
-    )
+    return SolutionImageMapper.toDomainSolutionImage(solutionImage)
   }
 
   async findByUrl(url: string): Promise<SolutionImage | null> {
     const solutionImage = await this.prisma.solutionImage.findUnique({
       where: { url },
+      include: { admin: true },
     })
 
-    if (!solutionImage) return null
-
-    return new SolutionImage(
-      solutionImage.imageId,
-      solutionImage.adminId,
-      solutionImage.url,
-      solutionImage.anotherUrl,
-      solutionImage.mimeType,
-      solutionImage.storageProvider,
-      solutionImage.createdAt,
-      solutionImage.updatedAt,
-    )
+    return SolutionImageMapper.toDomainSolutionImage(solutionImage)
   }
 
   async findByAdmin(adminId: number): Promise<SolutionImage[]> {
     const solutionImages = await this.prisma.solutionImage.findMany({
       where: { adminId },
       orderBy: { createdAt: 'desc' },
+      include: { admin: true },
     })
 
-    return solutionImages.map(
-      (si) =>
-        new SolutionImage(
-          si.imageId,
-          si.adminId,
-          si.url,
-          si.anotherUrl,
-          si.mimeType,
-          si.storageProvider,
-          si.createdAt,
-          si.updatedAt,
-        ),
-    )
+    return SolutionImageMapper.toDomainSolutionImages(solutionImages)
   }
 
   async update(id: number, data: Partial<CreateSolutionImageData>): Promise<SolutionImage> {
@@ -96,21 +62,14 @@ export class PrismaSolutionImageRepository implements ISolutionImageRepository {
       data: {
         url: data.url,
         anotherUrl: data.anotherUrl,
+        caption: data.caption,
         mimeType: data.mimeType,
         storageProvider: data.storageProvider,
       },
+      include: { admin: true },
     })
 
-    return new SolutionImage(
-      solutionImage.imageId,
-      solutionImage.adminId,
-      solutionImage.url,
-      solutionImage.anotherUrl,
-      solutionImage.mimeType,
-      solutionImage.storageProvider,
-      solutionImage.createdAt,
-      solutionImage.updatedAt,
-    )
+    return SolutionImageMapper.toDomainSolutionImage(solutionImage)!
   }
 
   async delete(id: number): Promise<boolean> {
@@ -119,7 +78,7 @@ export class PrismaSolutionImageRepository implements ISolutionImageRepository {
         where: { imageId: id },
       })
       return true
-    } catch (error) {
+    } catch {
       return false
     }
   }

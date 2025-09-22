@@ -1,103 +1,58 @@
 import { Injectable } from '@nestjs/common'
-import { IQuestionImageRepository, CreateQuestionImageData } from '../../domain/repositories/question-image.repository'
-import { QuestionImage } from '../../domain/entities/image/question-image.entity'
+import { IQuestionImageRepository, CreateQuestionImageData } from '../../domain/repositories'
+import { QuestionImage } from '../../domain/entities'
+import { QuestionImageMapper } from '../mappers'
+import { PrismaService } from '../../prisma/prisma.service'
 
 @Injectable()
 export class PrismaQuestionImageRepository implements IQuestionImageRepository {
-  constructor(
-    private readonly prisma: any, // PrismaService or TransactionClient
-  ) {}
+  constructor(private readonly prisma: PrismaService | any) { } // any để hỗ trợ transaction client
+
 
   async create(data: CreateQuestionImageData): Promise<QuestionImage> {
     const questionImage = await this.prisma.questionImage.create({
       data: {
         url: data.url,
         anotherUrl: data.anotherUrl,
+        caption: data.caption,
         mimeType: data.mimeType,
         storageProvider: data.storageProvider,
         relatedType: data.relatedType,
         relatedId: data.relatedId,
         adminId: data.adminId,
       },
+      include: { admin: true },
     })
 
-    return new QuestionImage(
-      questionImage.imageId,
-      questionImage.adminId,
-      questionImage.url,
-      questionImage.anotherUrl,
-      questionImage.mimeType,
-      questionImage.storageProvider,
-      questionImage.relatedType,
-      questionImage.relatedId,
-      questionImage.createdAt,
-      questionImage.updatedAt,
-    )
+    return QuestionImageMapper.toDomainQuestionImage(questionImage)!
   }
 
   async findById(id: number): Promise<QuestionImage | null> {
     const questionImage = await this.prisma.questionImage.findUnique({
       where: { imageId: id },
+      include: { admin: true },
     })
 
-    if (!questionImage) return null
-
-    return new QuestionImage(
-      questionImage.imageId,
-      questionImage.adminId,
-      questionImage.url,
-      questionImage.anotherUrl,
-      questionImage.mimeType,
-      questionImage.storageProvider,
-      questionImage.relatedType,
-      questionImage.relatedId,
-      questionImage.createdAt,
-      questionImage.updatedAt,
-    )
+    return QuestionImageMapper.toDomainQuestionImage(questionImage)
   }
 
   async findByUrl(url: string): Promise<QuestionImage | null> {
     const questionImage = await this.prisma.questionImage.findUnique({
       where: { url },
+      include: { admin: true },
     })
 
-    if (!questionImage) return null
-
-    return new QuestionImage(
-      questionImage.imageId,
-      questionImage.adminId,
-      questionImage.url,
-      questionImage.anotherUrl,
-      questionImage.mimeType,
-      questionImage.storageProvider,
-      questionImage.relatedType,
-      questionImage.relatedId,
-      questionImage.createdAt,
-      questionImage.updatedAt,
-    )
+    return QuestionImageMapper.toDomainQuestionImage(questionImage)
   }
 
   async findByAdmin(adminId: number): Promise<QuestionImage[]> {
     const questionImages = await this.prisma.questionImage.findMany({
       where: { adminId },
       orderBy: { createdAt: 'desc' },
+      include: { admin: true },
     })
 
-    return questionImages.map(
-      (qi) =>
-        new QuestionImage(
-          qi.imageId,
-          qi.adminId,
-          qi.url,
-          qi.anotherUrl,
-          qi.mimeType,
-          qi.storageProvider,
-          qi.relatedType,
-          qi.relatedId,
-          qi.createdAt,
-          qi.updatedAt,
-        ),
-    )
+    return QuestionImageMapper.toDomainQuestionImages(questionImages)
   }
 
   async update(id: number, data: Partial<CreateQuestionImageData>): Promise<QuestionImage> {
@@ -106,25 +61,16 @@ export class PrismaQuestionImageRepository implements IQuestionImageRepository {
       data: {
         url: data.url,
         anotherUrl: data.anotherUrl,
+        caption: data.caption,
         mimeType: data.mimeType,
         storageProvider: data.storageProvider,
         relatedType: data.relatedType,
         relatedId: data.relatedId,
       },
+      include: { admin: true },
     })
 
-    return new QuestionImage(
-      questionImage.imageId,
-      questionImage.adminId,
-      questionImage.url,
-      questionImage.anotherUrl,
-      questionImage.mimeType,
-      questionImage.storageProvider,
-      questionImage.relatedType,
-      questionImage.relatedId,
-      questionImage.createdAt,
-      questionImage.updatedAt,
-    )
+    return QuestionImageMapper.toDomainQuestionImage(questionImage)!
   }
 
   async delete(id: number): Promise<boolean> {
@@ -133,7 +79,7 @@ export class PrismaQuestionImageRepository implements IQuestionImageRepository {
         where: { imageId: id },
       })
       return true
-    } catch (error) {
+    } catch {
       return false
     }
   }

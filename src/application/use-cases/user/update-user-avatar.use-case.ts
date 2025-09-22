@@ -8,7 +8,8 @@ import {
     NotFoundException,
     ValidationException
 } from '../../../shared/exceptions/custom-exceptions'
-import { StorageProvider } from '@prisma/client'
+import { StorageProvider } from '../../../shared/enums'
+import { getFileExtension } from 'src/shared/utils'
 
 @Injectable()
 export class UpdateUserAvatarUseCase {
@@ -30,19 +31,8 @@ export class UpdateUserAvatarUseCase {
                 throw new NotFoundException('User không tồn tại')
             }
 
-            // 2. Validate file type
-            if (!this.isValidImageType(mimeType)) {
-                throw new ValidationException('Chỉ hỗ trợ file ảnh (JPG, PNG, GIF, WEBP)')
-            }
-
-            // 3. Validate file size (5MB max)
-            const maxSize = 5 * 1024 * 1024 // 5MB
-            if (file.length > maxSize) {
-                throw new ValidationException('File ảnh không được vượt quá 5MB')
-            }
-
             // 4. Generate unique filename
-            const fileExtension = this.getFileExtension(originalName)
+            const fileExtension = getFileExtension(originalName)
             const fileName = `avatar_${userId}_${Date.now()}.${fileExtension}`
 
             try {
@@ -60,7 +50,7 @@ export class UpdateUserAvatarUseCase {
                         const oldAvatar = await repos.imageRepository.findById(user.avatarId)
                         if (oldAvatar && oldAvatar.storageProvider === StorageProvider.SUPABASE) {
                             // Delete old file from Supabase
-                            const oldFilePath = this.extractFilePathFromUrl(oldAvatar.url)
+                            const oldFilePath = this.storageService.extractFilePathFromUrl(oldAvatar.url)
                             if (oldFilePath) {
                                 await this.storageService.deleteFile(oldFilePath)
                             }
@@ -97,42 +87,5 @@ export class UpdateUserAvatarUseCase {
                 throw new ValidationException(`Upload avatar thất bại: ${uploadError.message}`)
             }
         })
-    }
-
-    private isValidImageType(mimeType: string): boolean {
-        const validTypes = [
-            'image/jpeg',
-            'image/jpg',
-            'image/png',
-            'image/gif',
-            'image/webp'
-        ]
-        return validTypes.includes(mimeType.toLowerCase())
-    }
-
-    private getFileExtension(filename: string): string {
-        const extension = filename.split('.').pop()?.toLowerCase()
-
-        // Map MIME types to extensions for safety
-        const extensionMap: { [key: string]: string } = {
-            'jpeg': 'jpg',
-            'jpg': 'jpg',
-            'png': 'png',
-            'gif': 'gif',
-            'webp': 'webp'
-        }
-
-        return extensionMap[extension || ''] || 'jpg'
-    }
-
-    private extractFilePathFromUrl(url: string): string | null {
-        try {
-            // Extract file path from Supabase URL
-            // Format: https://your-project.supabase.co/storage/v1/object/public/bucket/path/to/file
-            const match = url.match(/\/storage\/v1\/object\/public\/[^\/]+\/(.+)/)
-            return match ? match[1] : null
-        } catch (error) {
-            return null
-        }
     }
 }

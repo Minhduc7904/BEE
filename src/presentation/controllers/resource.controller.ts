@@ -1,16 +1,33 @@
-import { Controller, Post, Body, HttpStatus } from '@nestjs/common'
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger'
-import { CreateDocumentDto } from '../../application/dtos/document/document.dto'
-import { CreateQuestionImageDto } from '../../application/dtos/image/create-question-image.dto'
-import { CreateSolutionImageDto } from '../../application/dtos/image/create-solution-image.dto'
-import { CreateMediaImageDto } from '../../application/dtos/image/create-media-image.dto'
-import { CreateImageDto } from '../../application/dtos/image/create-image.dto'
-import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
-import { CreateDocumentUseCase } from '../../application/use-cases/document/create-document.use-case'
-import { CreateQuestionImageUseCase } from '../../application/use-cases/image/create-question-image.use-case'
-import { CreateSolutionImageUseCase } from '../../application/use-cases/image/create-solution-image.use-case'
-import { CreateMediaImageUseCase } from '../../application/use-cases/image/create-media-image.use-case'
-import { CreateImageUseCase } from '../../application/use-cases/image/create-image.use-case'
+import {
+  Controller,
+  Post,
+  Body,
+  HttpStatus,
+  HttpCode,
+  UseInterceptors
+} from '@nestjs/common'
+import {
+  ApiTags,
+  ApiOperation,
+  ApiConsumes
+} from '@nestjs/swagger'
+import {
+  BaseResponseDto,
+  DocumentResponseDto,
+  QuestionImageResponseDto,
+  SolutionImageResponseDto,
+  MediaImageResponseDto,
+  ImageResponseDto
+} from '../../application/dtos'
+import {
+  CreateImageUseCase,
+  CreateMediaImageUseCase,
+  CreateSolutionImageUseCase,
+  CreateQuestionImageUseCase,
+  CreateDocumentUseCase
+} from '../../application/use-cases'
+import { AdminOnly, CurrentUser, ValidatedImageFile, ValidatedPdfDocFile } from '../../shared/decorators'
+import { FileInterceptor } from '@nestjs/platform-express'
 
 @ApiTags('Resources')
 @Controller('resources')
@@ -21,40 +38,47 @@ export class ResourceController {
     private readonly createSolutionImageUseCase: CreateSolutionImageUseCase,
     private readonly createMediaImageUseCase: CreateMediaImageUseCase,
     private readonly createImageUseCase: CreateImageUseCase,
-  ) {}
+  ) { }
 
   @Post('documents')
+  @HttpCode(HttpStatus.OK)
+  @AdminOnly()
+  @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({
     summary: 'Tạo document mới',
     description: 'Tạo một document mới trong hệ thống (test - cần admin ID)',
   })
-  @ApiResponse({
-    status: HttpStatus.CREATED,
-    description: 'Document đã được tạo thành công',
-    type: BaseResponseDto,
-  })
-  async createDocument(@Body() dto: CreateDocumentDto): Promise<BaseResponseDto<any>> {
-    // Test với adminId = 1, sau này sẽ lấy từ JWT token
-    const adminId = 1
-
-    return await this.createDocumentUseCase.execute(dto, adminId)
+  @ApiConsumes('multipart/form-data')
+  async createDocument(
+    @ValidatedPdfDocFile() file: Express.Multer.File,
+    @CurrentUser('adminId') adminId: number,
+  ): Promise<BaseResponseDto<DocumentResponseDto>> {
+    return await this.createDocumentUseCase.execute(
+      file.buffer,
+      file.originalname,
+      file.mimetype,
+      adminId
+    )
   }
 
   @Post('question-images')
   @ApiOperation({
     summary: 'Tạo ảnh câu hỏi mới',
-    description: 'Tạo một ảnh câu hỏi mới trong hệ thống (test - cần admin ID)',
+    description: 'Tạo một ảnh câu hỏi mới trong hệ thống',
   })
-  @ApiResponse({
-    status: HttpStatus.CREATED,
-    description: 'Ảnh câu hỏi đã được tạo thành công',
-    type: BaseResponseDto,
-  })
-  async createQuestionImage(@Body() dto: CreateQuestionImageDto): Promise<BaseResponseDto<any>> {
-    // Test với adminId = 1, sau này sẽ lấy từ JWT token
-    const adminId = 1
-
-    return await this.createQuestionImageUseCase.execute(dto, adminId)
+  @UseInterceptors(FileInterceptor('image'))
+  @AdminOnly()
+  @ApiConsumes('multipart/form-data')
+  async createQuestionImage(
+    @ValidatedImageFile() file: Express.Multer.File,
+    @CurrentUser('adminId') adminId: number,
+  ): Promise<BaseResponseDto<QuestionImageResponseDto>> {
+    return await this.createQuestionImageUseCase.execute(
+      file.buffer,
+      file.originalname,
+      file.mimetype,
+      adminId
+    )
   }
 
   @Post('solution-images')
@@ -62,40 +86,61 @@ export class ResourceController {
     summary: 'Tạo ảnh lời giải mới',
     description: 'Tạo một ảnh lời giải mới trong hệ thống',
   })
-  @ApiResponse({
-    status: HttpStatus.CREATED,
-    description: 'Ảnh lời giải đã được tạo thành công',
-    type: BaseResponseDto,
-  })
-  async createSolutionImage(@Body() dto: CreateSolutionImageDto): Promise<BaseResponseDto<any>> {
-    return await this.createSolutionImageUseCase.execute(dto)
+  @UseInterceptors(FileInterceptor('image'))
+  @AdminOnly()
+  @ApiConsumes('multipart/form-data')
+  async createSolutionImage(
+    @ValidatedImageFile() file: Express.Multer.File,
+    @CurrentUser('adminId') adminId: number,
+  ): Promise<BaseResponseDto<SolutionImageResponseDto>> {
+    return await this.createSolutionImageUseCase.execute(
+      file.buffer,
+      file.originalname,
+      file.mimetype,
+      adminId,
+    )
   }
+
 
   @Post('media-images')
   @ApiOperation({
     summary: 'Tạo ảnh media mới',
     description: 'Tạo một ảnh media mới trong hệ thống',
   })
-  @ApiResponse({
-    status: HttpStatus.CREATED,
-    description: 'Ảnh media đã được tạo thành công',
-    type: BaseResponseDto,
-  })
-  async createMediaImage(@Body() dto: CreateMediaImageDto): Promise<BaseResponseDto<any>> {
-    return await this.createMediaImageUseCase.execute(dto)
+  @UseInterceptors(FileInterceptor('image'))
+  @AdminOnly()
+  @ApiConsumes('multipart/form-data')
+  async createMediaImage(
+    @ValidatedImageFile() file: Express.Multer.File,
+    @CurrentUser('adminId') adminId: number,
+  ): Promise<BaseResponseDto<MediaImageResponseDto>> {
+    return await this.createMediaImageUseCase.execute(
+      file.buffer,
+      file.originalname,
+      file.mimetype,
+      adminId,
+    )
   }
+
 
   @Post('images')
   @ApiOperation({
     summary: 'Tạo ảnh mới',
     description: 'Tạo một ảnh mới trong hệ thống',
   })
-  @ApiResponse({
-    status: HttpStatus.CREATED,
-    description: 'Ảnh đã được tạo thành công',
-    type: BaseResponseDto,
-  })
-  async createImage(@Body() dto: CreateImageDto): Promise<BaseResponseDto<any>> {
-    return await this.createImageUseCase.execute(dto)
+  @UseInterceptors(FileInterceptor('image'))
+  @AdminOnly()
+  @ApiConsumes('multipart/form-data')
+  async createImage(
+    @ValidatedImageFile() file: Express.Multer.File,
+    @CurrentUser('adminId') adminId: number,
+  ): Promise<BaseResponseDto<ImageResponseDto>> {
+    return await this.createImageUseCase.execute(
+      file.buffer,
+      file.originalname,
+      file.mimetype,
+      adminId,
+    )
   }
+
 }

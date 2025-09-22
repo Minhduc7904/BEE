@@ -1,8 +1,8 @@
 import { IsString, IsEmail, MinLength, IsOptional, Matches, IsInt, Min, Max } from 'class-validator'
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
-import { VALIDATION_MESSAGES, PHONE_VN_REGEX } from '../../../shared/constants/validation-messages'
-import { Trim } from '../../../shared/decorators/trim.decorator'
-import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants'
+import { Trim } from '../../../shared/decorators'
+import { SWAGGER_PROPERTIES, VALIDATION_MESSAGES, PHONE_VN_REGEX } from '../../../shared/constants'
+import { BaseResponseDto, ErrorResponseDto, StudentResponseDto, AdminResponseDto } from '..'
 
 export class RegisterAdminDto {
   @ApiProperty(SWAGGER_PROPERTIES.USERNAME)
@@ -97,4 +97,45 @@ export class RegisterStudentDto {
   @Min(6, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Khối lớp', 6) })
   @Max(12, { message: VALIDATION_MESSAGES.FIELD_MAX_VALUE('Khối lớp', 12) })
   grade: number
+}
+
+export class RegisterAdminResponseDto extends BaseResponseDto<AdminResponseDto> {
+  @ApiProperty({
+    description: 'Dữ liệu admin đã tạo',
+    type: () => AdminResponseDto,
+    example: {
+      userId: 1,
+      username: SWAGGER_PROPERTIES.USERNAME.example,
+      email: null, // có thể null
+      firstName: SWAGGER_PROPERTIES.FIRST_NAME.example,
+      lastName: SWAGGER_PROPERTIES.LAST_NAME.example,
+      isActive: true,
+      createdAt: SWAGGER_PROPERTIES.CREATED_AT.example,
+      adminId: 1,
+      subject: null, // có thể null
+    },
+  })
+  declare data: AdminResponseDto
+}
+
+export class RegisterStudentResponseDto extends BaseResponseDto<StudentResponseDto> {
+  @ApiProperty({
+    description: 'Dữ liệu học sinh đã tạo',
+    type: () => StudentResponseDto,
+    example: {
+      userId: 2,
+      username: 'student123',
+      email: null, // có thể null
+      firstName: 'Trần',
+      lastName: 'Thị B',
+      isActive: SWAGGER_PROPERTIES.IS_ACTIVE.example,
+      createdAt: SWAGGER_PROPERTIES.CREATED_AT.example,
+      studentId: 1,
+      grade: SWAGGER_PROPERTIES.GRADE_6_12.example,
+      school: null, // có thể null
+      studentPhone: null, // có thể null
+      parentPhone: null, // có thể null
+    },
+  })
+  declare data: StudentResponseDto
 }

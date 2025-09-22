@@ -1,28 +1,28 @@
-// src/domain/entities/subject/subject.entity.ts
-import { ChapterEntity } from '../chapter/chapter.entity'
+// src/domain/entities/subject/subject..ts
+import { Chapter } from '../chapter/chapter.entity'
 import { Admin } from '../user/admin.entity'
 import { Document } from '../document/document.entity'
 import { Exam } from '../exam/exam.entity'
 import { Question } from '../exam/question.entity'
 
-export class SubjectEntity {
+export class Subject {
   subjectId: number
   name: string
   code?: string | null
 
   // Relations (optional - sẽ được populate khi cần)
-  chapters?: ChapterEntity[] // ChapterEntity[] - avoid circular dependency
-  admins?: Admin[] // AdminEntity[]
-  documents?: Document[] // DocumentEntity[]
-  exams?: Exam[] // ExamEntity[]
-  questions?: Question[] // QuestionEntity[]
-  courses?: any[] // CourseEntity[]
+  chapters?: Chapter[] // Chapter[] - avoid circular dependency
+  admins?: Admin[] // Admin[]
+  documents?: Document[] // Document[]
+  exams?: Exam[] // Exam[]
+  questions?: Question[] // Question[]
+  courses?: any[] // Course[]
 
   constructor(data: {
     subjectId: number
     name: string
     code?: string | null
-    chapters?: ChapterEntity[]
+    chapters?: Chapter[]
     admins?: Admin[]
     documents?: any[]
     exams?: Exam[]
@@ -199,14 +199,14 @@ export class SubjectEntity {
   }
 
   /**
-   * Tạo entity từ Prisma model data
+   * Tạo  từ Prisma model data
    */
-  static fromPrisma(data: any): SubjectEntity {
-    return new SubjectEntity({
+  static fromPrisma(data: any): Subject {
+    return new Subject({
       subjectId: data.subjectId,
       name: data.name,
       code: data.code,
-      chapters: data.chapters ? data.chapters.map((chapter: any) => ChapterEntity.fromPrisma(chapter)) : undefined,
+      chapters: data.chapters ? data.chapters.map((chapter: any) => Chapter.fromPrisma(chapter)) : undefined,
       admins: data.admins ? data.admins.map((admin: any) => Admin.fromPrisma(admin)) : undefined,
       documents: data.documents,
       exams: data.exams,
@@ -218,8 +218,8 @@ export class SubjectEntity {
   /**
    * Tạo subject cơ bản (chỉ có thông tin chính)
    */
-  static createBasic(subjectId: number, name: string, code?: string): SubjectEntity {
-    return new SubjectEntity({
+  static createBasic(subjectId: number, name: string, code?: string): Subject {
+    return new Subject({
       subjectId,
       name,
       code,
@@ -229,7 +229,7 @@ export class SubjectEntity {
   /**
    * So sánh hai subjects
    */
-  equals(other: SubjectEntity): boolean {
+  equals(other: Subject): boolean {
     return this.subjectId === other.subjectId
   }
 

@@ -2,10 +2,9 @@
 import { ApiPropertyOptional } from '@nestjs/swagger'
 import { Type } from 'class-transformer'
 import { IsOptional, IsString, IsNumber, IsBoolean, IsDateString, Min, Max } from 'class-validator'
-import { ListQueryDto } from '../pagination/list-query.dto'
-import { Trim } from '../../../shared/decorators/trim.decorator'
-import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants'
-import { VALIDATION_MESSAGES } from '../../../shared/constants/validation-messages'
+import { ListQueryDto } from '..'
+import { Trim } from '../../../shared/decorators'
+import { SWAGGER_PROPERTIES, VALIDATION_MESSAGES } from '../../../shared/constants'
 
 export class StudentListQueryDto extends ListQueryDto {
   @ApiPropertyOptional(SWAGGER_PROPERTIES.GRADE)

@@ -1,8 +1,8 @@
 import { IsString, IsNotEmpty, MinLength, IsOptional, IsEmail } from 'class-validator'
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
-import { VALIDATION_MESSAGES } from '../../../shared/constants/validation-messages'
-import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants'
-import { Trim } from '../../../shared/decorators/trim.decorator'
+import { Trim } from '../../../shared/decorators'
+import { SWAGGER_PROPERTIES, VALIDATION_MESSAGES } from '../../../shared/constants'
+import { AdminResponseDto, StudentResponseDto } from '..'
 
 export class LoginRequestDto {
   @ApiProperty(SWAGGER_PROPERTIES.USERNAME)
@@ -25,7 +25,7 @@ export class LoginRequestDto {
   @MinLength(6, { message: VALIDATION_MESSAGES.FIELD_MIN('Mật khẩu', 6) })
   password: string
 
-  @ApiPropertyOptional({ 
+  @ApiPropertyOptional({
     description: 'User agent của browser/device',
     example: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
   })
@@ -48,4 +48,23 @@ export class LoginRequestDto {
   @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Device Fingerprint') })
   deviceFingerprint?: string
+}
+
+export class TokensDto {
+  @ApiProperty(SWAGGER_PROPERTIES.ACCESS_TOKEN)
+  accessToken: string
+
+  @ApiProperty(SWAGGER_PROPERTIES.REFRESH_TOKEN)
+  refreshToken: string
+
+  @ApiProperty(SWAGGER_PROPERTIES.EXPIRES_IN)
+  expiresIn: number
+}
+
+export class LoginResponseDto {
+  @ApiProperty({ type: TokensDto })
+  tokens: TokensDto
+
+  @ApiProperty()
+  user: AdminResponseDto | StudentResponseDto
 }

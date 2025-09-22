@@ -467,6 +467,14 @@ export const SWAGGER_PROPERTIES = {
       anotherUrl: 'https://example.com/cover.jpg',
     },
   },
+  IMAGE_ID: {
+    description: 'Id của ảnh',
+    example: '1'
+  },
+  CAPTION: {
+    description: 'Mô tả cho ảnh',
+    example: 'Hình ảnh mang tính chất minh họa'
+  }
 }
 
 // Helper function để tạo API Property object

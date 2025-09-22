@@ -1,20 +1,24 @@
 // src/application/use-cases/auth/google-oauth-student.use-case.ts
 import { Injectable, Inject } from '@nestjs/common'
-import type { IUnitOfWork } from '../../../../domain/repositories/unit-of-work.repository'
-import { PasswordService } from '../../../../infrastructure/services/password.service'
-import { JwtTokenService } from '../../../../infrastructure/services/jwt.service'
-import { TokenHashService } from '../../../../infrastructure/services/token-hash.service'
-import { GoogleUserProfileDto } from '../../../dtos/auth/google-auth.dto'
-import { LoginResponseDto, TokensDto } from '../../../dtos/auth/login-response.dto'
-import { BaseResponseDto } from '../../../dtos/common/base-response.dto'
-import { StudentResponseDto } from '../../../dtos/student/student.dto'
+import type { IUnitOfWork } from '../../../../domain/repositories'
+import {
+  TokenHashService,
+  JwtTokenService,
+  PasswordService
+} from '../../../../infrastructure/services'
+import {
+  LoginResponseDto,
+  BaseResponseDto,
+  StudentResponseDto,
+  GoogleUserProfileDto
+} from '../../../dtos'
 import {
   ConflictException,
-  ValidationException,
   UnauthorizedException,
 } from '../../../../shared/exceptions/custom-exceptions'
+import { StorageProvider } from '../../../../shared/enums'
 import { v4 as uuidv4 } from 'uuid'
-import { ROLE_IDS } from 'src/shared/constants/roles.constant'
+import { ROLE_IDS } from 'src/shared/constants'
 
 @Injectable()
 export class GoogleOAuthStudentUseCase {
@@ -71,7 +75,7 @@ export class GoogleOAuthStudentUseCase {
         if (googleProfile.picture) {
           const avatar = await repos.imageRepository.create({
             url: googleProfile.picture,
-            storageProvider: 'GCS',
+            storageProvider: StorageProvider.GCS,
           })
           avatarId = avatar.imageId
           // console.log('avatarId', avatarId);

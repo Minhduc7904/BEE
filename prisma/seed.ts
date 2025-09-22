@@ -186,7 +186,7 @@ async function main() {
         update: {},
         create: {
             username: 'student1',
-            email: 'student1@bee.edu.vn',
+            email: 'nmduc7904@gmail.com',
             passwordHash: studentPassword,
             firstName: 'Nguyễn',
             lastName: 'Văn A',
@@ -198,7 +198,7 @@ async function main() {
         update: {},
         create: {
             username: 'student2',
-            email: 'student2@bee.edu.vn',
+            email: 'nmduc7904@gmail.com',
             passwordHash: studentPassword,
             firstName: 'Trần',
             lastName: 'Thị B',
@@ -298,7 +298,7 @@ async function main() {
 
     // 9. Tạo chapters cho môn Toán từ dữ liệu thực
     console.log('📑 Seeding real Math chapters...');
-    
+
     // Lưu trữ chapters cha để tham chiếu
     const parentChapters = new Map();
     let totalChapters = 0;
@@ -307,7 +307,7 @@ async function main() {
 
     // GRADE 10 CHAPTERS
     console.log('📚 Creating Grade 10 chapters...');
-    
+
     // 10C1 - MỆNH ĐỀ VÀ TẬP HỢP (Chapter cha)
     const chap_10c1 = await prisma.chapter.upsert({
         where: { slug: '10c1' },
@@ -486,7 +486,7 @@ async function main() {
 
     // GRADE 11 CHAPTERS - Tạo một số chapters chính
     console.log('📚 Creating Grade 11 chapters...');
-    
+
     // 11C1 - HÀM SỐ LƯỢNG GIÁC VÀ PHƯƠNG TRÌNH LƯỢNG GIÁC
     const chap_11c1 = await prisma.chapter.upsert({
         where: { slug: '11c1' },
@@ -528,7 +528,7 @@ async function main() {
 
     // GRADE 12 CHAPTERS - Tạo một số chapters chính
     console.log('📚 Creating Grade 12 chapters...');
-    
+
     // 12C1 - ỨNG DỤNG ĐẠO HÀM ĐỂ KHẢO SÁT VÀ VẼ ĐỒ THỊ HÀM SỐ
     const chap_12c1 = await prisma.chapter.upsert({
         where: { slug: '12c1' },

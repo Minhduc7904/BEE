@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common'
-import { IDocumentRepository, CreateDocumentData } from '../../domain/repositories/document.repository'
-import { Document } from '../../domain/entities/document/document.entity'
-import { NumberUtil } from '../../shared/utils/number.util'
-import { DocumentMapper } from '../mappers/document.mapper'
+import { IDocumentRepository, CreateDocumentData } from '../../domain/repositories'
+import { Document } from '../../domain/entities'
+import { NumberUtil } from '../../shared/utils'
+import { DocumentMapper } from '../mappers'
+import { PrismaService } from '../../prisma/prisma.service'
 
 @Injectable()
 export class PrismaDocumentRepository implements IDocumentRepository {
-  constructor(private readonly prisma: any) {} // PrismaClient or TransactionClient
+  constructor(private readonly prisma: PrismaService | any) { } // any để hỗ trợ transaction client
 
   async create(data: CreateDocumentData): Promise<Document> {
     const numericAdminId = NumberUtil.ensureValidId(data.adminId, 'Admin ID')

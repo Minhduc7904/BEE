@@ -1,10 +1,9 @@
 // src/application/dtos/auth/email-verification.dto.ts
 import { ApiProperty } from '@nestjs/swagger'
-import { IsString, IsNotEmpty, IsUUID } from 'class-validator'
-import { BaseResponseDto } from '../common/base-response.dto'
-import { Trim } from '../../../shared/decorators/trim.decorator'
-import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants'
-import { VALIDATION_MESSAGES } from '../../../shared/constants/validation-messages'
+import { IsString, IsNotEmpty } from 'class-validator'
+import { BaseResponseDto } from '..'
+import { Trim } from '../../../shared/decorators'
+import { SWAGGER_PROPERTIES, VALIDATION_MESSAGES } from '../../../shared/constants'
 
 export class SendVerificationEmailRequestDto {
   @ApiProperty(SWAGGER_PROPERTIES.USER_ID)

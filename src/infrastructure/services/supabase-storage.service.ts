@@ -279,4 +279,17 @@ export class SupabaseStorageService implements IStorageService {
             throw error
         }
     }
+
+    public extractFilePathFromUrl(url: string): string | null {
+        try {
+            // URL Supabase dạng:
+            // https://<project>.supabase.co/storage/v1/object/public/<bucket>/<folder>/<fileName>
+            const regex = new RegExp(`/storage/v1/object/public/${this.bucketName}/(.+)`)
+            const match = url.match(regex)
+            return match ? match[1] : null
+        } catch (error) {
+            this.logger.warn('Failed to extract file path from URL:', error)
+            return null
+        }
+    }
 }

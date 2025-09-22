@@ -1,4 +1,4 @@
-import { Role } from '../../domain/entities/role/role.entity'
+import { Role } from '../../domain/entities'
 
 export class RoleMapper {
   static toDomainRole(prismaRole: any): Role | null {

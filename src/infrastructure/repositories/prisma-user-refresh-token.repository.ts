@@ -3,10 +3,10 @@ import { PrismaService } from '../../prisma/prisma.service'
 import type {
   IUserRefreshTokenRepository,
   CreateRefreshTokenData,
-} from '../../domain/repositories/user-refresh-token.repository'
-import { UserRefreshToken } from '../../domain/entities/token/user-refresh-token.entity'
-import { RefreshTokenMapper } from '../mappers/refresh-token.mapper'
-import { NumberUtil } from '../../shared/utils/number.util'
+} from '../../domain/repositories'
+import { UserRefreshToken } from '../../domain/entities'
+import { RefreshTokenMapper } from '../mappers'
+import { NumberUtil } from '../../shared/utils'
 
 export class PrismaUserRefreshTokenRepository implements IUserRefreshTokenRepository {
   constructor(private readonly prisma: PrismaService | any) {} // any để hỗ trợ transaction client

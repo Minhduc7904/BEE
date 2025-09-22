@@ -1,12 +1,13 @@
-import { ApiProperty } from '@nestjs/swagger'
-import { IsString, IsOptional, IsEnum, IsUrl, IsNumber } from 'class-validator'
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
+import { IsString, IsOptional, IsUrl, IsNumber } from 'class-validator'
 import { StorageProvider } from '../../../shared/enums/storage-provider.enum'
 import { IsEnumValue } from '../../../shared/decorators/is-enum-value.decorator'
 import { Trim } from '../../../shared/decorators/trim.decorator'
-import { SWAGGER_PROPERTIES } from '../../../shared/constants/swagger-properties.constants'
-import { VALIDATION_MESSAGES } from '../../../shared/constants/validation-messages'
+import { SWAGGER_PROPERTIES, VALIDATION_MESSAGES } from '../../../shared/constants'
+import { FileResponseDto } from '..'
+import { MediaImage } from 'src/domain/entities'
 
-export class CreateSolutionImageDto {
+export class CreateMediaImageDto {
   @ApiProperty(SWAGGER_PROPERTIES.URL)
   @Trim()
   @IsUrl({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('URL') })
@@ -34,4 +35,31 @@ export class CreateSolutionImageDto {
   @ApiProperty(SWAGGER_PROPERTIES.ADMIN_ID)
   @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('ID admin') })
   adminId: number
+}
+
+export class MediaImageResponseDto extends FileResponseDto {
+  @ApiProperty(SWAGGER_PROPERTIES.IMAGE_ID)
+  imageId: number
+
+  @ApiPropertyOptional(SWAGGER_PROPERTIES.CAPTION)
+  caption?: string
+
+  constructor(partial: Partial<MediaImageResponseDto>) {
+    super()
+    Object.assign(this, partial)
+  }
+
+  static fromEntity(mediaImage: MediaImage): MediaImageResponseDto {
+    return new MediaImageResponseDto({
+      imageId: mediaImage.imageId,
+      adminId: mediaImage.adminId,
+      url: mediaImage.url,
+      anotherUrl: mediaImage.anotherUrl,
+      caption: mediaImage.caption,
+      mimeType: mediaImage.mimeType,
+      storageProvider: mediaImage.storageProvider,
+      createdAt: mediaImage.createdAt,
+      updatedAt: mediaImage.updatedAt,
+    })
+  }
 }

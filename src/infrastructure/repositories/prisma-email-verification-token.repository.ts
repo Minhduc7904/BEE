@@ -1,13 +1,13 @@
 // src/infrastructure/repositories/prisma-email-verification-token.repository.ts
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../../prisma/prisma.service'
-import { IEmailVerificationTokenRepository } from '../../domain/repositories/email-verification-token.repository'
-import { EmailVerificationToken } from '../../domain/entities/token/email-verification-token.entity'
-import { EmailVerificationTokenMapper } from '../mappers/email-verification-token.mapper'
+import { IEmailVerificationTokenRepository } from '../../domain/repositories'
+import { EmailVerificationToken } from '../../domain/entities'
+import { EmailVerificationTokenMapper } from '../mappers'
 
 @Injectable()
 export class PrismaEmailVerificationTokenRepository implements IEmailVerificationTokenRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService | any) { } // any để hỗ trợ transaction client
 
   async create(data: { userId: number; tokenHash: string; expiresAt: Date }): Promise<EmailVerificationToken> {
     // Xóa token cũ nếu có

@@ -1,7 +1,7 @@
-// src/domain/entities/chapter/chapter.entity.ts
-import { SubjectEntity } from '../subject/subject.entity'
+// src/domain/entities/chapter/chapter..ts
+import { Subject } from '../subject/subject.entity'
 
-export class ChapterEntity {
+export class Chapter {
   chapterId: number
   subjectId: number
   name: string
@@ -11,9 +11,9 @@ export class ChapterEntity {
   level: number
 
   // Relations (optional - sẽ được populate khi cần)
-  subject?: SubjectEntity
-  parent?: ChapterEntity | null
-  children?: ChapterEntity[]
+  subject?: Subject
+  parent?: Chapter | null
+  children?: Chapter[]
 
   constructor(data: {
     chapterId: number
@@ -23,9 +23,9 @@ export class ChapterEntity {
     parentChapterId?: number | null
     orderInParent: number
     level: number
-    subject?: SubjectEntity
-    parent?: ChapterEntity | null
-    children?: ChapterEntity[]
+    subject?: Subject
+    parent?: Chapter | null
+    children?: Chapter[]
   }) {
     this.chapterId = data.chapterId
     this.subjectId = data.subjectId
@@ -56,7 +56,7 @@ export class ChapterEntity {
   /**
    * Lấy tất cả children theo thứ tự orderInParent
    */
-  getOrderedChildren(): ChapterEntity[] {
+  getOrderedChildren(): Chapter[] {
     if (!this.children) return []
     return this.children.sort((a, b) => a.orderInParent - b.orderInParent)
   }
@@ -103,7 +103,7 @@ export class ChapterEntity {
   /**
    * Kiểm tra xem chapter hiện tại có phải ancestor của chapter khác không
    */
-  isAncestorOf(chapter: ChapterEntity): boolean {
+  isAncestorOf(chapter: Chapter): boolean {
     let current = chapter.parent
     while (current) {
       if (current.chapterId === this.chapterId) {
@@ -117,14 +117,14 @@ export class ChapterEntity {
   /**
    * Kiểm tra xem chapter hiện tại có phải descendant của chapter khác không
    */
-  isDescendantOf(chapter: ChapterEntity): boolean {
+  isDescendantOf(chapter: Chapter): boolean {
     return chapter.isAncestorOf(this)
   }
 
   /**
    * Lấy thông tin môn học
    */
-  getSubject(): SubjectEntity | undefined {
+  getSubject(): Subject | undefined {
     return this.subject
   }
 
@@ -168,7 +168,7 @@ export class ChapterEntity {
   /**
    * Lấy tất cả siblings (anh chị em cùng cha)
    */
-  getSiblings(): ChapterEntity[] {
+  getSiblings(): Chapter[] {
     if (!this.parent || !this.parent.children) {
       return []
     }
@@ -179,7 +179,7 @@ export class ChapterEntity {
   /**
    * Lấy chapter trước đó trong cùng level
    */
-  getPreviousSibling(): ChapterEntity | null {
+  getPreviousSibling(): Chapter | null {
     const siblings = this.getSiblings()
     if (siblings.length === 0) return null
 
@@ -193,7 +193,7 @@ export class ChapterEntity {
   /**
    * Lấy chapter tiếp theo trong cùng level
    */
-  getNextSibling(): ChapterEntity | null {
+  getNextSibling(): Chapter | null {
     const siblings = this.getSiblings()
     if (siblings.length === 0) return null
 
@@ -226,10 +226,10 @@ export class ChapterEntity {
   }
 
   /**
-   * Tạo entity từ Prisma model data
+   * Tạo  từ Prisma model data
    */
-  static fromPrisma(data: any): ChapterEntity {
-    return new ChapterEntity({
+  static fromPrisma(data: any): Chapter {
+    return new Chapter({
       chapterId: data.chapterId,
       subjectId: data.subjectId,
       name: data.name,
@@ -237,18 +237,18 @@ export class ChapterEntity {
       parentChapterId: data.parentChapterId,
       orderInParent: data.orderInParent,
       level: data.level,
-      subject: data.subject ? SubjectEntity.fromPrisma(data.subject) : undefined,
-      parent: data.parent ? ChapterEntity.fromPrisma(data.parent) : null,
-      children: data.children ? data.children.map((child: any) => ChapterEntity.fromPrisma(child)) : undefined,
+      subject: data.subject ? Subject.fromPrisma(data.subject) : undefined,
+      parent: data.parent ? Chapter.fromPrisma(data.parent) : null,
+      children: data.children ? data.children.map((child: any) => Chapter.fromPrisma(child)) : undefined,
     })
   }
 
   /**
    * Tạo hierarchy tree từ danh sách chapters phẳng
    */
-  static buildHierarchy(chapters: ChapterEntity[]): ChapterEntity[] {
-    const chapterMap = new Map<number, ChapterEntity>()
-    const rootChapters: ChapterEntity[] = []
+  static buildHierarchy(chapters: Chapter[]): Chapter[] {
+    const chapterMap = new Map<number, Chapter>()
+    const rootChapters: Chapter[] = []
 
     // Tạo map để tra cứu nhanh
     chapters.forEach((chapter) => {
