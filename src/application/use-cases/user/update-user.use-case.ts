@@ -10,7 +10,7 @@ import {
 
 @Injectable()
 export class UpdateUserUseCase {
-  constructor(@Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork) {}
+  constructor(@Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork) { }
 
   async execute(userId: number, dto: UpdateUserDto): Promise<UserResponseDto> {
     return this.unitOfWork.executeInTransaction(async (repos) => {

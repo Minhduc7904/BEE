@@ -1,5 +1,6 @@
 // src/domain/entities/user.entity.ts
 import { Image } from "../image/image.entity"
+import { Gender } from "../../../shared/enums"
 
 export class User {
   userId: number
@@ -9,6 +10,11 @@ export class User {
   passwordHash: string
   firstName: string
   lastName: string
+
+  // NEW: thuộc tính mới
+  gender?: Gender
+  dateOfBirth?: Date
+
   isActive: boolean
   avatarId?: number
   avatar?: Image
@@ -34,6 +40,8 @@ export class User {
     lastLoginAt?: Date,
     updatedAt?: Date,
     oldUserId?: number,
+    gender?: Gender,        // 👈 thêm vào constructor
+    dateOfBirth?: Date,     // 👈 thêm vào constructor
   ) {
     this.userId = userId
     this.oldUserId = oldUserId
@@ -42,6 +50,8 @@ export class User {
     this.passwordHash = passwordHash
     this.firstName = firstName
     this.lastName = lastName
+    this.gender = gender
+    this.dateOfBirth = dateOfBirth
     this.isActive = isActive
     this.avatarId = avatarId
     this.avatar = avatar

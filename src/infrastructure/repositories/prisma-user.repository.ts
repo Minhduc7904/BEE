@@ -30,6 +30,9 @@ export class PrismaUserRepository implements IUserRepository {
         isEmailVerified: data.isEmailVerified ?? false,
         emailVerifiedAt: data.emailVerifiedAt,
         lastLoginAt: data.lastLoginAt,
+        // NEW
+        gender: data.gender,
+        dateOfBirth: data.dateOfBirth,
       },
     })
 
@@ -122,6 +125,9 @@ export class PrismaUserRepository implements IUserRepository {
         emailVerifiedAt: data.emailVerifiedAt,
         lastLoginAt: data.lastLoginAt,
         updatedAt: new Date(),
+        // NEW
+        gender: data.gender,
+        dateOfBirth: data.dateOfBirth,
       },
     })
 

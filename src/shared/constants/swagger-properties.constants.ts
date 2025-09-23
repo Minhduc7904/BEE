@@ -474,6 +474,14 @@ export const SWAGGER_PROPERTIES = {
   CAPTION: {
     description: 'Mô tả cho ảnh',
     example: 'Hình ảnh mang tính chất minh họa'
+  },
+  GENDER: {
+    description: 'Giới tính người dùng',
+    example: 'MALE'
+  },
+  DATEOFBIRTH: {
+    description: 'Ngày sinh của người dùng',
+    example: '07/09/2004'
   }
 }
 

@@ -7,19 +7,31 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
 model User {
-  userId       Int       @id @default(autoincrement()) @map("user_id")
-  oldUserId    Int?      @unique @map("old_user_id")
-  username     String    @unique @db.VarChar(50)
-  email        String?   @db.VarChar(120) // 1 user có thể có hoặc không có email
-  passwordHash String    @map("password_hash") @db.VarChar(255)
-  avatarId     Int?      @unique @map("avatar_id") // 👈 thêm @unique để giữ quan hệ 1–1
-  firstName    String    @map("first_name") @db.VarChar(50)
-  lastName     String    @map("last_name") @db.VarChar(100)
-  isActive     Boolean   @default(true) @map("is_active")
-  lastLoginAt  DateTime? @map("last_login_at") @db.Timestamp(0)
-  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamp(0)
+  userId       Int     @id @default(autoincrement()) @map("user_id")
+  oldUserId    Int?    @unique @map("old_user_id")
+  username     String  @unique @db.VarChar(50)
+  email        String? @db.VarChar(120) // 1 user có thể có hoặc không có email
+  passwordHash String  @map("password_hash") @db.VarChar(255)
+
+  avatarId  Int?   @unique @map("avatar_id") // 👈 thêm @unique để giữ quan hệ 1–1
+  firstName String @map("first_name") @db.VarChar(50)
+  lastName  String @map("last_name") @db.VarChar(100)
+
+  // NEW: thêm giới tính và ngày sinh
+  gender      Gender?   @map("gender") // enum Gender
+  dateOfBirth DateTime? @map("date_of_birth") @db.Date
+
+  isActive    Boolean   @default(true) @map("is_active")
+  lastLoginAt DateTime? @map("last_login_at") @db.Timestamp(0)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // NEW: trạng thái xác minh email
   isEmailVerified Boolean   @default(false) @map("is_email_verified")

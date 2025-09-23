@@ -1,10 +1,23 @@
 // src/application/dtos/user/user.dto.ts
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
-import { IsOptional, IsString, IsEmail, MaxLength, MinLength, IsBoolean } from 'class-validator'
+import {
+  IsOptional,
+  IsString,
+  IsEmail,
+  MaxLength,
+  MinLength,
+  IsBoolean,
+  IsEnum,
+  IsDateString,
+} from 'class-validator'
 import { Trim } from '../../../shared/decorators'
-import { SWAGGER_PROPERTIES, VALIDATION_MESSAGES } from '../../../shared/constants'
+import {
+  SWAGGER_PROPERTIES,
+  VALIDATION_MESSAGES
+} from '../../../shared/constants'
 import { ImageUrlDto } from '..'
 import { User } from '../../../domain/entities'
+import { Gender } from '../../../shared/enums'
 
 export class UserResponseDto {
   @ApiProperty(SWAGGER_PROPERTIES.USER_ID)
@@ -24,6 +37,14 @@ export class UserResponseDto {
 
   @ApiProperty(SWAGGER_PROPERTIES.FULL_NAME)
   fullName: string
+
+  // NEW: Giới tính
+  @ApiProperty(SWAGGER_PROPERTIES.GENDER)
+  gender?: Gender
+
+  // NEW: Ngày sinh
+  @ApiPropertyOptional(SWAGGER_PROPERTIES.DATEOFBIRTH)
+  dateOfBirth?: Date
 
   @ApiProperty(SWAGGER_PROPERTIES.IS_ACTIVE)
   isActive: boolean
@@ -69,6 +90,8 @@ export class UserResponseDto {
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
+      gender: user.gender,
+      dateOfBirth: user.dateOfBirth,
       isActive: user.isActive,
       isEmailVerified: user.isEmailVerified,
       imageUrls: imageUrls,
@@ -122,6 +145,23 @@ export class UpdateUserDto {
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tên') })
   @MaxLength(50, { message: VALIDATION_MESSAGES.FIELD_MAX('Tên', 50) })
   firstName?: string
+
+  // NEW: gender
+  @ApiPropertyOptional({
+    description: 'Giới tính',
+    enum: Gender,
+  })
+  @IsOptional()
+  @IsEnum(Gender, { message: VALIDATION_MESSAGES.FIELD_INVALID('Giới tính') })
+  gender?: Gender
+
+  // NEW: dateOfBirth
+  @ApiPropertyOptional({
+    description: 'Ngày sinh (YYYY-MM-DD)',
+  })
+  @IsOptional()
+  @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Ngày sinh') })
+  dateOfBirth?: Date
 
   @ApiPropertyOptional({
     description: 'Trạng thái xác thực email',

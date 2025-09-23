@@ -38,6 +38,8 @@ export class UpdateStudentUseCase {
       if (dto.email !== undefined) userUpdateData.email = dto.email
       if (dto.firstName !== undefined) userUpdateData.firstName = dto.firstName
       if (dto.lastName !== undefined) userUpdateData.lastName = dto.lastName
+      if (dto.gender !== undefined) userUpdateData.gender = dto.gender       // 👈 NEW
+      if (dto.dateOfBirth !== undefined) userUpdateData.dateOfBirth = dto.dateOfBirth // 👈 NEW
 
       // Tách các trường của Student
       if (dto.studentPhone !== undefined) studentUpdateData.studentPhone = dto.studentPhone

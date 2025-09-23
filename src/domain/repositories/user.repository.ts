@@ -1,7 +1,10 @@
 // src/domain/repositories/user.repository.ts
-import { User } from '../entities/user/user.entity'
-import { Admin } from '../entities/user/admin.entity'
-import { Student } from '../entities/user/student.entity'
+import {
+  User,
+  Admin,
+  Student
+} from '../entities'
+import { Gender } from '../../shared/enums'
 
 export interface CreateUserData {
   username: string
@@ -17,6 +20,8 @@ export interface CreateUserData {
   lastLoginAt?: Date
   createdAt?: Date
   updatedAt?: Date
+  gender?: Gender
+  dateOfBirth?: Date
 }
 
 export interface UpdateUserData {
@@ -29,6 +34,8 @@ export interface UpdateUserData {
   isEmailVerified?: boolean
   emailVerifiedAt?: Date
   lastLoginAt?: Date
+  gender?: Gender
+  dateOfBirth?: Date
 }
 
 export interface IUserRepository {

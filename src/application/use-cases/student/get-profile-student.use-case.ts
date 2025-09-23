@@ -13,7 +13,7 @@ export class GetProfileStudentUseCase {
         @Inject('IStudentRepository') private readonly studentRepository: IStudentRepository
     ) { }
 
-    async execute(id: string): Promise<BaseResponseDto<StudentResponseDto>> {
+    async execute(id: number): Promise<BaseResponseDto<StudentResponseDto>> {
         const student = await this.studentRepository.findById(id);
         if (!student) {
             throw new NotFoundException('Student not found');
