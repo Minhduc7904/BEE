@@ -1,8 +1,10 @@
-import { IsString, IsEmail, MinLength, IsOptional, Matches, IsInt, Min, Max } from 'class-validator'
+import { IsString, IsEmail, MinLength, IsOptional, Matches, IsInt, Min, Max, IsDateString } from 'class-validator'
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { Trim } from '../../../shared/decorators'
 import { SWAGGER_PROPERTIES, VALIDATION_MESSAGES, PHONE_VN_REGEX } from '../../../shared/constants'
 import { BaseResponseDto, ErrorResponseDto, StudentResponseDto, AdminResponseDto } from '..'
+import { IsEnumValue } from '../../../shared/decorators'
+import { Gender } from 'src/shared/enums'
 
 export class RegisterAdminDto {
   @ApiProperty(SWAGGER_PROPERTIES.USERNAME)
@@ -69,6 +71,23 @@ export class RegisterStudentDto {
   @Trim()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tên') })
   lastName: string
+
+  // NEW: gender
+  @ApiPropertyOptional({
+    description: 'Giới tính',
+    enum: Gender,
+  })
+  @IsOptional()
+  @IsEnumValue(Gender, { message: VALIDATION_MESSAGES.FIELD_INVALID('Giới tính') })
+  gender?: Gender
+
+  // NEW: dateOfBirth
+  @ApiPropertyOptional({
+    description: 'Ngày sinh (YYYY-MM-DD)',
+  })
+  @IsOptional()
+  @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Ngày sinh') })
+  dateOfBirth?: Date
 
   @ApiPropertyOptional(SWAGGER_PROPERTIES.STUDENT_PHONE)
   @Trim()
