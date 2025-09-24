@@ -30,12 +30,13 @@ export class RefreshTokenUseCase {
     return await this.unitOfWork.executeInTransaction(async (repos) => {
       // 1. Verify refresh token format và decode
       let decodedToken
-      console.log('Refresh token: ', refreshDto.refreshToken)
+      // console.log('Refresh token: ', refreshDto.refreshToken)
       try {
         decodedToken = this.jwtTokenService.verifyRefreshToken(refreshDto.refreshToken)
       } catch (error) {
         throw new UnauthorizedException('Refresh token không hợp lệ hoặc đã hết hạn')
       }
+
 
       // 2. Tìm tất cả active refresh tokens của user
       const userId = decodedToken.sub

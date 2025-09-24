@@ -3,8 +3,8 @@ import { Injectable, Inject } from '@nestjs/common'
 import type { IUnitOfWork } from '../../../../domain/repositories'
 import {
   RegisterStudentDto,
-  RegisterStudentResponseDto,
-  StudentResponseDto
+  StudentResponseDto,
+  BaseResponseDto
 } from '../../../dtos'
 import { ConflictException } from '../../../../shared/exceptions/custom-exceptions'
 import { PasswordService } from '../../../../infrastructure/services'
@@ -16,7 +16,7 @@ export class RegisterStudentUseCase {
     @Inject('PASSWORD_SERVICE') private readonly passwordService: PasswordService,
   ) { }
 
-  async execute(dto: RegisterStudentDto): Promise<RegisterStudentResponseDto> {
+  async execute(dto: RegisterStudentDto): Promise<BaseResponseDto<StudentResponseDto>> {
     return this.unitOfWork.executeInTransaction(async (repos) => {
       // Validate unique constraints
       const usernameExists = await repos.userRepository.existsByUsername(dto.username)
@@ -53,11 +53,10 @@ export class RegisterStudentUseCase {
         school: dto.school,
       })
 
-      return {
-        success: true,
-        message: 'Đăng ký học sinh thành công',
-        data: StudentResponseDto.fromUserWithStudent(user, student),
-      }
+      return BaseResponseDto.success(
+        'Tạo tài khoản thành công',
+        StudentResponseDto.fromUserWithStudent(user, student),
+      )
     })
   }
 }

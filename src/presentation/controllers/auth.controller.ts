@@ -25,10 +25,10 @@ import {
   LoginResponseDto,
   BaseResponseDto,
   RegisterAdminResponseDto,
-  RegisterStudentResponseDto,
   RegisterAdminDto,
   RegisterStudentDto,
-  LoginRequestDto
+  LoginRequestDto,
+  StudentResponseDto,
 } from '../../application/dtos'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { AuthOnly } from '../../shared/decorators'
@@ -55,7 +55,7 @@ export class AuthController {
   @Post('/student/register')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Đăng ký tài khoản học sinh' })
-  async registerStudent(@Body() dto: RegisterStudentDto): Promise<RegisterStudentResponseDto> {
+  async registerStudent(@Body() dto: RegisterStudentDto): Promise<BaseResponseDto<StudentResponseDto>> {
     return ExceptionHandler.execute(() => this.registerStudentUseCase.execute(dto))
   }
 
@@ -83,7 +83,6 @@ export class AuthController {
   @Post('/logout')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Đăng xuất và revoke refresh token' })
-  @AuthOnly()
   async logout(@Body() logoutDto: LogoutRequestDto): Promise<BaseResponseDto<LogoutResponseDto>> {
     return ExceptionHandler.execute(() => this.logoutUseCase.execute(logoutDto))
   }

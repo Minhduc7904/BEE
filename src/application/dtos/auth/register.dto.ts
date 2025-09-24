@@ -136,25 +136,3 @@ export class RegisterAdminResponseDto extends BaseResponseDto<AdminResponseDto> 
   })
   declare data: AdminResponseDto
 }
-
-export class RegisterStudentResponseDto extends BaseResponseDto<StudentResponseDto> {
-  @ApiProperty({
-    description: 'Dữ liệu học sinh đã tạo',
-    type: () => StudentResponseDto,
-    example: {
-      userId: 2,
-      username: 'student123',
-      email: null, // có thể null
-      firstName: 'Trần',
-      lastName: 'Thị B',
-      isActive: SWAGGER_PROPERTIES.IS_ACTIVE.example,
-      createdAt: SWAGGER_PROPERTIES.CREATED_AT.example,
-      studentId: 1,
-      grade: SWAGGER_PROPERTIES.GRADE_6_12.example,
-      school: null, // có thể null
-      studentPhone: null, // có thể null
-      parentPhone: null, // có thể null
-    },
-  })
-  declare data: StudentResponseDto
-}

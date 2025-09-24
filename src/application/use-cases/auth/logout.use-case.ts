@@ -30,6 +30,7 @@ export class LogoutUseCase {
     return await this.unitOfWork.executeInTransaction(async (repos) => {
       // 1. Verify refresh token format và decode
       let decodedToken
+      // console.log(logoutDto.refreshToken)
       try {
         decodedToken = this.jwtTokenService.verifyRefreshToken(logoutDto.refreshToken)
       } catch (error) {
@@ -51,7 +52,7 @@ export class LogoutUseCase {
           break
         }
       }
-
+      // console.log(matchedToken)
       if (!matchedToken) {
         throw new UnauthorizedException('Refresh token không tồn tại hoặc đã bị revoke')
       }
