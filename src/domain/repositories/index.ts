@@ -11,3 +11,4 @@ export * from './role.repository';
 export * from './media-image.repository';
 export * from './solution-image.repository'
 export * from './question-image.repository'
+export * from './reset-password-token.repository'

@@ -19,7 +19,7 @@ export * from './user/student.entity'
 export * from './user/user.entity'
 export * from './token/email-verification-token.entity'
 export * from './token/user-refresh-token.entity'
-
+export * from './token/reset-password-token.entity'
 
 
 

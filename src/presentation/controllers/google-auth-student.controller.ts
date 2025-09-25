@@ -10,7 +10,7 @@ import { LoginResponseDto, ErrorResponseDto } from '../../application/dtos'
 @ApiTags('Google Authentication - Student')
 @Controller('auth/google/student')
 export class GoogleAuthStudentController {
-  constructor(private readonly googleOAuthStudentUseCase: GoogleOAuthStudentUseCase) {}
+  constructor(private readonly googleOAuthStudentUseCase: GoogleOAuthStudentUseCase) { }
 
   @Get()
   @UseGuards(GoogleOAuthStudentGuard)
@@ -96,7 +96,7 @@ export class GoogleAuthStudentController {
 
       if (!googleProfile) {
         console.error('Google OAuth: No user profile found')
-        const redirectUrl = `${frontendUrl}/auth/callback?error=${encodeURIComponent('Lỗi xác thực Google')}`
+        const redirectUrl = `${frontendUrl}/auth/google/callback?error=${encodeURIComponent('Lỗi xác thực Google')}`
         return res.redirect(redirectUrl)
       }
 
@@ -104,13 +104,12 @@ export class GoogleAuthStudentController {
 
       if (!result.data) {
         console.error('Google OAuth: No result data from use case')
-        const redirectUrl = `${frontendUrl}/auth/callback?error=${encodeURIComponent('Lỗi xử lý đăng nhập Google')}`
+        const redirectUrl = `${frontendUrl}/auth/google/callback?error=${encodeURIComponent('Lỗi xử lý đăng nhập Google')}`
         return res.redirect(redirectUrl)
       }
 
       // Redirect to frontend auth callback with authentication tokens only
-      // Frontend sẽ gọi API profile để lấy user data sau khi có tokens
-      const redirectUrl = `${frontendUrl}/auth/callback?token=${result.data.tokens.accessToken}&refresh=${result.data.tokens.refreshToken}`
+      const redirectUrl = `${frontendUrl}/auth/google/callback?token=${result.data.tokens.accessToken}&refresh=${result.data.tokens.refreshToken}`
       return res.redirect(redirectUrl)
     } catch (error) {
       console.error('Google OAuth callback error:', error)
@@ -131,7 +130,7 @@ export class GoogleAuthStudentController {
         }
       }
 
-      const redirectUrl = `${frontendUrl}/auth/callback?error=${encodeURIComponent(errorMessage)}`
+      const redirectUrl = `${frontendUrl}/auth/google/callback?error=${encodeURIComponent(errorMessage)}`
       return res.redirect(redirectUrl)
     }
   }

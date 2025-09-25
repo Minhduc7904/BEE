@@ -15,6 +15,7 @@ import {
   PrismaQuestionImageRepository,
   PrismaSolutionImageRepository,
   PrismaMediaImageRepository,
+  PrismaResetPasswordTokenRepository
 } from './repositories'
 import {
   PasswordService,
@@ -73,6 +74,11 @@ import supabaseConfig from '../config/supabase.config'
       provide: 'IEmailVerificationTokenRepository',
       useFactory: (prisma: PrismaService) => new PrismaEmailVerificationTokenRepository(prisma),
       inject: [PrismaService],
+    },
+    {
+      provide: 'IPasswordResetTokenRepository',
+      useFactory: (prisma: PrismaService) => new PrismaResetPasswordTokenRepository(prisma),
+      inject: [PrismaService]
     },
     {
       provide: 'IDocumentRepository',
@@ -143,6 +149,7 @@ import supabaseConfig from '../config/supabase.config'
     'IMediaImageRepository',
     'IDocumentRepository',
     'IEmailVerificationTokenRepository',
+    'IPasswordResetTokenRepository',
     'PASSWORD_SERVICE',
     'JWT_TOKEN_SERVICE',
     'TOKEN_HASH_SERVICE',
