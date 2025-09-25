@@ -31,6 +31,7 @@ export interface UpdateUserData {
   lastName?: string
   isActive?: boolean
   avatarId?: number
+  passwordHash?: string
   isEmailVerified?: boolean
   emailVerifiedAt?: Date
   lastLoginAt?: Date
@@ -43,6 +44,7 @@ export interface IUserRepository {
   findById(id: number): Promise<User | null>
   findByUsername(username: string): Promise<User | null>
   findByEmail(email: string): Promise<User | null>
+  findByPasswordHash(passwordHash: string): Promise<User | null>
   findByOldUserId(oldUserId: number): Promise<User | null>
   findByUsernameWithDetails(username: string): Promise<{
     user: User

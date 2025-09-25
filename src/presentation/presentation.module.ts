@@ -12,6 +12,7 @@ import { AdminAuditLogController } from './controllers/admin-audit-log.controlle
 import { StudentController } from './controllers/student.controller'
 import { UserController } from './controllers/user.controller'
 import { EmailVerificationController } from './controllers/email-verification.controller'
+import { EmailResetPasswordController} from './controllers/email-reset-password.controller'
 
 @Module({
   imports: [ApplicationModule, InfrastructureModule, SharedModule],
@@ -25,6 +26,7 @@ import { EmailVerificationController } from './controllers/email-verification.co
     GoogleAuthAdminController,
     GoogleAuthStudentController,
     EmailVerificationController,
+    EmailResetPasswordController
   ],
 })
 export class PresentationModule {}

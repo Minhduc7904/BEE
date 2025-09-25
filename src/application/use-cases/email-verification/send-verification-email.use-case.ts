@@ -2,7 +2,7 @@
 import { Injectable, Inject } from '@nestjs/common'
 import type { IEmailVerificationTokenRepository, IUserRepository } from '../../../domain/repositories'
 import type { IEmailService } from '../../../infrastructure/interfaces/email.interface'
-import { EmailVerificationTokenService } from '../../../infrastructure/services'
+import { TokenService } from '../../../infrastructure/services'
 import {
   NotFoundException,
   ConflictException,
@@ -28,7 +28,7 @@ export class SendVerificationEmailUseCase {
     private readonly emailVerificationRepository: IEmailVerificationTokenRepository,
     @Inject('IEmailService')
     private readonly emailService: IEmailService,
-    private readonly tokenService: EmailVerificationTokenService,
+    private readonly tokenService: TokenService,
   ) { }
 
   async execute(command: SendVerificationEmailCommand): Promise<SendVerificationEmailResult> {

@@ -99,6 +99,13 @@ export class PrismaUserRepository implements IUserRepository {
     return UserMapper.toDomainUser(prismaUser)
   }
 
+  async findByPasswordHash(passwordHash: string): Promise<User | null> {
+    const prismaUser = await this.prisma.user.findFirst({
+      where: { passwordHash },
+    })
+    return UserMapper.toDomainUser(prismaUser)
+  }
+
   async findByOldUserId(oldUserId: number): Promise<User | null> {
     const numericOldUserId = NumberUtil.ensureValidId(oldUserId, 'Old User ID')
 
@@ -117,6 +124,7 @@ export class PrismaUserRepository implements IUserRepository {
       data: {
         username: data.username,
         email: data.email,
+        passwordHash: data.passwordHash,
         firstName: data.firstName,
         lastName: data.lastName,
         isActive: data.isActive,
@@ -156,7 +164,7 @@ export class PrismaUserRepository implements IUserRepository {
 
   async existsByEmail(email: string): Promise<boolean> {
     const count = await this.prisma.user.count({
-      where: { email },
+      where: { email, isEmailVerified: true },
     })
     return count > 0
   }

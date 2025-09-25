@@ -26,6 +26,8 @@ import {
   VerifyEmailUseCase,
   FetchStudentFromApiUseCase,
   GetProfileStudentUseCase,
+  SendResetPasswordEmailUseCase,
+  ResetPasswordUseCase
 } from './use-cases'
 
 @Module({
@@ -55,6 +57,8 @@ import {
     VerifyEmailUseCase,
     FetchStudentFromApiUseCase,
     GetProfileStudentUseCase,
+    ResetPasswordUseCase,
+    SendResetPasswordEmailUseCase
   ],
   exports: [
     RegisterAdminUseCase,
@@ -81,6 +85,8 @@ import {
     VerifyEmailUseCase,
     FetchStudentFromApiUseCase,
     GetProfileStudentUseCase,
+    ResetPasswordUseCase,
+    SendResetPasswordEmailUseCase
   ],
 })
 export class ApplicationModule { }

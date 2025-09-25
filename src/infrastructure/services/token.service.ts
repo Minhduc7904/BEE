@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common'
 import { randomBytes, createHash } from 'crypto'
 
 @Injectable()
-export class EmailVerificationTokenService {
+export class TokenService {
   /**
    * Generate raw token và token hash
    */

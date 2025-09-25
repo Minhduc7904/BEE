@@ -1,5 +1,5 @@
 export * from './auth.service'
-export * from './email-verification-token.service'
+export * from './token.service'
 export * from './http-client.service'
 export * from './jwt.service'
 export * from './password.service'
