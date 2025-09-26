@@ -10,6 +10,8 @@ export class PrismaResetPasswordTokenRepository implements IResetPasswordTokenRe
     constructor(private readonly prisma: PrismaService | any) { } // any để hỗ trợ transaction client
 
     async create(data: { userId: number; tokenHash: string; expiresAt: Date }): Promise<ResetPasswordToken> {
+        await this.deleteByUserId(data.userId)
+
         const token = await this.prisma.passwordResetToken.create({
             data: {
                 userId: data.userId,

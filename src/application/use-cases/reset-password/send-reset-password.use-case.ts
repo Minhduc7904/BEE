@@ -18,16 +18,19 @@ import {
 @Injectable()
 export class SendResetPasswordEmailUseCase {
     constructor(
-    @Inject('IUserRepository')
-    private readonly userRepository: IUserRepository,
-    @Inject('IPasswordResetTokenRepository')
-    private readonly resetPasswordTokenRepository: IResetPasswordTokenRepository,
-    @Inject('IEmailService')
-    private readonly emailService: IEmailService,
-    private readonly tokenService: TokenService,
+        @Inject('IUserRepository')
+        private readonly userRepository: IUserRepository,
+        @Inject('IPasswordResetTokenRepository')
+        private readonly resetPasswordTokenRepository: IResetPasswordTokenRepository,
+        @Inject('IEmailService')
+        private readonly emailService: IEmailService,
+        private readonly tokenService: TokenService,
     ) { }
 
-    async execute(redirectUrl, dto: SendResetPasswordEmailDto): Promise<BaseResponseDto<SendResetPasswordEmailResult>> {
+    async execute(
+        redirectUrl: string,
+        dto: SendResetPasswordEmailDto
+    ): Promise<BaseResponseDto<SendResetPasswordEmailResult>> {
         const user = await this.userRepository.findByEmail(dto.email)
         if (!user) {
             throw new NotFoundException('Không tìm thấy Email đã đăng ký và được xác thực')
@@ -36,14 +39,24 @@ export class SendResetPasswordEmailUseCase {
             throw new BusinessLogicException('User does not have an email address')
         }
 
+        // 🔒 Kiểm tra có token gần đây trong vòng 1 phút chưa
+        const existingToken = await this.resetPasswordTokenRepository.findByUserId(user.userId)
+        if (existingToken) {
+            const oneMinuteAgo = new Date(Date.now() - 60 * 1000)
+            if (existingToken.createdAt > oneMinuteAgo) {
+                throw new ConflictException('Bạn chỉ có thể gửi lại email sau 1 phút')
+            }
+        }
+
         const { rawToken, tokenHash } = this.tokenService.generateToken()
         const expiresAt = this.tokenService.generateExpiryTime()
-        // console.log(rawToken, tokenHash)
-        const token = await this.resetPasswordTokenRepository.create({
+
+        await this.resetPasswordTokenRepository.create({
             userId: user.userId,
             tokenHash,
             expiresAt
         })
+
         const resetUrl = `${redirectUrl}?token=${rawToken}`
 
         await this.emailService.sendPasswordResetEmail({
@@ -53,12 +66,9 @@ export class SendResetPasswordEmailUseCase {
             appName: 'BeeMath',
         })
 
-        return BaseResponseDto.success(
-            'Gửi Email thành công',
-            {
-                emailSent: user.email,
-                expiresAt,
-            }
-        )
+        return BaseResponseDto.success('Gửi Email thành công', {
+            emailSent: user.email,
+            expiresAt,
+        })
     }
 }
