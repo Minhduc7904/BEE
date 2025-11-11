@@ -3,6 +3,7 @@ import { JwtModule } from '@nestjs/jwt'
 import { ConfigModule } from '@nestjs/config'
 import { PrismaModule } from '../prisma/prisma.module'
 import { PrismaService } from '../prisma/prisma.service'
+import { MinioModule } from './minio.module'
 import {
   PrismaUnitOfWork,
   PrismaUserRepository,
@@ -38,6 +39,7 @@ import supabaseConfig from '../config/supabase.config'
 @Module({
   imports: [
     PrismaModule,
+    MinioModule,
     ConfigModule.forFeature(jwtConfig),
     ConfigModule.forFeature(googleOAuthConfig),
     ConfigModule.forFeature(emailConfig),

@@ -1,84 +1,66 @@
 import { IsString, IsOptional, IsNumber, IsUrl, IsMimeType } from 'class-validator'
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { StorageProvider } from '../../../shared/enums'
 import { Trim, IsEnumValue } from '../../../shared/decorators'
 import { ListQueryDto } from '..'
-import { SWAGGER_PROPERTIES, VALIDATION_MESSAGES } from '../../../shared/constants'
+import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { Document } from '../../../domain/entities'
 import { FileResponseDto } from '..'
 
 export class UpdateDocumentDto {
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.URL)
-  @Trim()
+    @Trim()
   @IsOptional()
   @IsUrl({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('URL') })
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('URL') })
   url?: string
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.ANOTHER_URL)
-  @Trim()
+    @Trim()
   @IsOptional()
   @IsUrl({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('URL phụ') })
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('URL phụ') })
   anotherUrl?: string
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.DESCRIPTION)
-  @Trim()
+    @Trim()
   @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Mô tả') })
   description?: string
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.MIME_TYPE)
-  @Trim()
+    @Trim()
   @IsOptional()
   @IsMimeType({ message: VALIDATION_MESSAGES.FIELD_INVALID('MIME type') })
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('MIME type') })
   mimeType?: string
 
-  @ApiPropertyOptional({
-    description: 'ID của môn học',
-    example: 1,
-  })
-  @IsOptional()
+    @IsOptional()
   @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Subject ID') })
   subjectId?: number
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.RELATED_TYPE)
-  @Trim()
+    @Trim()
   @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Loại liên kết') })
   relatedType?: string
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.RELATED_ID)
-  @IsOptional()
+    @IsOptional()
   @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('ID liên kết') })
   relatedId?: number
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.STORAGE_PROVIDER)
-  @Trim()
+    @Trim()
   @IsOptional()
   @IsEnumValue(StorageProvider, { message: VALIDATION_MESSAGES.FIELD_INVALID('Nhà cung cấp lưu trữ') })
   storageProvider?: StorageProvider
 }
 
 export class DocumentResponseDto extends FileResponseDto {
-  @ApiProperty(SWAGGER_PROPERTIES.DOCUMENT_ID)
-  documentId: number
+    documentId: number
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.DESCRIPTION)
-  description?: string
+    description?: string
 
-  @ApiPropertyOptional()
-  subjectId?: number
+    subjectId?: number
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.SUBJECT)
-  subject?: any
+    subject?: any
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.RELATED_TYPE)
-  relatedType?: string
+    relatedType?: string
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.RELATED_ID)
-  relatedId?: number
+    relatedId?: number
 
   constructor(partial: Partial<DocumentResponseDto>) {
     super()
@@ -105,32 +87,24 @@ export class DocumentResponseDto extends FileResponseDto {
 }
 
 export class DocumentQueryDto extends ListQueryDto {
-  @ApiPropertyOptional({
-    description: 'ID của môn học để lọc',
-    example: 1,
-  })
-  @IsOptional()
+    @IsOptional()
   @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Subject ID') })
   subjectId?: number
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.RELATED_TYPE)
-  @IsOptional()
+    @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Loại liên kết') })
   @Trim()
   relatedType?: string
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.RELATED_ID)
-  @IsOptional()
+    @IsOptional()
   @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('ID liên kết') })
   relatedId?: number
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.STORAGE_PROVIDER)
-  @IsOptional()
+    @IsOptional()
   @IsEnumValue(StorageProvider, { message: VALIDATION_MESSAGES.FIELD_INVALID('Nhà cung cấp lưu trữ') })
   storageProvider?: StorageProvider
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.ADMIN_ID)
-  @IsOptional()
+    @IsOptional()
   @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('ID admin') })
   adminId?: number
 }

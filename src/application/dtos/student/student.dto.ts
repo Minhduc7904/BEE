@@ -1,26 +1,20 @@
 // src/application/dtos/student/student-response.dto.ts
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { UserResponseDto, UpdateUserDto } from '../user/user.dto'
 import { PaginationResponseDto } from '../pagination/pagination-response.dto'
 import { IsOptional, IsString, IsInt, Min, Max, Matches } from 'class-validator'
 import { Trim } from '../../../shared/decorators'
-import { SWAGGER_PROPERTIES, VALIDATION_MESSAGES } from '../../../shared/constants'
+import { VALIDATION_MESSAGES } from '../../../shared/constants'
 
 export class StudentResponseDto extends UserResponseDto {
-  @ApiProperty(SWAGGER_PROPERTIES.STUDENT_ID)
-  studentId: number
+    studentId: number
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.STUDENT_PHONE)
-  studentPhone?: string
+    studentPhone?: string
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.PARENT_PHONE)
-  parentPhone?: string
+    parentPhone?: string
 
-  @ApiProperty(SWAGGER_PROPERTIES.GRADE)
-  grade: number
+    grade: number
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.SCHOOL)
-  school?: string
+    school?: string
 
   constructor(partial: Partial<StudentResponseDto>) {
     super(partial)
@@ -74,35 +68,25 @@ export class StudentListResponseDto extends PaginationResponseDto<StudentRespons
 }
 
 export class UpdateStudentDto extends UpdateUserDto {
-  @ApiPropertyOptional({
-    ...SWAGGER_PROPERTIES.STUDENT_PHONE,
-    pattern: '^[0-9]{10,11}$',
-  })
-  @Trim()
+    @Trim()
   @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Số điện thoại sinh viên') })
   @Matches(/^[0-9]{10,11}$/, { message: VALIDATION_MESSAGES.FIELD_INVALID('Số điện thoại sinh viên') })
   studentPhone?: string
 
-  @ApiPropertyOptional({
-    ...SWAGGER_PROPERTIES.PARENT_PHONE,
-    pattern: '^[0-9]{10,11}$',
-  })
-  @Trim()
+    @Trim()
   @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Số điện thoại phụ huynh') })
   @Matches(/^[0-9]{10,11}$/, { message: VALIDATION_MESSAGES.FIELD_INVALID('Số điện thoại phụ huynh') })
   parentPhone?: string
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.GRADE)
-  @IsOptional()
+    @IsOptional()
   @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('Khối lớp') })
   @Min(1, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Khối lớp', 1) })
   @Max(12, { message: VALIDATION_MESSAGES.FIELD_MAX_VALUE('Khối lớp', 12) })
   grade?: number
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.SCHOOL)
-  @Trim()
+    @Trim()
   @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Trường học') })
   school?: string

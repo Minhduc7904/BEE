@@ -1,31 +1,21 @@
 // src/application/dtos/pagination-response.dto.ts
-import { ApiProperty } from '@nestjs/swagger'
-import { SWAGGER_PROPERTIES } from '../../../shared/constants'
 
 export class PaginationMetaDto {
-  @ApiProperty(SWAGGER_PROPERTIES.PAGE)
-  page: number
+    page: number
 
-  @ApiProperty(SWAGGER_PROPERTIES.LIMIT)
-  limit: number
+    limit: number
 
-  @ApiProperty(SWAGGER_PROPERTIES.TOTAL)
-  total: number
+    total: number
 
-  @ApiProperty(SWAGGER_PROPERTIES.TOTAL_PAGES)
-  totalPages: number
+    totalPages: number
 
-  @ApiProperty(SWAGGER_PROPERTIES.HAS_PREVIOUS)
-  hasPrevious: boolean
+    hasPrevious: boolean
 
-  @ApiProperty(SWAGGER_PROPERTIES.HAS_NEXT)
-  hasNext: boolean
+    hasNext: boolean
 
-  @ApiProperty(SWAGGER_PROPERTIES.PREVIOUS_PAGE)
-  previousPage?: number
+    previousPage?: number
 
-  @ApiProperty(SWAGGER_PROPERTIES.NEXT_PAGE)
-  nextPage?: number
+    nextPage?: number
 
   constructor(page: number, limit: number, total: number) {
     this.page = page
@@ -40,17 +30,13 @@ export class PaginationMetaDto {
 }
 
 export class PaginationResponseDto<TData = any> {
-  @ApiProperty(SWAGGER_PROPERTIES.SUCCESS)
-  success: boolean
+    success: boolean
 
-  @ApiProperty(SWAGGER_PROPERTIES.MESSAGE)
-  message: string
+    message: string
 
-  @ApiProperty({ description: 'Danh sách dữ liệu', type: 'array' })
-  data: TData[]
+    data: TData[]
 
-  @ApiProperty({ ...SWAGGER_PROPERTIES.META, type: PaginationMetaDto })
-  meta: PaginationMetaDto
+    meta: PaginationMetaDto
 
   constructor(success: boolean, message: string, data: TData[], meta: PaginationMetaDto) {
     this.success = success

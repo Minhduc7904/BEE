@@ -1,17 +1,13 @@
 // src/application/dtos/admin/admin-response.dto.ts
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 import { UserResponseDto, UpdateUserDto } from '..'
 import { IsOptional, IsNumber, IsPositive } from 'class-validator'
-import { SWAGGER_PROPERTIES, VALIDATION_MESSAGES } from '../../../shared/constants'
+import { VALIDATION_MESSAGES } from '../../../shared/constants'
 
 export class AdminResponseDto extends UserResponseDto {
-  @ApiProperty(SWAGGER_PROPERTIES.ADMIN_ID)
   adminId: number
 
-  @ApiPropertyOptional()
   subjectId?: number
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.SUBJECT)
   subject?: string
 
   constructor(partial: Partial<AdminResponseDto>) {
@@ -46,10 +42,6 @@ export class AdminResponseDto extends UserResponseDto {
 }
 
 export class UpdateAdminDto extends UpdateUserDto {
-  @ApiPropertyOptional({
-    description: 'ID của môn học (null để bỏ gán môn học)',
-    example: 1,
-  })
   @IsOptional()
   @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Subject ID') })
   @IsPositive({ message: 'Subject ID phải là số dương' })

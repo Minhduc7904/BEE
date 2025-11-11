@@ -1,64 +1,41 @@
 // src/application/dtos/auth/google-auth.dto.ts
-import { ApiProperty } from '@nestjs/swagger'
 import { IsEmail, IsOptional, IsString } from 'class-validator'
 import { Trim } from '../../../shared/decorators'
-import { SWAGGER_PROPERTIES, VALIDATION_MESSAGES } from '../../../shared/constants'
+import { VALIDATION_MESSAGES } from '../../../shared/constants'
 
 export class GoogleUserProfileDto {
-  @ApiProperty(SWAGGER_PROPERTIES.GOOGLE_ID)
-  @Trim()
+    @Trim()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Google ID') })
   googleId: string
 
-  @ApiProperty({
-    ...SWAGGER_PROPERTIES.EMAIL,
-    description: 'Email của user từ Google',
-  })
-  @Trim()
+    @Trim()
   @IsEmail({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Email') })
   email: string
 
-  @ApiProperty(SWAGGER_PROPERTIES.FIRST_NAME)
-  @Trim()
+    @Trim()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tên') })
   firstName: string
 
-  @ApiProperty(SWAGGER_PROPERTIES.LAST_NAME)
-  @Trim()
+    @Trim()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Họ') })
   lastName: string
 
-  @ApiProperty({
-    ...SWAGGER_PROPERTIES.AVATAR_URL,
-    description: 'Avatar URL từ Google',
-  })
-  @Trim()
+    @Trim()
   @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Avatar URL') })
   picture?: string
 
-  @ApiProperty({
-    ...SWAGGER_PROPERTIES.VERIFIED_STATUS,
-    description: 'Verified email status từ Google',
-  })
-  verified: boolean
+    verified: boolean
 }
 
 export class GoogleAuthResponseDto {
-  @ApiProperty(SWAGGER_PROPERTIES.GOOGLE_LOGIN_MESSAGE)
-  message: string
+    message: string
 
-  @ApiProperty(SWAGGER_PROPERTIES.ACCESS_TOKEN)
-  accessToken: string
+    accessToken: string
 
-  @ApiProperty(SWAGGER_PROPERTIES.REFRESH_TOKEN)
-  refreshToken: string
+    refreshToken: string
 
-  @ApiProperty({
-    description: 'Thông tin user',
-    type: Object,
-  })
-  user: {
+    user: {
     userId: number
     email: string
     firstName: string

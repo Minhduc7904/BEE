@@ -1,6 +1,5 @@
 // src/presentation/controllers/.controller.ts
 import { Controller, Post, Get, Param, Query, ParseIntPipe, Req, Res, HttpCode, HttpStatus, Body } from '@nestjs/common'
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger'
 import type { Request, Response } from 'express'
 import { SendResetPasswordEmailUseCase, ResetPasswordUseCase } from '../../application/use-cases'
 import {
@@ -11,7 +10,6 @@ import {
 } from '../../application/dtos'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 
-@ApiTags('Email Reset Password')
 @Controller('auth')
 export class EmailResetPasswordController {
   constructor(
@@ -21,11 +19,7 @@ export class EmailResetPasswordController {
 
   @Post('send-reset-password')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Gửi email đổi mật khẩu',
-    description: 'Gửi email đổi mật khẩu',
-  })
-  async sendVerificationEmail(
+    async sendVerificationEmail(
     @Body() dto: SendResetPasswordEmailDto,
     @Req() request: Request,
   ): Promise<BaseResponseDto<SendResetPasswordEmailResult>> {
@@ -42,11 +36,7 @@ export class EmailResetPasswordController {
 
   @Post('reset-password/token')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Đặt lại mật khẩu qua token',
-    description: 'API này dùng để đặt lại mật khẩu thông qua token được gửi qua email',
-  })
-  async resetPasswordWithToken(
+    async resetPasswordWithToken(
     @Body() dto: ResetPasswordDto,
   ): Promise<BaseResponseDto<boolean>> {
     return ExceptionHandler.execute(async () => {

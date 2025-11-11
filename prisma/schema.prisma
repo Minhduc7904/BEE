@@ -13,6 +13,40 @@ enum Gender {
   OTHER
 }
 
+enum AuditStatus {
+  SUCCESS // ✅ Thành công
+  FAIL // ❌ Thất bại
+  ROLLBACK // 🔄 Đã rollback
+}
+
+enum Visibility {
+  DRAFT
+  PRIVATE
+  PUBLISHED
+}
+
+enum LearningItemType {
+  HOMEWORK
+  DOCUMENT
+  YOUTUBE
+  EXERCISE
+}
+
+enum QuestionType {
+  SINGLE_CHOICE
+  MULTIPLE_CHOICE
+  FILL_IN_THE_BLANK
+  SHORT_ANSWER
+  ESSAY
+}
+
+enum Difficulty {
+  TH
+  NB
+  VD
+  VDC
+}
+
 model User {
   userId       Int     @id @default(autoincrement()) @map("user_id")
   oldUserId    Int?    @unique @map("old_user_id")
@@ -20,9 +54,9 @@ model User {
   email        String? @db.VarChar(120) // 1 user có thể có hoặc không có email
   passwordHash String  @map("password_hash") @db.VarChar(255)
 
-  avatarId  Int?   @unique @map("avatar_id") // 👈 thêm @unique để giữ quan hệ 1–1
-  firstName String @map("first_name") @db.VarChar(50)
-  lastName  String @map("last_name") @db.VarChar(100)
+  avatarId  Int?    @map("avatar_id")
+  firstName String  @map("first_name") @db.VarChar(50)
+  lastName  String  @map("last_name") @db.VarChar(100)
 
   // NEW: thêm giới tính và ngày sinh
   gender      Gender?   @map("gender") // enum Gender
@@ -38,7 +72,8 @@ model User {
   emailVerifiedAt DateTime? @map("email_verified_at") @db.Timestamp(0)
 
   // Relations
-  avatar                 Image?                   @relation("UserAvatar", fields: [avatarId], references: [imageId], onDelete: SetNull)
+  avatar                 Media?                   @relation("UserAvatar", fields: [avatarId], references: [mediaId], onDelete: SetNull)
+  uploadedMedia          Media[]                  @relation("MediaUploader")
   student                Student?                 @relation("UserStudent")
   admin                  Admin?                   @relation("UserAdmin")
   UserRefreshToken       UserRefreshToken[]
@@ -103,16 +138,11 @@ model Admin {
   // Relations
   subject       Subject?        @relation("AdminSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
   AdminAuditLog AdminAuditLog[]
-  Document      Document[]
-  QuestionImage QuestionImage[]
-  SolutionImage SolutionImage[]
-  MediaImage    MediaImage[]
   Exam          Exam[]          @relation("ExamCreatedBy")
   Competition   Competition[]   @relation("CompetitionCreatedBy")
   Course        Course[]        @relation("CourseTeacher")
   Lesson        Lesson[]        @relation("LessonTeacher")
   Question      Question[]      @relation("QuestionCreatedBy")
-  Image         Image[]
 
   @@index([subjectId], map: "idx_admins_subject_id")
   @@map("admins")
@@ -183,18 +213,6 @@ model UserRefreshToken {
   @@map("user_refresh_tokens")
 }
 
-enum AuditStatus {
-  SUCCESS // ✅ Thành công
-  FAIL // ❌ Thất bại
-  ROLLBACK // 🔄 Đã rollback
-}
-
-enum CourseVisibility {
-  DRAFT
-  PRIVATE
-  PUBLISHED
-}
-
 model AdminAuditLog {
   logId        Int         @id @default(autoincrement()) @map("log_id")
   adminId      Int         @map("admin_id")
@@ -218,131 +236,6 @@ model AdminAuditLog {
   @@map("admin_audit_logs")
 }
 
-enum StorageProvider {
-  LOCAL
-  S3
-  GCS
-  SUPABASE
-  EXTERNAL
-}
-
-model Document {
-  documentId      Int             @id @default(autoincrement()) @map("document_id")
-  adminId         Int?            @map("admin_id")
-  admin           Admin?          @relation(fields: [adminId], references: [adminId], onDelete: SetNull)
-  description     String?         @db.Text
-  url             String          @db.VarChar(500)
-  anotherUrl      String?         @map("another_url") @db.VarChar(500) // URL phụ
-  mimeType        String?         @map("mime_type") @db.VarChar(100)
-  subjectId       Int?            @map("subject_id")
-  relatedType     String?         @map("related_type") @db.VarChar(50)
-  relatedId       Int?            @map("related_id")
-  storageProvider StorageProvider @default(EXTERNAL) @map("storage_provider")
-  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamp(0)
-
-  // Relations
-  subject      Subject?       @relation("DocumentSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
-  LearningItem LearningItem[]
-
-  @@index([relatedType, relatedId], map: "idx_documents_related")
-  @@index([createdAt], map: "idx_documents_created_at")
-  @@index([subjectId], map: "idx_documents_subject_id")
-  @@map("documents")
-}
-
-model QuestionImage {
-  imageId Int    @id @default(autoincrement()) @map("image_id")
-  adminId Int?   @map("admin_id")
-  admin   Admin? @relation(fields: [adminId], references: [adminId], onDelete: SetNull)
-
-  url             String          @unique @db.VarChar(500)
-  anotherUrl      String?         @map("another_url") @db.VarChar(500) // URL phụ
-  caption         String?         @map("caption") @db.VarChar(200) // chú thích ảnh
-  mimeType        String?         @map("mime_type") @db.VarChar(100)
-  storageProvider StorageProvider @default(EXTERNAL) @map("storage_provider")
-
-  // Polymorphic relation (ảnh có thể gắn vào nhiều loại thực thể)
-  relatedType String? @map("related_type") @db.VarChar(50) // ví dụ: "QUESTION", "ANSWER", "EXAM"
-  relatedId   Int?    @map("related_id")
-
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
-
-  @@index([relatedType, relatedId], map: "idx_question_images_related")
-  @@index([createdAt], map: "idx_question_images_created_at")
-  @@map("question_images")
-}
-
-model SolutionImage {
-  imageId Int    @id @default(autoincrement()) @map("image_id")
-  adminId Int?   @map("admin_id")
-  admin   Admin? @relation(fields: [adminId], references: [adminId], onDelete: SetNull)
-
-  url             String          @unique @db.VarChar(500)
-  anotherUrl      String?         @map("another_url") @db.VarChar(500) // URL phụ
-  caption         String?         @map("caption") @db.VarChar(200) // chú thích ảnh
-  mimeType        String?         @map("mime_type") @db.VarChar(100)
-  storageProvider StorageProvider @default(EXTERNAL) @map("storage_provider")
-
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
-
-  // Sau này nếu mỗi Solution có 1 ảnh minh họa thì có thể tạo quan hệ 1–1:
-  // solution Solution? @relation(fields: [solutionId], references: [solutionId])
-  // solutionId Int?    @map("solution_id")
-
-  @@index([createdAt], map: "idx_solution_images_created_at")
-  @@map("solution_images")
-}
-
-model MediaImage {
-  imageId Int    @id @default(autoincrement()) @map("image_id")
-  adminId Int?   @map("admin_id")
-  admin   Admin? @relation(fields: [adminId], references: [adminId], onDelete: SetNull)
-
-  url             String          @unique @db.VarChar(500)
-  anotherUrl      String?         @map("another_url") @db.VarChar(500) // URL phụ
-  caption         String?         @map("caption") @db.VarChar(200) // chú thích ảnh
-  mimeType        String?         @map("mime_type") @db.VarChar(100)
-  storageProvider StorageProvider @default(EXTERNAL) @map("storage_provider")
-
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
-
-  // Nếu sau này có quan hệ 1–1 với bảng khác (ví dụ: Post, Banner, Slide, ...)
-  // thì ta sẽ khai báo thêm giống như User-Avatar ở bảng Image.
-
-  @@index([createdAt], map: "idx_media_images_created_at")
-  @@map("media_images")
-}
-
-model Image {
-  imageId         Int             @id @default(autoincrement()) @map("image_id")
-  adminId         Int?            @map("admin_id")
-  url             String          @unique @db.VarChar(500)
-  anotherUrl      String?         @map("another_url") @db.VarChar(500) // URL phụ
-  caption         String?         @map("caption") @db.VarChar(200) // chú thích ảnh
-  mimeType        String?         @map("mime_type") @db.VarChar(100)
-  storageProvider StorageProvider @default(EXTERNAL) @map("storage_provider")
-  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt       DateTime        @updatedAt @map("updated_at") @db.Timestamp(0)
-
-  // Relations
-  admin Admin? @relation(fields: [adminId], references: [adminId])
-  user  User?  @relation("UserAvatar")
-
-  @@index([createdAt], map: "idx_images_created_at")
-  @@map("images")
-}
-
-enum LearningItemType {
-  HOMEWORK
-  DOCUMENT
-  YOUTUBE
-  EXERCISE
-}
-
 model Subject {
   subjectId Int     @id @default(autoincrement()) @map("subject_id")
   name      String  @unique
@@ -351,7 +244,6 @@ model Subject {
   // Relations
   chapters  Chapter[]
   admins    Admin[]    @relation("AdminSubject")
-  documents Document[] @relation("DocumentSubject")
   exams     Exam[]     @relation("ExamSubject")
   questions Question[] @relation("QuestionSubject")
   courses   Course[]   @relation("CourseSubject")
@@ -392,6 +284,7 @@ model Exam {
   description    String?  @map("description") @db.Text
   grade          Int      @map("grade") @db.TinyInt
   subjectId      Int?     @map("subject_id")
+  imageId        Int?     @map("image_id")
   fileId         Int?     @map("file_id")
   solutionFileId Int?     @map("solution_file_id")
   createdBy      Int      @map("created_by")
@@ -401,6 +294,9 @@ model Exam {
   // Relations
   subject      Subject?       @relation("ExamSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
   admin        Admin          @relation("ExamCreatedBy", fields: [createdBy], references: [adminId], onDelete: Cascade)
+  image        Media?         @relation("ExamImage", fields: [imageId], references: [mediaId], onDelete: SetNull)
+  file         Media?         @relation("ExamFile", fields: [fileId], references: [mediaId], onDelete: SetNull)
+  solutionFile Media?         @relation("ExamSolutionFile", fields: [solutionFileId], references: [mediaId], onDelete: SetNull)
   competitions Competition[]
   questions    QuestionExam[]
 
@@ -408,22 +304,10 @@ model Exam {
   @@index([subjectId], map: "idx_exams_subject_id")
   @@index([createdBy], map: "idx_exams_created_by")
   @@index([createdAt], map: "idx_exams_created_at")
+  @@index([imageId], map: "idx_exams_image_id")
+  @@index([fileId], map: "idx_exams_file_id")
+  @@index([solutionFileId], map: "idx_exams_solution_file_id")
   @@map("exams")
-}
-
-enum QuestionType {
-  SINGLE_CHOICE
-  MULTIPLE_CHOICE
-  FILL_IN_THE_BLANK
-  SHORT_ANSWER
-  ESSAY
-}
-
-enum Difficulty {
-  TH
-  NB
-  VD
-  VDC
 }
 
 model Question {
@@ -447,6 +331,8 @@ model Question {
   subject       Subject?       @relation("QuestionSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
   chapter       Chapter?       @relation("QuestionChapter", fields: [chapterId], references: [chapterId], onDelete: SetNull)
   admin         Admin?         @relation("QuestionCreatedBy", fields: [createdBy], references: [adminId], onDelete: SetNull)
+  image         Media?         @relation("QuestionImage", fields: [imageId], references: [mediaId], onDelete: SetNull)
+  solutionImage Media?         @relation("QuestionSolutionImage", fields: [solutionImageId], references: [mediaId], onDelete: SetNull)
   statements    Statement[]
   examQuestions QuestionExam[]
 
@@ -457,6 +343,8 @@ model Question {
   @@index([difficulty], map: "idx_questions_difficulty")
   @@index([createdBy], map: "idx_questions_created_by")
   @@index([createdAt], map: "idx_questions_created_at")
+  @@index([imageId], map: "idx_questions_image_id")
+  @@index([solutionImageId], map: "idx_questions_solution_image_id")
   @@map("questions")
 }
 
@@ -473,9 +361,11 @@ model Statement {
 
   // Relations
   question Question @relation(fields: [questionId], references: [questionId], onDelete: Cascade)
+  image    Media?   @relation("StatementImage", fields: [imageId], references: [mediaId], onDelete: SetNull)
 
   @@index([questionId], map: "idx_statements_question_id")
   @@index([isCorrect], map: "idx_statements_is_correct")
+  @@index([imageId], map: "idx_statements_image_id")
   @@map("statements")
 }
 
@@ -497,16 +387,26 @@ model QuestionExam {
 }
 
 model Competition {
-  competitionId Int      @id @default(autoincrement()) @map("competition_id") @db.Int
-  examId        Int?     @map("exam_id") @db.Int
-  title         String   @map("title") @db.VarChar(255)
-  subtitle      String?  @map("subtitle") @db.VarChar(255)
-  startDate     DateTime @map("start_date") @db.Timestamp(0)
-  endDate       DateTime @map("end_date") @db.Timestamp(0)
-  policies      String?  @map("policies") @db.Text
-  createdBy     Int      @map("created_by")
-  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+  competitionId Int        @id @default(autoincrement()) @map("competition_id") @db.Int
+  examId        Int?       @map("exam_id") @db.Int
+  title         String     @map("title") @db.VarChar(255)
+  subtitle      String?    @map("subtitle") @db.VarChar(255)
+  startDate     DateTime   @map("start_date") @db.Timestamp(0)
+  endDate       DateTime   @map("end_date") @db.Timestamp(0)
+  policies      String?    @map("policies") @db.Text
+  createdBy     Int        @map("created_by")
+  visibility    Visibility @default(DRAFT) @map("visibility")
+
+  durationMinutes    Int?    @map("duration_minutes") // Thời lượng làm bài
+  maxAttempts        Int? // số lần được làm, null = không giới hạn
+  showResultDetail   Boolean @default(false) // có xem chi tiết bài làm của người dùng không
+  allowLeaderboard   Boolean @default(false) // có hiển thị bảng xếp hạng không
+  allowViewScore     Boolean @default(true) // có được xem điểm của mình không
+  allowViewAnswer    Boolean @default(false) // thi xong có được xem đáp án không
+  enableAntiCheating Boolean @default(false)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
   exam         Exam?          @relation(fields: [examId], references: [examId], onDelete: Cascade)
@@ -525,40 +425,42 @@ model LearningItem {
   type           LearningItemType @map("type")
   title          String           @map("title") @db.VarChar(255)
   description    String?          @map("description") @db.Text
-  documentId     Int?             @map("document_id")
+  contentMediaId Int?             @map("content_media_id")
   competitionId  Int?             @map("competition_id") @db.Int
   createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
-  document    Document?            @relation(fields: [documentId], references: [documentId], onDelete: Cascade)
-  competition Competition?         @relation(fields: [competitionId], references: [competitionId], onDelete: Cascade)
-  lessons     LessonLearningItem[]
+  contentMedia Media?               @relation("LearningItemContent", fields: [contentMediaId], references: [mediaId], onDelete: SetNull)
+  competition  Competition?         @relation(fields: [competitionId], references: [competitionId], onDelete: Cascade)
+  lessons      LessonLearningItem[]
 
   @@index([type], map: "idx_learning_items_type")
+  @@index([contentMediaId], map: "idx_learning_items_content_media")
   @@index([createdAt], map: "idx_learning_items_created_at")
   @@map("learning_items")
 }
 
 model Course {
-  courseId       Int              @id @default(autoincrement()) @map("course_id")
-  title          String           @map("title") @db.VarChar(200)
-  subtitle       String?          @map("subtitle") @db.VarChar(255)
-  thumbImageId   Int?             @map("thumb_image_id")
-  academicYear   String?          @map("academic_year") @db.VarChar(9) // ví dụ '2024-2025'
-  grade          String?          @map("grade") @db.VarChar(10) // ví dụ '12'
-  subjectId      Int?             @map("subject_id")
-  priceCents     Int              @default(0) @map("price_cents")
-  compareAtCents Int?             @map("compare_at_cents")
-  visibility     CourseVisibility @default(DRAFT) @map("visibility")
-  teacherId      Int?             @map("teacher_id") // FK tới admin_users nếu admin là giảng viên
-  isUpdatable    Boolean          @default(true) @map("is_updatable")
-  createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamp(0)
+  courseId       Int        @id @default(autoincrement()) @map("course_id")
+  title          String     @map("title") @db.VarChar(200)
+  subtitle       String?    @map("subtitle") @db.VarChar(255)
+  thumbnailId    Int?       @map("thumbnail_id")
+  academicYear   String?    @map("academic_year") @db.VarChar(9) // ví dụ '2024-2025'
+  grade          String?    @map("grade") @db.VarChar(10) // ví dụ '12'
+  subjectId      Int?       @map("subject_id")
+  priceCents     Int        @default(0) @map("price_cents")
+  compareAtCents Int?       @map("compare_at_cents")
+  visibility     Visibility @default(DRAFT) @map("visibility")
+  teacherId      Int?       @map("teacher_id") // FK tới admin_users nếu admin là giảng viên
+  isUpdatable    Boolean    @default(true) @map("is_updatable")
+  createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt      DateTime   @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
   subject   Subject?         @relation("CourseSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
   teacher   Admin?           @relation("CourseTeacher", fields: [teacherId], references: [adminId], onDelete: SetNull)
+  thumbnail Media?           @relation("CourseThumbnail", fields: [thumbnailId], references: [mediaId], onDelete: SetNull)
   schedules CourseSchedule[]
   lessons   Lesson[]
 
@@ -566,6 +468,7 @@ model Course {
   @@index([grade, subjectId], map: "idx_courses_grade_subject")
   @@index([subjectId], map: "idx_courses_subject_id")
   @@index([teacherId], map: "idx_courses_teacher_id")
+  @@index([thumbnailId], map: "idx_courses_thumbnail_id")
   @@index([createdAt], map: "idx_courses_created_at")
   @@map("courses")
 }
@@ -622,4 +525,115 @@ model LessonLearningItem {
   @@index([lessonId], map: "idx_lesson_learning_items_lesson")
   @@index([learningItemId], map: "idx_lesson_learning_items_learning_item")
   @@map("lesson_learning_items")
+}
+
+// ============================================
+// MEDIA MANAGEMENT FOR MINIO
+// ============================================
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  AUDIO
+  DOCUMENT
+  OTHER
+}
+
+enum MediaStatus {
+  UPLOADING
+  READY
+  FAILED
+  DELETED
+}
+
+model MediaFolder {
+  folderId    Int      @id @default(autoincrement()) @map("folder_id")
+  name        String   @map("name") @db.VarChar(255)
+  slug        String   @unique @map("slug") @db.VarChar(255)
+  description String?  @map("description") @db.Text
+  parentId    Int?     @map("parent_id")
+  createdBy   Int?     @map("created_by")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  parent   MediaFolder?  @relation("FolderHierarchy", fields: [parentId], references: [folderId], onDelete: Cascade)
+  children MediaFolder[] @relation("FolderHierarchy")
+  media    Media[]
+
+  @@index([parentId], map: "idx_media_folders_parent")
+  @@index([slug], map: "idx_media_folders_slug")
+  @@index([createdBy], map: "idx_media_folders_created_by")
+  @@map("media_folders")
+}
+
+model Media {
+  mediaId      Int         @id @default(autoincrement()) @map("media_id")
+  fileName     String      @map("file_name") @db.VarChar(255)
+  originalName String      @map("original_name") @db.VarChar(255)
+  mimeType     String      @map("mime_type") @db.VarChar(100)
+  fileSize     BigInt      @map("file_size") // bytes
+  type         MediaType   @map("type")
+  status       MediaStatus @default(UPLOADING) @map("status")
+  
+  // MinIO specific fields
+  bucketName   String  @map("bucket_name") @db.VarChar(100)
+  objectKey    String  @map("object_key") @db.VarChar(500) // path trong bucket
+  publicUrl    String? @map("public_url") @db.VarChar(1000)
+  
+  // Metadata
+  width        Int?    @map("width") // cho image/video
+  height       Int?    @map("height") // cho image/video
+  duration     Int?    @map("duration") // giây, cho video/audio
+  
+  // Organization
+  folderId     Int?    @map("folder_id")
+  description  String? @map("description") @db.Text
+  alt          String? @map("alt") @db.VarChar(255) // alt text cho image
+  
+  uploadedBy   Int?     @map("uploaded_by")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  folder                MediaFolder?   @relation(fields: [folderId], references: [folderId], onDelete: SetNull)
+  uploader              User?          @relation("MediaUploader", fields: [uploadedBy], references: [userId], onDelete: SetNull)
+  usages                MediaUsage[]
+  userAvatar            User[]         @relation("UserAvatar")
+  courseThumbnail       Course[]       @relation("CourseThumbnail")
+  learningItemContent   LearningItem[] @relation("LearningItemContent")
+  statementImage        Statement[]    @relation("StatementImage")
+  questionImage         Question[]     @relation("QuestionImage")
+  questionSolutionImage Question[]     @relation("QuestionSolutionImage")
+  examImage             Exam[]         @relation("ExamImage")
+  examFile              Exam[]         @relation("ExamFile")
+  examSolutionFile      Exam[]         @relation("ExamSolutionFile")
+
+  @@unique([bucketName, objectKey], map: "unique_media_location")
+  @@index([type], map: "idx_media_type")
+  @@index([status], map: "idx_media_status")
+  @@index([folderId], map: "idx_media_folder")
+  @@index([uploadedBy], map: "idx_media_uploaded_by")
+  @@index([createdAt], map: "idx_media_created_at")
+  @@index([mimeType], map: "idx_media_mime_type")
+  @@map("media")
+}
+
+model MediaUsage {
+  usageId      Int      @id @default(autoincrement()) @map("usage_id")
+  mediaId      Int      @map("media_id")
+  entityType   String   @map("entity_type") @db.VarChar(50) // "USER", "COURSE", "QUESTION", "LESSON", etc
+  entityId     Int      @map("entity_id")
+  fieldName    String?  @map("field_name") @db.VarChar(100) // "avatar", "thumbnail", "banner", "content_image", etc
+  usedBy       Int?     @map("used_by") // user nào sử dụng media này
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+
+  // Relations
+  media Media @relation(fields: [mediaId], references: [mediaId], onDelete: Cascade)
+
+  @@unique([mediaId, entityType, entityId, fieldName], map: "unique_media_usage")
+  @@index([mediaId], map: "idx_media_usages_media")
+  @@index([entityType, entityId], map: "idx_media_usages_entity")
+  @@index([usedBy], map: "idx_media_usages_used_by")
+  @@map("media_usages")
 }

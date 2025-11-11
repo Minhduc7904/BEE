@@ -1,85 +1,71 @@
 // src/application/dtos/student/student-list-query.dto.ts
-import { ApiPropertyOptional } from '@nestjs/swagger'
 import { Type } from 'class-transformer'
 import { IsOptional, IsString, IsNumber, IsBoolean, IsDateString, Min, Max } from 'class-validator'
 import { ListQueryDto } from '..'
 import { Trim } from '../../../shared/decorators'
-import { SWAGGER_PROPERTIES, VALIDATION_MESSAGES } from '../../../shared/constants'
+import { VALIDATION_MESSAGES } from '../../../shared/constants'
 
 export class StudentListQueryDto extends ListQueryDto {
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.GRADE)
-  @IsOptional()
+    @IsOptional()
   @Type(() => Number)
   @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Lớp') })
   @Min(1, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Lớp', 1) })
   @Max(12, { message: VALIDATION_MESSAGES.FIELD_MAX_VALUE('Lớp', 12) })
   grade?: number
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.SCHOOL)
-  @Trim()
+    @Trim()
   @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tên trường') })
   school?: string
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.STUDENT_PHONE)
-  @Trim()
+    @Trim()
   @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Số điện thoại học sinh') })
   studentPhone?: string
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.PARENT_PHONE)
-  @Trim()
+    @Trim()
   @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Số điện thoại phụ huynh') })
   parentPhone?: string
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.USERNAME)
-  @Trim()
+    @Trim()
   @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Username') })
   username?: string
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.EMAIL)
-  @Trim()
+    @Trim()
   @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Email') })
   email?: string
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.FIRST_NAME)
-  @Trim()
+    @Trim()
   @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tên') })
   firstName?: string
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.LAST_NAME)
-  @Trim()
+    @Trim()
   @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Họ') })
   lastName?: string
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.IS_ACTIVE)
-  @IsOptional()
+    @IsOptional()
   @Type(() => Boolean)
   @IsBoolean({ message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái hoạt động') })
   isActive?: boolean
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.CREATED_AFTER)
-  @IsOptional()
+    @IsOptional()
   @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Ngày tạo từ') })
   createdAfter?: string
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.CREATED_BEFORE)
-  @IsOptional()
+    @IsOptional()
   @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Ngày tạo đến') })
   createdBefore?: string
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.LAST_LOGIN_AFTER)
-  @IsOptional()
+    @IsOptional()
   @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Ngày đăng nhập từ') })
   lastLoginAfter?: string
 
-  @ApiPropertyOptional(SWAGGER_PROPERTIES.LAST_LOGIN_BEFORE)
-  @IsOptional()
+    @IsOptional()
   @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Ngày đăng nhập đến') })
   lastLoginBefore?: string
 

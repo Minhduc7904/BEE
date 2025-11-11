@@ -3,7 +3,6 @@ import { Module } from '@nestjs/common'
 import { ApplicationModule } from '../application/application.module'
 import { InfrastructureModule } from '../infrastructure/infrastructure.module'
 import { AuthController } from './controllers/auth.controller'
-import { ResourceController } from './controllers/resource.controller'
 import { RoleController } from './controllers/role.controller'
 import { GoogleAuthAdminController } from './controllers/google-auth-admin.controller'
 import { GoogleAuthStudentController } from './controllers/google-auth-student.controller'
@@ -13,12 +12,12 @@ import { StudentController } from './controllers/student.controller'
 import { UserController } from './controllers/user.controller'
 import { EmailVerificationController } from './controllers/email-verification.controller'
 import { EmailResetPasswordController} from './controllers/email-reset-password.controller'
+import { MediaUploadController } from './controllers/media-upload.controller'
 
 @Module({
   imports: [ApplicationModule, InfrastructureModule, SharedModule],
   controllers: [
     AuthController,
-    ResourceController,
     RoleController,
     AdminAuditLogController,
     StudentController,
@@ -26,7 +25,8 @@ import { EmailResetPasswordController} from './controllers/email-reset-password.
     GoogleAuthAdminController,
     GoogleAuthStudentController,
     EmailVerificationController,
-    EmailResetPasswordController
+    EmailResetPasswordController,
+    MediaUploadController
   ],
 })
 export class PresentationModule {}

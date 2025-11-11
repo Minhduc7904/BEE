@@ -1,6 +1,5 @@
 // src/shared/decorators/permission.decorator.ts
 import { applyDecorators, UseGuards } from '@nestjs/common'
-import { ApiBearerAuth, ApiResponse } from '@nestjs/swagger'
 import { AuthGuard } from '../guards/auth.guard'
 import { RolesGuard } from '../guards/roles.guard'
 import { RequireRoles } from './roles.decorator'
@@ -15,31 +14,6 @@ export function RequireAuth(...roles: string[]) {
   return applyDecorators(
     UseGuards(AuthGuard, RolesGuard),
     RequireRoles(...roles),
-    ApiBearerAuth('JWT-auth'),
-    ApiResponse({
-      status: HttpStatus.UNAUTHORIZED,
-      description: 'Không có token hoặc token không hợp lệ',
-      type: ErrorResponseDto,
-      example: {
-        success: false,
-        message: 'Không có token hoặc token không hợp lệ',
-        statusCode: 401,
-        timestamp: '2025-09-05T13:30:00.000Z',
-        path: '/roles',
-      },
-    }),
-    ApiResponse({
-      status: HttpStatus.FORBIDDEN,
-      description: `Không có quyền truy cập - Yêu cầu role: ${roles.join(', ')} (SUPER_ADMIN tự động có quyền)`,
-      type: ErrorResponseDto,
-      example: {
-        success: false,
-        message: `Không có quyền truy cập - Yêu cầu role: ${roles.join(', ')} (SUPER_ADMIN tự động có quyền)`,
-        statusCode: 403,
-        timestamp: '2025-09-05T13:30:00.000Z',
-        path: '/roles',
-      },
-    }),
   )
 }
 
@@ -112,11 +86,5 @@ export function AnyOf(...roles: string[]) {
 export function AuthOnly() {
   return applyDecorators(
     UseGuards(AuthGuard),
-    ApiBearerAuth('JWT-auth'),
-    ApiResponse({
-      status: 401,
-      description: 'Không có token hoặc token không hợp lệ',
-      type: ErrorResponseDto,
-    }),
   )
 }
