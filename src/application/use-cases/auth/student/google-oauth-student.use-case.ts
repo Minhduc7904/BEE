@@ -17,6 +17,7 @@ import {
   UnauthorizedException,
 } from '../../../../shared/exceptions/custom-exceptions'
 import { StorageProvider } from '../../../../shared/enums'
+import { MediaType, MediaStatus } from '@prisma/client'
 import { v4 as uuidv4 } from 'uuid'
 import { ROLE_IDS } from 'src/shared/constants'
 
@@ -71,14 +72,24 @@ export class GoogleOAuthStudentUseCase {
         const hashedPassword = await this.passwordService.hashPassword(randomPassword)
 
         let avatarId: number | undefined = undefined
-        // console.log(googleProfile.picture);
+        // Nếu Google cung cấp avatar, upload trước với uploadedBy null
         if (googleProfile.picture) {
-          const avatar = await repos.imageRepository.create({
-            url: googleProfile.picture,
-            storageProvider: StorageProvider.GCS,
-          })
-          avatarId = avatar.imageId
-          // console.log('avatarId', avatarId);
+          try {
+            const avatar = await repos.mediaRepository.create({
+              bucketName: 'images', // Bucket cho avatar
+              objectKey: `avatars/google_${username}_${Date.now()}.jpg`,
+              originalFilename: 'google_avatar.jpg',
+              mimeType: 'image/jpeg',
+              fileSize: 0, // Google avatar external URL
+              type: 'IMAGE' as MediaType,
+              status: 'READY' as MediaStatus,
+              publicUrl: googleProfile.picture, // URL từ Google
+              uploadedBy: null, // Tạm thời null, sẽ update sau
+            })
+            avatarId = avatar.mediaId
+          } catch (error) {
+            console.warn('Failed to save Google avatar:', error.message)
+          }
         }
 
         // Tạo user
@@ -93,6 +104,17 @@ export class GoogleOAuthStudentUseCase {
           isEmailVerified: true,
           emailVerifiedAt: new Date(),
         })
+
+        // Update uploadedBy sau khi có userId
+        if (avatarId) {
+          try {
+            await repos.mediaRepository.update(avatarId, {
+              uploadedBy: createdUser.userId,
+            })
+          } catch (error) {
+            console.warn('Failed to update avatar uploadedBy:', error.message)
+          }
+        }
 
         // console.log('createdUser', createdUser);
 

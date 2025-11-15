@@ -1,5 +1,4 @@
 export * from './user.repository';
-export * from './image.repository';
 export * from './user-refresh-token.repository';
 export * from './unit-of-work.repository';
 export * from './admin-audit-log.repository';
@@ -8,7 +7,4 @@ export * from './document.repository';
 export * from './admin.repository';
 export * from './email-verification-token.repository';
 export * from './role.repository';
-export * from './media-image.repository';
-export * from './solution-image.repository'
-export * from './question-image.repository'
 export * from './reset-password-token.repository'

@@ -582,4 +582,16 @@ export class PrismaStudentRepository implements IStudentRepository {
     // Default fallback
     return { user: { createdAt: 'desc' } }
   }
+
+  async findMediaById(mediaId: number): Promise<any | null> {
+    const media = await this.prisma.media.findUnique({
+      where: { mediaId }
+    })
+    
+    if (!media) return null
+    
+    // Import MediaMapper directly - case sensitive path
+    const { MediaMapper } = require('../mappers')
+    return MediaMapper.toDomain(media)
+  }
 }

@@ -10,13 +10,9 @@ import {
   PrismaRoleRepository,
   PrismaStudentRepository,
   PrismaEmailVerificationTokenRepository,
-  PrismaImageRepository,
-  PrismaDocumentRepository,
   PrismaAdminRepository,
-  PrismaQuestionImageRepository,
-  PrismaSolutionImageRepository,
-  PrismaMediaImageRepository,
-  PrismaResetPasswordTokenRepository
+  PrismaResetPasswordTokenRepository,
+  PrismaMediaRepository
 } from './repositories'
 import {
   PasswordService,
@@ -83,28 +79,8 @@ import supabaseConfig from '../config/supabase.config'
       inject: [PrismaService]
     },
     {
-      provide: 'IDocumentRepository',
-      useFactory: (prisma: PrismaService) => new PrismaDocumentRepository(prisma),
-      inject: [PrismaService],
-    },
-    {
-      provide: 'IImageRepository',
-      useFactory: (prisma: PrismaService) => new PrismaImageRepository(prisma),
-      inject: [PrismaService],
-    },
-    {
-      provide: 'IQuestionImageRepository',
-      useFactory: (prisma: PrismaService) => new PrismaQuestionImageRepository(prisma),
-      inject: [PrismaService],
-    },
-    {
-      provide: 'ISolutionImageRepository',
-      useFactory: (prisma: PrismaService) => new PrismaSolutionImageRepository(prisma),
-      inject: [PrismaService],
-    },
-    {
-      provide: 'IMediaImageRepository',
-      useFactory: (prisma: PrismaService) => new PrismaMediaImageRepository(prisma),
+      provide: 'IMediaRepository',
+      useFactory: (prisma: PrismaService) => new PrismaMediaRepository(prisma),
       inject: [PrismaService],
     },
     {
@@ -145,13 +121,9 @@ import supabaseConfig from '../config/supabase.config'
     'IAdminRepository',
     'IRoleRepository',
     'IStudentRepository',
-    'IImageRepository',
-    'IQuestionImageRepository',
-    'ISolutionImageRepository',
-    'IMediaImageRepository',
-    'IDocumentRepository',
     'IEmailVerificationTokenRepository',
     'IPasswordResetTokenRepository',
+    'IMediaRepository',
     'PASSWORD_SERVICE',
     'JWT_TOKEN_SERVICE',
     'TOKEN_HASH_SERVICE',
@@ -162,4 +134,5 @@ import supabaseConfig from '../config/supabase.config'
     'IStorageService',
   ],
 })
+
 export class InfrastructureModule { }

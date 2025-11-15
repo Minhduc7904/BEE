@@ -22,7 +22,12 @@ import {
   FetchStudentFromApiUseCase,
   GetProfileStudentUseCase,
   SendResetPasswordEmailUseCase,
-  ResetPasswordUseCase
+  ResetPasswordUseCase,
+  UploadMediaUseCase,
+  GetMediaListUseCase,
+  GetMediaUseCase,
+  UpdateMediaUseCase,
+  DeleteMediaUseCase,
 } from './use-cases'
 
 @Module({
@@ -48,7 +53,12 @@ import {
     FetchStudentFromApiUseCase,
     GetProfileStudentUseCase,
     ResetPasswordUseCase,
-    SendResetPasswordEmailUseCase
+    SendResetPasswordEmailUseCase,
+    UploadMediaUseCase,
+    GetMediaListUseCase,
+    GetMediaUseCase,
+    UpdateMediaUseCase,
+    DeleteMediaUseCase,
   ],
   exports: [
     RegisterAdminUseCase,
@@ -71,7 +81,12 @@ import {
     FetchStudentFromApiUseCase,
     GetProfileStudentUseCase,
     ResetPasswordUseCase,
-    SendResetPasswordEmailUseCase
+    SendResetPasswordEmailUseCase,
+    UploadMediaUseCase,
+    GetMediaListUseCase,
+    GetMediaUseCase,
+    UpdateMediaUseCase,
+    DeleteMediaUseCase,
   ],
 })
 export class ApplicationModule { }

@@ -2,7 +2,6 @@
 import { IsOptional, IsString, IsEmail, MaxLength, MinLength, IsBoolean, IsEnum, IsDateString } from 'class-validator'
 import { Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
-import { ImageUrlDto } from '..'
 import { User } from '../../../domain/entities'
 import { Gender } from '../../../shared/enums'
 
@@ -29,7 +28,7 @@ export class UserResponseDto {
 
   isEmailVerified: boolean
 
-  imageUrls?: ImageUrlDto
+  avatarUrl?: string
 
   emailVerifiedAt?: Date
 
@@ -49,12 +48,6 @@ export class UserResponseDto {
    */
   static fromUser(user: User): UserResponseDto {
     // Map avatar if exists
-    let imageUrls: ImageUrlDto | undefined
-    if (user.avatar) {
-      imageUrls = new ImageUrlDto()
-      imageUrls.url = user.avatar.url
-      imageUrls.anotherUrl = user.avatar.anotherUrl || user.avatar.url
-    }
 
     return new UserResponseDto({
       userId: user.userId,
@@ -66,7 +59,7 @@ export class UserResponseDto {
       dateOfBirth: user.dateOfBirth,
       isActive: user.isActive,
       isEmailVerified: user.isEmailVerified,
-      imageUrls: imageUrls,
+      avatarUrl: user.avatar ? user.avatar.publicUrl : undefined,
       emailVerifiedAt: user.emailVerifiedAt,
       lastLoginAt: user.lastLoginAt,
       createdAt: user.createdAt,

@@ -3,12 +3,12 @@ import {
   User,
   Admin,
   Student,
-  Image
 } from '../../domain/entities'
 import {
   AdminMapper,
   StudentMapper
 } from '../mappers'
+import { MediaMapper } from './media.mapper'
 
 /**
  * Mapper class để convert từ Prisma User models sang Domain User entities
@@ -20,20 +20,10 @@ export class UserMapper {
   static toDomainUser(prismaUser: any): User | null {
     if (!prismaUser) return null
 
-    // Map avatar if exists
-    let avatar: Image | undefined
-    if (prismaUser.avatar) {
-      avatar = new Image(
-        prismaUser.avatar.imageId,
-        prismaUser.avatar.adminId,
-        prismaUser.avatar.url,
-        prismaUser.avatar.anotherUrl,
-        prismaUser.avatar.mimeType,
-        prismaUser.avatar.storageProvider,
-        prismaUser.avatar.createdAt,
-        prismaUser.avatar.updatedAt,
-      )
-    }
+    // Map avatar from Media if exists
+    const avatar = prismaUser.avatar 
+      ? MediaMapper.toDomain(prismaUser.avatar)
+      : undefined
 
     return new User(
       prismaUser.userId,                    // 1
@@ -43,7 +33,7 @@ export class UserMapper {
       prismaUser.lastName,                  // 5
       prismaUser.isActive,                  // 6
       prismaUser.avatarId ?? undefined,     // 7 - avatarId
-      avatar,                               // 8 - avatar (now properly mapped)
+      avatar,                               // 8 - avatar (MediaEntity)
       prismaUser.email ?? undefined,        // 9 - email
       prismaUser.createdAt,                 // 10 - createdAt
       prismaUser.isEmailVerified ?? false,  // 11 - isEmailVerified
@@ -51,6 +41,8 @@ export class UserMapper {
       prismaUser.lastLoginAt ?? undefined,     // 13 - lastLoginAt
       prismaUser.updatedAt ?? undefined,       // 14 - updatedAt
       prismaUser.oldUserId ?? undefined,       // 15 - oldUserId
+      prismaUser.gender ?? undefined,          // 16 - gender
+      prismaUser.dateOfBirth ?? undefined,     // 17 - dateOfBirth
     )
   }
 

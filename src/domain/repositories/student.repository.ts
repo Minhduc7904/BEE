@@ -34,4 +34,7 @@ export interface IStudentRepository {
   count(filters?: StudentFilterOptions): Promise<number>
   countByGrade(grade: number): Promise<number>
   countBySchool(school: string): Promise<number>
+
+  // Media methods
+  findMediaById(mediaId: number): Promise<any | null>
 }

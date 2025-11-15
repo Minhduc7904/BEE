@@ -1,6 +1,6 @@
 // src/domain/entities/user.entity.ts
-import { Image } from "../image/image.entity"
 import { Gender } from "../../../shared/enums"
+import { MediaEntity } from "../media.entity"
 
 export class User {
   userId: number
@@ -17,7 +17,7 @@ export class User {
 
   isActive: boolean
   avatarId?: number
-  avatar?: Image
+  avatar?: MediaEntity
   isEmailVerified: boolean
   emailVerifiedAt?: Date
   lastLoginAt?: Date
@@ -32,7 +32,7 @@ export class User {
     lastName: string,
     isActive: boolean = true,
     avatarId?: number,
-    avatar?: Image,
+    avatar?: MediaEntity,
     email?: string,
     createdAt?: Date,
     isEmailVerified: boolean = false,
@@ -40,8 +40,8 @@ export class User {
     lastLoginAt?: Date,
     updatedAt?: Date,
     oldUserId?: number,
-    gender?: Gender,        // 👈 thêm vào constructor
-    dateOfBirth?: Date,     // 👈 thêm vào constructor
+    gender?: Gender,
+    dateOfBirth?: Date,
   ) {
     this.userId = userId
     this.oldUserId = oldUserId
@@ -79,6 +79,10 @@ export class User {
   }
 
   getAvatarUrl(): string | null {
-    return this.avatar ? this.avatar.url : null
+    return this.avatar?.publicUrl || null
+  }
+
+  hasAvatar(): boolean {
+    return !!this.avatarId && !!this.avatar
   }
 }

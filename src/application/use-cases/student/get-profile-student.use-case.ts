@@ -1,6 +1,6 @@
 // src/application/use-cases/student/get-profile-student.use-case.ts
 import { Injectable, Inject } from '@nestjs/common';
-import type { IStudentRepository, IImageRepository } from 'src/domain/repositories'
+import type { IStudentRepository } from 'src/domain/repositories'
 import { StudentResponseDto, BaseResponseDto } from 'src/application/dtos';
 import {
     NotFoundException
@@ -9,7 +9,6 @@ import {
 @Injectable()
 export class GetProfileStudentUseCase {
     constructor(
-        @Inject('IImageRepository') private readonly imageRepository: IImageRepository,
         @Inject('IStudentRepository') private readonly studentRepository: IStudentRepository
     ) { }
 
@@ -19,9 +18,11 @@ export class GetProfileStudentUseCase {
             throw new NotFoundException('Student not found');
         }
         if (student.user && student.user.avatarId) {
-            const avatar = await this.imageRepository.findById(student.user.avatarId);
-            student.user.avatar = avatar ?? undefined;
-        };
+            const avatar = await this.studentRepository.findMediaById(student.user.avatarId);
+            if (avatar) {
+                student.user.avatar = avatar;
+            }
+        }
 
         return BaseResponseDto.success(
             'Get profile student successfully',
@@ -34,10 +35,13 @@ export class GetProfileStudentUseCase {
         if (!student) {
             throw new NotFoundException('Student not found');
         }
+        // Load avatar từ Media nếu có
         if (student.user && student.user.avatarId) {
-            const avatar = await this.imageRepository.findById(student.user.avatarId);
-            student.user.avatar = avatar ?? undefined;
-        };
+            const avatar = await this.studentRepository.findMediaById(student.user.avatarId);
+            if (avatar) {
+                student.user.avatar = avatar;
+            }
+        }
 
         return BaseResponseDto.success(
             'Get profile student successfully',

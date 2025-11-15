@@ -12,7 +12,7 @@ import { StudentController } from './controllers/student.controller'
 import { UserController } from './controllers/user.controller'
 import { EmailVerificationController } from './controllers/email-verification.controller'
 import { EmailResetPasswordController} from './controllers/email-reset-password.controller'
-import { MediaUploadController } from './controllers/media-upload.controller'
+import { MediaController } from './controllers/media.controller'
 
 @Module({
   imports: [ApplicationModule, InfrastructureModule, SharedModule],
@@ -26,7 +26,7 @@ import { MediaUploadController } from './controllers/media-upload.controller'
     GoogleAuthStudentController,
     EmailVerificationController,
     EmailResetPasswordController,
-    MediaUploadController
+    MediaController,
   ],
 })
 export class PresentationModule {}

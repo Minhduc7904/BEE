@@ -1,10 +1,8 @@
 // src/application/dtos/user/update-avatar.dto.ts
 export class UpdateAvatarResponseDto {
+  userId: number
+
   avatarId: number
 
-  avatarUrl: string
-
-  fileName: string
-
-  fileSize: number
+  url: string
 }

@@ -21,6 +21,10 @@ export class SupabaseStorageService implements IStorageService {
         const supabaseKey = this.configService.get<string>('supabase.apiKey')
         this.bucketName = this.configService.get<string>('supabase.bucketName', 'uploads')
 
+        this.logger.log(`Supabase URL: ${supabaseUrl ? supabaseUrl.substring(0, 30) + '...' : 'NOT SET'}`)
+        this.logger.log(`Supabase Key: ${supabaseKey ? 'SET (length: ' + supabaseKey.length + ')' : 'NOT SET'}`)
+        this.logger.log(`Bucket Name: ${this.bucketName}`)
+
         if (!supabaseUrl || !supabaseKey) {
             throw new Error('Supabase URL and API Key are required')
         }
@@ -37,6 +41,12 @@ export class SupabaseStorageService implements IStorageService {
             const fileName = options.fileName || this.generateFileName()
             const folder = options.folder || 'general'
             const filePath = `${folder}/${fileName}`
+            
+            this.logger.log(`Uploading file to Supabase: ${filePath}`)
+            this.logger.log(`Bucket: ${this.bucketName}`)
+            this.logger.log(`File size: ${file instanceof Buffer ? file.length : file instanceof Uint8Array ? file.byteLength : 'unknown'}`)
+            this.logger.log(`Content type: ${options.contentType}`)
+            
             const { data, error } = await this.supabase.storage
                 .from(this.bucketName)
                 .upload(filePath, file, {
@@ -46,6 +56,7 @@ export class SupabaseStorageService implements IStorageService {
 
             if (error) {
                 this.logger.error('Failed to upload file:', error.message)
+                this.logger.error('Error details:', JSON.stringify(error))
                 throw new Error(`Upload failed: ${error.message}`)
             }
 
