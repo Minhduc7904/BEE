@@ -43,6 +43,7 @@ export class UserMapper {
       prismaUser.oldUserId ?? undefined,       // 15 - oldUserId
       prismaUser.gender ?? undefined,          // 16 - gender
       prismaUser.dateOfBirth ?? undefined,     // 17 - dateOfBirth
+      prismaUser.userRoles ?? undefined,       // 18 - userRoles
     )
   }
 

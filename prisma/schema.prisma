@@ -49,14 +49,14 @@ enum Difficulty {
 
 model User {
   userId       Int     @id @default(autoincrement()) @map("user_id")
-  oldUserId    Int?    @unique @map("old_user_id")
+  // oldUserId    Int?    @unique @map("old_user_id")
   username     String  @unique @db.VarChar(50)
   email        String? @db.VarChar(120) // 1 user có thể có hoặc không có email
   passwordHash String  @map("password_hash") @db.VarChar(255)
 
-  avatarId  Int?    @map("avatar_id")
-  firstName String  @map("first_name") @db.VarChar(50)
-  lastName  String  @map("last_name") @db.VarChar(100)
+  avatarId  Int?   @map("avatar_id")
+  firstName String @map("first_name") @db.VarChar(50)
+  lastName  String @map("last_name") @db.VarChar(100)
 
   // NEW: thêm giới tính và ngày sinh
   gender      Gender?   @map("gender") // enum Gender
@@ -125,8 +125,29 @@ model Student {
   grade        Int     @db.TinyInt
   school       String? @map("school") @db.VarChar(120)
 
+  pointLogs StudentPointLog[]
+
   @@index([grade, school], map: "idx_students_grade_school")
   @@map("students")
+}
+
+enum PointType {
+  BONUS
+  PENALTY
+}
+
+model StudentPointLog {
+  id        Int     @id @default(autoincrement())
+  studentId Int
+  student   Student @relation(fields: [studentId], references: [studentId])
+
+  type      PointType
+  points    Int
+  source    String // "OLP", "Attendance", "TeacherReward"
+  note      String?
+  createdAt DateTime  @default(now())
+
+  @@index([studentId, type])
 }
 
 model Admin {
@@ -149,21 +170,61 @@ model Admin {
 }
 
 model Role {
-  roleId           Int      @id @default(autoincrement()) @map("role_id")
-  roleName         String   @unique @map("role_name") @db.VarChar(50)
-  description      String?  @db.VarChar(255)
-  isAssignable     Boolean  @default(true) @map("is_assignable") // role có thể được cấp hay không
-  requiredByRoleId Int?     @map("required_by_role_id") // cần có role nào để cấp role này
-  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  roleId       Int      @id @default(autoincrement()) @map("role_id")
+  roleName     String   @unique @map("role_name") @db.VarChar(50)
+  description  String?  @db.VarChar(255)
+  isAssignable Boolean  @default(true) @map("is_assignable")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(0)
 
-  // back-relations
-  userRoles      UserRole[] // N–N qua bảng nối
-  // Self-reference cho role hierarchy
-  requiredByRole Role?      @relation("RoleHierarchy", fields: [requiredByRoleId], references: [roleId], onDelete: SetNull)
-  childRoles     Role[]     @relation("RoleHierarchy") // Roles mà role này có thể cấp
+  // Relations
+  userRoles       UserRole[]
+  rolePermissions RolePermission[]
 
-  @@index([requiredByRoleId], map: "idx_roles_required_by")
   @@map("roles")
+}
+
+model Permission {
+  permissionId Int    @id @default(autoincrement()) @map("permission_id")
+  code         String @unique @db.VarChar(100)
+  // ví dụ:
+  // "student.view"
+  // "student.update"
+  // "exam.publish"
+  // "role.assign.teacher"
+
+  name String @db.VarChar(100)
+  // tên hiển thị cho UI
+  // "Xem học sinh", "Cập nhật học sinh", ...
+
+  description String? @db.VarChar(255)
+
+  group String? @db.VarChar(50)
+  // nhóm permission cho UI / quản lý
+  // "student", "exam", "role", "media"
+
+  isSystem Boolean @default(false) @map("is_system")
+  // true = permission lõi, không cho xóa
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+
+  // Relations
+  rolePermissions RolePermission[]
+
+  @@index([group], map: "idx_permissions_group")
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       Int @map("role_id")
+  permissionId Int @map("permission_id")
+
+  // Relations
+  role       Role       @relation(fields: [roleId], references: [roleId], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [permissionId], onDelete: Cascade)
+
+  @@id([roleId, permissionId]) // khóa chính tổng hợp
+  @@index([permissionId], map: "idx_role_permissions_permission")
+  @@map("role_permissions")
 }
 
 model UserRole {
@@ -575,25 +636,25 @@ model Media {
   fileSize     BigInt      @map("file_size") // bytes
   type         MediaType   @map("type")
   status       MediaStatus @default(UPLOADING) @map("status")
-  
+
   // MinIO specific fields
-  bucketName   String  @map("bucket_name") @db.VarChar(100)
-  objectKey    String  @map("object_key") @db.VarChar(500) // path trong bucket
-  publicUrl    String? @map("public_url") @db.VarChar(1000)
-  
+  bucketName String  @map("bucket_name") @db.VarChar(100)
+  objectKey  String  @map("object_key") @db.VarChar(500) // path trong bucket
+  publicUrl  String? @map("public_url") @db.VarChar(1000)
+
   // Metadata
-  width        Int?    @map("width") // cho image/video
-  height       Int?    @map("height") // cho image/video
-  duration     Int?    @map("duration") // giây, cho video/audio
-  
+  width    Int? @map("width") // cho image/video
+  height   Int? @map("height") // cho image/video
+  duration Int? @map("duration") // giây, cho video/audio
+
   // Organization
-  folderId     Int?    @map("folder_id")
-  description  String? @map("description") @db.Text
-  alt          String? @map("alt") @db.VarChar(255) // alt text cho image
-  
-  uploadedBy   Int?     @map("uploaded_by")
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+  folderId    Int?    @map("folder_id")
+  description String? @map("description") @db.Text
+  alt         String? @map("alt") @db.VarChar(255) // alt text cho image
+
+  uploadedBy Int?     @map("uploaded_by")
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
   folder                MediaFolder?   @relation(fields: [folderId], references: [folderId], onDelete: SetNull)
@@ -620,13 +681,13 @@ model Media {
 }
 
 model MediaUsage {
-  usageId      Int      @id @default(autoincrement()) @map("usage_id")
-  mediaId      Int      @map("media_id")
-  entityType   String   @map("entity_type") @db.VarChar(50) // "USER", "COURSE", "QUESTION", "LESSON", etc
-  entityId     Int      @map("entity_id")
-  fieldName    String?  @map("field_name") @db.VarChar(100) // "avatar", "thumbnail", "banner", "content_image", etc
-  usedBy       Int?     @map("used_by") // user nào sử dụng media này
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  usageId    Int      @id @default(autoincrement()) @map("usage_id")
+  mediaId    Int      @map("media_id")
+  entityType String   @map("entity_type") @db.VarChar(50) // "USER", "COURSE", "QUESTION", "LESSON", etc
+  entityId   Int      @map("entity_id")
+  fieldName  String?  @map("field_name") @db.VarChar(100) // "avatar", "thumbnail", "banner", "content_image", etc
+  usedBy     Int?     @map("used_by") // user nào sử dụng media này
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp(0)
 
   // Relations
   media Media @relation(fields: [mediaId], references: [mediaId], onDelete: Cascade)

@@ -28,6 +28,8 @@ import {
   GetMediaUseCase,
   UpdateMediaUseCase,
   DeleteMediaUseCase,
+  GetAdminProfileUseCase,
+  UpdateAdminProfileUseCase,
 } from './use-cases'
 
 @Module({
@@ -59,6 +61,8 @@ import {
     GetMediaUseCase,
     UpdateMediaUseCase,
     DeleteMediaUseCase,
+    GetAdminProfileUseCase,
+    UpdateAdminProfileUseCase,
   ],
   exports: [
     RegisterAdminUseCase,
@@ -87,6 +91,8 @@ import {
     GetMediaUseCase,
     UpdateMediaUseCase,
     DeleteMediaUseCase,
+    GetAdminProfileUseCase,
+    UpdateAdminProfileUseCase,
   ],
 })
 export class ApplicationModule { }

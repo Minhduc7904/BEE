@@ -23,6 +23,7 @@ export class User {
   lastLoginAt?: Date
   createdAt: Date
   updatedAt?: Date
+  userRoles?: any[]
 
   constructor(
     userId: number,
@@ -42,6 +43,7 @@ export class User {
     oldUserId?: number,
     gender?: Gender,
     dateOfBirth?: Date,
+    userRoles?: any[],
   ) {
     this.userId = userId
     this.oldUserId = oldUserId
@@ -60,6 +62,7 @@ export class User {
     this.lastLoginAt = lastLoginAt
     this.createdAt = createdAt || new Date()
     this.updatedAt = updatedAt
+    this.userRoles = userRoles
   }
 
   getFullName(): string {

@@ -37,7 +37,22 @@ export class PrismaStudentRepository implements IStudentRepository {
     const prismaStudent = await this.prisma.student.findUnique({
       where: { studentId: numericId },
       include: {
-        user: true
+        user: {
+          include: {
+            userRoles: {
+              where: {
+                isActive: true,
+                OR: [
+                  { expiresAt: null },
+                  { expiresAt: { gte: new Date() } }
+                ]
+              },
+              include: {
+                role: true
+              }
+            }
+          }
+        }
       },
     })
 
@@ -52,7 +67,22 @@ export class PrismaStudentRepository implements IStudentRepository {
     const prismaStudent = await this.prisma.student.findUnique({
       where: { userId: numericUserId },
       include: {
-        user: true
+        user: {
+          include: {
+            userRoles: {
+              where: {
+                isActive: true,
+                OR: [
+                  { expiresAt: null },
+                  { expiresAt: { gte: new Date() } }
+                ]
+              },
+              include: {
+                role: true
+              }
+            }
+          }
+        }
       },
     })
 

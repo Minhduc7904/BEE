@@ -1,6 +1,7 @@
 // src/application/dtos/student/student-response.dto.ts
 import { UserResponseDto, UpdateUserDto } from '../user/user.dto'
 import { PaginationResponseDto } from '../pagination/pagination-response.dto'
+import { RoleResponseDto } from '../role/role.dto'
 import { IsOptional, IsString, IsInt, Min, Max, Matches } from 'class-validator'
 import { Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
@@ -16,6 +17,8 @@ export class StudentResponseDto extends UserResponseDto {
 
     school?: string
 
+    roles?: RoleResponseDto[]
+
   constructor(partial: Partial<StudentResponseDto>) {
     super(partial)
     Object.assign(this, partial)
@@ -27,6 +30,16 @@ export class StudentResponseDto extends UserResponseDto {
   static fromUserWithStudent(user: any, student: any): StudentResponseDto {
     const baseUser = UserResponseDto.fromUser(user)
 
+    // Map roles từ user.userRoles nếu có
+    const roles = user.userRoles?.map((ur: any) => ({
+      roleId: ur.role?.roleId || ur.roleId,
+      roleName: ur.role?.roleName || ur.roleName,
+      description: ur.role?.description || ur.description,
+      isAssignable: ur.role?.isAssignable ?? ur.isAssignable ?? true,
+      requiredByRoleId: ur.role?.requiredByRoleId || ur.requiredByRoleId,
+      createdAt: ur.role?.createdAt || ur.createdAt,
+    })) || []
+
     return new StudentResponseDto({
       ...baseUser,
       studentId: student.studentId,
@@ -34,6 +47,7 @@ export class StudentResponseDto extends UserResponseDto {
       parentPhone: student.parentPhone,
       grade: student.grade,
       school: student.school,
+      roles,
     })
   }
 

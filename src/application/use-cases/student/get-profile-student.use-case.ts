@@ -24,6 +24,8 @@ export class GetProfileStudentUseCase {
             }
         }
 
+        console.log('Student profile fetched:', student);
+
         return BaseResponseDto.success(
             'Get profile student successfully',
             StudentResponseDto.fromStudentEntity(student)

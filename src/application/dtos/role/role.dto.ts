@@ -1,4 +1,13 @@
-import { IsOptional, IsString, MaxLength, MinLength, IsBoolean, IsNumber, Min } from 'class-validator'
+import {
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+  IsBoolean,
+  IsArray,
+  IsNumber,
+  ArrayMinSize,
+} from 'class-validator'
 import { Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 
@@ -20,9 +29,9 @@ export class CreateRoleDto {
   isAssignable?: boolean
 
   @IsOptional()
-  @IsNumber()
-  @Min(1, { message: 'Role ID phải lớn hơn 0' })
-  requiredByRoleId?: number
+  @IsArray()
+  @IsNumber({}, { each: true })
+  permissionIds?: number[]
 }
 
 export class UpdateRoleDto {
@@ -44,9 +53,16 @@ export class UpdateRoleDto {
   isAssignable?: boolean
 
   @IsOptional()
-  @IsNumber()
-  @Min(1, { message: 'Role ID phải lớn hơn 0' })
-  requiredByRoleId?: number
+  @IsArray()
+  @IsNumber({}, { each: true })
+  permissionIds?: number[]
+}
+
+export class AssignPermissionsToRoleDto {
+  @IsArray()
+  @ArrayMinSize(1, { message: 'Cần ít nhất 1 permission' })
+  @IsNumber({}, { each: true })
+  permissionIds: number[]
 }
 
 export class RoleResponseDto {
@@ -58,9 +74,9 @@ export class RoleResponseDto {
 
   isAssignable: boolean
 
-  requiredByRoleId?: number
-
   createdAt: Date
+
+  permissions?: { permissionId: number; code: string; name: string }[]
 
   requiredByRole?: RoleResponseDto
 

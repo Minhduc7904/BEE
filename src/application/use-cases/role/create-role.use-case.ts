@@ -40,7 +40,6 @@ export class CreateRoleUseCase {
         roleName: role.roleName,
         description: role.description,
         isAssignable: role.isAssignable,
-        requiredByRoleId: role.requiredByRoleId,
         createdAt: role.createdAt,
       }
 

@@ -13,7 +13,7 @@ import { UserController } from './controllers/user.controller'
 import { EmailVerificationController } from './controllers/email-verification.controller'
 import { EmailResetPasswordController} from './controllers/email-reset-password.controller'
 import { MediaController } from './controllers/media.controller'
-
+import { ProfileAdminController } from './controllers/profile.admin.controller'
 @Module({
   imports: [ApplicationModule, InfrastructureModule, SharedModule],
   controllers: [
@@ -27,6 +27,7 @@ import { MediaController } from './controllers/media.controller'
     EmailVerificationController,
     EmailResetPasswordController,
     MediaController,
+    ProfileAdminController,
   ],
 })
 export class PresentationModule {}

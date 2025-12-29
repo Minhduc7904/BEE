@@ -1,1 +1,3 @@
 export * from './update-admin.use-case';
+export * from './get-admin-profile.use-case';
+export * from './update-admin-profile.use-case';

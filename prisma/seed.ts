@@ -15,7 +15,6 @@ async function main() {
             roleName: 'SUPER_ADMIN',
             description: 'Super Administrator - có thể cấp mọi role',
             isAssignable: false,
-            requiredByRoleId: null, // Không cần role nào
         },
     });
 
@@ -26,18 +25,6 @@ async function main() {
             roleName: 'ADMIN',
             description: 'System Administrator',
             isAssignable: true,
-            requiredByRoleId: superAdminRole.roleId, // Chỉ SUPER_ADMIN mới cấp được
-        },
-    });
-
-    const permissionsUserRole = await prisma.role.upsert({
-        where: { roleName: 'PERMISSIONS_USER' },
-        update: {},
-        create: {
-            roleName: 'PERMISSIONS_USER',
-            description: 'User có thể quản lý quyền của người dùng khác',
-            isAssignable: true,
-            requiredByRoleId: adminRole.roleId, // Chỉ ADMIN mới cấp được
         },
     });
 
@@ -48,7 +35,6 @@ async function main() {
             roleName: 'TEACHER',
             description: 'Teacher/Instructor',
             isAssignable: true,
-            requiredByRoleId: permissionsUserRole.roleId, // Phải có quyền cấp role mới cấp được
         },
     });
 
@@ -59,7 +45,6 @@ async function main() {
             roleName: 'STUDENT',
             description: 'Student',
             isAssignable: true,
-            requiredByRoleId: permissionsUserRole.roleId, // Phải có quyền cấp role mới cấp được
         },
     });
 
@@ -69,17 +54,17 @@ async function main() {
     console.log('👤 Seeding admin users...');
     const hashedPassword = await bcrypt.hash('070904', 10);
 
-    // const superAdminUser = await prisma.user.upsert({
-    //     where: { username: 'minhduc7904' },
-    //     update: {},
-    //     create: {
-    //         username: 'minhduc7904',
-    //         email: 'nmduc7904@gmail.com',
-    //         passwordHash: hashedPassword,
-    //         firstName: 'Đức',
-    //         lastName: 'Nguyễn Minh',
-    //     },
-    // });
+    const superAdminUser = await prisma.user.upsert({
+        where: { username: 'minhduc7904' },
+        update: {},
+        create: {
+            username: 'minhduc7904',
+            email: 'nmduc7904@gmail.com',
+            passwordHash: hashedPassword,
+            firstName: 'Đức',
+            lastName: 'Nguyễn Minh',
+        },
+    });
 
     // const adminUser = await prisma.user.upsert({
     //     where: { username: 'admin' },
@@ -93,14 +78,14 @@ async function main() {
     //     },
     // });
 
-    // // 3. Tạo admin records
-    // const superAdmin = await prisma.admin.upsert({
-    //     where: { userId: superAdminUser.userId },
-    //     update: {},
-    //     create: {
-    //         userId: superAdminUser.userId,
-    //     },
-    // });
+    // 3. Tạo admin records
+    const superAdmin = await prisma.admin.upsert({
+        where: { userId: superAdminUser.userId },
+        update: {},
+        create: {
+            userId: superAdminUser.userId,
+        },
+    });
 
     // const adminRecord = await prisma.admin.upsert({
     //     where: { userId: adminUser.userId },
@@ -111,21 +96,21 @@ async function main() {
     // });
 
     // // 4. Gán roles cho admins bằng UserRole
-    // await prisma.userRole.upsert({
-    //     where: {
-    //         userId_roleId: {
-    //             userId: superAdminUser.userId,
-    //             roleId: superAdminRole.roleId,
-    //         },
-    //     },
-    //     update: {},
-    //     create: {
-    //         userId: superAdminUser.userId,
-    //         roleId: superAdminRole.roleId,
-    //         assignedBy: null, // Tự cấp
-    //         expiresAt: null, // Vĩnh viễn
-    //     },
-    // });
+    await prisma.userRole.upsert({
+        where: {
+            userId_roleId: {
+                userId: superAdminUser.userId,
+                roleId: superAdminRole.roleId,
+            },
+        },
+        update: {},
+        create: {
+            userId: superAdminUser.userId,
+            roleId: superAdminRole.roleId,
+            assignedBy: null, // Tự cấp
+            expiresAt: null, // Vĩnh viễn
+        },
+    });
 
     // await prisma.userRole.upsert({
     //     where: {
