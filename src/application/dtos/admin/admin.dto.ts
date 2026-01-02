@@ -2,6 +2,7 @@
 import { UserResponseDto, UpdateUserDto } from '..'
 import { IsOptional, IsNumber, IsPositive } from 'class-validator'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
+import { RoleWithPermissionsResponseDto } from '../role/role.dto'
 
 export class AdminResponseDto extends UserResponseDto {
   adminId: number
@@ -9,6 +10,8 @@ export class AdminResponseDto extends UserResponseDto {
   subjectId?: number
 
   subject?: string
+
+  roles?: RoleWithPermissionsResponseDto[]
 
   constructor(partial: Partial<AdminResponseDto>) {
     super(partial)
@@ -26,6 +29,16 @@ export class AdminResponseDto extends UserResponseDto {
       adminId: admin.adminId,
       subjectId: admin.subjectId,
       subject: admin.getSubjectName ? admin.getSubjectName() : admin.subject?.name,
+      roles: user.userRoles
+        ? user.userRoles
+          .filter((ur: any) => {
+            const now = new Date()
+            const isActive = ur.isActive
+            const notExpired = !ur.expiresAt || new Date(ur.expiresAt) > now
+            return isActive && notExpired
+          })
+          .map((ur: any) => RoleWithPermissionsResponseDto.fromRoleWithPermissions(ur.role))
+        : [],
     })
   }
 

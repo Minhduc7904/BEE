@@ -19,6 +19,20 @@ export class MediaResponseDto {
   description?: string
   alt?: string
   uploadedBy?: number
+  uploader?: {
+    userId: number
+    username: string
+    firstName: string
+    lastName: string
+  }
+  usages?: Array<{
+    usageId: number
+    entityType: string
+    entityId: number
+    fieldName: string | null
+    visibility: string
+    createdAt: Date
+  }>
   createdAt: Date
   updatedAt: Date
 
@@ -41,6 +55,13 @@ export class MediaResponseDto {
     dto.description = undefined // Not in entity yet
     dto.alt = undefined // Not in entity yet
     dto.uploadedBy = entity.uploadedBy
+    dto.uploader = entity.uploader ? {
+      userId: entity.uploader.userId,
+      username: entity.uploader.username,
+      firstName: entity.uploader.firstName,
+      lastName: entity.uploader.lastName,
+    } : undefined
+    dto.usages = entity.usages
     dto.createdAt = entity.createdAt
     dto.updatedAt = entity.updatedAt
     return dto

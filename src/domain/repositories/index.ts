@@ -7,4 +7,5 @@ export * from './document.repository';
 export * from './admin.repository';
 export * from './email-verification-token.repository';
 export * from './role.repository';
+export * from './permission.repository';
 export * from './reset-password-token.repository'

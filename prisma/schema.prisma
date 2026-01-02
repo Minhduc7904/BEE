@@ -54,7 +54,6 @@ model User {
   email        String? @db.VarChar(120) // 1 user có thể có hoặc không có email
   passwordHash String  @map("password_hash") @db.VarChar(255)
 
-  avatarId  Int?   @map("avatar_id")
   firstName String @map("first_name") @db.VarChar(50)
   lastName  String @map("last_name") @db.VarChar(100)
 
@@ -72,7 +71,6 @@ model User {
   emailVerifiedAt DateTime? @map("email_verified_at") @db.Timestamp(0)
 
   // Relations
-  avatar                 Media?                   @relation("UserAvatar", fields: [avatarId], references: [mediaId], onDelete: SetNull)
   uploadedMedia          Media[]                  @relation("MediaUploader")
   student                Student?                 @relation("UserStudent")
   admin                  Admin?                   @relation("UserAdmin")
@@ -83,7 +81,6 @@ model User {
   PasswordResetToken     PasswordResetToken[]
 
   @@index([lastName, firstName], map: "idx_users_name")
-  @@index([avatarId], map: "idx_users_avatar_id")
   @@map("users")
 }
 
@@ -340,24 +337,18 @@ model Chapter {
 }
 
 model Exam {
-  examId         Int      @id @default(autoincrement()) @map("exam_id") @db.Int
-  title          String   @map("title") @db.VarChar(255)
-  description    String?  @map("description") @db.Text
-  grade          Int      @map("grade") @db.TinyInt
-  subjectId      Int?     @map("subject_id")
-  imageId        Int?     @map("image_id")
-  fileId         Int?     @map("file_id")
-  solutionFileId Int?     @map("solution_file_id")
-  createdBy      Int      @map("created_by")
-  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+  examId      Int      @id @default(autoincrement()) @map("exam_id") @db.Int
+  title       String   @map("title") @db.VarChar(255)
+  description String?  @map("description") @db.Text
+  grade       Int      @map("grade") @db.TinyInt
+  subjectId   Int?     @map("subject_id")
+  createdBy   Int      @map("created_by")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
   subject      Subject?       @relation("ExamSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
   admin        Admin          @relation("ExamCreatedBy", fields: [createdBy], references: [adminId], onDelete: Cascade)
-  image        Media?         @relation("ExamImage", fields: [imageId], references: [mediaId], onDelete: SetNull)
-  file         Media?         @relation("ExamFile", fields: [fileId], references: [mediaId], onDelete: SetNull)
-  solutionFile Media?         @relation("ExamSolutionFile", fields: [solutionFileId], references: [mediaId], onDelete: SetNull)
   competitions Competition[]
   questions    QuestionExam[]
 
@@ -365,9 +356,6 @@ model Exam {
   @@index([subjectId], map: "idx_exams_subject_id")
   @@index([createdBy], map: "idx_exams_created_by")
   @@index([createdAt], map: "idx_exams_created_at")
-  @@index([imageId], map: "idx_exams_image_id")
-  @@index([fileId], map: "idx_exams_file_id")
-  @@index([solutionFileId], map: "idx_exams_solution_file_id")
   @@map("exams")
 }
 
@@ -375,13 +363,11 @@ model Question {
   questionId         Int          @id @default(autoincrement()) @map("question_id")
   content            String       @map("content") @db.Text
   type               QuestionType @map("type")
-  imageId            Int?         @map("image_id")
   correctAnswer      String?      @map("correct_answer") @db.Text
   solution           String?      @map("solution") @db.Text
   chapterId          Int?         @map("chapter_id")
   difficulty         Difficulty   @map("difficulty")
   solutionYoutubeUrl String?      @map("solution_youtube_url") @db.VarChar(500)
-  solutionImageId    Int?         @map("solution_image_id")
   grade              Int          @map("grade") @db.TinyInt
   subjectId          Int?         @map("subject_id")
   createdBy          Int?         @map("created_by") // admin tạo câu hỏi
@@ -392,8 +378,6 @@ model Question {
   subject       Subject?       @relation("QuestionSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
   chapter       Chapter?       @relation("QuestionChapter", fields: [chapterId], references: [chapterId], onDelete: SetNull)
   admin         Admin?         @relation("QuestionCreatedBy", fields: [createdBy], references: [adminId], onDelete: SetNull)
-  image         Media?         @relation("QuestionImage", fields: [imageId], references: [mediaId], onDelete: SetNull)
-  solutionImage Media?         @relation("QuestionSolutionImage", fields: [solutionImageId], references: [mediaId], onDelete: SetNull)
   statements    Statement[]
   examQuestions QuestionExam[]
 
@@ -404,8 +388,6 @@ model Question {
   @@index([difficulty], map: "idx_questions_difficulty")
   @@index([createdBy], map: "idx_questions_created_by")
   @@index([createdAt], map: "idx_questions_created_at")
-  @@index([imageId], map: "idx_questions_image_id")
-  @@index([solutionImageId], map: "idx_questions_solution_image_id")
   @@map("questions")
 }
 
@@ -416,17 +398,14 @@ model Statement {
   isCorrect   Boolean     @map("is_correct")
   order       Int?        @map("order")
   difficulty  Difficulty? @map("difficulty")
-  imageId     Int?        @map("image_id")
   createdAt   DateTime    @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
   question Question @relation(fields: [questionId], references: [questionId], onDelete: Cascade)
-  image    Media?   @relation("StatementImage", fields: [imageId], references: [mediaId], onDelete: SetNull)
 
   @@index([questionId], map: "idx_statements_question_id")
   @@index([isCorrect], map: "idx_statements_is_correct")
-  @@index([imageId], map: "idx_statements_image_id")
   @@map("statements")
 }
 
@@ -486,18 +465,15 @@ model LearningItem {
   type           LearningItemType @map("type")
   title          String           @map("title") @db.VarChar(255)
   description    String?          @map("description") @db.Text
-  contentMediaId Int?             @map("content_media_id")
   competitionId  Int?             @map("competition_id") @db.Int
   createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
-  contentMedia Media?               @relation("LearningItemContent", fields: [contentMediaId], references: [mediaId], onDelete: SetNull)
-  competition  Competition?         @relation(fields: [competitionId], references: [competitionId], onDelete: Cascade)
-  lessons      LessonLearningItem[]
+  competition Competition?         @relation(fields: [competitionId], references: [competitionId], onDelete: Cascade)
+  lessons     LessonLearningItem[]
 
   @@index([type], map: "idx_learning_items_type")
-  @@index([contentMediaId], map: "idx_learning_items_content_media")
   @@index([createdAt], map: "idx_learning_items_created_at")
   @@map("learning_items")
 }
@@ -506,7 +482,6 @@ model Course {
   courseId       Int        @id @default(autoincrement()) @map("course_id")
   title          String     @map("title") @db.VarChar(200)
   subtitle       String?    @map("subtitle") @db.VarChar(255)
-  thumbnailId    Int?       @map("thumbnail_id")
   academicYear   String?    @map("academic_year") @db.VarChar(9) // ví dụ '2024-2025'
   grade          String?    @map("grade") @db.VarChar(10) // ví dụ '12'
   subjectId      Int?       @map("subject_id")
@@ -521,7 +496,6 @@ model Course {
   // Relations
   subject   Subject?         @relation("CourseSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
   teacher   Admin?           @relation("CourseTeacher", fields: [teacherId], references: [adminId], onDelete: SetNull)
-  thumbnail Media?           @relation("CourseThumbnail", fields: [thumbnailId], references: [mediaId], onDelete: SetNull)
   schedules CourseSchedule[]
   lessons   Lesson[]
 
@@ -529,7 +503,6 @@ model Course {
   @@index([grade, subjectId], map: "idx_courses_grade_subject")
   @@index([subjectId], map: "idx_courses_subject_id")
   @@index([teacherId], map: "idx_courses_teacher_id")
-  @@index([thumbnailId], map: "idx_courses_thumbnail_id")
   @@index([createdAt], map: "idx_courses_created_at")
   @@map("courses")
 }
@@ -607,6 +580,12 @@ enum MediaStatus {
   DELETED
 }
 
+enum MediaVisibility {
+  PUBLIC // ai cũng xem được
+  PRIVATE // chỉ owner / admin
+  PROTECTED // cần login / permission
+}
+
 model MediaFolder {
   folderId    Int      @id @default(autoincrement()) @map("folder_id")
   name        String   @map("name") @db.VarChar(255)
@@ -657,18 +636,9 @@ model Media {
   updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
-  folder                MediaFolder?   @relation(fields: [folderId], references: [folderId], onDelete: SetNull)
-  uploader              User?          @relation("MediaUploader", fields: [uploadedBy], references: [userId], onDelete: SetNull)
-  usages                MediaUsage[]
-  userAvatar            User[]         @relation("UserAvatar")
-  courseThumbnail       Course[]       @relation("CourseThumbnail")
-  learningItemContent   LearningItem[] @relation("LearningItemContent")
-  statementImage        Statement[]    @relation("StatementImage")
-  questionImage         Question[]     @relation("QuestionImage")
-  questionSolutionImage Question[]     @relation("QuestionSolutionImage")
-  examImage             Exam[]         @relation("ExamImage")
-  examFile              Exam[]         @relation("ExamFile")
-  examSolutionFile      Exam[]         @relation("ExamSolutionFile")
+  folder   MediaFolder? @relation(fields: [folderId], references: [folderId], onDelete: SetNull)
+  uploader User?        @relation("MediaUploader", fields: [uploadedBy], references: [userId], onDelete: SetNull)
+  usages   MediaUsage[]
 
   @@unique([bucketName, objectKey], map: "unique_media_location")
   @@index([type], map: "idx_media_type")
@@ -681,13 +651,14 @@ model Media {
 }
 
 model MediaUsage {
-  usageId    Int      @id @default(autoincrement()) @map("usage_id")
-  mediaId    Int      @map("media_id")
-  entityType String   @map("entity_type") @db.VarChar(50) // "USER", "COURSE", "QUESTION", "LESSON", etc
-  entityId   Int      @map("entity_id")
-  fieldName  String?  @map("field_name") @db.VarChar(100) // "avatar", "thumbnail", "banner", "content_image", etc
-  usedBy     Int?     @map("used_by") // user nào sử dụng media này
-  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  usageId    Int             @id @default(autoincrement()) @map("usage_id")
+  mediaId    Int             @map("media_id")
+  entityType String          @map("entity_type") @db.VarChar(50) // "USER", "COURSE", "QUESTION", "LESSON", etc
+  entityId   Int             @map("entity_id")
+  fieldName  String?         @map("field_name") @db.VarChar(100) // "avatar", "thumbnail", "banner", "content_image", etc
+  usedBy     Int?            @map("used_by") // user nào sử dụng media này
+  visibility MediaVisibility @default(PRIVATE) @map("visibility") // phạm vi sử dụng
+  createdAt  DateTime        @default(now()) @map("created_at") @db.Timestamp(0)
 
   // Relations
   media Media @relation(fields: [mediaId], references: [mediaId], onDelete: Cascade)

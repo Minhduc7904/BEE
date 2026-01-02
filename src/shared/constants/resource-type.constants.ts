@@ -2,6 +2,8 @@
 
 export const RESOURCE_TYPES = {
   ROLE: 'ROLE',
+  PERMISSION: 'PERMISSION',
+  USER_ROLE: 'USER_ROLE',
   USER: 'USER',
   DOCUMENT: 'DOCUMENT',
   QUESTION_IMAGE: 'QUESTION_IMAGE',
@@ -15,6 +17,18 @@ export const RESOURCE_TYPE_TABLE = {
     displayName: 'Role',
     tableName: 'roles',
     primaryKey: 'roleId',
+    repositoryName: 'roleRepository',
+  },
+  [RESOURCE_TYPES.PERMISSION]: {
+    displayName: 'Permission',
+    tableName: 'permissions',
+    primaryKey: 'permissionId',
+    repositoryName: 'permissionRepository',
+  },
+  [RESOURCE_TYPES.USER_ROLE]: {
+    displayName: 'User Role',
+    tableName: 'user_roles',
+    primaryKey: 'userId,roleId',
     repositoryName: 'roleRepository',
   },
   [RESOURCE_TYPES.USER]: {

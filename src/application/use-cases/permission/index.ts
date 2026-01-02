@@ -1,0 +1,6 @@
+export * from './create-permission.use-case'
+export * from './get-permission.use-case'
+export * from './get-all-permissions.use-case'
+export * from './get-permission-groups.use-case'
+export * from './update-permission.use-case'
+export * from './delete-permission.use-case'

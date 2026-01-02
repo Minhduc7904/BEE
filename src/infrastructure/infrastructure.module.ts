@@ -8,11 +8,15 @@ import {
   PrismaUnitOfWork,
   PrismaUserRepository,
   PrismaRoleRepository,
+  PrismaPermissionRepository,
   PrismaStudentRepository,
   PrismaEmailVerificationTokenRepository,
   PrismaAdminRepository,
   PrismaResetPasswordTokenRepository,
-  PrismaMediaRepository
+  PrismaMediaRepository,
+  PrismaAdminLogRepository,
+  PrismaMediaFolderRepository,
+  PrismaMediaUsageRepository,
 } from './repositories'
 import {
   PasswordService,
@@ -22,7 +26,8 @@ import {
   HttpClientService,
   AuthService,
   ResendEmailService,
-  SupabaseStorageService
+  SupabaseStorageService,
+  MediaProcessingService,
 } from './services'
 import { GoogleAdminStrategy } from './strategies/google-admin.strategy'
 import { GoogleStudentStrategy } from './strategies/google-student.strategy'
@@ -64,6 +69,11 @@ import supabaseConfig from '../config/supabase.config'
       inject: [PrismaService],
     },
     {
+      provide: 'IPermissionRepository',
+      useFactory: (prisma: PrismaService) => new PrismaPermissionRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
       provide: 'IStudentRepository',
       useFactory: (prisma: PrismaService) => new PrismaStudentRepository(prisma),
       inject: [PrismaService],
@@ -81,6 +91,21 @@ import supabaseConfig from '../config/supabase.config'
     {
       provide: 'IMediaRepository',
       useFactory: (prisma: PrismaService) => new PrismaMediaRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IMediaFolderRepository',
+      useFactory: (prisma: PrismaService) => new PrismaMediaFolderRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IMediaUsageRepository',
+      useFactory: (prisma: PrismaService) => new PrismaMediaUsageRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IAdminAuditLogRepository',
+      useFactory: (prisma: PrismaService) => new PrismaAdminLogRepository(prisma),
       inject: [PrismaService],
     },
     {
@@ -112,6 +137,7 @@ import supabaseConfig from '../config/supabase.config'
       provide: 'IStorageService',
       useClass: SupabaseStorageService,
     },
+    MediaProcessingService,
     GoogleAdminStrategy,
     GoogleStudentStrategy,
   ],
@@ -120,10 +146,14 @@ import supabaseConfig from '../config/supabase.config'
     'IUserRepository',
     'IAdminRepository',
     'IRoleRepository',
+    'IPermissionRepository',
+    'IAdminAuditLogRepository',
     'IStudentRepository',
     'IEmailVerificationTokenRepository',
     'IPasswordResetTokenRepository',
     'IMediaRepository',
+    'IMediaFolderRepository',
+    'IMediaUsageRepository',
     'PASSWORD_SERVICE',
     'JWT_TOKEN_SERVICE',
     'TOKEN_HASH_SERVICE',
@@ -132,6 +162,7 @@ import supabaseConfig from '../config/supabase.config'
     'AUTH_SERVICE',
     'IEmailService',
     'IStorageService',
+    MediaProcessingService,
   ],
 })
 

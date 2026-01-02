@@ -59,6 +59,52 @@ export class PrismaRoleRepository implements IRoleRepository {
     return RoleMapper.toDomainRoles(roles)
   }
 
+  async findAllWithPermissionsCount(limit?: number, offset?: number): Promise<(Role & { permissionsCount: number })[]> {
+    const roles = await this.prisma.role.findMany({
+      take: limit,
+      skip: offset,
+      include: {
+        _count: {
+          select: { rolePermissions: true }
+        }
+      }
+    })
+
+    return roles.map(role => {
+      const domainRole = RoleMapper.toDomainRole(role)!
+      return Object.assign(domainRole, { permissionsCount: role._count.rolePermissions })
+    })
+  }
+
+  async findByIdWithPermissions(id: number): Promise<(Role & { permissions: any[] }) | null> {
+    const numericId = NumberUtil.ensureValidId(id, 'Role ID')
+
+    const role = await this.prisma.role.findUnique({
+      where: { roleId: numericId },
+      include: {
+        rolePermissions: {
+          include: {
+            permission: {
+              select: {
+                permissionId: true,
+                code: true,
+                name: true,
+                group: true
+              }
+            }
+          }
+        }
+      }
+    })
+
+    if (!role) return null
+
+    const domainRole = RoleMapper.toDomainRole(role)!
+    return Object.assign(domainRole, {
+      permissions: role.rolePermissions.map(rp => rp.permission)
+    })
+  }
+
   async update(id: number, data: UpdateRoleData): Promise<Role> {
     const numericId = NumberUtil.ensureValidId(id, 'Role ID')
 
@@ -107,7 +153,15 @@ export class PrismaRoleRepository implements IRoleRepository {
             OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
           },
           include: {
-            role: true,
+            role: {
+              include: {
+                rolePermissions: {
+                  include: {
+                    permission: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
@@ -119,6 +173,26 @@ export class PrismaRoleRepository implements IRoleRepository {
     }
 
     return UserRoleMapper.toDomainUserRoles(user.userRoles)
+  }
+
+  async getUserRole(userId: number, roleId: number): Promise<UserRole | null> {
+    const numericUserId = NumberUtil.ensureValidId(userId, 'User ID')
+    const numericRoleId = NumberUtil.ensureValidId(roleId, 'Role ID')
+    const userRole = await this.prisma.userRole.findUnique({
+      where: {
+        userId_roleId: {
+          userId: numericUserId,
+          roleId: numericRoleId,
+        },
+      },
+      include: {
+        role: true,
+      },
+    })
+    if (!userRole) {
+      return null
+    }
+    return UserRoleMapper.toDomainUserRole(userRole)!
   }
 
   async assignRoleToUser(userId: number, roleId: number, assignedBy?: number, expiresAt?: Date): Promise<UserRole> {
@@ -155,5 +229,137 @@ export class PrismaRoleRepository implements IRoleRepository {
         created.role.createdAt,
       ),
     )
+  }
+
+  async updateUserRole(userId: number, roleId: number, data: Partial<UserRole>): Promise<UserRole> {
+    {
+      const numericUserId = NumberUtil.ensureValidId(userId, 'User ID')
+      const numericRoleId = NumberUtil.ensureValidId(roleId, 'Role ID')
+      const dataToUpdate: any = {}
+
+      if (data.expiresAt !== undefined) {
+        dataToUpdate.expiresAt = data.expiresAt
+      }
+      if (data.isActive !== undefined) {
+        dataToUpdate.isActive = data.isActive
+        if (data.isActive) {
+          dataToUpdate.assignedAt = new Date()
+        }
+      }
+      if (data.assignedBy !== undefined) {
+        dataToUpdate.assignedBy = data.assignedBy
+      }
+
+      const updated = await this.prisma.userRole.update({
+        where: {
+          userId_roleId: {
+            userId: numericUserId,
+            roleId: numericRoleId,
+          },
+        },
+        data: dataToUpdate,
+      })
+
+      if (updated.count === 0) {
+        throw new Error('No active user role found to update')
+      }
+      const userRoleRecord = await this.prisma.userRole.findUnique({
+        where: {
+          userId_roleId: {
+            userId: numericUserId,
+            roleId: numericRoleId,
+          },
+        },
+        include: {
+          role: true,
+        },
+      })
+      return new UserRole(
+        userRoleRecord!.userId,
+        userRoleRecord!.roleId,
+        userRoleRecord!.assignedAt,
+        userRoleRecord!.expiresAt,
+        userRoleRecord!.assignedBy,
+        userRoleRecord!.isActive,
+        new Role(
+          userRoleRecord!.role.roleId,
+          userRoleRecord!.role.roleName,
+          userRoleRecord!.role.description,
+          userRoleRecord!.role.isAssignable,
+          userRoleRecord!.role.requiredByRoleId,
+          userRoleRecord!.role.createdAt,
+        ),
+      )
+    }
+  }
+
+  async removeRoleFromUser(userId: number, roleId: number, removedBy?: number): Promise<void> {
+    const numericUserId = NumberUtil.ensureValidId(userId, 'User ID')
+    const numericRoleId = NumberUtil.ensureValidId(roleId, 'Role ID')
+    await this.prisma.userRole.updateMany({
+      where: {
+        userId: numericUserId,
+        roleId: numericRoleId,
+        isActive: true,
+      },
+      data: {
+        isActive: false,
+      },
+    })
+  }
+
+  async hasRole(userId: number, roleId: number): Promise<boolean> {
+    const numericUserId = NumberUtil.ensureValidId(userId, 'User ID')
+    const numericRoleId = NumberUtil.ensureValidId(roleId, 'Role ID')
+    const count = await this.prisma.userRole.count({
+      where: {
+        userId: numericUserId,
+        roleId: numericRoleId,
+        isActive: true,
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      },
+    })
+    return count > 0
+  }
+
+
+  async hasPermission(roleId: number, permissionId: number): Promise<boolean> {
+    const numericRoleId = NumberUtil.ensureValidId(roleId, 'Role ID')
+    const numericPermissionId = NumberUtil.ensureValidId(permissionId, 'Permission ID')
+
+    const count = await this.prisma.rolePermission.count({
+      where: {
+        roleId: numericRoleId,
+        permissionId: numericPermissionId,
+      },
+    })
+
+    return count > 0
+  }
+
+  async addPermission(roleId: number, permissionId: number): Promise<void> {
+    const numericRoleId = NumberUtil.ensureValidId(roleId, 'Role ID')
+    const numericPermissionId = NumberUtil.ensureValidId(permissionId, 'Permission ID')
+
+    await this.prisma.rolePermission.create({
+      data: {
+        roleId: numericRoleId,
+        permissionId: numericPermissionId,
+      },
+    })
+  }
+
+  async removePermission(roleId: number, permissionId: number): Promise<void> {
+    const numericRoleId = NumberUtil.ensureValidId(roleId, 'Role ID')
+    const numericPermissionId = NumberUtil.ensureValidId(permissionId, 'Permission ID')
+
+    await this.prisma.rolePermission.delete({
+      where: {
+        roleId_permissionId: {
+          roleId: numericRoleId,
+          permissionId: numericPermissionId,
+        },
+      },
+    })
   }
 }

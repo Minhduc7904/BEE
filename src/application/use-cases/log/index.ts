@@ -1,1 +1,5 @@
-export * from './roll-back.use-case';
+export * from './roll-back.use-case'
+export * from './get-audit-log.use-case'
+export * from './get-all-audit-logs.use-case'
+export * from './get-audit-logs-by-admin.use-case'
+export * from './get-audit-logs-by-resource.use-case'

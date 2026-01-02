@@ -4,56 +4,67 @@ import { IsEnumValue, Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 
 export class CreateLogDto {
-    @Trim()
+  @Trim()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Key hành động') })
   actionKey: string
 
-    @Trim()
+  @Trim()
   @IsEnumValue(AuditStatus, { message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái') })
   status: AuditStatus
 
-    @Trim()
+  @Trim()
   @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Thông báo lỗi') })
   errorMessage?: string
 
-    @Trim()
+  @Trim()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Loại tài nguyên') })
   resourceType: string
 
-    @Trim()
+  @Trim()
   @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('ID tài nguyên') })
   resourceId?: string
 
-    @Trim()
+  @Trim()
   @IsOptional()
   beforeData?: any
 
-    @Trim()
+  @Trim()
   @IsOptional()
   afterData?: any
 
-    @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_REQUIRED('ID admin') })
+  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_REQUIRED('ID admin') })
   adminId: number
 }
 
 export class LogResponseDto {
-    logId: number
+  logId: number
 
-    actionKey: string
+  actionKey: string
 
-    status: AuditStatus
+  status: AuditStatus
 
-    errorMessage?: string
+  errorMessage?: string
 
-    resourceType: string
+  resourceType: string
 
-    resourceId?: string
+  resourceId?: string
 
-    beforeData?: any
+  beforeData?: any
 
-    afterData?: any
+  afterData?: any
 
-    createdAt: Date
+  createdAt: Date
+  admin?: {
+        adminId: number
+        userId: number
+        username?: string
+        firstName?: string
+        lastName?: string
+        email?: string
+        avatarUrl?: string
+    }
 }
+
+    

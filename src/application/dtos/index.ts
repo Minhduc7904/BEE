@@ -25,6 +25,8 @@ export * from './log/log.dto'
 // Role DTOs
 export * from './role/role.dto'
 export * from './role/user-role.dto'
+export * from './role/permission.dto'
+export * from './permission/permission-list-query.dto'
 
 // Student DTOs
 export * from './student/student.dto'
@@ -35,7 +37,7 @@ export * from './user/user.dto'
 export * from './user/update-avatar.dto'
 
 // Admin DTOs
-export * from './admin/admin.dto'
+export * from './admin'
 
 // Media DTOs
 export * from './media/media-response.dto'

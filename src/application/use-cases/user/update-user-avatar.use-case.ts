@@ -61,6 +61,14 @@ export class UpdateUserAvatarUseCase {
                     }
                 }
 
+                // Generate presigned URL for the uploaded avatar (expires in 7 days)
+                const avatarUrl = await this.minioService.getPresignedDownloadUrl(
+                    uploadResult.bucketName,
+                    uploadResult.objectKey,
+                    7 * 24 * 3600, // 7 days
+                    originalName,
+                )
+
                 // 7. Lưu thông tin avatar mới vào Media
                 const newAvatar = await repos.mediaRepository.create({
                     bucketName: uploadResult.bucketName,
@@ -70,7 +78,7 @@ export class UpdateUserAvatarUseCase {
                     fileSize: file.length,
                     type: 'IMAGE' as any,
                     status: 'READY' as any,
-                    publicUrl: uploadResult.publicUrl,
+                    // publicUrl: avatarUrl,
                     uploadedBy: userId
                 })
 
@@ -83,7 +91,7 @@ export class UpdateUserAvatarUseCase {
                 return BaseResponseDto.success('Cập nhật avatar thành công', {
                     userId: userId,
                     avatarId: newAvatar.mediaId,
-                    url: uploadResult.publicUrl,
+                    url: avatarUrl,
                 })
 
             } catch (uploadError) {

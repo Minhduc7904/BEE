@@ -1,21 +1,21 @@
 // src/application/dtos/pagination-response.dto.ts
 
 export class PaginationMetaDto {
-    page: number
+  page: number
 
-    limit: number
+  limit: number
 
-    total: number
+  total: number
 
-    totalPages: number
+  totalPages: number
 
-    hasPrevious: boolean
+  hasPrevious: boolean
 
-    hasNext: boolean
+  hasNext: boolean
 
-    previousPage?: number
+  previousPage?: number
 
-    nextPage?: number
+  nextPage?: number
 
   constructor(page: number, limit: number, total: number) {
     this.page = page
@@ -30,13 +30,13 @@ export class PaginationMetaDto {
 }
 
 export class PaginationResponseDto<TData = any> {
-    success: boolean
+  success: boolean
 
-    message: string
+  message: string
 
-    data: TData[]
+  data: TData[]
 
-    meta: PaginationMetaDto
+  meta: PaginationMetaDto
 
   constructor(success: boolean, message: string, data: TData[], meta: PaginationMetaDto) {
     this.success = success

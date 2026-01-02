@@ -11,22 +11,20 @@ export class GetAdminProfileUseCase {
   ) {}
 
   async execute(userId: number): Promise<BaseResponseDto<AdminResponseDto>> {
-    // Tìm admin theo userId
+    // Tìm admin theo userId với đầy đủ thông tin user, roles và permissions
     const admin = await this.adminRepository.findByUserId(userId)
     
     if (!admin) {
       throw new NotFoundException('Admin profile not found')
     }
 
-    // Load avatar từ Media nếu có
-    if (admin.user && admin.user.avatarId) {
-      // Nếu cần load avatar, có thể inject thêm IMediaRepository
-      // hoặc sử dụng method có sẵn từ adminRepository nếu có
-    }
+    // Mapper sẽ tự động xử lý việc lọc roles active và chưa expire
+    // cũng như map permissions cho từng role
+    const adminResponse = AdminResponseDto.fromUserWithAdmin(admin.user, admin)
 
     return BaseResponseDto.success(
       'Get admin profile successfully',
-      AdminResponseDto.fromUserWithAdmin(admin.user, admin),
+      adminResponse,
     )
   }
 }

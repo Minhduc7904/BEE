@@ -4,6 +4,7 @@ import { IAdminRepository } from './admin.repository'
 import { IStudentRepository } from './student.repository'
 import { IUserRefreshTokenRepository } from './user-refresh-token.repository'
 import { IRoleRepository } from './role.repository'
+import { IPermissionRepository } from './permission.repository'
 import { IAdminAuditLogRepository } from './admin-audit-log.repository'
 import { IMediaRepository } from './media.repository'
 
@@ -14,6 +15,7 @@ export interface UnitOfWorkRepos {
   studentRepository: IStudentRepository
   userRefreshTokenRepository: IUserRefreshTokenRepository
   roleRepository: IRoleRepository
+  permissionRepository: IPermissionRepository
   adminAuditLogRepository: IAdminAuditLogRepository
   mediaRepository: IMediaRepository
 }

@@ -64,4 +64,34 @@ export class UpdatePermissionDto {
   @IsString()
   @MaxLength(50)
   group?: string
+
+  @IsOptional()
+  @IsBoolean()
+  isSystem?: boolean
+}
+
+export class PermissionResponseDto {
+  permissionId: number
+  code: string
+  name: string
+  description?: string
+  group?: string
+  isSystem: boolean
+  createdAt: Date
+
+  constructor(partial: Partial<PermissionResponseDto>) {
+    Object.assign(this, partial)
+  }
+
+  static fromPermission(permission: any): PermissionResponseDto {
+    return new PermissionResponseDto({
+      permissionId: permission.permissionId,
+      code: permission.code,
+      name: permission.name,
+      description: permission.description,
+      group: permission.group,
+      isSystem: permission.isSystem,
+      createdAt: permission.createdAt,
+    })
+  }
 }

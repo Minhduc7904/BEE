@@ -6,68 +6,74 @@ import { Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 
 export class StudentListQueryDto extends ListQueryDto {
-    @IsOptional()
+  @IsOptional()
   @Type(() => Number)
   @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Lớp') })
   @Min(1, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Lớp', 1) })
   @Max(12, { message: VALIDATION_MESSAGES.FIELD_MAX_VALUE('Lớp', 12) })
   grade?: number
 
-    @Trim()
+  @Trim()
   @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tên trường') })
   school?: string
 
-    @Trim()
+  @Trim()
   @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Số điện thoại học sinh') })
   studentPhone?: string
 
-    @Trim()
+  @Trim()
   @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Số điện thoại phụ huynh') })
   parentPhone?: string
 
-    @Trim()
+  @Trim()
   @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Username') })
   username?: string
 
-    @Trim()
+  @Trim()
   @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Email') })
   email?: string
 
-    @Trim()
+  @Trim()
   @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tên') })
   firstName?: string
 
-    @Trim()
+  @Trim()
   @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Họ') })
   lastName?: string
 
-    @IsOptional()
+  @IsOptional()
   @Type(() => Boolean)
   @IsBoolean({ message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái hoạt động') })
   isActive?: boolean
 
-    @IsOptional()
+  @IsOptional()
   @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Ngày tạo từ') })
   createdAfter?: string
 
-    @IsOptional()
+  @IsOptional()
   @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Ngày tạo đến') })
   createdBefore?: string
 
-    @IsOptional()
+  @IsOptional()
   @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Ngày đăng nhập từ') })
   lastLoginAfter?: string
 
-    @IsOptional()
+  @IsOptional()
   @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Ngày đăng nhập đến') })
   lastLoginBefore?: string
+
+  // Filter properties
+  @IsOptional()
+  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái') })
+  @Trim()
+  status?: string
 
   /**
    * Chuyển đổi DTO thành filter options cho repository

@@ -1,6 +1,7 @@
 // src/infrastructure/repositories/prisma-admin.repository.ts
+import { Prisma } from '@prisma/client'
 import { PrismaService } from '../../prisma/prisma.service'
-import type { IAdminRepository } from '../../domain/repositories'
+import type { IAdminRepository, FindAllAdminsOptions, FindAllAdminsResult } from '../../domain/repositories'
 import type { CreateAdminData, UpdateAdminData } from '../../domain/interface'
 import { Admin } from '../../domain/entities'
 import { AdminMapper } from '../mappers'
@@ -27,7 +28,20 @@ export class PrismaAdminRepository implements IAdminRepository {
 
     const prismaAdmin = await this.prisma.admin.findUnique({
       where: { adminId: numericId },
-      include: { user: true },
+      include: {
+        user: {
+          include: {
+            userRoles: {
+              where: {
+                isActive: true,
+              },
+              include: {
+                role: true
+              },
+            },
+          },  
+        }
+      },
     })
 
     if (!prismaAdmin) return null
@@ -40,13 +54,107 @@ export class PrismaAdminRepository implements IAdminRepository {
 
     const prismaAdmin = await this.prisma.admin.findUnique({
       where: { userId: numericUserId },
-      include: { user: true },
+      include: {
+        user: {
+          include: {
+            userRoles: {
+              where: {
+                isActive: true,
+              },
+              include: {
+                role: {
+                  include: {
+                    rolePermissions: {
+                      include: {
+                        permission: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        subject: true,
+      },
     })
 
     if (!prismaAdmin) return null
 
     return AdminMapper.toDomainAdmin(prismaAdmin)!
   }
+
+  async findAllWithPagination(
+    options: FindAllAdminsOptions
+  ): Promise<FindAllAdminsResult> {
+    const where: Prisma.AdminWhereInput = {}
+
+    if (options.search) {
+      const keywords = options.search.trim().split(/\s+/)
+
+      where.OR = [
+        // 1️⃣ Search by email
+        { user: { email: { contains: options.search } } },
+
+        // 2️⃣ Search by full name (virtual)
+        {
+          AND: keywords.map((keyword) => ({
+            OR: [
+              { user: { firstName: { contains: keyword } } },
+              { user: { lastName: { contains: keyword } } },
+            ],
+          })),
+        },
+      ]
+    }
+
+    const sortableFields = ['adminId', 'createdAt', 'updatedAt'] as const
+    const isValidSortField = (
+      field: string
+    ): field is (typeof sortableFields)[number] =>
+      (sortableFields as readonly string[]).includes(field)
+    const orderBy: Prisma.AdminOrderByWithRelationInput = {}
+
+    if (options.sortBy && isValidSortField(options.sortBy)) {
+      orderBy[options.sortBy] = options.sortOrder ?? 'asc'
+    } else {
+      orderBy.adminId = 'asc'
+    }
+
+    const skip = Math.max(options.skip ?? 0, 0)
+    const take = Math.min(options.take ?? 10, 100)
+
+    const [admins, total] = await this.prisma.$transaction([
+      this.prisma.admin.findMany({
+        where,
+        skip,
+        take,
+        orderBy,
+        include: {
+          user:
+          {
+            include: {
+              userRoles: {
+                where: {
+                  isActive: true,
+                },
+                include: {
+                  role: true,
+                },
+              },
+            },
+          }
+        },
+      }),
+      this.prisma.admin.count({ where }),
+    ])
+
+    return {
+      data: AdminMapper.toDomainAdmins(admins),
+      total,
+    }
+  }
+
 
   async update(id: number, data: UpdateAdminData): Promise<Admin> {
     const numericId = NumberUtil.ensureValidId(id, 'Admin ID')

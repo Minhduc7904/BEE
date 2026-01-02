@@ -8,13 +8,13 @@ import { VALIDATION_MESSAGES } from '../../../shared/constants'
  */
 export class ListQueryDto {
   // Pagination properties
-    @IsOptional()
+  @IsOptional()
   @Type(() => Number)
   @IsPositive({ message: VALIDATION_MESSAGES.FIELD_INVALID('Số trang') })
   @Min(1, { message: VALIDATION_MESSAGES.FIELD_INVALID('Số trang') })
   page?: number = 1
 
-    @IsOptional()
+  @IsOptional()
   @Type(() => Number)
   @IsPositive({ message: VALIDATION_MESSAGES.FIELD_INVALID('Kích thước trang') })
   @Min(1, { message: VALIDATION_MESSAGES.FIELD_INVALID('Kích thước trang') })
@@ -22,35 +22,31 @@ export class ListQueryDto {
   limit?: number = 10
 
   // Search property
-    @IsOptional()
+  @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Từ khóa tìm kiếm') })
   @Trim()
   @MaxLength(255, { message: VALIDATION_MESSAGES.FIELD_MAX('Từ khóa tìm kiếm', 255) })
   search?: string
 
   // Sort properties
-    @IsOptional()
+  @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Trường sắp xếp') })
   @Trim()
   @MaxLength(50, { message: VALIDATION_MESSAGES.FIELD_MAX('Tên trường sắp xếp', 50) })
   sortBy?: string
 
-    @IsOptional()
+  @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Thứ tự sắp xếp') })
   @IsIn(['asc', 'desc'], { message: VALIDATION_MESSAGES.FIELD_INVALID('Thứ tự sắp xếp') })
   sortOrder?: 'asc' | 'desc' = 'desc'
 
-  // Filter properties
-    @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái') })
-  @Trim()
-  status?: string
 
-    @IsOptional()
+
+  @IsOptional()
   @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Từ ngày') })
   fromDate?: string
 
-    @IsOptional()
+  @IsOptional()
   @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Đến ngày') })
   toDate?: string
 
@@ -77,13 +73,6 @@ export class ListQueryDto {
       }
     }
 
-    // Trim status
-    if (this.status) {
-      this.status = this.status.trim().toLowerCase()
-      if (this.status.length === 0) {
-        this.status = undefined
-      }
-    }
   }
 
   /**
@@ -138,11 +127,6 @@ export class ListQueryDto {
           mode: 'insensitive',
         },
       }))
-    }
-
-    // Status filter
-    if (this.status) {
-      where.status = this.status
     }
 
     // Date range filter

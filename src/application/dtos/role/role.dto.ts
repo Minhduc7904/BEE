@@ -76,9 +76,41 @@ export class RoleResponseDto {
 
   createdAt: Date
 
+  permissionsCount?: number
+
   permissions?: { permissionId: number; code: string; name: string }[]
 
   requiredByRole?: RoleResponseDto
 
   childRoles?: RoleResponseDto[]
+}
+
+export class RoleWithPermissionsResponseDto {
+  roleId: number
+  roleName: string
+  description?: string
+  permissions: {
+    permissionId: number
+    code: string
+    name: string
+    group?: string
+  }[]
+
+  constructor(partial: Partial<RoleWithPermissionsResponseDto>) {
+    Object.assign(this, partial)
+  }
+
+  static fromRoleWithPermissions(role: any): RoleWithPermissionsResponseDto {
+    return new RoleWithPermissionsResponseDto({
+      roleId: role.roleId,
+      roleName: role.roleName,
+      description: role.description,
+      permissions: role.rolePermissions?.map((rp: any) => ({
+        permissionId: rp.permission.permissionId,
+        code: rp.permission.code,
+        name: rp.permission.name,
+        group: rp.permission.group,
+      })) || [],
+    })
+  }
 }

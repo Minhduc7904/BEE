@@ -1,11 +1,10 @@
 import { Injectable, Inject } from '@nestjs/common'
-import { BaseResponseDto } from 'src/application/dtos/common/base-response.dto'
-import { CreateRoleDto, RoleResponseDto } from 'src/application/dtos/role/role.dto'
-import { ConflictException } from 'src/shared/exceptions/custom-exceptions'
-import type { IUnitOfWork } from 'src/domain/repositories/unit-of-work.repository'
-import { ACTION_KEYS } from 'src/shared/constants/action-key.constants'
-import { AuditStatus } from 'src/shared/enums/audit-status.enum'
-import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
+import { BaseResponseDto, CreateRoleDto, RoleResponseDto } from '../../dtos'
+import { ConflictException } from '../../../shared/exceptions/custom-exceptions'
+import type { IUnitOfWork } from '../../../domain/repositories'
+import { ACTION_KEYS } from '../../../shared/constants/action-key.constants'
+import { AuditStatus } from '../../../shared/enums/audit-status.enum'
+import { RESOURCE_TYPES } from '../../../shared/constants/resource-type.constants'
 
 @Injectable()
 export class CreateRoleUseCase {
@@ -33,14 +32,30 @@ export class CreateRoleUseCase {
       const role = await roleRepository.create({
         roleName: dto.roleName,
         description: dto.description,
+        isAssignable: dto.isAssignable,
       })
 
+      // Gán permissions nếu có
+      if (dto.permissionIds && dto.permissionIds.length > 0) {
+        for (const permissionId of dto.permissionIds) {
+          await roleRepository.addPermission(role.roleId, permissionId)
+        }
+      }
+
+      // Load lại role với permissions
+      const roleWithPermissions = await roleRepository.findByIdWithPermissions(role.roleId)
+      if (!roleWithPermissions) {
+        throw new Error('Failed to load created role')
+      }
+
       const response: RoleResponseDto = {
-        roleId: role.roleId,
-        roleName: role.roleName,
-        description: role.description,
-        isAssignable: role.isAssignable,
-        createdAt: role.createdAt,
+        roleId: roleWithPermissions.roleId,
+        roleName: roleWithPermissions.roleName,
+        description: roleWithPermissions.description,
+        isAssignable: roleWithPermissions.isAssignable,
+        createdAt: roleWithPermissions.createdAt,
+        permissions: roleWithPermissions.permissions,
+        permissionsCount: roleWithPermissions.permissions.length,
       }
 
       await adminAuditLogRepository.create({
@@ -52,9 +67,9 @@ export class CreateRoleUseCase {
         afterData: response,
       })
 
-      return new BaseResponseDto(true, 'Role được tạo thành công', response)
+      return response
     })
 
-    return result
+    return BaseResponseDto.success('Role được tạo thành công', result)
   }
 }

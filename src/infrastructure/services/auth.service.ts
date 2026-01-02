@@ -14,6 +14,12 @@ export interface AuthenticatedUser {
     name: string
     description?: string
   }>
+  permissions: Array<{
+    id: number
+    code: string
+    name: string
+    group?: string
+  }>
 }
 
 @Injectable()
@@ -21,15 +27,36 @@ export class AuthService {
   constructor(
     @Inject('JWT_TOKEN_SERVICE') private readonly jwtTokenService: JwtTokenService,
     @Inject('IRoleRepository') private readonly roleRepository: IRoleRepository,
-  ) {}
+  ) { }
 
   async verifyTokenAndGetUser(token: string): Promise<AuthenticatedUser> {
     try {
       // Verify JWT token
       const payload = await this.jwtTokenService.verifyAccessToken(token)
-      
+
       // Get user roles from database
       const userRoles = await this.roleRepository.getUserRoles(payload.sub)
+
+      // Extract all permissions from all roles (flatten and remove duplicates)
+      const permissionsMap = new Map()
+
+      for (const userRole of userRoles) {
+        if (userRole.role?.roleId) {
+          const roleWithPermissions = await this.roleRepository.findByIdWithPermissions(userRole.role.roleId)
+          if (roleWithPermissions?.permissions) {
+            roleWithPermissions.permissions.forEach(permission => {
+              permissionsMap.set(permission.permissionId, {
+                id: permission.permissionId,
+                code: permission.code,
+                name: permission.name,
+                group: permission.group,
+              })
+            })
+          }
+        }
+      }
+
+      const permissions = Array.from(permissionsMap.values())
 
       return {
         userId: payload.sub,
@@ -42,6 +69,7 @@ export class AuthService {
           name: ur.role?.roleName || '',
           description: ur.role?.description,
         })),
+        permissions,
       }
     } catch (error) {
       console.error('AuthService error:', error)

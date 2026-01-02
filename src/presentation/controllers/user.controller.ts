@@ -32,20 +32,20 @@ export class UserController {
     private readonly updateUserUseCase: UpdateUserUseCase,
     private readonly updateUserAvatarUseCase: UpdateUserAvatarUseCase,
     private readonly updateAdminUseCase: UpdateAdminUseCase,
-  ) {}
+  ) { }
 
-  @Post('avatar')
-  @HttpCode(HttpStatus.OK)
-  @AuthOnly()
-  @UseInterceptors(FileInterceptor('avatar'))
-  async uploadAvatar(
-    @ValidatedImageFile() file: Express.Multer.File,
-    @CurrentUser('userId') userId: number,
-  ): Promise<BaseResponseDto<UpdateAvatarResponseDto>> {
-    return ExceptionHandler.execute(() =>
-      this.updateUserAvatarUseCase.execute(userId, file.buffer, file.originalname, file.mimetype),
-    )
-  }
+  // @Post('avatar')
+  // @HttpCode(HttpStatus.OK)
+  // @AuthOnly()
+  // @UseInterceptors(FileInterceptor('avatar'))
+  // async uploadAvatar(
+  //   @ValidatedImageFile() file: Express.Multer.File,
+  //   @CurrentUser('userId') userId: number,
+  // ): Promise<BaseResponseDto<UpdateAvatarResponseDto>> {
+  //   return ExceptionHandler.execute(() =>
+  //     this.updateUserAvatarUseCase.execute(userId, file.buffer, file.originalname, file.mimetype),
+  //   )
+  // }
 
   @Patch(':id')
   async updateUser(@Param('id', ParseIntPipe) id: number, @Body() updateDto: UpdateUserDto): Promise<UserResponseDto> {

@@ -1,5 +1,6 @@
-import { IsOptional, IsNumber, Min, IsDateString, IsBoolean } from 'class-validator'
-import { RoleResponseDto } from './role.dto'
+import { IsOptional, IsNumber, Min, IsDateString, IsBoolean, NotEquals } from 'class-validator'
+import { RoleWithPermissionsResponseDto } from './role.dto'
+import { PermissionResponseDto } from './permission.dto'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 
 export class AssignUserRoleDto {
@@ -9,6 +10,7 @@ export class AssignUserRoleDto {
 
   @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_REQUIRED('Role ID') })
   @Min(1, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Role ID', 1) })
+  @NotEquals(1, { message: 'Không được gán role hệ thống (roleId = 1)' })
   roleId: number
 
   @IsOptional()
@@ -48,4 +50,10 @@ export class UserRoleListResponseDto {
   page: number
 
   limit: number
+}
+
+export class UserRoleWithPermissionsResponseDto extends UserRoleResponseDto {
+  role?: RoleWithPermissionsResponseDto
+
+  permissions: PermissionResponseDto[]
 }

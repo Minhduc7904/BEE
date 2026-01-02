@@ -4,12 +4,13 @@ import { PrismaService } from '../../prisma/prisma.service'
 import { IAdminAuditLogRepository } from '../../domain/repositories'
 import { AdminAuditLog } from '../../domain/entities'
 import { CreateLogDto } from '../../application/dtos'
+import { AuditLogListQueryDto } from '../../application/dtos/log/audit-log-list-query.dto'
 import { AdminAuditLogMapper } from '../mappers'
 import { AuditStatus } from '../../shared/enums'
 import { NumberUtil } from '../../shared/utils'
 
 export class PrismaAdminLogRepository implements IAdminAuditLogRepository {
-  constructor(private readonly prisma: PrismaService | any) {}
+  constructor(private readonly prisma: PrismaService | any) { }
 
   async create(data: CreateLogDto): Promise<AdminAuditLog> {
     const created = await this.prisma.adminAuditLog.create({
@@ -46,7 +47,17 @@ export class PrismaAdminLogRepository implements IAdminAuditLogRepository {
 
     const log = await this.prisma.adminAuditLog.findUnique({
       where: { logId: numericId },
-      include: { admin: true },
+      include: {
+        admin: {
+          include: {
+            user: {
+              include: {
+                avatar: true
+              }
+            }
+          }
+        }
+      },
     })
 
     return AdminAuditLogMapper.toDomainAdminAuditLog(log)
@@ -88,7 +99,79 @@ export class PrismaAdminLogRepository implements IAdminAuditLogRepository {
   async findAll(): Promise<AdminAuditLog[]> {
     const logs = await this.prisma.adminAuditLog.findMany({
       include: { admin: true },
+      orderBy: { createdAt: 'desc' },
     })
     return AdminAuditLogMapper.toDomainAdminAuditLogs(logs)
+  }
+
+  async findAllWithPagination(query: AuditLogListQueryDto): Promise<{ data: AdminAuditLog[]; total: number }> {
+    const { page = 1, limit = 10, search, sortBy = 'createdAt', sortOrder = 'desc', adminId, actionKey, resourceType, resourceId, status, fromDate, toDate } = query
+
+    const skip = (page - 1) * limit
+
+    // Build where clause
+    const where: any = {}
+
+    if (search) {
+      where.OR = [
+        { actionKey: { contains: search } },
+        { resourceType: { contains: search } },
+        { resourceId: { contains: search } },
+      ]
+    }
+
+    if (adminId) {
+      where.adminId = NumberUtil.ensureValidId(adminId, 'Admin ID')
+    }
+
+    if (actionKey) {
+      where.actionKey = { contains: actionKey }
+    }
+
+    if (resourceType) {
+      where.resourceType = { contains: resourceType }
+    }
+
+    if (resourceId) {
+      where.resourceId = { contains: resourceId }
+    }
+
+    if (status) {
+      where.status = status
+    }
+
+    // Date range filter
+    if (fromDate || toDate) {
+      where.createdAt = {}
+      if (fromDate) {
+        where.createdAt.gte = new Date(fromDate)
+      }
+      if (toDate) {
+        where.createdAt.lte = new Date(toDate)
+      }
+    }
+
+    // Execute queries
+    const [logs, total] = await Promise.all([
+      this.prisma.adminAuditLog.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { [sortBy]: sortOrder },
+        include: {
+          admin: {
+            include: {
+              user: true
+            }
+          }
+        },
+      }),
+      this.prisma.adminAuditLog.count({ where }),
+    ])
+
+    return {
+      data: AdminAuditLogMapper.toDomainAdminAuditLogs(logs),
+      total,
+    }
   }
 }

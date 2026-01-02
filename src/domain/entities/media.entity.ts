@@ -15,6 +15,20 @@ export class MediaEntity {
   height?: number
   duration?: number
   uploadedBy: number
+  uploader?: {
+    userId: number
+    username: string
+    firstName: string
+    lastName: string
+  }
+  usages?: Array<{
+    usageId: number
+    entityType: string
+    entityId: number
+    fieldName: string | null
+    visibility: string
+    createdAt: Date
+  }>
   createdAt: Date
   updatedAt: Date
 
@@ -33,6 +47,20 @@ export class MediaEntity {
     height?: number
     duration?: number
     uploadedBy: number
+    uploader?: {
+      userId: number
+      username: string
+      firstName: string
+      lastName: string
+    }
+    usages?: Array<{
+      usageId: number
+      entityType: string
+      entityId: number
+      fieldName: string | null
+      visibility: string
+      createdAt: Date
+    }>
     createdAt: Date
     updatedAt: Date
   }) {

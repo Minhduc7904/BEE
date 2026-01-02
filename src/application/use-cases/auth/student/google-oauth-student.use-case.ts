@@ -83,8 +83,7 @@ export class GoogleOAuthStudentUseCase {
               fileSize: 0, // Google avatar external URL
               type: 'IMAGE' as MediaType,
               status: 'READY' as MediaStatus,
-              publicUrl: googleProfile.picture, // URL từ Google
-              uploadedBy: null, // Tạm thời null, sẽ update sau
+              // Note: Google avatar URL not stored, will be handled via MediaUsage
             })
             avatarId = avatar.mediaId
           } catch (error) {
@@ -104,17 +103,6 @@ export class GoogleOAuthStudentUseCase {
           isEmailVerified: true,
           emailVerifiedAt: new Date(),
         })
-
-        // Update uploadedBy sau khi có userId
-        if (avatarId) {
-          try {
-            await repos.mediaRepository.update(avatarId, {
-              uploadedBy: createdUser.userId,
-            })
-          } catch (error) {
-            console.warn('Failed to update avatar uploadedBy:', error.message)
-          }
-        }
 
         // console.log('createdUser', createdUser);
 

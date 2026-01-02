@@ -25,7 +25,6 @@ export class PrismaUserRepository implements IUserRepository {
         firstName: data.firstName,
         lastName: data.lastName,
         oldUserId: data.oldUserId,
-        avatarId: data.avatarId,
         isActive: data.isActive ?? true,
         isEmailVerified: data.isEmailVerified ?? false,
         emailVerifiedAt: data.emailVerifiedAt,
@@ -67,7 +66,6 @@ export class PrismaUserRepository implements IUserRepository {
       include: {
         admin: true,
         student: true,
-        avatar: true,
       },
     })
 
@@ -84,7 +82,6 @@ export class PrismaUserRepository implements IUserRepository {
       include: {
         admin: true,
         student: true,
-        avatar: true,
       },
     })
 
@@ -128,7 +125,6 @@ export class PrismaUserRepository implements IUserRepository {
         firstName: data.firstName,
         lastName: data.lastName,
         isActive: data.isActive,
-        avatarId: data.avatarId,
         isEmailVerified: data.isEmailVerified,
         emailVerifiedAt: data.emailVerifiedAt,
         lastLoginAt: data.lastLoginAt,

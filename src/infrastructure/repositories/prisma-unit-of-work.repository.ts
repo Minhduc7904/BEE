@@ -35,6 +35,11 @@ export class PrismaUnitOfWork implements IUnitOfWork {
       enumerable: true,
     })
 
+    Object.defineProperty(repos, 'permissionRepository', {
+      get: () => new Repositories.PrismaPermissionRepository(client),
+      enumerable: true,
+    })
+
     Object.defineProperty(repos, 'adminAuditLogRepository', {
       get: () => new Repositories.PrismaAdminLogRepository(client),
       enumerable: true,
