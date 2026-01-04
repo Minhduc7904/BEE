@@ -178,6 +178,8 @@ export class PrismaStudentRepository implements IStudentRepository {
       return this.findWithRawQuery(pagination, filters)
     }
 
+    // console.log('Filters without search:', filters);
+
     // Ngược lại sử dụng Prisma query builder thông thường
     const where = this.buildWhereClause(filters)
     const orderBy = this.buildOrderByClause(sortBy)
@@ -189,19 +191,7 @@ export class PrismaStudentRepository implements IStudentRepository {
         skip,
         take: limit,
         include: {
-          user: {
-            select: {
-              userId: true,
-              username: true,
-              email: true,
-              firstName: true,
-              lastName: true,
-              isActive: true,
-              createdAt: true,
-              updatedAt: true,
-              lastLoginAt: true,
-            },
-          },
+          user: true
         },
       }),
       this.prisma.student.count({ where }),
@@ -617,9 +607,9 @@ export class PrismaStudentRepository implements IStudentRepository {
     const media = await this.prisma.media.findUnique({
       where: { mediaId }
     })
-    
+
     if (!media) return null
-    
+
     // Import MediaMapper directly - case sensitive path
     const { MediaMapper } = require('../mappers')
     return MediaMapper.toDomain(media)

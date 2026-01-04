@@ -17,6 +17,7 @@ export interface UpdateRoleData {
 export interface IRoleRepository {
   create(data: CreateRoleData): Promise<Role>
   findById(id: number): Promise<Role | null>
+  findIdsByIds(ids: number[]): Promise<number[]>
   findByName(name: string): Promise<Role | null>
   findAll(limit?: number, offset?: number): Promise<Role[]>
   findAllWithPermissionsCount(limit?: number, offset?: number): Promise<(Role & { permissionsCount: number })[]>

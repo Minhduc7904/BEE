@@ -5,6 +5,7 @@ import { BaseResponseDto, ErrorResponseDto, StudentResponseDto, AdminResponseDto
 import { IsEnumValue } from '../../../shared/decorators'
 import { Gender } from 'src/shared/enums'
 
+
 export class RegisterAdminDto {
   @Trim()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tên đăng nhập') })
@@ -32,6 +33,10 @@ export class RegisterAdminDto {
   @IsOptional()
   @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('Môn học') })
   subjectId?: number
+
+  @IsOptional()
+  @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('Danh sách vai trò') , each: true})
+  roleIds?: number[]
 }
 
 export class RegisterStudentDto {

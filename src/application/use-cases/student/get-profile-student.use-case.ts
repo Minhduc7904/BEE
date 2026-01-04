@@ -17,14 +17,6 @@ export class GetProfileStudentUseCase {
         if (!student) {
             throw new NotFoundException('Student not found');
         }
-        if (student.user && student.user.avatarId) {
-            const avatar = await this.studentRepository.findMediaById(student.user.avatarId);
-            if (avatar) {
-                student.user.avatar = avatar;
-            }
-        }
-
-        console.log('Student profile fetched:', student);
 
         return BaseResponseDto.success(
             'Get profile student successfully',

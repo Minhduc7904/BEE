@@ -39,6 +39,7 @@ export interface StudentFilterOptions extends BaseFilterOptions {
   email?: string
   firstName?: string
   lastName?: string
+  isActive?: boolean
 
   // Additional date filters
   lastLoginAfter?: Date

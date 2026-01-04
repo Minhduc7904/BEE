@@ -6,12 +6,14 @@ import { StudentListResponseDto, StudentResponseDto } from '../../dtos/student/s
 
 @Injectable()
 export class GetAllStudentUseCase {
-  constructor(@Inject('IStudentRepository') private readonly studentRepository: IStudentRepository) {}
+  constructor(
+    @Inject('IStudentRepository') private readonly studentRepository: IStudentRepository
+  ) { }
 
   async execute(query: StudentListQueryDto): Promise<StudentListResponseDto> {
     const filters = query.toStudentFilterOptions()
     const pagination = query.toStudentPaginationOptions()
-
+    // console.log('Filters in use case:', filters);
     const result = await this.studentRepository.findByFilters(filters, pagination)
     const students = result.data.map(StudentResponseDto.fromStudentEntity)
 

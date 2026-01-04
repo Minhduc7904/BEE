@@ -122,7 +122,10 @@ model Student {
   grade        Int     @db.TinyInt
   school       String? @map("school") @db.VarChar(120)
 
-  pointLogs StudentPointLog[]
+  pointLogs         StudentPointLog[]
+  courseEnrollments CourseEnrollment[]
+  attendances       Attendance[]
+  classStudents     ClassStudent[]
 
   @@index([grade, school], map: "idx_students_grade_school")
   @@map("students")
@@ -161,6 +164,7 @@ model Admin {
   Course        Course[]        @relation("CourseTeacher")
   Lesson        Lesson[]        @relation("LessonTeacher")
   Question      Question[]      @relation("QuestionCreatedBy")
+  courseClasses CourseClass[]
 
   @@index([subjectId], map: "idx_admins_subject_id")
   @@map("admins")
@@ -479,25 +483,27 @@ model LearningItem {
 }
 
 model Course {
-  courseId       Int        @id @default(autoincrement()) @map("course_id")
-  title          String     @map("title") @db.VarChar(200)
-  subtitle       String?    @map("subtitle") @db.VarChar(255)
-  academicYear   String?    @map("academic_year") @db.VarChar(9) // ví dụ '2024-2025'
-  grade          String?    @map("grade") @db.VarChar(10) // ví dụ '12'
-  subjectId      Int?       @map("subject_id")
-  priceCents     Int        @default(0) @map("price_cents")
-  compareAtCents Int?       @map("compare_at_cents")
-  visibility     Visibility @default(DRAFT) @map("visibility")
-  teacherId      Int?       @map("teacher_id") // FK tới admin_users nếu admin là giảng viên
-  isUpdatable    Boolean    @default(true) @map("is_updatable")
-  createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt      DateTime   @updatedAt @map("updated_at") @db.Timestamp(0)
+  courseId     Int        @id @default(autoincrement()) @map("course_id")
+  title        String     @map("title") @db.VarChar(200) // tên khoá học
+  subtitle     String?    @map("subtitle") @db.VarChar(255) // mô tả ngắn gọn
+  academicYear String?    @map("academic_year") @db.VarChar(9) // ví dụ '2024-2025'
+  grade        Int?       @map("grade") @db.Int // ví dụ 10, 11, 12
+  subjectId    Int?       @map("subject_id") // FK tới subjects
+  description  String?    @map("description") @db.Text // mô tả chi tiết về khoá học
+  priceVND     Int        @default(0) @map("price_vnd") // giá khoá học (đơn vị: VND)
+  compareAtVND Int?       @map("compare_at_vnd") // giá gốc (nếu có) để hiển thị giá khuyến mãi
+  visibility   Visibility @default(DRAFT) @map("visibility") // trạng thái khoá học
+  teacherId    Int?       @map("teacher_id") // FK tới admin_users nếu admin là giảng viên
+  isUpdatable  Boolean    @default(true) @map("is_updatable") // khoá học có thể chỉnh sửa nội dung không
+  createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
-  subject   Subject?         @relation("CourseSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
-  teacher   Admin?           @relation("CourseTeacher", fields: [teacherId], references: [adminId], onDelete: SetNull)
-  schedules CourseSchedule[]
-  lessons   Lesson[]
+  subject           Subject?           @relation("CourseSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
+  teacher           Admin?             @relation("CourseTeacher", fields: [teacherId], references: [adminId], onDelete: SetNull)
+  lessons           Lesson[]
+  courseClasses     CourseClass[]
+  courseEnrollments CourseEnrollment[]
 
   @@index([visibility], map: "idx_courses_visibility")
   @@index([grade, subjectId], map: "idx_courses_grade_subject")
@@ -507,31 +513,107 @@ model Course {
   @@map("courses")
 }
 
-model CourseSchedule {
-  scheduleId Int      @id @default(autoincrement()) @map("schedule_id")
-  courseId   Int      @map("course_id")
-  dayOfWeek  Int      @map("day_of_week") @db.TinyInt // 1=Mon ... 7=Sun
-  startTime  DateTime @map("start_time") @db.Time
-  endTime    DateTime @map("end_time") @db.Time
-  room       String?  @map("room") @db.VarChar(100)
+model CourseClass {
+  classId      Int      @id @default(autoincrement()) @map("class_id")
+  courseId     Int      @map("course_id")
+  className    String   @map("class_name") @db.VarChar(100)
+  startDate    DateTime @map("start_date") @db.Date
+  endDate      DateTime @map("end_date") @db.Date
+  room         String?  @map("room") @db.VarChar(100)
+  instructorId Int?
 
   // Relations
-  course Course @relation(fields: [courseId], references: [courseId], onDelete: Cascade)
+  course        Course         @relation(fields: [courseId], references: [courseId], onDelete: Cascade)
+  instructor    Admin?         @relation(fields: [instructorId], references: [adminId], onDelete: SetNull)
+  classSessions ClassSession[]
+  classStudents ClassStudent[]
 
-  @@unique([courseId, dayOfWeek, startTime], map: "unique_course_schedule")
-  @@index([courseId], map: "idx_course_schedules_course_id")
-  @@map("courses_schedules")
+  @@index([courseId], map: "idx_course_classes_course_id")
+  @@map("courses_classes")
+}
+
+model ClassSession {
+  sessionId   Int      @id @default(autoincrement()) @map("session_id")
+  classId     Int      @map("class_id")
+  sessionDate DateTime @map("session_date") @db.Date // ngày tổ chức buổi học
+  startTime   DateTime @map("start_time") @db.Time // giờ bắt đầu
+  endTime     DateTime @map("end_time") @db.Time // giờ kết thúc
+
+  // Relations
+  courseClass CourseClass  @relation(fields: [classId], references: [classId], onDelete: Cascade)
+  attendances Attendance[]
+
+  @@index([classId], map: "idx_class_sessions_class_id")
+  @@index([sessionDate], map: "idx_class_sessions_date")
+  @@map("class_sessions")
+}
+
+model ClassStudent {
+  classId   Int @map("class_id")
+  studentId Int @map("student_id")
+
+  // Relations
+  courseClass CourseClass @relation(fields: [classId], references: [classId], onDelete: Cascade)
+  student     Student     @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+
+  @@id([classId, studentId])
+  @@index([studentId], map: "idx_class_students_student_id")
+  @@map("classes_students")
+}
+
+model CourseEnrollment {
+  enrollmentId   Int      @id @default(autoincrement()) @map("enrollment_id")
+  courseId       Int      @map("course_id")
+  studentId      Int      @map("student_id")
+  enrolledAt     DateTime @default(now()) @map("enrolled_at") @db.Timestamp(0) // ngày đăng ký khoá học
+  status         String   @map("status") @db.VarChar(50) // ví dụ: active, completed, cancelled
+  defaultClassId Int?
+
+  // Relations
+  course  Course  @relation(fields: [courseId], references: [courseId], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+
+  @@unique([courseId, studentId], map: "unique_course_enrollment")
+  @@index([studentId], map: "idx_course_enrollments_student_id")
+  @@index([enrolledAt], map: "idx_course_enrollments_enrolled_at")
+  @@map("courses_enrollments")
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  MAKEUP
+}
+
+model Attendance {
+  attendanceId Int              @id @default(autoincrement()) @map("attendance_id")
+  sessionId    Int              @map("session_id")
+  studentId    Int              @map("student_id")
+  status       AttendanceStatus @map("status") // present, absent, late
+  markedAt     DateTime         @default(now()) @map("marked_at") @db.Timestamp
+  notes        String?          @map("notes") @db.Text
+  updatedAt    DateTime         @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  classSession ClassSession @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
+  student      Student      @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+
+  @@unique([sessionId, studentId], map: "unique_attendance_record")
+  @@index([studentId], map: "idx_attendances_student_id")
+  @@index([markedAt], map: "idx_attendances_marked_at")
+  @@map("attendances")
 }
 
 model Lesson {
-  lessonId    Int       @id @default(autoincrement()) @map("lesson_id")
-  courseId    Int       @map("course_id")
-  title       String    @map("title") @db.VarChar(200)
-  description String?   @map("description") @db.Text
-  teacherId   Int?      @map("teacher_id") // nếu bài học do GV khác dạy
-  scheduledAt DateTime? @map("scheduled_at") @db.DateTime // nếu bạn muốn gắn ngày/giờ cụ thể
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamp(0)
+  lessonId    Int      @id @default(autoincrement()) @map("lesson_id")
+  courseId    Int      @map("course_id")
+  title       String   @map("title") @db.VarChar(200)
+  description String?  @map("description") @db.Text
+  teacherId   Int?     @map("teacher_id") // nếu bài học do GV khác dạy
+  // scheduledAt DateTime? @map("scheduled_at") @db.DateTime // nếu bạn muốn gắn ngày/giờ cụ thể
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
   course        Course               @relation(fields: [courseId], references: [courseId], onDelete: Cascade)
@@ -540,7 +622,7 @@ model Lesson {
 
   @@index([courseId], map: "idx_lessons_course_id")
   @@index([teacherId], map: "idx_lessons_teacher_id")
-  @@index([scheduledAt], map: "idx_lessons_scheduled_at")
+  // @@index([scheduledAt], map: "idx_lessons_scheduled_at")
   @@index([createdAt], map: "idx_lessons_created_at")
   @@map("lessons")
 }

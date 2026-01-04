@@ -40,6 +40,15 @@ export class PrismaRoleRepository implements IRoleRepository {
     return RoleMapper.toDomainRole(role)!
   }
 
+  async findIdsByIds(ids: number[]): Promise<number[]> {
+    const numericIds = ids.map(id => NumberUtil.ensureValidId(id, 'Role ID'))
+    const roles = await this.prisma.role.findMany({
+      where: { roleId: { in: numericIds } },
+      select: { roleId: true },
+    })
+    return roles.map(role => role.roleId)
+  }
+
   async findByName(name: string): Promise<Role | null> {
     const role = await this.prisma.role.findUnique({
       where: { roleName: name },

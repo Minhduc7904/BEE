@@ -7,6 +7,9 @@ import {
   ConflictException,
   BusinessLogicException,
 } from '../../../shared/exceptions/custom-exceptions'
+import { BaseResponseDto } from 'src/application/dtos'
+import { ACTION_KEYS } from 'src/shared/constants'
+import { AuditStatus } from 'src/shared/enums'
 
 @Injectable()
 export class UpdateUserUseCase {
@@ -40,6 +43,44 @@ export class UpdateUserUseCase {
       }
 
       return UserResponseDto.fromUser(updatedUser)
+    })
+  }
+
+  async toggleActivation(userId: number, adminId: number, userIdPerformingAction: number): Promise<BaseResponseDto<null>> {
+    return this.unitOfWork.executeInTransaction(async (repos) => {
+      // 1. Tìm user
+      const user = await repos.userRepository.findById(userId)
+      if (!user) {
+        throw new NotFoundException(`User với ID ${userId} không tồn tại`)
+      }
+
+      const roles = await repos.roleRepository.getUserRoles(userId);
+      const isSupperAdmin = roles.some(role => role.roleId === 1);
+      if (isSupperAdmin) {
+        throw new BusinessLogicException('Bạn không thể vô hiệu hóa hoặc kích hoạt tài khoản của Super Admin')
+      }
+
+      if (user.userId === userIdPerformingAction) {
+        throw new BusinessLogicException('Bạn không thể tự vô hiệu hóa hoặc kích hoạt tài khoản của chính mình')
+      }
+      // 2. Đảo trạng thái kích hoạt
+      const newIsActive = !user.isActive
+      await repos.userRepository.update(userId, { isActive: newIsActive })
+
+      await repos.adminAuditLogRepository.create({
+        adminId,
+        actionKey: ACTION_KEYS.USER.TOGGLE_ACTIVATION,
+        status: AuditStatus.SUCCESS,
+        resourceType: 'User',
+        resourceId: userId.toString(),
+        beforeData: { isActive: user.isActive },
+        afterData: { isActive: newIsActive },
+      })
+      // 3. Trả về kết quả
+      return BaseResponseDto.success<null>(
+        `Người dùng đã được ${newIsActive ? 'kích hoạt' : 'vô hiệu hóa'} thành công`,
+        null,
+      )
     })
   }
 

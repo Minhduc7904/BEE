@@ -25,6 +25,7 @@ import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { AuthOnly } from '../../shared/decorators/permission.decorator'
 import { CurrentUser } from 'src/shared/decorators'
 import { ValidatedImageFile } from '../../shared/decorators'
+import { RequirePermission } from 'src/shared/decorators/permissions.decorator'
 
 @Controller('users')
 export class UserController {
@@ -47,16 +48,28 @@ export class UserController {
   //   )
   // }
 
-  @Patch(':id')
-  async updateUser(@Param('id', ParseIntPipe) id: number, @Body() updateDto: UpdateUserDto): Promise<UserResponseDto> {
-    return await this.updateUserUseCase.execute(id, updateDto)
-  }
+  // @Patch(':id')
+  // async updateUser(@Param('id', ParseIntPipe) id: number, @Body() updateDto: UpdateUserDto): Promise<UserResponseDto> {
+  //   return await this.updateUserUseCase.execute(id, updateDto)
+  // }
 
-  @Patch(':id/admin')
-  async updateAdmin(
-    @Param('id', ParseIntPipe) adminId: number,
-    @Body() updateDto: UpdateAdminDto,
-  ): Promise<AdminResponseDto> {
-    return await this.updateAdminUseCase.execute(adminId, updateDto)
+  // @Patch(':id/admin')
+  // async updateAdmin(
+  //   @Param('id', ParseIntPipe) adminId: number,
+  //   @Body() updateDto: UpdateAdminDto,
+  // ): Promise<AdminResponseDto> {
+  //   return await this.updateAdminUseCase.execute(adminId, updateDto)
+  // }
+
+  @Patch(':id/toggle-activation')
+  @HttpCode(HttpStatus.OK)
+  @RequirePermission('user.toggleActivation')
+  async toggleActivation(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser() user,
+  ): Promise<BaseResponseDto<null> | ErrorResponseDto> {
+    return ExceptionHandler.execute(() =>
+      this.updateUserUseCase.toggleActivation(id, user.adminId, user.userId),
+    )
   }
 }

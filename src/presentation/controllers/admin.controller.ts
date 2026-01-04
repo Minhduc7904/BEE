@@ -14,24 +14,26 @@ import {
 import {
     GetAllAdminUseCase,
     GetAdminByIdUseCase,
+    RegisterAdminUseCase,
 } from '../../application/use-cases'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { CurrentUser } from '../../shared/decorators/current-user.decorator'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
-import { AdminListQueryDto, AdminResponseDto, BaseResponseDto, PaginationResponseDto } from 'src/application/dtos'
+import { AdminListQueryDto, AdminResponseDto, BaseResponseDto, PaginationResponseDto, RegisterAdminDto, RegisterAdminResponseDto } from 'src/application/dtos'
 
 @Controller('admins')
 export class AdminController {
     constructor(
         private readonly getAllAdminUseCase: GetAllAdminUseCase,
         private readonly getAdminByIdUseCase: GetAdminByIdUseCase,
+        private readonly registerAdminUseCase: RegisterAdminUseCase,
     ) { }
 
     /**
      * Get all admins with pagination and filters
      * GET /admin
      */
-    @Get()  
+    @Get()
     @RequirePermission('admin.getAll')
     @HttpCode(HttpStatus.OK)
     async getAllAdmins(
@@ -57,4 +59,22 @@ export class AdminController {
             return this.getAdminByIdUseCase.execute(id)
         })
     }
+
+    /**
+     * Post admin
+     */
+    @Post()
+    @RequirePermission('admin.create')
+    @HttpCode(HttpStatus.CREATED)
+    async createAdmin(
+        @Body() dto: RegisterAdminDto,
+        @CurrentUser('adminId') adminId: number,
+    ): Promise<RegisterAdminResponseDto> {
+        // Implementation for creating admin goes here
+        return ExceptionHandler.execute(() => {
+            // Placeholder return statement
+            return this.registerAdminUseCase.execute(dto, adminId) // Replace with actual create logic
+        })
+    }
+
 }

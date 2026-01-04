@@ -40,11 +40,11 @@ export class AuthController {
     private readonly logoutUseCase: LogoutUseCase,
   ) { }
 
-  @Post('/admin/register')
-  @HttpCode(HttpStatus.CREATED)
-    async registerAdmin(@Body() dto: RegisterAdminDto): Promise<RegisterAdminResponseDto> {
-    return ExceptionHandler.execute(() => this.registerAdminUseCase.execute(dto))
-  }
+  // @Post('/admin/register')
+  // @HttpCode(HttpStatus.CREATED)
+  //   async registerAdmin(@Body() dto: RegisterAdminDto): Promise<RegisterAdminResponseDto> {
+  //   return ExceptionHandler.execute(() => this.registerAdminUseCase.execute(dto))
+  // }
 
   @Post('/student/register')
   @HttpCode(HttpStatus.CREATED)

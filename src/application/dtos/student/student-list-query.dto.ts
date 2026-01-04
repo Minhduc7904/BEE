@@ -2,7 +2,7 @@
 import { Type } from 'class-transformer'
 import { IsOptional, IsString, IsNumber, IsBoolean, IsDateString, Min, Max } from 'class-validator'
 import { ListQueryDto } from '..'
-import { Trim } from '../../../shared/decorators'
+import { Trim, ToBoolean } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 
 export class StudentListQueryDto extends ListQueryDto {
@@ -13,67 +13,10 @@ export class StudentListQueryDto extends ListQueryDto {
   @Max(12, { message: VALIDATION_MESSAGES.FIELD_MAX_VALUE('Lớp', 12) })
   grade?: number
 
-  @Trim()
   @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tên trường') })
-  school?: string
-
-  @Trim()
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Số điện thoại học sinh') })
-  studentPhone?: string
-
-  @Trim()
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Số điện thoại phụ huynh') })
-  parentPhone?: string
-
-  @Trim()
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Username') })
-  username?: string
-
-  @Trim()
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Email') })
-  email?: string
-
-  @Trim()
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tên') })
-  firstName?: string
-
-  @Trim()
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Họ') })
-  lastName?: string
-
-  @IsOptional()
-  @Type(() => Boolean)
+  @ToBoolean()
   @IsBoolean({ message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái hoạt động') })
   isActive?: boolean
-
-  @IsOptional()
-  @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Ngày tạo từ') })
-  createdAfter?: string
-
-  @IsOptional()
-  @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Ngày tạo đến') })
-  createdBefore?: string
-
-  @IsOptional()
-  @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Ngày đăng nhập từ') })
-  lastLoginAfter?: string
-
-  @IsOptional()
-  @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Ngày đăng nhập đến') })
-  lastLoginBefore?: string
-
-  // Filter properties
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái') })
-  @Trim()
-  status?: string
 
   /**
    * Chuyển đổi DTO thành filter options cho repository
@@ -81,18 +24,7 @@ export class StudentListQueryDto extends ListQueryDto {
   toStudentFilterOptions() {
     return {
       grade: this.grade,
-      school: this.school,
-      studentPhone: this.studentPhone,
-      parentPhone: this.parentPhone,
-      username: this.username,
-      email: this.email,
-      firstName: this.firstName,
-      lastName: this.lastName,
       isActive: this.isActive,
-      createdAfter: this.createdAfter ? new Date(this.createdAfter) : undefined,
-      createdBefore: this.createdBefore ? new Date(this.createdBefore) : undefined,
-      lastLoginAfter: this.lastLoginAfter ? new Date(this.lastLoginAfter) : undefined,
-      lastLoginBefore: this.lastLoginBefore ? new Date(this.lastLoginBefore) : undefined,
       search: this.search, // Sử dụng flat property từ ListQueryDto
     }
   }
@@ -151,30 +83,5 @@ export class StudentListQueryDto extends ListQueryDto {
 
     if (!this.sortBy) return true // Sử dụng flat property
     return allowedFields.includes(this.sortBy)
-  }
-
-  /**
-   * Validate date ranges
-   */
-  validateDateRanges(): string[] {
-    const errors: string[] = []
-
-    if (this.createdAfter && this.createdBefore) {
-      const from = new Date(this.createdAfter)
-      const to = new Date(this.createdBefore)
-      if (from > to) {
-        errors.push('Ngày tạo từ phải nhỏ hơn hoặc bằng ngày tạo đến')
-      }
-    }
-
-    if (this.lastLoginAfter && this.lastLoginBefore) {
-      const from = new Date(this.lastLoginAfter)
-      const to = new Date(this.lastLoginBefore)
-      if (from > to) {
-        errors.push('Ngày đăng nhập từ phải nhỏ hơn hoặc bằng ngày đăng nhập đến')
-      }
-    }
-
-    return errors
   }
 }

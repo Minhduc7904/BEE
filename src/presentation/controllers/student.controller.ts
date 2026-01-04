@@ -1,7 +1,8 @@
 // src/presentation/controllers/student.controller.ts
-import { Controller, Get, Query, HttpCode, HttpStatus, Param, Body, Put, Req, ParseIntPipe } from '@nestjs/common'
+import { Controller, Get, Query, HttpCode, HttpStatus, Param, Body, Put, Post, Req, ParseIntPipe } from '@nestjs/common'
 import { StudentListQueryDto } from 'src/application/dtos/student/student-list-query.dto'
 import { StudentListResponseDto, StudentResponseDto, UpdateStudentDto } from 'src/application/dtos/student/student.dto'
+import { RegisterStudentDto } from 'src/application/dtos/auth/register.dto'
 import { ExceptionHandler } from 'src/shared/utils/exception-handler.util'
 import { BaseResponseDto } from 'src/application/dtos/common/base-response.dto'
 import { AdminOnly, AdminRoles, StudentOnly } from 'src/shared/decorators/permission.decorator'
@@ -10,8 +11,10 @@ import {
   FetchStudentFromApiUseCase,
   GetProfileStudentUseCase,
   UpdateStudentUseCase,
+  CreateStudentUseCase,
 } from 'src/application/use-cases'
 import { CurrentUser } from 'src/shared/decorators'
+import { RequirePermission } from 'src/shared/decorators/permissions.decorator'
 
 @Controller('students')
 export class StudentController {
@@ -20,26 +23,37 @@ export class StudentController {
     private readonly fetchStudentFromApiUseCase: FetchStudentFromApiUseCase,
     private readonly getProfileStudentUseCase: GetProfileStudentUseCase,
     private readonly updateStudentUseCase: UpdateStudentUseCase,
+    private readonly createStudentUseCase: CreateStudentUseCase,
   ) { }
 
   @Get()
+  @RequirePermission('student.getAll')
   @HttpCode(HttpStatus.OK)
-  @AdminRoles() // Sử dụng decorator mới - chỉ ADMIN, SUPER_ADMIN tự động có quyền
-    async getAllStudents(@Query() query: StudentListQueryDto): Promise<StudentListResponseDto> {
+  async getAllStudents(@Query() query: StudentListQueryDto): Promise<StudentListResponseDto> {
     return ExceptionHandler.execute(() => this.getAllStudentUseCase.execute(query))
   }
 
-  @Get('fetch-from-api')
-  @HttpCode(HttpStatus.OK)
-  @AdminRoles() // Sử dụng decorator mới - chỉ ADMIN, SUPER_ADMIN tự động có quyền
-    async fetchStudentFromApi(@Query('limit') limit?: number): Promise<{ processed: number; errors: number }> {
-    return ExceptionHandler.execute(() => this.fetchStudentFromApiUseCase.execute(limit))
+  @Post()
+  @RequirePermission('student.create')
+  @HttpCode(HttpStatus.CREATED)
+  async createStudent(
+    @Body() dto: RegisterStudentDto,
+    @CurrentUser('adminId') adminId: number,
+  ): Promise<BaseResponseDto<StudentResponseDto>> {
+    return ExceptionHandler.execute(() => this.createStudentUseCase.execute(dto, adminId))
   }
+
+  // @Get('fetch-from-api')
+  // @HttpCode(HttpStatus.OK)
+  // @RequirePermission('student.fetchFromApi')
+  // async fetchStudentFromApi(@Query('limit') limit?: number): Promise<{ processed: number; errors: number }> {
+  //   return ExceptionHandler.execute(() => this.fetchStudentFromApiUseCase.execute(limit))
+  // }
 
   @Get('me')
   @HttpCode(HttpStatus.OK)
   @StudentOnly()
-    async getCurrentStudentProfile(
+  async getCurrentStudentProfile(
     @CurrentUser('studentId') studentId: number
   ): Promise<BaseResponseDto<StudentResponseDto>> {
     return ExceptionHandler.execute(() => this.getProfileStudentUseCase.execute(studentId))
@@ -48,7 +62,7 @@ export class StudentController {
   @Put('me')
   @HttpCode(HttpStatus.OK)
   @StudentOnly()
-    async updateStudent(
+  async updateStudent(
     @Body() body: UpdateStudentDto,
     @CurrentUser('studentId') studentId: number
   ): Promise<BaseResponseDto<StudentResponseDto>> {
@@ -57,8 +71,8 @@ export class StudentController {
 
   @Get(':studentId')
   @HttpCode(HttpStatus.OK)
-  @AdminOnly()
-    async getProfileStudentByAdmin(
+  @RequirePermission('student.getById')
+  async getProfileStudentByAdmin(
     @Param('studentId', ParseIntPipe) studentId: number
   ): Promise<BaseResponseDto<StudentResponseDto>> {
     return ExceptionHandler.execute(() => this.getProfileStudentUseCase.execute(studentId))
@@ -67,8 +81,8 @@ export class StudentController {
 
   @Put(':studentId')
   @HttpCode(HttpStatus.OK)
-  @AdminOnly()
-    async updateStudentByAdmin(
+  @RequirePermission('student.update')
+  async updateStudentByAdmin(
     @Param('studentId', ParseIntPipe) studentId: number,
     @Body() body: UpdateStudentDto
   ): Promise<BaseResponseDto<StudentResponseDto>> {

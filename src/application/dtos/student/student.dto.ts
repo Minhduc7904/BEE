@@ -7,17 +7,17 @@ import { Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 
 export class StudentResponseDto extends UserResponseDto {
-    studentId: number
+  studentId: number
 
-    studentPhone?: string
+  studentPhone?: string
 
-    parentPhone?: string
+  parentPhone?: string
 
-    grade: number
+  grade: number
 
-    school?: string
+  school?: string
 
-    roles?: RoleResponseDto[]
+  roles?: RoleResponseDto[]
 
   constructor(partial: Partial<StudentResponseDto>) {
     super(partial)
@@ -82,25 +82,25 @@ export class StudentListResponseDto extends PaginationResponseDto<StudentRespons
 }
 
 export class UpdateStudentDto extends UpdateUserDto {
-    @Trim()
+  @Trim()
   @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Số điện thoại sinh viên') })
   @Matches(/^[0-9]{10,11}$/, { message: VALIDATION_MESSAGES.FIELD_INVALID('Số điện thoại sinh viên') })
   studentPhone?: string
 
-    @Trim()
+  @Trim()
   @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Số điện thoại phụ huynh') })
   @Matches(/^[0-9]{10,11}$/, { message: VALIDATION_MESSAGES.FIELD_INVALID('Số điện thoại phụ huynh') })
   parentPhone?: string
 
-    @IsOptional()
+  @IsOptional()
   @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('Khối lớp') })
   @Min(1, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Khối lớp', 1) })
   @Max(12, { message: VALIDATION_MESSAGES.FIELD_MAX_VALUE('Khối lớp', 12) })
   grade?: number
 
-    @Trim()
+  @Trim()
   @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Trường học') })
   school?: string
