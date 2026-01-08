@@ -18,6 +18,11 @@ import { MediaFolderController } from './controllers/media-folder.controller'
 import { ProfileAdminController } from './controllers/profile.admin.controller'
 import { PermissionController } from './controllers/permission.controller'
 import { AdminController } from './controllers/admin.controller'
+import { CourseController } from './controllers/course.controller'
+import { CourseClassController } from './controllers/course-class.controller'
+import { ClassSessionController } from './controllers/class-session.controller'
+import { ClassStudentController } from './controllers/class-student.controller'
+import { CourseEnrollmentController } from './controllers/course-enrollment.controller'
 @Module({
   imports: [ApplicationModule, InfrastructureModule, SharedModule],
   controllers: [
@@ -36,6 +41,11 @@ import { AdminController } from './controllers/admin.controller'
     ProfileAdminController,
     PermissionController,
     AdminController,
+    CourseController,
+    CourseClassController,
+    ClassSessionController,
+    ClassStudentController,
+    CourseEnrollmentController,
   ],
 })
 export class PresentationModule {}

@@ -1,8 +1,8 @@
 // src/domain/entities/index.ts
 export * from './subject/subject.entity'
 export * from './chapter/chapter.entity'
+export * from './course/course.entity'
 export * from './user/admin.entity'
-export * from './document/document.entity'
 export * from './exam/exam.entity'
 export * from './exam/question-exam.entity'
 export * from './exam/question.entity'

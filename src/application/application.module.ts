@@ -64,6 +64,39 @@ import {
   GetAdminByIdUseCase,
   RemoveRoleFromUserUseCase
 } from './use-cases'
+import {
+  GetAllCourseUseCase,
+  GetCourseByIdUseCase,
+  CreateCourseUseCase,
+  UpdateCourseUseCase,
+  DeleteCourseUseCase,
+} from './use-cases/course'
+import {
+  GetAllCourseClassUseCase,
+  GetCourseClassByIdUseCase,
+  CreateCourseClassUseCase,
+  UpdateCourseClassUseCase,
+  DeleteCourseClassUseCase,
+} from './use-cases/course-class'
+import {
+  GetAllClassSessionUseCase,
+  GetClassSessionByIdUseCase,
+  CreateClassSessionUseCase,
+  UpdateClassSessionUseCase,
+  DeleteClassSessionUseCase,
+} from './use-cases/class-session'
+import {
+  GetAllClassStudentUseCase,
+  CreateClassStudentUseCase,
+  DeleteClassStudentUseCase,
+} from './use-cases/class-student'
+import {
+  GetAllCourseEnrollmentUseCase,
+  GetCourseEnrollmentByIdUseCase,
+  CreateCourseEnrollmentUseCase,
+  UpdateCourseEnrollmentUseCase,
+  DeleteCourseEnrollmentUseCase,
+} from './use-cases/course-enrollment'
 
 @Module({
   imports: [InfrastructureModule],
@@ -129,6 +162,34 @@ import {
     GetAllAdminUseCase,
     GetAdminByIdUseCase,
     RemoveRoleFromUserUseCase,
+    // Course use-cases
+    GetAllCourseUseCase,
+    GetCourseByIdUseCase,
+    CreateCourseUseCase,
+    UpdateCourseUseCase,
+    DeleteCourseUseCase,
+    // CourseClass use-cases
+    GetAllCourseClassUseCase,
+    GetCourseClassByIdUseCase,
+    CreateCourseClassUseCase,
+    UpdateCourseClassUseCase,
+    DeleteCourseClassUseCase,
+    // ClassSession use-cases
+    GetAllClassSessionUseCase,
+    GetClassSessionByIdUseCase,
+    CreateClassSessionUseCase,
+    UpdateClassSessionUseCase,
+    DeleteClassSessionUseCase,
+    // ClassStudent use-cases
+    GetAllClassStudentUseCase,
+    CreateClassStudentUseCase,
+    DeleteClassStudentUseCase,
+    // CourseEnrollment use-cases
+    GetAllCourseEnrollmentUseCase,
+    GetCourseEnrollmentByIdUseCase,
+    CreateCourseEnrollmentUseCase,
+    UpdateCourseEnrollmentUseCase,
+    DeleteCourseEnrollmentUseCase,
   ],
   exports: [
     RegisterAdminUseCase,
@@ -192,7 +253,35 @@ import {
     DeleteMediaFolderUseCase,
     GetAllAdminUseCase,
     GetAdminByIdUseCase,
-    RemoveRoleFromUserUseCase
+    RemoveRoleFromUserUseCase,
+    // Course use-cases
+    GetAllCourseUseCase,
+    GetCourseByIdUseCase,
+    CreateCourseUseCase,
+    UpdateCourseUseCase,
+    DeleteCourseUseCase,
+    // CourseClass use-cases
+    GetAllCourseClassUseCase,
+    GetCourseClassByIdUseCase,
+    CreateCourseClassUseCase,
+    UpdateCourseClassUseCase,
+    DeleteCourseClassUseCase,
+    // ClassSession use-cases
+    GetAllClassSessionUseCase,
+    GetClassSessionByIdUseCase,
+    CreateClassSessionUseCase,
+    UpdateClassSessionUseCase,
+    DeleteClassSessionUseCase,
+    // ClassStudent use-cases
+    GetAllClassStudentUseCase,
+    CreateClassStudentUseCase,
+    DeleteClassStudentUseCase,
+    // CourseEnrollment use-cases
+    GetAllCourseEnrollmentUseCase,
+    GetCourseEnrollmentByIdUseCase,
+    CreateCourseEnrollmentUseCase,
+    UpdateCourseEnrollmentUseCase,
+    DeleteCourseEnrollmentUseCase,
   ],
 })
 export class ApplicationModule { }

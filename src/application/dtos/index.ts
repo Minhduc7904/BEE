@@ -15,9 +15,6 @@ export * from './auth/register.dto'
 export * from './auth/google-auth.dto'
 export * from './auth/reset-password.dto'
 
-// Document DTOs
-export * from './document/document.dto'
-
 
 // Log DTOs
 export * from './log/log.dto'

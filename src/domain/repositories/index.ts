@@ -3,9 +3,11 @@ export * from './user-refresh-token.repository';
 export * from './unit-of-work.repository';
 export * from './admin-audit-log.repository';
 export * from './student.repository';
-export * from './document.repository';
 export * from './admin.repository';
 export * from './email-verification-token.repository';
 export * from './role.repository';
 export * from './permission.repository';
-export * from './reset-password-token.repository'
+export * from './reset-password-token.repository';
+export * from './course.repository';
+export * from './course-class.repository';
+export * from './class-student.repository';

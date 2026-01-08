@@ -1,7 +1,6 @@
 // src/domain/entities/subject/subject..ts
 import { Chapter } from '../chapter/chapter.entity'
 import { Admin } from '../user/admin.entity'
-import { Document } from '../document/document.entity'
 import { Exam } from '../exam/exam.entity'
 import { Question } from '../exam/question.entity'
 
@@ -13,7 +12,6 @@ export class Subject {
   // Relations (optional - sẽ được populate khi cần)
   chapters?: Chapter[] // Chapter[] - avoid circular dependency
   admins?: Admin[] // Admin[]
-  documents?: Document[] // Document[]
   exams?: Exam[] // Exam[]
   questions?: Question[] // Question[]
   courses?: any[] // Course[]
@@ -24,7 +22,6 @@ export class Subject {
     code?: string | null
     chapters?: Chapter[]
     admins?: Admin[]
-    documents?: any[]
     exams?: Exam[]
     questions?: Question[]
     courses?: any[]
@@ -34,7 +31,6 @@ export class Subject {
     this.code = data.code
     this.chapters = data.chapters
     this.admins = data.admins
-    this.documents = data.documents
     this.exams = data.exams
     this.questions = data.questions
     this.courses = data.courses
@@ -208,7 +204,6 @@ export class Subject {
       code: data.code,
       chapters: data.chapters ? data.chapters.map((chapter: any) => Chapter.fromPrisma(chapter)) : undefined,
       admins: data.admins ? data.admins.map((admin: any) => Admin.fromPrisma(admin)) : undefined,
-      documents: data.documents,
       exams: data.exams,
       questions: data.questions,
       courses: data.courses,

@@ -27,8 +27,9 @@ import {
   StudentResponseDto,
 } from '../../application/dtos'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
-import { AuthOnly } from '../../shared/decorators'
+import { Injectable } from '@nestjs/common'
 
+@Injectable()
 @Controller('auth')
 export class AuthController {
   constructor(
@@ -48,31 +49,31 @@ export class AuthController {
 
   @Post('/student/register')
   @HttpCode(HttpStatus.CREATED)
-    async registerStudent(@Body() dto: RegisterStudentDto): Promise<BaseResponseDto<StudentResponseDto>> {
+  async registerStudent(@Body() dto: RegisterStudentDto): Promise<BaseResponseDto<StudentResponseDto>> {
     return ExceptionHandler.execute(() => this.registerStudentUseCase.execute(dto))
   }
 
   @Post('/admin/login')
   @HttpCode(HttpStatus.OK)
-    async loginAdmin(@Body() loginDto: LoginRequestDto): Promise<BaseResponseDto<LoginResponseDto>> {
+  async loginAdmin(@Body() loginDto: LoginRequestDto): Promise<BaseResponseDto<LoginResponseDto>> {
     return ExceptionHandler.execute(() => this.loginAdminUseCase.execute(loginDto))
   }
 
   @Post('/student/login')
   @HttpCode(HttpStatus.OK)
-    async loginStudent(@Body() loginDto: LoginRequestDto): Promise<BaseResponseDto<LoginResponseDto>> {
+  async loginStudent(@Body() loginDto: LoginRequestDto): Promise<BaseResponseDto<LoginResponseDto>> {
     return ExceptionHandler.execute(() => this.loginStudentUseCase.execute(loginDto))
   }
 
   @Post('/refresh')
   @HttpCode(HttpStatus.OK)
-    async refreshToken(@Body() refreshDto: RefreshTokenRequestDto): Promise<BaseResponseDto<RefreshTokenResponseDto>> {
+  async refreshToken(@Body() refreshDto: RefreshTokenRequestDto): Promise<BaseResponseDto<RefreshTokenResponseDto>> {
     return ExceptionHandler.execute(() => this.refreshTokenUseCase.execute(refreshDto))
   }
 
   @Post('/logout')
   @HttpCode(HttpStatus.OK)
-    async logout(@Body() logoutDto: LogoutRequestDto): Promise<BaseResponseDto<LogoutResponseDto>> {
+  async logout(@Body() logoutDto: LogoutRequestDto): Promise<BaseResponseDto<LogoutResponseDto>> {
     return ExceptionHandler.execute(() => this.logoutUseCase.execute(logoutDto))
   }
 }

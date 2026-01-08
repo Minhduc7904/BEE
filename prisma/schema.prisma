@@ -514,12 +514,12 @@ model Course {
 }
 
 model CourseClass {
-  classId      Int      @id @default(autoincrement()) @map("class_id")
-  courseId     Int      @map("course_id")
-  className    String   @map("class_name") @db.VarChar(100)
-  startDate    DateTime @map("start_date") @db.Date
-  endDate      DateTime @map("end_date") @db.Date
-  room         String?  @map("room") @db.VarChar(100)
+  classId      Int       @id @default(autoincrement()) @map("class_id")
+  courseId     Int       @map("course_id")
+  className    String    @map("class_name") @db.VarChar(100) // tên lớp học, ví dụ: "Lớp A1", "Lớp Toán nâng cao"
+  startDate    DateTime? @map("start_date") @db.Date // ngày bắt đầu lớp học
+  endDate      DateTime? @map("end_date") @db.Date // ngày kết thúc lớp học
+  room         String?   @map("room") @db.VarChar(100)
   instructorId Int?
 
   // Relations
@@ -562,12 +562,11 @@ model ClassStudent {
 }
 
 model CourseEnrollment {
-  enrollmentId   Int      @id @default(autoincrement()) @map("enrollment_id")
-  courseId       Int      @map("course_id")
-  studentId      Int      @map("student_id")
-  enrolledAt     DateTime @default(now()) @map("enrolled_at") @db.Timestamp(0) // ngày đăng ký khoá học
-  status         String   @map("status") @db.VarChar(50) // ví dụ: active, completed, cancelled
-  defaultClassId Int?
+  enrollmentId Int      @id @default(autoincrement()) @map("enrollment_id")
+  courseId     Int      @map("course_id")
+  studentId    Int      @map("student_id")
+  enrolledAt   DateTime @default(now()) @map("enrolled_at") @db.Timestamp(0) // ngày đăng ký khoá học
+  status       String   @map("status") @db.VarChar(50) // ví dụ: active, completed, cancelled
 
   // Relations
   course  Course  @relation(fields: [courseId], references: [courseId], onDelete: Cascade)
@@ -591,7 +590,7 @@ model Attendance {
   sessionId    Int              @map("session_id")
   studentId    Int              @map("student_id")
   status       AttendanceStatus @map("status") // present, absent, late
-  markedAt     DateTime         @default(now()) @map("marked_at") @db.Timestamp
+  markedAt     DateTime         @map("marked_at") @db.Timestamp(0)
   notes        String?          @map("notes") @db.Text
   updatedAt    DateTime         @updatedAt @map("updated_at") @db.Timestamp(0)
 

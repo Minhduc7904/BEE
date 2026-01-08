@@ -10,7 +10,9 @@ import {
   GetAllAuditLogsUseCase,
 } from '../../application/use-cases/log'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
+import { Injectable } from '@nestjs/common'
 
+@Injectable()
 @Controller('admin-audit-log')
 export class AdminAuditLogController {
   constructor(

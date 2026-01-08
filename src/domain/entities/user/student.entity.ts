@@ -43,4 +43,10 @@ export class Student {
   getGradeDisplay(): string {
     return `Lớp ${this.grade}`
   }
+
+  getFullName(): string {
+    return this.user ? this.user.getFullName() : 'Unknown Student'
+  }
+
+  
 }

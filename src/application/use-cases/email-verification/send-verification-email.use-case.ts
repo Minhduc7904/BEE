@@ -1,6 +1,6 @@
 // src/application/use-cases/email-verification/send-verification-email.use-case.ts
 import { Injectable, Inject } from '@nestjs/common'
-import type { IEmailVerificationTokenRepository, IUserRepository } from '../../../domain/repositories'
+import type { IEmailVerificationTokenRepository, IUserRepository } from 'src/domain/repositories'
 import type { IEmailService } from '../../../infrastructure/interfaces/email.interface'
 import { TokenService } from '../../../infrastructure/services'
 import {

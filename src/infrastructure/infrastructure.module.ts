@@ -17,6 +17,11 @@ import {
   PrismaAdminLogRepository,
   PrismaMediaFolderRepository,
   PrismaMediaUsageRepository,
+  PrismaCourseRepository,
+  PrismaCourseClassRepository,
+  PrismaClassSessionRepository,
+  PrismaClassStudentRepository,
+  PrismaCourseEnrollmentRepository,
 } from './repositories'
 import {
   PasswordService,
@@ -109,6 +114,31 @@ import supabaseConfig from '../config/supabase.config'
       inject: [PrismaService],
     },
     {
+      provide: 'ICourseRepository',
+      useFactory: (prisma: PrismaService) => new PrismaCourseRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'ICourseClassRepository',
+      useFactory: (prisma: PrismaService) => new PrismaCourseClassRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IClassSessionRepository',
+      useFactory: (prisma: PrismaService) => new PrismaClassSessionRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IClassStudentRepository',
+      useFactory: (prisma: PrismaService) => new PrismaClassStudentRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'ICourseEnrollmentRepository',
+      useFactory: (prisma: PrismaService) => new PrismaCourseEnrollmentRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
       provide: 'PASSWORD_SERVICE',
       useClass: PasswordService,
     },
@@ -147,6 +177,8 @@ import supabaseConfig from '../config/supabase.config'
     'IAdminRepository',
     'IRoleRepository',
     'IPermissionRepository',
+    'IClassStudentRepository',
+    'ICourseEnrollmentRepository',
     'IAdminAuditLogRepository',
     'IStudentRepository',
     'IEmailVerificationTokenRepository',
@@ -154,6 +186,9 @@ import supabaseConfig from '../config/supabase.config'
     'IMediaRepository',
     'IMediaFolderRepository',
     'IMediaUsageRepository',
+    'ICourseRepository',
+    'ICourseClassRepository',
+    'IClassSessionRepository',
     'PASSWORD_SERVICE',
     'JWT_TOKEN_SERVICE',
     'TOKEN_HASH_SERVICE',

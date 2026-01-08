@@ -20,7 +20,9 @@ import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { CurrentUser } from '../../shared/decorators/current-user.decorator'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
 import { AdminListQueryDto, AdminResponseDto, BaseResponseDto, PaginationResponseDto, RegisterAdminDto, RegisterAdminResponseDto } from 'src/application/dtos'
+import { Injectable } from '@nestjs/common'
 
+@Injectable()
 @Controller('admins')
 export class AdminController {
     constructor(
