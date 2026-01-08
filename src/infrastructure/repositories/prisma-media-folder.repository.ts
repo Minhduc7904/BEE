@@ -7,13 +7,13 @@ import { MediaFolderMapper } from '../mappers/media-folder.mapper'
 
 /**
  * PrismaMediaFolderRepository - Production-ready MediaFolder repository
- * 
+ *
  * PRINCIPLES:
  * - NO business logic (pure data access)
  * - NO auth/permission checks
  * - NO MinIO integration
  * - Transaction-safe (supports Prisma TransactionClient)
- * 
+ *
  * ARCHITECTURE:
  * - Returns MediaFolderEntity (domain layer)
  * - Uses MediaFolderMapper for conversion
@@ -22,13 +22,11 @@ import { MediaFolderMapper } from '../mappers/media-folder.mapper'
  */
 @Injectable()
 export class PrismaMediaFolderRepository implements IMediaFolderRepository {
-  constructor(
-    private readonly prisma: PrismaService | Prisma.TransactionClient,
-  ) {}
+  constructor(private readonly prisma: PrismaService | Prisma.TransactionClient) {}
 
   /**
    * Create new media folder
-   * 
+   *
    * @param data - Folder creation data
    * @returns Created MediaFolderEntity
    */
@@ -54,7 +52,7 @@ export class PrismaMediaFolderRepository implements IMediaFolderRepository {
 
   /**
    * Find folder by ID
-   * 
+   *
    * @param folderId - Folder ID
    * @returns MediaFolderEntity or null if not found
    */
@@ -68,13 +66,18 @@ export class PrismaMediaFolderRepository implements IMediaFolderRepository {
 
   /**
    * Find folder by slug
-   * 
+   *
    * @param slug - Unique folder slug
    * @returns MediaFolderEntity or null if not found
    */
-  async findBySlug(slug: string): Promise<MediaFolderEntity | null> {
+  async findBySlug(slug: string, parentId: number): Promise<MediaFolderEntity | null> {
     const folder = await this.prisma.mediaFolder.findUnique({
-      where: { slug },
+      where: {
+        parentId_slug: {
+          parentId,
+          slug,
+        },
+      },
     })
 
     return folder ? MediaFolderMapper.toDomain(folder) : null
@@ -83,13 +86,13 @@ export class PrismaMediaFolderRepository implements IMediaFolderRepository {
   /**
    * Find direct children of a folder
    * Does NOT recursively fetch nested children
-   * 
+   *
    * @param parentId - Parent folder ID (null for root folders)
    * @returns Array of child MediaFolderEntity
    */
-  async findChildren(parentId: number | null): Promise<MediaFolderEntity[]> {
+  async findChildren(parentId: number | null, userId?: number): Promise<MediaFolderEntity[]> {
     const folders = await this.prisma.mediaFolder.findMany({
-      where: { parentId },
+      where: { parentId, ...(userId ? { createdBy: userId } : {}) },
       orderBy: { name: 'asc' },
     })
 
@@ -98,7 +101,7 @@ export class PrismaMediaFolderRepository implements IMediaFolderRepository {
 
   /**
    * Find all root folders (parentId = null)
-   * 
+   *
    * @returns Array of root MediaFolderEntity
    */
   async findRootFolders(): Promise<MediaFolderEntity[]> {
@@ -107,7 +110,7 @@ export class PrismaMediaFolderRepository implements IMediaFolderRepository {
 
   /**
    * Find multiple folders with optional filters
-   * 
+   *
    * @param filters - Filter criteria
    * @returns Array of MediaFolderEntity
    */
@@ -131,7 +134,7 @@ export class PrismaMediaFolderRepository implements IMediaFolderRepository {
 
   /**
    * Update folder metadata
-   * 
+   *
    * @param folderId - Folder ID to update
    * @param data - Update data
    * @returns Updated MediaFolderEntity
@@ -156,7 +159,7 @@ export class PrismaMediaFolderRepository implements IMediaFolderRepository {
   /**
    * Delete folder
    * Cascade delete to children and media handled at database level
-   * 
+   *
    * @param folderId - Folder ID to delete
    */
   async delete(folderId: number): Promise<void> {
@@ -167,14 +170,11 @@ export class PrismaMediaFolderRepository implements IMediaFolderRepository {
 
   /**
    * Count folders with optional filters
-   * 
+   *
    * @param filters - Filter criteria
    * @returns Total count
    */
-  async count(filters?: {
-    parentId?: number | null
-    createdBy?: number
-  }): Promise<number> {
+  async count(filters?: { parentId?: number | null; createdBy?: number }): Promise<number> {
     return await this.prisma.mediaFolder.count({
       where: filters,
     })

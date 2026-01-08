@@ -10,7 +10,7 @@ export class CreateMediaFolderUseCase {
     private readonly mediaFolderRepository: IMediaFolderRepository,
   ) {}
 
-  async execute(dto: CreateMediaFolderDto, userId: number) {
+  async execute(dto: CreateMediaFolderDto, userId: number) : Promise<BaseResponseDto<MediaFolderResponseDto>> {
     const folder = await this.mediaFolderRepository.create({
       name: dto.name,
       slug: dto.slug,

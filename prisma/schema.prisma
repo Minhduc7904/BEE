@@ -395,6 +395,8 @@ model Question {
   @@map("questions")
 }
 
+
+
 model Statement {
   statementId Int         @id @default(autoincrement()) @map("statement_id")
   content     String      @map("content") @db.Text
@@ -670,23 +672,23 @@ enum MediaVisibility {
 model MediaFolder {
   folderId    Int      @id @default(autoincrement()) @map("folder_id")
   name        String   @map("name") @db.VarChar(255)
-  slug        String   @unique @map("slug") @db.VarChar(255)
+  slug        String   @map("slug") @db.VarChar(255)
   description String?  @map("description") @db.Text
   parentId    Int?     @map("parent_id")
   createdBy   Int?     @map("created_by")
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
-  // Relations
   parent   MediaFolder?  @relation("FolderHierarchy", fields: [parentId], references: [folderId], onDelete: Cascade)
   children MediaFolder[] @relation("FolderHierarchy")
   media    Media[]
 
+  @@unique([parentId, slug], map: "uq_media_folders_parent_slug")
   @@index([parentId], map: "idx_media_folders_parent")
-  @@index([slug], map: "idx_media_folders_slug")
   @@index([createdBy], map: "idx_media_folders_created_by")
   @@map("media_folders")
 }
+
 
 model Media {
   mediaId      Int         @id @default(autoincrement()) @map("media_id")

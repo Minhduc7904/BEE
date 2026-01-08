@@ -35,7 +35,7 @@ export interface IMediaFolderRepository {
    * @param slug - Unique folder slug
    * @returns MediaFolderEntity or null if not found
    */
-  findBySlug(slug: string): Promise<MediaFolderEntity | null>
+  findBySlug(slug: string, parentId: number): Promise<MediaFolderEntity | null>
 
   /**
    * Find direct children of a folder
@@ -43,14 +43,14 @@ export interface IMediaFolderRepository {
    * @param parentId - Parent folder ID (null for root folders)
    * @returns Array of child MediaFolderEntity
    */
-  findChildren(parentId: number | null): Promise<MediaFolderEntity[]>
+  findChildren(parentId: number | null, userId?: number): Promise<MediaFolderEntity[]>
 
   /**
    * Find all root folders (parentId = null)
    * 
    * @returns Array of root MediaFolderEntity
    */
-  findRootFolders(): Promise<MediaFolderEntity[]>
+  findRootFolders(userId?: number): Promise<MediaFolderEntity[]>
 
   /**
    * Find multiple folders with optional filters

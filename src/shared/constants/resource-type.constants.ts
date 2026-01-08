@@ -5,6 +5,8 @@ export const RESOURCE_TYPES = {
   PERMISSION: 'PERMISSION',
   USER_ROLE: 'USER_ROLE',
   USER: 'USER',
+  SUBJECT: 'SUBJECT',
+  CHAPTER: 'CHAPTER',
   DOCUMENT: 'DOCUMENT',
   QUESTION_IMAGE: 'QUESTION_IMAGE',
   SOLUTION_IMAGE: 'SOLUTION_IMAGE',
@@ -36,6 +38,18 @@ export const RESOURCE_TYPE_TABLE = {
     tableName: 'users',
     primaryKey: 'userId',
     repositoryName: 'userRepository',
+  },
+  [RESOURCE_TYPES.SUBJECT]: {
+    displayName: 'Subject',
+    tableName: 'subjects',
+    primaryKey: 'subjectId',
+    repositoryName: 'subjectRepository',
+  },
+  [RESOURCE_TYPES.CHAPTER]: {
+    displayName: 'Chapter',
+    tableName: 'chapters',
+    primaryKey: 'chapterId',
+    repositoryName: 'chapterRepository',
   },
   [RESOURCE_TYPES.DOCUMENT]: {
     displayName: 'Document',

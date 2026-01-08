@@ -23,6 +23,8 @@ import { CourseClassController } from './controllers/course-class.controller'
 import { ClassSessionController } from './controllers/class-session.controller'
 import { ClassStudentController } from './controllers/class-student.controller'
 import { CourseEnrollmentController } from './controllers/course-enrollment.controller'
+import { SubjectController } from './controllers/subject.controller'
+import { ChapterController } from './controllers/chapter.controller'
 @Module({
   imports: [ApplicationModule, InfrastructureModule, SharedModule],
   controllers: [
@@ -46,6 +48,8 @@ import { CourseEnrollmentController } from './controllers/course-enrollment.cont
     ClassSessionController,
     ClassStudentController,
     CourseEnrollmentController,
+    SubjectController,
+    ChapterController,
   ],
 })
 export class PresentationModule {}

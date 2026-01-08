@@ -97,6 +97,22 @@ import {
   UpdateCourseEnrollmentUseCase,
   DeleteCourseEnrollmentUseCase,
 } from './use-cases/course-enrollment'
+import {
+  CreateSubjectUseCase,
+  GetSubjectUseCase,
+  GetAllSubjectsUseCase,
+  UpdateSubjectUseCase,
+  DeleteSubjectUseCase,
+} from './use-cases/subject'
+import {
+  CreateChapterUseCase,
+  GetChapterUseCase,
+  GetAllChaptersUseCase,
+  GetChapterChildrenUseCase,
+  GetRootChaptersUseCase,
+  UpdateChapterUseCase,
+  DeleteChapterUseCase,
+} from './use-cases/chapter'
 
 @Module({
   imports: [InfrastructureModule],
@@ -190,6 +206,20 @@ import {
     CreateCourseEnrollmentUseCase,
     UpdateCourseEnrollmentUseCase,
     DeleteCourseEnrollmentUseCase,
+    // Subject use-cases
+    CreateSubjectUseCase,
+    GetSubjectUseCase,
+    GetAllSubjectsUseCase,
+    UpdateSubjectUseCase,
+    DeleteSubjectUseCase,
+    // Chapter use-cases
+    CreateChapterUseCase,
+    GetChapterUseCase,
+    GetAllChaptersUseCase,
+    GetChapterChildrenUseCase,
+    GetRootChaptersUseCase,
+    UpdateChapterUseCase,
+    DeleteChapterUseCase,
   ],
   exports: [
     RegisterAdminUseCase,
@@ -282,6 +312,20 @@ import {
     CreateCourseEnrollmentUseCase,
     UpdateCourseEnrollmentUseCase,
     DeleteCourseEnrollmentUseCase,
+    // Subject use-cases
+    CreateSubjectUseCase,
+    GetSubjectUseCase,
+    GetAllSubjectsUseCase,
+    UpdateSubjectUseCase,
+    DeleteSubjectUseCase,
+    // Chapter use-cases
+    CreateChapterUseCase,
+    GetChapterUseCase,
+    GetAllChaptersUseCase,
+    GetChapterChildrenUseCase,
+    GetRootChaptersUseCase,
+    UpdateChapterUseCase,
+    DeleteChapterUseCase,
   ],
 })
 export class ApplicationModule { }

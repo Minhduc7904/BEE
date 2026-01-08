@@ -7,6 +7,8 @@ import { IRoleRepository } from './role.repository'
 import { IPermissionRepository } from './permission.repository'
 import { IAdminAuditLogRepository } from './admin-audit-log.repository'
 import { IMediaRepository } from './media.repository'
+import { ISubjectRepository } from './subject.repository'
+import { IChapterRepository } from './chapter.repository'
 
 // src/domain/repositories/unit-of-work.repository.ts
 export interface UnitOfWorkRepos {
@@ -18,6 +20,8 @@ export interface UnitOfWorkRepos {
   permissionRepository: IPermissionRepository
   adminAuditLogRepository: IAdminAuditLogRepository
   mediaRepository: IMediaRepository
+  subjectRepository: ISubjectRepository
+  chapterRepository: IChapterRepository
 }
 
 export interface IUnitOfWork {

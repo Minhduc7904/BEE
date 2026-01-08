@@ -1,0 +1,5 @@
+export * from './create-subject.use-case'
+export * from './get-subject.use-case'
+export * from './get-all-subjects.use-case'
+export * from './update-subject.use-case'
+export * from './delete-subject.use-case'

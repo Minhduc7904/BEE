@@ -29,6 +29,14 @@ export * from './permission/permission-list-query.dto'
 export * from './student/student.dto'
 export * from './student/student-list-query.dto'
 
+// Subject DTOs
+export * from './subject/subject.dto'
+export * from './subject/subject-list-query.dto'
+
+// Chapter DTOs
+export * from './chapter/chapter.dto'
+export * from './chapter/chapter-list-query.dto'
+
 // User DTOs
 export * from './user/user.dto'
 export * from './user/update-avatar.dto'

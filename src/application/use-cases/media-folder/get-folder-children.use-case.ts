@@ -13,8 +13,8 @@ export class GetFolderChildrenUseCase {
     private readonly mediaFolderRepository: IMediaFolderRepository,
   ) {}
 
-  async execute(parentId: number | null) {
-    const children = await this.mediaFolderRepository.findChildren(parentId)
+  async execute(parentId: number | null, userId?: number): Promise<BaseResponseDto<{ data: MediaFolderResponseDto[]; total: number }>> {
+    const children = await this.mediaFolderRepository.findChildren(parentId, userId)
 
     return BaseResponseDto.success('Children retrieved successfully', {
       data: children.map((f) => MediaFolderResponseDto.fromEntity(f)),
