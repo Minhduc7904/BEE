@@ -8,7 +8,7 @@ export class GetMediaFolderUseCase {
   constructor(
     @Inject('IMediaFolderRepository')
     private readonly mediaFolderRepository: IMediaFolderRepository,
-  ) {}
+  ) { }
 
   async execute(folderId: number, userId: number): Promise<BaseResponseDto<MediaFolderResponseDto>> {
     const folder = await this.mediaFolderRepository.findById(folderId)

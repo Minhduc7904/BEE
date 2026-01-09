@@ -1,4 +1,5 @@
 import { MediaFolderEntity } from '../entities/media-folder.entity'
+import { MediaType } from '@prisma/client'
 
 /**
  * IMediaFolderRepository - Domain interface for media folder data access
@@ -41,9 +42,12 @@ export interface IMediaFolderRepository {
    * Find direct children of a folder
    * 
    * @param parentId - Parent folder ID (null for root folders)
+   * @param userId - Optional user ID filter
+   * @param includeMediaCount - Include media count for each folder
+   * @param mediaType - Optional media type filter for count
    * @returns Array of child MediaFolderEntity
    */
-  findChildren(parentId: number | null, userId?: number): Promise<MediaFolderEntity[]>
+  findChildren(parentId: number | null, userId?: number, includeMediaCount?: boolean, mediaType?: MediaType): Promise<MediaFolderEntity[]>
 
   /**
    * Find all root folders (parentId = null)

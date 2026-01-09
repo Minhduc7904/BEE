@@ -29,6 +29,7 @@ import { BaseResponseDto } from '../../application/dtos'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { CurrentUser } from '../../shared/decorators'
 import { RequirePermission } from '../../shared/decorators'
+import { MediaType } from '@prisma/client'
 
 @Controller('media-folders')
 export class MediaFolderController {
@@ -39,7 +40,7 @@ export class MediaFolderController {
     private readonly getFolderChildrenUseCase: GetFolderChildrenUseCase,
     private readonly updateMediaFolderUseCase: UpdateMediaFolderUseCase,
     private readonly deleteMediaFolderUseCase: DeleteMediaFolderUseCase,
-  ) {}
+  ) { }
 
   /**
    * Create a new media folder
@@ -74,8 +75,9 @@ export class MediaFolderController {
   @HttpCode(HttpStatus.OK)
   async getRootFolders(
     @CurrentUser('userId') userId: number,
+    @Query('type') type?: MediaType,
   ): Promise<BaseResponseDto<{ data: MediaFolderResponseDto[]; total: number }>> {
-    return ExceptionHandler.execute(() => this.getFolderChildrenUseCase.execute(null, userId))
+    return ExceptionHandler.execute(() => this.getFolderChildrenUseCase.execute(null, userId, type))
   }
 
   /**
@@ -97,8 +99,9 @@ export class MediaFolderController {
   async getFolderChildren(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser('userId') userId: number,
+    @Query('type') type?: MediaType,
   ): Promise<BaseResponseDto<{ data: MediaFolderResponseDto[]; total: number }>> {
-    return ExceptionHandler.execute(() => this.getFolderChildrenUseCase.execute(id, userId))
+    return ExceptionHandler.execute(() => this.getFolderChildrenUseCase.execute(id, userId, type))
   }
 
   /**

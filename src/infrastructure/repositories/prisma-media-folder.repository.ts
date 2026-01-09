@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { MediaFolderEntity } from '../../domain/entities/media-folder.entity'
 import { IMediaFolderRepository } from '../../domain/repositories/media-folder.repository'
 import { PrismaService } from '../../prisma/prisma.service'
-import { Prisma } from '@prisma/client'
+import { Prisma, MediaType } from '@prisma/client'
 import { MediaFolderMapper } from '../mappers/media-folder.mapper'
 
 /**
@@ -22,7 +22,7 @@ import { MediaFolderMapper } from '../mappers/media-folder.mapper'
  */
 @Injectable()
 export class PrismaMediaFolderRepository implements IMediaFolderRepository {
-  constructor(private readonly prisma: PrismaService | Prisma.TransactionClient) {}
+  constructor(private readonly prisma: PrismaService | Prisma.TransactionClient) { }
 
   /**
    * Create new media folder
@@ -88,15 +88,33 @@ export class PrismaMediaFolderRepository implements IMediaFolderRepository {
    * Does NOT recursively fetch nested children
    *
    * @param parentId - Parent folder ID (null for root folders)
+   * @param userId - Optional user ID filter
+   * @param includeMediaCount - Include media count for each folder
+   * @param mediaType - Optional media type filter for count
    * @returns Array of child MediaFolderEntity
    */
-  async findChildren(parentId: number | null, userId?: number): Promise<MediaFolderEntity[]> {
+  async findChildren(parentId: number | null, userId?: number, includeMediaCount: boolean = false, mediaType?: MediaType): Promise<MediaFolderEntity[]> {
     const folders = await this.prisma.mediaFolder.findMany({
       where: { parentId, ...(userId ? { createdBy: userId } : {}) },
       orderBy: { name: 'asc' },
+      ...(includeMediaCount && {
+        include: {
+          _count: {
+            select: { 
+              media: mediaType ? { where: { type: mediaType } } : true 
+            },
+          },
+        },
+      }),
     })
 
-    return MediaFolderMapper.toDomainList(folders)
+    return folders.map((folder) => {
+      const entity = MediaFolderMapper.toDomain(folder)
+      if (includeMediaCount && '_count' in folder) {
+        entity.mediaCount = (folder as any)._count.media
+      }
+      return entity
+    })
   }
 
   /**

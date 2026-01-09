@@ -1,5 +1,7 @@
 import { MediaType, MediaStatus } from '@prisma/client'
-
+import { User } from './user/user.entity'
+import { MediaUsageEntity } from './media-usage.entity'
+import { MediaFolderEntity } from './media-folder.entity'
 export class MediaEntity {
   mediaId: number
   folderId?: number
@@ -15,20 +17,9 @@ export class MediaEntity {
   height?: number
   duration?: number
   uploadedBy: number
-  uploader?: {
-    userId: number
-    username: string
-    firstName: string
-    lastName: string
-  }
-  usages?: Array<{
-    usageId: number
-    entityType: string
-    entityId: number
-    fieldName: string | null
-    visibility: string
-    createdAt: Date
-  }>
+  uploader?: User
+  usages?: Array<MediaUsageEntity>
+  folder?: MediaFolderEntity
   createdAt: Date
   updatedAt: Date
 
@@ -47,20 +38,9 @@ export class MediaEntity {
     height?: number
     duration?: number
     uploadedBy: number
-    uploader?: {
-      userId: number
-      username: string
-      firstName: string
-      lastName: string
-    }
-    usages?: Array<{
-      usageId: number
-      entityType: string
-      entityId: number
-      fieldName: string | null
-      visibility: string
-      createdAt: Date
-    }>
+    uploader?: User
+    usages?: Array<MediaUsageEntity>
+    folder?: MediaFolderEntity
     createdAt: Date
     updatedAt: Date
   }) {

@@ -1,5 +1,8 @@
 import { Media } from '@prisma/client'
 import { MediaEntity } from '../../domain/entities/media.entity'
+import { UserMapper } from './user.mapper'
+import { MediaUsageMapper } from './media-usage.mapper'
+import { MediaFolderMapper } from './media-folder.mapper'
 
 export class MediaMapper {
   static toDomain(prismaMedia: any): MediaEntity {
@@ -18,23 +21,12 @@ export class MediaMapper {
       height: prismaMedia.height ?? undefined,
       duration: prismaMedia.duration ?? undefined,
       uploadedBy: prismaMedia.uploadedBy!,
-      uploader: prismaMedia.uploader
-        ? {
-          userId: prismaMedia.uploader.userId,
-          username: prismaMedia.uploader.username,
-          firstName: prismaMedia.uploader.firstName,
-          lastName: prismaMedia.uploader.lastName,
-        }
-        : undefined,
+      uploader: UserMapper.toDomainUser(prismaMedia.uploader) ?? undefined,
       usages: prismaMedia.usages
-        ? prismaMedia.usages.map((usage: any) => ({
-          usageId: usage.usageId,
-          entityType: usage.entityType,
-          entityId: usage.entityId,
-          fieldName: usage.fieldName,
-          visibility: usage.visibility,
-          createdAt: usage.createdAt,
-        }))
+        ? prismaMedia.usages.map((usage: any) => MediaUsageMapper.toDomain(usage))
+        : undefined,
+      folder: prismaMedia.folder
+        ? MediaFolderMapper.toDomain(prismaMedia.folder)
         : undefined,
       createdAt: prismaMedia.createdAt,
       updatedAt: prismaMedia.updatedAt,

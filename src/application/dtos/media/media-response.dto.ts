@@ -1,6 +1,8 @@
 import { MediaType, MediaStatus } from '@prisma/client'
 import { MediaEntity } from '../../../domain/entities/media.entity'
-
+import { UserResponseDto } from '../user/user.dto'
+import { MediaUsageResponseDto } from '../media-usage/media-usage-response.dto'
+import { MediaFolderResponseDto } from '../media-folder'
 export class MediaResponseDto {
   mediaId: number
   fileName: string
@@ -19,20 +21,9 @@ export class MediaResponseDto {
   description?: string
   alt?: string
   uploadedBy?: number
-  uploader?: {
-    userId: number
-    username: string
-    firstName: string
-    lastName: string
-  }
-  usages?: Array<{
-    usageId: number
-    entityType: string
-    entityId: number
-    fieldName: string | null
-    visibility: string
-    createdAt: Date
-  }>
+  uploader?: UserResponseDto
+  usages?: Array<MediaUsageResponseDto>
+  folder?: MediaFolderResponseDto
   createdAt: Date
   updatedAt: Date
 
@@ -55,13 +46,9 @@ export class MediaResponseDto {
     dto.description = undefined // Not in entity yet
     dto.alt = undefined // Not in entity yet
     dto.uploadedBy = entity.uploadedBy
-    dto.uploader = entity.uploader ? {
-      userId: entity.uploader.userId,
-      username: entity.uploader.username,
-      firstName: entity.uploader.firstName,
-      lastName: entity.uploader.lastName,
-    } : undefined
-    dto.usages = entity.usages
+    dto.uploader = entity.uploader ? UserResponseDto.fromUser(entity.uploader) : undefined
+    dto.usages = entity.usages ? entity.usages.map((usage) => MediaUsageResponseDto.fromEntity(usage)) : undefined
+    dto.folder = entity.folder ? MediaFolderResponseDto.fromEntity(entity.folder) : undefined
     dto.createdAt = entity.createdAt
     dto.updatedAt = entity.updatedAt
     return dto

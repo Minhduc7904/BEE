@@ -10,6 +10,7 @@ export class MediaFolderResponseDto {
   description: string | null
   parentId: number | null
   createdBy: number | null
+  mediaCount?: number
   createdAt: Date
   updatedAt: Date
 
@@ -21,6 +22,7 @@ export class MediaFolderResponseDto {
     dto.description = entity.description
     dto.parentId = entity.parentId
     dto.createdBy = entity.createdBy
+    dto.mediaCount = entity.mediaCount
     dto.createdAt = entity.createdAt
     dto.updatedAt = entity.updatedAt
     return dto

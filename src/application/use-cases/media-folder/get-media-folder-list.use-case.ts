@@ -8,9 +8,9 @@ export class GetMediaFolderListUseCase {
   constructor(
     @Inject('IMediaFolderRepository')
     private readonly mediaFolderRepository: IMediaFolderRepository,
-  ) {}
+  ) { }
 
-  async execute(dto: GetMediaFolderListDto): Promise<BaseResponseDto<{ data: MediaFolderResponseDto[]; total: number }>>   {
+  async execute(dto: GetMediaFolderListDto): Promise<BaseResponseDto<{ data: MediaFolderResponseDto[]; total: number }>> {
     const [folders, total] = await Promise.all([
       this.mediaFolderRepository.findMany(dto),
       this.mediaFolderRepository.count({

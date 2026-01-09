@@ -11,6 +11,7 @@ export class MediaFolderEntity {
   description: string | null
   parentId: number | null
   createdBy: number | null
+  mediaCount?: number
   createdAt: Date
   updatedAt: Date
 
@@ -21,6 +22,7 @@ export class MediaFolderEntity {
     description: string | null
     parentId: number | null
     createdBy: number | null
+    mediaCount?: number
     createdAt: Date
     updatedAt: Date
   }) {
