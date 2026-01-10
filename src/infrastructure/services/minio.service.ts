@@ -46,12 +46,41 @@ export class MinioService implements OnModuleInit {
   }
 
   async onModuleInit() {
+    // Wait for MinIO to be ready with retry logic
+    await this.waitForMinioConnection()
+    
     // Only auto-create buckets in non-production environments
     if (!this.isProduction) {
       await this.createPrivateBucketsIfNotExist()
     } else {
       this.logger.warn('Production mode: Buckets must be created manually. Skipping auto-creation.')
       await this.verifyBucketsExist()
+    }
+  }
+
+  /**
+   * Wait for MinIO connection to be ready with retry logic
+   */
+  private async waitForMinioConnection(): Promise<void> {
+    for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
+      try {
+        // Try to list buckets as a connection test
+        await this.minioClient.listBuckets()
+        this.logger.log('✅ MinIO connection established')
+        return
+      } catch (error) {
+        this.logger.warn(`⚠️ MinIO connection attempt ${attempt}/${this.maxRetries} failed: ${error.message}`)
+        
+        if (attempt === this.maxRetries) {
+          this.logger.error('❌ Failed to connect to MinIO after maximum retries')
+          throw new InternalServerErrorException(
+            'Failed to connect to MinIO storage. Please ensure MinIO is running and credentials are correct.'
+          )
+        }
+        
+        // Wait before retry
+        await new Promise(resolve => setTimeout(resolve, this.retryDelay * attempt))
+      }
     }
   }
 

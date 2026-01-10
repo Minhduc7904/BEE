@@ -20,12 +20,12 @@ export class CourseListQueryDto extends ListQueryDto {
     subjectId?: number
 
     @IsOptional()
-    @IsEnum(['DRAFT', 'PUBLISHED', 'ARCHIVED'], { message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái') })
+    @IsEnum(['DRAFT', 'PUBLISHED', 'PRIVATE'], { message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái') })
     visibility?: Visibility
 
     @IsOptional()
     @Type(() => Number)
-    @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Giảng viên') })
+    @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Giáo viên') })
     teacherId?: number
 
     @IsOptional()

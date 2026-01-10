@@ -395,8 +395,6 @@ model Question {
   @@map("questions")
 }
 
-
-
 model Statement {
   statementId Int         @id @default(autoincrement()) @map("statement_id")
   content     String      @map("content") @db.Text
@@ -495,7 +493,7 @@ model Course {
   priceVND     Int        @default(0) @map("price_vnd") // giá khoá học (đơn vị: VND)
   compareAtVND Int?       @map("compare_at_vnd") // giá gốc (nếu có) để hiển thị giá khuyến mãi
   visibility   Visibility @default(DRAFT) @map("visibility") // trạng thái khoá học
-  teacherId    Int?       @map("teacher_id") // FK tới admin_users nếu admin là giảng viên
+  teacherId    Int?       @map("teacher_id") // FK tới admin_users nếu admin là giáo viên
   isUpdatable  Boolean    @default(true) @map("is_updatable") // khoá học có thể chỉnh sửa nội dung không
   createdAt    DateTime   @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt    DateTime   @updatedAt @map("updated_at") @db.Timestamp(0)
@@ -523,6 +521,9 @@ model CourseClass {
   endDate      DateTime? @map("end_date") @db.Date // ngày kết thúc lớp học
   room         String?   @map("room") @db.VarChar(100)
   instructorId Int?
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
   course        Course         @relation(fields: [courseId], references: [courseId], onDelete: Cascade)
@@ -563,12 +564,18 @@ model ClassStudent {
   @@map("classes_students")
 }
 
+enum CourseEnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
 model CourseEnrollment {
-  enrollmentId Int      @id @default(autoincrement()) @map("enrollment_id")
-  courseId     Int      @map("course_id")
-  studentId    Int      @map("student_id")
-  enrolledAt   DateTime @default(now()) @map("enrolled_at") @db.Timestamp(0) // ngày đăng ký khoá học
-  status       String   @map("status") @db.VarChar(50) // ví dụ: active, completed, cancelled
+  enrollmentId Int                    @id @default(autoincrement()) @map("enrollment_id")
+  courseId     Int                    @map("course_id")
+  studentId    Int                    @map("student_id")
+  enrolledAt   DateTime               @default(now()) @map("enrolled_at") @db.Timestamp(0) // ngày đăng ký khoá học
+  status       CourseEnrollmentStatus @map("status")
 
   // Relations
   course  Course  @relation(fields: [courseId], references: [courseId], onDelete: Cascade)
@@ -688,7 +695,6 @@ model MediaFolder {
   @@index([createdBy], map: "idx_media_folders_created_by")
   @@map("media_folders")
 }
-
 
 model Media {
   mediaId      Int         @id @default(autoincrement()) @map("media_id")

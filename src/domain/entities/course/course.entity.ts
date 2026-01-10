@@ -5,7 +5,7 @@ import { Admin } from '../user/admin.entity'
 export enum Visibility {
     DRAFT = 'DRAFT',
     PUBLISHED = 'PUBLISHED',
-    ARCHIVED = 'ARCHIVED',
+    PRIVATE = 'PRIVATE',
 }
 
 export class Course {
@@ -81,8 +81,8 @@ export class Course {
     /**
      * Kiểm tra khóa học có đang bị archive không
      */
-    isArchived(): boolean {
-        return this.visibility === 'ARCHIVED'
+    isPrivate(): boolean {
+        return this.visibility === 'PRIVATE'
     }
 
     /**

@@ -3,7 +3,7 @@ import type { ICourseEnrollmentRepository } from 'src/domain/repositories/course
 import { UpdateCourseEnrollmentDto } from 'src/application/dtos/course-enrollment/update-course-enrollment.dto';
 import { CourseEnrollmentResponseDto } from 'src/application/dtos/course-enrollment/course-enrollment.dto';
 import { BaseResponseDto } from 'src/application/dtos/common/base-response.dto';
-import { EnrollmentStatus } from 'src/domain/entities/course-enrollment/course-enrollment.entity';
+import { CourseEnrollmentStatus } from '@prisma/client';
 
 @Injectable()
 export class UpdateCourseEnrollmentUseCase {
@@ -28,22 +28,22 @@ export class UpdateCourseEnrollmentUseCase {
 
         // Validate status transition
         if (updateDto.status) {
-            const validStatuses = Object.values(EnrollmentStatus);
-            if (!validStatuses.includes(updateDto.status as EnrollmentStatus)) {
+            const validStatuses = Object.values(CourseEnrollmentStatus);
+            if (!validStatuses.includes(updateDto.status as CourseEnrollmentStatus)) {
                 throw new BadRequestException(
                     `Trạng thái không hợp lệ. Các trạng thái hợp lệ: ${validStatuses.join(', ')}`,
                 );
             }
 
             // If trying to complete, check if can complete
-            if (updateDto.status === EnrollmentStatus.COMPLETED && !enrollment.canComplete()) {
+            if (updateDto.status === CourseEnrollmentStatus.COMPLETED && !enrollment.canComplete()) {
                 throw new BadRequestException(
                     'Không thể hoàn thành đăng ký đã bị hủy',
                 );
             }
 
             // If trying to cancel, check if can cancel
-            if (updateDto.status === EnrollmentStatus.CANCELLED && !enrollment.canCancel()) {
+            if (updateDto.status === CourseEnrollmentStatus.CANCELLED && !enrollment.canCancel()) {
                 throw new BadRequestException(
                     'Không thể hủy đăng ký đã hoàn thành',
                 );

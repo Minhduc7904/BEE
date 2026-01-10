@@ -1,19 +1,15 @@
 // src/domain/entities/course/course-enrollment.entity.ts
 import { Course } from '../course/course.entity'
 import { Student } from '../user/student.entity'
+import { CourseEnrollmentStatus } from '@prisma/client'
 
-export enum EnrollmentStatus {
-    ACTIVE = 'ACTIVE',
-    COMPLETED = 'COMPLETED',
-    CANCELLED = 'CANCELLED',
-}
 
 export class CourseEnrollment {
     enrollmentId: number
     courseId: number
     studentId: number
     enrolledAt: Date
-    status: EnrollmentStatus
+    status: CourseEnrollmentStatus
     createdAt?: Date
     updatedAt?: Date
 
@@ -26,7 +22,7 @@ export class CourseEnrollment {
         courseId: number,
         studentId: number,
         enrolledAt: Date,
-        status: EnrollmentStatus,
+        status: CourseEnrollmentStatus,
         createdAt?: Date,
         updatedAt?: Date,
         course?: Course,
@@ -47,21 +43,21 @@ export class CourseEnrollment {
      * Đang học
      */
     isActive(): boolean {
-        return this.status === EnrollmentStatus.ACTIVE
+        return this.status === CourseEnrollmentStatus.ACTIVE
     }
 
     /**
      * Đã hoàn thành
      */
     isCompleted(): boolean {
-        return this.status === EnrollmentStatus.COMPLETED
+        return this.status === CourseEnrollmentStatus.COMPLETED
     }
 
     /**
      * Đã hủy
      */
     isCancelled(): boolean {
-        return this.status === EnrollmentStatus.CANCELLED
+        return this.status === CourseEnrollmentStatus.CANCELLED
     }
 
     /**
@@ -85,7 +81,7 @@ export class CourseEnrollment {
         if (!this.canComplete()) {
             throw new Error('Enrollment cannot be completed')
         }
-        this.status = EnrollmentStatus.COMPLETED
+        this.status = CourseEnrollmentStatus.COMPLETED
     }
 
     /**
@@ -95,7 +91,7 @@ export class CourseEnrollment {
         if (!this.canCancel()) {
             throw new Error('Enrollment cannot be cancelled')
         }
-        this.status = EnrollmentStatus.CANCELLED
+        this.status = CourseEnrollmentStatus.CANCELLED
     }
 
     /**
@@ -112,11 +108,11 @@ export class CourseEnrollment {
      */
     getStatusDisplay(): string {
         switch (this.status) {
-            case EnrollmentStatus.ACTIVE:
+            case CourseEnrollmentStatus.ACTIVE:
                 return 'Đang học'
-            case EnrollmentStatus.COMPLETED:
+            case CourseEnrollmentStatus.COMPLETED:
                 return 'Đã hoàn thành'
-            case EnrollmentStatus.CANCELLED:
+            case CourseEnrollmentStatus.CANCELLED:
                 return 'Đã hủy'
             default:
                 return this.status

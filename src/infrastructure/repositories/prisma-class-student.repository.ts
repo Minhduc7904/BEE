@@ -105,9 +105,9 @@ export class PrismaClassStudentRepository implements IClassStudentRepository {
 
         if (filters?.search) {
             where.OR = [
-                { courseClass: { className: { contains: filters.search, mode: 'insensitive' } } },
-                { student: { user: { firstName: { contains: filters.search, mode: 'insensitive' } } } },
-                { student: { user: { lastName: { contains: filters.search, mode: 'insensitive' } } } },
+                { courseClass: { className: { contains: filters.search } } },
+                { student: { user: { firstName: { contains: filters.search } } } },
+                { student: { user: { lastName: { contains: filters.search } } } },
             ]
         }
 

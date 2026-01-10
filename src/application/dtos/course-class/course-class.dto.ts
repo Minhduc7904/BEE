@@ -14,6 +14,8 @@ export class CourseClassResponseDto {
     status: 'upcoming' | 'active' | 'completed' | 'unscheduled';
     durationInDays: number | null;
     isScheduled: boolean;
+    createdAt?: Date;
+    updatedAt?: Date;
 
     course?: CourseResponseDto;
     instructor?: AdminResponseDto;
@@ -30,6 +32,8 @@ export class CourseClassResponseDto {
         this.status = courseClass.getStatus();
         this.durationInDays = courseClass.getDurationInDays();
         this.isScheduled = courseClass.isScheduled();
+        this.createdAt = courseClass.createdAt;
+        this.updatedAt = courseClass.updatedAt;
         if (courseClass.course) {
             this.course = CourseResponseDto.fromEntity(courseClass.course);
         }

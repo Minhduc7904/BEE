@@ -119,9 +119,9 @@ export class PrismaCourseEnrollmentRepository implements ICourseEnrollmentReposi
 
         if (filters?.search) {
             where.OR = [
-                { course: { title: { contains: filters.search, mode: 'insensitive' } } },
-                { student: { user: { firstName: { contains: filters.search, mode: 'insensitive' } } } },
-                { student: { user: { lastName: { contains: filters.search, mode: 'insensitive' } } } },
+                { course: { title: { contains: filters.search } } },
+                { student: { user: { firstName: { contains: filters.search } } } },
+                { student: { user: { lastName: { contains: filters.search } } } },
             ]
         }
 

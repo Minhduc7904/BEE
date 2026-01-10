@@ -38,7 +38,7 @@ export class CreateCourseClassDto {
   room?: string;
 
   @IsOptional()
-  @IsInt({ message: 'ID giảng viên phải là số nguyên' })
-  @Min(1, { message: 'ID giảng viên phải lớn hơn 0' })
+  @IsInt({ message: 'ID giáo viên phải là số nguyên' })
+  @Min(1, { message: 'ID giáo viên phải lớn hơn 0' })
   instructorId?: number;
 }

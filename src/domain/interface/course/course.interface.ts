@@ -10,7 +10,7 @@ export interface CreateCourseData {
   description?: string
   priceVND: number
   compareAtVND?: number
-  visibility?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
+  visibility?: 'DRAFT' | 'PUBLISHED' | 'PRIVATE'
   teacherId?: number
   isUpdatable?: boolean
 }
@@ -24,7 +24,7 @@ export interface UpdateCourseData {
   description?: string
   priceVND?: number
   compareAtVND?: number
-  visibility?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
+  visibility?: 'DRAFT' | 'PUBLISHED' | 'PRIVATE'
   teacherId?: number
   isUpdatable?: boolean
 }
@@ -32,7 +32,7 @@ export interface UpdateCourseData {
 export interface CourseFilterOptions {
   grade?: number
   subjectId?: number
-  visibility?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
+  visibility?: 'DRAFT' | 'PUBLISHED' | 'PRIVATE'
   teacherId?: number
   academicYear?: string
   search?: string

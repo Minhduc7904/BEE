@@ -49,11 +49,11 @@ export class UpdateCourseDto {
   compareAtVND?: number
 
   @IsOptional()
-  @IsEnum(['DRAFT', 'PUBLISHED', 'ARCHIVED'], { message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái') })
-  visibility?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'
+  @IsEnum(['DRAFT', 'PUBLISHED', 'PRIVATE'], { message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái') })
+  visibility?: 'DRAFT' | 'PUBLISHED' | 'PRIVATE'
 
   @IsOptional()
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Giảng viên') })
+  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Giáo viên') })
   teacherId?: number
 
   @IsOptional()

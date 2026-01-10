@@ -24,6 +24,6 @@ export const CourseVisibilityLabels: Record<CourseVisibility, string> = {
  */
 export const CourseVisibilityDescriptions: Record<CourseVisibility, string> = {
   [CourseVisibility.DRAFT]: 'Khóa học đang trong quá trình phát triển',
-  [CourseVisibility.PRIVATE]: 'Chỉ admin và giảng viên có thể xem',
+  [CourseVisibility.PRIVATE]: 'Chỉ admin và giáo viên có thể xem',
   [CourseVisibility.PUBLISHED]: 'Tất cả học sinh có thể đăng ký',
 }

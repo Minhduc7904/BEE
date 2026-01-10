@@ -54,7 +54,7 @@ export class PrismaCourseClassRepository implements ICourseClassRepository {
 
         const prismaClass = await this.prisma.courseClass.update({
             where: { classId },
-            data: { ...data },
+            data: { ...data, updatedAt: new Date() },
             include: {
                 course: true,
                 instructor: { include: { user: true } },
@@ -106,11 +106,17 @@ export class PrismaCourseClassRepository implements ICourseClassRepository {
             where.instructorId = filters.instructorId
         }
 
+        if (filters?.teacherId !== undefined) {
+            where.course = {
+                teacherId: filters.teacherId
+            }
+        }
+
         if (filters?.search) {
             where.OR = [
-                { className: { contains: filters.search, mode: 'insensitive' } },
-                { room: { contains: filters.search, mode: 'insensitive' } },
-                { course: { title: { contains: filters.search, mode: 'insensitive' } } },
+                { className: { contains: filters.search } },
+                { room: { contains: filters.search } },
+                { course: { title: { contains: filters.search } } },
             ]
         }
 

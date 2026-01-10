@@ -15,8 +15,13 @@ export class CourseClassListQueryDto extends ListQueryDto {
 
     @IsOptional()
     @Type(() => Number)
-    @IsInt({ message: 'ID giảng viên phải là số nguyên' })
+    @IsInt({ message: 'ID giáo viên phải là số nguyên' })
     instructorId?: number;
+
+    @IsOptional()
+    @Type(() => Number)
+    @IsInt({ message: 'ID giáo viên phải là số nguyên' })
+    teacherId?: number;
 
     @IsOptional()
     @ToBoolean()
@@ -37,6 +42,7 @@ export class CourseClassListQueryDto extends ListQueryDto {
         return {
             courseId: this.courseId,
             instructorId: this.instructorId,
+            teacherId: this.teacherId,
             isActive: this.isActive,
             isUpcoming: this.isUpcoming,
             isCompleted: this.isCompleted,

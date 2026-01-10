@@ -29,7 +29,7 @@ export interface ICourseRepository {
     findByGrade(grade: number): Promise<Course[]>
     findBySubject(subjectId: number): Promise<Course[]>
     findByTeacher(teacherId: number): Promise<Course[]>
-    findByVisibility(visibility: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'): Promise<Course[]>
+    findByVisibility(visibility: 'DRAFT' | 'PUBLISHED' | 'PRIVATE'): Promise<Course[]>
 
     // Count methods
     count(filters?: CourseFilterOptions): Promise<number>

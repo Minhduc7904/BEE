@@ -5,6 +5,7 @@ import {
   CourseEnrollmentFilterOptions,
   CourseEnrollmentPaginationOptions,
 } from 'src/domain/interface/course-enrollment/course-enrollment.interface';
+import { CourseEnrollmentStatus } from '@prisma/client';
 
 export class CourseEnrollmentListQueryDto extends ListQueryDto {
   @IsOptional()
@@ -19,7 +20,7 @@ export class CourseEnrollmentListQueryDto extends ListQueryDto {
 
   @IsOptional()
   @IsString({ message: 'Trạng thái phải là chuỗi ký tự' })
-  status?: string;
+  status?: CourseEnrollmentStatus;
 
   @IsOptional()
   @IsDateString({}, { message: 'Ngày đăng ký từ phải là định dạng ngày hợp lệ' })

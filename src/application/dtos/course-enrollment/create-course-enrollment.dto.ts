@@ -1,5 +1,6 @@
 import { IsInt, IsNotEmpty, IsOptional, IsString, MinLength, MaxLength, Min } from 'class-validator';
-import { Trim } from '../../../shared/decorators';
+import { Trim, IsEnumValue } from '../../../shared/decorators';
+import { CourseEnrollmentStatus } from '@prisma/client';
 
 export class CreateCourseEnrollmentDto {
   @IsInt({ message: 'ID khóa học phải là số nguyên' })
@@ -13,8 +14,7 @@ export class CreateCourseEnrollmentDto {
   studentId: number;
 
   @IsOptional()
-  @IsString({ message: 'Trạng thái phải là chuỗi ký tự' })
-  @MaxLength(50, { message: 'Trạng thái không được vượt quá 50 ký tự' })
   @Trim()
-  status?: string;
+  @IsEnumValue(CourseEnrollmentStatus, { message: 'Trạng thái không hợp lệ' })
+  status?: CourseEnrollmentStatus;
 }

@@ -9,8 +9,7 @@ import { CreateCourseEnrollmentDto } from '../../dtos/course-enrollment/create-c
 import { CourseEnrollmentResponseDto } from '../../dtos/course-enrollment/course-enrollment.dto';
 import { BaseResponseDto } from '../../dtos/common/base-response.dto';
 import type { ICourseRepository, IStudentRepository } from 'src/domain/repositories';
-import { EnrollmentStatus } from 'src/domain/entities/course-enrollment/course-enrollment.entity';
-
+import { CourseEnrollmentStatus } from '@prisma/client';
 @Injectable()
 export class CreateCourseEnrollmentUseCase {
     constructor(
@@ -56,7 +55,7 @@ export class CreateCourseEnrollmentUseCase {
         const enrollment = await this.courseEnrollmentRepository.create({
             courseId: createDto.courseId,
             studentId: createDto.studentId,
-            status: createDto.status || EnrollmentStatus.ACTIVE,
+            status: createDto.status || CourseEnrollmentStatus.ACTIVE,
         });
 
         const enrollmentDto = new CourseEnrollmentResponseDto(enrollment);

@@ -1,14 +1,15 @@
 import { CourseEnrollment } from 'src/domain/entities/course-enrollment/course-enrollment.entity';
 import { PaginationResponseDto } from '../pagination/pagination-response.dto';
-import { EnrollmentStatus } from 'src/domain/entities/course-enrollment/course-enrollment.entity';
 import { CourseResponseDto } from '../course/course.dto';
 import { StudentResponseDto } from '../student/student.dto';
+import { CourseEnrollmentStatus } from '@prisma/client';
+
 export class CourseEnrollmentResponseDto {
     enrollmentId: number;
     courseId: number;
     studentId: number;
     enrolledAt: Date;
-    status: string;
+    status: CourseEnrollmentStatus;
     statusDisplay: string;
     daysEnrolled: number;
     isActive: boolean;

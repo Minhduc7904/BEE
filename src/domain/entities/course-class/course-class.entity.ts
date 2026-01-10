@@ -81,7 +81,7 @@ export class CourseClass {
     }
 
     /**
-     * Có giảng viên phụ trách không
+     * Có giáo viên phụ trách không
      */
     hasInstructor(): boolean {
         return !!this.instructorId

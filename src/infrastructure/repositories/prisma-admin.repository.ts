@@ -113,10 +113,20 @@ export class PrismaAdminRepository implements IAdminRepository {
       field: string
     ): field is (typeof sortableFields)[number] =>
       (sortableFields as readonly string[]).includes(field)
-    const orderBy: Prisma.AdminOrderByWithRelationInput = {}
+    
+    let orderBy: Prisma.AdminOrderByWithRelationInput = {}
 
     if (options.sortBy && isValidSortField(options.sortBy)) {
-      orderBy[options.sortBy] = options.sortOrder ?? 'asc'
+      // Map createdAt and updatedAt to user relation
+      if (options.sortBy === 'createdAt' || options.sortBy === 'updatedAt') {
+        orderBy = {
+          user: {
+            [options.sortBy]: options.sortOrder ?? 'asc'
+          }
+        }
+      } else {
+        orderBy[options.sortBy] = options.sortOrder ?? 'asc'
+      }
     } else {
       orderBy.adminId = 'asc'
     }

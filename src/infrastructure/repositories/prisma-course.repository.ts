@@ -123,9 +123,9 @@ export class PrismaCourseRepository implements ICourseRepository {
 
         if (filters?.search) {
             where.OR = [
-                { title: { contains: filters.search, mode: 'insensitive' } },
-                { subtitle: { contains: filters.search, mode: 'insensitive' } },
-                { description: { contains: filters.search, mode: 'insensitive' } },
+                { title: { contains: filters.search } },
+                { subtitle: { contains: filters.search } },
+                { description: { contains: filters.search } },
             ]
         }
 
@@ -242,7 +242,7 @@ export class PrismaCourseRepository implements ICourseRepository {
         return CourseMapper.toDomainCourses(prismaCourses)
     }
 
-    async findByVisibility(visibility: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED'): Promise<Course[]> {
+    async findByVisibility(visibility: 'DRAFT' | 'PUBLISHED' | 'PRIVATE'): Promise<Course[]> {
         const prismaCourses = await this.prisma.course.findMany({
             where: { visibility },
             include: {
@@ -283,9 +283,9 @@ export class PrismaCourseRepository implements ICourseRepository {
 
         if (filters?.search) {
             where.OR = [
-                { title: { contains: filters.search, mode: 'insensitive' } },
-                { subtitle: { contains: filters.search, mode: 'insensitive' } },
-                { description: { contains: filters.search, mode: 'insensitive' } },
+                { title: { contains: filters.search } },
+                { subtitle: { contains: filters.search } },
+                { description: { contains: filters.search } },
             ]
         }
 
