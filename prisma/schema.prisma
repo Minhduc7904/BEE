@@ -165,6 +165,7 @@ model Admin {
   Lesson        Lesson[]        @relation("LessonTeacher")
   Question      Question[]      @relation("QuestionCreatedBy")
   courseClasses CourseClass[]
+  attendances   Attendance[]
 
   @@index([subjectId], map: "idx_admins_subject_id")
   @@map("admins")
@@ -602,10 +603,11 @@ model Attendance {
   markedAt     DateTime         @map("marked_at") @db.Timestamp(0)
   notes        String?          @map("notes") @db.Text
   updatedAt    DateTime         @updatedAt @map("updated_at") @db.Timestamp(0)
-
+  markerId     Int?             @map("marker") // admin/teacher who marked attendance
   // Relations
-  classSession ClassSession @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
-  student      Student      @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  classSession ClassSession     @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
+  student      Student          @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  marker       Admin?           @relation(fields: [markerId], references: [adminId], onDelete: SetNull)
 
   @@unique([sessionId, studentId], map: "unique_attendance_record")
   @@index([studentId], map: "idx_attendances_student_id")
