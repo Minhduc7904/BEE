@@ -3,7 +3,9 @@
 import { QuestionType } from '../../../shared/enums/question-type.enum'
 import { Difficulty } from '../../../shared/enums/difficulty.enum'
 import { Subject } from '../subject/subject.entity'
-import { Chapter } from '../chapter/chapter.entity'
+import { Statement } from './statement.entity'
+import { QuestionExam } from './question-exam.entity'
+import { QuestionChapter } from './question-chapter.entity'
 
 export class Question {
   // Required properties
@@ -16,21 +18,19 @@ export class Question {
   updatedAt: Date
 
   // Optional properties
-  imageId?: number
-  correctAnswer?: string
-  solution?: string
+  correctAnswer?: string | null
+  solution?: string | null
+  solutionYoutubeUrl?: string | null
   subjectId?: number | null
-  chapterId?: number | null
-  solutionYoutubeUrl?: string
-  solutionImageId?: number
-  createdBy?: number
+  pointsOrigin?: number | null
+  createdBy?: number | null
 
   // Relations (optional - sẽ được populate khi cần)
-  subject?: Subject
-  chapter?: Chapter
+  subject?: Subject | null
   admin?: any // AdminEntity
-  image?: any // ImageEntity
-  solutionImage?: any // ImageEntity
+  statements?: Statement[]
+  examQuestions?: QuestionExam[]
+  questionChapters?: QuestionChapter[]
 
   constructor(data: {
     questionId: number
@@ -40,19 +40,17 @@ export class Question {
     grade: number
     createdAt: Date
     updatedAt: Date
-    imageId?: number
-    correctAnswer?: string
-    solution?: string
+    correctAnswer?: string | null
+    solution?: string | null
+    solutionYoutubeUrl?: string | null
     subjectId?: number | null
-    chapterId?: number | null
-    solutionYoutubeUrl?: string
-    solutionImageId?: number
-    createdBy?: number
-    subject?: Subject
-    chapter?: Chapter
+    pointsOrigin?: number | null
+    createdBy?: number | null
+    subject?: Subject | null
     admin?: any
-    image?: any
-    solutionImage?: any
+    statements?: Statement[]
+    examQuestions?: QuestionExam[]
+    questionChapters?: QuestionChapter[]
   }) {
     this.questionId = data.questionId
     this.content = data.content
@@ -61,26 +59,17 @@ export class Question {
     this.grade = data.grade
     this.createdAt = data.createdAt
     this.updatedAt = data.updatedAt
-    this.imageId = data.imageId
     this.correctAnswer = data.correctAnswer
     this.solution = data.solution
-    this.subjectId = data.subjectId
-    this.chapterId = data.chapterId
     this.solutionYoutubeUrl = data.solutionYoutubeUrl
-    this.solutionImageId = data.solutionImageId
+    this.subjectId = data.subjectId
+    this.pointsOrigin = data.pointsOrigin
     this.createdBy = data.createdBy
     this.subject = data.subject
-    this.chapter = data.chapter
     this.admin = data.admin
-    this.image = data.image
-    this.solutionImage = data.solutionImage
-  }
-
-  /**
-   * Kiểm tra question có hình ảnh không
-   */
-  hasImage(): boolean {
-    return !!this.imageId
+    this.statements = data.statements
+    this.examQuestions = data.examQuestions
+    this.questionChapters = data.questionChapters
   }
 
   /**
@@ -98,13 +87,6 @@ export class Question {
   }
 
   /**
-   * Kiểm tra question có được gán chương không
-   */
-  hasChapter(): boolean {
-    return !!this.chapterId
-  }
-
-  /**
    * Kiểm tra question có YouTube lời giải không
    */
   hasSolutionYoutube(): boolean {
@@ -112,17 +94,31 @@ export class Question {
   }
 
   /**
-   * Kiểm tra question có hình ảnh lời giải không
-   */
-  hasSolutionImage(): boolean {
-    return !!this.solutionImageId
-  }
-
-  /**
    * Kiểm tra question có được gán môn học không
    */
   hasSubject(): boolean {
-    return !!this.subjectId
+    return this.subjectId !== null && this.subjectId !== undefined
+  }
+
+  /**
+   * Kiểm tra question có điểm gốc không
+   */
+  hasPointsOrigin(): boolean {
+    return this.pointsOrigin !== null && this.pointsOrigin !== undefined
+  }
+
+  /**
+   * Kiểm tra question có statements không
+   */
+  hasStatements(): boolean {
+    return Boolean(this.statements && this.statements.length > 0)
+  }
+
+  /**
+   * Kiểm tra question có chapters không
+   */
+  hasChapters(): boolean {
+    return Boolean(this.questionChapters && this.questionChapters.length > 0)
   }
 
   /**
@@ -147,40 +143,31 @@ export class Question {
   }
 
   /**
-   * Lấy thông tin chương
+   * Lấy danh sách chapters
    */
-  getChapter(): Chapter | undefined {
-    return this.chapter
+  getChapters(): QuestionChapter[] {
+    return this.questionChapters || []
   }
 
   /**
-   * Lấy tên chương
+   * Lấy số lượng statements
    */
-  getChapterName(): string {
-    return this.chapter?.name || 'Chưa xác định chương'
+  getStatementsCount(): number {
+    return this.statements?.length || 0
   }
 
   /**
-   * Lấy slug chương
+   * Lấy statements đúng
    */
-  getChapterSlug(): string {
-    return this.chapter?.slug || 'N/A'
-  }
-
-  /**
-   * Hiển thị thông tin chương đầy đủ
-   */
-  getChapterDisplay(): string {
-    if (!this.chapter) {
-      return 'Chưa được gán chương'
-    }
-    return this.chapter.getFullPath()
+  getCorrectStatements(): Statement[] {
+    if (!this.statements) return []
+    return this.statements.filter((s) => s.isCorrect)
   }
 
   /**
    * Lấy thông tin môn học
    */
-  getSubject(): Subject | undefined {
+  getSubject(): Subject | null | undefined {
     return this.subject
   }
 
@@ -268,11 +255,7 @@ export class Question {
    */
   getFullTitle(): string {
     const subject = this.getSubjectName()
-    const chapter = this.getChapterName()
     const parts = [subject]
-    if (chapter !== 'Chưa xác định chương') {
-      parts.push(chapter)
-    }
     parts.push(`Lớp ${this.grade}`)
     return parts.join(' - ')
   }
@@ -292,26 +275,11 @@ export class Question {
   }
 
   /**
-   * Kiểm tra question có thuộc chương cụ thể không (theo ID)
-   */
-  belongsToChapter(chapterId: number): boolean {
-    return this.chapterId === chapterId
-  }
-
-  /**
    * Kiểm tra question có thuộc môn học cụ thể không (theo tên)
    */
   isForSubjectName(subjectName: string): boolean {
     if (!this.subject) return false
     return this.subject.name.toLowerCase().includes(subjectName.toLowerCase())
-  }
-
-  /**
-   * Kiểm tra question có thuộc chương cụ thể không (theo tên)
-   */
-  isForChapterName(chapterName: string): boolean {
-    if (!this.chapter) return false
-    return this.chapter.name.toLowerCase().includes(chapterName.toLowerCase())
   }
 
   /**
@@ -350,7 +318,7 @@ export class Question {
    * Kiểm tra question có đầy đủ lời giải không
    */
   hasCompleteSolution(): boolean {
-    return this.hasSolution() || this.hasSolutionYoutube() || this.hasSolutionImage()
+    return this.hasSolution() || this.hasSolutionYoutube()
   }
 
   /**
@@ -358,20 +326,6 @@ export class Question {
    */
   getAdmin(): any | undefined {
     return this.admin
-  }
-
-  /**
-   * Lấy hình ảnh của question
-   */
-  getImage(): any | undefined {
-    return this.image
-  }
-
-  /**
-   * Lấy hình ảnh lời giải
-   */
-  getSolutionImage(): any | undefined {
-    return this.solutionImage
   }
 
   /**
@@ -419,29 +373,24 @@ export class Question {
       difficulty: this.difficulty,
       grade: this.grade,
       subjectId: this.subjectId,
-      chapterId: this.chapterId,
-      imageId: this.imageId,
+      pointsOrigin: this.pointsOrigin,
       correctAnswer: this.correctAnswer,
       solution: this.solution,
       solutionYoutubeUrl: this.solutionYoutubeUrl,
-      solutionImageId: this.solutionImageId,
       createdBy: this.createdBy,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
       // Computed fields
-      hasImage: this.hasImage(),
       hasCorrectAnswer: this.hasCorrectAnswer(),
       hasSolution: this.hasSolution(),
       hasSubject: this.hasSubject(),
-      hasChapter: this.hasChapter(),
+      hasPointsOrigin: this.hasPointsOrigin(),
+      hasStatements: this.hasStatements(),
+      hasChapters: this.hasChapters(),
       hasSolutionYoutube: this.hasSolutionYoutube(),
-      hasSolutionImage: this.hasSolutionImage(),
       subjectName: this.getSubjectName(),
       subjectCode: this.getSubjectCode(),
       subjectDisplay: this.getSubjectDisplay(),
-      chapterName: this.getChapterName(),
-      chapterSlug: this.getChapterSlug(),
-      chapterDisplay: this.getChapterDisplay(),
       typeDisplay: this.getTypeDisplay(),
       difficultyDisplay: this.getDifficultyDisplay(),
       gradeDisplay: this.getGradeDisplay(),
@@ -454,26 +403,14 @@ export class Question {
       isBasicLevel: this.isBasicLevel(),
       isAdvancedLevel: this.isAdvancedLevel(),
       wasUpdatedRecently: this.wasUpdatedRecently(),
+      statementsCount: this.getStatementsCount(),
       // Relations
       subject: this.subject ? this.subject.toJSON() : undefined,
-      chapter: this.chapter ? this.chapter.toJSON() : undefined,
       admin: this.admin
         ? {
             adminId: this.admin.adminId,
             userId: this.admin.userId,
             fullName: this.admin.getFullName ? this.admin.getFullName() : undefined,
-          }
-        : undefined,
-      image: this.image
-        ? {
-            imageId: this.image.imageId,
-            url: this.image.url,
-          }
-        : undefined,
-      solutionImage: this.solutionImage
-        ? {
-            imageId: this.solutionImage.imageId,
-            url: this.solutionImage.url,
           }
         : undefined,
     }
@@ -490,20 +427,18 @@ export class Question {
       difficulty: data.difficulty,
       grade: data.grade,
       subjectId: data.subjectId,
-      chapterId: data.chapterId,
-      imageId: data.imageId,
+      pointsOrigin: data.pointsOrigin,
       correctAnswer: data.correctAnswer,
       solution: data.solution,
       solutionYoutubeUrl: data.solutionYoutubeUrl,
-      solutionImageId: data.solutionImageId,
       createdBy: data.createdBy,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
       subject: data.subject ? Subject.fromPrisma(data.subject) : undefined,
-      chapter: data.chapter ? Chapter.fromPrisma(data.chapter) : undefined,
       admin: data.admin,
-      image: data.image,
-      solutionImage: data.solutionImage,
+      statements: data.statements,
+      examQuestions: data.examQuestions,
+      questionChapters: data.questionChapters,
     })
   }
 

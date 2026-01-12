@@ -1,6 +1,7 @@
 // src/domain/entities/exam/statement.entity.ts
 
 import { Difficulty } from '../../../shared/enums/difficulty.enum'
+import { Question } from './question.entity'
 
 export class Statement {
   // Required properties
@@ -12,30 +13,32 @@ export class Statement {
   updatedAt: Date
 
   // Optional properties
-  order?: number
-  difficulty?: Difficulty
-  imageId?: number
+  order?: number | null
+  difficulty?: Difficulty | null
 
-  constructor(
-    statementId: number,
-    content: string,
-    questionId: number,
-    isCorrect: boolean,
-    createdAt: Date,
-    updatedAt: Date,
-    order?: number,
-    difficulty?: Difficulty,
-    imageId?: number,
-  ) {
-    this.statementId = statementId
-    this.content = content
-    this.questionId = questionId
-    this.isCorrect = isCorrect
-    this.createdAt = createdAt
-    this.updatedAt = updatedAt
-    this.order = order
-    this.difficulty = difficulty
-    this.imageId = imageId
+  // Relations (optional - sẽ được populate khi cần)
+  question?: Question
+
+  constructor(data: {
+    statementId: number
+    content: string
+    questionId: number
+    isCorrect: boolean
+    createdAt: Date
+    updatedAt: Date
+    order?: number | null
+    difficulty?: Difficulty | null
+    question?: Question
+  }) {
+    this.statementId = data.statementId
+    this.content = data.content
+    this.questionId = data.questionId
+    this.isCorrect = data.isCorrect
+    this.createdAt = data.createdAt
+    this.updatedAt = data.updatedAt
+    this.order = data.order
+    this.difficulty = data.difficulty
+    this.question = data.question
   }
 
   // Validation methods
@@ -44,11 +47,11 @@ export class Statement {
   }
 
   hasDifficulty(): boolean {
-    return !!this.difficulty
+    return this.difficulty !== null && this.difficulty !== undefined
   }
 
-  hasImage(): boolean {
-    return !!this.imageId
+  hasQuestion(): boolean {
+    return !!this.question
   }
 
   // Display methods

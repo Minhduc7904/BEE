@@ -1,51 +1,53 @@
 // src/domain/entities/exam/exam.entity.ts
 import { Subject } from '../subject/subject.entity'
+import { QuestionExam } from './question-exam.entity'
+import { Competition } from './competition.entity'
 
 export class Exam {
   // Required properties
   examId: number
   title: string
   grade: number
-  subjectId: number
   createdBy: number
   createdAt: Date
   updatedAt: Date
 
   // Optional properties
-  description?: string
-  fileId?: number
-  solutionFileId?: number
+  description?: string | null
+  subjectId?: number | null
 
   // Relations (optional - sẽ được populate khi cần)
-  subject?: Subject
+  subject?: Subject | null
   admin?: any // AdminEntity
+  competitions?: Competition[] // Competition[]
+  questions?: QuestionExam[] // QuestionExam[]
 
   constructor(data: {
     examId: number
     title: string
     grade: number
-    subjectId: number
     createdBy: number
     createdAt: Date
     updatedAt: Date
-    description?: string
-    fileId?: number
-    solutionFileId?: number
-    subject?: Subject
+    description?: string | null
+    subjectId?: number | null
+    subject?: Subject | null
     admin?: any
+    competitions?: Competition[]
+    questions?: QuestionExam[]
   }) {
     this.examId = data.examId
     this.title = data.title
     this.grade = data.grade
-    this.subjectId = data.subjectId
     this.createdBy = data.createdBy
     this.createdAt = data.createdAt
     this.updatedAt = data.updatedAt
     this.description = data.description
-    this.fileId = data.fileId
-    this.solutionFileId = data.solutionFileId
+    this.subjectId = data.subjectId
     this.subject = data.subject
     this.admin = data.admin
+    this.competitions = data.competitions
+    this.questions = data.questions
   }
 
   /**
@@ -56,24 +58,31 @@ export class Exam {
   }
 
   /**
-   * Kiểm tra exam có file đề thi không
-   */
-  hasFile(): boolean {
-    return !!this.fileId
-  }
-
-  /**
-   * Kiểm tra exam có file đáp án không
-   */
-  hasSolutionFile(): boolean {
-    return !!this.solutionFileId
-  }
-
-  /**
    * Kiểm tra exam có được gán môn học không
    */
   hasSubject(): boolean {
-    return !!this.subjectId
+    return this.subjectId !== null && this.subjectId !== undefined
+  }
+
+  /**
+   * Kiểm tra exam có câu hỏi không
+   */
+  hasQuestions(): boolean {
+    return Boolean(this.questions && this.questions.length > 0)
+  }
+
+  /**
+   * Lấy số lượng câu hỏi
+   */
+  getQuestionsCount(): number {
+    return this.questions?.length || 0
+  }
+
+  /**
+   * Kiểm tra exam có competitions không
+   */
+  hasCompetitions(): boolean {
+    return Boolean(this.competitions && this.competitions.length > 0)
   }
 
   /**
@@ -94,7 +103,7 @@ export class Exam {
    * Lấy thông tin môn học
    */
   getSubject(): Subject | undefined {
-    return this.subject
+    return this.subject ? this.subject : undefined
   }
 
   /**
@@ -169,21 +178,24 @@ export class Exam {
    * Kiểm tra exam có đầy đủ thông tin cần thiết không
    */
   isComplete(): boolean {
-    return this.hasFile() || this.hasDescription()
+    return Boolean(this.title && this.title.trim()) && this.hasQuestions()
   }
 
   /**
    * Kiểm tra exam có thể sử dụng trong thi đấu không
    */
   canBeUsedInCompetition(): boolean {
-    return this.isComplete() && Boolean(this.title && this.title.trim()) && this.hasSubject()
+    return this.isComplete() && this.hasSubject()
   }
 
   /**
-   * Kiểm tra exam có đầy đủ file đề và đáp án không
+   * Tính tổng điểm của đề thi
    */
-  hasCompleteFiles(): boolean {
-    return this.hasFile() && this.hasSolutionFile()
+  getTotalPoints(): number {
+    if (!this.questions) return 0
+    return this.questions.reduce((total, qe) => {
+      return total + (qe.points || 0)
+    }, 0)
   }
 
   /**
@@ -230,14 +242,10 @@ export class Exam {
       subjectId: this.subjectId,
       createdBy: this.createdBy,
       description: this.description,
-      fileId: this.fileId,
-      solutionFileId: this.solutionFileId,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
       // Computed fields
       hasDescription: this.hasDescription(),
-      hasFile: this.hasFile(),
-      hasSolutionFile: this.hasSolutionFile(),
       hasSubject: this.hasSubject(),
       subjectName: this.getSubjectName(),
       subjectCode: this.getSubjectCode(),
@@ -246,9 +254,10 @@ export class Exam {
       fullTitle: this.getFullTitle(),
       isComplete: this.isComplete(),
       canBeUsedInCompetition: this.canBeUsedInCompetition(),
-      hasCompleteFiles: this.hasCompleteFiles(),
       difficultyLevel: this.getDifficultyLevel(),
       wasUpdatedRecently: this.wasUpdatedRecently(),
+      totalPoints: this.getTotalPoints(),
+      questionsCount: this.getQuestionsCount(),
       // Relations
       subject: this.subject ? this.subject.toJSON() : undefined,
       admin: this.admin
@@ -272,8 +281,11 @@ export class Exam {
       subjectId: data.subjectId,
       createdBy: data.createdBy,
       description: data.description,
-      fileId: data.fileId,
-      solutionFileId: data.solutionFileId,
+      competitions: data.competitions,
+      questions: data.questions
+        ? data.questions.map((qe: any) => QuestionExam.fromPrisma(qe))
+        : undefined,
+
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
       subject: data.subject ? Subject.fromPrisma(data.subject) : undefined,

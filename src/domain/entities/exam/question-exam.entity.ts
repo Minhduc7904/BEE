@@ -1,5 +1,8 @@
 // src/domain/entities/exam/question-exam.entity.ts
 
+import { Question } from './question.entity'
+import { Exam } from './exam.entity'
+
 export class QuestionExam {
   // Required properties
   questionId: number
@@ -8,14 +11,28 @@ export class QuestionExam {
   createdAt: Date
 
   // Optional properties
-  points?: number
+  points?: number | null
 
-  constructor(questionId: number, examId: number, order: number, createdAt: Date, points?: number) {
-    this.questionId = questionId
-    this.examId = examId
-    this.order = order
-    this.createdAt = createdAt
-    this.points = points
+  // Relations (optional - sẽ được populate khi cần)
+  question?: Question
+  exam?: Exam
+
+  constructor(data: {
+    questionId: number
+    examId: number
+    order: number
+    createdAt: Date
+    points?: number | null
+    question?: Question
+    exam?: Exam
+  }) {
+    this.questionId = data.questionId
+    this.examId = data.examId
+    this.order = data.order
+    this.createdAt = data.createdAt
+    this.points = data.points
+    this.question = data.question
+    this.exam = data.exam
   }
 
   // Validation methods
@@ -163,6 +180,21 @@ export class QuestionExam {
 
   static getQuestionsWithPoints(questionExams: QuestionExam[]): QuestionExam[] {
     return questionExams.filter((qe) => qe.hasPoints())
+  }
+
+  /**
+   * Tạo entity từ Prisma model data
+   */
+  static fromPrisma(data: any): QuestionExam {
+    return new QuestionExam({
+      questionId: data.questionId,
+      examId: data.examId,
+      order: data.order,
+      createdAt: data.createdAt,
+      points: data.points,
+      question: data.question ? Question.fromPrisma(data.question) : undefined,
+      exam: data.exam ? Exam.fromPrisma(data.exam) : undefined,
+    })
   }
 
   // Validation for entire exam

@@ -329,10 +329,10 @@ model Chapter {
   level Int @default(0)
 
   // Quan hệ
-  subject   Subject    @relation(fields: [subjectId], references: [subjectId], onDelete: Cascade)
-  parent    Chapter?   @relation("ChapterToChildren", fields: [parentChapterId], references: [chapterId], onDelete: Cascade)
-  children  Chapter[]  @relation("ChapterToChildren")
-  questions Question[] @relation("QuestionChapter")
+  subject          Subject           @relation(fields: [subjectId], references: [subjectId], onDelete: Cascade)
+  parent           Chapter?          @relation("ChapterToChildren", fields: [parentChapterId], references: [chapterId], onDelete: Cascade)
+  children         Chapter[]         @relation("ChapterToChildren")
+  questionChapters QuestionChapter[]
 
   @@unique([subjectId, name, parentChapterId]) // tên chương không trùng trong cùng 1 cha của 1 môn
   @@unique([subjectId, parentChapterId, orderInParent]) // đảm bảo thứ tự duy nhất trong nhóm anh/chị em
@@ -370,30 +370,42 @@ model Question {
   type               QuestionType @map("type")
   correctAnswer      String?      @map("correct_answer") @db.Text
   solution           String?      @map("solution") @db.Text
-  chapterId          Int?         @map("chapter_id")
   difficulty         Difficulty   @map("difficulty")
   solutionYoutubeUrl String?      @map("solution_youtube_url") @db.VarChar(500)
   grade              Int          @map("grade") @db.TinyInt
   subjectId          Int?         @map("subject_id")
+  pointsOrigin       Int?         @map("points_origin") // điểm gốc của câu hỏi
   createdBy          Int?         @map("created_by") // admin tạo câu hỏi
   createdAt          DateTime     @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt          DateTime     @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
-  subject       Subject?       @relation("QuestionSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
-  chapter       Chapter?       @relation("QuestionChapter", fields: [chapterId], references: [chapterId], onDelete: SetNull)
-  admin         Admin?         @relation("QuestionCreatedBy", fields: [createdBy], references: [adminId], onDelete: SetNull)
-  statements    Statement[]
-  examQuestions QuestionExam[]
+  subject          Subject?          @relation("QuestionSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
+  admin            Admin?            @relation("QuestionCreatedBy", fields: [createdBy], references: [adminId], onDelete: SetNull)
+  statements       Statement[]
+  examQuestions    QuestionExam[]
+  questionChapters QuestionChapter[]
 
   @@index([subjectId, grade], map: "idx_questions_subject_grade")
   @@index([subjectId], map: "idx_questions_subject_id")
-  @@index([chapterId], map: "idx_questions_chapter_id")
   @@index([type], map: "idx_questions_type")
   @@index([difficulty], map: "idx_questions_difficulty")
   @@index([createdBy], map: "idx_questions_created_by")
   @@index([createdAt], map: "idx_questions_created_at")
   @@map("questions")
+}
+
+model QuestionChapter {
+  questionId Int @map("question_id")
+  chapterId  Int @map("chapter_id")
+
+  // Relations
+  question Question @relation(fields: [questionId], references: [questionId], onDelete: Cascade)
+  chapter  Chapter  @relation(fields: [chapterId], references: [chapterId], onDelete: Cascade)
+
+  @@id([questionId, chapterId])
+  @@index([chapterId], map: "idx_question_chapters_chapter_id")
+  @@map("questions_chapters")
 }
 
 model Statement {
