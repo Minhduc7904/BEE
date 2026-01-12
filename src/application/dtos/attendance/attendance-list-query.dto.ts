@@ -34,6 +34,8 @@ export class AttendanceListQueryDto extends ListQueryDto {
       classId: this.classId,
       status: this.status,
       search: this.search,
+      fromDate: this.fromDate,
+      toDate: this.toDate,
     }
   }
 

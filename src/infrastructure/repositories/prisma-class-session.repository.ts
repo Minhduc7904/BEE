@@ -106,7 +106,7 @@ export class PrismaClassSessionRepository implements IClassSessionRepository {
                     courseClass: {
                         className: {
                             contains: filters.search,
-                            mode: 'insensitive',
+                            
                         },
                     },
                 },

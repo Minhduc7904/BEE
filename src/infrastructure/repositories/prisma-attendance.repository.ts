@@ -158,6 +158,22 @@ export class PrismaAttendanceRepository implements IAttendanceRepository {
             }
         }
 
+        // Filter by date range (markedAt)
+        if (filters?.fromDate || filters?.toDate) {
+            where.markedAt = {}
+            
+            if (filters.fromDate) {
+                where.markedAt.gte = new Date(filters.fromDate)
+            }
+            
+            if (filters.toDate) {
+                // Set time to end of day (23:59:59.999)
+                const toDate = new Date(filters.toDate)
+                toDate.setHours(23, 59, 59, 999)
+                where.markedAt.lte = toDate
+            }
+        }
+
         if (filters?.search) {
             where.OR = [
                 {
@@ -167,13 +183,13 @@ export class PrismaAttendanceRepository implements IAttendanceRepository {
                                 {
                                     firstName: {
                                         contains: filters.search,
-                                        mode: 'insensitive',
+                                        
                                     },
                                 },
                                 {
                                     lastName: {
                                         contains: filters.search,
-                                        mode: 'insensitive',
+                                        
                                     },
                                 },
                             ],
@@ -183,7 +199,7 @@ export class PrismaAttendanceRepository implements IAttendanceRepository {
                 {
                     notes: {
                         contains: filters.search,
-                        mode: 'insensitive',
+                        
                     },
                 },
             ]

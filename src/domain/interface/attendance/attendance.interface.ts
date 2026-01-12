@@ -20,6 +20,8 @@ export interface AttendanceFilterOptions {
     classId?: number
     status?: AttendanceStatus
     search?: string
+    fromDate?: string
+    toDate?: string
 }
 
 export interface AttendancePaginationOptions {

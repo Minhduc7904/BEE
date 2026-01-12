@@ -11,7 +11,11 @@ import {
     HttpCode,
     HttpStatus,
     ParseIntPipe,
+    Res,
+    Header,
+    StreamableFile,
 } from '@nestjs/common'
+import type { Response } from 'express'
 import { AttendanceListQueryDto } from '../../application/dtos/attendance/attendance-list-query.dto'
 import { CreateAttendanceDto } from '../../application/dtos/attendance/create-attendance.dto'
 import { UpdateAttendanceDto } from '../../application/dtos/attendance/update-attendance.dto'
@@ -21,6 +25,8 @@ import {
     AttendanceResponseDto,
 } from '../../application/dtos/attendance/attendance.dto'
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
+import { AttendanceStatisticsDto } from '../../application/dtos/attendance/attendance-statistics.dto'
+import { ExportAttendanceOptionsDto } from '../../application/dtos/attendance/export-attendance-options.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
 import { CurrentUser } from '../../shared/decorators/current-user.decorator'
@@ -31,6 +37,8 @@ import {
     UpdateAttendanceUseCase,
     DeleteAttendanceUseCase,
     CreateBulkAttendanceBySessionUseCase,
+    GetAttendanceStatisticsBySessionUseCase,
+    ExportAttendanceBySessionUseCase,
 } from '../../application/use-cases/attendance'
 import { Injectable } from '@nestjs/common'
 
@@ -44,6 +52,8 @@ export class AttendanceController {
         private readonly updateAttendanceUseCase: UpdateAttendanceUseCase,
         private readonly deleteAttendanceUseCase: DeleteAttendanceUseCase,
         private readonly createBulkAttendanceBySessionUseCase: CreateBulkAttendanceBySessionUseCase,
+        private readonly getAttendanceStatisticsBySessionUseCase: GetAttendanceStatisticsBySessionUseCase,
+        private readonly exportAttendanceBySessionUseCase: ExportAttendanceBySessionUseCase,
     ) { }
 
     /**
@@ -57,6 +67,8 @@ export class AttendanceController {
      * - studentId: filter theo học sinh
      * - classId: filter theo lớp học
      * - status: filter theo trạng thái (PRESENT, ABSENT, LATE, MAKEUP)
+     * - fromDate: filter từ ngày (ISO format: YYYY-MM-DD)
+     * - toDate: filter đến ngày (ISO format: YYYY-MM-DD)
      * - sortBy: trường sắp xếp (attendanceId, markedAt, status)
      * - sortOrder: thứ tự sắp xếp (asc, desc)
      */
@@ -155,5 +167,62 @@ export class AttendanceController {
         return ExceptionHandler.execute(() =>
             this.deleteAttendanceUseCase.execute(id),
         )
+    }
+
+    /**
+     * Get attendance statistics by session
+     * GET /attendances/statistics/session/:sessionId
+     * Response:
+     * - total: Tổng số điểm danh
+     * - present: Số lượng có mặt
+     * - absent: Số lượng vắng
+     * - late: Số lượng muộn
+     * - makeup: Số lượng học bù
+     */
+    @Get('statistics/session/:sessionId')
+    @RequirePermission('attendance.getAll')
+    @HttpCode(HttpStatus.OK)
+    async getStatisticsBySession(
+        @Param('sessionId', ParseIntPipe) sessionId: number,
+    ): Promise<BaseResponseDto<AttendanceStatisticsDto>> {
+        return ExceptionHandler.execute(() =>
+            this.getAttendanceStatisticsBySessionUseCase.execute(sessionId),
+        )
+    }
+
+    /**
+     * Export attendance to Excel by session
+     * GET /attendances/export/session/:sessionId
+     * Query params (optional):
+     * - includeSchool: boolean (default: true)
+     * - includeParentPhone: boolean (default: true)
+     * - includeStudentPhone: boolean (default: false)
+     * - includeGrade: boolean (default: true)
+     * - includeEmail: boolean (default: true)
+     * - includeMarkedAt: boolean (default: true)
+     * - includeNotes: boolean (default: true)
+     * - includeMakeupNote: boolean (default: false)
+     * - includeMarkerName: boolean (default: true)
+     * Download Excel file with attendance list
+     */
+    @Get('export/session/:sessionId')
+    @RequirePermission('attendance.getAll')
+    @HttpCode(HttpStatus.OK)
+    async exportBySession(
+        @Param('sessionId', ParseIntPipe) sessionId: number,
+        @Query() options: ExportAttendanceOptionsDto,
+        @Res({ passthrough: true }) res: Response,
+    ): Promise<StreamableFile> {
+        return ExceptionHandler.execute(async () => {
+            const { buffer, filename } = await this.exportAttendanceBySessionUseCase.execute(sessionId, options)
+
+            // Set response headers for file download
+            res.set({
+                'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'Content-Disposition': `attachment; filename="${encodeURIComponent(filename)}"`,
+            })
+
+            return new StreamableFile(buffer)
+        })
     }
 }

@@ -40,8 +40,6 @@ export class ListQueryDto {
   @IsIn(['asc', 'desc'], { message: VALIDATION_MESSAGES.FIELD_INVALID('Thứ tự sắp xếp') })
   sortOrder?: 'asc' | 'desc' = 'desc'
 
-
-
   @IsOptional()
   @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Từ ngày') })
   fromDate?: string
@@ -124,7 +122,7 @@ export class ListQueryDto {
       where.OR = searchFields.map((field) => ({
         [field]: {
           contains: this.search,
-          mode: 'insensitive',
+          
         },
       }))
     }

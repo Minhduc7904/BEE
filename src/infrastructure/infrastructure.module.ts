@@ -34,6 +34,7 @@ import {
   ResendEmailService,
   SupabaseStorageService,
   MediaProcessingService,
+  ExcelService,
 } from './services'
 import { GoogleAdminStrategy } from './strategies/google-admin.strategy'
 import { GoogleStudentStrategy } from './strategies/google-student.strategy'
@@ -174,6 +175,7 @@ import supabaseConfig from '../config/supabase.config'
       useClass: SupabaseStorageService,
     },
     MediaProcessingService,
+    ExcelService,
     GoogleAdminStrategy,
     GoogleStudentStrategy,
   ],
@@ -205,6 +207,7 @@ import supabaseConfig from '../config/supabase.config'
     'IEmailService',
     'IStorageService',
     MediaProcessingService,
+    ExcelService,
   ],
 })
 

@@ -120,6 +120,8 @@ import {
   UpdateAttendanceUseCase,
   DeleteAttendanceUseCase,
   CreateBulkAttendanceBySessionUseCase,
+  GetAttendanceStatisticsBySessionUseCase,
+  ExportAttendanceBySessionUseCase,
 } from './use-cases/attendance'
 
 @Module({
@@ -235,6 +237,8 @@ import {
     UpdateAttendanceUseCase,
     DeleteAttendanceUseCase,
     CreateBulkAttendanceBySessionUseCase,
+    GetAttendanceStatisticsBySessionUseCase,
+    ExportAttendanceBySessionUseCase,
   ],
   exports: [
     RegisterAdminUseCase,
@@ -348,6 +352,8 @@ import {
     UpdateAttendanceUseCase,
     DeleteAttendanceUseCase,
     CreateBulkAttendanceBySessionUseCase,
+    GetAttendanceStatisticsBySessionUseCase,
+    ExportAttendanceBySessionUseCase,
   ],
 })
 export class ApplicationModule { }
