@@ -1,14 +1,18 @@
 export interface CreateClassSessionData {
     classId: number;
+    name: string;
     sessionDate: Date;
     startTime: Date;
     endTime: Date;
+    makeupNote?: string;
 }
 
 export interface UpdateClassSessionData {
+    name?: string;
     sessionDate?: Date;
     startTime?: Date;
     endTime?: Date;
+    makeupNote?: string;
 }
 
 export interface ClassSessionFilterOptions {

@@ -113,6 +113,14 @@ import {
   UpdateChapterUseCase,
   DeleteChapterUseCase,
 } from './use-cases/chapter'
+import {
+  GetAllAttendanceUseCase,
+  GetAttendanceByIdUseCase,
+  CreateAttendanceUseCase,
+  UpdateAttendanceUseCase,
+  DeleteAttendanceUseCase,
+  CreateBulkAttendanceBySessionUseCase,
+} from './use-cases/attendance'
 
 @Module({
   imports: [InfrastructureModule],
@@ -220,6 +228,13 @@ import {
     GetRootChaptersUseCase,
     UpdateChapterUseCase,
     DeleteChapterUseCase,
+    // Attendance use-cases
+    GetAllAttendanceUseCase,
+    GetAttendanceByIdUseCase,
+    CreateAttendanceUseCase,
+    UpdateAttendanceUseCase,
+    DeleteAttendanceUseCase,
+    CreateBulkAttendanceBySessionUseCase,
   ],
   exports: [
     RegisterAdminUseCase,
@@ -326,6 +341,13 @@ import {
     GetRootChaptersUseCase,
     UpdateChapterUseCase,
     DeleteChapterUseCase,
+    // Attendance use-cases
+    GetAllAttendanceUseCase,
+    GetAttendanceByIdUseCase,
+    CreateAttendanceUseCase,
+    UpdateAttendanceUseCase,
+    DeleteAttendanceUseCase,
+    CreateBulkAttendanceBySessionUseCase,
   ],
 })
 export class ApplicationModule { }

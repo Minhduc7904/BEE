@@ -19,9 +19,11 @@ export class PrismaClassSessionRepository implements IClassSessionRepository {
         const prismaSession = await this.prisma.classSession.create({
             data: {
                 classId: data.classId,
+                name: data.name,
                 sessionDate: data.sessionDate,
                 startTime: data.startTime,
                 endTime: data.endTime,
+                makeupNote: data.makeupNote,
             },
             include: {
                 courseClass: true,

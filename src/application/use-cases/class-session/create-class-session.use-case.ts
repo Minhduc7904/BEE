@@ -11,7 +11,7 @@ export class CreateClassSessionUseCase {
   constructor(
     @Inject('IClassSessionRepository')
     private readonly classSessionRepository: IClassSessionRepository,
-  ) {}
+  ) { }
 
   async execute(dto: CreateClassSessionDto): Promise<BaseResponseDto<ClassSessionResponseDto>> {
     // Validate time logic
@@ -29,6 +29,8 @@ export class CreateClassSessionUseCase {
       sessionDate: new Date(dto.sessionDate),
       startTime,
       endTime,
+      name: dto.name,
+      makeupNote: dto.makeupNote,
     };
 
     const classSession = await this.classSessionRepository.create(data);

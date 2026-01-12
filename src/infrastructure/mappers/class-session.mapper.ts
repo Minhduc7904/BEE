@@ -16,9 +16,11 @@ export class ClassSessionMapper {
         return new ClassSession(
             prismaSession.sessionId,
             prismaSession.classId,
+            prismaSession.name,
             prismaSession.sessionDate,
             prismaSession.startTime,
             prismaSession.endTime,
+            prismaSession.makeupNote ?? undefined,
             prismaSession.createdAt ?? undefined,
             prismaSession.updatedAt ?? undefined,
             prismaSession.courseClass

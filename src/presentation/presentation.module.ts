@@ -25,6 +25,7 @@ import { ClassStudentController } from './controllers/class-student.controller'
 import { CourseEnrollmentController } from './controllers/course-enrollment.controller'
 import { SubjectController } from './controllers/subject.controller'
 import { ChapterController } from './controllers/chapter.controller'
+import { AttendanceController } from './controllers/attendance.controller'
 @Module({
   imports: [ApplicationModule, InfrastructureModule, SharedModule],
   controllers: [
@@ -50,6 +51,7 @@ import { ChapterController } from './controllers/chapter.controller'
     CourseEnrollmentController,
     SubjectController,
     ChapterController,
+    AttendanceController,
   ],
 })
 export class PresentationModule {}

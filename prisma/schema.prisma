@@ -550,6 +550,8 @@ model CourseClass {
 
 model ClassSession {
   sessionId   Int      @id @default(autoincrement()) @map("session_id")
+  name        String   @map("name") @db.VarChar(200) // tên buổi học
+  makeupNote  String?  @map("makeup_note") @db.Text // ghi chú các buổi có thể đi học bù thay cho buổi này (nếu có)
   classId     Int      @map("class_id")
   sessionDate DateTime @map("session_date") @db.Date // ngày tổ chức buổi học
   startTime   DateTime @map("start_time") @db.Time // giờ bắt đầu

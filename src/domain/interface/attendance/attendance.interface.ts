@@ -1,0 +1,38 @@
+import { AttendanceStatus } from '@prisma/client'
+
+export interface CreateAttendanceData {
+    sessionId: number
+    studentId: number
+    status: AttendanceStatus
+    notes?: string
+    markerId?: number
+}
+
+export interface UpdateAttendanceData {
+    status?: AttendanceStatus
+    notes?: string
+    markerId?: number
+}
+
+export interface AttendanceFilterOptions {
+    sessionId?: number
+    studentId?: number
+    classId?: number
+    status?: AttendanceStatus
+    search?: string
+}
+
+export interface AttendancePaginationOptions {
+    page: number
+    limit: number
+    sortBy?: string
+    sortOrder?: 'asc' | 'desc'
+}
+
+export interface AttendanceListResult {
+    data: any[]
+    total: number
+    page: number
+    limit: number
+    totalPages: number
+}

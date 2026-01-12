@@ -11,7 +11,7 @@ export class UpdateClassSessionUseCase {
   constructor(
     @Inject('IClassSessionRepository')
     private readonly classSessionRepository: IClassSessionRepository,
-  ) {}
+  ) { }
 
   async execute(
     sessionId: number,
@@ -37,6 +37,8 @@ export class UpdateClassSessionUseCase {
       sessionDate: dto.sessionDate ? new Date(dto.sessionDate) : undefined,
       startTime: dto.startTime ? new Date(dto.startTime) : undefined,
       endTime: dto.endTime ? new Date(dto.endTime) : undefined,
+      name: dto.name,
+      makeupNote: dto.makeupNote,
     };
 
     const classSession = await this.classSessionRepository.update(sessionId, data);

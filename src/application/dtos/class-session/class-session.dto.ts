@@ -5,6 +5,7 @@ import { CourseClassResponseDto } from '../course-class/course-class.dto';
 export class ClassSessionResponseDto {
     sessionId: number;
     classId: number;
+    name: string;
     className?: string;
     sessionDate: Date;
     startTime: Date;
@@ -12,21 +13,28 @@ export class ClassSessionResponseDto {
     durationInMinutes: number;
     durationInHours: number;
     status: 'past' | 'today' | 'upcoming';
+    makeupNote?: string | null;
     courseClass?: CourseClassResponseDto;
 
     constructor(classSession: ClassSession) {
         this.sessionId = classSession.sessionId;
         this.classId = classSession.classId;
+        this.name = classSession.name;
         this.sessionDate = classSession.sessionDate;
         this.startTime = classSession.startTime;
         this.endTime = classSession.endTime;
         this.durationInMinutes = classSession.getDurationInMinutes();
         this.durationInHours = classSession.getDurationInHours();
         this.status = classSession.getStatus();
+        this.makeupNote = classSession.makeupNote;
 
         if (classSession.courseClass) {
             this.courseClass = new CourseClassResponseDto(classSession.courseClass);
         }
+    }
+
+    static fromEntity(classSession: ClassSession): ClassSessionResponseDto {
+        return new ClassSessionResponseDto(classSession);
     }
 }
 

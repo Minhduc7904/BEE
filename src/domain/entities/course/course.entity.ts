@@ -1,12 +1,7 @@
 // src/domain/entities/course/course.entity.ts
 import { Subject } from '../subject/subject.entity'
 import { Admin } from '../user/admin.entity'
-
-export enum Visibility {
-    DRAFT = 'DRAFT',
-    PUBLISHED = 'PUBLISHED',
-    PRIVATE = 'PRIVATE',
-}
+import { Visibility } from '../../../shared/enums'
 
 export class Course {
     courseId: number

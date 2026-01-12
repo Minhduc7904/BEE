@@ -9,25 +9,30 @@ export class ClassSession {
     endTime: Date
     createdAt?: Date
     updatedAt?: Date
-
+    makeupNote?: string | null
+    name: string
     // Relations
     courseClass?: CourseClass
 
     constructor(
         sessionId: number,
         classId: number,
+        name: string,
         sessionDate: Date,
         startTime: Date,
         endTime: Date,
+        makeupNote?: string | null,
         createdAt?: Date,
         updatedAt?: Date,
         courseClass?: CourseClass,
     ) {
         this.sessionId = sessionId
         this.classId = classId
+        this.name = name
         this.sessionDate = sessionDate
         this.startTime = startTime
         this.endTime = endTime
+        this.makeupNote = makeupNote
         this.createdAt = createdAt
         this.updatedAt = updatedAt
         this.courseClass = courseClass
@@ -124,6 +129,9 @@ export class ClassSession {
      * Tên hiển thị buổi học
      */
     getDisplayName(): string {
+        if (this.name) {
+            return this.name
+        }
         if (this.courseClass) {
             return `${this.courseClass.className} - ${this.sessionDate.toLocaleDateString('vi-VN')}`
         }
