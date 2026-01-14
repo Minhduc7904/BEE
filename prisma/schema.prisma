@@ -166,6 +166,7 @@ model Admin {
   Question      Question[]      @relation("QuestionCreatedBy")
   courseClasses CourseClass[]
   attendances   Attendance[]
+  learningItems LearningItem[]
 
   @@index([subjectId], map: "idx_admins_subject_id")
   @@map("admins")
@@ -483,12 +484,14 @@ model LearningItem {
   title          String           @map("title") @db.VarChar(255)
   description    String?          @map("description") @db.Text
   competitionId  Int?             @map("competition_id") @db.Int
+  createdBy      Int              @map("created_by") @db.Int
   createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
   competition Competition?         @relation(fields: [competitionId], references: [competitionId], onDelete: Cascade)
   lessons     LessonLearningItem[]
+  admin       Admin                @relation(fields: [createdBy], references: [adminId], onDelete: Cascade)
 
   @@index([type], map: "idx_learning_items_type")
   @@index([createdAt], map: "idx_learning_items_created_at")

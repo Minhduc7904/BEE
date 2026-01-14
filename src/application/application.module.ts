@@ -33,6 +33,7 @@ import {
   DeleteMediaUseCase,
   GetMediaDownloadUrlUseCase,
   GetMediaViewUrlUseCase,
+  GetBatchMediaViewUrlUseCase,
   GetBucketsListUseCase,
   GetAdminProfileUseCase,
   UpdateAdminProfileUseCase,
@@ -62,7 +63,7 @@ import {
   DeleteMediaFolderUseCase,
   GetAllAdminUseCase,
   GetAdminByIdUseCase,
-  RemoveRoleFromUserUseCase
+  RemoveRoleFromUserUseCase,
 } from './use-cases'
 import {
   GetAllCourseUseCase,
@@ -80,6 +81,26 @@ import {
   UpdateCourseClassUseCase,
   DeleteCourseClassUseCase,
 } from './use-cases/course-class'
+import {
+  GetAllLessonUseCase,
+  GetLessonByIdUseCase,
+  CreateLessonUseCase,
+  UpdateLessonUseCase,
+  DeleteLessonUseCase,
+} from './use-cases/lesson'
+import {
+  GetAllLearningItemUseCase,
+  GetLearningItemByIdUseCase,
+  CreateLearningItemUseCase,
+  UpdateLearningItemUseCase,
+  DeleteLearningItemUseCase,
+} from './use-cases/learningItem'
+import {
+  GetAllLessonLearningItemUseCase,
+  GetLessonLearningItemByIdUseCase,
+  CreateLessonLearningItemUseCase,
+  DeleteLessonLearningItemUseCase,
+} from './use-cases/lessonLearningItem'
 import {
   GetAllClassSessionUseCase,
   GetClassSessionByIdUseCase,
@@ -160,6 +181,7 @@ import {
     DeleteMediaUseCase,
     GetMediaDownloadUrlUseCase,
     GetMediaViewUrlUseCase,
+    GetBatchMediaViewUrlUseCase,
     GetAdminProfileUseCase,
     UpdateAdminProfileUseCase,
     CreatePermissionUseCase,
@@ -205,6 +227,23 @@ import {
     CreateCourseClassUseCase,
     UpdateCourseClassUseCase,
     DeleteCourseClassUseCase,
+    // Lesson use-cases
+    GetAllLessonUseCase,
+    GetLessonByIdUseCase,
+    CreateLessonUseCase,
+    UpdateLessonUseCase,
+    DeleteLessonUseCase,
+    // LearningItem use-cases
+    GetAllLearningItemUseCase,
+    GetLearningItemByIdUseCase,
+    CreateLearningItemUseCase,
+    UpdateLearningItemUseCase,
+    DeleteLearningItemUseCase,
+    // LessonLearningItem use-cases
+    GetAllLessonLearningItemUseCase,
+    GetLessonLearningItemByIdUseCase,
+    CreateLessonLearningItemUseCase,
+    DeleteLessonLearningItemUseCase,
     // ClassSession use-cases
     GetAllClassSessionUseCase,
     GetClassSessionByIdUseCase,
@@ -278,6 +317,7 @@ import {
     DeleteMediaUseCase,
     GetMediaDownloadUrlUseCase,
     GetMediaViewUrlUseCase,
+    GetBatchMediaViewUrlUseCase,
     GetBucketsListUseCase,
     GetAdminProfileUseCase,
     UpdateAdminProfileUseCase,
@@ -323,6 +363,23 @@ import {
     CreateCourseClassUseCase,
     UpdateCourseClassUseCase,
     DeleteCourseClassUseCase,
+    // Lesson use-cases
+    GetAllLessonUseCase,
+    GetLessonByIdUseCase,
+    CreateLessonUseCase,
+    UpdateLessonUseCase,
+    DeleteLessonUseCase,
+    // LearningItem use-cases
+    GetAllLearningItemUseCase,
+    GetLearningItemByIdUseCase,
+    CreateLearningItemUseCase,
+    UpdateLearningItemUseCase,
+    DeleteLearningItemUseCase,
+    // LessonLearningItem use-cases
+    GetAllLessonLearningItemUseCase,
+    GetLessonLearningItemByIdUseCase,
+    CreateLessonLearningItemUseCase,
+    DeleteLessonLearningItemUseCase,
     // ClassSession use-cases
     GetAllClassSessionUseCase,
     GetClassSessionByIdUseCase,
@@ -365,4 +422,4 @@ import {
     ExportAttendanceImageUseCase,
   ],
 })
-export class ApplicationModule { }
+export class ApplicationModule {}

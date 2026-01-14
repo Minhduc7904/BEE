@@ -24,12 +24,14 @@ import {
   DeleteMediaUseCase,
   GetMediaDownloadUrlUseCase,
   GetMediaViewUrlUseCase,
+  GetBatchMediaViewUrlUseCase,
 } from '../../application/use-cases'
 import {
   UploadMediaDto,
   UpdateMediaDto,
   GetMediaListDto,
   MediaResponseDto,
+  GetBatchMediaViewUrlDto,
 } from '../../application/dtos/media'
 import { BaseResponseDto } from '../../application/dtos'
 import { PaginationResponseDto } from '../../application/dtos/pagination/pagination-response.dto'
@@ -49,6 +51,7 @@ export class MediaController {
     private readonly deleteMediaUseCase: DeleteMediaUseCase,
     private readonly getMediaDownloadUrlUseCase: GetMediaDownloadUrlUseCase,
     private readonly getMediaViewUrlUseCase: GetMediaViewUrlUseCase,
+    private readonly getBatchMediaViewUrlUseCase: GetBatchMediaViewUrlUseCase,
   ) { }
 
   @Post('upload')
@@ -149,6 +152,22 @@ export class MediaController {
   > {
     return ExceptionHandler.execute(() =>
       this.getMediaViewUrlUseCase.execute(id, expirySeconds),
+    )
+  }
+
+  /**
+   * Generate presigned URLs for viewing multiple media files
+   * Accepts array of media IDs (max 100)
+   * Returns URL for each valid media with error handling
+   */
+  @Post('batch/view')
+  @HttpCode(HttpStatus.OK)
+  async getBatchMediaViewUrl(
+    @Body() dto: GetBatchMediaViewUrlDto,
+    @Query('expiry', new DefaultValuePipe(3600), ParseIntPipe) expirySeconds: number,
+  ): Promise<BaseResponseDto<any>> {
+    return ExceptionHandler.execute(() =>
+      this.getBatchMediaViewUrlUseCase.execute(dto.mediaIds, expirySeconds),
     )
   }
 

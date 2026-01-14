@@ -20,6 +20,9 @@ import { PermissionController } from './controllers/permission.controller'
 import { AdminController } from './controllers/admin.controller'
 import { CourseController } from './controllers/course.controller'
 import { CourseClassController } from './controllers/course-class.controller'
+import { LessonController } from './controllers/lesson.controller'
+import { LearningItemController } from './controllers/learning-item.controller'
+import { LessonLearningItemController } from './controllers/lesson-learning-item.controller'
 import { ClassSessionController } from './controllers/class-session.controller'
 import { ClassStudentController } from './controllers/class-student.controller'
 import { CourseEnrollmentController } from './controllers/course-enrollment.controller'
@@ -46,6 +49,9 @@ import { AttendanceController } from './controllers/attendance.controller'
     AdminController,
     CourseController,
     CourseClassController,
+    LessonController,
+    LearningItemController,
+    LessonLearningItemController,
     ClassSessionController,
     ClassStudentController,
     CourseEnrollmentController,

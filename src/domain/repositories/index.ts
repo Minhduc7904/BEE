@@ -14,3 +14,6 @@ export * from './course-enrollment.repository';
 export * from './class-student.repository';
 export * from './subject.repository';
 export * from './chapter.repository';
+export * from './lesson.repository';
+export * from './learning-item.repository';
+export * from './lesson-learning-item.repository';
