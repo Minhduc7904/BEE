@@ -27,6 +27,7 @@ import {
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
 import { AttendanceStatisticsDto } from '../../application/dtos/attendance/attendance-statistics.dto'
 import { ExportAttendanceOptionsDto } from '../../application/dtos/attendance/export-attendance-options.dto'
+import { ExportAttendanceImageOptionsDto } from '../../application/dtos/attendance/export-attendance-image-options.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
 import { CurrentUser } from '../../shared/decorators/current-user.decorator'
@@ -39,6 +40,7 @@ import {
     CreateBulkAttendanceBySessionUseCase,
     GetAttendanceStatisticsBySessionUseCase,
     ExportAttendanceBySessionUseCase,
+    ExportAttendanceImageUseCase,
 } from '../../application/use-cases/attendance'
 import { Injectable } from '@nestjs/common'
 
@@ -54,6 +56,7 @@ export class AttendanceController {
         private readonly createBulkAttendanceBySessionUseCase: CreateBulkAttendanceBySessionUseCase,
         private readonly getAttendanceStatisticsBySessionUseCase: GetAttendanceStatisticsBySessionUseCase,
         private readonly exportAttendanceBySessionUseCase: ExportAttendanceBySessionUseCase,
+        private readonly exportAttendanceImageUseCase: ExportAttendanceImageUseCase,
     ) { }
 
     /**
@@ -220,6 +223,59 @@ export class AttendanceController {
             res.set({
                 'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                 'Content-Disposition': `attachment; filename="${encodeURIComponent(filename)}"`,
+            })
+
+            return new StreamableFile(buffer)
+        })
+    }
+
+    /**
+     * Export attendance image by ID
+     * GET /attendances/export/image/:id
+     * Query params (optional):
+     * - mode: 'download' | 'view' (default: 'download')
+     * - format: 'png' | 'jpeg' | 'webp' (default: 'png')
+     * - quality: number (0-100, default: 90, for jpeg/webp)
+     * - width: number (default: 1200)
+     * - includePhoto: boolean (default: true)
+     * - includeParentPhone: boolean (default: true)
+     * - includeStudentPhone: boolean (default: false)
+     * - includeEmail: boolean (default: true)
+     * - includeNotes: boolean (default: true)
+     * - includeQRCode: boolean (default: false)
+     * - includeMarkerName: boolean (default: true)
+     * 
+     * Mode:
+     * - download: Tải về file (Content-Disposition: attachment)
+     * - view: Xem trực tiếp trong browser (Content-Disposition: inline)
+     */
+    @Get('export/image/:id')
+    @RequirePermission('attendance.getById')
+    @HttpCode(HttpStatus.OK)
+    async exportImage(
+        @Param('id', ParseIntPipe) id: number,
+        @Query() options: ExportAttendanceImageOptionsDto,
+        @Res({ passthrough: true }) res: Response,
+    ): Promise<StreamableFile> {
+        return ExceptionHandler.execute(async () => {
+            const { buffer, filename } = await this.exportAttendanceImageUseCase.execute(id, options)
+
+            // Set response headers based on format
+            const contentTypes = {
+                png: 'image/png',
+                jpeg: 'image/jpeg',
+                webp: 'image/webp',
+            }
+
+            // Set Content-Disposition based on mode
+            const disposition = options.mode === 'view'
+                ? `inline; filename="${encodeURIComponent(filename)}"`
+                : `attachment; filename="${encodeURIComponent(filename)}"`
+
+            res.set({
+                'Content-Type': contentTypes[options.format || 'png'],
+                'Content-Disposition': disposition,
+                'Cache-Control': 'no-cache',
             })
 
             return new StreamableFile(buffer)

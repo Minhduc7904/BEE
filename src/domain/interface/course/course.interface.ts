@@ -57,3 +57,25 @@ export interface CourseListResult {
   limit: number
   totalPages: number
 }
+
+export interface StudentAttendanceFilterOptions {
+  fromDate: Date
+  toDate: Date
+  search?: string
+  status?: 'PRESENT' | 'ABSENT' | 'LATE' | 'MAKEUP'
+}
+
+export interface StudentAttendancePaginationOptions {
+  page: number
+  limit: number
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+}
+
+export interface StudentAttendanceResult {
+  students: any[] // Will contain student with their attendance records
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+}

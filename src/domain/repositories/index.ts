@@ -10,6 +10,7 @@ export * from './permission.repository';
 export * from './reset-password-token.repository';
 export * from './course.repository';
 export * from './course-class.repository';
+export * from './course-enrollment.repository';
 export * from './class-student.repository';
 export * from './subject.repository';
 export * from './chapter.repository';

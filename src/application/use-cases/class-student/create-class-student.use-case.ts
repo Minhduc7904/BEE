@@ -4,7 +4,7 @@ import {
     ConflictException,
     NotFoundException,
 } from '@nestjs/common';
-import type { IClassStudentRepository, IStudentRepository, ICourseClassRepository } from 'src/domain/repositories';
+import type { IClassStudentRepository, IStudentRepository, ICourseClassRepository, ICourseEnrollmentRepository } from 'src/domain/repositories';
 import { CreateClassStudentDto } from '../../dtos/class-student/create-class-student.dto';
 import { ClassStudentResponseDto } from '../../dtos/class-student/class-student.dto';
 import { BaseResponseDto } from '../../dtos/common/base-response.dto';
@@ -19,6 +19,8 @@ export class CreateClassStudentUseCase {
         private readonly courseClassRepository: ICourseClassRepository,
         @Inject('IStudentRepository')
         private readonly studentRepository: IStudentRepository,
+        @Inject('ICourseEnrollmentRepository')
+        private readonly enrollmentRepository: ICourseEnrollmentRepository,
     ) { }
 
     async execute(
@@ -39,6 +41,17 @@ export class CreateClassStudentUseCase {
         if (!student) {
             throw new NotFoundException(
                 `Không tìm thấy học sinh với ID ${createDto.studentId}`,
+            );
+        }
+
+        const enrollment = await this.enrollmentRepository.findByCourseAndStudent(
+            courseClass.courseId,
+            createDto.studentId,
+        )
+
+        if (!enrollment) {
+            throw new ConflictException(
+                `Học sinh chưa đăng ký khóa học của lớp học này`,
             );
         }
 

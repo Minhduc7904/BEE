@@ -6,6 +6,9 @@ import {
     CourseFilterOptions,
     CoursePaginationOptions,
     CourseListResult,
+    StudentAttendanceFilterOptions,
+    StudentAttendancePaginationOptions,
+    StudentAttendanceResult,
 } from '../interface/course/course.interface'
 
 export interface ICourseRepository {
@@ -36,4 +39,11 @@ export interface ICourseRepository {
     countByGrade(grade: number): Promise<number>
     countBySubject(subjectId: number): Promise<number>
     countByTeacher(teacherId: number): Promise<number>
+
+    // Students attendance methods
+    findStudentsWithAttendance(
+        courseId: number,
+        filters: StudentAttendanceFilterOptions,
+        pagination: StudentAttendancePaginationOptions,
+    ): Promise<StudentAttendanceResult>
 }

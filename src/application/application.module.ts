@@ -70,6 +70,8 @@ import {
   CreateCourseUseCase,
   UpdateCourseUseCase,
   DeleteCourseUseCase,
+  GetCourseStudentsAttendanceUseCase,
+  ExportCourseStudentsAttendanceUseCase,
 } from './use-cases/course'
 import {
   GetAllCourseClassUseCase,
@@ -122,6 +124,7 @@ import {
   CreateBulkAttendanceBySessionUseCase,
   GetAttendanceStatisticsBySessionUseCase,
   ExportAttendanceBySessionUseCase,
+  ExportAttendanceImageUseCase,
 } from './use-cases/attendance'
 
 @Module({
@@ -194,6 +197,8 @@ import {
     CreateCourseUseCase,
     UpdateCourseUseCase,
     DeleteCourseUseCase,
+    GetCourseStudentsAttendanceUseCase,
+    ExportCourseStudentsAttendanceUseCase,
     // CourseClass use-cases
     GetAllCourseClassUseCase,
     GetCourseClassByIdUseCase,
@@ -239,6 +244,7 @@ import {
     CreateBulkAttendanceBySessionUseCase,
     GetAttendanceStatisticsBySessionUseCase,
     ExportAttendanceBySessionUseCase,
+    ExportAttendanceImageUseCase,
   ],
   exports: [
     RegisterAdminUseCase,
@@ -309,6 +315,8 @@ import {
     CreateCourseUseCase,
     UpdateCourseUseCase,
     DeleteCourseUseCase,
+    GetCourseStudentsAttendanceUseCase,
+    ExportCourseStudentsAttendanceUseCase,
     // CourseClass use-cases
     GetAllCourseClassUseCase,
     GetCourseClassByIdUseCase,
@@ -354,6 +362,7 @@ import {
     CreateBulkAttendanceBySessionUseCase,
     GetAttendanceStatisticsBySessionUseCase,
     ExportAttendanceBySessionUseCase,
+    ExportAttendanceImageUseCase,
   ],
 })
 export class ApplicationModule { }

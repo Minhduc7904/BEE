@@ -51,7 +51,13 @@ export class PrismaAttendanceRepository implements IAttendanceRepository {
             include: {
                 classSession: {
                     include: {
-                        courseClass: true,
+                        courseClass: {
+                            include: {
+                                instructor: {
+                                    include: { user: true },
+                                },
+                            },
+                        },
                     },
                 },
                 student: {

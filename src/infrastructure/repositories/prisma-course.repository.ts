@@ -7,6 +7,9 @@ import type {
     CourseFilterOptions,
     CoursePaginationOptions,
     CourseListResult,
+    StudentAttendanceFilterOptions,
+    StudentAttendancePaginationOptions,
+    StudentAttendanceResult,
 } from '../../domain/interface'
 import { Course } from '../../domain/entities'
 import { CourseMapper } from '../mappers'
@@ -308,5 +311,136 @@ export class PrismaCourseRepository implements ICourseRepository {
         return this.prisma.course.count({
             where: { teacherId },
         })
+    }
+
+    /**
+     * Find students with attendance records for a course within a date range
+     * 
+     * IMPLEMENTATION:
+     * 1. Get all course classes for the course
+     * 2. Get all class sessions within the date range
+     * 3. Get all students who have attendance in those sessions
+     * 4. For each student, get their attendance records
+     * 5. Support pagination and search
+     */
+    async findStudentsWithAttendance(
+        courseId: number,
+        filters: StudentAttendanceFilterOptions,
+        pagination: StudentAttendancePaginationOptions,
+    ): Promise<StudentAttendanceResult> {
+        const numericCourseId = NumberUtil.ensureValidId(courseId, 'Course ID')
+
+        // 1. Build base query to get students with attendance
+        const where: any = {
+            attendances: {
+                some: {
+                    classSession: {
+                        courseClass: {
+                            courseId: numericCourseId,
+                        },
+                        sessionDate: {
+                            gte: filters.fromDate,
+                            lte: filters.toDate,
+                        },
+                    },
+                },
+            },
+        }
+
+        // 2. Add search filter if provided
+        if (filters.search) {
+            where.OR = [
+                {
+                    user: {
+                        OR: [
+                            { firstName: { contains: filters.search } },
+                            { lastName: { contains: filters.search } },
+                            { email: { contains: filters.search } },
+                        ],
+                    },
+                },
+                { studentPhone: { contains: filters.search } },
+                { parentPhone: { contains: filters.search } },
+            ]
+        }
+
+        // 3. Count total students
+        const total = await this.prisma.student.count({ where })
+
+        // 4. Calculate pagination
+        const page = pagination.page || 1
+        const limit = pagination.limit || 10
+        const skip = (page - 1) * limit
+        const totalPages = Math.ceil(total / limit)
+
+        // 5. Fetch students with their user info
+        const students = await this.prisma.student.findMany({
+            where,
+            include: {
+                user: {
+                    select: {
+                        userId: true,
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                    },
+                },
+            },
+            orderBy: {
+                studentId: pagination.sortOrder || 'asc',
+            },
+            skip,
+            take: limit,
+        })
+
+        // 6. For each student, fetch their attendance records within date range
+        const studentsWithAttendance = await Promise.all(
+            students.map(async (student) => {
+                const attendanceWhere: any = {
+                    studentId: student.studentId,
+                    classSession: {
+                        courseClass: {
+                            courseId: numericCourseId,
+                        },
+                        sessionDate: {
+                            gte: filters.fromDate,
+                            lte: filters.toDate,
+                        },
+                    },
+                }
+
+                // Add status filter if provided
+                if (filters.status) {
+                    attendanceWhere.status = filters.status
+                }
+
+                const attendances = await this.prisma.attendance.findMany({
+                    where: attendanceWhere,
+                    include: {
+                        classSession: {
+                            include: {
+                                courseClass: true,
+                            }
+                        },
+                    },
+                    orderBy: {
+                        markedAt: 'desc',
+                    },
+                })
+
+                return {
+                    student,
+                    attendances,
+                }
+            })
+        )
+
+        return {
+            students: studentsWithAttendance,
+            total,
+            page,
+            limit,
+            totalPages,
+        }
     }
 }

@@ -36,6 +36,7 @@ import {
   MediaProcessingService,
   ExcelService,
 } from './services'
+import { ImageExportService } from './services/image-export.service'
 import { GoogleAdminStrategy } from './strategies/google-admin.strategy'
 import { GoogleStudentStrategy } from './strategies/google-student.strategy'
 import jwtConfig from '../config/jwt.config'
@@ -178,6 +179,7 @@ import supabaseConfig from '../config/supabase.config'
     ExcelService,
     GoogleAdminStrategy,
     GoogleStudentStrategy,
+    ImageExportService,
   ],
   exports: [
     'UNIT_OF_WORK',
@@ -208,6 +210,7 @@ import supabaseConfig from '../config/supabase.config'
     'IStorageService',
     MediaProcessingService,
     ExcelService,
+    ImageExportService,
   ],
 })
 
