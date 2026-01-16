@@ -12,6 +12,12 @@ export const RESOURCE_TYPES = {
   SOLUTION_IMAGE: 'SOLUTION_IMAGE',
   MEDIA_IMAGE: 'MEDIA_IMAGE',
   IMAGE: 'IMAGE',
+  ATTENDANCE: 'ATTENDANCE',
+  CLASS_SESSION: 'CLASS_SESSION',
+  CLASS_STUDENT: 'CLASS_STUDENT',
+  COURSE: 'COURSE',
+  COURSE_CLASS: 'COURSE_CLASS',
+  COURSE_ENROLLMENT: 'COURSE_ENROLLMENT',
 } as const
 
 export const RESOURCE_TYPE_TABLE = {
@@ -80,6 +86,42 @@ export const RESOURCE_TYPE_TABLE = {
     tableName: 'images',
     primaryKey: 'imageId',
     repositoryName: 'imageRepository',
+  },
+  [RESOURCE_TYPES.ATTENDANCE]: {
+    displayName: 'Attendance',
+    tableName: 'attendance',
+    primaryKey: 'attendanceId',
+    repositoryName: 'attendanceRepository',
+  },
+  [RESOURCE_TYPES.CLASS_SESSION]: {
+    displayName: 'Class Session',
+    tableName: 'class_sessions',
+    primaryKey: 'sessionId',
+    repositoryName: 'classSessionRepository',
+  },
+  [RESOURCE_TYPES.CLASS_STUDENT]: {
+    displayName: 'Class Student',
+    tableName: 'class_students',
+    primaryKey: 'classId,studentId',
+    repositoryName: 'classStudentRepository',
+  },
+  [RESOURCE_TYPES.COURSE]: {
+    displayName: 'Course',
+    tableName: 'courses',
+    primaryKey: 'courseId',
+    repositoryName: 'courseRepository',
+  },
+  [RESOURCE_TYPES.COURSE_CLASS]: {
+    displayName: 'Course Class',
+    tableName: 'course_classes',
+    primaryKey: 'classId',
+    repositoryName: 'courseClassRepository',
+  },
+  [RESOURCE_TYPES.COURSE_ENROLLMENT]: {
+    displayName: 'Course Enrollment',
+    tableName: 'course_enrollments',
+    primaryKey: 'enrollmentId',
+    repositoryName: 'courseEnrollmentRepository',
   },
 } as const
 

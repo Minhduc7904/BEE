@@ -1,7 +1,7 @@
 // src/domain/entities/course/course-enrollment.entity.ts
 import { Course } from '../course/course.entity'
 import { Student } from '../user/student.entity'
-import { CourseEnrollmentStatus } from '@prisma/client'
+import { CourseEnrollmentStatus } from 'src/shared/enums'
 
 
 export class CourseEnrollment {

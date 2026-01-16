@@ -1,17 +1,16 @@
-// src/presentation/presentation.module.ts
 import { Module } from '@nestjs/common'
 import { ApplicationModule } from '../application/application.module'
-import { InfrastructureModule } from '../infrastructure/infrastructure.module'
+import { SharedModule } from '../shared/shared.module'
+
 import { AuthController } from './controllers/auth.controller'
 import { RoleController } from './controllers/role.controller'
 import { GoogleAuthAdminController } from './controllers/google-auth-admin.controller'
 import { GoogleAuthStudentController } from './controllers/google-auth-student.controller'
-import { SharedModule } from '../shared/shared.module'
 import { AdminAuditLogController } from './controllers/admin-audit-log.controller'
 import { StudentController } from './controllers/student.controller'
 import { UserController } from './controllers/user.controller'
 import { EmailVerificationController } from './controllers/email-verification.controller'
-import { EmailResetPasswordController} from './controllers/email-reset-password.controller'
+import { EmailResetPasswordController } from './controllers/email-reset-password.controller'
 import { MediaController } from './controllers/media.controller'
 import { MediaUsageController } from './controllers/media-usage.controller'
 import { MediaFolderController } from './controllers/media-folder.controller'
@@ -29,8 +28,12 @@ import { CourseEnrollmentController } from './controllers/course-enrollment.cont
 import { SubjectController } from './controllers/subject.controller'
 import { ChapterController } from './controllers/chapter.controller'
 import { AttendanceController } from './controllers/attendance.controller'
+
 @Module({
-  imports: [ApplicationModule, InfrastructureModule, SharedModule],
+  imports: [
+    ApplicationModule, // ✅ lấy toàn bộ UseCase đã export
+    SharedModule, // ✅ pipes, guards, filters, decorators
+  ],
   controllers: [
     AuthController,
     RoleController,

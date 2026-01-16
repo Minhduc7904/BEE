@@ -1,7 +1,7 @@
 import { Injectable, Inject, NotFoundException, ConflictException } from '@nestjs/common'
 import type { IMediaUsageRepository } from '../../../domain/repositories/media-usage.repository'
 import type { IMediaRepository } from '../../../domain/repositories/media.repository'
-import { MediaStatus } from '@prisma/client'
+import { MediaStatus } from 'src/shared/enums'
 import { BaseResponseDto } from '../../dtos'
 import { AttachMediaDto, MediaUsageResponseDto } from '../../dtos/media-usage'
 

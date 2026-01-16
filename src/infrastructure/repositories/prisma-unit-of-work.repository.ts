@@ -52,6 +52,12 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _mediaRepository: any
     let _subjectRepository: any
     let _chapterRepository: any
+    let _attendanceRepository: any
+    let _classSessionRepository: any
+    let _classStudentRepository: any
+    let _courseRepository: any
+    let _courseClassRepository: any
+    let _courseEnrollmentRepository: any
 
     Object.defineProperty(repos, 'studentRepository', {
       get: () => (_studentRepository ??= new Repositories.PrismaStudentRepository(client)),
@@ -75,6 +81,36 @@ export class PrismaUnitOfWork implements IUnitOfWork {
 
     Object.defineProperty(repos, 'chapterRepository', {
       get: () => (_chapterRepository ??= new Repositories.PrismaChapterRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'attendanceRepository', {
+      get: () => (_attendanceRepository ??= new Repositories.PrismaAttendanceRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'classSessionRepository', {
+      get: () => (_classSessionRepository ??= new Repositories.PrismaClassSessionRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'classStudentRepository', {
+      get: () => (_classStudentRepository ??= new Repositories.PrismaClassStudentRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'courseRepository', {
+      get: () => (_courseRepository ??= new Repositories.PrismaCourseRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'courseClassRepository', {
+      get: () => (_courseClassRepository ??= new Repositories.PrismaCourseClassRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'courseEnrollmentRepository', {
+      get: () => (_courseEnrollmentRepository ??= new Repositories.PrismaCourseEnrollmentRepository(client)),
       enumerable: true,
     })
 

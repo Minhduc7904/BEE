@@ -1,6 +1,6 @@
 // src/application/dtos/course/course-student-attendance.dto.ts
 import { PaginationResponseDto } from '../pagination/pagination-response.dto'
-import { AttendanceStatus } from '@prisma/client'
+import { AttendanceStatus } from 'src/shared/enums'
 
 /**
  * Single attendance record DTO

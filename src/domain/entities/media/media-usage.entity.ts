@@ -1,4 +1,4 @@
-import { MediaVisibility } from '@prisma/client'
+import { MediaVisibility } from 'src/shared/enums'
 
 /**
  * MediaUsageEntity - Domain entity for media attachment tracking

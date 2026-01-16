@@ -1,6 +1,6 @@
 import { IsOptional, IsNumber, IsString, IsEnum } from 'class-validator'
 import { Type } from 'class-transformer'
-import { MediaStatus } from '@prisma/client'
+import { MediaStatus } from 'src/shared/enums'
 
 export class UpdateMediaDto {
   @IsOptional()

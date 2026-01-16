@@ -1,5 +1,5 @@
-import { MediaFolderEntity } from '../entities/media-folder.entity'
-import { MediaType } from '@prisma/client'
+import { MediaFolderEntity } from '../entities'
+import { MediaType } from 'src/shared/enums'
 
 /**
  * IMediaFolderRepository - Domain interface for media folder data access

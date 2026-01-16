@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common'
-import { MediaFolderEntity } from '../../domain/entities/media-folder.entity'
+import { MediaFolderEntity } from '../../domain/entities'
 import { IMediaFolderRepository } from '../../domain/repositories/media-folder.repository'
 import { PrismaService } from '../../prisma/prisma.service'
-import { Prisma, MediaType } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 import { MediaFolderMapper } from '../mappers/media-folder.mapper'
+import { MediaType } from 'src/shared/enums'
 
 /**
  * PrismaMediaFolderRepository - Production-ready MediaFolder repository

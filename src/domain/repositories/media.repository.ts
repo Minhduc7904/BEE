@@ -1,5 +1,5 @@
-import { MediaEntity } from '../entities/media.entity'
-import { MediaType, MediaStatus } from '@prisma/client'
+import { MediaEntity } from '../entities'
+import { MediaType, MediaStatus } from 'src/shared/enums'
 
 /**
  * IMediaRepository - Media domain repository interface

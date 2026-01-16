@@ -1,5 +1,5 @@
-import { MediaVisibility } from '@prisma/client'
-import { MediaUsageEntity } from '../entities/media-usage.entity'
+import { MediaVisibility } from 'src/shared/enums'
+import { MediaUsageEntity } from '../entities'
 
 /**
  * IMediaUsageRepository - Domain interface for media usage tracking

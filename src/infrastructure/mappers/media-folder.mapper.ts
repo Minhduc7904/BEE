@@ -1,5 +1,5 @@
 import { MediaFolder } from '@prisma/client'
-import { MediaFolderEntity } from '../../domain/entities/media-folder.entity'
+import { MediaFolderEntity } from '../../domain/entities'
 
 /**
  * MediaFolderMapper - Maps between Prisma MediaFolder and Domain MediaFolderEntity

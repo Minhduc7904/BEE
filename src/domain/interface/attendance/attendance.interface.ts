@@ -1,4 +1,4 @@
-import { AttendanceStatus } from '@prisma/client'
+import { AttendanceStatus } from 'src/shared/enums'
 
 export interface CreateAttendanceData {
     sessionId: number

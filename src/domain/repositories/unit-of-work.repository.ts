@@ -9,7 +9,12 @@ import { IAdminAuditLogRepository } from './admin-audit-log.repository'
 import { IMediaRepository } from './media.repository'
 import { ISubjectRepository } from './subject.repository'
 import { IChapterRepository } from './chapter.repository'
-
+import { IAttendanceRepository } from './attendance.repository'
+import { IClassSessionRepository } from './class-session.repository'
+import { IClassStudentRepository } from './class-student.repository'
+import { ICourseRepository } from './course.repository'
+import { ICourseClassRepository } from './course-class.repository'
+import { ICourseEnrollmentRepository } from './course-enrollment.repository'
 // src/domain/repositories/unit-of-work.repository.ts
 export interface UnitOfWorkRepos {
   userRepository: IUserRepository
@@ -22,6 +27,12 @@ export interface UnitOfWorkRepos {
   mediaRepository: IMediaRepository
   subjectRepository: ISubjectRepository
   chapterRepository: IChapterRepository
+  attendanceRepository: IAttendanceRepository
+  classSessionRepository: IClassSessionRepository
+  classStudentRepository: IClassStudentRepository
+  courseRepository: ICourseRepository
+  courseClassRepository: ICourseClassRepository
+  courseEnrollmentRepository: ICourseEnrollmentRepository
 }
 
 export interface IUnitOfWork {

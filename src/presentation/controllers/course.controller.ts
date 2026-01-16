@@ -11,6 +11,7 @@ import { CourseStudentsAttendanceListResponseDto } from '../../application/dtos/
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
+import { CurrentUser } from '../../shared/decorators/current-user.decorator'
 import {
     GetAllCourseUseCase,
     GetCourseByIdUseCase,
@@ -38,8 +39,11 @@ export class CourseController {
     @Get()
     @RequirePermission('course.getAll')
     @HttpCode(HttpStatus.OK)
-    async getAllCourses(@Query() query: CourseListQueryDto): Promise<CourseListResponseDto> {
-        return ExceptionHandler.execute(() => this.getAllCourseUseCase.execute(query))
+    async getAllCourses(
+        @Query() query: CourseListQueryDto,
+        @CurrentUser('studentId') studentId?: number,
+    ): Promise<CourseListResponseDto> {
+        return ExceptionHandler.execute(() => this.getAllCourseUseCase.execute(query, !!studentId))
     }
 
     @Get(':id')
@@ -55,9 +59,10 @@ export class CourseController {
     @RequirePermission('course.create')
     @HttpCode(HttpStatus.CREATED)
     async createCourse(
-        @Body() dto: CreateCourseDto
+        @Body() dto: CreateCourseDto,
+        @CurrentUser('adminId') adminId?: number,
     ): Promise<BaseResponseDto<CourseResponseDto>> {
-        return ExceptionHandler.execute(() => this.createCourseUseCase.execute(dto))
+        return ExceptionHandler.execute(() => this.createCourseUseCase.execute(dto, adminId))
     }
 
     @Put(':id')
@@ -65,18 +70,20 @@ export class CourseController {
     @HttpCode(HttpStatus.OK)
     async updateCourse(
         @Param('id', ParseIntPipe) id: number,
-        @Body() dto: UpdateCourseDto
+        @Body() dto: UpdateCourseDto,
+        @CurrentUser('adminId') adminId?: number,
     ): Promise<BaseResponseDto<CourseResponseDto>> {
-        return ExceptionHandler.execute(() => this.updateCourseUseCase.execute(id, dto))
+        return ExceptionHandler.execute(() => this.updateCourseUseCase.execute(id, dto, adminId))
     }
 
     @Delete(':id')
     @RequirePermission('course.delete')
     @HttpCode(HttpStatus.OK)
     async deleteCourse(
-        @Param('id', ParseIntPipe) id: number
+        @Param('id', ParseIntPipe) id: number,
+        @CurrentUser('adminId') adminId?: number,
     ): Promise<BaseResponseDto<null>> {
-        return ExceptionHandler.execute(() => this.deleteCourseUseCase.execute(id))
+        return ExceptionHandler.execute(() => this.deleteCourseUseCase.execute(id, adminId))
     }
 
     /**

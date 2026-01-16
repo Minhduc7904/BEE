@@ -10,10 +10,7 @@ import { RESOURCE_TYPES } from '../../../shared/constants/resource-type.constant
 export class CreatePermissionUseCase {
   constructor(@Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork) {}
 
-  async execute(
-    dto: CreatePermissionDto,
-    adminId: number,
-  ): Promise<BaseResponseDto<PermissionResponseDto>> {
+  async execute(dto: CreatePermissionDto, adminId?: number): Promise<BaseResponseDto<PermissionResponseDto>> {
     const result = await this.unitOfWork.executeInTransaction(async (repos) => {
       const permissionRepository = repos.permissionRepository
       const adminAuditLogRepository = repos.adminAuditLogRepository
@@ -21,13 +18,16 @@ export class CreatePermissionUseCase {
       // Kiểm tra permission code đã tồn tại chưa
       const existingPermission = await permissionRepository.findByCode(dto.code)
       if (existingPermission) {
-        await adminAuditLogRepository.create({
-          adminId: adminId,
-          actionKey: ACTION_KEYS.PERMISSION.CREATE,
-          status: AuditStatus.FAIL,
-          resourceType: RESOURCE_TYPES.PERMISSION,
-          errorMessage: `Permission với code '${dto.code}' đã tồn tại`,
-        })
+        // Chỉ tạo audit log nếu có adminId
+        if (adminId) {
+          await adminAuditLogRepository.create({
+            adminId: adminId,
+            actionKey: ACTION_KEYS.PERMISSION.CREATE,
+            status: AuditStatus.FAIL,
+            resourceType: RESOURCE_TYPES.PERMISSION,
+            errorMessage: `Permission với code '${dto.code}' đã tồn tại`,
+          })
+        }
         throw new ConflictException(`Permission với code '${dto.code}' đã tồn tại`)
       }
 
@@ -42,18 +42,21 @@ export class CreatePermissionUseCase {
 
       const response = PermissionResponseDto.fromPermission(permission)
 
-      await adminAuditLogRepository.create({
-        adminId: adminId,
-        actionKey: ACTION_KEYS.PERMISSION.CREATE,
-        status: AuditStatus.SUCCESS,
-        resourceType: RESOURCE_TYPES.PERMISSION,
-        resourceId: permission.permissionId.toString(),
-        afterData: {
-          code: permission.code,
-          name: permission.name,
-          group: permission.group,
-        },
-      })
+      // Chỉ tạo audit log nếu có adminId
+      if (adminId) {
+        await adminAuditLogRepository.create({
+          adminId: adminId,
+          actionKey: ACTION_KEYS.PERMISSION.CREATE,
+          status: AuditStatus.SUCCESS,
+          resourceType: RESOURCE_TYPES.PERMISSION,
+          resourceId: permission.permissionId.toString(),
+          afterData: {
+            code: permission.code,
+            name: permission.name,
+            group: permission.group,
+          },
+        })
+      }
 
       return response
     })

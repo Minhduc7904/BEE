@@ -1,5 +1,5 @@
 import { Media } from '@prisma/client'
-import { MediaEntity } from '../../domain/entities/media.entity'
+import { MediaEntity } from '../../domain/entities'
 import { UserMapper } from './user.mapper'
 import { MediaUsageMapper } from './media-usage.mapper'
 import { MediaFolderMapper } from './media-folder.mapper'

@@ -1,47 +1,79 @@
 import { Inject, Injectable } from '@nestjs/common'
-import type { IAttendanceRepository } from 'src/domain/repositories/attendance.repository'
+import type { IUnitOfWork } from 'src/domain/repositories'
 import { AttendanceResponseDto } from 'src/application/dtos/attendance/attendance.dto'
 import { CreateAttendanceDto } from 'src/application/dtos/attendance/create-attendance.dto'
 import { CreateAttendanceData } from 'src/domain/interface/attendance/attendance.interface'
 import { BaseResponseDto } from 'src/application/dtos/common/base-response.dto'
 import { ConflictException } from 'src/shared/exceptions/custom-exceptions'
+import { ACTION_KEYS } from 'src/shared/constants/action-key.constants'
+import { AuditStatus } from 'src/shared/enums/audit-status.enum'
+import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
 
 @Injectable()
 export class CreateAttendanceUseCase {
     constructor(
-        @Inject('IAttendanceRepository')
-        private readonly attendanceRepository: IAttendanceRepository,
+        @Inject('UNIT_OF_WORK')
+        private readonly unitOfWork: IUnitOfWork,
     ) { }
 
     async execute(
         dto: CreateAttendanceDto,
         markerId?: number,
+        adminId?: number,
     ): Promise<BaseResponseDto<AttendanceResponseDto>> {
-        // Check if attendance already exists
-        const existing = await this.attendanceRepository.findBySessionAndStudent(
-            dto.sessionId,
-            dto.studentId,
-        )
+        const result = await this.unitOfWork.executeInTransaction(async (repos) => {
+            const attendanceRepository = repos.attendanceRepository
+            const adminAuditLogRepository = repos.adminAuditLogRepository
 
-        if (existing) {
-            throw new ConflictException(
-                'Điểm danh cho học sinh này trong buổi học đã tồn tại',
+            // Check if attendance already exists
+            const existing = await attendanceRepository.findBySessionAndStudent(
+                dto.sessionId,
+                dto.studentId,
             )
-        }
 
-        const data: CreateAttendanceData = {
-            sessionId: dto.sessionId,
-            studentId: dto.studentId,
-            status: dto.status,
-            notes: dto.notes,
-            markerId,
-        }
+            if (existing) {
+                if (adminId) {
+                    await adminAuditLogRepository.create({
+                        adminId,
+                        actionKey: ACTION_KEYS.ATTENDANCE.CREATE,
+                        status: AuditStatus.FAIL,
+                        resourceType: RESOURCE_TYPES.ATTENDANCE,
+                        errorMessage: 'Điểm danh cho học sinh này trong buổi học đã tồn tại',
+                    })
+                }
+                throw new ConflictException(
+                    'Điểm danh cho học sinh này trong buổi học đã tồn tại',
+                )
+            }
 
-        const attendance = await this.attendanceRepository.create(data)
+            const data: CreateAttendanceData = {
+                sessionId: dto.sessionId,
+                studentId: dto.studentId,
+                status: dto.status,
+                notes: dto.notes,
+                markerId,
+            }
 
-        return BaseResponseDto.success(
-            'Tạo điểm danh thành công',
-            new AttendanceResponseDto(attendance),
-        )
+            const attendance = await attendanceRepository.create(data)
+
+            if (adminId) {
+                await adminAuditLogRepository.create({
+                    adminId,
+                    actionKey: ACTION_KEYS.ATTENDANCE.CREATE,
+                    status: AuditStatus.SUCCESS,
+                    resourceType: RESOURCE_TYPES.ATTENDANCE,
+                    resourceId: attendance.attendanceId.toString(),
+                    afterData: {
+                        sessionId: attendance.sessionId,
+                        studentId: attendance.studentId,
+                        status: attendance.status,
+                    },
+                })
+            }
+
+            return new AttendanceResponseDto(attendance)
+        })
+
+        return BaseResponseDto.success('Tạo điểm danh thành công', result)
     }
 }

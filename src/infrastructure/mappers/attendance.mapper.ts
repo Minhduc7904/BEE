@@ -3,7 +3,7 @@ import { Attendance } from '../../domain/entities/attendance/attendance.entity'
 import { ClassSessionMapper } from './class-session.mapper'
 import { StudentMapper } from './student.mapper'
 import { AdminMapper } from './admin.mapper'
-import { AttendanceStatus } from '@prisma/client'
+import { AttendanceStatus } from 'src/shared/enums'
 
 /**
  * Mapper class để convert từ Prisma Attendance model

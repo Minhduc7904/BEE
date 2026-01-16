@@ -29,7 +29,7 @@ import { BaseResponseDto } from '../../application/dtos'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { CurrentUser } from '../../shared/decorators'
 import { RequirePermission } from '../../shared/decorators'
-import { MediaType } from '@prisma/client'
+import { MediaType } from 'src/shared/enums'
 
 @Controller('media-folders')
 export class MediaFolderController {

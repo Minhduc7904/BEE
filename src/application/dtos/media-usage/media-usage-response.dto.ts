@@ -1,5 +1,5 @@
-import { MediaVisibility } from '@prisma/client'
-import { MediaUsageEntity } from '../../../domain/entities/media-usage.entity'
+import { MediaVisibility } from 'src/shared/enums'
+import { MediaUsageEntity } from '../../../domain/entities'
 
 /**
  * MediaUsageResponseDto - Response DTO for MediaUsage

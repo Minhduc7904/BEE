@@ -4,7 +4,7 @@ import { IsOptional, IsString, IsNumber, IsEnum, Min, Max } from 'class-validato
 import { ListQueryDto } from '../pagination/list-query.dto'
 import { Trim, ToBoolean } from 'src/shared/decorators'
 import { VALIDATION_MESSAGES } from 'src/shared/constants'
-import { Visibility } from 'src/shared/enums'
+import { CourseVisibility } from 'src/shared/enums'
 
 export class CourseListQueryDto extends ListQueryDto {
     @IsOptional()
@@ -20,8 +20,8 @@ export class CourseListQueryDto extends ListQueryDto {
     subjectId?: number
 
     @IsOptional()
-    @IsEnum(Visibility, { message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái') })
-    visibility?: Visibility
+    @IsEnum(CourseVisibility, { message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái') })
+    visibility?: CourseVisibility
 
     @IsOptional()
     @Type(() => Number)

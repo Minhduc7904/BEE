@@ -378,7 +378,7 @@ model Question {
   solution           String?      @map("solution") @db.Text
   difficulty         Difficulty   @map("difficulty")
   solutionYoutubeUrl String?      @map("solution_youtube_url") @db.VarChar(500)
-  grade              Int          @map("grade") @db.TinyInt
+  grade              Int          @map("grade") @db.TinyInt // cấp lớp của câu hỏi
   subjectId          Int?         @map("subject_id")
   pointsOrigin       Int?         @map("points_origin") // điểm gốc của câu hỏi
   createdBy          Int?         @map("created_by") // admin tạo câu hỏi

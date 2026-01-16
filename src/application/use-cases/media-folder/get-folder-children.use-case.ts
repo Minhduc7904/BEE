@@ -2,7 +2,7 @@ import { Injectable, Inject, NotFoundException } from '@nestjs/common'
 import type { IMediaFolderRepository } from '../../../domain/repositories/media-folder.repository'
 import { BaseResponseDto } from '../../dtos'
 import { MediaFolderResponseDto } from '../../dtos/media-folder'
-import { MediaType } from '@prisma/client'
+import { MediaType } from 'src/shared/enums'
 /**
  * GetFolderChildrenUseCase - Get direct children of a folder
  */

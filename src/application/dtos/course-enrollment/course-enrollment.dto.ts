@@ -2,7 +2,7 @@ import { CourseEnrollment } from 'src/domain/entities/course-enrollment/course-e
 import { PaginationResponseDto } from '../pagination/pagination-response.dto';
 import { CourseResponseDto } from '../course/course.dto';
 import { StudentResponseDto } from '../student/student.dto';
-import { CourseEnrollmentStatus } from '@prisma/client';
+import { CourseEnrollmentStatus } from 'src/shared/enums';
 
 export class CourseEnrollmentResponseDto {
     enrollmentId: number;

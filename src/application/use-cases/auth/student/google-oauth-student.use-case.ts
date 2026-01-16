@@ -17,7 +17,7 @@ import {
   UnauthorizedException,
 } from '../../../../shared/exceptions/custom-exceptions'
 import { StorageProvider } from '../../../../shared/enums'
-import { MediaType, MediaStatus } from '@prisma/client'
+import { MediaType, MediaStatus } from 'src/shared/enums'
 import { v4 as uuidv4 } from 'uuid'
 import { ROLE_IDS } from 'src/shared/constants'
 

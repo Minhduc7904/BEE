@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common'
 import type { IAttendanceRepository } from 'src/domain/repositories/attendance.repository'
 import { AttendanceStatisticsDto } from '../../dtos/attendance/attendance-statistics.dto'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
-import { AttendanceStatus } from '@prisma/client'
+import { AttendanceStatus } from 'src/shared/enums'
 
 @Injectable()
 export class GetAttendanceStatisticsBySessionUseCase {

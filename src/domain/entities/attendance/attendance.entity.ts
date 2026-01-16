@@ -1,5 +1,5 @@
 // src/domain/entities/attendance/attendance.entity.ts
-import { AttendanceStatus } from '@prisma/client'
+import { AttendanceStatus } from '../../../shared/enums/attendance-status.enum'
 import { ClassSession } from '../class-session/class-session.entity'
 import { Student } from '../user/student.entity'
 import { Admin } from '../user/admin.entity'

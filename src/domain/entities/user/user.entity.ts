@@ -1,6 +1,6 @@
 // src/domain/entities/user.entity.ts
 import { Gender } from "../../../shared/enums"
-import { MediaEntity } from "../media.entity"
+import { MediaEntity } from "../media"
 
 export class User {
   userId: number

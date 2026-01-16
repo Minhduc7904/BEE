@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common'
-import { MediaEntity } from '../../domain/entities/media.entity'
+import { MediaEntity } from '../../domain/entities'
 import { IMediaRepository } from '../../domain/repositories/media.repository'
 import { PrismaService } from '../../prisma/prisma.service'
-import { MediaType, MediaStatus, Prisma } from '@prisma/client'
+import { MediaType, MediaStatus } from 'src/shared/enums'
+import { Prisma } from '@prisma/client'
 import { MediaMapper } from '../mappers/media.mapper'
 /**
  * PrismaMediaRepository - Production-ready Media repository

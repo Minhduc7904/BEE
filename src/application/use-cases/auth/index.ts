@@ -1,5 +1,6 @@
 export * from './logout.use-case'
 export * from './refresh-token.use-case'
+export * from './verify-access-token.use-case'
 export * from './admin/google-oauth-admin.use-case'
 export * from './admin/login-admin.use-case'
 export * from './admin/register-admin.use-case'

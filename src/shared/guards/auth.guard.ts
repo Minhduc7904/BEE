@@ -1,17 +1,27 @@
 // src/shared/guards/auth.guard.ts
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException, Inject } from '@nestjs/common'
+import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { Request } from 'express'
-import { AuthService, AuthenticatedUser } from '../../infrastructure/services/auth.service'
+import { VerifyAccessTokenUseCase } from '../../application/use-cases/auth/verify-access-token.use-case'
+import type { AuthenticatedUser } from '../../infrastructure/services/auth.service'
 
 // Re-export for backwards compatibility
 export type { AuthenticatedUser }
 
+/**
+ * AuthGuard
+ * 
+ * Guard để xác thực JWT access token từ Authorization header.
+ * Tuân thủ Clean Architecture: inject UseCase từ Application layer,
+ * KHÔNG inject service từ Infrastructure layer.
+ * 
+ * @layer Shared (Presentation)
+ * @dependencies VerifyAccessTokenUseCase (Application)
+ */
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
-    @Inject('AUTH_SERVICE')
-    private readonly authService: AuthService,
+    private readonly verifyAccessTokenUseCase: VerifyAccessTokenUseCase,
     private reflector: Reflector,
   ) {}
 
@@ -23,15 +33,15 @@ export class AuthGuard implements CanActivate {
     }
 
     try {
-      // Use AuthService to verify token and get user with roles
-      const user = await this.authService.verifyTokenAndGetUser(token)
+      // ✅ Use Application layer UseCase (Clean Architecture compliant)
+      const user = await this.verifyAccessTokenUseCase.execute(token)
 
       // Gán user info vào request để sử dụng trong controller
       request['user'] = user
 
       return true
     } catch (error) {
-      // Re-throw the specific error from AuthService (with better messages)
+      // Re-throw the specific error from UseCase (with better messages)
       throw error
     }
   }

@@ -1,6 +1,6 @@
 import { MediaUsage } from '@prisma/client'
-import { MediaUsageEntity } from '../../domain/entities/media-usage.entity'
-
+import { MediaUsageEntity } from '../../domain/entities'
+import { MediaVisibility } from 'src/shared/enums'
 /**
  * MediaUsageMapper - Maps between Prisma MediaUsage and Domain MediaUsageEntity
  * 
@@ -22,7 +22,7 @@ export class MediaUsageMapper {
       entityId: prismaUsage.entityId,
       fieldName: prismaUsage.fieldName,
       usedBy: prismaUsage.usedBy,
-      visibility: prismaUsage.visibility,
+      visibility: prismaUsage.visibility as MediaVisibility,
       createdAt: prismaUsage.createdAt,
     })
   }

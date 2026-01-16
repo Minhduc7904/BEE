@@ -3,7 +3,7 @@ import { Type } from 'class-transformer'
 import { IsNotEmpty, IsDateString, IsOptional, IsEnum } from 'class-validator'
 import { ListQueryDto } from '../pagination/list-query.dto'
 import { VALIDATION_MESSAGES } from 'src/shared/constants'
-import { AttendanceStatus } from '@prisma/client'
+import { AttendanceStatus } from 'src/shared/enums'
 
 /**
  * DTO for querying students attendance by course

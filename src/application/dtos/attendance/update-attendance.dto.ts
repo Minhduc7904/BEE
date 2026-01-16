@@ -1,5 +1,5 @@
 import { IsOptional, IsEnum, IsString } from 'class-validator'
-import { AttendanceStatus } from '@prisma/client'
+import { AttendanceStatus } from 'src/shared/enums'
 
 export class UpdateAttendanceDto {
   @IsOptional()

@@ -1,6 +1,6 @@
 import { IsString, IsNumber, IsOptional, IsEnum, Min } from 'class-validator'
 import { Type } from 'class-transformer'
-import { MediaType } from '@prisma/client'
+import { MediaType } from 'src/shared/enums'
 
 export class UploadMediaDto {
   @IsOptional()

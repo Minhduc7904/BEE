@@ -5,7 +5,7 @@ import {
   CourseEnrollmentFilterOptions,
   CourseEnrollmentPaginationOptions,
 } from 'src/domain/interface/course-enrollment/course-enrollment.interface';
-import { CourseEnrollmentStatus } from '@prisma/client';
+import { CourseEnrollmentStatus } from 'src/shared/enums';
 
 export class CourseEnrollmentListQueryDto extends ListQueryDto {
   @IsOptional()

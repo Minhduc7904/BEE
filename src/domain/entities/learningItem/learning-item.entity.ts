@@ -91,9 +91,6 @@ export class LearningItem {
     return this.type === LearningItemType.YOUTUBE
   }
 
-  isExercise(): boolean {
-    return this.type === LearningItemType.EXERCISE
-  }
 
   /**
    * Lấy creator name (nếu có)
@@ -111,7 +108,7 @@ export class LearningItem {
       [LearningItemType.HOMEWORK]: 'Bài tập về nhà',
       [LearningItemType.DOCUMENT]: 'Tài liệu',
       [LearningItemType.YOUTUBE]: 'Video YouTube',
-      [LearningItemType.EXERCISE]: 'Bài tập',
+      [LearningItemType.VIDEO]: 'Video',
     }
     return labels[this.type] || this.type
   }

@@ -1,425 +1,113 @@
-// src/application/application.module.ts
 import { Module } from '@nestjs/common'
 import { InfrastructureModule } from '../infrastructure/infrastructure.module'
-import {
-  RegisterAdminUseCase,
-  RegisterStudentUseCase,
-  LoginAdminUseCase,
-  LoginStudentUseCase,
-  RefreshTokenUseCase,
-  LogoutUseCase,
-  CreateRoleUseCase,
-  RollbackUseCase,
-  GetAuditLogUseCase,
-  GetAllAuditLogsUseCase,
-  GetAllStudentUseCase,
-  CreateStudentUseCase,
-  UpdateStudentUseCase,
-  UpdateAdminUseCase,
-  UpdateUserUseCase,
-  UpdateUserAvatarUseCase,
-  GoogleOAuthAdminUseCase,
-  GoogleOAuthStudentUseCase,
-  SendVerificationEmailUseCase,
-  VerifyEmailUseCase,
-  FetchStudentFromApiUseCase,
-  GetProfileStudentUseCase,
-  SendResetPasswordEmailUseCase,
-  ResetPasswordUseCase,
-  UploadMediaUseCase,
-  GetMediaListUseCase,
-  GetMediaUseCase,
-  UpdateMediaUseCase,
-  DeleteMediaUseCase,
-  GetMediaDownloadUrlUseCase,
-  GetMediaViewUrlUseCase,
-  GetBatchMediaViewUrlUseCase,
-  GetBucketsListUseCase,
-  GetAdminProfileUseCase,
-  UpdateAdminProfileUseCase,
-  CreatePermissionUseCase,
-  GetPermissionUseCase,
-  GetAllPermissionsUseCase,
-  UpdatePermissionUseCase,
-  DeletePermissionUseCase,
-  GetRoleUseCase,
-  GetAllRolesUseCase,
-  UpdateRoleUseCase,
-  DeleteRoleUseCase,
-  AssignRoleToUserUseCase,
-  GetUserRolesUseCase,
-  ToggleRolePermissionUseCase,
-  GetPermissionGroupsUseCase,
-  AttachMediaUseCase,
-  DetachMediaUseCase,
-  DetachMediaByEntityUseCase,
-  GetMediaUsagesByMediaUseCase,
-  GetMediaUsagesByEntityUseCase,
-  CreateMediaFolderUseCase,
-  GetMediaFolderUseCase,
-  GetMediaFolderListUseCase,
-  GetFolderChildrenUseCase,
-  UpdateMediaFolderUseCase,
-  DeleteMediaFolderUseCase,
-  GetAllAdminUseCase,
-  GetAdminByIdUseCase,
-  RemoveRoleFromUserUseCase,
-} from './use-cases'
-import {
-  GetAllCourseUseCase,
-  GetCourseByIdUseCase,
-  CreateCourseUseCase,
-  UpdateCourseUseCase,
-  DeleteCourseUseCase,
-  GetCourseStudentsAttendanceUseCase,
-  ExportCourseStudentsAttendanceUseCase,
-} from './use-cases/course'
-import {
-  GetAllCourseClassUseCase,
-  GetCourseClassByIdUseCase,
-  CreateCourseClassUseCase,
-  UpdateCourseClassUseCase,
-  DeleteCourseClassUseCase,
-} from './use-cases/course-class'
-import {
-  GetAllLessonUseCase,
-  GetLessonByIdUseCase,
-  CreateLessonUseCase,
-  UpdateLessonUseCase,
-  DeleteLessonUseCase,
-} from './use-cases/lesson'
-import {
-  GetAllLearningItemUseCase,
-  GetLearningItemByIdUseCase,
-  CreateLearningItemUseCase,
-  UpdateLearningItemUseCase,
-  DeleteLearningItemUseCase,
-} from './use-cases/learningItem'
-import {
-  GetAllLessonLearningItemUseCase,
-  GetLessonLearningItemByIdUseCase,
-  CreateLessonLearningItemUseCase,
-  DeleteLessonLearningItemUseCase,
-} from './use-cases/lessonLearningItem'
-import {
-  GetAllClassSessionUseCase,
-  GetClassSessionByIdUseCase,
-  CreateClassSessionUseCase,
-  UpdateClassSessionUseCase,
-  DeleteClassSessionUseCase,
-} from './use-cases/class-session'
-import {
-  GetAllClassStudentUseCase,
-  CreateClassStudentUseCase,
-  DeleteClassStudentUseCase,
-} from './use-cases/class-student'
-import {
-  GetAllCourseEnrollmentUseCase,
-  GetCourseEnrollmentByIdUseCase,
-  CreateCourseEnrollmentUseCase,
-  UpdateCourseEnrollmentUseCase,
-  DeleteCourseEnrollmentUseCase,
-} from './use-cases/course-enrollment'
-import {
-  CreateSubjectUseCase,
-  GetSubjectUseCase,
-  GetAllSubjectsUseCase,
-  UpdateSubjectUseCase,
-  DeleteSubjectUseCase,
-} from './use-cases/subject'
-import {
-  CreateChapterUseCase,
-  GetChapterUseCase,
-  GetAllChaptersUseCase,
-  GetChapterChildrenUseCase,
-  GetRootChaptersUseCase,
-  UpdateChapterUseCase,
-  DeleteChapterUseCase,
-} from './use-cases/chapter'
-import {
-  GetAllAttendanceUseCase,
-  GetAttendanceByIdUseCase,
-  CreateAttendanceUseCase,
-  UpdateAttendanceUseCase,
-  DeleteAttendanceUseCase,
-  CreateBulkAttendanceBySessionUseCase,
-  GetAttendanceStatisticsBySessionUseCase,
-  ExportAttendanceBySessionUseCase,
-  ExportAttendanceImageUseCase,
-} from './use-cases/attendance'
+
+import { AuthApplicationModule } from './use-cases/auth/auth.application.module'
+import { AttendanceApplicationModule } from './use-cases/attendance/attendance.application.module'
+import { AdminApplicationModule } from './use-cases/admin/admin.application.module'
+import { ChapterApplicationModule } from './use-cases/chapter/chapter.application.module'
+import { ClassSessionApplicationModule } from './use-cases/class-session/class-session.application.module'
+import { ClassStudentApplicationModule } from './use-cases/class-student/class-student.application.module'
+import { CourseApplicationModule } from './use-cases/course/course.application.module'
+import { CourseClassApplicationModule } from './use-cases/course-class/course-class.application.module'
+import { CourseEnrollmentApplicationModule } from './use-cases/course-enrollment/course-enrollment.application.module'
+
+import { EmailVerificationApplicationModule } from './use-cases/email-verification/email-verification.application.module'
+import { LessonApplicationModule } from './use-cases/lesson/lesson.application.module'
+import { LearningItemApplicationModule } from './use-cases/learningItem/learning-item.application.module'
+import { LessonLearningItemApplicationModule } from './use-cases/lessonLearningItem/lesson-learning-item.application.module'
+import { AuditLogApplicationModule } from './use-cases/log/audit-log.application.module'
+import { MediaApplicationModule } from './use-cases/media/media.application.module'
+import { MediaFolderApplicationModule } from './use-cases/media-folder/media-folder.application.module'
+import { MediaUsageApplicationModule } from './use-cases/media-usage/media-usage.application.module'
+import { PermissionApplicationModule } from './use-cases/permission/permission.application.module'
+import { PasswordRecoveryApplicationModule } from './use-cases/reset-password/password-recovery.application.module'
+import { AdminProfileApplicationModule } from './use-cases/profile/admin-profile.application.module'
+import { RoleApplicationModule } from './use-cases/role/role.application.module'
+import { StudentApplicationModule } from './use-cases/student/student.application.module'
+import { SubjectApplicationModule } from './use-cases/subject/subject.application.module'
+import { UserApplicationModule } from './use-cases/user/user.application.module'
 
 @Module({
-  imports: [InfrastructureModule],
-  providers: [
-    RegisterAdminUseCase,
-    RegisterStudentUseCase,
-    LoginAdminUseCase,
-    LoginStudentUseCase,
-    RefreshTokenUseCase,
-    LogoutUseCase,
-    RollbackUseCase,
-    GetAuditLogUseCase,
-    GetAllAuditLogsUseCase,
-    GetAllStudentUseCase,
-    CreateStudentUseCase,
-    UpdateStudentUseCase,
-    UpdateAdminUseCase,
-    UpdateUserUseCase,
-    UpdateUserAvatarUseCase,
-    GoogleOAuthAdminUseCase,
-    GoogleOAuthStudentUseCase,
-    SendVerificationEmailUseCase,
-    VerifyEmailUseCase,
-    FetchStudentFromApiUseCase,
-    GetProfileStudentUseCase,
-    ResetPasswordUseCase,
-    SendResetPasswordEmailUseCase,
-    UploadMediaUseCase,
-    GetMediaListUseCase,
-    GetMediaUseCase,
-    UpdateMediaUseCase,
-    DeleteMediaUseCase,
-    GetMediaDownloadUrlUseCase,
-    GetMediaViewUrlUseCase,
-    GetBatchMediaViewUrlUseCase,
-    GetAdminProfileUseCase,
-    UpdateAdminProfileUseCase,
-    CreatePermissionUseCase,
-    GetPermissionUseCase,
-    GetAllPermissionsUseCase,
-    UpdatePermissionUseCase,
-    DeletePermissionUseCase,
-    CreateRoleUseCase,
-    GetRoleUseCase,
-    GetAllRolesUseCase,
-    UpdateRoleUseCase,
-    DeleteRoleUseCase,
-    AssignRoleToUserUseCase,
-    GetUserRolesUseCase,
-    ToggleRolePermissionUseCase,
-    GetPermissionGroupsUseCase,
-    AttachMediaUseCase,
-    DetachMediaUseCase,
-    DetachMediaByEntityUseCase,
-    GetMediaUsagesByMediaUseCase,
-    GetMediaUsagesByEntityUseCase,
-    CreateMediaFolderUseCase,
-    GetMediaFolderUseCase,
-    GetMediaFolderListUseCase,
-    GetFolderChildrenUseCase,
-    UpdateMediaFolderUseCase,
-    DeleteMediaFolderUseCase,
-    GetBucketsListUseCase,
-    GetAllAdminUseCase,
-    GetAdminByIdUseCase,
-    RemoveRoleFromUserUseCase,
-    // Course use-cases
-    GetAllCourseUseCase,
-    GetCourseByIdUseCase,
-    CreateCourseUseCase,
-    UpdateCourseUseCase,
-    DeleteCourseUseCase,
-    GetCourseStudentsAttendanceUseCase,
-    ExportCourseStudentsAttendanceUseCase,
-    // CourseClass use-cases
-    GetAllCourseClassUseCase,
-    GetCourseClassByIdUseCase,
-    CreateCourseClassUseCase,
-    UpdateCourseClassUseCase,
-    DeleteCourseClassUseCase,
-    // Lesson use-cases
-    GetAllLessonUseCase,
-    GetLessonByIdUseCase,
-    CreateLessonUseCase,
-    UpdateLessonUseCase,
-    DeleteLessonUseCase,
-    // LearningItem use-cases
-    GetAllLearningItemUseCase,
-    GetLearningItemByIdUseCase,
-    CreateLearningItemUseCase,
-    UpdateLearningItemUseCase,
-    DeleteLearningItemUseCase,
-    // LessonLearningItem use-cases
-    GetAllLessonLearningItemUseCase,
-    GetLessonLearningItemByIdUseCase,
-    CreateLessonLearningItemUseCase,
-    DeleteLessonLearningItemUseCase,
-    // ClassSession use-cases
-    GetAllClassSessionUseCase,
-    GetClassSessionByIdUseCase,
-    CreateClassSessionUseCase,
-    UpdateClassSessionUseCase,
-    DeleteClassSessionUseCase,
-    // ClassStudent use-cases
-    GetAllClassStudentUseCase,
-    CreateClassStudentUseCase,
-    DeleteClassStudentUseCase,
-    // CourseEnrollment use-cases
-    GetAllCourseEnrollmentUseCase,
-    GetCourseEnrollmentByIdUseCase,
-    CreateCourseEnrollmentUseCase,
-    UpdateCourseEnrollmentUseCase,
-    DeleteCourseEnrollmentUseCase,
-    // Subject use-cases
-    CreateSubjectUseCase,
-    GetSubjectUseCase,
-    GetAllSubjectsUseCase,
-    UpdateSubjectUseCase,
-    DeleteSubjectUseCase,
-    // Chapter use-cases
-    CreateChapterUseCase,
-    GetChapterUseCase,
-    GetAllChaptersUseCase,
-    GetChapterChildrenUseCase,
-    GetRootChaptersUseCase,
-    UpdateChapterUseCase,
-    DeleteChapterUseCase,
-    // Attendance use-cases
-    GetAllAttendanceUseCase,
-    GetAttendanceByIdUseCase,
-    CreateAttendanceUseCase,
-    UpdateAttendanceUseCase,
-    DeleteAttendanceUseCase,
-    CreateBulkAttendanceBySessionUseCase,
-    GetAttendanceStatisticsBySessionUseCase,
-    ExportAttendanceBySessionUseCase,
-    ExportAttendanceImageUseCase,
+  imports: [
+    InfrastructureModule,
+
+    // Auth & Account
+    AuthApplicationModule,
+    PasswordRecoveryApplicationModule,
+    EmailVerificationApplicationModule,
+
+    // User & Profile
+    UserApplicationModule,
+    StudentApplicationModule,
+    AdminProfileApplicationModule,
+    AdminApplicationModule,
+
+    // Role & Permission
+    RoleApplicationModule,
+    PermissionApplicationModule,
+
+    // Media
+    MediaApplicationModule,
+    MediaFolderApplicationModule,
+    MediaUsageApplicationModule,
+
+    // Course & Learning
+    CourseApplicationModule,
+    CourseClassApplicationModule,
+    CourseEnrollmentApplicationModule,
+    SubjectApplicationModule,
+    ChapterApplicationModule,
+    LessonApplicationModule,
+    LearningItemApplicationModule,
+    LessonLearningItemApplicationModule,
+
+    // Class & Attendance
+    ClassSessionApplicationModule,
+    ClassStudentApplicationModule,
+    AttendanceApplicationModule,
+
+    // Audit
+    AuditLogApplicationModule,
   ],
   exports: [
-    RegisterAdminUseCase,
-    RegisterStudentUseCase,
-    LoginAdminUseCase,
-    LoginStudentUseCase,
-    RefreshTokenUseCase,
-    LogoutUseCase,
-    CreateRoleUseCase,
-    RollbackUseCase,
-    GetAuditLogUseCase,
-    GetAllAuditLogsUseCase,
-    GetAllStudentUseCase,
-    CreateStudentUseCase,
-    UpdateStudentUseCase,
-    UpdateAdminUseCase,
-    UpdateUserUseCase,
-    UpdateUserAvatarUseCase,
-    GoogleOAuthAdminUseCase,
-    GoogleOAuthStudentUseCase,
-    SendVerificationEmailUseCase,
-    VerifyEmailUseCase,
-    FetchStudentFromApiUseCase,
-    GetProfileStudentUseCase,
-    ResetPasswordUseCase,
-    SendResetPasswordEmailUseCase,
-    UploadMediaUseCase,
-    GetMediaListUseCase,
-    GetMediaUseCase,
-    UpdateMediaUseCase,
-    DeleteMediaUseCase,
-    GetMediaDownloadUrlUseCase,
-    GetMediaViewUrlUseCase,
-    GetBatchMediaViewUrlUseCase,
-    GetBucketsListUseCase,
-    GetAdminProfileUseCase,
-    UpdateAdminProfileUseCase,
-    CreatePermissionUseCase,
-    GetPermissionUseCase,
-    GetAllPermissionsUseCase,
-    UpdatePermissionUseCase,
-    DeletePermissionUseCase,
-    CreateRoleUseCase,
-    GetRoleUseCase,
-    GetAllRolesUseCase,
-    UpdateRoleUseCase,
-    DeleteRoleUseCase,
-    AssignRoleToUserUseCase,
-    GetUserRolesUseCase,
-    ToggleRolePermissionUseCase,
-    GetPermissionGroupsUseCase,
-    AttachMediaUseCase,
-    DetachMediaUseCase,
-    DetachMediaByEntityUseCase,
-    GetMediaUsagesByMediaUseCase,
-    GetMediaUsagesByEntityUseCase,
-    CreateMediaFolderUseCase,
-    GetMediaFolderUseCase,
-    GetMediaFolderListUseCase,
-    GetFolderChildrenUseCase,
-    UpdateMediaFolderUseCase,
-    DeleteMediaFolderUseCase,
-    GetAllAdminUseCase,
-    GetAdminByIdUseCase,
-    RemoveRoleFromUserUseCase,
-    // Course use-cases
-    GetAllCourseUseCase,
-    GetCourseByIdUseCase,
-    CreateCourseUseCase,
-    UpdateCourseUseCase,
-    DeleteCourseUseCase,
-    GetCourseStudentsAttendanceUseCase,
-    ExportCourseStudentsAttendanceUseCase,
-    // CourseClass use-cases
-    GetAllCourseClassUseCase,
-    GetCourseClassByIdUseCase,
-    CreateCourseClassUseCase,
-    UpdateCourseClassUseCase,
-    DeleteCourseClassUseCase,
-    // Lesson use-cases
-    GetAllLessonUseCase,
-    GetLessonByIdUseCase,
-    CreateLessonUseCase,
-    UpdateLessonUseCase,
-    DeleteLessonUseCase,
-    // LearningItem use-cases
-    GetAllLearningItemUseCase,
-    GetLearningItemByIdUseCase,
-    CreateLearningItemUseCase,
-    UpdateLearningItemUseCase,
-    DeleteLearningItemUseCase,
-    // LessonLearningItem use-cases
-    GetAllLessonLearningItemUseCase,
-    GetLessonLearningItemByIdUseCase,
-    CreateLessonLearningItemUseCase,
-    DeleteLessonLearningItemUseCase,
-    // ClassSession use-cases
-    GetAllClassSessionUseCase,
-    GetClassSessionByIdUseCase,
-    CreateClassSessionUseCase,
-    UpdateClassSessionUseCase,
-    DeleteClassSessionUseCase,
-    // ClassStudent use-cases
-    GetAllClassStudentUseCase,
-    CreateClassStudentUseCase,
-    DeleteClassStudentUseCase,
-    // CourseEnrollment use-cases
-    GetAllCourseEnrollmentUseCase,
-    GetCourseEnrollmentByIdUseCase,
-    CreateCourseEnrollmentUseCase,
-    UpdateCourseEnrollmentUseCase,
-    DeleteCourseEnrollmentUseCase,
-    // Subject use-cases
-    CreateSubjectUseCase,
-    GetSubjectUseCase,
-    GetAllSubjectsUseCase,
-    UpdateSubjectUseCase,
-    DeleteSubjectUseCase,
-    // Chapter use-cases
-    CreateChapterUseCase,
-    GetChapterUseCase,
-    GetAllChaptersUseCase,
-    GetChapterChildrenUseCase,
-    GetRootChaptersUseCase,
-    UpdateChapterUseCase,
-    DeleteChapterUseCase,
-    // Attendance use-cases
-    GetAllAttendanceUseCase,
-    GetAttendanceByIdUseCase,
-    CreateAttendanceUseCase,
-    UpdateAttendanceUseCase,
-    DeleteAttendanceUseCase,
-    CreateBulkAttendanceBySessionUseCase,
-    GetAttendanceStatisticsBySessionUseCase,
-    ExportAttendanceBySessionUseCase,
-    ExportAttendanceImageUseCase,
+    // ✅ Export ALL application modules so PresentationModule can access UseCases
+    // Auth & Account
+    AuthApplicationModule,
+    PasswordRecoveryApplicationModule,
+    EmailVerificationApplicationModule,
+
+    // User & Profile
+    UserApplicationModule,
+    StudentApplicationModule,
+    AdminProfileApplicationModule,
+    AdminApplicationModule,
+
+    // Role & Permission
+    RoleApplicationModule,
+    PermissionApplicationModule,
+
+    // Media
+    MediaApplicationModule,
+    MediaFolderApplicationModule,
+    MediaUsageApplicationModule,
+
+    // Course & Learning
+    CourseApplicationModule,
+    CourseClassApplicationModule,
+    CourseEnrollmentApplicationModule,
+    SubjectApplicationModule,
+    ChapterApplicationModule,
+    LessonApplicationModule,
+    LearningItemApplicationModule,
+    LessonLearningItemApplicationModule,
+
+    // Class & Attendance
+    ClassSessionApplicationModule,
+    ClassStudentApplicationModule,
+    AttendanceApplicationModule,
+
+    // Audit
+    AuditLogApplicationModule,
   ],
 })
 export class ApplicationModule {}

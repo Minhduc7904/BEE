@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { MediaType } from '@prisma/client'
+import { MediaType } from 'src/shared/enums'
 import ffmpeg from 'fluent-ffmpeg'
 import ffmpegStatic from 'ffmpeg-static'
 import ffprobeStatic from 'ffprobe-static'

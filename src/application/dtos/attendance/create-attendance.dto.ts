@@ -6,7 +6,7 @@ import {
   IsString,
   Min,
 } from 'class-validator'
-import { AttendanceStatus } from '@prisma/client'
+import { AttendanceStatus } from 'src/shared/enums'
 
 export class CreateAttendanceDto {
   @IsInt({ message: 'ID buổi học phải là số nguyên' })

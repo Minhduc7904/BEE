@@ -1,5 +1,5 @@
-import { MediaType, MediaStatus } from '@prisma/client'
-import { MediaEntity } from '../../../domain/entities/media.entity'
+import { MediaType, MediaStatus } from 'src/shared/enums'
+import { MediaEntity } from '../../../domain/entities'
 import { UserResponseDto } from '../user/user.dto'
 import { MediaUsageResponseDto } from '../media-usage/media-usage-response.dto'
 import { MediaFolderResponseDto } from '../media-folder'

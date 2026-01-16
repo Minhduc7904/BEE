@@ -1,4 +1,4 @@
-import { MediaFolderEntity } from '../../../domain/entities/media-folder.entity'
+import { MediaFolderEntity } from '../../../domain/entities'
 
 /**
  * MediaFolderResponseDto - Response DTO for MediaFolder

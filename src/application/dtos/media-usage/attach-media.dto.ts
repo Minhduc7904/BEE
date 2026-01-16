@@ -1,6 +1,6 @@
 import { IsInt, IsString, IsOptional, IsEnum, MaxLength } from 'class-validator'
 import { Type } from 'class-transformer'
-import { MediaVisibility } from '@prisma/client'
+import { MediaVisibility } from 'src/shared/enums'
 
 /**
  * AttachMediaDto - Request DTO for attaching media to entity

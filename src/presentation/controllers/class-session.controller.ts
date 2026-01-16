@@ -22,6 +22,7 @@ import {
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
+import { CurrentUser } from '../../shared/decorators/current-user.decorator'
 import {
     GetAllClassSessionUseCase,
     GetClassSessionByIdUseCase,
@@ -69,9 +70,10 @@ export class ClassSessionController {
     @HttpCode(HttpStatus.CREATED)
     async create(
         @Body() dto: CreateClassSessionDto,
+        @CurrentUser('adminId') adminId?: number,
     ): Promise<BaseResponseDto<ClassSessionResponseDto>> {
         return ExceptionHandler.execute(() =>
-            this.createClassSessionUseCase.execute(dto)
+            this.createClassSessionUseCase.execute(dto, adminId)
         )
     }
 
@@ -81,9 +83,10 @@ export class ClassSessionController {
     async update(
         @Param('id', ParseIntPipe) id: number,
         @Body() dto: UpdateClassSessionDto,
+        @CurrentUser('adminId') adminId?: number,
     ): Promise<BaseResponseDto<ClassSessionResponseDto>> {
         return ExceptionHandler.execute(() =>
-            this.updateClassSessionUseCase.execute(id, dto)
+            this.updateClassSessionUseCase.execute(id, dto, adminId)
         )
     }
 
@@ -92,9 +95,10 @@ export class ClassSessionController {
     @HttpCode(HttpStatus.OK)
     async delete(
         @Param('id', ParseIntPipe) id: number,
+        @CurrentUser('adminId') adminId?: number,
     ): Promise<BaseResponseDto<null>> {
         return ExceptionHandler.execute(() =>
-            this.deleteClassSessionUseCase.execute(id)
+            this.deleteClassSessionUseCase.execute(id, adminId)
         )
     }
 }

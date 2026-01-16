@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
-import { MediaVisibility } from '@prisma/client'
-import { MediaUsageEntity } from '../../domain/entities/media-usage.entity'
+import { MediaVisibility } from 'src/shared/enums'
+import { MediaUsageEntity } from '../../domain/entities'
 import { IMediaUsageRepository } from '../../domain/repositories/media-usage.repository'
 import { PrismaService } from '../../prisma/prisma.service'
 import { Prisma } from '@prisma/client'

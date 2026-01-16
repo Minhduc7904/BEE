@@ -1,6 +1,6 @@
 // src/application/dtos/attendance/create-bulk-attendance-by-session.dto.ts
 import { IsInt, IsEnum, IsOptional, Min } from 'class-validator'
-import { AttendanceStatus } from '@prisma/client'
+import { AttendanceStatus } from 'src/shared/enums'
 
 /**
  * DTO để tạo hàng loạt attendance cho tất cả học sinh trong 1 buổi học

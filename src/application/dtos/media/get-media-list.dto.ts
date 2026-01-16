@@ -1,6 +1,6 @@
 import { IsOptional, IsEnum, IsNumber, IsString } from 'class-validator'
 import { Type } from 'class-transformer'
-import { MediaType, MediaStatus } from '@prisma/client'
+import { MediaType, MediaStatus } from 'src/shared/enums'
 import { Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { ListQueryDto } from '../pagination/list-query.dto'

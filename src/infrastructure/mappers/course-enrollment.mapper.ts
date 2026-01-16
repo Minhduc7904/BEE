@@ -2,7 +2,7 @@
 import { CourseEnrollment } from 'src/domain/entities/course-enrollment/course-enrollment.entity'
 import { CourseMapper } from './course.mapper'
 import { StudentMapper } from './student.mapper'
-import { CourseEnrollmentStatus } from '@prisma/client'
+import { CourseEnrollmentStatus } from 'src/shared/enums'
 /**
  * Mapper class để convert từ Prisma CourseEnrollment model
  * sang Domain CourseEnrollment entity

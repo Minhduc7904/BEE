@@ -22,6 +22,7 @@ import {
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
+import { CurrentUser } from '../../shared/decorators/current-user.decorator'
 import {
     GetAllCourseClassUseCase,
     GetCourseClassByIdUseCase,
@@ -69,9 +70,10 @@ export class CourseClassController {
     @HttpCode(HttpStatus.CREATED)
     async create(
         @Body() dto: CreateCourseClassDto,
+        @CurrentUser('adminId') adminId?: number,
     ): Promise<BaseResponseDto<CourseClassResponseDto>> {
         return ExceptionHandler.execute(() =>
-            this.createCourseClassUseCase.execute(dto)
+            this.createCourseClassUseCase.execute(dto, adminId)
         )
     }
 
@@ -81,9 +83,10 @@ export class CourseClassController {
     async update(
         @Param('id', ParseIntPipe) id: number,
         @Body() dto: UpdateCourseClassDto,
+        @CurrentUser('adminId') adminId?: number,
     ): Promise<BaseResponseDto<CourseClassResponseDto>> {
         return ExceptionHandler.execute(() =>
-            this.updateCourseClassUseCase.execute(id, dto)
+            this.updateCourseClassUseCase.execute(id, dto, adminId)
         )
     }
 
@@ -92,9 +95,10 @@ export class CourseClassController {
     @HttpCode(HttpStatus.OK)
     async delete(
         @Param('id', ParseIntPipe) id: number,
+        @CurrentUser('adminId') adminId?: number,
     ): Promise<BaseResponseDto<null>> {
         return ExceptionHandler.execute(() =>
-            this.deleteCourseClassUseCase.execute(id)
+            this.deleteCourseClassUseCase.execute(id, adminId)
         )
     }
 }

@@ -1,7 +1,7 @@
 import { Attendance } from '../../../domain/entities/attendance/attendance.entity'
 import { PaginationResponseDto } from '../pagination/pagination-response.dto'
 import { StudentResponseDto } from '../student/student.dto'
-import { AttendanceStatus } from '@prisma/client'
+import { AttendanceStatus } from 'src/shared/enums'
 import { ClassSessionResponseDto } from '../class-session/class-session.dto'
 
 export class AttendanceResponseDto {

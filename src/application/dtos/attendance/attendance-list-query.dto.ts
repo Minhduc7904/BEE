@@ -1,7 +1,7 @@
 import { IsOptional, IsInt, IsEnum } from 'class-validator'
 import { Type } from 'class-transformer'
 import { ListQueryDto } from '../pagination/list-query.dto'
-import { AttendanceStatus } from '@prisma/client'
+import { AttendanceStatus } from 'src/shared/enums'
 import {
   AttendanceFilterOptions,
   AttendancePaginationOptions,

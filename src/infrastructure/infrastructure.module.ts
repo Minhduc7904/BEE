@@ -35,7 +35,7 @@ import {
   HttpClientService,
   AuthService,
   ResendEmailService,
-  SupabaseStorageService,
+  // SupabaseStorageService, // Disabled: not using Supabase anymore
   MediaProcessingService,
   ExcelService,
 } from './services'
@@ -56,7 +56,7 @@ import supabaseConfig from '../config/supabase.config'
     ConfigModule.forFeature(googleOAuthConfig),
     ConfigModule.forFeature(emailConfig),
     ConfigModule.forFeature(httpClientConfig),
-    ConfigModule.forFeature(supabaseConfig),
+    // ConfigModule.forFeature(supabaseConfig), // Disabled: not using Supabase anymore
     JwtModule.register({}), // Empty config, sẽ override trong service
   ],
   providers: [
@@ -189,10 +189,10 @@ import supabaseConfig from '../config/supabase.config'
       provide: 'IEmailService',
       useClass: ResendEmailService,
     },
-    {
-      provide: 'IStorageService',
-      useClass: SupabaseStorageService,
-    },
+    // {
+    //   provide: 'IStorageService',
+    //   useClass: SupabaseStorageService, // Disabled: not using Supabase anymore
+    // },
     MediaProcessingService,
     ExcelService,
     GoogleAdminStrategy,
@@ -228,7 +228,7 @@ import supabaseConfig from '../config/supabase.config'
     'HTTP_CLIENT_SERVICE',
     'AUTH_SERVICE',
     'IEmailService',
-    'IStorageService',
+    // 'IStorageService', // Disabled: not using Supabase anymore
     MediaProcessingService,
     ExcelService,
     ImageExportService,

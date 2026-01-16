@@ -1,6 +1,6 @@
 import { IsOptional, IsString, MaxLength } from 'class-validator';
 import { Trim, IsEnumValue } from '../../../shared/decorators';
-import { CourseEnrollmentStatus } from '@prisma/client';
+import { CourseEnrollmentStatus } from 'src/shared/enums';
 
 export class UpdateCourseEnrollmentDto {
   @IsOptional()

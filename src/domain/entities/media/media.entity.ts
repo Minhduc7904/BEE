@@ -1,5 +1,5 @@
-import { MediaType, MediaStatus } from '@prisma/client'
-import { User } from './user/user.entity'
+import { MediaType, MediaStatus } from 'src/shared/enums'
+import { User } from '../user'
 import { MediaUsageEntity } from './media-usage.entity'
 import { MediaFolderEntity } from './media-folder.entity'
 export class MediaEntity {

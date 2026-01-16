@@ -1,0 +1,6 @@
+export * from './competition.entity'
+export * from './exam.entity'
+export * from './question-chapter.entity'
+export * from './question.entity'
+export * from './statement.entity'
+export * from './question-exam.entity'
