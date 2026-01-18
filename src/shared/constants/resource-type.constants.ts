@@ -18,6 +18,12 @@ export const RESOURCE_TYPES = {
   COURSE: 'COURSE',
   COURSE_CLASS: 'COURSE_CLASS',
   COURSE_ENROLLMENT: 'COURSE_ENROLLMENT',
+  LEARNING_ITEM: 'LEARNING_ITEM',
+  DOCUMENT_CONTENT: 'DOCUMENT_CONTENT',
+  HOMEWORK_CONTENT: 'HOMEWORK_CONTENT',
+  HOMEWORK_SUBMIT: 'HOMEWORK_SUBMIT',
+  VIDEO_CONTENT: 'VIDEO_CONTENT',
+  YOUTUBE_CONTENT: 'YOUTUBE_CONTENT',
 } as const
 
 export const RESOURCE_TYPE_TABLE = {
@@ -122,6 +128,42 @@ export const RESOURCE_TYPE_TABLE = {
     tableName: 'course_enrollments',
     primaryKey: 'enrollmentId',
     repositoryName: 'courseEnrollmentRepository',
+  },
+  [RESOURCE_TYPES.LEARNING_ITEM]: {
+    displayName: 'Learning Item',
+    tableName: 'learning_items',
+    primaryKey: 'learningItemId',
+    repositoryName: 'learningItemRepository',
+  },
+  [RESOURCE_TYPES.DOCUMENT_CONTENT]: {
+    displayName: 'Document Content',
+    tableName: 'document_contents',
+    primaryKey: 'documentContentId',
+    repositoryName: 'documentContentRepository',
+  },
+  [RESOURCE_TYPES.HOMEWORK_CONTENT]: {
+    displayName: 'Homework Content',
+    tableName: 'homework_contents',
+    primaryKey: 'homeworkContentId',
+    repositoryName: 'homeworkContentRepository',
+  },
+  [RESOURCE_TYPES.HOMEWORK_SUBMIT]: {
+    displayName: 'Homework Submit',
+    tableName: 'homework_submits',
+    primaryKey: 'homeworkSubmitId',
+    repositoryName: 'homeworkSubmitRepository',
+  },
+  [RESOURCE_TYPES.VIDEO_CONTENT]: {
+    displayName: 'Video Content',
+    tableName: 'video_contents',
+    primaryKey: 'videoContentId',
+    repositoryName: 'videoContentRepository',
+  },
+  [RESOURCE_TYPES.YOUTUBE_CONTENT]: {
+    displayName: 'Youtube Content',
+    tableName: 'youtube_contents',
+    primaryKey: 'youtubeContentId',
+    repositoryName: 'youtubeContentRepository',
   },
 } as const
 

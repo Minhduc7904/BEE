@@ -15,6 +15,7 @@ import {
     DeleteLearningItemUseCase,
 } from '../../application/use-cases/learningItem'
 import { Injectable } from '@nestjs/common'
+import { CurrentUser } from 'src/shared/decorators'
 
 @Injectable()
 @Controller('learning-items')
@@ -34,6 +35,17 @@ export class LearningItemController {
         return ExceptionHandler.execute(() => this.getAllLearningItemUseCase.execute(query))
     }
 
+    @Get('admin/my')
+    @RequirePermission('learningItem.getMyLearningItems')
+    @HttpCode(HttpStatus.OK)
+    async getMyLearningItems(
+        @Query() query: LearningItemListQueryDto,
+        @CurrentUser('adminId') adminId: number,
+    ): Promise<LearningItemListResponseDto> {
+        query.createdBy = adminId
+        return ExceptionHandler.execute(() => this.getAllLearningItemUseCase.execute(query))
+    }
+
     @Get(':id')
     @RequirePermission('learningItem.getById')
     @HttpCode(HttpStatus.OK)
@@ -47,9 +59,10 @@ export class LearningItemController {
     @RequirePermission('learningItem.create')
     @HttpCode(HttpStatus.CREATED)
     async createLearningItem(
-        @Body() dto: CreateLearningItemDto
+        @Body() dto: CreateLearningItemDto,
+        @CurrentUser('adminId') adminId: number,
     ): Promise<BaseResponseDto<LearningItemResponseDto>> {
-        return ExceptionHandler.execute(() => this.createLearningItemUseCase.execute(dto))
+        return ExceptionHandler.execute(() => this.createLearningItemUseCase.execute(dto, adminId))
     }
 
     @Put(':id')
@@ -57,17 +70,19 @@ export class LearningItemController {
     @HttpCode(HttpStatus.OK)
     async updateLearningItem(
         @Param('id', ParseIntPipe) id: number,
-        @Body() dto: UpdateLearningItemDto
+        @Body() dto: UpdateLearningItemDto,
+        @CurrentUser('adminId') adminId: number,
     ): Promise<BaseResponseDto<LearningItemResponseDto>> {
-        return ExceptionHandler.execute(() => this.updateLearningItemUseCase.execute(id, dto))
+        return ExceptionHandler.execute(() => this.updateLearningItemUseCase.execute(id, dto, adminId))
     }
 
     @Delete(':id')
     @RequirePermission('learningItem.delete')
     @HttpCode(HttpStatus.OK)
     async deleteLearningItem(
-        @Param('id', ParseIntPipe) id: number
+        @Param('id', ParseIntPipe) id: number,
+        @CurrentUser('adminId') adminId: number,
     ): Promise<BaseResponseDto<null>> {
-        return ExceptionHandler.execute(() => this.deleteLearningItemUseCase.execute(id))
+        return ExceptionHandler.execute(() => this.deleteLearningItemUseCase.execute(id, adminId))
     }
 }

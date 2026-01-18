@@ -58,6 +58,11 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _courseRepository: any
     let _courseClassRepository: any
     let _courseEnrollmentRepository: any
+    let _documentContentRepository: any
+    let _homeworkContentRepository: any
+    let _homeworkSubmitRepository: any
+    let _videoContentRepository: any
+    let _youtubeContentRepository: any
 
     Object.defineProperty(repos, 'studentRepository', {
       get: () => (_studentRepository ??= new Repositories.PrismaStudentRepository(client)),
@@ -111,6 +116,31 @@ export class PrismaUnitOfWork implements IUnitOfWork {
 
     Object.defineProperty(repos, 'courseEnrollmentRepository', {
       get: () => (_courseEnrollmentRepository ??= new Repositories.PrismaCourseEnrollmentRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'documentContentRepository', {
+      get: () => (_documentContentRepository ??= new Repositories.PrismaDocumentContentRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'homeworkContentRepository', {
+      get: () => (_homeworkContentRepository ??= new Repositories.PrismaHomeworkContentRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'homeworkSubmitRepository', {
+      get: () => (_homeworkSubmitRepository ??= new Repositories.PrismaHomeworkSubmitRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'videoContentRepository', {
+      get: () => (_videoContentRepository ??= new Repositories.PrismaVideoContentRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'youtubeContentRepository', {
+      get: () => (_youtubeContentRepository ??= new Repositories.PrismaYoutubeContentRepository(client)),
       enumerable: true,
     })
 

@@ -15,6 +15,12 @@ import { IClassStudentRepository } from './class-student.repository'
 import { ICourseRepository } from './course.repository'
 import { ICourseClassRepository } from './course-class.repository'
 import { ICourseEnrollmentRepository } from './course-enrollment.repository'
+import { ILearningItemRepository } from './learning-item.repository'
+import { IDocumentContentRepository } from './document-content.repository'
+import { IHomeworkContentRepository } from './homework-content.repository'
+import { IHomeworkSubmitRepository } from './homework-submit.repository'
+import { IVideoContentRepository } from './video-content.repository'
+import { IYoutubeContentRepository } from './youtube-content.repository'
 // src/domain/repositories/unit-of-work.repository.ts
 export interface UnitOfWorkRepos {
   userRepository: IUserRepository
@@ -33,6 +39,12 @@ export interface UnitOfWorkRepos {
   courseRepository: ICourseRepository
   courseClassRepository: ICourseClassRepository
   courseEnrollmentRepository: ICourseEnrollmentRepository
+  learningItemRepository: ILearningItemRepository
+  documentContentRepository: IDocumentContentRepository
+  homeworkContentRepository: IHomeworkContentRepository
+  homeworkSubmitRepository: IHomeworkSubmitRepository
+  videoContentRepository: IVideoContentRepository
+  youtubeContentRepository: IYoutubeContentRepository
 }
 
 export interface IUnitOfWork {

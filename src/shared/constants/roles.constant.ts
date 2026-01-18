@@ -1,5 +1,39 @@
 // src/shared/constants/roles.constant.ts
 
+export const ROLES = [
+  {
+    id: 1,
+    name: 'SUPER_ADMIN',
+    description: 'Người dùng có quyền cao nhất, có thể quản lý toàn bộ hệ thống',
+    isAssignable: false,
+  },
+  {
+    id: 2,
+    name: 'ADMIN',
+    description: 'Người dùng có quyền quản trị hệ thống, có thể quản lý người dùng và nội dung',
+    isAssignable: true,
+  },
+  {
+    id: 3,
+    name: 'TEACHER',
+    description: 'Giáo viên, có thể tạo và quản lý các khóa học và lớp học',
+    isAssignable: true,
+  },
+  {
+    id: 4,
+    name: 'STUDENT',
+    description: 'Học sinh, có thể đăng ký và tham gia các khóa học',
+    isAssignable: true,
+  },
+  {
+    id: 5,
+    name: 'ASSISTANT',
+    description: 'Trợ giảng, hỗ trợ giáo viên trong việc quản lý lớp học và học sinh',
+    isAssignable: true,
+  },
+]
+
+
 /**
  * Role constants để sử dụng trong decorators và guards
  */
@@ -8,10 +42,7 @@ export const ROLE_NAMES = {
   ADMIN: 'ADMIN',
   TEACHER: 'TEACHER',
   STUDENT: 'STUDENT',
-  MODERATOR: 'MODERATOR',
-  VIEWER: 'VIEWER',
-  PERMISSIONS_USER: 'PERMISSIONS_USER',
-  ROLLBACK_LOG: 'ROLLBACK_LOG',
+  ASSISTANT: 'ASSISTANT',
 } as const
 
 /**
@@ -20,10 +51,9 @@ export const ROLE_NAMES = {
 export const ROLE_IDS = {
   SUPER_ADMIN: 1,
   ADMIN: 2,
-  TEACHER: 4,
-  STUDENT: 5,
-  MODERATOR: 5,
-  VIEWER: 6,
+  TEACHER: 3,
+  STUDENT: 4,
+  ASSISTANT: 5,
 } as const
 
 /**

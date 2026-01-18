@@ -54,7 +54,7 @@ export class AttendanceController {
     private readonly getAttendanceStatisticsBySessionUseCase: GetAttendanceStatisticsBySessionUseCase,
     private readonly exportAttendanceBySessionUseCase: ExportAttendanceBySessionUseCase,
     private readonly exportAttendanceImageUseCase: ExportAttendanceImageUseCase,
-  ) {}
+  ) { }
 
   /**
    * Get all attendances with pagination and filters
@@ -77,12 +77,32 @@ export class AttendanceController {
   @HttpCode(HttpStatus.OK)
   async getAll(
     @Query() query: AttendanceListQueryDto,
-    @CurrentUser('studentId') studentId?: number,
   ): Promise<AttendanceListResponseDto> {
     return ExceptionHandler.execute(() => {
-      if (studentId) {
-        query.studentId = studentId
-      }
+      return this.getAllAttendanceUseCase.execute(query)
+    })
+  }
+
+  @Get('session/:sessionId')
+  @RequirePermission('attendance.getAllBySession')
+  @HttpCode(HttpStatus.OK)
+  async getAllBySession(
+    @Param('sessionId', ParseIntPipe) sessionId: number,
+    @Query() query: AttendanceListQueryDto,
+  ): Promise<AttendanceListResponseDto> {
+    query.sessionId = sessionId
+    return ExceptionHandler.execute(() => this.getAllAttendanceUseCase.execute(query))
+  }
+
+  @Get('student/my')
+  @RequirePermission('attendance.getMyAttendances')
+  @HttpCode(HttpStatus.OK)
+  async getMyAttendances(
+    @CurrentUser('studentId') studentId: number,
+    @Query() query: AttendanceListQueryDto,
+  ): Promise<AttendanceListResponseDto> {
+    return ExceptionHandler.execute(() => {
+      query.studentId = studentId
       return this.getAllAttendanceUseCase.execute(query)
     })
   }
@@ -94,8 +114,11 @@ export class AttendanceController {
   @Get(':id')
   @RequirePermission('attendance.getById')
   @HttpCode(HttpStatus.OK)
-  async getById(@Param('id', ParseIntPipe) id: number): Promise<BaseResponseDto<AttendanceResponseDto>> {
-    return ExceptionHandler.execute(() => this.getAttendanceByIdUseCase.execute(id))
+  async getById(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('studentId') studentId?: number,
+  ): Promise<BaseResponseDto<AttendanceResponseDto>> {
+    return ExceptionHandler.execute(() => this.getAttendanceByIdUseCase.execute(id, studentId))
   }
 
   /**

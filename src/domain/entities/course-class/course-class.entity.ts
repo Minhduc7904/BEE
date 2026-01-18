@@ -1,47 +1,55 @@
 // src/domain/entities/course/course-class.entity.ts
+
 import { Course } from '../course/course.entity'
 import { Admin } from '../user/admin.entity'
 
 export class CourseClass {
+    // Required properties
     classId: number
     courseId: number
     className: string
+    createdAt: Date
+    updatedAt: Date
+
+    // Optional properties
     startDate?: Date
     endDate?: Date
     room?: string
     instructorId?: number
-    createdAt?: Date
-    updatedAt?: Date
 
-    // Relations
+    // Navigation properties
     course?: Course
     instructor?: Admin
 
-    constructor(
-        classId: number,
-        courseId: number,
-        className: string,
-        createdAt?: Date,
-        updatedAt?: Date,
-        startDate?: Date,
-        endDate?: Date,
-        room?: string,
-        instructorId?: number,
-        course?: Course,
-        instructor?: Admin,
-    ) {
-        this.classId = classId
-        this.courseId = courseId
-        this.className = className
-        this.startDate = startDate
-        this.endDate = endDate
-        this.room = room
-        this.instructorId = instructorId
-        this.createdAt = createdAt
-        this.updatedAt = updatedAt
-        this.course = course
-        this.instructor = instructor
+    constructor(data: {
+        classId: number
+        courseId: number
+        className: string
+        createdAt?: Date
+        updatedAt?: Date
+        startDate?: Date
+        endDate?: Date
+        room?: string
+        instructorId?: number
+        course?: Course
+        instructor?: Admin
+    }) {
+        this.classId = data.classId
+        this.courseId = data.courseId
+        this.className = data.className
+        this.createdAt = data.createdAt || new Date()
+        this.updatedAt = data.updatedAt || new Date()
+
+        this.startDate = data.startDate
+        this.endDate = data.endDate
+        this.room = data.room
+        this.instructorId = data.instructorId
+
+        this.course = data.course
+        this.instructor = data.instructor
     }
+
+    /* ===================== BUSINESS METHODS ===================== */
 
     /**
      * Lớp đã được lên lịch chưa
@@ -84,7 +92,7 @@ export class CourseClass {
      * Có giáo viên phụ trách không
      */
     hasInstructor(): boolean {
-        return !!this.instructorId
+        return this.instructorId !== null && this.instructorId !== undefined
     }
 
     /**
@@ -115,5 +123,39 @@ export class CourseClass {
             return `${this.course.title} - ${this.className}`
         }
         return this.className
+    }
+
+    equals(other: CourseClass): boolean {
+        return this.classId === other.classId
+    }
+
+    toJSON() {
+        return {
+            classId: this.classId,
+            courseId: this.courseId,
+            className: this.className,
+            startDate: this.startDate,
+            endDate: this.endDate,
+            room: this.room,
+            instructorId: this.instructorId,
+            createdAt: this.createdAt,
+            updatedAt: this.updatedAt,
+        }
+    }
+
+    clone(): CourseClass {
+        return new CourseClass({
+            classId: this.classId,
+            courseId: this.courseId,
+            className: this.className,
+            createdAt: this.createdAt,
+            updatedAt: this.updatedAt,
+            startDate: this.startDate,
+            endDate: this.endDate,
+            room: this.room,
+            instructorId: this.instructorId,
+            course: this.course,
+            instructor: this.instructor,
+        })
     }
 }

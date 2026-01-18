@@ -1,11 +1,17 @@
 // src/domain/entities/admin.entity.ts
+
 import { User } from './user.entity'
 import { Subject } from '../subject/subject.entity'
 
 export class Admin {
+  // Required properties
   adminId: number
   userId: number
+
+  // Optional properties
   subjectId?: number | null
+
+  // Navigation properties
   user?: User
   subject?: Subject
 
@@ -23,42 +29,13 @@ export class Admin {
     this.subject = data.subject
   }
 
+  /* ===================== DOMAIN METHODS ===================== */
+
   /**
-   * Kiểm tra admin có được gán môn học không
+   * Có được gán môn học không
    */
   hasSubject(): boolean {
-    return !!this.subjectId
-  }
-
-  /**
-   * Lấy thông tin môn học
-   */
-  getSubject(): Subject | undefined {
-    return this.subject
-  }
-
-  /**
-   * Lấy tên môn học
-   */
-  getSubjectName(): string {
-    return this.subject?.name || 'Chưa xác định'
-  }
-
-  /**
-   * Lấy mã môn học
-   */
-  getSubjectCode(): string {
-    return this.subject?.getSubjectCode() || 'N/A'
-  }
-
-  /**
-   * Hiển thị thông tin môn học đầy đủ
-   */
-  getSubjectDisplay(): string {
-    if (!this.subject) {
-      return 'Chưa được gán môn học'
-    }
-    return this.subject.getFullName()
+    return this.subjectId !== null && this.subjectId !== undefined
   }
 
   /**
@@ -69,82 +46,86 @@ export class Admin {
   }
 
   /**
-   * Lấy thông tin user
+   * Lấy tên môn học
    */
-  getUser(): User | undefined {
-    return this.user
+  getSubjectName(): string {
+    return this.subject?.name ?? 'Chưa xác định'
   }
 
   /**
-   * Lấy tên đầy đủ của admin
+   * Lấy mã môn học
+   */
+  getSubjectCode(): string {
+    return this.subject?.getSubjectCode() ?? 'N/A'
+  }
+
+  /**
+   * Hiển thị thông tin môn học đầy đủ
+   */
+  getSubjectDisplay(): string {
+    return this.subject
+      ? this.subject.getFullName()
+      : 'Chưa được gán môn học'
+  }
+
+  /**
+   * Lấy tên đầy đủ admin
    */
   getFullName(): string {
-    if (!this.user) {
-      return `Admin #${this.adminId}`
-    }
+    if (!this.user) return `Admin #${this.adminId}`
     return `${this.user.lastName} ${this.user.firstName}`.trim()
   }
 
   /**
-   * Lấy email của admin
+   * Email admin
    */
   getEmail(): string | undefined {
     return this.user?.email
   }
 
   /**
-   * Kiểm tra admin có đang active không
+   * Admin còn hoạt động không
    */
   isActive(): boolean {
     return this.user?.isActive ?? false
   }
 
-  /**
-   * Serialize để gửi qua API
-   */
+  equals(other: Admin): boolean {
+    return this.adminId === other.adminId
+  }
+
   toJSON() {
     return {
       adminId: this.adminId,
       userId: this.userId,
       subjectId: this.subjectId,
-      hasSubject: this.hasSubject(),
-      subjectName: this.getSubjectName(),
-      subjectCode: this.getSubjectCode(),
-      subjectDisplay: this.getSubjectDisplay(),
       fullName: this.getFullName(),
       email: this.getEmail(),
       isActive: this.isActive(),
-      user: this.user
-        ? {
-            userId: this.user.userId,
-            username: this.user.username,
-            email: this.user.email,
-            firstName: this.user.firstName,
-            lastName: this.user.lastName,
-            isActive: this.user.isActive,
-          }
-        : undefined,
       subject: this.subject ? this.subject.toJSON() : undefined,
     }
   }
 
-  /**
-   * Tạo entity từ Prisma model data
-   */
-  static fromPrisma(data: any): Admin {
+  clone(): Admin {
     return new Admin({
-      adminId: data.adminId,
-      userId: data.userId,
-      subjectId: data.subjectId,
-      user: data.user,
-      subject: data.subject ? Subject.fromPrisma(data.subject) : undefined,
+      adminId: this.adminId,
+      userId: this.userId,
+      subjectId: this.subjectId,
+      user: this.user,
+      subject: this.subject,
     })
   }
 
+  /* ===================== FACTORIES ===================== */
+
   /**
-   * Tạo admin cơ bản (chỉ có thông tin chính)
+   * Tạo admin cơ bản (không cần relation)
    */
-  static createBasic(adminId: number, userId: number, subjectId?: number): Admin {
+  static createBasic(
+    adminId: number,
+    userId: number,
+    subjectId?: number,
+  ): Admin {
     return new Admin({
       adminId,
       userId,
@@ -153,9 +134,17 @@ export class Admin {
   }
 
   /**
-   * So sánh hai admin entities
+   * Adapter từ Prisma (giữ ở domain cho tiện, nhưng không lạm dụng)
    */
-  equals(other: Admin): boolean {
-    return this.adminId === other.adminId
+  static fromPrisma(data: any): Admin {
+    return new Admin({
+      adminId: data.adminId,
+      userId: data.userId,
+      subjectId: data.subjectId,
+      user: data.user,
+      subject: data.subject
+        ? Subject.fromPrisma(data.subject)
+        : undefined,
+    })
   }
 }

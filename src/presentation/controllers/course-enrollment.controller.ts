@@ -32,7 +32,7 @@ import {
 
 import { Injectable } from '@nestjs/common'
 import { CurrentUser } from 'src/shared/decorators/current-user.decorator'
-import { CourseEnrollmentStatus } from 'src/shared/enums'
+import { CourseEnrollmentStatus, Visibility } from 'src/shared/enums'
 
 @Injectable()
 @Controller('course-enrollments')
@@ -43,7 +43,7 @@ export class CourseEnrollmentController {
     private readonly createCourseEnrollmentUseCase: CreateCourseEnrollmentUseCase,
     private readonly updateCourseEnrollmentUseCase: UpdateCourseEnrollmentUseCase,
     private readonly deleteCourseEnrollmentUseCase: DeleteCourseEnrollmentUseCase,
-  ) {}
+  ) { }
 
   @Get()
   @RequirePermission('courseEnrollment.getAll')
@@ -60,11 +60,28 @@ export class CourseEnrollmentController {
     })
   }
 
+  @Get('student/my')
+  @RequirePermission('courseEnrollment.getMyEnrollments')
+  @HttpCode(HttpStatus.OK)
+  async getMyEnrollments(
+    @CurrentUser('studentId') studentId: number,
+    @Query() query: CourseEnrollmentListQueryDto,
+  ): Promise<CourseEnrollmentListResponseDto> {
+    return ExceptionHandler.execute(() => {
+      query.studentId = studentId
+      query.courseVisibility = Visibility.PUBLISHED
+      return this.getAllCourseEnrollmentUseCase.execute(query)
+    })
+  }
+
   @Get(':id')
   @RequirePermission('courseEnrollment.getById')
   @HttpCode(HttpStatus.OK)
-  async getById(@Param('id', ParseIntPipe) id: number): Promise<BaseResponseDto<CourseEnrollmentResponseDto>> {
-    return ExceptionHandler.execute(() => this.getCourseEnrollmentByIdUseCase.execute(id))
+  async getById(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('studentId') studentId?: number,
+  ): Promise<BaseResponseDto<CourseEnrollmentResponseDto>> {
+    return ExceptionHandler.execute(() => this.getCourseEnrollmentByIdUseCase.execute(id, studentId))
   }
 
   @Post()
@@ -73,13 +90,10 @@ export class CourseEnrollmentController {
   async create(
     @Body() dto: CreateCourseEnrollmentDto,
     @CurrentUser() user: any,
-    @CurrentUser('adminId') adminId?: number,
   ): Promise<BaseResponseDto<CourseEnrollmentResponseDto>> {
     return ExceptionHandler.execute(() => {
-      const isStudent = user.userType === 'STUDENT'
-      if (isStudent && user.studentId) {
-        dto.studentId = user.studentId
-      }
+      const isStudent = !!user.studentId
+      const adminId = user.adminId
       return this.createCourseEnrollmentUseCase.execute(dto, isStudent, adminId)
     })
   }

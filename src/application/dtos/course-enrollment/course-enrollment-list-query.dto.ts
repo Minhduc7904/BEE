@@ -5,7 +5,7 @@ import {
   CourseEnrollmentFilterOptions,
   CourseEnrollmentPaginationOptions,
 } from 'src/domain/interface/course-enrollment/course-enrollment.interface';
-import { CourseEnrollmentStatus } from 'src/shared/enums';
+import { CourseEnrollmentStatus, Visibility } from 'src/shared/enums';
 
 export class CourseEnrollmentListQueryDto extends ListQueryDto {
   @IsOptional()
@@ -30,6 +30,10 @@ export class CourseEnrollmentListQueryDto extends ListQueryDto {
   @IsDateString({}, { message: 'Ngày đăng ký đến phải là định dạng ngày hợp lệ' })
   enrolledAtTo?: string;
 
+  @IsOptional()
+  @IsString({ message: 'Trạng thái hiển thị khóa học phải là chuỗi ký tự' })
+  courseVisibility?: Visibility;
+
   toCourseEnrollmentFilterOptions(): CourseEnrollmentFilterOptions {
     return {
       courseId: this.courseId,
@@ -38,6 +42,7 @@ export class CourseEnrollmentListQueryDto extends ListQueryDto {
       search: this.search,
       enrolledAtFrom: this.enrolledAtFrom ? new Date(this.enrolledAtFrom) : undefined,
       enrolledAtTo: this.enrolledAtTo ? new Date(this.enrolledAtTo) : undefined,
+      courseVisibility: this.courseVisibility,
     };
   }
 

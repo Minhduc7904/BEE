@@ -17,3 +17,8 @@ export * from './chapter.repository';
 export * from './lesson.repository';
 export * from './learning-item.repository';
 export * from './lesson-learning-item.repository';
+export * from './document-content.repository';
+export * from './homework-content.repository';
+export * from './homework-submit.repository';
+export * from './video-content.repository';
+export * from './youtube-content.repository';

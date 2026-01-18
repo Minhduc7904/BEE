@@ -43,6 +43,22 @@ export class ClassSessionController {
         private readonly deleteClassSessionUseCase: DeleteClassSessionUseCase,
     ) { }
 
+    /**
+     * Get all class sessions with pagination and filters
+     * GET /class-sessions
+     * Query params:
+     * - page: số trang (default: 1)
+     * - limit: số lượng mỗi trang (default: 10, max: 100)
+     * - search: tìm kiếm theo sessionId
+     * - classId: lọc theo ID lớp học
+     * - sessionDateFrom: lọc theo ngày bắt đầu (ISO 8601)
+     * - sessionDateTo: lọc theo ngày kết thúc (ISO 8601)
+     * - isPast: lọc các buổi học đã diễn ra
+     * - isToday: lọc các buổi học diễn ra trong ngày hôm nay
+     * - isUpcoming: lọc các buổi học sắp diễn ra
+     * - sortBy: trường sắp xếp (default: createdAt)
+     * - sortOrder: asc hoặc desc (default: desc)
+     */
     @Get()
     @RequirePermission('classSession.getAll')
     @HttpCode(HttpStatus.OK)

@@ -4,6 +4,7 @@ import { Role } from './role.entity'
 import { Permission } from './permission.entity'
 
 export class RolePermission {
+  // Composite key
   roleId: number
   permissionId: number
 
@@ -11,17 +12,19 @@ export class RolePermission {
   role?: Role
   permission?: Permission
 
-  constructor(
-    roleId: number,
-    permissionId: number,
-    role?: Role,
-    permission?: Permission,
-  ) {
-    this.roleId = roleId
-    this.permissionId = permissionId
-    this.role = role
-    this.permission = permission
+  constructor(data: {
+    roleId: number
+    permissionId: number
+    role?: Role
+    permission?: Permission
+  }) {
+    this.roleId = data.roleId
+    this.permissionId = data.permissionId
+    this.role = data.role
+    this.permission = data.permission
   }
+
+  /* ===================== DOMAIN METHODS ===================== */
 
   /**
    * Kiểm tra xem có thông tin role không
@@ -70,5 +73,28 @@ export class RolePermission {
    */
   getUniqueKey(): string {
     return `${this.roleId}-${this.permissionId}`
+  }
+
+  equals(other: RolePermission): boolean {
+    return (
+      this.roleId === other.roleId &&
+      this.permissionId === other.permissionId
+    )
+  }
+
+  toJSON() {
+    return {
+      roleId: this.roleId,
+      permissionId: this.permissionId,
+    }
+  }
+
+  clone(): RolePermission {
+    return new RolePermission({
+      roleId: this.roleId,
+      permissionId: this.permissionId,
+      role: this.role,
+      permission: this.permission,
+    })
   }
 }

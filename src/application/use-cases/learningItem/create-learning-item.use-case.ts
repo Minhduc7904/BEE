@@ -1,28 +1,52 @@
 // src/application/use-cases/learningItem/create-learning-item.use-case.ts
 import { Injectable, Inject } from '@nestjs/common'
-import type { ILearningItemRepository } from '../../../domain/repositories'
+import type { IUnitOfWork } from 'src/domain/repositories'
 import { CreateLearningItemDto } from '../../dtos/learningItem/create-learning-item.dto'
 import { LearningItemResponseDto } from '../../dtos/learningItem/learning-item.dto'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
+import { ACTION_KEYS } from 'src/shared/constants/action-key.constants'
+import { AuditStatus } from 'src/shared/enums/audit-status.enum'
+import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
 
 @Injectable()
 export class CreateLearningItemUseCase {
     constructor(
-        @Inject('ILearningItemRepository')
-        private readonly learningItemRepository: ILearningItemRepository,
+        @Inject('UNIT_OF_WORK')
+        private readonly unitOfWork: IUnitOfWork,
     ) { }
 
-    async execute(dto: CreateLearningItemDto): Promise<BaseResponseDto<LearningItemResponseDto>> {
-        const learningItem = await this.learningItemRepository.create({
-            type: dto.type,
-            title: dto.title,
-            description: dto.description,
-            competitionId: dto.competitionId,
-            createdBy: dto.createdBy,
+    async execute(dto: CreateLearningItemDto, adminId?: number): Promise<BaseResponseDto<LearningItemResponseDto>> {
+        const result = await this.unitOfWork.executeInTransaction(async (repos) => {
+            const learningItemRepository = repos.learningItemRepository
+            const adminAuditLogRepository = repos.adminAuditLogRepository
+
+            const learningItem = await learningItemRepository.create({
+                type: dto.type,
+                title: dto.title,
+                description: dto.description,
+                competitionId: dto.competitionId,
+                createdBy: dto.createdBy,
+            })
+
+            if (adminId) {
+                await adminAuditLogRepository.create({
+                    adminId,
+                    actionKey: ACTION_KEYS.LEARNING_ITEM.CREATE,
+                    status: AuditStatus.SUCCESS,
+                    resourceType: RESOURCE_TYPES.LEARNING_ITEM,
+                    resourceId: learningItem.learningItemId.toString(),
+                    afterData: {
+                        type: learningItem.type,
+                        title: learningItem.title,
+                        description: learningItem.description,
+                        createdBy: learningItem.createdBy,
+                    },
+                })
+            }
+
+            return LearningItemResponseDto.fromEntity(learningItem)
         })
 
-        const responseDto = LearningItemResponseDto.fromEntity(learningItem)
-
-        return BaseResponseDto.success('Learning item created successfully', responseDto)
+        return BaseResponseDto.success('Learning item created successfully', result)
     }
 }

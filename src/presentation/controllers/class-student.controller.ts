@@ -24,7 +24,7 @@ export class ClassStudentController {
     private readonly getAllClassStudentUseCase: GetAllClassStudentUseCase,
     private readonly createClassStudentUseCase: CreateClassStudentUseCase,
     private readonly deleteClassStudentUseCase: DeleteClassStudentUseCase,
-  ) {}
+  ) { }
 
   @Get()
   @RequirePermission('classStudent.getAll')
@@ -39,6 +39,17 @@ export class ClassStudentController {
       }
       return this.getAllClassStudentUseCase.execute(query)
     })
+  }
+
+  @Get('student/my')
+  @RequirePermission('classStudent.getMyClasses')
+  @HttpCode(HttpStatus.OK)
+  async getMyClasses(
+    @Query() query: ClassStudentListQueryDto,
+    @CurrentUser('studentId') studentId: number,
+  ): Promise<ClassStudentListResponseDto> {
+    query.studentId = studentId
+    return ExceptionHandler.execute(() => this.getAllClassStudentUseCase.execute(query))
   }
 
   @Post()

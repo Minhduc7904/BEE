@@ -3,36 +3,42 @@
 import { RolePermission } from './role-permission.entity'
 
 export class Role {
+  // Required properties
   roleId: number
   roleName: string
-  description?: string
   isAssignable: boolean
   createdAt: Date
+
+  // Optional properties
+  description?: string
 
   // Navigation properties
   rolePermissions?: RolePermission[]
 
-  constructor(
-    roleId: number,
-    roleName: string,
-    description?: string,
-    isAssignable: boolean = true,
-    createdAt?: Date,
-    rolePermissions?: RolePermission[],
-  ) {
-    this.roleId = roleId
-    this.roleName = roleName
-    this.description = description
-    this.isAssignable = isAssignable
-    this.createdAt = createdAt || new Date()
-    this.rolePermissions = rolePermissions
+  constructor(data: {
+    roleId: number
+    roleName: string
+    isAssignable?: boolean
+    createdAt?: Date
+    description?: string
+    rolePermissions?: RolePermission[]
+  }) {
+    this.roleId = data.roleId
+    this.roleName = data.roleName
+    this.isAssignable = data.isAssignable ?? true
+    this.createdAt = data.createdAt || new Date()
+
+    this.description = data.description
+    this.rolePermissions = data.rolePermissions
   }
+
+  /* ===================== DOMAIN METHODS ===================== */
 
   /**
    * Kiểm tra xem role này có thể được cấp cho user không
    */
   canBeAssigned(): boolean {
-    return this.isAssignable
+    return this.isAssignable === true
   }
 
   /**
@@ -46,12 +52,10 @@ export class Role {
    * Kiểm tra xem role có permission cụ thể không
    */
   hasPermission(permissionCode: string): boolean {
-    if (!this.rolePermissions || this.rolePermissions.length === 0) {
-      return false
-    }
-
-    return this.rolePermissions.some(
-      (rp) => rp.permission?.code === permissionCode,
+    return (
+      this.rolePermissions?.some(
+        (rp) => rp.permission?.code === permissionCode,
+      ) ?? false
     )
   }
 
@@ -59,12 +63,46 @@ export class Role {
    * Lấy danh sách permission codes
    */
   getPermissionCodes(): string[] {
-    if (!this.rolePermissions) {
-      return []
-    }
+    return (
+      this.rolePermissions
+        ?.map((rp) => rp.permission?.code)
+        .filter((code): code is string => Boolean(code)) ?? []
+    )
+  }
 
-    return this.rolePermissions
-      .filter((rp) => rp.permission?.code)
-      .map((rp) => rp.permission!.code)
+  /**
+   * Kiểm tra role có permission system không
+   */
+  hasSystemPermission(): boolean {
+    return (
+      this.rolePermissions?.some(
+        (rp) => rp.permission?.isSystem === true,
+      ) ?? false
+    )
+  }
+
+  equals(other: Role): boolean {
+    return this.roleId === other.roleId
+  }
+
+  toJSON() {
+    return {
+      roleId: this.roleId,
+      roleName: this.roleName,
+      description: this.description,
+      isAssignable: this.isAssignable,
+      createdAt: this.createdAt,
+    }
+  }
+
+  clone(): Role {
+    return new Role({
+      roleId: this.roleId,
+      roleName: this.roleName,
+      description: this.description,
+      isAssignable: this.isAssignable,
+      createdAt: this.createdAt,
+      rolePermissions: this.rolePermissions,
+    })
   }
 }

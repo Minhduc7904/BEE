@@ -15,7 +15,7 @@ export class CreateCourseEnrollmentUseCase {
     @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
     private readonly prisma: PrismaService,
-  ) {}
+  ) { }
 
   async execute(
     createDto: CreateCourseEnrollmentDto,
@@ -54,6 +54,14 @@ export class CreateCourseEnrollmentUseCase {
           })
         }
         throw new NotFoundException(`Không tìm thấy khóa học với ID ${createDto.courseId}`)
+      }
+
+      if (isStudent && course.visibility !== 'PUBLISHED') {
+        throw new ConflictException('Bạn không có quyền đăng ký khóa học này')
+      }
+
+      if (isStudent && course.priceVND > 0) {
+        throw new ConflictException('Bạn không thể đăng ký khóa học trả phí, vui lòng liên hệ quản trị viên nếu bạn đã thanh toán')
       }
 
       // Check if student exists

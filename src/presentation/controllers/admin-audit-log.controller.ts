@@ -19,7 +19,7 @@ export class AdminAuditLogController {
     private readonly rollbackUseCase: RollbackUseCase,
     private readonly getAuditLogUseCase: GetAuditLogUseCase,
     private readonly getAllAuditLogsUseCase: GetAllAuditLogsUseCase,
-  ) {}
+  ) { }
 
   /**
    * Get all audit logs with pagination
@@ -42,6 +42,17 @@ export class AdminAuditLogController {
   @RequirePermission('auditLog.getAll')
   @HttpCode(HttpStatus.OK)
   async getAllAuditLogs(@Query() query: AuditLogListQueryDto): Promise<PaginationResponseDto<LogResponseDto>> {
+    return ExceptionHandler.execute(() => this.getAllAuditLogsUseCase.execute(query))
+  }
+
+  @Get('admin/:adminId')
+  @RequirePermission('auditLog.getAllByAdmin')
+  @HttpCode(HttpStatus.OK)
+  async getAllAuditLogsByAdmin(
+    @Param('adminId', ParseIntPipe) adminId: number,
+    @Query() query: AuditLogListQueryDto
+  ): Promise<PaginationResponseDto<LogResponseDto>> {
+    query.adminId = adminId
     return ExceptionHandler.execute(() => this.getAllAuditLogsUseCase.execute(query))
   }
 

@@ -1,35 +1,41 @@
 // src/domain/entities/course/class-student.entity.ts
+
 import { CourseClass } from '../course-class/course-class.entity'
 import { Student } from '../user/student.entity'
 
 export class ClassStudent {
+    // Composite key
     classId: number
     studentId: number
-    joinedAt?: Date
-    createdAt?: Date
-    updatedAt?: Date
 
-    // Relations
+    // State properties
+    joinedAt?: Date
+    createdAt: Date
+    updatedAt: Date
+
+    // Navigation properties
     courseClass?: CourseClass
     student?: Student
 
-    constructor(
-        classId: number,
-        studentId: number,
-        joinedAt?: Date,
-        createdAt?: Date,
-        updatedAt?: Date,
-        courseClass?: CourseClass,
-        student?: Student,
-    ) {
-        this.classId = classId
-        this.studentId = studentId
-        this.joinedAt = joinedAt
-        this.createdAt = createdAt
-        this.updatedAt = updatedAt
-        this.courseClass = courseClass
-        this.student = student
+    constructor(data: {
+        classId: number
+        studentId: number
+        joinedAt?: Date
+        createdAt?: Date
+        updatedAt?: Date
+        courseClass?: CourseClass
+        student?: Student
+    }) {
+        this.classId = data.classId
+        this.studentId = data.studentId
+        this.joinedAt = data.joinedAt
+        this.createdAt = data.createdAt || new Date()
+        this.updatedAt = data.updatedAt || new Date()
+        this.courseClass = data.courseClass
+        this.student = data.student
     }
+
+    /* ===================== DOMAIN METHODS ===================== */
 
     /**
      * Quan hệ lớp – học sinh hợp lệ
@@ -59,5 +65,34 @@ export class ClassStudent {
         }
 
         return `Student#${this.studentId} - Class#${this.classId}`
+    }
+
+    equals(other: ClassStudent): boolean {
+        return (
+            this.classId === other.classId &&
+            this.studentId === other.studentId
+        )
+    }
+
+    toJSON() {
+        return {
+            classId: this.classId,
+            studentId: this.studentId,
+            joinedAt: this.joinedAt,
+            createdAt: this.createdAt,
+            updatedAt: this.updatedAt,
+        }
+    }
+
+    clone(): ClassStudent {
+        return new ClassStudent({
+            classId: this.classId,
+            studentId: this.studentId,
+            joinedAt: this.joinedAt,
+            createdAt: this.createdAt,
+            updatedAt: this.updatedAt,
+            courseClass: this.courseClass,
+            student: this.student,
+        })
     }
 }

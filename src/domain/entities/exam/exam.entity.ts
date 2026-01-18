@@ -13,7 +13,7 @@ export class Exam {
   visibility: Visibility
   createdAt: Date
   updatedAt: Date
-  
+
   // Optional properties
   description?: string | null
   subjectId?: number | null
@@ -304,10 +304,10 @@ export class Exam {
       subject: this.subject ? this.subject.toJSON() : undefined,
       admin: this.admin
         ? {
-            adminId: this.admin.adminId,
-            userId: this.admin.userId,
-            fullName: this.admin.getFullName ? this.admin.getFullName() : undefined,
-          }
+          adminId: this.admin.adminId,
+          userId: this.admin.userId,
+          fullName: this.admin.getFullName ? this.admin.getFullName() : undefined,
+        }
         : undefined,
     }
   }

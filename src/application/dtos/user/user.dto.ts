@@ -59,7 +59,6 @@ export class UserResponseDto {
       dateOfBirth: user.dateOfBirth,
       isActive: user.isActive,
       isEmailVerified: user.isEmailVerified,
-      avatarUrl: user.avatar ? user.avatar.publicUrl : undefined,
       emailVerifiedAt: user.emailVerifiedAt,
       lastLoginAt: user.lastLoginAt,
       createdAt: user.createdAt,

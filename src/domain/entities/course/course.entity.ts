@@ -1,131 +1,216 @@
 // src/domain/entities/course/course.entity.ts
+
+import { Visibility, PaymentType } from '../../../shared/enums'
 import { Subject } from '../subject/subject.entity'
 import { Admin } from '../user/admin.entity'
-import { Visibility } from '../../../shared/enums'
+import { Lesson } from '../lesson/lesson.entity'
+import { CourseClass } from '../course-class'
+import { CourseEnrollment } from '../course-enrollment'
+import { TuitionPayment } from '../tuition-payment'
 
 export class Course {
+    // Required properties
     courseId: number
     title: string
-    subtitle?: string
-    academicYear?: string
-    grade?: number
-    subjectId?: number
-    description?: string
     priceVND: number
-    compareAtVND?: number
     visibility: Visibility
-    teacherId?: number
     isUpdatable: boolean
+    hasTuitionFee: boolean
+    paymentType: PaymentType
+    autoRenew: boolean
+    blockUnpaid: boolean
     createdAt: Date
     updatedAt: Date
 
-    // Relations
-    subject?: Subject
-    teacher?: Admin
+    // Optional properties
+    subtitle?: string | null
+    academicYear?: string | null
+    grade?: number | null
+    subjectId?: number | null
+    description?: string | null
+    compareAtVND?: number | null
+    teacherId?: number | null
+    gracePeriodDays?: number | null
 
-    constructor(
-        courseId: number,
-        title: string,
-        priceVND: number,
-        visibility: Visibility,
-        isUpdatable: boolean,
-        createdAt: Date,
-        updatedAt: Date,
-        subtitle?: string,
-        academicYear?: string,
-        grade?: number,
-        subjectId?: number,
-        description?: string,
-        compareAtVND?: number,
-        teacherId?: number,
-        subject?: Subject,
-        teacher?: Admin,
-    ) {
-        this.courseId = courseId
-        this.title = title
-        this.subtitle = subtitle
-        this.academicYear = academicYear
-        this.grade = grade
-        this.subjectId = subjectId
-        this.description = description
-        this.priceVND = priceVND
-        this.compareAtVND = compareAtVND
-        this.visibility = visibility
-        this.teacherId = teacherId
-        this.isUpdatable = isUpdatable
-        this.createdAt = createdAt
-        this.updatedAt = updatedAt
-        this.subject = subject
-        this.teacher = teacher
+    // Navigation properties
+    subject?: Subject | null
+    teacher?: Admin | null
+    lessons?: Lesson[]
+    courseClasses?: CourseClass[]
+    courseEnrollments?: CourseEnrollment[]
+    tuitionPayments?: TuitionPayment[]
+
+    constructor(data: {
+        courseId: number
+        title: string
+        priceVND: number
+        visibility: Visibility
+        isUpdatable: boolean
+        hasTuitionFee: boolean
+        paymentType: PaymentType
+        autoRenew: boolean
+        blockUnpaid: boolean
+        createdAt?: Date
+        updatedAt?: Date
+        subtitle?: string | null
+        academicYear?: string | null
+        grade?: number | null
+        subjectId?: number | null
+        description?: string | null
+        compareAtVND?: number | null
+        teacherId?: number | null
+        gracePeriodDays?: number | null
+        subject?: Subject | null
+        teacher?: Admin | null
+        lessons?: Lesson[]
+        courseClasses?: CourseClass[]
+        courseEnrollments?: CourseEnrollment[]
+        tuitionPayments?: TuitionPayment[]
+    }) {
+        this.courseId = data.courseId
+        this.title = data.title
+        this.priceVND = data.priceVND
+        this.visibility = data.visibility
+        this.isUpdatable = data.isUpdatable
+        this.hasTuitionFee = data.hasTuitionFee
+        this.paymentType = data.paymentType
+        this.autoRenew = data.autoRenew
+        this.blockUnpaid = data.blockUnpaid
+        this.createdAt = data.createdAt || new Date()
+        this.updatedAt = data.updatedAt || new Date()
+
+        this.subtitle = data.subtitle
+        this.academicYear = data.academicYear
+        this.grade = data.grade
+        this.subjectId = data.subjectId
+        this.description = data.description
+        this.compareAtVND = data.compareAtVND
+        this.teacherId = data.teacherId
+        this.gracePeriodDays = data.gracePeriodDays
+
+        this.subject = data.subject
+        this.teacher = data.teacher
+        this.lessons = data.lessons
+        this.courseClasses = data.courseClasses
+        this.courseEnrollments = data.courseEnrollments
+        this.tuitionPayments = data.tuitionPayments
     }
 
-    /**
-     * Kiểm tra khóa học có đang trong trạng thái draft không
-     */
+    /* ===================== BUSINESS METHODS ===================== */
+
     isDraft(): boolean {
-        return this.visibility === 'DRAFT'
+        return this.visibility === Visibility.DRAFT
     }
 
-    /**
-     * Kiểm tra khóa học có đang public không
-     */
     isPublished(): boolean {
-        return this.visibility === 'PUBLISHED'
+        return this.visibility === Visibility.PUBLISHED
     }
 
-    /**
-     * Kiểm tra khóa học có đang bị archive không
-     */
     isPrivate(): boolean {
-        return this.visibility === 'PRIVATE'
+        return this.visibility === Visibility.PRIVATE
     }
 
-    /**
-     * Kiểm tra khóa học có thể chỉnh sửa không
-     */
     canUpdate(): boolean {
         return this.isUpdatable
     }
 
-    /**
-     * Kiểm tra khóa học có giảm giá không
-     */
-    hasDiscount(): boolean {
-        return !!this.compareAtVND && this.compareAtVND > this.priceVND
+    isFree(): boolean {
+        return this.priceVND === 0 || this.hasTuitionFee === false
     }
 
-    /**
-     * Tính phần trăm giảm giá
-     */
+    hasDiscount(): boolean {
+        return (
+            this.compareAtVND !== null &&
+            this.compareAtVND !== undefined &&
+            this.compareAtVND > this.priceVND
+        )
+    }
+
     getDiscountPercentage(): number {
         if (!this.hasDiscount()) return 0
-        return Math.round(((this.compareAtVND! - this.priceVND) / this.compareAtVND!) * 100)
+        return Math.round(
+            ((this.compareAtVND! - this.priceVND) / this.compareAtVND!) * 100,
+        )
     }
 
-    /**
-     * Lấy tên hiển thị khóa học
-     */
     getDisplayTitle(): string {
-        if (this.subtitle) {
-            return `${this.title} - ${this.subtitle}`
-        }
-        return this.title
+        return this.subtitle ? `${this.title} - ${this.subtitle}` : this.title
     }
 
-    /**
-     * Lấy thông tin giá hiển thị
-     */
     getPriceDisplay(): string {
-        if (this.priceVND === 0) {
-            return 'Miễn phí'
-        }
+        if (this.isFree()) return 'Miễn phí'
         return `${this.priceVND.toLocaleString('vi-VN')} VNĐ`
     }
 
     /**
-     * Kiểm tra khóa học có miễn phí không
+     * Có chặn học nếu chưa thanh toán không
      */
-    isFree(): boolean {
-        return this.priceVND === 0
+    shouldBlockWhenUnpaid(): boolean {
+        return this.hasTuitionFee && this.blockUnpaid
+    }
+
+    /**
+     * Có ân hạn không
+     */
+    hasGracePeriod(): boolean {
+        return this.gracePeriodDays !== null && this.gracePeriodDays !== undefined
+    }
+
+    equals(other: Course): boolean {
+        return this.courseId === other.courseId
+    }
+
+    toJSON() {
+        return {
+            courseId: this.courseId,
+            title: this.title,
+            subtitle: this.subtitle,
+            academicYear: this.academicYear,
+            grade: this.grade,
+            subjectId: this.subjectId,
+            description: this.description,
+            priceVND: this.priceVND,
+            compareAtVND: this.compareAtVND,
+            visibility: this.visibility,
+            teacherId: this.teacherId,
+            isUpdatable: this.isUpdatable,
+            hasTuitionFee: this.hasTuitionFee,
+            paymentType: this.paymentType,
+            autoRenew: this.autoRenew,
+            blockUnpaid: this.blockUnpaid,
+            gracePeriodDays: this.gracePeriodDays,
+            createdAt: this.createdAt,
+            updatedAt: this.updatedAt,
+        }
+    }
+
+    clone(): Course {
+        return new Course({
+            courseId: this.courseId,
+            title: this.title,
+            priceVND: this.priceVND,
+            visibility: this.visibility,
+            isUpdatable: this.isUpdatable,
+            hasTuitionFee: this.hasTuitionFee,
+            paymentType: this.paymentType,
+            autoRenew: this.autoRenew,
+            blockUnpaid: this.blockUnpaid,
+            createdAt: this.createdAt,
+            updatedAt: this.updatedAt,
+            subtitle: this.subtitle,
+            academicYear: this.academicYear,
+            grade: this.grade,
+            subjectId: this.subjectId,
+            description: this.description,
+            compareAtVND: this.compareAtVND,
+            teacherId: this.teacherId,
+            gracePeriodDays: this.gracePeriodDays,
+            subject: this.subject,
+            teacher: this.teacher,
+            lessons: this.lessons,
+            courseClasses: this.courseClasses,
+            courseEnrollments: this.courseEnrollments,
+            tuitionPayments: this.tuitionPayments,
+        })
     }
 }

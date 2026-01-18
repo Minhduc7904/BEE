@@ -21,8 +21,8 @@ enum AuditStatus {
 
 enum Visibility {
   DRAFT
-  PRIVATE
-  PUBLISHED
+  PRIVATE // Riêng tư, chỉ người có link mới xem được
+  PUBLISHED // Công khai hiển thị ở nơi người dùng có thể thấy
 }
 
 enum PaymentType {
@@ -498,7 +498,7 @@ model LearningItem {
   createdBy      Int              @map("created_by") @db.Int
   createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamp(0)
-
+ 
   // Relations
   lessons              LessonLearningItem[]
   admin                Admin                 @relation(fields: [createdBy], references: [adminId], onDelete: Cascade)

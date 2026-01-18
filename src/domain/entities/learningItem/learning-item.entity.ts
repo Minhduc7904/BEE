@@ -1,8 +1,13 @@
 // src/domain/entities/learningItem/learning-item.entity.ts
+
 import { LearningItemType } from '../../../shared/enums'
-import { Competition } from '../exam/competition.entity'
 import { Admin } from '../user/admin.entity'
 import { LessonLearningItem } from '../lesson/lesson-learning-item.entity'
+import { HomeworkContent } from './homework-content.entity'
+import { DocumentContent } from './document-content.entity'
+import { YoutubeContent } from './youtube-content.entity'
+import { VideoContent } from './video-content.entity'
+import { StudentLearningItem } from './student-learning-item.entity'
 
 export class LearningItem {
   // Required properties
@@ -15,70 +20,63 @@ export class LearningItem {
 
   // Optional properties
   description?: string | null
-  competitionId?: number | null
 
-  // Relations (optional - sẽ được populate khi cần)
-  competition?: Competition | null
+  // Navigation properties
   admin?: Admin
   lessons?: LessonLearningItem[]
+  homeworkContents?: HomeworkContent[]
+  documentContents?: DocumentContent[]
+  youtubeContents?: YoutubeContent[]
+  videoContents?: VideoContent[]
+  studentLearningItems?: StudentLearningItem[]
 
   constructor(data: {
     learningItemId: number
     type: LearningItemType
     title: string
     createdBy: number
-    createdAt: Date
-    updatedAt: Date
+    createdAt?: Date
+    updatedAt?: Date
     description?: string | null
-    competitionId?: number | null
-    competition?: Competition | null
     admin?: Admin
     lessons?: LessonLearningItem[]
+    homeworkContents?: HomeworkContent[]
+    documentContents?: DocumentContent[]
+    youtubeContents?: YoutubeContent[]
+    videoContents?: VideoContent[]
+    studentLearningItems?: StudentLearningItem[]
   }) {
     this.learningItemId = data.learningItemId
     this.type = data.type
     this.title = data.title
     this.createdBy = data.createdBy
-    this.createdAt = data.createdAt
-    this.updatedAt = data.updatedAt
+    this.createdAt = data.createdAt || new Date()
+    this.updatedAt = data.updatedAt || new Date()
+
     this.description = data.description
-    this.competitionId = data.competitionId
-    this.competition = data.competition
     this.admin = data.admin
     this.lessons = data.lessons
+    this.homeworkContents = data.homeworkContents
+    this.documentContents = data.documentContents
+    this.youtubeContents = data.youtubeContents
+    this.videoContents = data.videoContents
+    this.studentLearningItems = data.studentLearningItems
   }
 
-  /**
-   * Kiểm tra learning item có description không
-   */
+  /* ===================== BUSINESS METHODS ===================== */
+
   hasDescription(): boolean {
     return Boolean(this.description && this.description.trim().length > 0)
   }
 
-  /**
-   * Kiểm tra learning item có competition không
-   */
-  hasCompetition(): boolean {
-    return this.competitionId !== null && this.competitionId !== undefined
-  }
-
-  /**
-   * Kiểm tra learning item có được sử dụng trong lessons không
-   */
   hasLessons(): boolean {
-    return Boolean(this.lessons && this.lessons.length > 0)
+    return (this.lessons?.length ?? 0) > 0
   }
 
-  /**
-   * Lấy số lượng lessons sử dụng learning item này
-   */
   getLessonsCount(): number {
     return this.lessons?.length ?? 0
   }
 
-  /**
-   * Kiểm tra type của learning item
-   */
   isHomework(): boolean {
     return this.type === LearningItemType.HOMEWORK
   }
@@ -91,17 +89,28 @@ export class LearningItem {
     return this.type === LearningItemType.YOUTUBE
   }
 
-
-  /**
-   * Lấy creator name (nếu có)
-   */
-  getCreatorName(): string | null {
-    if (!this.admin) return null
-    return `${this.admin.user?.firstName ?? ''} ${this.admin.user?.lastName ?? ''}`.trim()
+  isVideo(): boolean {
+    return this.type === LearningItemType.VIDEO
   }
 
   /**
-   * Lấy type label tiếng Việt
+   * Kiểm tra learning item đã được học bởi student nào chưa
+   */
+  hasBeenUsedByStudents(): boolean {
+    return (this.studentLearningItems?.length ?? 0) > 0
+  }
+
+  /**
+   * Lấy tên người tạo (nếu có)
+   */
+  getCreatorName(): string | null {
+    if (!this.admin?.user) return null
+    const { firstName, lastName } = this.admin.user
+    return `${firstName ?? ''} ${lastName ?? ''}`.trim() || null
+  }
+
+  /**
+   * Lấy label type để hiển thị
    */
   getTypeLabel(): string {
     const labels: Record<LearningItemType, string> = {
@@ -110,51 +119,41 @@ export class LearningItem {
       [LearningItemType.YOUTUBE]: 'Video YouTube',
       [LearningItemType.VIDEO]: 'Video',
     }
-    return labels[this.type] || this.type
+    return labels[this.type] ?? this.type
   }
 
-  /**
-   * Tạo plain object từ entity
-   */
+  equals(other: LearningItem): boolean {
+    return this.learningItemId === other.learningItemId
+  }
+
   toJSON() {
     return {
       learningItemId: this.learningItemId,
       type: this.type,
       title: this.title,
       description: this.description,
-      competitionId: this.competitionId,
       createdBy: this.createdBy,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
-      competition: this.competition,
-      admin: this.admin,
-      lessons: this.lessons,
     }
   }
 
-  /**
-   * So sánh 2 learning items theo learningItemId
-   */
-  equals(other: LearningItem): boolean {
-    return this.learningItemId === other.learningItemId
-  }
-
-  /**
-   * Clone learning item entity
-   */
   clone(): LearningItem {
     return new LearningItem({
       learningItemId: this.learningItemId,
       type: this.type,
       title: this.title,
-      description: this.description,
-      competitionId: this.competitionId,
       createdBy: this.createdBy,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
-      competition: this.competition,
+      description: this.description,
       admin: this.admin,
       lessons: this.lessons,
+      homeworkContents: this.homeworkContents,
+      documentContents: this.documentContents,
+      youtubeContents: this.youtubeContents,
+      videoContents: this.videoContents,
+      studentLearningItems: this.studentLearningItems,
     })
   }
 }

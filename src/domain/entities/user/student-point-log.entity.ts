@@ -1,114 +1,124 @@
 // src/domain/entities/user/student-point-log.entity.ts
 
 import { Student } from './student.entity'
-
-export enum PointType {
-  BONUS = 'BONUS',
-  PENALTY = 'PENALTY',
-}
+import { PointType } from '../../../shared/enums/point-type.enum'
 
 export class StudentPointLog {
+  // Required properties
   id: number
   studentId: number
   type: PointType
   points: number
   source: string
-  note?: string
   createdAt: Date
+
+  // Optional properties
+  note?: string
 
   // Navigation properties
   student?: Student
 
-  constructor(
-    id: number,
-    studentId: number,
-    type: PointType,
-    points: number,
-    source: string,
-    note?: string,
-    createdAt?: Date,
-    student?: Student,
-  ) {
-    this.id = id
-    this.studentId = studentId
-    this.type = type
-    this.points = points
-    this.source = source
-    this.note = note
-    this.createdAt = createdAt || new Date()
-    this.student = student
+  constructor(data: {
+    id: number
+    studentId: number
+    type: PointType
+    points: number
+    source: string
+    createdAt?: Date
+    note?: string
+    student?: Student
+  }) {
+    this.id = data.id
+    this.studentId = data.studentId
+    this.type = data.type
+    this.points = data.points
+    this.source = data.source
+    this.createdAt = data.createdAt || new Date()
+
+    this.note = data.note
+    this.student = data.student
   }
 
-  /**
-   * Kiểm tra xem có phải là điểm thưởng không
-   */
+  /* ===================== DOMAIN METHODS ===================== */
+
   isBonus(): boolean {
     return this.type === PointType.BONUS
   }
 
-  /**
-   * Kiểm tra xem có phải là điểm phạt không
-   */
   isPenalty(): boolean {
     return this.type === PointType.PENALTY
   }
 
   /**
-   * Lấy điểm có dấu (+ hoặc -)
+   * Điểm có dấu (+ / -)
    */
   getSignedPoints(): number {
     return this.isPenalty() ? -this.points : this.points
   }
 
   /**
-   * Lấy mô tả đầy đủ của log
+   * Mô tả đầy đủ log
    */
   getFullDescription(): string {
     const sign = this.isBonus() ? '+' : '-'
-    const baseDesc = `${sign}${this.points} điểm từ ${this.source}`
-    return this.note ? `${baseDesc}: ${this.note}` : baseDesc
+    const base = `${sign}${this.points} điểm từ ${this.source}`
+    return this.note ? `${base}: ${this.note}` : base
   }
 
-  /**
-   * Lấy loại điểm hiển thị
-   */
   getTypeDisplay(): string {
     return this.isBonus() ? 'Thưởng' : 'Phạt'
   }
 
   /**
-   * Lấy màu sắc cho loại điểm (dùng cho UI)
+   * Màu trạng thái (phục vụ UI, nhưng logic vẫn ở domain)
    */
-  getTypeColor(): string {
+  getTypeColor(): 'success' | 'danger' {
     return this.isBonus() ? 'success' : 'danger'
   }
 
-  /**
-   * Kiểm tra xem log có ghi chú không
-   */
   hasNote(): boolean {
-    return !!this.note
+    return Boolean(this.note && this.note.trim().length > 0)
   }
 
-  /**
-   * Format điểm số để hiển thị
-   */
   formatPoints(): string {
     const sign = this.isBonus() ? '+' : '-'
     return `${sign}${this.points}`
   }
 
-  /**
-   * Kiểm tra log có từ nguồn cụ thể không
-   */
   isFromSource(sourceName: string): boolean {
     return this.source.toLowerCase() === sourceName.toLowerCase()
   }
 
-  /**
-   * Lấy thông tin tóm tắt
-   */
   getSummary(): string {
     return `${this.getTypeDisplay()}: ${this.formatPoints()} - ${this.source}`
+  }
+
+  equals(other: StudentPointLog): boolean {
+    return this.id === other.id
+  }
+
+  toJSON() {
+    return {
+      id: this.id,
+      studentId: this.studentId,
+      type: this.type,
+      points: this.points,
+      source: this.source,
+      note: this.note,
+      createdAt: this.createdAt,
+    }
+  }
+
+  clone(): StudentPointLog {
+    return new StudentPointLog({
+      id: this.id,
+      studentId: this.studentId,
+      type: this.type,
+      points: this.points,
+      source: this.source,
+      note: this.note,
+      createdAt: this.createdAt,
+      student: this.student,
+    })
   }
 }

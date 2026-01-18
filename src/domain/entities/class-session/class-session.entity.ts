@@ -1,42 +1,50 @@
 // src/domain/entities/course/class-session.entity.ts
+
 import { CourseClass } from '../course-class/course-class.entity'
 
 export class ClassSession {
+    // Required properties
     sessionId: number
     classId: number
+    name: string
     sessionDate: Date
     startTime: Date
     endTime: Date
-    createdAt?: Date
-    updatedAt?: Date
+    createdAt: Date
+    updatedAt: Date
+
+    // Optional properties
     makeupNote?: string | null
-    name: string
-    // Relations
+
+    // Navigation properties
     courseClass?: CourseClass
 
-    constructor(
-        sessionId: number,
-        classId: number,
-        name: string,
-        sessionDate: Date,
-        startTime: Date,
-        endTime: Date,
-        makeupNote?: string | null,
-        createdAt?: Date,
-        updatedAt?: Date,
-        courseClass?: CourseClass,
-    ) {
-        this.sessionId = sessionId
-        this.classId = classId
-        this.name = name
-        this.sessionDate = sessionDate
-        this.startTime = startTime
-        this.endTime = endTime
-        this.makeupNote = makeupNote
-        this.createdAt = createdAt
-        this.updatedAt = updatedAt
-        this.courseClass = courseClass
+    constructor(data: {
+        sessionId: number
+        classId: number
+        name: string
+        sessionDate: Date
+        startTime: Date
+        endTime: Date
+        createdAt?: Date
+        updatedAt?: Date
+        makeupNote?: string | null
+        courseClass?: CourseClass
+    }) {
+        this.sessionId = data.sessionId
+        this.classId = data.classId
+        this.name = data.name
+        this.sessionDate = data.sessionDate
+        this.startTime = data.startTime
+        this.endTime = data.endTime
+        this.createdAt = data.createdAt || new Date()
+        this.updatedAt = data.updatedAt || new Date()
+
+        this.makeupNote = data.makeupNote
+        this.courseClass = data.courseClass
     }
+
+    /* ===================== BUSINESS METHODS ===================== */
 
     /**
      * Khoảng thời gian hợp lệ không
@@ -64,8 +72,7 @@ export class ClassSession {
      * Buổi học đã diễn ra chưa
      */
     isPast(): boolean {
-        const now = new Date()
-        return this.getEndDateTime() < now
+        return this.getEndDateTime() < new Date()
     }
 
     /**
@@ -84,8 +91,7 @@ export class ClassSession {
      * Buổi học sắp diễn ra
      */
     isUpcoming(): boolean {
-        const now = new Date()
-        return this.getStartDateTime() > now
+        return this.getStartDateTime() > new Date()
     }
 
     /**
@@ -129,12 +135,43 @@ export class ClassSession {
      * Tên hiển thị buổi học
      */
     getDisplayName(): string {
-        if (this.name) {
-            return this.name
-        }
+        if (this.name) return this.name
         if (this.courseClass) {
             return `${this.courseClass.className} - ${this.sessionDate.toLocaleDateString('vi-VN')}`
         }
         return `Session#${this.sessionId}`
+    }
+
+    equals(other: ClassSession): boolean {
+        return this.sessionId === other.sessionId
+    }
+
+    toJSON() {
+        return {
+            sessionId: this.sessionId,
+            classId: this.classId,
+            name: this.name,
+            sessionDate: this.sessionDate,
+            startTime: this.startTime,
+            endTime: this.endTime,
+            makeupNote: this.makeupNote,
+            createdAt: this.createdAt,
+            updatedAt: this.updatedAt,
+        }
+    }
+
+    clone(): ClassSession {
+        return new ClassSession({
+            sessionId: this.sessionId,
+            classId: this.classId,
+            name: this.name,
+            sessionDate: this.sessionDate,
+            startTime: this.startTime,
+            endTime: this.endTime,
+            makeupNote: this.makeupNote,
+            createdAt: this.createdAt,
+            updatedAt: this.updatedAt,
+            courseClass: this.courseClass,
+        })
     }
 }

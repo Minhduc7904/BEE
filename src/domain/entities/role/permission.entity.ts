@@ -3,36 +3,42 @@
 import { RolePermission } from './role-permission.entity'
 
 export class Permission {
+  // Required properties
   permissionId: number
   code: string
   name: string
-  description?: string
-  group?: string
   isSystem: boolean
   createdAt: Date
+
+  // Optional properties
+  description?: string
+  group?: string
 
   // Navigation properties
   rolePermissions?: RolePermission[]
 
-  constructor(
-    permissionId: number,
-    code: string,
-    name: string,
-    description?: string,
-    group?: string,
-    isSystem: boolean = false,
-    createdAt?: Date,
-    rolePermissions?: RolePermission[],
-  ) {
-    this.permissionId = permissionId
-    this.code = code
-    this.name = name
-    this.description = description
-    this.group = group
-    this.isSystem = isSystem
-    this.createdAt = createdAt || new Date()
-    this.rolePermissions = rolePermissions
+  constructor(data: {
+    permissionId: number
+    code: string
+    name: string
+    isSystem: boolean
+    createdAt?: Date
+    description?: string
+    group?: string
+    rolePermissions?: RolePermission[]
+  }) {
+    this.permissionId = data.permissionId
+    this.code = data.code
+    this.name = data.name
+    this.isSystem = data.isSystem
+    this.createdAt = data.createdAt || new Date()
+
+    this.description = data.description
+    this.group = data.group
+    this.rolePermissions = data.rolePermissions
   }
+
+  /* ===================== BUSINESS METHODS ===================== */
 
   /**
    * Kiểm tra xem permission có phải là system permission không (không thể xóa)
@@ -70,5 +76,34 @@ export class Permission {
    */
   getIdentifier(): string {
     return this.code
+  }
+
+  equals(other: Permission): boolean {
+    return this.permissionId === other.permissionId
+  }
+
+  toJSON() {
+    return {
+      permissionId: this.permissionId,
+      code: this.code,
+      name: this.name,
+      description: this.description,
+      group: this.group,
+      isSystem: this.isSystem,
+      createdAt: this.createdAt,
+    }
+  }
+
+  clone(): Permission {
+    return new Permission({
+      permissionId: this.permissionId,
+      code: this.code,
+      name: this.name,
+      description: this.description,
+      group: this.group,
+      isSystem: this.isSystem,
+      createdAt: this.createdAt,
+      rolePermissions: this.rolePermissions,
+    })
   }
 }

@@ -46,21 +46,6 @@ export class UpdateUserAvatarUseCase {
                     }
                 )
 
-                // 6. Xóa avatar cũ nếu có
-                if (user.avatarId) {
-                    try {
-                        const oldAvatar = await repos.mediaRepository.findById(user.avatarId)
-                        if (oldAvatar) {
-                            // Soft delete old avatar
-                            await repos.mediaRepository.softDelete(user.avatarId)
-                            // Xóa file cũ khỏi MinIO
-                            await this.minioService.deleteFile(oldAvatar.bucketName, oldAvatar.objectKey)
-                        }
-                    } catch (error) {
-                        console.warn('Failed to delete old avatar:', error.message)
-                    }
-                }
-
                 // Generate presigned URL for the uploaded avatar (expires in 7 days)
                 const avatarUrl = await this.minioService.getPresignedDownloadUrl(
                     uploadResult.bucketName,
@@ -78,7 +63,6 @@ export class UpdateUserAvatarUseCase {
                     fileSize: file.length,
                     type: 'IMAGE' as any,
                     status: 'READY' as any,
-                    // publicUrl: avatarUrl,
                     uploadedBy: userId
                 })
 

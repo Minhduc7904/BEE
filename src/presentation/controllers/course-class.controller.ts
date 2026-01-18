@@ -54,14 +54,29 @@ export class CourseClassController {
         )
     }
 
+    @Get('admin/my')
+    @RequirePermission('courseClass.getMyClasses')
+    @HttpCode(HttpStatus.OK)
+    async getMyClasses(
+        @CurrentUser('adminId') adminId: number,
+        @Query() query: CourseClassListQueryDto,
+    ): Promise<CourseClassListResponseDto> {
+        return ExceptionHandler.execute(() => {
+            query.teacherId = adminId
+            query.instructorId = adminId
+            return this.getAllCourseClassUseCase.execute(query)
+        })
+    }
+
     @Get(':id')
     @RequirePermission('courseClass.getById')
     @HttpCode(HttpStatus.OK)
     async getById(
         @Param('id', ParseIntPipe) id: number,
+        @CurrentUser('studentId') studentId?: number,
     ): Promise<BaseResponseDto<CourseClassResponseDto>> {
         return ExceptionHandler.execute(() =>
-            this.getCourseClassByIdUseCase.execute(id)
+            this.getCourseClassByIdUseCase.execute(id, studentId)
         )
     }
 

@@ -1,91 +1,161 @@
 // src/domain/entities/user.entity.ts
-import { Gender } from "../../../shared/enums"
-import { MediaEntity } from "../media"
+
+import { Gender } from '../../../shared/enums'
+import { UserRole } from '../role/user-role.entity'
 
 export class User {
+  /* ===================== REQUIRED PROPERTIES ===================== */
   userId: number
-  oldUserId?: number
   username: string
-  email?: string
   passwordHash: string
   firstName: string
   lastName: string
+  isActive: boolean
+  isEmailVerified: boolean
+  createdAt: Date
 
-  // NEW: thuộc tính mới
+  /* ===================== OPTIONAL PROPERTIES ===================== */
+  email?: string
   gender?: Gender
   dateOfBirth?: Date
-
-  isActive: boolean
-  avatarId?: number
-  avatar?: MediaEntity
-  isEmailVerified: boolean
-  emailVerifiedAt?: Date
   lastLoginAt?: Date
-  createdAt: Date
+  emailVerifiedAt?: Date
   updatedAt?: Date
-  userRoles?: any[]
 
-  constructor(
-    userId: number,
-    username: string,
-    passwordHash: string,
-    firstName: string,
-    lastName: string,
-    isActive: boolean = true,
-    avatarId?: number,
-    avatar?: MediaEntity,
-    email?: string,
-    createdAt?: Date,
-    isEmailVerified: boolean = false,
-    emailVerifiedAt?: Date,
-    lastLoginAt?: Date,
-    updatedAt?: Date,
-    oldUserId?: number,
-    gender?: Gender,
-    dateOfBirth?: Date,
-    userRoles?: any[],
-  ) {
-    this.userId = userId
-    this.oldUserId = oldUserId
-    this.username = username
-    this.email = email
-    this.passwordHash = passwordHash
-    this.firstName = firstName
-    this.lastName = lastName
-    this.gender = gender
-    this.dateOfBirth = dateOfBirth
-    this.isActive = isActive
-    this.avatarId = avatarId
-    this.avatar = avatar
-    this.isEmailVerified = isEmailVerified
-    this.emailVerifiedAt = emailVerifiedAt
-    this.lastLoginAt = lastLoginAt
-    this.createdAt = createdAt || new Date()
-    this.updatedAt = updatedAt
-    this.userRoles = userRoles
+  /* ===================== NAVIGATION PROPERTIES ===================== */
+  userRoles?: UserRole[]
+
+  constructor(data: {
+    userId: number
+    username: string
+    passwordHash: string
+    firstName: string
+    lastName: string
+    isActive?: boolean
+    isEmailVerified?: boolean
+    createdAt?: Date
+
+    email?: string
+    gender?: Gender
+    dateOfBirth?: Date
+    lastLoginAt?: Date
+    emailVerifiedAt?: Date
+    updatedAt?: Date
+
+    userRoles?: UserRole[]
+  }) {
+    this.userId = data.userId
+    this.username = data.username
+    this.passwordHash = data.passwordHash
+    this.firstName = data.firstName
+    this.lastName = data.lastName
+    this.isActive = data.isActive ?? true
+    this.isEmailVerified = data.isEmailVerified ?? false
+    this.createdAt = data.createdAt || new Date()
+
+    this.email = data.email
+    this.gender = data.gender
+    this.dateOfBirth = data.dateOfBirth
+    this.lastLoginAt = data.lastLoginAt
+    this.emailVerifiedAt = data.emailVerifiedAt
+    this.updatedAt = data.updatedAt
+
+    this.userRoles = data.userRoles
   }
+
+  /* ===================== DOMAIN METHODS ===================== */
 
   getFullName(): string {
-    return `${this.firstName} ${this.lastName}`
+    return `${this.firstName} ${this.lastName}`.trim()
   }
 
-  isEmailProvided(): boolean {
-    return !!this.email
-  }
-
-  isEmailVerifiedStatus(): boolean {
-    return this.isEmailVerified
+  hasEmail(): boolean {
+    return Boolean(this.email)
   }
 
   needsEmailVerification(): boolean {
-    return this.isEmailProvided() && !this.isEmailVerified
+    return this.hasEmail() && !this.isEmailVerified
   }
 
-  getAvatarUrl(): string | null {
-    return this.avatar?.publicUrl || null
+  verifyEmail(at: Date = new Date()): void {
+    this.isEmailVerified = true
+    this.emailVerifiedAt = at
+    this.updatedAt = new Date()
   }
 
-  hasAvatar(): boolean {
-    return !!this.avatarId && !!this.avatar
+  markLogin(): void {
+    this.lastLoginAt = new Date()
+  }
+
+  deactivate(): void {
+    this.isActive = false
+  }
+
+  activate(): void {
+    this.isActive = true
+  }
+
+  /* ===================== ROLE / RBAC HELPERS ===================== */
+
+  hasRole(roleId: number): boolean {
+    return (
+      this.userRoles?.some(
+        (ur) => ur.roleId === roleId && ur.isValidRole(),
+      ) ?? false
+    )
+  }
+
+  getActiveRoleIds(): number[] {
+    return (
+      this.userRoles
+        ?.filter((ur) => ur.isValidRole())
+        .map((ur) => ur.roleId) ?? []
+    )
+  }
+
+  /* ===================== BASE METHODS ===================== */
+
+  equals(other: User): boolean {
+    return this.userId === other.userId
+  }
+
+  toJSON() {
+    return {
+      userId: this.userId,
+      username: this.username,
+      email: this.email,
+      firstName: this.firstName,
+      lastName: this.lastName,
+      fullName: this.getFullName(),
+      gender: this.gender,
+      dateOfBirth: this.dateOfBirth,
+      isActive: this.isActive,
+      isEmailVerified: this.isEmailVerified,
+      emailVerifiedAt: this.emailVerifiedAt,
+      lastLoginAt: this.lastLoginAt,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+    }
+  }
+
+  clone(): User {
+    return new User({
+      userId: this.userId,
+      username: this.username,
+      passwordHash: this.passwordHash,
+      firstName: this.firstName,
+      lastName: this.lastName,
+      isActive: this.isActive,
+      isEmailVerified: this.isEmailVerified,
+      createdAt: this.createdAt,
+
+      email: this.email,
+      gender: this.gender,
+      dateOfBirth: this.dateOfBirth,
+      lastLoginAt: this.lastLoginAt,
+      emailVerifiedAt: this.emailVerifiedAt,
+      updatedAt: this.updatedAt,
+      userRoles: this.userRoles,
+    })
   }
 }

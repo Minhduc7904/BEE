@@ -29,13 +29,6 @@ export class GetProfileStudentUseCase {
         if (!student) {
             throw new NotFoundException('Student not found');
         }
-        // Load avatar từ Media nếu có
-        if (student.user && student.user.avatarId) {
-            const avatar = await this.studentRepository.findMediaById(student.user.avatarId);
-            if (avatar) {
-                student.user.avatar = avatar;
-            }
-        }
 
         return BaseResponseDto.success(
             'Get profile student successfully',

@@ -9,7 +9,6 @@ export class LearningItemResponseDto {
     type: LearningItemType
     title: string
     description?: string
-    competitionId?: number
     createdBy: number
     createdAt: Date
     updatedAt: Date
@@ -21,7 +20,6 @@ export class LearningItemResponseDto {
         dto.type = learningItem.type
         dto.title = learningItem.title
         dto.description = learningItem.description ?? undefined
-        dto.competitionId = learningItem.competitionId ?? undefined
         dto.createdBy = learningItem.createdBy
         dto.createdAt = learningItem.createdAt
         dto.updatedAt = learningItem.updatedAt

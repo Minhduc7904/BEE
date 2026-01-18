@@ -1,33 +1,71 @@
 // src/application/use-cases/learningItem/update-learning-item.use-case.ts
 import { Injectable, Inject, NotFoundException } from '@nestjs/common'
-import type { ILearningItemRepository } from '../../../domain/repositories'
+import type { IUnitOfWork } from 'src/domain/repositories'
 import { UpdateLearningItemDto } from '../../dtos/learningItem/update-learning-item.dto'
 import { LearningItemResponseDto } from '../../dtos/learningItem/learning-item.dto'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
+import { ACTION_KEYS } from 'src/shared/constants/action-key.constants'
+import { AuditStatus } from 'src/shared/enums/audit-status.enum'
+import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
 
 @Injectable()
 export class UpdateLearningItemUseCase {
     constructor(
-        @Inject('ILearningItemRepository')
-        private readonly learningItemRepository: ILearningItemRepository,
+        @Inject('UNIT_OF_WORK')
+        private readonly unitOfWork: IUnitOfWork,
     ) { }
 
-    async execute(id: number, dto: UpdateLearningItemDto): Promise<BaseResponseDto<LearningItemResponseDto>> {
-        const existingLearningItem = await this.learningItemRepository.findById(id)
+    async execute(id: number, dto: UpdateLearningItemDto, adminId?: number): Promise<BaseResponseDto<LearningItemResponseDto>> {
+        const result = await this.unitOfWork.executeInTransaction(async (repos) => {
+            const learningItemRepository = repos.learningItemRepository
+            const adminAuditLogRepository = repos.adminAuditLogRepository
 
-        if (!existingLearningItem) {
-            throw new NotFoundException(`Learning item with ID ${id} not found`)
-        }
+            const existingLearningItem = await learningItemRepository.findById(id)
 
-        const updatedLearningItem = await this.learningItemRepository.update(id, {
-            type: dto.type,
-            title: dto.title,
-            description: dto.description,
-            competitionId: dto.competitionId,
+            if (!existingLearningItem) {
+                if (adminId) {
+                    await adminAuditLogRepository.create({
+                        adminId,
+                        actionKey: ACTION_KEYS.LEARNING_ITEM.UPDATE,
+                        status: AuditStatus.FAIL,
+                        resourceType: RESOURCE_TYPES.LEARNING_ITEM,
+                        resourceId: id.toString(),
+                        errorMessage: `Không tìm thấy learning item với ID ${id}`,
+                    })
+                }
+                throw new NotFoundException(`Learning item with ID ${id} not found`)
+            }
+
+            const updatedLearningItem = await learningItemRepository.update(id, {
+                type: dto.type,
+                title: dto.title,
+                description: dto.description,
+                competitionId: dto.competitionId,
+            })
+
+            if (adminId) {
+                await adminAuditLogRepository.create({
+                    adminId,
+                    actionKey: ACTION_KEYS.LEARNING_ITEM.UPDATE,
+                    status: AuditStatus.SUCCESS,
+                    resourceType: RESOURCE_TYPES.LEARNING_ITEM,
+                    resourceId: id.toString(),
+                    beforeData: {
+                        type: existingLearningItem.type,
+                        title: existingLearningItem.title,
+                        description: existingLearningItem.description,
+                    },
+                    afterData: {
+                        type: updatedLearningItem.type,
+                        title: updatedLearningItem.title,
+                        description: updatedLearningItem.description,
+                    },
+                })
+            }
+
+            return LearningItemResponseDto.fromEntity(updatedLearningItem)
         })
 
-        const responseDto = LearningItemResponseDto.fromEntity(updatedLearningItem)
-
-        return BaseResponseDto.success('Learning item updated successfully', responseDto)
+        return BaseResponseDto.success('Learning item updated successfully', result)
     }
 }

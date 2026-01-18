@@ -13,13 +13,9 @@ export class GetAllCourseUseCase {
         private readonly courseRepository: ICourseRepository
     ) { }
 
-    async execute(query: CourseListQueryDto, isStudent: boolean): Promise<CourseListResponseDto> {
+    async execute(query: CourseListQueryDto): Promise<CourseListResponseDto> {
         const filters = query.toCourseFilterOptions()
         const pagination = query.toCoursePaginationOptions()
-
-        if (isStudent) {
-            filters.visibility = CourseVisibility.PUBLISHED
-        }
 
         const result = await this.courseRepository.findAllWithPagination(pagination, filters)
 

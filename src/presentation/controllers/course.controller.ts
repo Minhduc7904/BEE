@@ -41,9 +41,19 @@ export class CourseController {
     @HttpCode(HttpStatus.OK)
     async getAllCourses(
         @Query() query: CourseListQueryDto,
-        @CurrentUser('studentId') studentId?: number,
     ): Promise<CourseListResponseDto> {
-        return ExceptionHandler.execute(() => this.getAllCourseUseCase.execute(query, !!studentId))
+        return ExceptionHandler.execute(() => this.getAllCourseUseCase.execute(query))
+    }
+
+    @Get('admin/my')
+    @RequirePermission('course.getMyCourses')
+    @HttpCode(HttpStatus.OK)
+    async getMyCourses(
+        @Query() query: CourseListQueryDto,
+        @CurrentUser('adminId') adminId: number,
+    ): Promise<CourseListResponseDto> {
+        query.teacherId = adminId
+        return ExceptionHandler.execute(() => this.getAllCourseUseCase.execute(query))
     }
 
     @Get(':id')

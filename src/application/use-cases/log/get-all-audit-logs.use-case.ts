@@ -34,7 +34,6 @@ export class GetAllAuditLogsUseCase {
                 firstName: log.admin.user?.firstName,
                 lastName: log.admin.user?.lastName,
                 email: log.admin.user?.email,
-                avatarUrl: log.admin.user?.avatar?.publicUrl,
             } : undefined,
         }))
 

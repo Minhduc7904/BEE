@@ -1,43 +1,46 @@
 // src/domain/entities/course/course-enrollment.entity.ts
+
 import { Course } from '../course/course.entity'
 import { Student } from '../user/student.entity'
 import { CourseEnrollmentStatus } from 'src/shared/enums'
 
-
 export class CourseEnrollment {
+    // Required properties
     enrollmentId: number
     courseId: number
     studentId: number
     enrolledAt: Date
     status: CourseEnrollmentStatus
-    createdAt?: Date
-    updatedAt?: Date
+    createdAt: Date
+    updatedAt: Date
 
-    // Relations
+    // Navigation properties
     course?: Course
     student?: Student
 
-    constructor(
-        enrollmentId: number,
-        courseId: number,
-        studentId: number,
-        enrolledAt: Date,
-        status: CourseEnrollmentStatus,
-        createdAt?: Date,
-        updatedAt?: Date,
-        course?: Course,
-        student?: Student,
-    ) {
-        this.enrollmentId = enrollmentId
-        this.courseId = courseId
-        this.studentId = studentId
-        this.enrolledAt = enrolledAt
-        this.status = status
-        this.createdAt = createdAt
-        this.updatedAt = updatedAt
-        this.course = course
-        this.student = student
+    constructor(data: {
+        enrollmentId: number
+        courseId: number
+        studentId: number
+        enrolledAt: Date
+        status: CourseEnrollmentStatus
+        createdAt?: Date
+        updatedAt?: Date
+        course?: Course
+        student?: Student
+    }) {
+        this.enrollmentId = data.enrollmentId
+        this.courseId = data.courseId
+        this.studentId = data.studentId
+        this.enrolledAt = data.enrolledAt
+        this.status = data.status
+        this.createdAt = data.createdAt || new Date()
+        this.updatedAt = data.updatedAt || new Date()
+        this.course = data.course
+        this.student = data.student
     }
+
+    /* ===================== BUSINESS METHODS ===================== */
 
     /**
      * Đang học
@@ -82,6 +85,7 @@ export class CourseEnrollment {
             throw new Error('Enrollment cannot be completed')
         }
         this.status = CourseEnrollmentStatus.COMPLETED
+        this.updatedAt = new Date()
     }
 
     /**
@@ -92,14 +96,14 @@ export class CourseEnrollment {
             throw new Error('Enrollment cannot be cancelled')
         }
         this.status = CourseEnrollmentStatus.CANCELLED
+        this.updatedAt = new Date()
     }
 
     /**
      * Số ngày đã tham gia khóa học
      */
     getDaysEnrolled(): number {
-        const now = new Date()
-        const diff = now.getTime() - this.enrolledAt.getTime()
+        const diff = Date.now() - this.enrolledAt.getTime()
         return Math.floor(diff / (1000 * 60 * 60 * 24))
     }
 
@@ -117,5 +121,35 @@ export class CourseEnrollment {
             default:
                 return this.status
         }
+    }
+
+    equals(other: CourseEnrollment): boolean {
+        return this.enrollmentId === other.enrollmentId
+    }
+
+    toJSON() {
+        return {
+            enrollmentId: this.enrollmentId,
+            courseId: this.courseId,
+            studentId: this.studentId,
+            enrolledAt: this.enrolledAt,
+            status: this.status,
+            createdAt: this.createdAt,
+            updatedAt: this.updatedAt,
+        }
+    }
+
+    clone(): CourseEnrollment {
+        return new CourseEnrollment({
+            enrollmentId: this.enrollmentId,
+            courseId: this.courseId,
+            studentId: this.studentId,
+            enrolledAt: this.enrolledAt,
+            status: this.status,
+            createdAt: this.createdAt,
+            updatedAt: this.updatedAt,
+            course: this.course,
+            student: this.student,
+        })
     }
 }

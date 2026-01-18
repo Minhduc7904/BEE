@@ -2,6 +2,8 @@
 
 import { Visibility } from '../../../shared/enums'
 import { Exam } from './exam.entity'
+import { LearningItem } from '../learningItem'
+import { HomeworkContent } from '../learningItem/homework-content.entity'
 
 export class Competition {
   // Required properties
@@ -29,7 +31,8 @@ export class Competition {
   // Relations (optional - sẽ được populate khi cần)
   exam?: Exam | null
   admin?: any // AdminEntity
-  learningItems?: any[] // LearningItem[]
+  learningItems?: LearningItem[] // LearningItem[]
+  homeworkContents?: HomeworkContent[] // HomeworkContent[]
 
   constructor(data: {
     competitionId: number
@@ -52,7 +55,9 @@ export class Competition {
     maxAttempts?: number | null
     exam?: Exam | null
     admin?: any
-    learningItems?: any[]
+    learningItems?: LearningItem[]
+    homeworkContents?: HomeworkContent[]
+
   }) {
     this.competitionId = data.competitionId
     this.title = data.title
@@ -75,6 +80,7 @@ export class Competition {
     this.exam = data.exam
     this.admin = data.admin
     this.learningItems = data.learningItems
+    this.homeworkContents = data.homeworkContents
   }
 
   /**
