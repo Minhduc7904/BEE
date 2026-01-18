@@ -58,6 +58,8 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _courseRepository: any
     let _courseClassRepository: any
     let _courseEnrollmentRepository: any
+    let _learningItemRepository: any
+    let _lessonLearningItemRepository: any
     let _documentContentRepository: any
     let _homeworkContentRepository: any
     let _homeworkSubmitRepository: any
@@ -116,6 +118,16 @@ export class PrismaUnitOfWork implements IUnitOfWork {
 
     Object.defineProperty(repos, 'courseEnrollmentRepository', {
       get: () => (_courseEnrollmentRepository ??= new Repositories.PrismaCourseEnrollmentRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'learningItemRepository', {
+      get: () => (_learningItemRepository ??= new Repositories.PrismaLearningItemRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'lessonLearningItemRepository', {
+      get: () => (_lessonLearningItemRepository ??= new Repositories.PrismaLessonLearningItemRepository(client)),
       enumerable: true,
     })
 

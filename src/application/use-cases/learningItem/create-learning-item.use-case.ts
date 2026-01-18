@@ -15,18 +15,39 @@ export class CreateLearningItemUseCase {
         private readonly unitOfWork: IUnitOfWork,
     ) { }
 
-    async execute(dto: CreateLearningItemDto, adminId?: number): Promise<BaseResponseDto<LearningItemResponseDto>> {
+    async execute(dto: CreateLearningItemDto, adminId: number): Promise<BaseResponseDto<LearningItemResponseDto>> {
         const result = await this.unitOfWork.executeInTransaction(async (repos) => {
             const learningItemRepository = repos.learningItemRepository
             const adminAuditLogRepository = repos.adminAuditLogRepository
+            const lessonLearningItemRepository = repos.lessonLearningItemRepository
 
             const learningItem = await learningItemRepository.create({
                 type: dto.type,
                 title: dto.title,
                 description: dto.description,
                 competitionId: dto.competitionId,
-                createdBy: dto.createdBy,
+                createdBy: adminId,
             })
+
+            // If lessonId is provided, create LessonLearningItem relationship
+            if (dto.lessonId) {
+                let order = dto.order
+
+                // If order is not provided, get the next order number
+                if (order === undefined || order === null) {
+                    const existingItems = await lessonLearningItemRepository.findByLesson(dto.lessonId)
+                    const maxOrder = existingItems.reduce((max, item) => {
+                        return item.order && item.order > max ? item.order : max
+                    }, 0)
+                    order = maxOrder + 1
+                }
+
+                await lessonLearningItemRepository.create({
+                    lessonId: dto.lessonId,
+                    learningItemId: learningItem.learningItemId,
+                    order,
+                })
+            }
 
             if (adminId) {
                 await adminAuditLogRepository.create({
@@ -39,7 +60,9 @@ export class CreateLearningItemUseCase {
                         type: learningItem.type,
                         title: learningItem.title,
                         description: learningItem.description,
-                        createdBy: learningItem.createdBy,
+                        createdBy: adminId,
+                        lessonId: dto.lessonId,
+                        order: dto.order,
                     },
                 })
             }

@@ -7,6 +7,7 @@ import { LearningItemResponseDto } from '../learningItem/learning-item.dto'
 export class LessonLearningItemResponseDto {
     lessonId: number
     learningItemId: number
+    order?: number
     createdAt: Date
     lesson?: LessonResponseDto
     learningItem?: LearningItemResponseDto
@@ -15,6 +16,7 @@ export class LessonLearningItemResponseDto {
         const dto = new LessonLearningItemResponseDto()
         dto.lessonId = lessonLearningItem.lessonId
         dto.learningItemId = lessonLearningItem.learningItemId
+        dto.order = lessonLearningItem.order ?? undefined
         dto.createdAt = lessonLearningItem.createdAt
         
         if (lessonLearningItem.lesson) {

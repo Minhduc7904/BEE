@@ -2,7 +2,7 @@
 import { IsOptional, IsNumber, IsString, Min } from 'class-validator'
 import { Type } from 'class-transformer'
 import { LessonFilterOptions, LessonPaginationOptions } from '../../../domain/interface/lesson/lesson.interface'
-
+import { ToNumber } from 'src/shared/decorators'
 export class LessonListQueryDto {
   @IsOptional()
   @Type(() => Number)
@@ -17,12 +17,12 @@ export class LessonListQueryDto {
   limit?: number = 10
 
   @IsOptional()
-  @Type(() => Number)
+  @ToNumber()
   @IsNumber({}, { message: 'Course ID phải là số' })
   courseId?: number
 
   @IsOptional()
-  @Type(() => Number)
+  @ToNumber()
   @IsNumber({}, { message: 'Teacher ID phải là số' })
   teacherId?: number
 

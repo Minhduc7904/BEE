@@ -16,12 +16,32 @@ export class PrismaLessonRepository implements ILessonRepository {
     constructor(private readonly prisma: PrismaService | any) { }
 
     async create(data: CreateLessonData): Promise<Lesson> {
+        // If orderInCourse not provided, get the next order number
+        let orderInCourse = data.orderInCourse
+        if (orderInCourse === undefined || orderInCourse === null) {
+            const maxOrder = await this.prisma.lesson.aggregate({
+                where: { courseId: data.courseId },
+                _max: { orderInCourse: true },
+            })
+            orderInCourse = (maxOrder._max.orderInCourse || 0) + 1
+        }
+
         const prismaLesson = await this.prisma.lesson.create({
             data: {
                 courseId: data.courseId,
                 title: data.title,
                 description: data.description,
+                visibility: data.visibility || 'DRAFT',
+                orderInCourse,
                 teacherId: data.teacherId,
+                allowTrial: data.allowTrial ?? false,
+                lessonChapters: data.chapterIds && data.chapterIds.length > 0
+                    ? {
+                        create: data.chapterIds.map((chapterId) => ({
+                            chapterId,
+                        })),
+                    }
+                    : undefined,
             },
             include: {
                 course: {
@@ -37,6 +57,19 @@ export class PrismaLessonRepository implements ILessonRepository {
                 teacher: {
                     include: {
                         user: true,
+                    },
+                },
+                learningItems: {
+                    include: {
+                        learningItem: true,
+                    },
+                    orderBy: {
+                        order: 'asc',
+                    },
+                },
+                lessonChapters: {
+                    include: {
+                        chapter: true,
                     },
                 },
             },
@@ -66,6 +99,19 @@ export class PrismaLessonRepository implements ILessonRepository {
                         user: true,
                     },
                 },
+                learningItems: {
+                    include: {
+                        learningItem: true,
+                    },
+                    orderBy: {
+                        order: 'asc',
+                    },
+                },
+                lessonChapters: {
+                    include: {
+                        chapter: true,
+                    },
+                },
             },
         })
 
@@ -76,11 +122,34 @@ export class PrismaLessonRepository implements ILessonRepository {
     async update(id: number, data: UpdateLessonData): Promise<Lesson> {
         const numericId = NumberUtil.ensureValidId(id, 'Lesson ID')
 
+        // Prepare update data
+        const updateData: any = {}
+        if (data.title !== undefined) updateData.title = data.title
+        if (data.description !== undefined) updateData.description = data.description
+        if (data.visibility !== undefined) updateData.visibility = data.visibility
+        if (data.orderInCourse !== undefined) updateData.orderInCourse = data.orderInCourse
+        if (data.teacherId !== undefined) updateData.teacherId = data.teacherId
+        if (data.allowTrial !== undefined) updateData.allowTrial = data.allowTrial
+
+        // Handle chapter updates if provided
+        if (data.chapterIds !== undefined) {
+            // Delete existing chapters and create new ones
+            await this.prisma.lessonChapter.deleteMany({
+                where: { lessonId: numericId },
+            })
+
+            if (data.chapterIds.length > 0) {
+                updateData.lessonChapters = {
+                    create: data.chapterIds.map((chapterId) => ({
+                        chapterId,
+                    })),
+                }
+            }
+        }
+
         const prismaLesson = await this.prisma.lesson.update({
             where: { lessonId: numericId },
-            data: {
-                ...data,
-            },
+            data: updateData,
             include: {
                 course: {
                     include: {
@@ -95,6 +164,19 @@ export class PrismaLessonRepository implements ILessonRepository {
                 teacher: {
                     include: {
                         user: true,
+                    },
+                },
+                learningItems: {
+                    include: {
+                        learningItem: true,
+                    },
+                    orderBy: {
+                        order: 'asc',
+                    },
+                },
+                lessonChapters: {
+                    include: {
+                        chapter: true,
                     },
                 },
             },
@@ -129,6 +211,19 @@ export class PrismaLessonRepository implements ILessonRepository {
                 teacher: {
                     include: {
                         user: true,
+                    },
+                },
+                learningItems: {
+                    include: {
+                        learningItem: true,
+                    },
+                    orderBy: {
+                        order: 'asc',
+                    },
+                },
+                lessonChapters: {
+                    include: {
+                        chapter: true,
                     },
                 },
             },
@@ -168,7 +263,7 @@ export class PrismaLessonRepository implements ILessonRepository {
         // Build orderBy
         const orderBy: any = {}
         orderBy[sortBy] = sortOrder
-
+        // console.log('findAllWithPagination - where:', where, 'orderBy:', orderBy, 'skip:', skip, 'limit:', limit);
         const [prismaLessons, total] = await Promise.all([
             this.prisma.lesson.findMany({
                 where,
@@ -191,11 +286,24 @@ export class PrismaLessonRepository implements ILessonRepository {
                             user: true,
                         },
                     },
+                    learningItems: {
+                        include: {
+                            learningItem: true,
+                        },
+                        orderBy: {
+                            order: 'asc',
+                        },
+                    },
+                    lessonChapters: {
+                        include: {
+                            chapter: true,
+                        },
+                    },
                 },
             }),
             this.prisma.lesson.count({ where }),
         ])
-
+        // console.log('prismaLessons:', prismaLessons);
         const lessons = LessonMapper.toDomainLessons(prismaLessons)
         const totalPages = Math.ceil(total / limit)
 
@@ -240,6 +348,19 @@ export class PrismaLessonRepository implements ILessonRepository {
                         user: true,
                     },
                 },
+                learningItems: {
+                    include: {
+                        learningItem: true,
+                    },
+                    orderBy: {
+                        order: 'asc',
+                    },
+                },
+                lessonChapters: {
+                    include: {
+                        chapter: true,
+                    },
+                },
             },
         })
 
@@ -265,6 +386,19 @@ export class PrismaLessonRepository implements ILessonRepository {
                 teacher: {
                     include: {
                         user: true,
+                    },
+                },
+                learningItems: {
+                    include: {
+                        learningItem: true,
+                    },
+                    orderBy: {
+                        order: 'asc',
+                    },
+                },
+                lessonChapters: {
+                    include: {
+                        chapter: true,
                     },
                 },
             },

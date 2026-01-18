@@ -19,6 +19,7 @@ export class PrismaLessonLearningItemRepository implements ILessonLearningItemRe
             data: {
                 lessonId: data.lessonId,
                 learningItemId: data.learningItemId,
+                order: data.order,
             },
             include: {
                 lesson: {

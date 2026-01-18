@@ -23,7 +23,11 @@ export class UpdateLessonUseCase {
         const updateData = {
             title: dto.title,
             description: dto.description,
+            visibility: dto.visibility,
+            orderInCourse: dto.orderInCourse,
             teacherId: dto.teacherId,
+            allowTrial: dto.allowTrial,
+            chapterIds: dto.chapterIds,
         }
 
         const lesson = await this.lessonRepository.update(id, updateData)

@@ -17,7 +17,11 @@ export class CreateLessonUseCase {
             courseId: dto.courseId,
             title: dto.title,
             description: dto.description,
+            visibility: dto.visibility,
+            orderInCourse: dto.orderInCourse,
             teacherId: dto.teacherId,
+            allowTrial: dto.allowTrial,
+            chapterIds: dto.chapterIds,
         }
 
         const lesson = await this.lessonRepository.create(createData)

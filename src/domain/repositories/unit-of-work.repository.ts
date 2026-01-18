@@ -16,6 +16,7 @@ import { ICourseRepository } from './course.repository'
 import { ICourseClassRepository } from './course-class.repository'
 import { ICourseEnrollmentRepository } from './course-enrollment.repository'
 import { ILearningItemRepository } from './learning-item.repository'
+import { ILessonLearningItemRepository } from './lesson-learning-item.repository'
 import { IDocumentContentRepository } from './document-content.repository'
 import { IHomeworkContentRepository } from './homework-content.repository'
 import { IHomeworkSubmitRepository } from './homework-submit.repository'
@@ -40,6 +41,7 @@ export interface UnitOfWorkRepos {
   courseClassRepository: ICourseClassRepository
   courseEnrollmentRepository: ICourseEnrollmentRepository
   learningItemRepository: ILearningItemRepository
+  lessonLearningItemRepository: ILessonLearningItemRepository
   documentContentRepository: IDocumentContentRepository
   homeworkContentRepository: IHomeworkContentRepository
   homeworkSubmitRepository: IHomeworkSubmitRepository

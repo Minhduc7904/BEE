@@ -4,6 +4,7 @@ import { Type } from 'class-transformer'
 import { LearningItemType } from '../../../shared/enums'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { Trim } from '../../../shared/decorators'
+import { ToNumber } from '../../../shared/decorators'
 
 export class CreateLearningItemDto {
     @IsEnum(LearningItemType, { message: VALIDATION_MESSAGES.FIELD_INVALID('type') })
@@ -28,8 +29,13 @@ export class CreateLearningItemDto {
     @Type(() => Number)
     competitionId?: number
 
-    @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('createdBy') })
-    @IsNotEmpty({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('createdBy') })
-    @Type(() => Number)
-    createdBy: number
+    @ToNumber()
+    @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('lessonId') })
+    @IsOptional()
+    lessonId?: number
+
+    @ToNumber()
+    @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('order') })
+    @IsOptional()
+    order?: number
 }

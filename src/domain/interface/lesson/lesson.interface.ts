@@ -5,13 +5,21 @@ export interface CreateLessonData {
   courseId: number
   title: string
   description?: string
+  visibility?: string
+  orderInCourse?: number
   teacherId?: number
+  allowTrial?: boolean
+  chapterIds?: number[]
 }
 
 export interface UpdateLessonData {
   title?: string
   description?: string
+  visibility?: string
+  orderInCourse?: number
   teacherId?: number
+  allowTrial?: boolean
+  chapterIds?: number[]
 }
 
 export interface LessonFilterOptions {

@@ -4,6 +4,7 @@ import { LessonLearningItem } from '../../entities'
 export interface CreateLessonLearningItemData {
   lessonId: number
   learningItemId: number
+  order?: number
 }
 
 export interface LessonLearningItemFilterOptions {

@@ -16,7 +16,7 @@ export class GetAllLessonUseCase {
         const pagination = query.toLessonPaginationOptions()
 
         const result = await this.lessonRepository.findAllWithPagination(pagination, filters)
-
+        // console.log('GetAllLessonUseCase result:', result);
         const lessonResponses = LessonResponseDto.fromEntities(result.lessons)
 
         return new LessonListResponseDto(
