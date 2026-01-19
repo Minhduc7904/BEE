@@ -25,6 +25,7 @@ import {
   GetMediaDownloadUrlUseCase,
   GetMediaViewUrlUseCase,
   GetBatchMediaViewUrlUseCase,
+  GetBucketStatisticsUseCase,
 } from '../../application/use-cases'
 import {
   UploadMediaDto,
@@ -37,7 +38,8 @@ import { BaseResponseDto } from '../../application/dtos'
 import { PaginationResponseDto } from '../../application/dtos/pagination/pagination-response.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { AuthOnly } from '../../shared/decorators/permission.decorator'
-import { CurrentUser } from '../../shared/decorators'
+import { CurrentUser, RequirePermission } from '../../shared/decorators'
+import { BucketStatisticsResponseDto } from 'src/application/dtos/media-folder/bucket-statistics-response.dto'
 
 @Controller('media')
 @AuthOnly()
@@ -52,7 +54,8 @@ export class MediaController {
     private readonly getMediaDownloadUrlUseCase: GetMediaDownloadUrlUseCase,
     private readonly getMediaViewUrlUseCase: GetMediaViewUrlUseCase,
     private readonly getBatchMediaViewUrlUseCase: GetBatchMediaViewUrlUseCase,
-  ) { }
+    private readonly getBucketStatisticsUseCase: GetBucketStatisticsUseCase,
+  ) {}
 
   @Post('upload')
   @HttpCode(HttpStatus.CREATED)
@@ -62,16 +65,12 @@ export class MediaController {
     @Body() dto: UploadMediaDto,
     @CurrentUser('userId') userId: number,
   ): Promise<BaseResponseDto<MediaResponseDto>> {
-    return ExceptionHandler.execute(() =>
-      this.uploadMediaUseCase.execute(file, userId, dto),
-    )
+    return ExceptionHandler.execute(() => this.uploadMediaUseCase.execute(file, userId, dto))
   }
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  async getMediaList(
-    @Query() dto: GetMediaListDto,
-  ): Promise<PaginationResponseDto<MediaResponseDto>> {
+  async getMediaList(@Query() dto: GetMediaListDto): Promise<PaginationResponseDto<MediaResponseDto>> {
     return ExceptionHandler.execute(() => this.getMediaListUseCase.execute(dto))
   }
 
@@ -88,9 +87,7 @@ export class MediaController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  async getMedia(
-    @Param('id', ParseIntPipe) id: number,
-  ): Promise<BaseResponseDto<MediaResponseDto>> {
+  async getMedia(@Param('id', ParseIntPipe) id: number): Promise<BaseResponseDto<MediaResponseDto>> {
     return ExceptionHandler.execute(() => this.getMediaUseCase.execute(id))
   }
 
@@ -123,9 +120,7 @@ export class MediaController {
       fileSize: number
     }>
   > {
-    return ExceptionHandler.execute(() =>
-      this.getMediaDownloadUrlUseCase.execute(id, expirySeconds),
-    )
+    return ExceptionHandler.execute(() => this.getMediaDownloadUrlUseCase.execute(id, expirySeconds))
   }
 
   /**
@@ -150,9 +145,7 @@ export class MediaController {
       type: string
     }>
   > {
-    return ExceptionHandler.execute(() =>
-      this.getMediaViewUrlUseCase.execute(id, expirySeconds),
-    )
+    return ExceptionHandler.execute(() => this.getMediaViewUrlUseCase.execute(id, expirySeconds))
   }
 
   /**
@@ -166,9 +159,7 @@ export class MediaController {
     @Body() dto: GetBatchMediaViewUrlDto,
     @Query('expiry', new DefaultValuePipe(3600), ParseIntPipe) expirySeconds: number,
   ): Promise<BaseResponseDto<any>> {
-    return ExceptionHandler.execute(() =>
-      this.getBatchMediaViewUrlUseCase.execute(dto.mediaIds, expirySeconds),
-    )
+    return ExceptionHandler.execute(() => this.getBatchMediaViewUrlUseCase.execute(dto.mediaIds, expirySeconds))
   }
 
   /**
@@ -180,9 +171,7 @@ export class MediaController {
   async softDeleteMedia(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<BaseResponseDto<{ deleted: boolean; message: string }>> {
-    return ExceptionHandler.execute(() =>
-      this.deleteMediaUseCase.executeSoftDelete(id),
-    )
+    return ExceptionHandler.execute(() => this.deleteMediaUseCase.executeSoftDelete(id))
   }
 
   /**
@@ -194,8 +183,16 @@ export class MediaController {
   async hardDeleteMedia(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<BaseResponseDto<{ deleted: boolean; message: string }>> {
-    return ExceptionHandler.execute(() =>
-      this.deleteMediaUseCase.executeHardDelete(id),
-    )
+    return ExceptionHandler.execute(() => this.deleteMediaUseCase.executeHardDelete(id))
+  }
+
+  /**
+   * Get bucket statistics (file count and size for all buckets)
+   */
+  @Get('statistics/buckets')
+  @RequirePermission('media.buckets.view')
+  @HttpCode(HttpStatus.OK)
+  async getBucketStatistics(): Promise<BaseResponseDto<BucketStatisticsResponseDto>> {
+    return ExceptionHandler.execute(() => this.getBucketStatisticsUseCase.execute())
   }
 }

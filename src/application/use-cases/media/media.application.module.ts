@@ -13,6 +13,7 @@ const MEDIA_USE_CASES = [
   mediaUseCase.GetMediaDownloadUrlUseCase,
   mediaUseCase.GetMediaViewUrlUseCase,
   mediaUseCase.GetBatchMediaViewUrlUseCase,
+  mediaUseCase.GetBucketStatisticsUseCase,
 ]
 
 @Module({
