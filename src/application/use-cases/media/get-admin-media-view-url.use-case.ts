@@ -26,6 +26,19 @@ export class GetAdminMediaViewUrlUseCase {
             throw new NotFoundException(`Media with ID ${mediaId} not found`)
         }
 
+        // Step 2: Validate media is ready for download
+        if (media.status === MediaStatus.UPLOADING) {
+            throw new BadRequestException('Media is still uploading')
+        }
+
+        if (media.status === MediaStatus.FAILED) {
+            throw new BadRequestException('Media upload failed, cannot download')
+        }
+
+        if (media.status === MediaStatus.DELETED) {
+            throw new NotFoundException('Media has been deleted')
+        }
+
         // Step 6: Generate presigned URL for viewing (inline)
         const viewUrl = await this.minioService.getPresignedUrl(
             media.bucketName,

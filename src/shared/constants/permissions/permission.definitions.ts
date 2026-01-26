@@ -901,6 +901,10 @@ export const PERMISSION_DEFINITIONS = {
                 name: 'Tải xuống media',
                 description: 'Tạo URL để tải xuống media file',
             },
+            adminDownload: {
+                name: 'Quản trị tải xuống media',
+                description: 'Tạo URL để admin tải xuống media file',
+            },
             view: {
                 name: 'Xem media',
                 description: 'Tạo URL để xem/preview media file',

@@ -31,7 +31,7 @@ import { MediaDownloadResponseDto } from '../../dtos/media'
  * - Additional authorization can be added via MediaUsage checks
  */
 @Injectable()
-export class GetMyMediaDownloadUrlUseCase {
+export class GetAdminMediaDownloadUrlUseCase {
     constructor(
         @Inject('IMediaRepository')
         private readonly mediaRepository: IMediaRepository,
@@ -47,10 +47,9 @@ export class GetMyMediaDownloadUrlUseCase {
      */
     async execute(params: {
         mediaId: number
-        userId?: number
         expirySeconds?: number
     }) {
-        const { mediaId, userId, expirySeconds = 3600 } = params
+        const { mediaId, expirySeconds = 3600 } = params
 
         // Step 1: Validate media exists
         const media = await this.mediaRepository.findById(mediaId)
@@ -70,10 +69,6 @@ export class GetMyMediaDownloadUrlUseCase {
 
         if (media.status === MediaStatus.DELETED) {
             throw new NotFoundException('Media has been deleted')
-        }
-
-        if (media.uploadedBy !== userId) {
-            throw new ForbiddenException('You do not have permission to download this media')
         }
 
         // Step 3: Generate presigned download URL

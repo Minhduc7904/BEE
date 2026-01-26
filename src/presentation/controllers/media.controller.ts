@@ -32,7 +32,8 @@ import {
   CreatePresignedUploadUseCase,
   CompletePresignedUploadUseCase,
   GetBucketStatisticsUseCase,
-  GetAdminMediaViewUrlUseCase
+  GetAdminMediaViewUrlUseCase,
+  GetAdminMediaDownloadUrlUseCase,
 } from '../../application/use-cases'
 import {
   UploadMediaDto,
@@ -73,7 +74,8 @@ export class MediaController {
     private readonly createPresignedUploadUseCase: CreatePresignedUploadUseCase,
     private readonly completePresignedUploadUseCase: CompletePresignedUploadUseCase,
     private readonly getBucketStatisticsUseCase: GetBucketStatisticsUseCase,
-    private readonly getAdminMediaViewUrlUseCase: GetAdminMediaViewUrlUseCase
+    private readonly getAdminMediaViewUrlUseCase: GetAdminMediaViewUrlUseCase,
+    private readonly getAdminMediaDownloadUrlUseCase: GetAdminMediaDownloadUrlUseCase
   ) { }
 
   @UseInterceptors(
@@ -248,6 +250,22 @@ export class MediaController {
       }),
     )
   }
+
+  @Get('admin/:id/download')
+  @RequirePermission(PERMISSION_CODES.MEDIA_ADMIN_DOWNLOAD)
+  @HttpCode(HttpStatus.OK)
+  async getAdminMediaDownloadUrl(
+    @Param('id', ParseIntPipe) mediaId: number,
+    @Query('expiry', new DefaultValuePipe(3600), ParseIntPipe) expirySeconds: number,
+  ): Promise<BaseResponseDto<MediaDownloadResponseDto>> {
+    return ExceptionHandler.execute(() =>
+      this.getAdminMediaDownloadUrlUseCase.execute({
+        mediaId,
+        expirySeconds,
+      }),
+    )
+  }
+
 
   @Get(':id/download/my')
   @RequirePermission(PERMISSION_CODES.MEDIA_DOWNLOAD_MY)
