@@ -107,9 +107,9 @@ export interface IMediaUsageRepository {
    * @returns True if usage exists
    */
   exists(
-    mediaId: number,
-    entityType: string,
-    entityId: number,
+    mediaId?: number,
+    entityType?: string,
+    entityId?: number,
     fieldName?: string,
   ): Promise<boolean>
 

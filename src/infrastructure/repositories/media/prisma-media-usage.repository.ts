@@ -239,9 +239,9 @@ export class PrismaMediaUsageRepository implements IMediaUsageRepository {
    * @returns True if usage exists
    */
   async exists(
-    mediaId: number,
-    entityType: string,
-    entityId: number,
+    mediaId?: number,
+    entityType?: string,
+    entityId?: number,
     fieldName?: string,
   ): Promise<boolean> {
     const count = await this.prisma.mediaUsage.count({

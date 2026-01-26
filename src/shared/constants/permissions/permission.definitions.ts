@@ -893,6 +893,10 @@ export const PERMISSION_DEFINITIONS = {
                 name: 'Xem danh sách buckets',
                 description: 'Xem danh sách các storage buckets',
             },
+            getStatisticsBuckets: {
+                name: 'Xem thống kê buckets',
+                description: 'Xem thống kê buckets'
+            },
             download: {
                 name: 'Tải xuống media',
                 description: 'Tạo URL để tải xuống media file',
@@ -900,6 +904,10 @@ export const PERMISSION_DEFINITIONS = {
             view: {
                 name: 'Xem media',
                 description: 'Tạo URL để xem/preview media file',
+            },
+            adminView: {
+                name: 'Quản trị xem media',
+                description: 'Tạo URL để admin xem/preview media file',
             },
             folder: {
                 group: 'MEDIA_FOLDER',

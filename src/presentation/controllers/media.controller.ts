@@ -31,6 +31,8 @@ import {
   GetMyMediaViewUrlUseCase,
   CreatePresignedUploadUseCase,
   CompletePresignedUploadUseCase,
+  GetBucketStatisticsUseCase,
+  GetAdminMediaViewUrlUseCase
 } from '../../application/use-cases'
 import {
   UploadMediaDto,
@@ -51,6 +53,7 @@ import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
 import { CurrentUser } from '../../shared/decorators'
 import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
+import { BucketStatisticsResponseDto } from 'src/application/dtos/media-folder'
 
 @Injectable()
 @Controller('media')
@@ -69,6 +72,8 @@ export class MediaController {
     private readonly getMyMediaDownloadUrlUseCase: GetMyMediaDownloadUrlUseCase,
     private readonly createPresignedUploadUseCase: CreatePresignedUploadUseCase,
     private readonly completePresignedUploadUseCase: CompletePresignedUploadUseCase,
+    private readonly getBucketStatisticsUseCase: GetBucketStatisticsUseCase,
+    private readonly getAdminMediaViewUrlUseCase: GetAdminMediaViewUrlUseCase
   ) { }
 
   @UseInterceptors(
@@ -229,6 +234,21 @@ export class MediaController {
     )
   }
 
+  @Get('admin/:id/view')
+  @RequirePermission(PERMISSION_CODES.MEDIA_ADMIN_VIEW)
+  @HttpCode(HttpStatus.OK)
+  async getAdminMediaViewUrl(
+    @Param('id', ParseIntPipe) mediaId: number,
+    @Query('expiry', new DefaultValuePipe(3600), ParseIntPipe) expirySeconds: number,
+  ): Promise<BaseResponseDto<MediaViewResponseDto>> {
+    return ExceptionHandler.execute(() =>
+      this.getAdminMediaViewUrlUseCase.execute({
+        mediaId,
+        expirySeconds,
+      }),
+    )
+  }
+
   @Get(':id/download/my')
   @RequirePermission(PERMISSION_CODES.MEDIA_DOWNLOAD_MY)
   @HttpCode(HttpStatus.OK)
@@ -264,6 +284,15 @@ export class MediaController {
     return ExceptionHandler.execute(() =>
       this.getBatchMyMediaViewUrlUseCase.execute(dto.mediaIds, expirySeconds, userId),
     )
+  }
+
+  @Get('statistics/buckets')
+  @RequirePermission(PERMISSION_CODES.MEDIA_GET_STATISTICS_BUCKETS)
+  @HttpCode(HttpStatus.OK)
+  async getStatisticsBuckets(): Promise<BaseResponseDto<BucketStatisticsResponseDto>> {
+    return ExceptionHandler.execute(() => {
+      return this.getBucketStatisticsUseCase.execute()
+    })
   }
 
   /**
