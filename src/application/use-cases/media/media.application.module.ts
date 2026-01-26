@@ -17,6 +17,7 @@ const MEDIA_USE_CASES = [
   mediaUseCase.GetMyMediaDownloadUrlUseCase,
   mediaUseCase.CreatePresignedUploadUseCase,
   mediaUseCase.CompletePresignedUploadUseCase,
+  mediaUseCase.GetBucketStatisticsUseCase,
 ]
 
 @Module({
