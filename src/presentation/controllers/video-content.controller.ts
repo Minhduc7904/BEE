@@ -7,6 +7,7 @@ import { VideoContentListResponseDto, VideoContentResponseDto } from '../../appl
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
+import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 import {
     GetAllVideoContentUseCase,
     GetVideoContentByIdUseCase,
@@ -29,14 +30,14 @@ export class VideoContentController {
     ) { }
 
     @Get()
-    @RequirePermission('videoContent.getAll')
+    @RequirePermission(PERMISSION_CODES.VIDEO_CONTENT_GET_ALL)
     @HttpCode(HttpStatus.OK)
     async getAllVideoContents(@Query() query: VideoContentListQueryDto): Promise<VideoContentListResponseDto> {
         return ExceptionHandler.execute(() => this.getAllVideoContentUseCase.execute(query))
     }
 
     @Get(':id')
-    @RequirePermission('videoContent.getById')
+    @RequirePermission(PERMISSION_CODES.VIDEO_CONTENT_GET_BY_ID)
     @HttpCode(HttpStatus.OK)
     async getVideoContentById(
         @Param('id', ParseIntPipe) id: number
@@ -45,7 +46,7 @@ export class VideoContentController {
     }
 
     @Post()
-    @RequirePermission('videoContent.create')
+    @RequirePermission(PERMISSION_CODES.VIDEO_CONTENT_CREATE)
     @HttpCode(HttpStatus.CREATED)
     async createVideoContent(
         @Body() dto: CreateVideoContentDto,
@@ -55,7 +56,7 @@ export class VideoContentController {
     }
 
     @Put(':id')
-    @RequirePermission('videoContent.update')
+    @RequirePermission(PERMISSION_CODES.VIDEO_CONTENT_UPDATE)
     @HttpCode(HttpStatus.OK)
     async updateVideoContent(
         @Param('id', ParseIntPipe) id: number,
@@ -66,7 +67,7 @@ export class VideoContentController {
     }
 
     @Delete(':id')
-    @RequirePermission('videoContent.delete')
+    @RequirePermission(PERMISSION_CODES.VIDEO_CONTENT_DELETE)
     @HttpCode(HttpStatus.OK)
     async deleteVideoContent(
         @Param('id', ParseIntPipe) id: number,

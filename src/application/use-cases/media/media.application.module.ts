@@ -12,7 +12,11 @@ const MEDIA_USE_CASES = [
   mediaUseCase.DeleteMediaUseCase,
   mediaUseCase.GetMediaDownloadUrlUseCase,
   mediaUseCase.GetMediaViewUrlUseCase,
-  mediaUseCase.GetBatchMediaViewUrlUseCase,
+  mediaUseCase.GetBatchMyMediaViewUrlUseCase,
+  mediaUseCase.GetMyMediaViewUrlUseCase,
+  mediaUseCase.GetMyMediaDownloadUrlUseCase,
+  mediaUseCase.CreatePresignedUploadUseCase,
+  mediaUseCase.CompletePresignedUploadUseCase,
 ]
 
 @Module({

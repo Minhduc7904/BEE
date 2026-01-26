@@ -6,6 +6,7 @@ import { LessonLearningItemListResponseDto, LessonLearningItemResponseDto } from
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
+import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 import {
     GetAllLessonLearningItemUseCase,
     GetLessonLearningItemByIdUseCase,
@@ -25,14 +26,14 @@ export class LessonLearningItemController {
     ) { }
 
     @Get()
-    @RequirePermission('lessonLearningItem.getAll')
+    @RequirePermission(PERMISSION_CODES.LESSON_LEARNING_ITEM_GET_ALL)
     @HttpCode(HttpStatus.OK)
     async getAllLessonLearningItems(@Query() query: LessonLearningItemListQueryDto): Promise<LessonLearningItemListResponseDto> {
         return ExceptionHandler.execute(() => this.getAllLessonLearningItemUseCase.execute(query))
     }
 
     @Get(':lessonId/:learningItemId')
-    @RequirePermission('lessonLearningItem.getById')
+    @RequirePermission(PERMISSION_CODES.LESSON_LEARNING_ITEM_GET_BY_ID)
     @HttpCode(HttpStatus.OK)
     async getLessonLearningItemById(
         @Param('lessonId', ParseIntPipe) lessonId: number,
@@ -42,7 +43,7 @@ export class LessonLearningItemController {
     }
 
     @Post()
-    @RequirePermission('lessonLearningItem.create')
+    @RequirePermission(PERMISSION_CODES.LESSON_LEARNING_ITEM_CREATE)
     @HttpCode(HttpStatus.CREATED)
     async createLessonLearningItem(
         @Body() dto: CreateLessonLearningItemDto
@@ -51,7 +52,7 @@ export class LessonLearningItemController {
     }
 
     @Delete(':lessonId/:learningItemId')
-    @RequirePermission('lessonLearningItem.delete')
+    @RequirePermission(PERMISSION_CODES.LESSON_LEARNING_ITEM_DELETE)
     @HttpCode(HttpStatus.OK)
     async deleteLessonLearningItem(
         @Param('lessonId', ParseIntPipe) lessonId: number,

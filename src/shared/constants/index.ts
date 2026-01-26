@@ -1,6 +1,6 @@
 export * from "./action-key.constants"
 export * from "./enum.constants"
-export * from "./permissions.constants"
 export * from "./resource-type.constants"
 export * from "./roles.constant"
 export * from "./validation-messages"
+export * from "./permissions"

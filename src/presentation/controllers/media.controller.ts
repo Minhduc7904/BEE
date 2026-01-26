@@ -15,6 +15,8 @@ import {
   DefaultValuePipe,
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
+import { FileSizeByRoleInterceptor } from '../../shared/interceptors/file-size-by-role.interceptor'
+import { Injectable } from '@nestjs/common'
 import {
   UploadMediaUseCase,
   GetMediaUseCase,
@@ -24,7 +26,11 @@ import {
   DeleteMediaUseCase,
   GetMediaDownloadUrlUseCase,
   GetMediaViewUrlUseCase,
-  GetBatchMediaViewUrlUseCase,
+  GetBatchMyMediaViewUrlUseCase,
+  GetMyMediaDownloadUrlUseCase,
+  GetMyMediaViewUrlUseCase,
+  CreatePresignedUploadUseCase,
+  CompletePresignedUploadUseCase,
 } from '../../application/use-cases'
 import {
   UploadMediaDto,
@@ -32,15 +38,22 @@ import {
   GetMediaListDto,
   MediaResponseDto,
   GetBatchMediaViewUrlDto,
+  MediaViewRequestDto,
+  MediaViewResponseDto,
+  MediaDownloadResponseDto,
+  CreatePresignedUploadDto,
+  PresignedUploadResponseDto,
+  CompleteUploadDto,
 } from '../../application/dtos/media'
 import { BaseResponseDto } from '../../application/dtos'
 import { PaginationResponseDto } from '../../application/dtos/pagination/pagination-response.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
-import { AuthOnly } from '../../shared/decorators/permission.decorator'
+import { RequirePermission } from '../../shared/decorators/permissions.decorator'
 import { CurrentUser } from '../../shared/decorators'
+import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 
+@Injectable()
 @Controller('media')
-@AuthOnly()
 export class MediaController {
   constructor(
     private readonly uploadMediaUseCase: UploadMediaUseCase,
@@ -51,12 +64,20 @@ export class MediaController {
     private readonly deleteMediaUseCase: DeleteMediaUseCase,
     private readonly getMediaDownloadUrlUseCase: GetMediaDownloadUrlUseCase,
     private readonly getMediaViewUrlUseCase: GetMediaViewUrlUseCase,
-    private readonly getBatchMediaViewUrlUseCase: GetBatchMediaViewUrlUseCase,
+    private readonly getBatchMyMediaViewUrlUseCase: GetBatchMyMediaViewUrlUseCase,
+    private readonly getMyMediaViewUrlUseCase: GetMyMediaViewUrlUseCase,
+    private readonly getMyMediaDownloadUrlUseCase: GetMyMediaDownloadUrlUseCase,
+    private readonly createPresignedUploadUseCase: CreatePresignedUploadUseCase,
+    private readonly completePresignedUploadUseCase: CompletePresignedUploadUseCase,
   ) { }
 
+  @UseInterceptors(
+    FileInterceptor('file'),
+    FileSizeByRoleInterceptor,
+  )
   @Post('upload')
+  @RequirePermission(PERMISSION_CODES.MEDIA_UPLOAD)
   @HttpCode(HttpStatus.CREATED)
-  @UseInterceptors(FileInterceptor('file'))
   async uploadMedia(
     @UploadedFile() file: Express.Multer.File,
     @Body() dto: UploadMediaDto,
@@ -67,7 +88,33 @@ export class MediaController {
     )
   }
 
+  @Post('upload/presigned')
+  @RequirePermission(PERMISSION_CODES.MEDIA_UPLOAD)
+  @HttpCode(HttpStatus.OK)
+  async createPresignedUpload(
+    @Body() dto: CreatePresignedUploadDto,
+    @CurrentUser('userId') userId: number,
+  ): Promise<BaseResponseDto<PresignedUploadResponseDto>> {
+    return ExceptionHandler.execute(() =>
+      this.createPresignedUploadUseCase.execute(dto, userId),
+    )
+  }
+
+  @Post('upload/complete')
+  @RequirePermission(PERMISSION_CODES.MEDIA_UPLOAD)
+  @HttpCode(HttpStatus.OK)
+  async completePresignedUpload(
+    @Body() dto: CompleteUploadDto,
+    @CurrentUser('userId') userId: number,
+  ): Promise<BaseResponseDto<MediaResponseDto>> {
+    return ExceptionHandler.execute(() =>
+      this.completePresignedUploadUseCase.execute(dto, userId),
+    )
+  }
+
+
   @Get()
+  @RequirePermission(PERMISSION_CODES.MEDIA_GET_ALL)
   @HttpCode(HttpStatus.OK)
   async getMediaList(
     @Query() dto: GetMediaListDto,
@@ -75,10 +122,22 @@ export class MediaController {
     return ExceptionHandler.execute(() => this.getMediaListUseCase.execute(dto))
   }
 
+  @Get('my')
+  @RequirePermission(PERMISSION_CODES.MEDIA_GET_MY_MEDIA)
+  @HttpCode(HttpStatus.OK)
+  async getMyMediaList(
+    @Query() dto: GetMediaListDto,
+    @CurrentUser('userId') userId: number,
+  ): Promise<PaginationResponseDto<MediaResponseDto>> {
+    dto.uploadedBy = userId
+    return ExceptionHandler.execute(() => this.getMediaListUseCase.execute(dto))
+  }
+
   /**
    * Get all available buckets
    */
   @Get('buckets')
+  @RequirePermission(PERMISSION_CODES.MEDIA_GET_BUCKETS)
   @HttpCode(HttpStatus.OK)
   async getBuckets(): Promise<
     BaseResponseDto<{ data: Array<{ name: string; label: string; description: string }>; total: number }>
@@ -87,6 +146,7 @@ export class MediaController {
   }
 
   @Get(':id')
+  @RequirePermission(PERMISSION_CODES.MEDIA_GET_BY_ID)
   @HttpCode(HttpStatus.OK)
   async getMedia(
     @Param('id', ParseIntPipe) id: number,
@@ -95,6 +155,7 @@ export class MediaController {
   }
 
   @Put(':id')
+  @RequirePermission(PERMISSION_CODES.MEDIA_UPDATE)
   @HttpCode(HttpStatus.OK)
   async updateMedia(
     @Param('id', ParseIntPipe) id: number,
@@ -108,23 +169,23 @@ export class MediaController {
    * URL expires after specified time (default: 1 hour)
    */
   @Get(':id/download')
+  @RequirePermission(PERMISSION_CODES.MEDIA_DOWNLOAD)
   @HttpCode(HttpStatus.OK)
   async getMediaDownloadUrl(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) mediaId: number,
+    @Query() context: MediaViewRequestDto,
     @Query('expiry', new DefaultValuePipe(3600), ParseIntPipe) expirySeconds: number,
+    @CurrentUser('userId') userId?: number,
   ): Promise<
-    BaseResponseDto<{
-      mediaId: number
-      downloadUrl: string
-      expiresAt: Date
-      expirySeconds: number
-      filename: string
-      mimeType: string
-      fileSize: number
-    }>
+    BaseResponseDto<MediaDownloadResponseDto>
   > {
     return ExceptionHandler.execute(() =>
-      this.getMediaDownloadUrlUseCase.execute(id, expirySeconds),
+      this.getMediaDownloadUrlUseCase.execute({
+        mediaId,
+        context,
+        userId,
+        expirySeconds,
+      }),
     )
   }
 
@@ -136,22 +197,54 @@ export class MediaController {
   @Get(':id/view')
   @HttpCode(HttpStatus.OK)
   async getMediaViewUrl(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('id', ParseIntPipe) mediaId: number,
+    @Query() context: MediaViewRequestDto,
     @Query('expiry', new DefaultValuePipe(3600), ParseIntPipe) expirySeconds: number,
+    @CurrentUser('userId') userId?: number,
+  ): Promise<BaseResponseDto<MediaViewResponseDto>> {
+    return ExceptionHandler.execute(() =>
+      this.getMediaViewUrlUseCase.execute({
+        mediaId,
+        context,
+        userId,
+        expirySeconds,
+      }),
+    )
+  }
+
+  @Get(':id/view/my')
+  @RequirePermission(PERMISSION_CODES.MEDIA_VIEW_MY)
+  @HttpCode(HttpStatus.OK)
+  async getMyMediaViewUrl(
+    @Param('id', ParseIntPipe) mediaId: number,
+    @Query('expiry', new DefaultValuePipe(3600), ParseIntPipe) expirySeconds: number,
+    @CurrentUser('userId') userId: number,
+  ): Promise<BaseResponseDto<MediaViewResponseDto>> {
+    return ExceptionHandler.execute(() =>
+      this.getMyMediaViewUrlUseCase.execute({
+        mediaId,
+        userId,
+        expirySeconds,
+      }),
+    )
+  }
+
+  @Get(':id/download/my')
+  @RequirePermission(PERMISSION_CODES.MEDIA_DOWNLOAD_MY)
+  @HttpCode(HttpStatus.OK)
+  async getMyMediaDownloadUrl(
+    @Param('id', ParseIntPipe) mediaId: number,
+    @Query('expiry', new DefaultValuePipe(3600), ParseIntPipe) expirySeconds: number,
+    @CurrentUser('userId') userId: number,
   ): Promise<
-    BaseResponseDto<{
-      mediaId: number
-      viewUrl: string
-      expiresAt: Date
-      expirySeconds: number
-      filename: string
-      mimeType: string
-      fileSize: number
-      type: string
-    }>
+    BaseResponseDto<MediaDownloadResponseDto>
   > {
     return ExceptionHandler.execute(() =>
-      this.getMediaViewUrlUseCase.execute(id, expirySeconds),
+      this.getMyMediaDownloadUrlUseCase.execute({
+        mediaId,
+        userId,
+        expirySeconds,
+      }),
     )
   }
 
@@ -160,14 +253,16 @@ export class MediaController {
    * Accepts array of media IDs (max 100)
    * Returns URL for each valid media with error handling
    */
-  @Post('batch/view')
+  @Post('batch/view/my')
+  @RequirePermission(PERMISSION_CODES.MEDIA_VIEW_MY)
   @HttpCode(HttpStatus.OK)
   async getBatchMediaViewUrl(
     @Body() dto: GetBatchMediaViewUrlDto,
     @Query('expiry', new DefaultValuePipe(3600), ParseIntPipe) expirySeconds: number,
+    @CurrentUser('userId') userId: number,
   ): Promise<BaseResponseDto<any>> {
     return ExceptionHandler.execute(() =>
-      this.getBatchMediaViewUrlUseCase.execute(dto.mediaIds, expirySeconds),
+      this.getBatchMyMediaViewUrlUseCase.execute(dto.mediaIds, expirySeconds, userId),
     )
   }
 
@@ -176,6 +271,7 @@ export class MediaController {
    * Media file remains in storage, can be restored
    */
   @Delete(':id')
+  @RequirePermission(PERMISSION_CODES.MEDIA_DELETE)
   @HttpCode(HttpStatus.OK)
   async softDeleteMedia(
     @Param('id', ParseIntPipe) id: number,
@@ -190,12 +286,25 @@ export class MediaController {
    * WARNING: This action cannot be undone
    */
   @Delete(':id/permanent')
+  @RequirePermission(PERMISSION_CODES.MEDIA_PERMANENT_DELETE)
   @HttpCode(HttpStatus.OK)
   async hardDeleteMedia(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<BaseResponseDto<{ deleted: boolean; message: string }>> {
     return ExceptionHandler.execute(() =>
       this.deleteMediaUseCase.executeHardDelete(id),
+    )
+  }
+
+  @Delete(':id/my')
+  @RequirePermission(PERMISSION_CODES.MEDIA_DELETE_MY)
+  @HttpCode(HttpStatus.OK)
+  async deleteMyMedia(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('userId') userId: number,
+  ): Promise<BaseResponseDto<{ deleted: boolean; message: string }>> {
+    return ExceptionHandler.execute(() =>
+      this.deleteMediaUseCase.executeSoftDeleteByUser(id, userId),
     )
   }
 }

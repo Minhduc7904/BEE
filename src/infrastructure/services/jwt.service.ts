@@ -24,7 +24,7 @@ export class JwtTokenService {
     private readonly jwtService: JwtService,
     @Inject(jwtConfig.KEY)
     private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
-  ) {}
+  ) { }
 
   generateAccessToken(payload: Omit<JwtPayload, 'iat' | 'exp' | 'aud' | 'iss' | 'jti'>): string {
     const tokenPayload: Omit<JwtPayload, 'iat' | 'exp'> = {

@@ -23,16 +23,17 @@ interface MediaViewUrlResult {
  * Handles errors gracefully by returning error messages for invalid media.
  */
 @Injectable()
-export class GetBatchMediaViewUrlUseCase {
+export class GetBatchMyMediaViewUrlUseCase {
   constructor(
     @Inject('IMediaRepository')
     private readonly mediaRepository: IMediaRepository,
     private readonly minioService: MinioService,
-  ) {}
+  ) { }
 
   async execute(
     mediaIds: number[],
     expirySeconds: number = 3600, // 1 hour default
+    userId: number,
   ) {
     // Step 1: Fetch all media records
     const mediaRecords = await Promise.all(
@@ -59,6 +60,21 @@ export class GetBatchMediaViewUrlUseCase {
           fileSize: 0,
           type: '',
           error: `Media với ID ${mediaId} không tồn tại`,
+        })
+        continue
+      }
+
+      if (media.uploadedBy !== userId) {
+        results.push({
+          mediaId,
+          viewUrl: '',
+          expiresAt,
+          expirySeconds,
+          filename: media.originalFilename,
+          mimeType: media.mimeType,
+          fileSize: media.fileSize,
+          type: media.type,
+          error: 'Bạn không có quyền xem media này',
         })
         continue
       }

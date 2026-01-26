@@ -7,6 +7,7 @@ import { DocumentContentListResponseDto, DocumentContentResponseDto } from '../.
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
+import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 import {
     GetAllDocumentContentUseCase,
     GetDocumentContentByIdUseCase,
@@ -29,14 +30,14 @@ export class DocumentContentController {
     ) { }
 
     @Get()
-    @RequirePermission('documentContent.getAll')
+    @RequirePermission(PERMISSION_CODES.DOCUMENT_CONTENT_GET_ALL)
     @HttpCode(HttpStatus.OK)
     async getAllDocumentContents(@Query() query: DocumentContentListQueryDto): Promise<DocumentContentListResponseDto> {
         return ExceptionHandler.execute(() => this.getAllDocumentContentUseCase.execute(query))
     }
 
     @Get(':id')
-    @RequirePermission('documentContent.getById')
+    @RequirePermission(PERMISSION_CODES.DOCUMENT_CONTENT_GET_BY_ID)
     @HttpCode(HttpStatus.OK)
     async getDocumentContentById(
         @Param('id', ParseIntPipe) id: number
@@ -45,7 +46,7 @@ export class DocumentContentController {
     }
 
     @Post()
-    @RequirePermission('documentContent.create')
+    @RequirePermission(PERMISSION_CODES.DOCUMENT_CONTENT_CREATE)
     @HttpCode(HttpStatus.CREATED)
     async createDocumentContent(
         @Body() dto: CreateDocumentContentDto,
@@ -55,7 +56,7 @@ export class DocumentContentController {
     }
 
     @Put(':id')
-    @RequirePermission('documentContent.update')
+    @RequirePermission(PERMISSION_CODES.DOCUMENT_CONTENT_UPDATE)
     @HttpCode(HttpStatus.OK)
     async updateDocumentContent(
         @Param('id', ParseIntPipe) id: number,
@@ -66,7 +67,7 @@ export class DocumentContentController {
     }
 
     @Delete(':id')
-    @RequirePermission('documentContent.delete')
+    @RequirePermission(PERMISSION_CODES.DOCUMENT_CONTENT_DELETE)
     @HttpCode(HttpStatus.OK)
     async deleteDocumentContent(
         @Param('id', ParseIntPipe) id: number,

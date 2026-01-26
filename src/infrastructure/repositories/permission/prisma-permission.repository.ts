@@ -89,7 +89,7 @@ export class PrismaPermissionRepository implements IPermissionRepository {
       // Default sort
       orderBy.createdAt = 'desc'
     }
-
+    // console.log(options)
     // Execute queries in parallel
     const [permissions, total] = await Promise.all([
       this.prisma.permission.findMany({

@@ -9,7 +9,7 @@ export class ProfileAdminController {
   constructor(
     private readonly getAdminProfileUseCase: GetAdminProfileUseCase,
     private readonly updateAdminProfileUseCase: UpdateAdminProfileUseCase,
-  ) {}
+  ) { }
 
   /**
    * Get admin profile

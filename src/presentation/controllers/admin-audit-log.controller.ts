@@ -11,6 +11,7 @@ import {
 } from '../../application/use-cases/log'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
 import { Injectable } from '@nestjs/common'
+import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 
 @Injectable()
 @Controller('admin-audit-log')
@@ -39,14 +40,14 @@ export class AdminAuditLogController {
    * - sortOrder: asc hoặc desc (default: desc)
    */
   @Get()
-  @RequirePermission('auditLog.getAll')
+  @RequirePermission(PERMISSION_CODES.AUDIT_LOG_GET_ALL)
   @HttpCode(HttpStatus.OK)
   async getAllAuditLogs(@Query() query: AuditLogListQueryDto): Promise<PaginationResponseDto<LogResponseDto>> {
     return ExceptionHandler.execute(() => this.getAllAuditLogsUseCase.execute(query))
   }
 
   @Get('admin/:adminId')
-  @RequirePermission('auditLog.getAllByAdmin')
+  @RequirePermission(PERMISSION_CODES.AUDIT_LOG_GET_ALL_BY_ADMIN)
   @HttpCode(HttpStatus.OK)
   async getAllAuditLogsByAdmin(
     @Param('adminId', ParseIntPipe) adminId: number,
@@ -61,7 +62,7 @@ export class AdminAuditLogController {
    * GET /admin-audit-log/:id
    */
   @Get(':id')
-  @RequirePermission('auditLog.getById')
+  @RequirePermission(PERMISSION_CODES.AUDIT_LOG_GET_BY_ID)
   @HttpCode(HttpStatus.OK)
   async getAuditLog(@Param('id', ParseIntPipe) id: number): Promise<BaseResponseDto<LogResponseDto>> {
     return ExceptionHandler.execute(() => this.getAuditLogUseCase.execute(id))
@@ -72,7 +73,7 @@ export class AdminAuditLogController {
    * POST /admin-audit-log/rollback/:id
    */
   @Post('rollback/:id')
-  @RequirePermission('auditLog.rollback')
+  @RequirePermission(PERMISSION_CODES.AUDIT_LOG_ROLLBACK)
   @HttpCode(HttpStatus.OK)
   async rollback(@Param('id', ParseIntPipe) logId: number): Promise<BaseResponseDto<boolean>> {
     return ExceptionHandler.execute(() => this.rollbackUseCase.execute(logId))

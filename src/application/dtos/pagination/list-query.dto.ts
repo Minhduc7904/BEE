@@ -18,7 +18,7 @@ export class ListQueryDto {
   @Type(() => Number)
   @IsPositive({ message: VALIDATION_MESSAGES.FIELD_INVALID('Kích thước trang') })
   @Min(1, { message: VALIDATION_MESSAGES.FIELD_INVALID('Kích thước trang') })
-  @Max(100, { message: VALIDATION_MESSAGES.FIELD_INVALID('Kích thước trang') })
+  @Max(1000, { message: VALIDATION_MESSAGES.FIELD_INVALID('Kích thước trang') })
   limit?: number = 10
 
   // Search property
@@ -60,7 +60,7 @@ export class ListQueryDto {
    */
   normalize(): void {
     this.page = Math.max(1, this.page || 1)
-    this.limit = Math.min(100, Math.max(1, this.limit || 10))
+    this.limit = Math.min(1000, Math.max(1, this.limit || 10))
     this.sortOrder = this.sortOrder === 'asc' ? 'asc' : 'desc'
 
     // Trim search string

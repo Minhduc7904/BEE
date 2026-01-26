@@ -7,6 +7,7 @@ import { YoutubeContentListResponseDto, YoutubeContentResponseDto } from '../../
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
+import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 import {
     GetAllYoutubeContentUseCase,
     GetYoutubeContentByIdUseCase,
@@ -29,14 +30,14 @@ export class YoutubeContentController {
     ) { }
 
     @Get()
-    @RequirePermission('youtubeContent.getAll')
+    @RequirePermission(PERMISSION_CODES.YOUTUBE_CONTENT_GET_ALL)
     @HttpCode(HttpStatus.OK)
     async getAllYoutubeContents(@Query() query: YoutubeContentListQueryDto): Promise<YoutubeContentListResponseDto> {
         return ExceptionHandler.execute(() => this.getAllYoutubeContentUseCase.execute(query))
     }
 
     @Get(':id')
-    @RequirePermission('youtubeContent.getById')
+    @RequirePermission(PERMISSION_CODES.YOUTUBE_CONTENT_GET_BY_ID)
     @HttpCode(HttpStatus.OK)
     async getYoutubeContentById(
         @Param('id', ParseIntPipe) id: number
@@ -45,7 +46,7 @@ export class YoutubeContentController {
     }
 
     @Post()
-    @RequirePermission('youtubeContent.create')
+    @RequirePermission(PERMISSION_CODES.YOUTUBE_CONTENT_CREATE)
     @HttpCode(HttpStatus.CREATED)
     async createYoutubeContent(
         @Body() dto: CreateYoutubeContentDto,
@@ -55,7 +56,7 @@ export class YoutubeContentController {
     }
 
     @Put(':id')
-    @RequirePermission('youtubeContent.update')
+    @RequirePermission(PERMISSION_CODES.YOUTUBE_CONTENT_UPDATE)
     @HttpCode(HttpStatus.OK)
     async updateYoutubeContent(
         @Param('id', ParseIntPipe) id: number,
@@ -66,7 +67,7 @@ export class YoutubeContentController {
     }
 
     @Delete(':id')
-    @RequirePermission('youtubeContent.delete')
+    @RequirePermission(PERMISSION_CODES.YOUTUBE_CONTENT_DELETE)
     @HttpCode(HttpStatus.OK)
     async deleteYoutubeContent(
         @Param('id', ParseIntPipe) id: number,

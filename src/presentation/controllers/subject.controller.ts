@@ -30,6 +30,7 @@ import {
 } from '../../application/use-cases/subject'
 import { CurrentUser } from '../../shared/decorators/current-user.decorator'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
+import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 
 @Controller('subjects')
 export class SubjectController {
@@ -46,7 +47,7 @@ export class SubjectController {
    * POST /subjects
    */
   @Post()
-  @RequirePermission('subject.create')
+  @RequirePermission(PERMISSION_CODES.SUBJECT_CREATE)
   @HttpCode(HttpStatus.CREATED)
   async createSubject(
     @Body() dto: CreateSubjectDto,
@@ -67,7 +68,7 @@ export class SubjectController {
    * - sortOrder: thứ tự sắp xếp (asc, desc)
    */
   @Get()
-  @RequirePermission('subject.getAll')
+  @RequirePermission(PERMISSION_CODES.SUBJECT_GET_ALL)
   @HttpCode(HttpStatus.OK)
   async getAllSubjects(
     @Query() query: SubjectListQueryDto,
@@ -80,7 +81,7 @@ export class SubjectController {
    * GET /subjects/:id
    */
   @Get(':id')
-  @RequirePermission('subject.getById')
+  @RequirePermission(PERMISSION_CODES.SUBJECT_GET_BY_ID)
   @HttpCode(HttpStatus.OK)
   async getSubject(
     @Param('id', ParseIntPipe) id: number,
@@ -93,7 +94,7 @@ export class SubjectController {
    * PUT /subjects/:id
    */
   @Put(':id')
-  @RequirePermission('subject.update')
+  @RequirePermission(PERMISSION_CODES.SUBJECT_UPDATE)
   @HttpCode(HttpStatus.OK)
   async updateSubject(
     @Param('id', ParseIntPipe) id: number,
@@ -108,7 +109,7 @@ export class SubjectController {
    * DELETE /subjects/:id
    */
   @Delete(':id')
-  @RequirePermission('subject.delete')
+  @RequirePermission(PERMISSION_CODES.SUBJECT_DELETE)
   @HttpCode(HttpStatus.OK)
   async deleteSubject(
     @Param('id', ParseIntPipe) id: number,

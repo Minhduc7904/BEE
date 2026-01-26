@@ -369,4 +369,23 @@ export class PrismaRoleRepository implements IRoleRepository {
       },
     })
   }
+
+  async getUserIdsByRoleName(roleName: string): Promise<number[]> {
+    const userRoles = await this.prisma.userRole.findMany({
+      where: {
+        role: {
+          roleName: roleName,
+        },
+        isActive: true,
+        user: {
+          isActive: true,
+        },
+      },
+      select: {
+        userId: true,
+      },
+    })
+
+    return userRoles.map(ur => ur.userId)
+  }
 }

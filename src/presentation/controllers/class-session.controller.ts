@@ -23,6 +23,7 @@ import { BaseResponseDto } from '../../application/dtos/common/base-response.dto
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
 import { CurrentUser } from '../../shared/decorators/current-user.decorator'
+import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 import {
     GetAllClassSessionUseCase,
     GetClassSessionByIdUseCase,
@@ -60,7 +61,7 @@ export class ClassSessionController {
      * - sortOrder: asc hoặc desc (default: desc)
      */
     @Get()
-    @RequirePermission('classSession.getAll')
+    @RequirePermission(PERMISSION_CODES.CLASS_SESSION_GET_ALL)
     @HttpCode(HttpStatus.OK)
     async getAll(
         @Query() query: ClassSessionListQueryDto,
@@ -71,7 +72,7 @@ export class ClassSessionController {
     }
 
     @Get(':id')
-    @RequirePermission('classSession.getById')
+    @RequirePermission(PERMISSION_CODES.CLASS_SESSION_GET_BY_ID)
     @HttpCode(HttpStatus.OK)
     async getById(
         @Param('id', ParseIntPipe) id: number,
@@ -82,7 +83,7 @@ export class ClassSessionController {
     }
 
     @Post()
-    @RequirePermission('classSession.create')
+    @RequirePermission(PERMISSION_CODES.CLASS_SESSION_CREATE)
     @HttpCode(HttpStatus.CREATED)
     async create(
         @Body() dto: CreateClassSessionDto,
@@ -94,7 +95,7 @@ export class ClassSessionController {
     }
 
     @Put(':id')
-    @RequirePermission('classSession.update')
+    @RequirePermission(PERMISSION_CODES.CLASS_SESSION_UPDATE)
     @HttpCode(HttpStatus.OK)
     async update(
         @Param('id', ParseIntPipe) id: number,
@@ -107,7 +108,7 @@ export class ClassSessionController {
     }
 
     @Delete(':id')
-    @RequirePermission('classSession.delete')
+    @RequirePermission(PERMISSION_CODES.CLASS_SESSION_DELETE)
     @HttpCode(HttpStatus.OK)
     async delete(
         @Param('id', ParseIntPipe) id: number,

@@ -1,5 +1,43 @@
 // src/shared/constants/permissions.constants.ts
 
+/**
+ * Permission codes as constants for type-safe usage in decorators
+ */
+export const PERMISSION_CODES = {
+    // Role Management
+    ROLE_GET_ALL: 'role.getAll',
+    ROLE_GET_BY_ID: 'role.getById',
+    ROLE_CREATE: 'role.create',
+    ROLE_UPDATE: 'role.update',
+    ROLE_DELETE: 'role.delete',
+    ROLE_ASSIGN: 'role.assign',
+    ROLE_GET_USER_ROLES: 'role.getUserRoles',
+    ROLE_TOGGLE_ROLE_PERMISSION: 'role.toggleRolePermission',
+
+    // Permission Management
+    PERMISSION_GET_ALL: 'permission.getAll',
+    PERMISSION_GET_BY_ID: 'permission.getById',
+    PERMISSION_GET_GROUPS: 'permission.getGroups',
+    PERMISSION_CREATE: 'permission.create',
+    PERMISSION_UPDATE: 'permission.update',
+    PERMISSION_DELETE: 'permission.delete',
+
+    // Audit Log
+    AUDIT_LOG_GET_ALL: 'auditLog.getAll',
+    AUDIT_LOG_GET_BY_ID: 'auditLog.getById',
+    AUDIT_LOG_ROLLBACK: 'auditLog.rollback',
+
+    // Notification
+    NOTIFICATION_GET_MY: 'notification.getMy',
+    NOTIFICATION_GET_BY_USER_ID: 'notification.getByUserId',
+    NOTIFICATION_MARK_READ: 'notification.markRead',
+    NOTIFICATION_DELETE: 'notification.delete',
+    NOTIFICATION_SEND: 'notification.send',
+} as const;
+
+/**
+ * Permission definitions for seeding and role management
+ */
 export const PERMISSIONS = [
     // ===================================
     // ROLE MANAGEMENT
@@ -128,6 +166,45 @@ export const PERMISSIONS = [
         name: 'Rollback audit log',
         description: 'Khôi phục dữ liệu từ audit log',
         group: 'AUDIT_LOG',
+        isSystem: true,
+    },
+
+    // ===================================
+    // NOTIFICATION
+    // ===================================
+    {
+        code: 'notification.getMy',
+        name: 'Xem thông báo của tôi',
+        description: 'Xem danh sách thông báo của người dùng hiện tại',
+        group: 'NOTIFICATION',
+        isSystem: false,
+    },
+    {
+        code: 'notification.getByUserId',
+        name: 'Xem thông báo theo user ID',
+        description: 'Xem thông báo của người dùng khác (admin)',
+        group: 'NOTIFICATION',
+        isSystem: true,
+    },
+    {
+        code: 'notification.markRead',
+        name: 'Đánh dấu đã đọc',
+        description: 'Đánh dấu thông báo đã đọc',
+        group: 'NOTIFICATION',
+        isSystem: false,
+    },
+    {
+        code: 'notification.delete',
+        name: 'Xóa thông báo',
+        description: 'Xóa thông báo của mình',
+        group: 'NOTIFICATION',
+        isSystem: false,
+    },
+    {
+        code: 'notification.send',
+        name: 'Gửi thông báo',
+        description: 'Gửi thông báo đến người dùng',
+        group: 'NOTIFICATION',
         isSystem: true,
     },
 ];

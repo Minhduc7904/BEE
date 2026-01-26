@@ -26,7 +26,7 @@ import { MediaUsageMapper } from '../../mappers/media/media-usage.mapper'
 export class PrismaMediaUsageRepository implements IMediaUsageRepository {
   constructor(
     private readonly prisma: PrismaService | Prisma.TransactionClient,
-  ) {}
+  ) { }
 
   /**
    * Attach media to an entity
@@ -95,6 +95,81 @@ export class PrismaMediaUsageRepository implements IMediaUsageRepository {
 
     return result.count
   }
+
+  /**
+ * Find all media usages (system-level query)
+ * Supports optional filters by media, entity, field
+ * NO visibility / permission logic here
+ *
+ * @param filter - Optional filter conditions
+ * @returns Array of MediaUsageEntity
+ */
+  async findAll(
+    filter?: {
+      mediaId?: number
+      entityType?: string
+      entityId?: number
+      fieldName?: string
+    }
+  ): Promise<MediaUsageEntity[]> {
+    const where: Prisma.MediaUsageWhereInput = {
+      ...(filter?.mediaId !== undefined && {
+        mediaId: filter.mediaId,
+      }),
+      ...(filter?.entityType !== undefined && {
+        entityType: filter.entityType,
+      }),
+      ...(filter?.entityId !== undefined && {
+        entityId: filter.entityId,
+      }),
+      ...(filter?.fieldName !== undefined && {
+        fieldName: filter.fieldName,
+      }),
+    }
+
+    const usages = await this.prisma.mediaUsage.findMany({
+      where,
+      orderBy: {
+        createdAt: 'desc', // admin/system view → newest first
+      },
+    })
+
+    return MediaUsageMapper.toDomainList(usages)
+  }
+
+  /**
+   * Find single media usage by context
+   * NO visibility / permission logic here
+   * 
+   */
+  async findOnlyByContext(
+    filter: {
+      mediaId?: number,
+      entityType?: string,
+      entityId?: number,
+      fieldName?: string,
+    }
+  ): Promise<MediaUsageEntity | null> {
+    const where: Prisma.MediaUsageWhereInput = {
+      ...(filter.mediaId !== undefined && {
+        mediaId: filter.mediaId,
+      }),
+      ...(filter.entityType !== undefined && {
+        entityType: filter.entityType,
+      }),
+      ...(filter.entityId !== undefined && {
+        entityId: filter.entityId,
+      }),
+      ...(filter.fieldName !== undefined && {
+        fieldName: filter.fieldName,
+      }),
+    }
+    const usage = await this.prisma.mediaUsage.findFirst({
+      where,
+    })
+    return usage ? MediaUsageMapper.toDomain(usage) : null
+  }
+
 
   /**
    * Find usage by ID

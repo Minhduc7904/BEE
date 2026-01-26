@@ -7,6 +7,7 @@ import { LearningItemListResponseDto, LearningItemResponseDto } from '../../appl
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
+import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 import {
     GetAllLearningItemUseCase,
     GetLearningItemByIdUseCase,
@@ -29,14 +30,14 @@ export class LearningItemController {
     ) { }
 
     @Get()
-    @RequirePermission('learningItem.getAll')
+    @RequirePermission(PERMISSION_CODES.LEARNING_ITEM_GET_ALL)
     @HttpCode(HttpStatus.OK)
     async getAllLearningItems(@Query() query: LearningItemListQueryDto): Promise<LearningItemListResponseDto> {
         return ExceptionHandler.execute(() => this.getAllLearningItemUseCase.execute(query))
     }
 
     @Get('admin/my')
-    @RequirePermission('learningItem.getMyLearningItems')
+    @RequirePermission(PERMISSION_CODES.LEARNING_ITEM_GET_MY_LEARNING_ITEMS)
     @HttpCode(HttpStatus.OK)
     async getMyLearningItems(
         @Query() query: LearningItemListQueryDto,
@@ -47,7 +48,7 @@ export class LearningItemController {
     }
 
     @Get(':id')
-    @RequirePermission('learningItem.getById')
+    @RequirePermission(PERMISSION_CODES.LEARNING_ITEM_GET_BY_ID)
     @HttpCode(HttpStatus.OK)
     async getLearningItemById(
         @Param('id', ParseIntPipe) id: number
@@ -56,7 +57,7 @@ export class LearningItemController {
     }
 
     @Post()
-    @RequirePermission('learningItem.create')
+    @RequirePermission(PERMISSION_CODES.LEARNING_ITEM_CREATE)
     @HttpCode(HttpStatus.CREATED)
     async createLearningItem(
         @Body() dto: CreateLearningItemDto,
@@ -66,7 +67,7 @@ export class LearningItemController {
     }
 
     @Put(':id')
-    @RequirePermission('learningItem.update')
+    @RequirePermission(PERMISSION_CODES.LEARNING_ITEM_UPDATE)
     @HttpCode(HttpStatus.OK)
     async updateLearningItem(
         @Param('id', ParseIntPipe) id: number,
@@ -77,7 +78,7 @@ export class LearningItemController {
     }
 
     @Delete(':id')
-    @RequirePermission('learningItem.delete')
+    @RequirePermission(PERMISSION_CODES.LEARNING_ITEM_DELETE)
     @HttpCode(HttpStatus.OK)
     async deleteLearningItem(
         @Param('id', ParseIntPipe) id: number,

@@ -65,6 +65,7 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _homeworkSubmitRepository: any
     let _videoContentRepository: any
     let _youtubeContentRepository: any
+    let _notificationRepository: any
 
     Object.defineProperty(repos, 'studentRepository', {
       get: () => (_studentRepository ??= new Repositories.PrismaStudentRepository(client)),
@@ -153,6 +154,11 @@ export class PrismaUnitOfWork implements IUnitOfWork {
 
     Object.defineProperty(repos, 'youtubeContentRepository', {
       get: () => (_youtubeContentRepository ??= new Repositories.PrismaYoutubeContentRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'notificationRepository', {
+      get: () => (_notificationRepository ??= new Repositories.PrismaNotificationRepository(client)),
       enumerable: true,
     })
 

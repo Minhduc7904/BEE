@@ -47,6 +47,24 @@ export interface IMediaUsageRepository {
     fieldName?: string,
   ): Promise<number>
 
+  findAll(
+    filter: {
+      mediaId?: number,
+      entityType?: string,
+      entityId?: number,
+      fieldName?: string,
+    }
+  ): Promise<MediaUsageEntity[]>
+
+  findOnlyByContext(
+    filter: {
+      mediaId?: number,
+      entityType?: string,
+      entityId?: number,
+      fieldName?: string,
+    }
+  ): Promise<MediaUsageEntity | null>
+
   /**
    * Find usage by ID
    * 

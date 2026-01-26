@@ -31,6 +31,7 @@ import {
 import { CurrentUser } from '../../shared/decorators/current-user.decorator'
 
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
+import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 
 @Controller('permissions')
 export class PermissionController {
@@ -48,7 +49,7 @@ export class PermissionController {
    * POST /permissions
    */
   @Post()
-  @RequirePermission('permission.create')
+  @RequirePermission(PERMISSION_CODES.PERMISSION_CREATE)
   @HttpCode(HttpStatus.CREATED)
   async createPermission(
     @Body() dto: CreatePermissionDto,
@@ -69,7 +70,7 @@ export class PermissionController {
    * - sortOrder: thứ tự sắp xếp (asc, desc)
    */
   @Get()
-  @RequirePermission('permission.getAll')
+  @RequirePermission(PERMISSION_CODES.PERMISSION_GET_ALL)
   @HttpCode(HttpStatus.OK)
   async getAllPermissions(
     @Query() query: PermissionListQueryDto,
@@ -82,7 +83,7 @@ export class PermissionController {
    * GET /permissions/groups
    */
   @Get('groups')
-  @RequirePermission('permission.getGroups')
+  @RequirePermission(PERMISSION_CODES.PERMISSION_GET_GROUPS)
   @HttpCode(HttpStatus.OK)
   async getPermissionGroups(): Promise<BaseResponseDto<string[]>> {
     return ExceptionHandler.execute(() => this.getPermissionGroupsUseCase.execute())
@@ -93,7 +94,7 @@ export class PermissionController {
    * GET /permissions/:id
    */
   @Get(':id')
-  @RequirePermission('permission.getById')
+  @RequirePermission(PERMISSION_CODES.PERMISSION_GET_BY_ID)
   @HttpCode(HttpStatus.OK)
   async getPermission(
     @Param('id', ParseIntPipe) id: number,
@@ -106,7 +107,7 @@ export class PermissionController {
    * PUT /permissions/:id
    */
   @Put(':id')
-  @RequirePermission('permission.update')
+  @RequirePermission(PERMISSION_CODES.PERMISSION_UPDATE)
   @HttpCode(HttpStatus.OK)
   async updatePermission(
     @Param('id', ParseIntPipe) id: number,
@@ -123,7 +124,7 @@ export class PermissionController {
    * DELETE /permissions/:id
    */
   @Delete(':id')
-  @RequirePermission('permission.delete')
+  @RequirePermission(PERMISSION_CODES.PERMISSION_DELETE)
   @HttpCode(HttpStatus.OK)
   async deletePermission(
     @Param('id', ParseIntPipe) id: number,

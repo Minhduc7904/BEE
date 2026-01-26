@@ -22,6 +22,7 @@ import { IHomeworkContentRepository } from './homework-content.repository'
 import { IHomeworkSubmitRepository } from './homework-submit.repository'
 import { IVideoContentRepository } from './video-content.repository'
 import { IYoutubeContentRepository } from './youtube-content.repository'
+import { INotificationRepository } from './notification.repository'
 // src/domain/repositories/unit-of-work.repository.ts
 export interface UnitOfWorkRepos {
   userRepository: IUserRepository
@@ -47,6 +48,7 @@ export interface UnitOfWorkRepos {
   homeworkSubmitRepository: IHomeworkSubmitRepository
   videoContentRepository: IVideoContentRepository
   youtubeContentRepository: IYoutubeContentRepository
+  notificationRepository: INotificationRepository
 }
 
 export interface IUnitOfWork {

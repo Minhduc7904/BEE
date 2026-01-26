@@ -9,6 +9,7 @@ import {
     ParseIntPipe,
     HttpCode,
     HttpStatus,
+    Injectable,
 } from '@nestjs/common'
 import {
     AttachMediaUseCase,
@@ -16,6 +17,7 @@ import {
     DetachMediaByEntityUseCase,
     GetMediaUsagesByMediaUseCase,
     GetMediaUsagesByEntityUseCase,
+    GetMediaUsagesUseCase,
 } from '../../application/use-cases/media-usage'
 import {
     AttachMediaDto,
@@ -24,11 +26,12 @@ import {
 } from '../../application/dtos/media-usage'
 import { BaseResponseDto } from '../../application/dtos'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
-import { AuthOnly } from '../../shared/decorators/permission.decorator'
+import { RequirePermission } from '../../shared/decorators/permissions.decorator'
 import { CurrentUser } from '../../shared/decorators'
+import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 
+@Injectable()
 @Controller('media-usages')
-@AuthOnly()
 export class MediaUsageController {
     constructor(
         private readonly attachMediaUseCase: AttachMediaUseCase,
@@ -36,6 +39,7 @@ export class MediaUsageController {
         private readonly detachMediaByEntityUseCase: DetachMediaByEntityUseCase,
         private readonly getMediaUsagesByMediaUseCase: GetMediaUsagesByMediaUseCase,
         private readonly getMediaUsagesByEntityUseCase: GetMediaUsagesByEntityUseCase,
+        private readonly getMediaUsagesUseCase: GetMediaUsagesUseCase,
     ) { }
 
     /**
@@ -43,6 +47,7 @@ export class MediaUsageController {
      * Creates a MediaUsage record linking media to entity
      */
     @Post('attach')
+    @RequirePermission(PERMISSION_CODES.MEDIA_USAGE_ATTACH)
     @HttpCode(HttpStatus.CREATED)
     async attachMedia(
         @Body() dto: AttachMediaDto,
@@ -58,30 +63,16 @@ export class MediaUsageController {
      * Can filter by mediaId, entityType, entityId, or fieldName
      */
     @Get()
+    @RequirePermission(PERMISSION_CODES.MEDIA_USAGE_GET_ALL)
     @HttpCode(HttpStatus.OK)
     async getMediaUsages(
         @Query() dto: GetMediaUsageListDto,
     ): Promise<
         BaseResponseDto<{ data: MediaUsageResponseDto[]; total: number }>
     > {
-        // Route to appropriate use case based on filters
-        if (dto.mediaId) {
-            return ExceptionHandler.execute(() =>
-                this.getMediaUsagesByMediaUseCase.execute(dto.mediaId!),
-            )
-        }
-
-        if (dto.entityType && dto.entityId) {
-            return ExceptionHandler.execute(() =>
-                this.getMediaUsagesByEntityUseCase.execute(dto),
-            )
-        }
-
-        // No filters provided
-        return BaseResponseDto.success('Please provide mediaId or entityType+entityId', {
-            data: [],
-            total: 0,
-        })
+        return ExceptionHandler.execute(() =>
+            this.getMediaUsagesUseCase.execute(dto),
+        )
     }
 
     /**
@@ -89,14 +80,16 @@ export class MediaUsageController {
      * Useful for checking where a media file is used before deletion
      */
     @Get('by-media/:mediaId')
+    @RequirePermission(PERMISSION_CODES.MEDIA_USAGE_GET_BY_MEDIA)
     @HttpCode(HttpStatus.OK)
     async getMediaUsagesByMedia(
         @Param('mediaId', ParseIntPipe) mediaId: number,
+        @CurrentUser('userId') userId: number,
     ): Promise<
         BaseResponseDto<{ data: MediaUsageResponseDto[]; total: number }>
     > {
         return ExceptionHandler.execute(() =>
-            this.getMediaUsagesByMediaUseCase.execute(mediaId),
+            this.getMediaUsagesByMediaUseCase.execute(mediaId, userId),
         )
     }
 
@@ -105,11 +98,13 @@ export class MediaUsageController {
      * Example: GET /media-usages/by-entity/USER/123?fieldName=avatar
      */
     @Get('by-entity/:entityType/:entityId')
+    @RequirePermission(PERMISSION_CODES.MEDIA_USAGE_GET_BY_ENTITY)
     @HttpCode(HttpStatus.OK)
     async getMediaUsagesByEntity(
         @Param('entityType') entityType: string,
         @Param('entityId', ParseIntPipe) entityId: number,
         @Query('fieldName') fieldName?: string,
+        @CurrentUser('userId') userId?: number,
     ): Promise<
         BaseResponseDto<{ data: MediaUsageResponseDto[]; total: number }>
     > {
@@ -118,7 +113,7 @@ export class MediaUsageController {
                 entityType,
                 entityId,
                 fieldName,
-            }),
+            }, userId),
         )
     }
 
@@ -127,6 +122,7 @@ export class MediaUsageController {
      * Removes a specific MediaUsage record
      */
     @Delete(':id')
+    @RequirePermission(PERMISSION_CODES.MEDIA_USAGE_DETACH)
     @HttpCode(HttpStatus.OK)
     async detachMedia(
         @Param('id', ParseIntPipe) id: number,
@@ -139,6 +135,7 @@ export class MediaUsageController {
      * Example: DELETE /media-usages/by-entity/USER/123?fieldName=avatar
      */
     @Delete('by-entity/:entityType/:entityId')
+    @RequirePermission(PERMISSION_CODES.MEDIA_USAGE_DETACH)
     @HttpCode(HttpStatus.OK)
     async detachMediaByEntity(
         @Param('entityType') entityType: string,

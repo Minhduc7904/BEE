@@ -26,88 +26,57 @@ import { RoleApplicationModule } from './use-cases/role/role.application.module'
 import { StudentApplicationModule } from './use-cases/student/student.application.module'
 import { SubjectApplicationModule } from './use-cases/subject/subject.application.module'
 import { UserApplicationModule } from './use-cases/user/user.application.module'
+import { NotificationApplicationModule } from './use-cases/notification/notification.application.module'
+
+const modules = [
+  // Auth & Account
+  AuthApplicationModule,
+  PasswordRecoveryApplicationModule,
+  EmailVerificationApplicationModule,
+
+  // User & Profile
+  UserApplicationModule,
+  StudentApplicationModule,
+  AdminProfileApplicationModule,
+  AdminApplicationModule,
+
+  // Role & Permission
+  RoleApplicationModule,
+  PermissionApplicationModule,
+
+  // Media
+  MediaApplicationModule,
+  MediaFolderApplicationModule,
+  MediaUsageApplicationModule,
+
+  // Course & Learning
+  CourseApplicationModule,
+  CourseClassApplicationModule,
+  CourseEnrollmentApplicationModule,
+  SubjectApplicationModule,
+  ChapterApplicationModule,
+  LessonApplicationModule,
+  LearningItemApplicationModule,
+  LessonLearningItemApplicationModule,
+
+  // Class & Attendance
+  ClassSessionApplicationModule,
+  ClassStudentApplicationModule,
+  AttendanceApplicationModule,
+
+  // Audit
+  AuditLogApplicationModule,
+  // Notification
+  NotificationApplicationModule,
+]
 
 @Module({
   imports: [
     InfrastructureModule,
-
-    // Auth & Account
-    AuthApplicationModule,
-    PasswordRecoveryApplicationModule,
-    EmailVerificationApplicationModule,
-
-    // User & Profile
-    UserApplicationModule,
-    StudentApplicationModule,
-    AdminProfileApplicationModule,
-    AdminApplicationModule,
-
-    // Role & Permission
-    RoleApplicationModule,
-    PermissionApplicationModule,
-
-    // Media
-    MediaApplicationModule,
-    MediaFolderApplicationModule,
-    MediaUsageApplicationModule,
-
-    // Course & Learning
-    CourseApplicationModule,
-    CourseClassApplicationModule,
-    CourseEnrollmentApplicationModule,
-    SubjectApplicationModule,
-    ChapterApplicationModule,
-    LessonApplicationModule,
-    LearningItemApplicationModule,
-    LessonLearningItemApplicationModule,
-
-    // Class & Attendance
-    ClassSessionApplicationModule,
-    ClassStudentApplicationModule,
-    AttendanceApplicationModule,
-
-    // Audit
-    AuditLogApplicationModule,
+    ...modules,
   ],
   exports: [
-    // ✅ Export ALL application modules so PresentationModule can access UseCases
-    // Auth & Account
-    AuthApplicationModule,
-    PasswordRecoveryApplicationModule,
-    EmailVerificationApplicationModule,
-
-    // User & Profile
-    UserApplicationModule,
-    StudentApplicationModule,
-    AdminProfileApplicationModule,
-    AdminApplicationModule,
-
-    // Role & Permission
-    RoleApplicationModule,
-    PermissionApplicationModule,
-
-    // Media
-    MediaApplicationModule,
-    MediaFolderApplicationModule,
-    MediaUsageApplicationModule,
-
-    // Course & Learning
-    CourseApplicationModule,
-    CourseClassApplicationModule,
-    CourseEnrollmentApplicationModule,
-    SubjectApplicationModule,
-    ChapterApplicationModule,
-    LessonApplicationModule,
-    LearningItemApplicationModule,
-    LessonLearningItemApplicationModule,
-
-    // Class & Attendance
-    ClassSessionApplicationModule,
-    ClassStudentApplicationModule,
-    AttendanceApplicationModule,
-
-    // Audit
-    AuditLogApplicationModule,
+    ...modules,
   ],
 })
-export class ApplicationModule {}
+export class ApplicationModule { }

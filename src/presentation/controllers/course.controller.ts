@@ -12,6 +12,7 @@ import { BaseResponseDto } from '../../application/dtos/common/base-response.dto
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
 import { CurrentUser } from '../../shared/decorators/current-user.decorator'
+import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 import {
     GetAllCourseUseCase,
     GetCourseByIdUseCase,
@@ -37,7 +38,7 @@ export class CourseController {
     ) { }
 
     @Get()
-    @RequirePermission('course.getAll')
+    @RequirePermission(PERMISSION_CODES.COURSE_GET_ALL)
     @HttpCode(HttpStatus.OK)
     async getAllCourses(
         @Query() query: CourseListQueryDto,
@@ -46,7 +47,7 @@ export class CourseController {
     }
 
     @Get('admin/my')
-    @RequirePermission('course.getMyCourses')
+    @RequirePermission(PERMISSION_CODES.COURSE_GET_MY_COURSES)
     @HttpCode(HttpStatus.OK)
     async getMyCourses(
         @Query() query: CourseListQueryDto,
@@ -57,7 +58,7 @@ export class CourseController {
     }
 
     @Get(':id')
-    @RequirePermission('course.getById')
+    @RequirePermission(PERMISSION_CODES.COURSE_GET_BY_ID)
     @HttpCode(HttpStatus.OK)
     async getCourseById(
         @Param('id', ParseIntPipe) id: number
@@ -66,7 +67,7 @@ export class CourseController {
     }
 
     @Post()
-    @RequirePermission('course.create')
+    @RequirePermission(PERMISSION_CODES.COURSE_CREATE)
     @HttpCode(HttpStatus.CREATED)
     async createCourse(
         @Body() dto: CreateCourseDto,
@@ -76,7 +77,7 @@ export class CourseController {
     }
 
     @Put(':id')
-    @RequirePermission('course.update')
+    @RequirePermission(PERMISSION_CODES.COURSE_UPDATE)
     @HttpCode(HttpStatus.OK)
     async updateCourse(
         @Param('id', ParseIntPipe) id: number,
@@ -87,7 +88,7 @@ export class CourseController {
     }
 
     @Delete(':id')
-    @RequirePermission('course.delete')
+    @RequirePermission(PERMISSION_CODES.COURSE_DELETE)
     @HttpCode(HttpStatus.OK)
     async deleteCourse(
         @Param('id', ParseIntPipe) id: number,
@@ -108,7 +109,7 @@ export class CourseController {
      * GET /courses/1/students-attendance?fromDate=2026-01-01&toDate=2026-01-31&page=1&limit=10
      */
     @Get(':id/students-attendance')
-    @RequirePermission('course.getStudentsAttendance')
+    @RequirePermission(PERMISSION_CODES.COURSE_GET_STUDENTS_ATTENDANCE)
     @HttpCode(HttpStatus.OK)
     async getCourseStudentsAttendance(
         @Param('id', ParseIntPipe) id: number,
@@ -141,7 +142,7 @@ export class CourseController {
      * GET /courses/1/students-attendance/export?fromDate=2026-01-01&toDate=2026-01-31&includeSchool=true
      */
     @Get(':id/students-attendance/export')
-    @RequirePermission('course.getStudentsAttendance')
+    @RequirePermission(PERMISSION_CODES.COURSE_GET_STUDENTS_ATTENDANCE)
     @HttpCode(HttpStatus.OK)
     async exportCourseStudentsAttendance(
         @Param('id', ParseIntPipe) id: number,

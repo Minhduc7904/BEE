@@ -24,6 +24,7 @@ export const RESOURCE_TYPES = {
   HOMEWORK_SUBMIT: 'HOMEWORK_SUBMIT',
   VIDEO_CONTENT: 'VIDEO_CONTENT',
   YOUTUBE_CONTENT: 'YOUTUBE_CONTENT',
+  NOTIFICATION: 'NOTIFICATION',
 } as const
 
 export const RESOURCE_TYPE_TABLE = {
@@ -164,6 +165,12 @@ export const RESOURCE_TYPE_TABLE = {
     tableName: 'youtube_contents',
     primaryKey: 'youtubeContentId',
     repositoryName: 'youtubeContentRepository',
+  },
+  [RESOURCE_TYPES.NOTIFICATION]: {
+    displayName: 'Notification',
+    tableName: 'notifications',
+    primaryKey: 'notificationId',
+    repositoryName: 'notificationRepository',
   },
 } as const
 

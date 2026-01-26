@@ -21,6 +21,7 @@ import { CurrentUser } from '../../shared/decorators/current-user.decorator'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
 import { AdminListQueryDto, AdminResponseDto, BaseResponseDto, PaginationResponseDto, RegisterAdminDto, RegisterAdminResponseDto } from 'src/application/dtos'
 import { Injectable } from '@nestjs/common'
+import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 
 @Injectable()
 @Controller('admins')
@@ -36,7 +37,7 @@ export class AdminController {
      * GET /admin
      */
     @Get()
-    @RequirePermission('admin.getAll')
+    @RequirePermission(PERMISSION_CODES.ADMIN_GET_ALL)
     @HttpCode(HttpStatus.OK)
     async getAllAdmins(
         @Query() query: AdminListQueryDto,
@@ -50,7 +51,7 @@ export class AdminController {
      * Get admin profile
      */
     @Get(':id')
-    @RequirePermission('admin.getById')
+    @RequirePermission(PERMISSION_CODES.ADMIN_GET_BY_ID)
     @HttpCode(HttpStatus.OK)
     async getAdminById(
         @Param('id', ParseIntPipe) id: number,
@@ -66,7 +67,7 @@ export class AdminController {
      * Post admin
      */
     @Post()
-    @RequirePermission('admin.create')
+    @RequirePermission(PERMISSION_CODES.ADMIN_CREATE)
     @HttpCode(HttpStatus.CREATED)
     async createAdmin(
         @Body() dto: RegisterAdminDto,

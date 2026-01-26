@@ -9,6 +9,7 @@ import {
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
+import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 import {
   GetAllClassStudentUseCase,
   CreateClassStudentUseCase,
@@ -27,7 +28,7 @@ export class ClassStudentController {
   ) { }
 
   @Get()
-  @RequirePermission('classStudent.getAll')
+  @RequirePermission(PERMISSION_CODES.CLASS_STUDENT_GET_ALL)
   @HttpCode(HttpStatus.OK)
   async getAll(
     @Query() query: ClassStudentListQueryDto,
@@ -42,7 +43,7 @@ export class ClassStudentController {
   }
 
   @Get('student/my')
-  @RequirePermission('classStudent.getMyClasses')
+  @RequirePermission(PERMISSION_CODES.CLASS_STUDENT_GET_MY_CLASSES)
   @HttpCode(HttpStatus.OK)
   async getMyClasses(
     @Query() query: ClassStudentListQueryDto,
@@ -53,7 +54,7 @@ export class ClassStudentController {
   }
 
   @Post()
-  @RequirePermission('classStudent.create')
+  @RequirePermission(PERMISSION_CODES.CLASS_STUDENT_CREATE)
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Body() dto: CreateClassStudentDto,
@@ -66,7 +67,7 @@ export class ClassStudentController {
   }
 
   @Delete(':classId/:studentId')
-  @RequirePermission('classStudent.delete')
+  @RequirePermission(PERMISSION_CODES.CLASS_STUDENT_DELETE)
   @HttpCode(HttpStatus.OK)
   async delete(
     @Param('classId', ParseIntPipe) classId: number,

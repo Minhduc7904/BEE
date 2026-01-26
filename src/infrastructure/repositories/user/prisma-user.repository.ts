@@ -164,4 +164,17 @@ export class PrismaUserRepository implements IUserRepository {
     })
     return count > 0
   }
+
+  async findAllActiveUserIds(): Promise<number[]> {
+    const users = await this.prisma.user.findMany({
+      where: {
+        isActive: true,
+      },
+      select: {
+        userId: true,
+      },
+    })
+
+    return users.map(u => u.userId)
+  }
 }

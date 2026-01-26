@@ -3,6 +3,7 @@ import { MediaEntity } from '../../../domain/entities'
 import { UserResponseDto } from '../user/user.dto'
 import { MediaUsageResponseDto } from '../media-usage/media-usage-response.dto'
 import { MediaFolderResponseDto } from '../media-folder'
+
 export class MediaResponseDto {
   mediaId: number
   fileName: string

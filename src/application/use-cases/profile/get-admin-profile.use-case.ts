@@ -17,7 +17,7 @@ export class GetAdminProfileUseCase {
     if (!admin) {
       throw new NotFoundException('Admin profile not found')
     }
-
+    // console.log('Admin found:', admin)
     // Mapper sẽ tự động xử lý việc lọc roles active và chưa expire
     // cũng như map permissions cho từng role
     const adminResponse = AdminResponseDto.fromUserWithAdmin(admin.user, admin)

@@ -78,9 +78,56 @@ model User {
   assignedUserRoles      UserRole[]               @relation("UserRoleAssigner")
   EmailVerificationToken EmailVerificationToken[]
   PasswordResetToken     PasswordResetToken[]
+  notifications          Notification[]
 
   @@index([lastName, firstName], map: "idx_users_name")
   @@map("users")
+}
+
+enum NotificationType {
+  SYSTEM
+  COURSE
+  LESSON
+  ATTENDANCE
+  MESSAGE
+  OTHER
+}
+
+enum NotificationLevel {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+}
+
+model Notification {
+  notificationId Int @id @default(autoincrement()) @map("notification_id")
+
+  // Người nhận
+  userId Int  @map("user_id")
+  user   User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  // Nội dung
+  title   String @db.VarChar(255)
+  message String @db.Text
+
+  // Phân loại
+  type  NotificationType  @default(SYSTEM)
+  level NotificationLevel @default(INFO)
+
+  // Metadata (link, entity, extra info)
+  data Json? @map("data")
+
+  // Trạng thái
+  isRead Boolean   @default(false) @map("is_read")
+  readAt DateTime? @map("read_at") @db.Timestamp(0)
+
+  // Thời gian
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+
+  @@index([userId, isRead], map: "idx_notifications_user_read")
+  @@index([userId, createdAt], map: "idx_notifications_user_created")
+  @@map("notifications")
 }
 
 model PasswordResetToken {
@@ -498,7 +545,7 @@ model LearningItem {
   createdBy      Int              @map("created_by") @db.Int
   createdAt      DateTime         @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamp(0)
- 
+
   // Relations
   lessons              LessonLearningItem[]
   admin                Admin                 @relation(fields: [createdBy], references: [adminId], onDelete: Cascade)

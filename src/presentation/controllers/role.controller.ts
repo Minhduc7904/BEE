@@ -33,6 +33,7 @@ import {
 } from '../../application/use-cases/role'
 import { CurrentUser } from '../../shared/decorators/current-user.decorator'
 import { RequirePermission } from 'src/shared/decorators/permissions.decorator'
+import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 
 @Controller('roles')
 export class RoleController {
@@ -54,7 +55,7 @@ export class RoleController {
    */
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @RequirePermission('role.create')
+  @RequirePermission(PERMISSION_CODES.ROLE_CREATE)
   async createRole(
     @Body() dto: CreateRoleDto,
     @CurrentUser('adminId') adminId: number,
@@ -68,7 +69,7 @@ export class RoleController {
    */
   @Get()
   @HttpCode(HttpStatus.OK)
-  @RequirePermission('role.getAll')
+  @RequirePermission(PERMISSION_CODES.ROLE_GET_ALL)
   async getAllRoles(
     @Query('limit') limit?: number,
     @Query('offset') offset?: number,
@@ -82,7 +83,7 @@ export class RoleController {
    */
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  @RequirePermission('role.getById')
+  @RequirePermission(PERMISSION_CODES.ROLE_GET_BY_ID)
   async getRole(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<BaseResponseDto<RoleResponseDto>> {
@@ -95,7 +96,7 @@ export class RoleController {
    */
   @Put(':id')
   @HttpCode(HttpStatus.OK)
-  @RequirePermission('role.update')
+  @RequirePermission(PERMISSION_CODES.ROLE_UPDATE)
   async updateRole(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateRoleDto,
@@ -110,7 +111,7 @@ export class RoleController {
    */
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
-  @RequirePermission('role.delete')
+  @RequirePermission(PERMISSION_CODES.ROLE_DELETE)
   async deleteRole(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser('adminId') adminId: number,
@@ -124,7 +125,7 @@ export class RoleController {
    */
   @Post('assign')
   @HttpCode(HttpStatus.OK)
-  @RequirePermission('role.assign')
+  @RequirePermission(PERMISSION_CODES.ROLE_ASSIGN)
   async assignRoleToUser(
     @Body() dto: AssignUserRoleDto,
     @CurrentUser('adminId') adminId: number,
@@ -138,7 +139,7 @@ export class RoleController {
    */
   @Delete(':userId/roles/:roleId')
   @HttpCode(HttpStatus.OK)
-  @RequirePermission('role.removeFromUser')
+  @RequirePermission(PERMISSION_CODES.ROLE_REMOVE_FROM_USER)
   async removeRoleFromUser(
     @Param('userId', ParseIntPipe) userId: number,
     @Param('roleId', ParseIntPipe) roleId: number,
@@ -158,7 +159,7 @@ export class RoleController {
    */
   @Get('user/:userId')
   @HttpCode(HttpStatus.OK)
-  @RequirePermission('role.getUserRoles')
+  @RequirePermission(PERMISSION_CODES.ROLE_GET_USER_ROLES)
   async getUserRoles(
     @Param('userId', ParseIntPipe) userId: number,
   ): Promise<BaseResponseDto<UserRoleWithPermissionsResponseDto[]>> {
@@ -171,7 +172,7 @@ export class RoleController {
    */
   @Post(':roleId/permissions/:permissionId/toggle')
   @HttpCode(HttpStatus.OK)
-  @RequirePermission('role.toggleRolePermission')
+  @RequirePermission(PERMISSION_CODES.ROLE_TOGGLE_ROLE_PERMISSION)
   async toggleRolePermission(
     @Param('roleId', ParseIntPipe) roleId: number,
     @Param('permissionId', ParseIntPipe) permissionId: number,

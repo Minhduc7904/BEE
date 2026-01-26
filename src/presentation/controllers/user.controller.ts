@@ -26,6 +26,7 @@ import { AuthOnly } from '../../shared/decorators/permission.decorator'
 import { CurrentUser } from 'src/shared/decorators'
 import { ValidatedImageFile } from '../../shared/decorators'
 import { RequirePermission } from 'src/shared/decorators/permissions.decorator'
+import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 
 @Controller('users')
 export class UserController {
@@ -63,7 +64,7 @@ export class UserController {
 
   @Patch(':id/toggle-activation')
   @HttpCode(HttpStatus.OK)
-  @RequirePermission('user.toggleActivation')
+  @RequirePermission(PERMISSION_CODES.USER_TOGGLE_ACTIVATION)
   async toggleActivation(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user,

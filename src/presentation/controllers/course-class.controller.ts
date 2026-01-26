@@ -23,6 +23,7 @@ import { BaseResponseDto } from '../../application/dtos/common/base-response.dto
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
 import { CurrentUser } from '../../shared/decorators/current-user.decorator'
+import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 import {
     GetAllCourseClassUseCase,
     GetCourseClassByIdUseCase,
@@ -44,7 +45,7 @@ export class CourseClassController {
     ) { }
 
     @Get()
-    @RequirePermission('courseClass.getAll')
+    @RequirePermission(PERMISSION_CODES.COURSE_CLASS_GET_ALL)
     @HttpCode(HttpStatus.OK)
     async getAll(
         @Query() query: CourseClassListQueryDto,
@@ -55,7 +56,7 @@ export class CourseClassController {
     }
 
     @Get('admin/my')
-    @RequirePermission('courseClass.getMyClasses')
+    @RequirePermission(PERMISSION_CODES.COURSE_CLASS_GET_MY_CLASSES)
     @HttpCode(HttpStatus.OK)
     async getMyClasses(
         @CurrentUser('adminId') adminId: number,
@@ -69,7 +70,7 @@ export class CourseClassController {
     }
 
     @Get(':id')
-    @RequirePermission('courseClass.getById')
+    @RequirePermission(PERMISSION_CODES.COURSE_CLASS_GET_BY_ID)
     @HttpCode(HttpStatus.OK)
     async getById(
         @Param('id', ParseIntPipe) id: number,
@@ -81,7 +82,7 @@ export class CourseClassController {
     }
 
     @Post()
-    @RequirePermission('courseClass.create')
+    @RequirePermission(PERMISSION_CODES.COURSE_CLASS_CREATE)
     @HttpCode(HttpStatus.CREATED)
     async create(
         @Body() dto: CreateCourseClassDto,
@@ -93,7 +94,7 @@ export class CourseClassController {
     }
 
     @Put(':id')
-    @RequirePermission('courseClass.update')
+    @RequirePermission(PERMISSION_CODES.COURSE_CLASS_UPDATE)
     @HttpCode(HttpStatus.OK)
     async update(
         @Param('id', ParseIntPipe) id: number,
@@ -106,7 +107,7 @@ export class CourseClassController {
     }
 
     @Delete(':id')
-    @RequirePermission('courseClass.delete')
+    @RequirePermission(PERMISSION_CODES.COURSE_CLASS_DELETE)
     @HttpCode(HttpStatus.OK)
     async delete(
         @Param('id', ParseIntPipe) id: number,

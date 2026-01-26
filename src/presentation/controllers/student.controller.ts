@@ -15,6 +15,7 @@ import {
 } from 'src/application/use-cases'
 import { CurrentUser } from 'src/shared/decorators'
 import { RequirePermission } from 'src/shared/decorators/permissions.decorator'
+import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 
 @Controller('students')
 export class StudentController {
@@ -27,14 +28,14 @@ export class StudentController {
   ) { }
 
   @Get()
-  @RequirePermission('student.getAll')
+  @RequirePermission(PERMISSION_CODES.STUDENT_GET_ALL)
   @HttpCode(HttpStatus.OK)
   async getAllStudents(@Query() query: StudentListQueryDto): Promise<StudentListResponseDto> {
     return ExceptionHandler.execute(() => this.getAllStudentUseCase.execute(query))
   }
 
   @Post()
-  @RequirePermission('student.create')
+  @RequirePermission(PERMISSION_CODES.STUDENT_CREATE)
   @HttpCode(HttpStatus.CREATED)
   async createStudent(
     @Body() dto: RegisterStudentDto,
@@ -71,7 +72,7 @@ export class StudentController {
 
   @Get(':studentId')
   @HttpCode(HttpStatus.OK)
-  @RequirePermission('student.getById')
+  @RequirePermission(PERMISSION_CODES.STUDENT_GET_BY_ID)
   async getProfileStudentByAdmin(
     @Param('studentId', ParseIntPipe) studentId: number
   ): Promise<BaseResponseDto<StudentResponseDto>> {
@@ -81,7 +82,7 @@ export class StudentController {
 
   @Put(':studentId')
   @HttpCode(HttpStatus.OK)
-  @RequirePermission('student.update')
+  @RequirePermission(PERMISSION_CODES.STUDENT_UPDATE)
   async updateStudentByAdmin(
     @Param('studentId', ParseIntPipe) studentId: number,
     @Body() body: UpdateStudentDto

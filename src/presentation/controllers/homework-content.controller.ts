@@ -7,6 +7,7 @@ import { HomeworkContentListResponseDto, HomeworkContentResponseDto } from '../.
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
+import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 import {
     GetAllHomeworkContentUseCase,
     GetHomeworkContentByIdUseCase,
@@ -29,14 +30,14 @@ export class HomeworkContentController {
     ) { }
 
     @Get()
-    @RequirePermission('homeworkContent.getAll')
+    @RequirePermission(PERMISSION_CODES.HOMEWORK_CONTENT_GET_ALL)
     @HttpCode(HttpStatus.OK)
     async getAllHomeworkContents(@Query() query: HomeworkContentListQueryDto): Promise<HomeworkContentListResponseDto> {
         return ExceptionHandler.execute(() => this.getAllHomeworkContentUseCase.execute(query))
     }
 
     @Get(':id')
-    @RequirePermission('homeworkContent.getById')
+    @RequirePermission(PERMISSION_CODES.HOMEWORK_CONTENT_GET_BY_ID)
     @HttpCode(HttpStatus.OK)
     async getHomeworkContentById(
         @Param('id', ParseIntPipe) id: number
@@ -45,7 +46,7 @@ export class HomeworkContentController {
     }
 
     @Post()
-    @RequirePermission('homeworkContent.create')
+    @RequirePermission(PERMISSION_CODES.HOMEWORK_CONTENT_CREATE)
     @HttpCode(HttpStatus.CREATED)
     async createHomeworkContent(
         @Body() dto: CreateHomeworkContentDto,
@@ -55,7 +56,7 @@ export class HomeworkContentController {
     }
 
     @Put(':id')
-    @RequirePermission('homeworkContent.update')
+    @RequirePermission(PERMISSION_CODES.HOMEWORK_CONTENT_UPDATE)
     @HttpCode(HttpStatus.OK)
     async updateHomeworkContent(
         @Param('id', ParseIntPipe) id: number,
@@ -66,7 +67,7 @@ export class HomeworkContentController {
     }
 
     @Delete(':id')
-    @RequirePermission('homeworkContent.delete')
+    @RequirePermission(PERMISSION_CODES.HOMEWORK_CONTENT_DELETE)
     @HttpCode(HttpStatus.OK)
     async deleteHomeworkContent(
         @Param('id', ParseIntPipe) id: number,

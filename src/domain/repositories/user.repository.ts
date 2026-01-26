@@ -61,4 +61,5 @@ export interface IUserRepository {
   delete(id: number): Promise<boolean>
   existsByUsername(username: string): Promise<boolean>
   existsByEmail(email: string): Promise<boolean>
+  findAllActiveUserIds(): Promise<number[]>
 }

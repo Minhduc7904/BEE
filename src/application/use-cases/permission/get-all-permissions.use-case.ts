@@ -11,7 +11,7 @@ export class GetAllPermissionsUseCase {
   async execute(query: PermissionListQueryDto): Promise<PaginationResponseDto<PermissionResponseDto>> {
     // Normalize query data
     query.normalize()
-
+    // console.log('Query after normalize:', query)
     // Validate sort field if provided
     if (!query.validatePermissionSortFields()) {
       return PaginationResponseDto.error(

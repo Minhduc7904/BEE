@@ -1,6 +1,13 @@
 import { Module } from '@nestjs/common'
 import { ApplicationModule } from '../application/application.module'
 import { SharedModule } from '../shared/shared.module'
+import { SocketModule } from '../infrastructure/socket.module'
+
+// Import Gateways
+import { NotificationGateway } from './gateways/notification.gateway'
+import { StatusGateway } from './gateways/status.gateway'
+import { LessonGateway } from './gateways/lesson.gateway'
+import { AttendanceGateway } from './gateways/attendance.gateway'
 
 import { AuthController } from './controllers/auth.controller'
 import { RoleController } from './controllers/role.controller'
@@ -28,11 +35,13 @@ import { CourseEnrollmentController } from './controllers/course-enrollment.cont
 import { SubjectController } from './controllers/subject.controller'
 import { ChapterController } from './controllers/chapter.controller'
 import { AttendanceController } from './controllers/attendance.controller'
+import { NotificationController } from './controllers/notification.controller'
 
 @Module({
   imports: [
     ApplicationModule, // ✅ lấy toàn bộ UseCase đã export
     SharedModule, // ✅ pipes, guards, filters, decorators
+    SocketModule, // ✅ Socket.IO services
   ],
   controllers: [
     AuthController,
@@ -61,6 +70,21 @@ import { AttendanceController } from './controllers/attendance.controller'
     SubjectController,
     ChapterController,
     AttendanceController,
+    NotificationController,
+  ],
+  providers: [
+    // WebSocket Gateways
+    NotificationGateway,
+    StatusGateway,
+    LessonGateway,
+    AttendanceGateway,
+  ],
+  exports: [
+    // Export gateways for use cases to inject
+    NotificationGateway,
+    StatusGateway,
+    LessonGateway,
+    AttendanceGateway,
   ],
 })
 export class PresentationModule {}

@@ -19,4 +19,4 @@ export * from './learningItem/homework-content.entity'
 export * from './learningItem/homework-submit.entity'
 export * from './learningItem/video-content.entity'
 export * from './learningItem/youtube-content.entity'
-
+export * from './notification/notification.entity'

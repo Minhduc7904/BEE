@@ -66,6 +66,8 @@ export interface IMediaRepository {
    */
   softDelete(mediaId: number): Promise<MediaEntity>
 
+  hardDelete(mediaId: number): Promise<boolean>
+
   count(filters: {
     folderId?: number
     search?: string

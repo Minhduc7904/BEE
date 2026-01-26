@@ -32,6 +32,7 @@ import {
 } from '../../application/use-cases/chapter'
 import { CurrentUser } from '../../shared/decorators/current-user.decorator'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
+import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 
 @Controller('chapters')
 export class ChapterController {
@@ -50,7 +51,7 @@ export class ChapterController {
    * POST /chapters
    */
   @Post()
-  @RequirePermission('chapter.create')
+  @RequirePermission(PERMISSION_CODES.CHAPTER_CREATE)
   @HttpCode(HttpStatus.CREATED)
   async createChapter(
     @Body() dto: CreateChapterDto,
@@ -74,7 +75,7 @@ export class ChapterController {
    * Note: For tree lazy loading, use /chapters/root and /chapters/:id/children instead
    */
   @Get()
-  @RequirePermission('chapter.getAll')
+  @RequirePermission(PERMISSION_CODES.CHAPTER_GET_ALL)
   @HttpCode(HttpStatus.OK)
   async getAllChapters(
     @Query() query: ChapterListQueryDto,
@@ -91,7 +92,7 @@ export class ChapterController {
    * - limit: số lượng mỗi trang (mặc định: 100)
    */
   @Get('root')
-  @RequirePermission('chapter.getAll')
+  @RequirePermission(PERMISSION_CODES.CHAPTER_GET_ALL)
   @HttpCode(HttpStatus.OK)
   async getRootChapters(
     @Query('subjectId', new ParseIntPipe({ optional: true })) subjectId?: number,
@@ -106,7 +107,7 @@ export class ChapterController {
    * GET /chapters/:id
    */
   @Get(':id')
-  @RequirePermission('chapter.getById')
+  @RequirePermission(PERMISSION_CODES.CHAPTER_GET_BY_ID)
   @HttpCode(HttpStatus.OK)
   async getChapter(
     @Param('id', ParseIntPipe) id: number,
@@ -122,7 +123,7 @@ export class ChapterController {
    * - limit: số lượng mỗi trang (mặc định: 100)
    */
   @Get(':id/children')
-  @RequirePermission('chapter.getAll')
+  @RequirePermission(PERMISSION_CODES.CHAPTER_GET_ALL)
   @HttpCode(HttpStatus.OK)
   async getChapterChildren(
     @Param('id', ParseIntPipe) id: number,
@@ -137,7 +138,7 @@ export class ChapterController {
    * PUT /chapters/:id
    */
   @Put(':id')
-  @RequirePermission('chapter.update')
+  @RequirePermission(PERMISSION_CODES.CHAPTER_UPDATE)
   @HttpCode(HttpStatus.OK)
   async updateChapter(
     @Param('id', ParseIntPipe) id: number,
@@ -152,7 +153,7 @@ export class ChapterController {
    * DELETE /chapters/:id
    */
   @Delete(':id')
-  @RequirePermission('chapter.delete')
+  @RequirePermission(PERMISSION_CODES.CHAPTER_DELETE)
   @HttpCode(HttpStatus.OK)
   async deleteChapter(
     @Param('id', ParseIntPipe) id: number,

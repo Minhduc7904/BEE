@@ -260,6 +260,13 @@ export class PrismaMediaRepository implements IMediaRepository {
     return MediaMapper.toDomain(media)
   }
 
+  async hardDelete(mediaId: number): Promise<boolean> {
+    await this.prisma.media.delete({
+      where: { mediaId },
+    })
+    return true
+  }
+
   /**
    * Count media with filters
    * Automatically excludes DELETED status unless explicitly included

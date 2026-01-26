@@ -33,4 +33,5 @@ export interface IRoleRepository {
   hasPermission(roleId: number, permissionId: number): Promise<boolean>
   addPermission(roleId: number, permissionId: number): Promise<void>
   removePermission(roleId: number, permissionId: number): Promise<void>
+  getUserIdsByRoleName(roleName: string): Promise<number[]>
 }

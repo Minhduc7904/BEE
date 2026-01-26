@@ -8,6 +8,7 @@ import { HomeworkSubmitListResponseDto, HomeworkSubmitResponseDto } from '../../
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
+import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 import {
     GetAllHomeworkSubmitUseCase,
     GetHomeworkSubmitByIdUseCase,
@@ -32,14 +33,14 @@ export class HomeworkSubmitController {
     ) { }
 
     @Get()
-    @RequirePermission('homeworkSubmit.getAll')
+    @RequirePermission(PERMISSION_CODES.HOMEWORK_SUBMIT_GET_ALL)
     @HttpCode(HttpStatus.OK)
     async getAllHomeworkSubmits(@Query() query: HomeworkSubmitListQueryDto): Promise<HomeworkSubmitListResponseDto> {
         return ExceptionHandler.execute(() => this.getAllHomeworkSubmitUseCase.execute(query))
     }
 
     @Get(':id')
-    @RequirePermission('homeworkSubmit.getById')
+    @RequirePermission(PERMISSION_CODES.HOMEWORK_SUBMIT_GET_BY_ID)
     @HttpCode(HttpStatus.OK)
     async getHomeworkSubmitById(
         @Param('id', ParseIntPipe) id: number
@@ -48,7 +49,7 @@ export class HomeworkSubmitController {
     }
 
     @Post()
-    @RequirePermission('homeworkSubmit.create')
+    @RequirePermission(PERMISSION_CODES.HOMEWORK_SUBMIT_CREATE)
     @HttpCode(HttpStatus.CREATED)
     async createHomeworkSubmit(
         @Body() dto: CreateHomeworkSubmitDto,
@@ -58,7 +59,7 @@ export class HomeworkSubmitController {
     }
 
     @Put(':id')
-    @RequirePermission('homeworkSubmit.update')
+    @RequirePermission(PERMISSION_CODES.HOMEWORK_SUBMIT_UPDATE)
     @HttpCode(HttpStatus.OK)
     async updateHomeworkSubmit(
         @Param('id', ParseIntPipe) id: number,
@@ -69,7 +70,7 @@ export class HomeworkSubmitController {
     }
 
     @Patch(':id/grade')
-    @RequirePermission('homeworkSubmit.grade')
+    @RequirePermission(PERMISSION_CODES.HOMEWORK_SUBMIT_GRADE)
     @HttpCode(HttpStatus.OK)
     async gradeHomeworkSubmit(
         @Param('id', ParseIntPipe) id: number,
@@ -79,7 +80,7 @@ export class HomeworkSubmitController {
     }
 
     @Delete(':id')
-    @RequirePermission('homeworkSubmit.delete')
+    @RequirePermission(PERMISSION_CODES.HOMEWORK_SUBMIT_DELETE)
     @HttpCode(HttpStatus.OK)
     async deleteHomeworkSubmit(
         @Param('id', ParseIntPipe) id: number,
