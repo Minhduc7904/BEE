@@ -206,17 +206,18 @@ model Admin {
   subjectId Int? @map("subject_id")
 
   // Relations
-  subject         Subject?         @relation("AdminSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
-  AdminAuditLog   AdminAuditLog[]
-  Exam            Exam[]           @relation("ExamCreatedBy")
-  Competition     Competition[]    @relation("CompetitionCreatedBy")
-  Course          Course[]         @relation("CourseTeacher")
-  Lesson          Lesson[]         @relation("LessonTeacher")
-  Question        Question[]       @relation("QuestionCreatedBy")
-  courseClasses   CourseClass[]
-  attendances     Attendance[]
-  learningItems   LearningItem[]
-  homeworkSubmits HomeworkSubmit[]
+  subject          Subject?          @relation("AdminSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
+  AdminAuditLog    AdminAuditLog[]
+  Exam             Exam[]            @relation("ExamCreatedBy")
+  Competition      Competition[]     @relation("CompetitionCreatedBy")
+  Course           Course[]          @relation("CourseTeacher")
+  Lesson           Lesson[]          @relation("LessonTeacher")
+  Question         Question[]        @relation("QuestionCreatedBy")
+  courseClasses    CourseClass[]
+  attendances      Attendance[]
+  learningItems    LearningItem[]
+  homeworkSubmits  HomeworkSubmit[]
+  courseAssistants CourseAssistant[]
 
   @@index([subjectId], map: "idx_admins_subject_id")
   @@map("admins")
@@ -660,6 +661,25 @@ model StudentLearningItem {
   @@map("students_learning_items")
 }
 
+model CourseAssistant {
+  courseAssistantId Int @id @default(autoincrement()) @map("course_assistant_id")
+
+  courseId Int @map("course_id")
+  adminId  Int @map("admin_id") // trợ giảng
+
+  joinedAt  DateTime @default(now()) @map("joined_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  course Course @relation(fields: [courseId], references: [courseId], onDelete: Cascade)
+  admin  Admin  @relation(fields: [adminId], references: [adminId], onDelete: Cascade)
+
+  @@unique([courseId, adminId]) // 1 admin không được làm TA 2 lần trong 1 course
+  @@index([courseId])
+  @@index([adminId])
+  @@map("course_assistants")
+}
+
 model Course {
   courseId        Int         @id @default(autoincrement()) @map("course_id")
   title           String      @map("title") @db.VarChar(200) // tên khoá học
@@ -672,7 +692,6 @@ model Course {
   compareAtVND    Int?        @map("compare_at_vnd") // giá gốc (nếu có) để hiển thị giá khuyến mãi
   visibility      Visibility  @default(DRAFT) @map("visibility") // trạng thái khoá học
   teacherId       Int?        @map("teacher_id") // FK tới admin_users nếu admin là giáo viên
-  isUpdatable     Boolean     @default(true) @map("is_updatable") // khoá học có thể chỉnh sửa nội dung không
   hasTuitionFee   Boolean     @default(true) @map("has_tuition_fee") // khoá học có thu học phí hay không
   paymentType     PaymentType @default(MONTHLY) @map("payment_type") // loại thanh toán: 1 lần hoặc theo tháng
   autoRenew       Boolean     @default(false) @map("auto_renew") // có tự động gia hạn thanh toán không
@@ -689,6 +708,7 @@ model Course {
   courseClasses     CourseClass[]
   courseEnrollments CourseEnrollment[]
   tuitionPayments   TuitionPayment[]
+  courseAssistants  CourseAssistant[]
 
   @@index([visibility], map: "idx_courses_visibility")
   @@index([grade, subjectId], map: "idx_courses_grade_subject")
@@ -976,24 +996,34 @@ enum TuitionPaymentStatus {
 
 model TuitionPayment {
   paymentId Int                  @id @default(autoincrement()) @map("payment_id")
-  courseId  Int                  @map("course_id")
+
+  // OPTIONAL FIELDS
+  courseId  Int?                 @map("course_id")
+  month     Int?                 @map("month") @db.TinyInt
+  year      Int?                 @map("year")  @db.SmallInt
+
+  // REQUIRED
   studentId Int                  @map("student_id")
-  month     Int                  @map("month") @db.TinyInt // tháng (1-12)
-  year      Int                  @map("year") @db.SmallInt // năm (ví dụ: 2024)
+
   status    TuitionPaymentStatus @default(UNPAID) @map("status")
-  paidAt    DateTime?            @map("paid_at") @db.Timestamp(0) // thời điểm đánh dấu đã nộp
-  notes     String?              @map("notes") @db.Text // ghi chú
+  paidAt    DateTime?            @map("paid_at") @db.Timestamp(0)
+  notes     String?              @map("notes") @db.Text
+
   createdAt DateTime             @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt DateTime             @updatedAt @map("updated_at") @db.Timestamp(0)
 
-  // Relations
-  course  Course  @relation(fields: [courseId], references: [courseId], onDelete: Cascade)
-  student Student @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  // 🔑 RELATIONS (OPTIONAL PHẢI ĐI KÈM)
+  course  Course?  @relation(fields: [courseId], references: [courseId], onDelete: SetNull)
+  student Student  @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
 
-  @@unique([courseId, studentId, month, year], map: "unique_tuition_payment")
+  // ❌ BỎ UNIQUE vì month/year có thể NULL
+  // @@unique([studentId, month, year])
+
+  // INDEXES (OK)
   @@index([studentId], map: "idx_tuition_payments_student_id")
   @@index([courseId], map: "idx_tuition_payments_course_id")
   @@index([year, month], map: "idx_tuition_payments_year_month")
   @@index([status], map: "idx_tuition_payments_status")
+
   @@map("tuition_payments")
 }

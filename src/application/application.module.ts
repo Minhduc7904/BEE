@@ -27,6 +27,7 @@ import { StudentApplicationModule } from './use-cases/student/student.applicatio
 import { SubjectApplicationModule } from './use-cases/subject/subject.application.module'
 import { UserApplicationModule } from './use-cases/user/user.application.module'
 import { NotificationApplicationModule } from './use-cases/notification/notification.application.module'
+import { TuitionPaymentApplicationModule } from './use-cases/tuition-payment/tuition-payment.application.module'
 
 const modules = [
   // Auth & Account
@@ -68,6 +69,8 @@ const modules = [
   AuditLogApplicationModule,
   // Notification
   NotificationApplicationModule,
+  // Tuition Payment
+  TuitionPaymentApplicationModule,
 ]
 
 @Module({

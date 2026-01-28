@@ -46,11 +46,7 @@ export class DeleteAttendanceUseCase {
           status: AuditStatus.SUCCESS,
           resourceType: RESOURCE_TYPES.ATTENDANCE,
           resourceId: attendanceId.toString(),
-          beforeData: {
-            sessionId: existing.sessionId,
-            studentId: existing.studentId,
-            status: existing.status,
-          },
+          beforeData: existing,
         })
       }
 

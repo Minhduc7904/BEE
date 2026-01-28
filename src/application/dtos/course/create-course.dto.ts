@@ -2,7 +2,7 @@
 import { IsString, IsOptional, IsNumber, IsEnum, IsBoolean, Min, Max, MinLength, MaxLength } from 'class-validator'
 import { Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
-
+import { CourseVisibility } from 'src/shared/enums'
 export class CreateCourseDto {
   @IsString({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Tiêu đề') })
   @MinLength(3, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Tiêu đề', 3) })
@@ -47,14 +47,10 @@ export class CreateCourseDto {
   compareAtVND?: number
 
   @IsOptional()
-  @IsEnum(['DRAFT', 'PUBLISHED', 'PRIVATE'], { message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái') })
-  visibility?: 'DRAFT' | 'PUBLISHED' | 'PRIVATE'
+  @IsEnum(CourseVisibility, { message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái') })
+  visibility?: CourseVisibility
 
   @IsOptional()
   @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Giáo viên') })
   teacherId?: number
-
-  @IsOptional()
-  @IsBoolean({ message: VALIDATION_MESSAGES.FIELD_INVALID('Có thể cập nhật') })
-  isUpdatable?: boolean
 }

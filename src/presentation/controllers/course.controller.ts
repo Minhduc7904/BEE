@@ -1,9 +1,23 @@
 // src/presentation/controllers/course.controller.ts
-import { Controller, Get, Post, Put, Delete, Query, Param, Body, HttpCode, HttpStatus, ParseIntPipe, Res, StreamableFile } from '@nestjs/common'
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Query,
+  Param,
+  Body,
+  HttpCode,
+  HttpStatus,
+  ParseIntPipe,
+  Res,
+  StreamableFile,
+} from '@nestjs/common'
 import type { Response } from 'express'
 import { CourseListQueryDto } from '../../application/dtos/course/course-list-query.dto'
 import { CreateCourseDto } from '../../application/dtos/course/create-course.dto'
-import { UpdateCourseDto } from '../../application/dtos/course/update-course.dto'
+import { UpdateCourseBasicInfoDto, UpdateCoursePricingDto } from '../../application/dtos/course/update-course.dto'
 import { CourseListResponseDto, CourseResponseDto } from '../../application/dtos/course/course.dto'
 import { CourseStudentsAttendanceQueryDto } from '../../application/dtos/course/course-students-attendance-query.dto'
 import { ExportCourseStudentsAttendanceQueryDto } from '../../application/dtos/course/export-course-students-attendance-query.dto'
@@ -14,153 +28,157 @@ import { RequirePermission } from '../../shared/decorators/permissions.decorator
 import { CurrentUser } from '../../shared/decorators/current-user.decorator'
 import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 import {
-    GetAllCourseUseCase,
-    GetCourseByIdUseCase,
-    CreateCourseUseCase,
-    UpdateCourseUseCase,
-    DeleteCourseUseCase,
-    GetCourseStudentsAttendanceUseCase,
-    ExportCourseStudentsAttendanceUseCase,
+  GetAllCourseUseCase,
+  GetCourseByIdUseCase,
+  CreateCourseUseCase,
+  UpdateCourseUseCase,
+  DeleteCourseUseCase,
+  GetCourseStudentsAttendanceUseCase,
+  ExportCourseStudentsAttendanceUseCase,
 } from '../../application/use-cases/course'
 import { Injectable } from '@nestjs/common'
 
 @Injectable()
 @Controller('courses')
 export class CourseController {
-    constructor(
-        private readonly getAllCourseUseCase: GetAllCourseUseCase,
-        private readonly getCourseByIdUseCase: GetCourseByIdUseCase,
-        private readonly createCourseUseCase: CreateCourseUseCase,
-        private readonly updateCourseUseCase: UpdateCourseUseCase,
-        private readonly deleteCourseUseCase: DeleteCourseUseCase,
-        private readonly getCourseStudentsAttendanceUseCase: GetCourseStudentsAttendanceUseCase,
-        private readonly exportCourseStudentsAttendanceUseCase: ExportCourseStudentsAttendanceUseCase,
-    ) { }
+  constructor(
+    private readonly getAllCourseUseCase: GetAllCourseUseCase,
+    private readonly getCourseByIdUseCase: GetCourseByIdUseCase,
+    private readonly createCourseUseCase: CreateCourseUseCase,
+    private readonly updateCourseUseCase: UpdateCourseUseCase,
+    private readonly deleteCourseUseCase: DeleteCourseUseCase,
+    private readonly getCourseStudentsAttendanceUseCase: GetCourseStudentsAttendanceUseCase,
+    private readonly exportCourseStudentsAttendanceUseCase: ExportCourseStudentsAttendanceUseCase,
+  ) {}
 
-    @Get()
-    @RequirePermission(PERMISSION_CODES.COURSE_GET_ALL)
-    @HttpCode(HttpStatus.OK)
-    async getAllCourses(
-        @Query() query: CourseListQueryDto,
-    ): Promise<CourseListResponseDto> {
-        return ExceptionHandler.execute(() => this.getAllCourseUseCase.execute(query))
-    }
+  @Get()
+  @RequirePermission(PERMISSION_CODES.COURSE_GET_ALL)
+  @HttpCode(HttpStatus.OK)
+  async getAllCourses(@Query() query: CourseListQueryDto): Promise<CourseListResponseDto> {
+    return ExceptionHandler.execute(() => this.getAllCourseUseCase.execute(query))
+  }
 
-    @Get('admin/my')
-    @RequirePermission(PERMISSION_CODES.COURSE_GET_MY_COURSES)
-    @HttpCode(HttpStatus.OK)
-    async getMyCourses(
-        @Query() query: CourseListQueryDto,
-        @CurrentUser('adminId') adminId: number,
-    ): Promise<CourseListResponseDto> {
-        query.teacherId = adminId
-        return ExceptionHandler.execute(() => this.getAllCourseUseCase.execute(query))
-    }
+  @Get('admin/my')
+  @RequirePermission(PERMISSION_CODES.COURSE_GET_MY_COURSES)
+  @HttpCode(HttpStatus.OK)
+  async getMyCourses(
+    @Query() query: CourseListQueryDto,
+    @CurrentUser('adminId') adminId: number,
+  ): Promise<CourseListResponseDto> {
+    query.teacherId = adminId
+    return ExceptionHandler.execute(() => this.getAllCourseUseCase.execute(query))
+  }
 
-    @Get(':id')
-    @RequirePermission(PERMISSION_CODES.COURSE_GET_BY_ID)
-    @HttpCode(HttpStatus.OK)
-    async getCourseById(
-        @Param('id', ParseIntPipe) id: number
-    ): Promise<BaseResponseDto<CourseResponseDto>> {
-        return ExceptionHandler.execute(() => this.getCourseByIdUseCase.execute(id))
-    }
+  @Get(':id')
+  @RequirePermission(PERMISSION_CODES.COURSE_GET_BY_ID)
+  @HttpCode(HttpStatus.OK)
+  async getCourseById(@Param('id', ParseIntPipe) id: number): Promise<BaseResponseDto<CourseResponseDto>> {
+    return ExceptionHandler.execute(() => this.getCourseByIdUseCase.execute(id))
+  }
 
-    @Post()
-    @RequirePermission(PERMISSION_CODES.COURSE_CREATE)
-    @HttpCode(HttpStatus.CREATED)
-    async createCourse(
-        @Body() dto: CreateCourseDto,
-        @CurrentUser('adminId') adminId?: number,
-    ): Promise<BaseResponseDto<CourseResponseDto>> {
-        return ExceptionHandler.execute(() => this.createCourseUseCase.execute(dto, adminId))
-    }
+  @Post()
+  @RequirePermission(PERMISSION_CODES.COURSE_CREATE)
+  @HttpCode(HttpStatus.CREATED)
+  async createCourse(
+    @Body() dto: CreateCourseDto,
+    @CurrentUser('adminId') adminId?: number,
+  ): Promise<BaseResponseDto<CourseResponseDto>> {
+    return ExceptionHandler.execute(() => this.createCourseUseCase.execute(dto, adminId))
+  }
 
-    @Put(':id')
-    @RequirePermission(PERMISSION_CODES.COURSE_UPDATE)
-    @HttpCode(HttpStatus.OK)
-    async updateCourse(
-        @Param('id', ParseIntPipe) id: number,
-        @Body() dto: UpdateCourseDto,
-        @CurrentUser('adminId') adminId?: number,
-    ): Promise<BaseResponseDto<CourseResponseDto>> {
-        return ExceptionHandler.execute(() => this.updateCourseUseCase.execute(id, dto, adminId))
-    }
+  @Put(':id/basic-info')
+  @RequirePermission(PERMISSION_CODES.COURSE_UPDATE)
+  @HttpCode(HttpStatus.OK)
+  async updateCourseBasicInfo(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateCourseBasicInfoDto,
+    @CurrentUser('adminId') adminId?: number,
+  ) {
+    return ExceptionHandler.execute(() => this.updateCourseUseCase.executeBasicInfo(id, dto, adminId))
+  }
 
-    @Delete(':id')
-    @RequirePermission(PERMISSION_CODES.COURSE_DELETE)
-    @HttpCode(HttpStatus.OK)
-    async deleteCourse(
-        @Param('id', ParseIntPipe) id: number,
-        @CurrentUser('adminId') adminId?: number,
-    ): Promise<BaseResponseDto<null>> {
-        return ExceptionHandler.execute(() => this.deleteCourseUseCase.execute(id, adminId))
-    }
+  @Put(':id/pricing')
+  @RequirePermission(PERMISSION_CODES.COURSE_UPDATE_PRICING)
+  @HttpCode(HttpStatus.OK)
+  async updateCoursePricing(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateCoursePricingDto,
+    @CurrentUser('adminId') adminId?: number,
+  ) {
+    return ExceptionHandler.execute(() => this.updateCourseUseCase.executePricing(id, dto, adminId))
+  }
 
-    /**
-     * Get students with attendance records for a course
-     * 
-     * @route GET /courses/:id/students-attendance
-     * @param id - Course ID
-     * @param query - Query parameters (fromDate, toDate, page, limit, search)
-     * @returns Paginated list of students with their attendance records
-     * 
-     * @example
-     * GET /courses/1/students-attendance?fromDate=2026-01-01&toDate=2026-01-31&page=1&limit=10
-     */
-    @Get(':id/students-attendance')
-    @RequirePermission(PERMISSION_CODES.COURSE_GET_STUDENTS_ATTENDANCE)
-    @HttpCode(HttpStatus.OK)
-    async getCourseStudentsAttendance(
-        @Param('id', ParseIntPipe) id: number,
-        @Query() query: CourseStudentsAttendanceQueryDto
-    ): Promise<CourseStudentsAttendanceListResponseDto> {
-        return ExceptionHandler.execute(() =>
-            this.getCourseStudentsAttendanceUseCase.execute(id, query)
-        )
-    }
+  @Delete(':id')
+  @RequirePermission(PERMISSION_CODES.COURSE_DELETE)
+  @HttpCode(HttpStatus.OK)
+  async deleteCourse(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('adminId') adminId?: number,
+  ): Promise<BaseResponseDto<null>> {
+    return ExceptionHandler.execute(() => this.deleteCourseUseCase.execute(id, adminId))
+  }
 
-    /**
-     * Export course students attendance to Excel
-     * GET /courses/:id/students-attendance/export
-     * Query params (required):
-     * - fromDate: string (ISO format YYYY-MM-DD) - Từ ngày
-     * - toDate: string (ISO format YYYY-MM-DD) - Đến ngày
-     * 
-     * Query params (optional):
-     * - status: AttendanceStatus - Filter by status (PRESENT, ABSENT, LATE, MAKEUP)
-     * - search: string - Tìm kiếm theo tên, email, SĐT học sinh
-     * - includeSchool: boolean (default: true)
-     * - includeParentPhone: boolean (default: true)
-     * - includeStudentPhone: boolean (default: false)
-     * - includeGrade: boolean (default: true)
-     * - includeEmail: boolean (default: true)
-     * 
-     * Response: Excel file download
-     * 
-     * @example
-     * GET /courses/1/students-attendance/export?fromDate=2026-01-01&toDate=2026-01-31&includeSchool=true
-     */
-    @Get(':id/students-attendance/export')
-    @RequirePermission(PERMISSION_CODES.COURSE_GET_STUDENTS_ATTENDANCE)
-    @HttpCode(HttpStatus.OK)
-    async exportCourseStudentsAttendance(
-        @Param('id', ParseIntPipe) id: number,
-        @Query() query: ExportCourseStudentsAttendanceQueryDto,
-        @Res({ passthrough: true }) res: Response,
-    ): Promise<StreamableFile> {
-        return ExceptionHandler.execute(async () => {
-            const options = query.toExportOptions()
-            const { buffer, filename } = await this.exportCourseStudentsAttendanceUseCase.execute(id, query, options)
+  /**
+   * Get students with attendance records for a course
+   *
+   * @route GET /courses/:id/students-attendance
+   * @param id - Course ID
+   * @param query - Query parameters (fromDate, toDate, page, limit, search)
+   * @returns Paginated list of students with their attendance records
+   *
+   * @example
+   * GET /courses/1/students-attendance?fromDate=2026-01-01&toDate=2026-01-31&page=1&limit=10
+   */
+  @Get(':id/students-attendance')
+  @RequirePermission(PERMISSION_CODES.COURSE_GET_STUDENTS_ATTENDANCE)
+  @HttpCode(HttpStatus.OK)
+  async getCourseStudentsAttendance(
+    @Param('id', ParseIntPipe) id: number,
+    @Query() query: CourseStudentsAttendanceQueryDto,
+  ): Promise<CourseStudentsAttendanceListResponseDto> {
+    return ExceptionHandler.execute(() => this.getCourseStudentsAttendanceUseCase.execute(id, query))
+  }
 
-            // Set response headers for file download
-            res.set({
-                'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                'Content-Disposition': `attachment; filename="${encodeURIComponent(filename)}"`,
-            })
+  /**
+   * Export course students attendance to Excel
+   * GET /courses/:id/students-attendance/export
+   * Query params (required):
+   * - fromDate: string (ISO format YYYY-MM-DD) - Từ ngày
+   * - toDate: string (ISO format YYYY-MM-DD) - Đến ngày
+   *
+   * Query params (optional):
+   * - status: AttendanceStatus - Filter by status (PRESENT, ABSENT, LATE, MAKEUP)
+   * - search: string - Tìm kiếm theo tên, email, SĐT học sinh
+   * - includeSchool: boolean (default: true)
+   * - includeParentPhone: boolean (default: true)
+   * - includeStudentPhone: boolean (default: false)
+   * - includeGrade: boolean (default: true)
+   * - includeEmail: boolean (default: true)
+   *
+   * Response: Excel file download
+   *
+   * @example
+   * GET /courses/1/students-attendance/export?fromDate=2026-01-01&toDate=2026-01-31&includeSchool=true
+   */
+  @Get(':id/students-attendance/export')
+  @RequirePermission(PERMISSION_CODES.COURSE_GET_STUDENTS_ATTENDANCE)
+  @HttpCode(HttpStatus.OK)
+  async exportCourseStudentsAttendance(
+    @Param('id', ParseIntPipe) id: number,
+    @Query() query: ExportCourseStudentsAttendanceQueryDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<StreamableFile> {
+    return ExceptionHandler.execute(async () => {
+      const options = query.toExportOptions()
+      const { buffer, filename } = await this.exportCourseStudentsAttendanceUseCase.execute(id, query, options)
 
-            return new StreamableFile(buffer)
-        })
-    }
+      // Set response headers for file download
+      res.set({
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition': `attachment; filename="${encodeURIComponent(filename)}"`,
+      })
+
+      return new StreamableFile(buffer)
+    })
+  }
 }
-

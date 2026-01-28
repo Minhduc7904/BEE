@@ -10,6 +10,7 @@ import {
     StudentAttendancePaginationOptions,
     StudentAttendanceResult,
 } from '../interface/course/course.interface'
+import { CourseVisibility } from 'src/shared/enums'
 
 export interface ICourseRepository {
     create(data: CreateCourseData): Promise<Course>
@@ -32,7 +33,7 @@ export interface ICourseRepository {
     findByGrade(grade: number): Promise<Course[]>
     findBySubject(subjectId: number): Promise<Course[]>
     findByTeacher(teacherId: number): Promise<Course[]>
-    findByVisibility(visibility: 'DRAFT' | 'PUBLISHED' | 'PRIVATE'): Promise<Course[]>
+    findByVisibility(visibility: CourseVisibility): Promise<Course[]>
 
     // Count methods
     count(filters?: CourseFilterOptions): Promise<number>

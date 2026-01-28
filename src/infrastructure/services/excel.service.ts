@@ -4,7 +4,7 @@ import { Readable } from 'stream'
 
 /**
  * ExcelService - Production-ready Excel file processing service
- * 
+ *
  * FEATURES:
  * - Export data to Excel (XLSX format)
  * - Import and parse Excel files
@@ -12,7 +12,7 @@ import { Readable } from 'stream'
  * - Customizable styling and formatting
  * - Type-safe data handling
  * - Error handling and validation
- * 
+ *
  * ARCHITECTURE:
  * - Pure utility service (no business logic)
  * - Stream-based for large files
@@ -77,7 +77,7 @@ export class ExcelService {
   /**
    * Export data to Excel file as Buffer
    * Suitable for immediate download or API response
-   * 
+   *
    * @param options - Export configuration
    * @returns Excel file buffer
    */
@@ -85,7 +85,7 @@ export class ExcelService {
     try {
       const workbook = await this.createWorkbook(options)
       const buffer = await workbook.xlsx.writeBuffer()
-      
+
       this.logger.log(`✅ Excel exported to buffer: ${options.data.length} rows`)
       return Buffer.from(buffer)
     } catch (error) {
@@ -97,19 +97,19 @@ export class ExcelService {
   /**
    * Export data to Excel file as Stream
    * Suitable for large datasets to prevent memory issues
-   * 
+   *
    * @param options - Export configuration
    * @returns Excel file stream
    */
   async exportToStream(options: ExcelExportOptions): Promise<Readable> {
     try {
       const workbook = await this.createWorkbook(options)
-      const stream = new Readable()
-      
-      // Write workbook to stream
-      await workbook.xlsx.write(stream)
-      
-      this.logger.log(`✅ Excel exported to stream: ${options.data.length} rows`)
+      const stream = new Readable({ read() {} })
+
+      workbook.xlsx.write(stream).then(() => {
+        stream.push(null) // kết thúc stream
+      })
+
       return stream
     } catch (error) {
       this.logger.error(`❌ Export to stream failed: ${error.message}`)
@@ -145,11 +145,11 @@ export class ExcelService {
     const workbook = new ExcelJS.Workbook()
     workbook.creator = 'BEE System'
     workbook.created = new Date()
-    
+
     const worksheet = workbook.addWorksheet(sheetName)
 
     // Configure columns
-    worksheet.columns = columns.map(col => ({
+    worksheet.columns = columns.map((col) => ({
       header: col.header,
       key: col.key,
       width: col.width || 15,
@@ -157,7 +157,7 @@ export class ExcelService {
     }))
 
     // Add data rows
-    data.forEach(row => {
+    data.forEach((row) => {
       worksheet.addRow(row)
     })
 
@@ -208,19 +208,16 @@ export class ExcelService {
 
   /**
    * Parse Excel file from Buffer
-   * 
+   *
    * @param buffer - Excel file buffer
    * @param options - Import configuration
    * @returns Parsed data
    */
-  async parseFromBuffer(
-    buffer: Buffer,
-    options?: ExcelImportOptions,
-  ): Promise<ParsedExcelData> {
+  async parseFromBuffer(buffer: Buffer, options?: ExcelImportOptions): Promise<ParsedExcelData> {
     try {
       const workbook = new ExcelJS.Workbook()
       await workbook.xlsx.load(buffer as any)
-      
+
       return this.extractDataFromWorkbook(workbook, options)
     } catch (error) {
       this.logger.error(`❌ Parse from buffer failed: ${error.message}`)
@@ -230,19 +227,16 @@ export class ExcelService {
 
   /**
    * Parse Excel file from Stream
-   * 
+   *
    * @param stream - Excel file stream
    * @param options - Import configuration
    * @returns Parsed data
    */
-  async parseFromStream(
-    stream: Readable,
-    options?: ExcelImportOptions,
-  ): Promise<ParsedExcelData> {
+  async parseFromStream(stream: Readable, options?: ExcelImportOptions): Promise<ParsedExcelData> {
     try {
       const workbook = new ExcelJS.Workbook()
       await workbook.xlsx.read(stream)
-      
+
       return this.extractDataFromWorkbook(workbook, options)
     } catch (error) {
       this.logger.error(`❌ Parse from stream failed: ${error.message}`)
@@ -254,21 +248,11 @@ export class ExcelService {
    * Extract data from workbook
    * Internal helper method
    */
-  private extractDataFromWorkbook(
-    workbook: ExcelJS.Workbook,
-    options?: ExcelImportOptions,
-  ): ParsedExcelData {
-    const {
-      expectedColumns,
-      sheetName,
-      skipHeader = true,
-      trimValues = true,
-    } = options || {}
+  private extractDataFromWorkbook(workbook: ExcelJS.Workbook, options?: ExcelImportOptions): ParsedExcelData {
+    const { expectedColumns, sheetName, skipHeader = true, trimValues = true } = options || {}
 
     // Get worksheet
-    const worksheet = sheetName
-      ? workbook.getWorksheet(sheetName)
-      : workbook.worksheets[0]
+    const worksheet = sheetName ? workbook.getWorksheet(sheetName) : workbook.worksheets[0]
 
     if (!worksheet) {
       throw new BadRequestException('Worksheet not found')
@@ -307,7 +291,7 @@ export class ExcelService {
         row.eachCell((cell, colNumber) => {
           const header = headers[colNumber - 1]
           const value = this.getCellValue(cell, trimValues)
-          
+
           if (header) {
             rowData[header] = value
             if (value !== null && value !== undefined && value !== '') {
@@ -365,11 +349,11 @@ export class ExcelService {
    * Validate headers against expected columns
    */
   private validateHeaders(headers: string[], expectedColumns: string[]): void {
-    const missingColumns = expectedColumns.filter(col => !headers.includes(col))
-    
+    const missingColumns = expectedColumns.filter((col) => !headers.includes(col))
+
     if (missingColumns.length > 0) {
       throw new BadRequestException(
-        `Missing required columns: ${missingColumns.join(', ')}. Expected: ${expectedColumns.join(', ')}`
+        `Missing required columns: ${missingColumns.join(', ')}. Expected: ${expectedColumns.join(', ')}`,
       )
     }
   }
@@ -379,14 +363,14 @@ export class ExcelService {
   /**
    * Create a simple Excel template with headers only
    * Useful for import templates
-   * 
+   *
    * @param headers - Column headers
    * @param sheetName - Sheet name
    * @returns Excel buffer
    */
   async createTemplate(headers: string[], sheetName = 'Template'): Promise<Buffer> {
     try {
-      const columns = headers.map(header => ({
+      const columns = headers.map((header) => ({
         header,
         key: header.toLowerCase().replace(/\s+/g, '_'),
         width: 20,
@@ -406,7 +390,7 @@ export class ExcelService {
 
   /**
    * Validate Excel file (check if it's a valid XLSX file)
-   * 
+   *
    * @param buffer - File buffer
    * @returns True if valid
    */
@@ -422,7 +406,7 @@ export class ExcelService {
 
   /**
    * Get worksheet names from Excel file
-   * 
+   *
    * @param buffer - Excel file buffer
    * @returns Array of sheet names
    */
@@ -430,7 +414,7 @@ export class ExcelService {
     try {
       const workbook = new ExcelJS.Workbook()
       await workbook.xlsx.load(buffer as any)
-      return workbook.worksheets.map(ws => ws.name)
+      return workbook.worksheets.map((ws) => ws.name)
     } catch (error) {
       this.logger.error(`❌ Get sheet names failed: ${error.message}`)
       throw new BadRequestException('Failed to read Excel file')
@@ -439,7 +423,7 @@ export class ExcelService {
 
   /**
    * Count rows in Excel file
-   * 
+   *
    * @param buffer - Excel file buffer
    * @param sheetName - Optional sheet name
    * @returns Row count
@@ -448,10 +432,8 @@ export class ExcelService {
     try {
       const workbook = new ExcelJS.Workbook()
       await workbook.xlsx.load(buffer as any)
-      
-      const worksheet = sheetName
-        ? workbook.getWorksheet(sheetName)
-        : workbook.worksheets[0]
+
+      const worksheet = sheetName ? workbook.getWorksheet(sheetName) : workbook.worksheets[0]
 
       if (!worksheet) {
         throw new BadRequestException('Worksheet not found')

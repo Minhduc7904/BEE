@@ -20,7 +20,6 @@ export class CourseMapper {
             title: prismaCourse.title,
             priceVND: prismaCourse.priceVND,
             visibility: prismaCourse.visibility,
-            isUpdatable: prismaCourse.isUpdatable,
             hasTuitionFee: prismaCourse.hasTuitionFee ?? true,
             paymentType: prismaCourse.paymentType,
             autoRenew: prismaCourse.autoRenew ?? false,

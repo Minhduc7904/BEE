@@ -5,54 +5,67 @@ import { Course } from '../course/course.entity'
 import { Student } from '../user/student.entity'
 
 export class TuitionPayment {
-    // Required properties
+    // =====================
+    // Core properties
+    // =====================
     paymentId: number
-    courseId: number
     studentId: number
-    month: number // 1 - 12
-    year: number
     status: TuitionPaymentStatus
     createdAt: Date
     updatedAt: Date
 
-    // Optional properties
+    // =====================
+    // Optional business fields
+    // =====================
+    courseId?: number | null
+    month?: number | null // 1 - 12
+    year?: number | null
     paidAt?: Date | null
     notes?: string | null
 
-    // Navigation properties
-    course?: Course
+    // =====================
+    // Navigation
+    // =====================
+    course?: Course | null
     student?: Student
 
     constructor(data: {
         paymentId: number
-        courseId: number
         studentId: number
-        month: number
-        year: number
         status: TuitionPaymentStatus
-        createdAt?: Date
-        updatedAt?: Date
+
+        courseId?: number | null
+        month?: number | null
+        year?: number | null
         paidAt?: Date | null
         notes?: string | null
-        course?: Course
+
+        createdAt?: Date
+        updatedAt?: Date
+
+        course?: Course | null
         student?: Student
     }) {
         this.paymentId = data.paymentId
-        this.courseId = data.courseId
         this.studentId = data.studentId
-        this.month = data.month
-        this.year = data.year
         this.status = data.status
-        this.createdAt = data.createdAt || new Date()
-        this.updatedAt = data.updatedAt || new Date()
 
-        this.paidAt = data.paidAt
-        this.notes = data.notes
-        this.course = data.course
+        this.courseId = data.courseId ?? null
+        this.month = data.month ?? null
+        this.year = data.year ?? null
+        this.paidAt = data.paidAt ?? null
+        this.notes = data.notes ?? null
+
+        this.createdAt = data.createdAt ?? new Date()
+        this.updatedAt = data.updatedAt ?? new Date()
+
+        this.course = data.course ?? null
         this.student = data.student
     }
 
-    /* ===================== DOMAIN METHODS ===================== */
+    // =====================
+    // Domain state checks
+    // =====================
 
     isPaid(): boolean {
         return this.status === TuitionPaymentStatus.PAID
@@ -61,6 +74,18 @@ export class TuitionPayment {
     isUnpaid(): boolean {
         return this.status === TuitionPaymentStatus.UNPAID
     }
+
+    hasCourse(): boolean {
+        return !!this.courseId
+    }
+
+    hasPeriod(): boolean {
+        return this.month != null && this.year != null
+    }
+
+    // =====================
+    // Domain actions
+    // =====================
 
     /**
      * Đánh dấu đã thanh toán
@@ -76,7 +101,7 @@ export class TuitionPayment {
     }
 
     /**
-     * Reset về chưa thanh toán (hoàn tiền / nhập sai)
+     * Reset về chưa thanh toán
      */
     markUnpaid(notes?: string): void {
         this.status = TuitionPaymentStatus.UNPAID
@@ -88,17 +113,34 @@ export class TuitionPayment {
         }
     }
 
+    // =====================
+    // Business rules
+    // =====================
+
     /**
-     * Kiểm tra có quá hạn thanh toán không
-     * (rule cụ thể sẽ do Course quyết định grace period)
+     * Quá hạn thanh toán?
+     * Chỉ check nếu CÓ month + year
      */
     isOverdue(now: Date = new Date()): boolean {
-        const dueDate = new Date(this.year, this.month, 1) // đầu tháng kế tiếp
-        return this.isUnpaid() && now > dueDate
+        if (!this.hasPeriod()) return false
+        if (this.isPaid()) return false
+
+        // Hạn: đầu tháng kế tiếp
+        const dueDate = new Date(this.year!, this.month!, 1)
+        return now > dueDate
     }
 
     /**
-     * Lấy label hiển thị
+     * Chu kỳ học phí dạng YYYY-MM
+     * null nếu không có chu kỳ
+     */
+    getPeriodKey(): string | null {
+        if (!this.hasPeriod()) return null
+        return `${this.year}-${String(this.month).padStart(2, '0')}`
+    }
+
+    /**
+     * Label hiển thị
      */
     getStatusLabel(): string {
         switch (this.status) {
@@ -111,22 +153,39 @@ export class TuitionPayment {
         }
     }
 
-    /**
-     * Chu kỳ học phí dạng YYYY-MM
-     */
-    getPeriodKey(): string {
-        return `${this.year}-${String(this.month).padStart(2, '0')}`
-    }
+    // =====================
+    // Equality & helpers
+    // =====================
 
     equals(other: TuitionPayment): boolean {
         return this.paymentId === other.paymentId
     }
 
+    clone(): TuitionPayment {
+        return new TuitionPayment({
+            paymentId: this.paymentId,
+            studentId: this.studentId,
+            status: this.status,
+
+            courseId: this.courseId,
+            month: this.month,
+            year: this.year,
+            paidAt: this.paidAt,
+            notes: this.notes,
+
+            createdAt: this.createdAt,
+            updatedAt: this.updatedAt,
+
+            course: this.course,
+            student: this.student,
+        })
+    }
+
     toJSON() {
         return {
             paymentId: this.paymentId,
-            courseId: this.courseId,
             studentId: this.studentId,
+            courseId: this.courseId,
             month: this.month,
             year: this.year,
             status: this.status,
@@ -135,22 +194,5 @@ export class TuitionPayment {
             createdAt: this.createdAt,
             updatedAt: this.updatedAt,
         }
-    }
-
-    clone(): TuitionPayment {
-        return new TuitionPayment({
-            paymentId: this.paymentId,
-            courseId: this.courseId,
-            studentId: this.studentId,
-            month: this.month,
-            year: this.year,
-            status: this.status,
-            createdAt: this.createdAt,
-            updatedAt: this.updatedAt,
-            paidAt: this.paidAt,
-            notes: this.notes,
-            course: this.course,
-            student: this.student,
-        })
     }
 }

@@ -36,7 +36,7 @@ import { SubjectController } from './controllers/subject.controller'
 import { ChapterController } from './controllers/chapter.controller'
 import { AttendanceController } from './controllers/attendance.controller'
 import { NotificationController } from './controllers/notification.controller'
-
+import { TuitionPaymentController } from './controllers/tuition-payment.controller'
 @Module({
   imports: [
     ApplicationModule, // ✅ lấy toàn bộ UseCase đã export
@@ -71,6 +71,7 @@ import { NotificationController } from './controllers/notification.controller'
     ChapterController,
     AttendanceController,
     NotificationController,
+    TuitionPaymentController,
   ],
   providers: [
     // WebSocket Gateways

@@ -31,7 +31,6 @@ export class PrismaCourseRepository implements ICourseRepository {
                 compareAtVND: data.compareAtVND,
                 visibility: data.visibility || 'DRAFT',
                 teacherId: data.teacherId,
-                isUpdatable: data.isUpdatable ?? true,
             },
             include: {
                 subject: true,

@@ -25,6 +25,7 @@ export const RESOURCE_TYPES = {
   VIDEO_CONTENT: 'VIDEO_CONTENT',
   YOUTUBE_CONTENT: 'YOUTUBE_CONTENT',
   NOTIFICATION: 'NOTIFICATION',
+  TUITION_PAYMENT: 'TUITION_PAYMENT',
 } as const
 
 export const RESOURCE_TYPE_TABLE = {
@@ -171,6 +172,12 @@ export const RESOURCE_TYPE_TABLE = {
     tableName: 'notifications',
     primaryKey: 'notificationId',
     repositoryName: 'notificationRepository',
+  },
+  [RESOURCE_TYPES.TUITION_PAYMENT]: {
+    displayName: 'Tuition Payment',
+    tableName: 'tuition_payments',
+    primaryKey: 'tuitionPaymentId',
+    repositoryName: 'tuitionPaymentRepository',
   },
 } as const
 

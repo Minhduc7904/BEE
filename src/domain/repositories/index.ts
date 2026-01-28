@@ -28,3 +28,4 @@ export * from './media.repository';
 export * from './media-usage.repository';
 export * from './media-folder.repository';
 export * from './notification.repository';
+export * from './tuition-payment.repository';

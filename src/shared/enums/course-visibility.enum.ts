@@ -1,4 +1,4 @@
-// src/shared/enums/course-visibility.enum.ts
+  // src/shared/enums/course-visibility.enum.ts
 
 /**
  * Course Visibility Enum

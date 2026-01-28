@@ -22,11 +22,15 @@ export interface IAttendanceRepository {
     filters?: AttendanceFilterOptions,
   ): Promise<AttendanceListResult>
 
+  findWithFilter(
+    filters: AttendanceFilterOptions,
+  ): Promise<Attendance[]>
+
   // Query methods (DOMAIN-LEVEL)
   findBySession(sessionId: number): Promise<Attendance[]>
   findByStudent(studentId: number): Promise<Attendance[]>
   findBySessionAndStudent(sessionId: number, studentId: number): Promise<Attendance | null>
-
+  
   // Bulk operations
   createBulk(data: CreateAttendanceData[]): Promise<Attendance[]>
   updateBulk(updates: Array<{ id: number; data: UpdateAttendanceData }>): Promise<Attendance[]>

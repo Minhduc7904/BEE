@@ -8,6 +8,7 @@ import { ConflictException } from '../../../shared/exceptions/custom-exceptions'
 import { ACTION_KEYS } from '../../../shared/constants/action-key.constants'
 import { AuditStatus } from '../../../shared/enums/audit-status.enum'
 import { RESOURCE_TYPES } from '../../../shared/constants/resource-type.constants'
+import { CourseVisibility } from 'src/shared/enums'
 
 @Injectable()
 export class CreateCourseUseCase {
@@ -47,9 +48,8 @@ export class CreateCourseUseCase {
                 description: dto.description,
                 priceVND: dto.priceVND,
                 compareAtVND: dto.compareAtVND,
-                visibility: dto.visibility || 'DRAFT',
+                visibility: dto.visibility || CourseVisibility.DRAFT,
                 teacherId: dto.teacherId,
-                isUpdatable: dto.isUpdatable ?? true,
             }
 
             const course = await courseRepository.create(createData)

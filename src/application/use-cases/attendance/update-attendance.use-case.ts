@@ -57,14 +57,8 @@ export class UpdateAttendanceUseCase {
           status: AuditStatus.SUCCESS,
           resourceType: RESOURCE_TYPES.ATTENDANCE,
           resourceId: attendance.attendanceId.toString(),
-          beforeData: {
-            status: existing.status,
-            notes: existing.notes,
-          },
-          afterData: {
-            status: attendance.status,
-            notes: attendance.notes,
-          },
+          beforeData: existing,
+          afterData: attendance,
         })
       }
 

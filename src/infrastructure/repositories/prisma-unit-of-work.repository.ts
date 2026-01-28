@@ -66,6 +66,7 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _videoContentRepository: any
     let _youtubeContentRepository: any
     let _notificationRepository: any
+    let _tuitionPaymentRepository: any
 
     Object.defineProperty(repos, 'studentRepository', {
       get: () => (_studentRepository ??= new Repositories.PrismaStudentRepository(client)),
@@ -159,6 +160,11 @@ export class PrismaUnitOfWork implements IUnitOfWork {
 
     Object.defineProperty(repos, 'notificationRepository', {
       get: () => (_notificationRepository ??= new Repositories.PrismaNotificationRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'tuitionPaymentRepository', {
+      get: () => (_tuitionPaymentRepository ??= new Repositories.PrismaTuitionPaymentRepository(client)),
       enumerable: true,
     })
 

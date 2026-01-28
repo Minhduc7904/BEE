@@ -27,6 +27,7 @@ import {
   PrismaCourseEnrollmentRepository,
   PrismaAttendanceRepository,
   PrismaNotificationRepository,
+  PrismaTuitionPaymentRepository,
 } from './repositories'
 import {
   PasswordService,
@@ -171,6 +172,11 @@ import supabaseConfig from '../config/supabase.config'
       inject: [PrismaService],
     },
     {
+      provide: 'ITuitionPaymentRepository',
+      useFactory: (prisma: PrismaService) => new PrismaTuitionPaymentRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
       provide: 'PASSWORD_SERVICE',
       useClass: PasswordService,
     },
@@ -228,6 +234,7 @@ import supabaseConfig from '../config/supabase.config'
     'ILearningItemRepository',
     'ILessonLearningItemRepository',
     'IClassSessionRepository',
+    'ITuitionPaymentRepository',
     'PASSWORD_SERVICE',
     'JWT_TOKEN_SERVICE',
     'TOKEN_HASH_SERVICE',

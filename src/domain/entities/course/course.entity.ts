@@ -1,6 +1,6 @@
 // src/domain/entities/course/course.entity.ts
 
-import { Visibility, PaymentType } from '../../../shared/enums'
+import { CourseVisibility, PaymentType } from '../../../shared/enums'
 import { Subject } from '../subject/subject.entity'
 import { Admin } from '../user/admin.entity'
 import { Lesson } from '../lesson/lesson.entity'
@@ -13,8 +13,7 @@ export class Course {
     courseId: number
     title: string
     priceVND: number
-    visibility: Visibility
-    isUpdatable: boolean
+    visibility: CourseVisibility
     hasTuitionFee: boolean
     paymentType: PaymentType
     autoRenew: boolean
@@ -44,8 +43,7 @@ export class Course {
         courseId: number
         title: string
         priceVND: number
-        visibility: Visibility
-        isUpdatable: boolean
+        visibility: CourseVisibility
         hasTuitionFee: boolean
         paymentType: PaymentType
         autoRenew: boolean
@@ -71,7 +69,6 @@ export class Course {
         this.title = data.title
         this.priceVND = data.priceVND
         this.visibility = data.visibility
-        this.isUpdatable = data.isUpdatable
         this.hasTuitionFee = data.hasTuitionFee
         this.paymentType = data.paymentType
         this.autoRenew = data.autoRenew
@@ -99,19 +96,19 @@ export class Course {
     /* ===================== BUSINESS METHODS ===================== */
 
     isDraft(): boolean {
-        return this.visibility === Visibility.DRAFT
+        return this.visibility === CourseVisibility.DRAFT
     }
 
     isPublished(): boolean {
-        return this.visibility === Visibility.PUBLISHED
+        return this.visibility === CourseVisibility.PUBLISHED
     }
 
     isPrivate(): boolean {
-        return this.visibility === Visibility.PRIVATE
+        return this.visibility === CourseVisibility.PRIVATE
     }
 
     canUpdate(): boolean {
-        return this.isUpdatable
+        return true
     }
 
     isFree(): boolean {
@@ -173,7 +170,6 @@ export class Course {
             compareAtVND: this.compareAtVND,
             visibility: this.visibility,
             teacherId: this.teacherId,
-            isUpdatable: this.isUpdatable,
             hasTuitionFee: this.hasTuitionFee,
             paymentType: this.paymentType,
             autoRenew: this.autoRenew,
@@ -190,7 +186,6 @@ export class Course {
             title: this.title,
             priceVND: this.priceVND,
             visibility: this.visibility,
-            isUpdatable: this.isUpdatable,
             hasTuitionFee: this.hasTuitionFee,
             paymentType: this.paymentType,
             autoRenew: this.autoRenew,

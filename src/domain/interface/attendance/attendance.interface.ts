@@ -22,6 +22,7 @@ export interface AttendanceFilterOptions {
     search?: string
     fromDate?: string
     toDate?: string
+    studentIds?: number[]
 }
 
 export interface AttendancePaginationOptions {

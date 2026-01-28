@@ -1,9 +1,19 @@
-// src/application/dtos/course/update-course.dto.ts
-import { IsString, IsOptional, IsNumber, IsEnum, IsBoolean, Min, Max, MinLength, MaxLength } from 'class-validator'
+import {
+  IsString,
+  IsOptional,
+  IsNumber,
+  IsEnum,
+  IsBoolean,
+  Min,
+  Max,
+  MinLength,
+  MaxLength,
+} from 'class-validator'
 import { Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
+import { CourseVisibility, PaymentType } from 'src/shared/enums'
 
-export class UpdateCourseDto {
+export class UpdateCourseBasicInfoDto {
   @IsOptional()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tiêu đề') })
   @MinLength(3, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Tiêu đề', 3) })
@@ -39,6 +49,16 @@ export class UpdateCourseDto {
   description?: string
 
   @IsOptional()
+  @IsEnum(CourseVisibility, { message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái') })
+  visibility?: CourseVisibility
+
+  @IsOptional()
+  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Giáo viên') })
+  teacherId?: number
+}
+
+export class UpdateCoursePricingDto {
+  @IsOptional()
   @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Giá') })
   @Min(0, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Giá', 0) })
   priceVND?: number
@@ -49,14 +69,23 @@ export class UpdateCourseDto {
   compareAtVND?: number
 
   @IsOptional()
-  @IsEnum(['DRAFT', 'PUBLISHED', 'PRIVATE'], { message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái') })
-  visibility?: 'DRAFT' | 'PUBLISHED' | 'PRIVATE'
+  @IsBoolean({ message: VALIDATION_MESSAGES.FIELD_INVALID('Có thu học phí') })
+  hasTuitionFee?: boolean
 
   @IsOptional()
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Giáo viên') })
-  teacherId?: number
+  @IsEnum(PaymentType, { message: VALIDATION_MESSAGES.FIELD_INVALID('Loại thanh toán') })
+  paymentType?: PaymentType
 
   @IsOptional()
-  @IsBoolean({ message: VALIDATION_MESSAGES.FIELD_INVALID('Có thể cập nhật') })
-  isUpdatable?: boolean
+  @IsBoolean({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tự động gia hạn') })
+  autoRenew?: boolean
+
+  @IsOptional()
+  @IsBoolean({ message: VALIDATION_MESSAGES.FIELD_INVALID('Chặn học khi chưa đóng phí') })
+  blockUnpaid?: boolean
+
+  @IsOptional()
+  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Số ngày ân hạn') })
+  @Min(0, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Số ngày ân hạn', 0) })
+  gracePeriodDays?: number | null
 }
