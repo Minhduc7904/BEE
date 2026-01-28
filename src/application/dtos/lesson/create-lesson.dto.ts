@@ -4,6 +4,7 @@ import { Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { Visibility } from '../../../shared/enums'
 import { Type, Transform } from 'class-transformer'
+import { ToNumber } from 'src/shared/decorators'
 
 export class CreateLessonDto {
   @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_REQUIRED('Khóa học') })
@@ -40,6 +41,6 @@ export class CreateLessonDto {
   @IsOptional()
   @IsArray({ message: VALIDATION_MESSAGES.FIELD_INVALID('Danh sách chương') })
   @IsNumber({}, { each: true, message: VALIDATION_MESSAGES.FIELD_INVALID('ID chương') })
-  @Type(() => Number)
+  @ToNumber()
   chapterIds?: number[]
 }

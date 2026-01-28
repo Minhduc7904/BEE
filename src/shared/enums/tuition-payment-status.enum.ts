@@ -7,7 +7,6 @@
 export enum TuitionPaymentStatus {
   UNPAID = 'UNPAID',
   PAID = 'PAID',
-  LATE = 'LATE',
 }
 
 /**
@@ -16,7 +15,6 @@ export enum TuitionPaymentStatus {
 export const TuitionPaymentStatusLabels: Record<TuitionPaymentStatus, string> = {
   [TuitionPaymentStatus.UNPAID]: 'Chưa nộp',
   [TuitionPaymentStatus.PAID]: 'Đã nộp',
-  [TuitionPaymentStatus.LATE]: 'Nộp muộn',
 }
 
 /**
@@ -25,7 +23,6 @@ export const TuitionPaymentStatusLabels: Record<TuitionPaymentStatus, string> = 
 export const TuitionPaymentStatusDescriptions: Record<TuitionPaymentStatus, string> = {
   [TuitionPaymentStatus.UNPAID]: 'Học phí chưa được thanh toán',
   [TuitionPaymentStatus.PAID]: 'Học phí đã được thanh toán đầy đủ',
-  [TuitionPaymentStatus.LATE]: 'Học phí được thanh toán sau thời hạn quy định',
 }
 
 /**
@@ -34,7 +31,6 @@ export const TuitionPaymentStatusDescriptions: Record<TuitionPaymentStatus, stri
 export const TuitionPaymentStatusColors: Record<TuitionPaymentStatus, string> = {
   [TuitionPaymentStatus.UNPAID]: 'red',
   [TuitionPaymentStatus.PAID]: 'green',
-  [TuitionPaymentStatus.LATE]: 'orange',
 }
 
 /**
@@ -43,5 +39,4 @@ export const TuitionPaymentStatusColors: Record<TuitionPaymentStatus, string> = 
 export const TuitionPaymentStatusIcons: Record<TuitionPaymentStatus, string> = {
   [TuitionPaymentStatus.UNPAID]: '💸',
   [TuitionPaymentStatus.PAID]: '💰',
-  [TuitionPaymentStatus.LATE]: '⏰',
 }

@@ -13,12 +13,19 @@ import {
   ParseIntPipe,
   Res,
   StreamableFile,
+  UseInterceptors,
 } from '@nestjs/common'
 import type { Response } from 'express'
 import { CourseListQueryDto } from '../../application/dtos/course/course-list-query.dto'
 import { CreateCourseDto } from '../../application/dtos/course/create-course.dto'
 import { UpdateCourseBasicInfoDto, UpdateCoursePricingDto } from '../../application/dtos/course/update-course.dto'
-import { CourseListResponseDto, CourseResponseDto } from '../../application/dtos/course/course.dto'
+import {
+  CourseListResponseDto,
+  CourseResponseDto,
+} from '../../application/dtos/course/course.dto'
+import {
+  CourseSearchQueryDto,
+} from '../../application/dtos/course/course-search-query.dto'
 import { CourseStudentsAttendanceQueryDto } from '../../application/dtos/course/course-students-attendance-query.dto'
 import { ExportCourseStudentsAttendanceQueryDto } from '../../application/dtos/course/export-course-students-attendance-query.dto'
 import { CourseStudentsAttendanceListResponseDto } from '../../application/dtos/course/course-student-attendance.dto'
@@ -49,12 +56,19 @@ export class CourseController {
     private readonly deleteCourseUseCase: DeleteCourseUseCase,
     private readonly getCourseStudentsAttendanceUseCase: GetCourseStudentsAttendanceUseCase,
     private readonly exportCourseStudentsAttendanceUseCase: ExportCourseStudentsAttendanceUseCase,
-  ) {}
+  ) { }
 
   @Get()
   @RequirePermission(PERMISSION_CODES.COURSE_GET_ALL)
   @HttpCode(HttpStatus.OK)
   async getAllCourses(@Query() query: CourseListQueryDto): Promise<CourseListResponseDto> {
+    return ExceptionHandler.execute(() => this.getAllCourseUseCase.execute(query))
+  }
+
+  @Get('search')
+  @RequirePermission(PERMISSION_CODES.COURSE_SEARCH)
+  @HttpCode(HttpStatus.OK)
+  async searchCourses(@Query() query: CourseSearchQueryDto): Promise<CourseListResponseDto> {
     return ExceptionHandler.execute(() => this.getAllCourseUseCase.execute(query))
   }
 

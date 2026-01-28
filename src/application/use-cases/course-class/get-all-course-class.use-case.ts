@@ -5,6 +5,7 @@ import {
     CourseClassResponseDto,
 } from '../../dtos/course-class/course-class.dto';
 import { CourseClassListQueryDto } from '../../dtos/course-class/course-class-list-query.dto';
+import { CourseClassSearchQueryDto } from '../../dtos/course-class/course-class-search-query.dto';
 
 @Injectable()
 export class GetAllCourseClassUseCase {
@@ -14,7 +15,7 @@ export class GetAllCourseClassUseCase {
     ) { }
 
     async execute(
-        query: CourseClassListQueryDto,
+        query: CourseClassListQueryDto | CourseClassSearchQueryDto,
     ): Promise<CourseClassListResponseDto> {
         const filters = query.toCourseClassFilterOptions();
         const pagination = query.toCourseClassPaginationOptions();

@@ -33,6 +33,42 @@ export class PrismaCourseEnrollmentRepository implements ICourseEnrollmentReposi
         return CourseEnrollmentMapper.toDomainCourseEnrollment(prismaEnrollment)!
     }
 
+    async createBulk(
+        data: CreateCourseEnrollmentData[]
+    ): Promise<CourseEnrollment[]> {
+
+        if (!data.length) return [];
+
+        // 1️⃣ Create many (ghi DB)
+        await this.prisma.courseEnrollment.createMany({
+            data: data.map(e => ({
+                courseId: e.courseId,
+                studentId: e.studentId,
+                status: e.status,
+            })),
+            skipDuplicates: true,
+        });
+
+        // 2️⃣ Query lại đúng record vừa tạo
+        const createdEnrollments = await this.prisma.courseEnrollment.findMany({
+            where: {
+                studentId: data[0].studentId,
+                courseId: {
+                    in: data.map(e => e.courseId),
+                },
+            },
+            include: {
+                course: true,
+                student: {
+                    include: { user: true },
+                },
+            },
+        });
+
+        return CourseEnrollmentMapper.toDomainCourseEnrollments(createdEnrollments);
+    }
+
+
     async findById(id: number): Promise<CourseEnrollment | null> {
         const enrollmentId = NumberUtil.ensureValidId(id, 'Enrollment ID')
 

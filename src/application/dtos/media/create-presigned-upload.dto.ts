@@ -1,6 +1,7 @@
 import { IsString, IsOptional, IsInt, IsEnum, Min, IsNumber } from 'class-validator'
 import { Type } from 'class-transformer'
 import { MediaType } from '../../../shared/enums'
+import { ToNumber } from 'src/shared/decorators'
 
 /**
  * DTO for requesting presigned upload URL
@@ -23,21 +24,21 @@ export class CreatePresignedUploadDto {
 
   @IsInt()
   @IsOptional()
-  @Type(() => Number)
+  @ToNumber()
   folderId?: number
 
   @IsInt()
   @IsOptional()
-  @Type(() => Number)
+  @ToNumber()
   width?: number
 
   @IsInt()
   @IsOptional()
-  @Type(() => Number)
+  @ToNumber()
   height?: number
 
   @IsInt()
   @IsOptional()
-  @Type(() => Number)
+  @ToNumber()
   duration?: number
 }

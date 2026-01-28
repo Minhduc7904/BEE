@@ -44,10 +44,18 @@ export interface StudentFilterOptions extends BaseFilterOptions {
   // Additional date filters
   lastLoginAfter?: Date
   lastLoginBefore?: Date
+
+  fromDate?: string
+  toDate?: string
+}
+
+export interface StudentStatusStats {
+  status: string
+  total: number
 }
 
 // Student pagination options
-export interface StudentPaginationOptions extends PaginationOptions<StudentSortField> {}
+export interface StudentPaginationOptions extends PaginationOptions<StudentSortField> { }
 
 // Student list result (generic type will be resolved at usage)
-export interface StudentListResult extends PaginationResult<any> {}
+export interface StudentListResult extends PaginationResult<any> { }

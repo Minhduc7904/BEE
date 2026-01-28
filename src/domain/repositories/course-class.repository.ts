@@ -12,6 +12,7 @@ export interface ICourseClassRepository {
     // Basic CRUD
     create(data: CreateCourseClassData): Promise<CourseClass>
     findById(id: number): Promise<CourseClass | null>
+    findByIds(ids: number[]): Promise<CourseClass[]>
     update(id: number, data: UpdateCourseClassData): Promise<CourseClass>
     delete(id: number): Promise<boolean>
     findAll(): Promise<CourseClass[]>

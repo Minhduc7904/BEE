@@ -12,6 +12,7 @@ export interface IClassSessionRepository {
     // Basic CRUD
     create(data: CreateClassSessionData): Promise<ClassSession>
     findById(id: number): Promise<ClassSession | null>
+    findByIds(ids: number[]): Promise<ClassSession[]>
     update(id: number, data: UpdateClassSessionData): Promise<ClassSession>
     delete(id: number): Promise<boolean>
     findAll(): Promise<ClassSession[]>

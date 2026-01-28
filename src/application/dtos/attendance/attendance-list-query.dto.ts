@@ -6,20 +6,21 @@ import {
   AttendanceFilterOptions,
   AttendancePaginationOptions,
 } from '../../../domain/interface/attendance/attendance.interface'
+import { ToNumber } from 'src/shared/decorators'
 
 export class AttendanceListQueryDto extends ListQueryDto {
   @IsOptional()
-  @Type(() => Number)
+  @ToNumber()
   @IsInt({ message: 'ID buổi học phải là số nguyên' })
   sessionId?: number
 
   @IsOptional()
-  @Type(() => Number)
+  @ToNumber()
   @IsInt({ message: 'ID học sinh phải là số nguyên' })
   studentId?: number
 
   @IsOptional()
-  @Type(() => Number)
+  @ToNumber()
   @IsInt({ message: 'ID lớp học phải là số nguyên' })
   classId?: number
 

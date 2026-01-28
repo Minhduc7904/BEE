@@ -1,5 +1,5 @@
 import { IsString, IsEmail, MinLength, IsOptional, Matches, IsInt, Min, Max, IsDateString } from 'class-validator'
-import { Trim } from '../../../shared/decorators'
+import { ToNumberArray, Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES, PHONE_VN_REGEX } from '../../../shared/constants'
 import { BaseResponseDto, ErrorResponseDto, StudentResponseDto, AdminResponseDto } from '..'
 import { IsEnumValue } from '../../../shared/decorators'
@@ -35,7 +35,7 @@ export class RegisterAdminDto {
   subjectId?: number
 
   @IsOptional()
-  @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('Danh sách vai trò') , each: true})
+  @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('Danh sách vai trò'), each: true })
   roleIds?: number[]
 }
 
@@ -91,9 +91,24 @@ export class RegisterStudentDto {
   school?: string
 
   @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('Khối lớp') })
-  @Min(6, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Khối lớp', 6) })
+  @Min(1, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Khối lớp', 1) })
   @Max(12, { message: VALIDATION_MESSAGES.FIELD_MAX_VALUE('Khối lớp', 12) })
   grade: number
+
+  @IsOptional()
+  @ToNumberArray()
+  @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('Danh sách khoá học'), each: true })
+  courseIds?: number[]
+
+  @IsOptional()
+  @ToNumberArray()
+  @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('Danh sách lớp học'), each: true })
+  classIds?: number[]
+
+  @IsOptional()
+  @ToNumberArray()
+  @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('Danh sách buổi học'), each: true })
+  sessionIds?: number[]
 }
 
 export class RegisterAdminResponseDto extends BaseResponseDto<AdminResponseDto> {

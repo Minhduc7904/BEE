@@ -16,7 +16,6 @@ export class GetAllStudentUseCase {
     // console.log('Filters in use case:', filters);
     const result = await this.studentRepository.findByFilters(filters, pagination)
     const students = result.data.map(StudentResponseDto.fromStudentEntity)
-
     return StudentListResponseDto.success(
       'Lấy danh sách học sinh thành công',
       students,

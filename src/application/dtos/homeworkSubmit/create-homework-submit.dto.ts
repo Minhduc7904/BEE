@@ -3,16 +3,17 @@ import { IsNotEmpty, IsString, IsInt } from 'class-validator'
 import { Type } from 'class-transformer'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { Trim } from '../../../shared/decorators'
+import { ToNumber } from 'src/shared/decorators'
 
 export class CreateHomeworkSubmitDto {
     @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('homeworkContentId') })
     @IsNotEmpty({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('homeworkContentId') })
-    @Type(() => Number)
+    @ToNumber()
     homeworkContentId: number
 
     @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('studentId') })
     @IsNotEmpty({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('studentId') })
-    @Type(() => Number)
+    @ToNumber()
     studentId: number
 
     @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('content') })

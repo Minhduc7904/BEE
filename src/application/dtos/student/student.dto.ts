@@ -5,7 +5,8 @@ import { RoleResponseDto } from '../role/role.dto'
 import { IsOptional, IsString, IsInt, Min, Max, Matches } from 'class-validator'
 import { Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
-
+import { CourseEnrollmentResponseDto } from '../course-enrollment/course-enrollment.dto'
+import { ClassStudentResponseDto } from '../class-student/class-student.dto'
 export class StudentResponseDto extends UserResponseDto {
   studentId: number
 
@@ -18,6 +19,9 @@ export class StudentResponseDto extends UserResponseDto {
   school?: string
 
   roles?: RoleResponseDto[]
+  courseEnrollments?: CourseEnrollmentResponseDto[]
+  classStudents?: ClassStudentResponseDto[]
+
 
   constructor(partial: Partial<StudentResponseDto>) {
     super(partial)
@@ -48,6 +52,8 @@ export class StudentResponseDto extends UserResponseDto {
       grade: student.grade,
       school: student.school,
       roles,
+      courseEnrollments: student.courseEnrollments,
+      classStudents: student.classStudents,
     })
   }
 

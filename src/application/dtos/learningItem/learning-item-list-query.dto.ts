@@ -2,19 +2,20 @@
 import { Type } from 'class-transformer'
 import { IsOptional, IsInt, Min, Max, IsEnum, IsString } from 'class-validator'
 import { LearningItemType } from '../../../shared/enums'
+import { ToNumber } from 'src/shared/decorators'
 
 export class LearningItemListQueryDto {
     @IsOptional()
     @IsInt()
     @Min(1)
-    @Type(() => Number)
+    @ToNumber()
     page?: number = 1
 
     @IsOptional()
     @IsInt()
     @Min(1)
     @Max(100)
-    @Type(() => Number)
+    @ToNumber()
     limit?: number = 10
 
     @IsOptional()
@@ -31,12 +32,12 @@ export class LearningItemListQueryDto {
 
     @IsOptional()
     @IsInt()
-    @Type(() => Number)
+    @ToNumber()
     createdBy?: number
 
     @IsOptional()
     @IsInt()
-    @Type(() => Number)
+    @ToNumber()
     competitionId?: number
 
     @IsOptional()

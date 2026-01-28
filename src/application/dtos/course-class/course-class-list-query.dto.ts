@@ -6,20 +6,21 @@ import {
     CourseClassPaginationOptions,
 } from '../../../domain/interface/course-class/course-class.interface';
 import { Trim, ToBoolean } from '../../../shared/decorators'
+import { ToNumber } from 'src/shared/decorators'
 
 export class CourseClassListQueryDto extends ListQueryDto {
     @IsOptional()
-    @Type(() => Number)
+    @ToNumber()
     @IsInt({ message: 'ID khóa học phải là số nguyên' })
     courseId?: number;
 
     @IsOptional()
-    @Type(() => Number)
+    @ToNumber()
     @IsInt({ message: 'ID giáo viên phải là số nguyên' })
     instructorId?: number;
 
     @IsOptional()
-    @Type(() => Number)
+    @ToNumber()
     @IsInt({ message: 'ID giáo viên phải là số nguyên' })
     teacherId?: number;
 

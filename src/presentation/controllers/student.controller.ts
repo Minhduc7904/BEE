@@ -1,8 +1,18 @@
 // src/presentation/controllers/student.controller.ts
-import { Controller, Get, Query, HttpCode, HttpStatus, Param, Body, Put, Post, Req, ParseIntPipe } from '@nestjs/common'
+import { Controller, Get, Query, HttpCode, HttpStatus, Param, Body, Put, Post, Req, ParseIntPipe, StreamableFile, Res } from '@nestjs/common'
 import { StudentListQueryDto } from 'src/application/dtos/student/student-list-query.dto'
-import { StudentListResponseDto, StudentResponseDto, UpdateStudentDto } from 'src/application/dtos/student/student.dto'
+import {
+  StudentListResponseDto,
+  StudentResponseDto,
+  UpdateStudentDto
+} from 'src/application/dtos/student/student.dto'
+import {
+  StudentGradeStatsListResponseDto,
+  StudentStatsResponseDto
+} from 'src/application/dtos/student/student-stats-response.dto'
 import { RegisterStudentDto } from 'src/application/dtos/auth/register.dto'
+import { ExportStudentListOptionDto } from 'src/application/dtos/student/export-student-list-option.dto'
+
 import { ExceptionHandler } from 'src/shared/utils/exception-handler.util'
 import { BaseResponseDto } from 'src/application/dtos/common/base-response.dto'
 import { AdminOnly, AdminRoles, StudentOnly } from 'src/shared/decorators/permission.decorator'
@@ -12,10 +22,14 @@ import {
   GetProfileStudentUseCase,
   UpdateStudentUseCase,
   CreateStudentUseCase,
+  GetStudentStatsByStatusUseCase,
+  GetStudentStatsByGradeUseCase,
+  ExportStudentListUseCase,
 } from 'src/application/use-cases'
 import { CurrentUser } from 'src/shared/decorators'
 import { RequirePermission } from 'src/shared/decorators/permissions.decorator'
 import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
+import type { Response } from 'express'
 
 @Controller('students')
 export class StudentController {
@@ -25,6 +39,9 @@ export class StudentController {
     private readonly getProfileStudentUseCase: GetProfileStudentUseCase,
     private readonly updateStudentUseCase: UpdateStudentUseCase,
     private readonly createStudentUseCase: CreateStudentUseCase,
+    private readonly getStudentStatsByStatusUseCase: GetStudentStatsByStatusUseCase,
+    private readonly getStudentStatsByGradeUseCase: GetStudentStatsByGradeUseCase,
+    private readonly exportStudentListUseCase: ExportStudentListUseCase,
   ) { }
 
   @Get()
@@ -32,6 +49,20 @@ export class StudentController {
   @HttpCode(HttpStatus.OK)
   async getAllStudents(@Query() query: StudentListQueryDto): Promise<StudentListResponseDto> {
     return ExceptionHandler.execute(() => this.getAllStudentUseCase.execute(query))
+  }
+
+  @Get('stats/status')
+  @RequirePermission(PERMISSION_CODES.STUDENT_GET_ALL)
+  @HttpCode(HttpStatus.OK)
+  async getStudentStatusStatics(@Query() query: StudentListQueryDto): Promise<BaseResponseDto<StudentStatsResponseDto>> {
+    return ExceptionHandler.execute(() => this.getStudentStatsByStatusUseCase.execute(query))
+  }
+
+  @Get('stats/grade')
+  @RequirePermission(PERMISSION_CODES.STUDENT_GET_ALL)
+  @HttpCode(HttpStatus.OK)
+  async getStudentGradeStatics(@Query() query: StudentListQueryDto): Promise<BaseResponseDto<StudentGradeStatsListResponseDto>> {
+    return ExceptionHandler.execute(() => this.getStudentStatsByGradeUseCase.execute(query))
   }
 
   @Post()
@@ -88,5 +119,26 @@ export class StudentController {
     @Body() body: UpdateStudentDto
   ): Promise<BaseResponseDto<StudentResponseDto>> {
     return ExceptionHandler.execute(() => this.updateStudentUseCase.execute(studentId, body))
+  }
+
+  @Get('export/excel')
+  @RequirePermission(PERMISSION_CODES.STUDENT_EXPORT_EXCEL)
+  @HttpCode(HttpStatus.OK)
+  async exportStudentList(
+    @Query() options: ExportStudentListOptionDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<StreamableFile> {
+    return ExceptionHandler.execute(async () => {
+      console.log('Export options:', options);
+      const { buffer, filename } = await this.exportStudentListUseCase.execute(options)
+
+      // Set response headers for file download
+      res.set({
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition': `attachment; filename="${encodeURIComponent(filename)}"`,
+      })
+
+      return new StreamableFile(buffer)
+    })
   }
 }

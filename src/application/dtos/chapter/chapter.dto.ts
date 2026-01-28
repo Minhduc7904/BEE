@@ -3,10 +3,11 @@ import { Type } from 'class-transformer'
 import { Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { Chapter } from '../../../domain/entities/chapter/chapter.entity'
+import { ToNumber } from 'src/shared/decorators'
 
 export class CreateChapterDto {
   @IsInt({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('ID môn học') })
-  @Type(() => Number)
+  @ToNumber()
   @Min(1)
   subjectId: number
 
@@ -30,18 +31,18 @@ export class CreateChapterDto {
 
   @IsOptional()
   @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('ID chương cha') })
-  @Type(() => Number)
+  @ToNumber()
   @Min(1)
   parentChapterId?: number
 
   @IsInt({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Thứ tự') })
-  @Type(() => Number)
+  @ToNumber()
   @Min(0)
   orderInParent: number
 
   @IsOptional()
   @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('Cấp độ') })
-  @Type(() => Number)
+  @ToNumber()
   @Min(0)
   level?: number
 }
@@ -49,7 +50,7 @@ export class CreateChapterDto {
 export class UpdateChapterDto {
   @IsOptional()
   @IsInt()
-  @Type(() => Number)
+  @ToNumber()
   @Min(1)
   subjectId?: number
 
@@ -75,19 +76,19 @@ export class UpdateChapterDto {
 
   @IsOptional()
   @IsInt()
-  @Type(() => Number)
+  @ToNumber()
   @Min(1)
   parentChapterId?: number
 
   @IsOptional()
   @IsInt()
-  @Type(() => Number)
+  @ToNumber()
   @Min(0)
   orderInParent?: number
 
   @IsOptional()
   @IsInt()
-  @Type(() => Number)
+  @ToNumber()
   @Min(0)
   level?: number
 }

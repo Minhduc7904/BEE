@@ -19,7 +19,7 @@ export class CreateBulkAttendanceBySessionUseCase {
   constructor(
     @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
-  ) {}
+  ) { }
 
   async execute(
     dto: CreateBulkAttendanceBySessionDto,
@@ -53,7 +53,7 @@ export class CreateBulkAttendanceBySessionUseCase {
          * =========================
          */
         const classStudents =
-          await classStudentRepository.findByClass(session.classId)
+          await classStudentRepository.findByClass(session.classId, true)
 
         if (classStudents.length === 0) {
           throw new ValidationException(
@@ -119,6 +119,7 @@ export class CreateBulkAttendanceBySessionUseCase {
             afterData: {
               sessionId: dto.sessionId,
               createdCount: createdAttendances.length,
+              attendanceIds: createdAttendances.map((a) => a.attendanceId),
             },
             beforeData: {
               requestedStudentIds: studentIds,

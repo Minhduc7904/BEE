@@ -1,19 +1,19 @@
 import { CourseEnrollment } from '../../entities/course-enrollment/course-enrollment.entity';
-
+import { CourseEnrollmentStatus } from 'src/shared/enums';
 export interface CreateCourseEnrollmentData {
   courseId: number;
   studentId: number;
-  status?: string;
+  status?: CourseEnrollmentStatus;
 }
 
 export interface UpdateCourseEnrollmentData {
-  status?: string;
+  status?: CourseEnrollmentStatus;
 }
 
 export interface CourseEnrollmentFilterOptions {
   courseId?: number;
   studentId?: number;
-  status?: string;
+  status?: CourseEnrollmentStatus;
   search?: string;
   enrolledAtFrom?: Date;
   enrolledAtTo?: Date;

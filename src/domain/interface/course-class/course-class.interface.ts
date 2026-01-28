@@ -17,6 +17,7 @@ export interface UpdateCourseClassData {
 
 export interface CourseClassFilterOptions {
   courseId?: number;
+  courseIds?: number[];
   instructorId?: number;
   teacherId?: number;
   isActive?: boolean;

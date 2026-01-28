@@ -5,6 +5,7 @@ import {
     ClassSessionResponseDto,
 } from '../../dtos/class-session/class-session.dto';
 import { ClassSessionListQueryDto } from '../../dtos/class-session/class-session-list-query.dto';
+import { ClassSessionSearchQueryDto } from '../../dtos/class-session/class-session-search-query.dto';
 
 @Injectable()
 export class GetAllClassSessionUseCase {
@@ -14,7 +15,7 @@ export class GetAllClassSessionUseCase {
     ) { }
 
     async execute(
-        query: ClassSessionListQueryDto,
+        query: ClassSessionListQueryDto | ClassSessionSearchQueryDto,
     ): Promise<ClassSessionListResponseDto> {
         const filters = query.toClassSessionFilterOptions();
         const pagination = query.toClassSessionPaginationOptions();

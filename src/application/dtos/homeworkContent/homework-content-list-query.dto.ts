@@ -1,19 +1,20 @@
 // src/application/dtos/homeworkContent/homework-content-list-query.dto.ts
 import { Type } from 'class-transformer'
 import { IsOptional, IsInt, Min, Max, IsEnum, IsString, IsBoolean } from 'class-validator'
+import { ToNumber } from 'src/shared/decorators'
 
 export class HomeworkContentListQueryDto {
     @IsOptional()
     @IsInt()
     @Min(1)
-    @Type(() => Number)
+    @ToNumber()
     page?: number = 1
 
     @IsOptional()
     @IsInt()
     @Min(1)
     @Max(100)
-    @Type(() => Number)
+    @ToNumber()
     limit?: number = 10
 
     @IsOptional()
@@ -26,12 +27,12 @@ export class HomeworkContentListQueryDto {
 
     @IsOptional()
     @IsInt()
-    @Type(() => Number)
+    @ToNumber()
     learningItemId?: number
 
     @IsOptional()
     @IsInt()
-    @Type(() => Number)
+    @ToNumber()
     competitionId?: number
 
     @IsOptional()

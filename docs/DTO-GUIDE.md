@@ -958,7 +958,7 @@ export class QueryDto {
 
 // ✅ Sử dụng @Type decorator
 export class QueryDto {
-    @Type(() => Number)
+    @ToNumber()
     @Transform(({ value }) => parseInt(value))
     page: number;
 }

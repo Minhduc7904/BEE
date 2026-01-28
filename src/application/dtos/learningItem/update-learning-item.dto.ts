@@ -4,6 +4,7 @@ import { Type } from 'class-transformer'
 import { LearningItemType } from '../../../shared/enums'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { Trim } from '../../../shared/decorators'
+import { ToNumber } from 'src/shared/decorators'
 
 export class UpdateLearningItemDto {
     @IsEnum(LearningItemType, { message: VALIDATION_MESSAGES.FIELD_INVALID('type') })
@@ -25,6 +26,6 @@ export class UpdateLearningItemDto {
 
     @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('competitionId') })
     @IsOptional()
-    @Type(() => Number)
+    @ToNumber()
     competitionId?: number
 }

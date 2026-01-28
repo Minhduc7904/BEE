@@ -3,11 +3,12 @@ import { IsNotEmpty, IsString, IsInt } from 'class-validator'
 import { Type } from 'class-transformer'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { Trim } from '../../../shared/decorators'
+import { ToNumber } from 'src/shared/decorators'
 
 export class CreateVideoContentDto {
     @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('learningItemId') })
     @IsNotEmpty({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('learningItemId') })
-    @Type(() => Number)
+    @ToNumber()
     learningItemId: number
 
     @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('content') })

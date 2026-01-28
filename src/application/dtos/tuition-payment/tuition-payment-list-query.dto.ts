@@ -6,27 +6,28 @@ import {
   TuitionPaymentFilterOptions,
   TuitionPaymentPaginationOptions,
 } from '../../../domain/interface/tuition-payment/tuition-payment.interface'
+import { ToNumber } from 'src/shared/decorators'
 
 export class TuitionPaymentListQueryDto extends ListQueryDto {
   @IsOptional()
-  @Type(() => Number)
+  @ToNumber()
   @IsInt({ message: 'ID học sinh phải là số nguyên' })
   studentId?: number
 
   @IsOptional()
-  @Type(() => Number)
+  @ToNumber()
   @IsInt({ message: 'ID khoá học phải là số nguyên' })
   courseId?: number
 
   @IsOptional()
-  @Type(() => Number)
+  @ToNumber()
   @IsInt({ message: 'Tháng phải là số nguyên' })
   @Min(1, { message: 'Tháng phải từ 1 đến 12' })
   @Max(12, { message: 'Tháng phải từ 1 đến 12' })
   month?: number
 
   @IsOptional()
-  @Type(() => Number)
+  @ToNumber()
   @IsInt({ message: 'Năm phải là số nguyên' })
   year?: number
 

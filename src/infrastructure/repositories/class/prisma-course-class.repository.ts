@@ -49,6 +49,18 @@ export class PrismaCourseClassRepository implements ICourseClassRepository {
         return CourseClassMapper.toDomainCourseClass(prismaClass)!
     }
 
+    async findByIds(ids: number[]): Promise<CourseClass[]> {
+        const classIds = ids.map((id) => NumberUtil.ensureValidId(id, 'Class ID'))
+        const prismaClasses = await this.prisma.courseClass.findMany({
+            where: { classId: { in: classIds } },
+            include: {
+                course: true,
+                instructor: { include: { user: true } },
+            },
+        })
+        return CourseClassMapper.toDomainCourseClasses(prismaClasses)
+    }
+
     async update(id: number, data: UpdateCourseClassData): Promise<CourseClass> {
         const classId = NumberUtil.ensureValidId(id, 'Class ID')
 
@@ -101,8 +113,19 @@ export class PrismaCourseClassRepository implements ICourseClassRepository {
 
         /* ===================== BASIC FILTERS ===================== */
 
-        if (filters?.courseId !== undefined) {
-            andConditions.push({ courseId: filters.courseId })
+        // Ưu tiên courseIds (multi)
+        if (filters?.courseIds?.length) {
+            andConditions.push({
+                courseId: {
+                    in: filters.courseIds,
+                },
+            });
+        }
+        // Fallback single courseId
+        else if (filters?.courseId !== undefined) {
+            andConditions.push({
+                courseId: filters.courseId,
+            });
         }
 
         /**

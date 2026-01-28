@@ -5,10 +5,11 @@ import {
     ClassSessionFilterOptions,
     ClassSessionPaginationOptions,
 } from '../../../domain/interface/class-session/class-session.interface';
+import { ToNumber } from 'src/shared/decorators'
 
 export class ClassSessionListQueryDto extends ListQueryDto {
     @IsOptional()
-    @Type(() => Number)
+    @ToNumber()
     @IsInt({ message: 'ID lớp học phải là số nguyên' })
     classId?: number;
 

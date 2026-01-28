@@ -1,13 +1,14 @@
 import { IsInt, IsString, IsOptional, IsEnum, MaxLength } from 'class-validator'
 import { Type } from 'class-transformer'
 import { MediaVisibility } from 'src/shared/enums'
+import { ToNumber } from 'src/shared/decorators'
 
 /**
  * AttachMediaDto - Request DTO for attaching media to entity
  */
 export class AttachMediaDto {
   @IsInt()
-  @Type(() => Number)
+  @ToNumber()
   mediaId: number
 
   @IsString()
@@ -15,7 +16,7 @@ export class AttachMediaDto {
   entityType: string
 
   @IsInt()
-  @Type(() => Number)
+  @ToNumber()
   entityId: number
 
   @IsOptional()

@@ -17,6 +17,7 @@ export interface UpdateClassSessionData {
 
 export interface ClassSessionFilterOptions {
     classId?: number;
+    classIds?: number[];
     sessionDateFrom?: Date;
     sessionDateTo?: Date;
     isPast?: boolean;

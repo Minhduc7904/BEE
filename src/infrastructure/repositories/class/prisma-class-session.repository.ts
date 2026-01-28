@@ -47,6 +47,17 @@ export class PrismaClassSessionRepository implements IClassSessionRepository {
         return ClassSessionMapper.toDomainClassSession(prismaSession)!
     }
 
+    async findByIds(ids: number[]): Promise<ClassSession[]> {
+        const sessionIds = ids.map((id) => NumberUtil.ensureValidId(id, 'Session ID'))
+        const prismaSessions = await this.prisma.classSession.findMany({
+            where: { sessionId: { in: sessionIds } },
+            include: {
+                courseClass: true,
+            },
+        })
+        return ClassSessionMapper.toDomainClassSessions(prismaSessions)
+    }
+
     async update(id: number, data: UpdateClassSessionData): Promise<ClassSession> {
         const sessionId = NumberUtil.ensureValidId(id, 'Session ID')
 
@@ -88,52 +99,94 @@ export class PrismaClassSessionRepository implements IClassSessionRepository {
         pagination: ClassSessionPaginationOptions,
         filters?: ClassSessionFilterOptions,
     ): Promise<ClassSessionListResult> {
-        const page = pagination.page || 1
-        const limit = pagination.limit || 10
-        const sortBy = pagination.sortBy || 'sessionDate'
-        const sortOrder = pagination.sortOrder || 'desc'
+        const page = pagination.page ?? 1
+        const limit = pagination.limit ?? 10
+        const sortBy = pagination.sortBy ?? 'sessionDate'
+        const sortOrder = pagination.sortOrder ?? 'desc'
         const skip = (page - 1) * limit
 
         const where: any = {}
+        const andConditions: any[] = []
 
-        if (filters?.classId !== undefined) {
-            where.classId = filters.classId
+        /* ===================== CLASS FILTER ===================== */
+
+        if (filters?.classIds?.length) {
+            andConditions.push({
+                classId: {
+                    in: filters.classIds,
+                },
+            })
+        } else if (filters?.classId !== undefined) {
+            andConditions.push({
+                classId: filters.classId,
+            })
         }
+
+        /* ===================== SEARCH ===================== */
 
         if (filters?.search) {
-            where.OR = [
-                {
-                    courseClass: {
-                        className: {
-                            contains: filters.search,
-                            
+            andConditions.push({
+                OR: [
+                    {
+                        courseClass: {
+                            className: {
+                                contains: filters.search,
+                            },
                         },
                     },
-                },
-            ]
+                ],
+            })
         }
 
+        /* ===================== DATE RANGE ===================== */
+
         if (filters?.sessionDateFrom || filters?.sessionDateTo) {
-            where.sessionDate = {}
-            if (filters.sessionDateFrom) where.sessionDate.gte = filters.sessionDateFrom
-            if (filters.sessionDateTo) where.sessionDate.lte = filters.sessionDateTo
+            andConditions.push({
+                sessionDate: {
+                    ...(filters.sessionDateFrom && {
+                        gte: filters.sessionDateFrom,
+                    }),
+                    ...(filters.sessionDateTo && {
+                        lte: filters.sessionDateTo,
+                    }),
+                },
+            })
         }
+
+        /* ===================== DATE STATUS ===================== */
 
         const now = new Date()
         now.setHours(0, 0, 0, 0)
+
         const tomorrow = new Date(now)
         tomorrow.setDate(tomorrow.getDate() + 1)
 
         if (filters?.isPast) {
-            where.sessionDate = { lt: now }
+            andConditions.push({
+                sessionDate: { lt: now },
+            })
         } else if (filters?.isToday) {
-            where.sessionDate = { gte: now, lt: tomorrow }
+            andConditions.push({
+                sessionDate: { gte: now, lt: tomorrow },
+            })
         } else if (filters?.isUpcoming) {
-            where.sessionDate = { gte: tomorrow }
+            andConditions.push({
+                sessionDate: { gte: tomorrow },
+            })
         }
+
+        /* ===================== APPLY WHERE ===================== */
+
+        if (andConditions.length > 0) {
+            where.AND = andConditions
+        }
+
+        /* ===================== ORDER ===================== */
 
         const orderBy: any = {}
         orderBy[sortBy] = sortOrder
+
+        /* ===================== QUERY ===================== */
 
         const [prismaSessions, total] = await Promise.all([
             this.prisma.classSession.findMany({
@@ -159,6 +212,7 @@ export class PrismaClassSessionRepository implements IClassSessionRepository {
             totalPages,
         }
     }
+
 
     async findByClass(classId: number): Promise<ClassSession[]> {
         const id = NumberUtil.ensureValidId(classId, 'Class ID')

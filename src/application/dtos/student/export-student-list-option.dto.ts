@@ -1,29 +1,8 @@
 import { IsBoolean, IsOptional, IsEnum } from 'class-validator'
-import { Transform } from 'class-transformer'
 import { ToBoolean } from 'src/shared/decorators'
+import { StudentListQueryDto } from './student-list-query.dto'
 
-/**
- * DTO for customizing attendance export fields
- * 
- * Default fields (always included):
- * - STT (序号)
- * - Mã học sinh (Student Code)
- * - Họ (Last Name)
- * - Tên (First Name)
- * - Trạng thái (Status)
- * 
- * Optional fields (can be toggled):
- * - Trường (School)
- * - SĐT phụ huynh (Parent Phone)
- * - SĐT học sinh (Student Phone)
- * - Lớp (Grade)
- * - Email
- * - Thời gian điểm danh (Marked At)
- * - Ghi chú (Notes)
- * - Ghi chú điểm danh bù (Makeup Note)
- * - Người điểm danh (Marker Name)
- */
-export class ExportAttendanceOptionsDto {
+export class ExportStudentListOptionDto extends StudentListQueryDto {
     /**
      * Include school field
      * @default true
@@ -32,6 +11,33 @@ export class ExportAttendanceOptionsDto {
     @ToBoolean()
     @IsBoolean()
     includeSchool?: boolean = true
+
+    /**
+     * Include gender field
+     * @default true
+     */
+    @IsOptional()
+    @ToBoolean()
+    @IsBoolean()
+    includeGender?: boolean = true
+
+    /**
+     * Include date of birth field
+     * @default true
+     */
+    @IsOptional()
+    @ToBoolean()
+    @IsBoolean()
+    includeDateOfBirth?: boolean = true
+
+    /**
+     * Include username field
+     * @default true
+     */
+    @IsOptional()
+    @ToBoolean()
+    @IsBoolean()
+    includeUsername?: boolean = true
 
     /**
      * Include parent phone field
@@ -70,45 +76,33 @@ export class ExportAttendanceOptionsDto {
     includeEmail?: boolean = true
 
     /**
-     * Include marked at timestamp field
+     * Include isActive field
      * @default true
      */
     @IsOptional()
     @ToBoolean()
     @IsBoolean()
-    includeMarkedAt?: boolean = true
+    includeIsActive?: boolean = true
 
     /**
-     * Include notes field
+     * Include createdAt timestamp field
      * @default true
      */
     @IsOptional()
     @ToBoolean()
     @IsBoolean()
-    includeNotes?: boolean = true
+    includeCreatedAt?: boolean = true
 
     /**
-     * Include makeup note field
+     * Include class field
      * @default false
      */
     @IsOptional()
     @ToBoolean()
     @IsBoolean()
-    includeMakeupNote?: boolean = false
-
-    /**
-     * Include marker name field
-     * @default true
-     */
-    @IsOptional()
-    @ToBoolean()
-    @IsBoolean()
-    includeMarkerName?: boolean = true
+    includeClasses?: boolean = false
 }
 
-/**
- * Interface for column configuration
- */
 export interface AttendanceExportColumn {
     header: string
     key: string

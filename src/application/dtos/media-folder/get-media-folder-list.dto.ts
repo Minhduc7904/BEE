@@ -1,5 +1,6 @@
 import { IsOptional, IsInt } from 'class-validator'
 import { Type } from 'class-transformer'
+import { ToNumber } from 'src/shared/decorators'
 
 /**
  * GetMediaFolderListDto - Request DTO for listing media folders
@@ -7,21 +8,21 @@ import { Type } from 'class-transformer'
 export class GetMediaFolderListDto {
   @IsOptional()
   @IsInt()
-  @Type(() => Number)
+  @ToNumber()
   parentId?: number
 
   @IsOptional()
   @IsInt()
-  @Type(() => Number)
+  @ToNumber()
   createdBy?: number
 
   @IsOptional()
   @IsInt()
-  @Type(() => Number)
+  @ToNumber()
   skip?: number
 
   @IsOptional()
   @IsInt()
-  @Type(() => Number)
+  @ToNumber()
   take?: number
 }

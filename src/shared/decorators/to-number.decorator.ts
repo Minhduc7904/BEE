@@ -29,3 +29,22 @@ export function ToNumber() {
         return isNaN(parsedValue) ? undefined : parsedValue;
     });
 }
+
+export function ToNumberArray() {
+    return Transform(({ value }) => {
+        if (value === '' || value === null || value === undefined) {
+            return undefined;
+        }
+        if (Array.isArray(value)) {
+            const numberArray = value
+                .map((item) => {
+                    const parsedValue = Number(item);
+                    return isNaN(parsedValue) ? undefined : parsedValue;
+                })
+                .filter((item) => item !== undefined) as number[];
+            return numberArray.length > 0 ? numberArray : undefined;
+        }
+        const parsedValue = Number(value);
+        return isNaN(parsedValue) ? undefined : [parsedValue];
+    });
+}

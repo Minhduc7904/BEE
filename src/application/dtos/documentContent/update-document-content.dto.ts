@@ -3,6 +3,7 @@ import { IsString, IsInt, IsOptional } from 'class-validator'
 import { Type } from 'class-transformer'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { Trim } from '../../../shared/decorators'
+import { ToNumber } from 'src/shared/decorators'
 
 export class UpdateDocumentContentDto {
     @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('content') })
@@ -12,6 +13,6 @@ export class UpdateDocumentContentDto {
 
     @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('orderInDocument') })
     @IsOptional()
-    @Type(() => Number)
+    @ToNumber()
     orderInDocument?: number
 }

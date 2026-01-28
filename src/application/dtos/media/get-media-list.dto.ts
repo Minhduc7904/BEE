@@ -4,11 +4,12 @@ import { MediaType, MediaStatus } from 'src/shared/enums'
 import { Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { ListQueryDto } from '../pagination/list-query.dto'
+import { ToNumber } from 'src/shared/decorators'
 
 export class GetMediaListDto extends ListQueryDto {
   @IsOptional()
   @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('ID thư mục') })
-  @Type(() => Number)
+  @ToNumber()
   folderId?: number
 
   @IsOptional()
@@ -21,7 +22,7 @@ export class GetMediaListDto extends ListQueryDto {
 
   @IsOptional()
   @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Người tải lên') })
-  @Type(() => Number)
+  @ToNumber()
   uploadedBy?: number
 
   @IsOptional()

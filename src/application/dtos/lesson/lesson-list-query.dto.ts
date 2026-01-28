@@ -5,13 +5,13 @@ import { LessonFilterOptions, LessonPaginationOptions } from '../../../domain/in
 import { ToNumber } from 'src/shared/decorators'
 export class LessonListQueryDto {
   @IsOptional()
-  @Type(() => Number)
+  @ToNumber()
   @IsNumber({}, { message: 'Page phải là số' })
   @Min(1, { message: 'Page phải lớn hơn 0' })
   page?: number = 1
 
   @IsOptional()
-  @Type(() => Number)
+  @ToNumber()
   @IsNumber({}, { message: 'Limit phải là số' })
   @Min(1, { message: 'Limit phải lớn hơn 0' })
   limit?: number = 10

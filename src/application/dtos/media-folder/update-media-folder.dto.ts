@@ -1,5 +1,6 @@
 import { IsString, IsOptional, IsInt, MaxLength } from 'class-validator'
 import { Type } from 'class-transformer'
+import { ToNumber } from 'src/shared/decorators'
 
 /**
  * UpdateMediaFolderDto - Request DTO for updating media folder
@@ -21,6 +22,6 @@ export class UpdateMediaFolderDto {
 
   @IsOptional()
   @IsInt()
-  @Type(() => Number)
+  @ToNumber()
   parentId?: number
 }

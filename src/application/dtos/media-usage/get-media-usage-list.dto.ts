@@ -1,5 +1,6 @@
 import { IsInt, IsString, IsOptional, MaxLength } from 'class-validator'
 import { Type } from 'class-transformer'
+import { ToNumber } from 'src/shared/decorators'
 
 /**
  * GetMediaUsageListDto - Request DTO for listing media usages
@@ -7,7 +8,7 @@ import { Type } from 'class-transformer'
 export class GetMediaUsageListDto {
   @IsOptional()
   @IsInt()
-  @Type(() => Number)
+  @ToNumber()
   mediaId?: number
 
   @IsOptional()
@@ -17,7 +18,7 @@ export class GetMediaUsageListDto {
 
   @IsOptional()
   @IsInt()
-  @Type(() => Number)
+  @ToNumber()
   entityId?: number
 
   @IsOptional()

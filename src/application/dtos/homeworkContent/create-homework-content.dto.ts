@@ -3,11 +3,12 @@ import { IsNotEmpty, IsString, IsInt, IsOptional, IsBoolean, IsDate } from 'clas
 import { Type } from 'class-transformer'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { Trim } from '../../../shared/decorators'
+import { ToNumber } from 'src/shared/decorators'
 
 export class CreateHomeworkContentDto {
     @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('learningItemId') })
     @IsNotEmpty({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('learningItemId') })
-    @Type(() => Number)
+    @ToNumber()
     learningItemId: number
 
     @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('content') })
@@ -22,7 +23,7 @@ export class CreateHomeworkContentDto {
 
     @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('competitionId') })
     @IsOptional()
-    @Type(() => Number)
+    @ToNumber()
     competitionId?: number
 
     @IsBoolean({ message: VALIDATION_MESSAGES.FIELD_INVALID('allowLateSubmit') })

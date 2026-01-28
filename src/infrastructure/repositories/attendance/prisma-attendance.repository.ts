@@ -13,7 +13,7 @@ import { AttendanceMapper } from '../../mappers/attendance/attendance.mapper'
 import { NumberUtil } from '../../../shared/utils/number.util'
 
 export class PrismaAttendanceRepository implements IAttendanceRepository {
-  constructor(private readonly prisma: PrismaService | any) {}
+  constructor(private readonly prisma: PrismaService | any) { }
 
   async create(data: CreateAttendanceData): Promise<Attendance> {
     const prismaAttendance = await this.prisma.attendance.create({
@@ -393,8 +393,31 @@ export class PrismaAttendanceRepository implements IAttendanceRepository {
   }
 
   async createBulk(data: CreateAttendanceData[]): Promise<Attendance[]> {
-    const createdAttendances = await Promise.all(data.map((item) => this.create(item)))
-    return createdAttendances
+    if (data.length === 0) {
+      return []
+    }
+    await this.prisma.attendance.createMany({
+      data: data.map(item => ({
+        sessionId: item.sessionId,
+        studentId: item.studentId,
+        status: item.status,
+        notes: item.notes,
+        markerId: item.markerId,
+        markedAt: new Date(),
+      })),
+      skipDuplicates: true,
+    })
+
+    const attendanceRecords = await this.prisma.attendance.findMany({
+      where: {
+        OR: data.map(item => ({
+          sessionId: item.sessionId,
+          studentId: item.studentId,
+        })),
+      },
+    })
+
+    return AttendanceMapper.toDomainAttendances(attendanceRecords)
   }
 
   async updateBulk(updates: Array<{ id: number; data: UpdateAttendanceData }>): Promise<Attendance[]> {

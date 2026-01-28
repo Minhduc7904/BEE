@@ -5,6 +5,7 @@ import { ValidationPipe } from '@nestjs/common'
 import { HttpExceptionFilter } from './shared/filters/http-exception.filter'
 import { CorsConfig } from './config/cors.config'
 import { Server } from 'http'
+import { NormalizeArrayQueryPipe } from './shared/pipes/normalize-array-query.pipe'
 
 async function bootstrap() {
   dotenv.config()
@@ -25,12 +26,13 @@ async function bootstrap() {
    * Validation
    * ========================= */
   app.useGlobalPipes(
+    new NormalizeArrayQueryPipe(), // 🔥 PHẢI TRƯỚC
     new ValidationPipe({
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
     }),
-  )
+  );
 
   /* =========================
    * Exception filter

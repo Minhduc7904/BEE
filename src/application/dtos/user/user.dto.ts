@@ -40,7 +40,7 @@ export class UserResponseDto {
 
   constructor(partial: Partial<UserResponseDto>) {
     Object.assign(this, partial)
-    this.fullName = `${this.firstName} ${this.lastName}`.trim()
+    this.fullName = `${this.lastName} ${this.firstName} `.trim()
   }
 
   /**

@@ -3,11 +3,12 @@ import { IsNotEmpty, IsString, IsInt, IsOptional, MaxLength } from 'class-valida
 import { Type } from 'class-transformer'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { Trim } from '../../../shared/decorators'
+import { ToNumber } from 'src/shared/decorators'
 
 export class CreateDocumentContentDto {
     @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('learningItemId') })
     @IsNotEmpty({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('learningItemId') })
-    @Type(() => Number)
+    @ToNumber()
     learningItemId: number
 
     @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('content') })
@@ -17,6 +18,6 @@ export class CreateDocumentContentDto {
 
     @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('orderInDocument') })
     @IsOptional()
-    @Type(() => Number)
+    @ToNumber()
     orderInDocument?: number
 }

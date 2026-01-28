@@ -5,6 +5,7 @@ import { CourseListQueryDto } from '../../dtos/course/course-list-query.dto'
 import { CourseListResponseDto, CourseResponseDto } from '../../dtos/course/course.dto'
 import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 import { CourseVisibility } from '../../../shared/enums/course-visibility.enum'
+import { CourseSearchQueryDto } from 'src/application/dtos/course/course-search-query.dto'
 
 @Injectable()
 export class GetAllCourseUseCase {
@@ -13,10 +14,9 @@ export class GetAllCourseUseCase {
         private readonly courseRepository: ICourseRepository
     ) { }
 
-    async execute(query: CourseListQueryDto): Promise<CourseListResponseDto> {
+    async execute(query: CourseListQueryDto | CourseSearchQueryDto): Promise<CourseListResponseDto> {
         const filters = query.toCourseFilterOptions()
         const pagination = query.toCoursePaginationOptions()
-
         const result = await this.courseRepository.findAllWithPagination(pagination, filters)
 
         const courseResponses = CourseResponseDto.fromEntities(result.courses)

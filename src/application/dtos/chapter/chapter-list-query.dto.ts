@@ -2,23 +2,24 @@ import { IsOptional, IsInt, Min } from 'class-validator'
 import { Type } from 'class-transformer'
 import { ListQueryDto } from '../pagination/list-query.dto'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
+import { ToNumber } from 'src/shared/decorators'
 
 export class ChapterListQueryDto extends ListQueryDto {
   @IsOptional()
   @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('ID môn học') })
-  @Type(() => Number)
+  @ToNumber()
   @Min(1)
   subjectId?: number
 
   @IsOptional()
   @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('ID chương cha') })
-  @Type(() => Number)
+  @ToNumber()
   @Min(1)
   parentChapterId?: number
 
   @IsOptional()
   @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('Cấp độ') })
-  @Type(() => Number)
+  @ToNumber()
   @Min(0)
   level?: number
 

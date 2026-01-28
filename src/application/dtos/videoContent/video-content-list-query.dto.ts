@@ -1,19 +1,20 @@
 // src/application/dtos/videoContent/video-content-list-query.dto.ts
 import { Type } from 'class-transformer'
 import { IsOptional, IsInt, Min, Max, IsEnum, IsString } from 'class-validator'
+import { ToNumber } from 'src/shared/decorators'
 
 export class VideoContentListQueryDto {
     @IsOptional()
     @IsInt()
     @Min(1)
-    @Type(() => Number)
+    @ToNumber()
     page?: number = 1
 
     @IsOptional()
     @IsInt()
     @Min(1)
     @Max(100)
-    @Type(() => Number)
+    @ToNumber()
     limit?: number = 10
 
     @IsOptional()
@@ -26,7 +27,7 @@ export class VideoContentListQueryDto {
 
     @IsOptional()
     @IsInt()
-    @Type(() => Number)
+    @ToNumber()
     learningItemId?: number
 
     @IsOptional()

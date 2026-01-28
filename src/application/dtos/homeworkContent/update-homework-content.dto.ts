@@ -3,6 +3,7 @@ import { IsString, IsInt, IsOptional, IsBoolean, IsDate } from 'class-validator'
 import { Type } from 'class-transformer'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { Trim } from '../../../shared/decorators'
+import { ToNumber } from 'src/shared/decorators'
 
 export class UpdateHomeworkContentDto {
     @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('content') })
@@ -17,7 +18,7 @@ export class UpdateHomeworkContentDto {
 
     @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('competitionId') })
     @IsOptional()
-    @Type(() => Number)
+    @ToNumber()
     competitionId?: number
 
     @IsBoolean({ message: VALIDATION_MESSAGES.FIELD_INVALID('allowLateSubmit') })

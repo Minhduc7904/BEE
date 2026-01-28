@@ -19,6 +19,7 @@ import {
     CourseClassListResponseDto,
     CourseClassResponseDto,
 } from '../../application/dtos/course-class/course-class.dto'
+import { CourseClassSearchQueryDto } from '../../application/dtos/course-class/course-class-search-query.dto'
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
@@ -32,6 +33,7 @@ import {
     DeleteCourseClassUseCase,
 } from '../../application/use-cases/course-class'
 import { Injectable } from '@nestjs/common'
+import { NormalizeArrayQueryPipe } from 'src/shared/pipes/normalize-array-query.pipe'
 
 @Injectable()
 @Controller('course-classes')
@@ -49,6 +51,17 @@ export class CourseClassController {
     @HttpCode(HttpStatus.OK)
     async getAll(
         @Query() query: CourseClassListQueryDto,
+    ): Promise<CourseClassListResponseDto> {
+        return ExceptionHandler.execute(() =>
+            this.getAllCourseClassUseCase.execute(query)
+        )
+    }
+
+    @Get('search')
+    @RequirePermission(PERMISSION_CODES.COURSE_CLASS_SEARCH)
+    @HttpCode(HttpStatus.OK)
+    async searchCourseClasses(
+        @Query() query: CourseClassSearchQueryDto,
     ): Promise<CourseClassListResponseDto> {
         return ExceptionHandler.execute(() =>
             this.getAllCourseClassUseCase.execute(query)

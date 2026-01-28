@@ -1,5 +1,6 @@
 import { IsInt, IsOptional, IsString } from 'class-validator'
 import { Type } from 'class-transformer'
+import { ToNumber } from 'src/shared/decorators'
 
 /**
  * DTO for completing presigned upload
@@ -7,7 +8,7 @@ import { Type } from 'class-transformer'
  */
 export class CompleteUploadDto {
   @IsInt()
-  @Type(() => Number)
+  @ToNumber()
   mediaId: number
 
   /**
@@ -24,6 +25,6 @@ export class CompleteUploadDto {
    */
   @IsInt()
   @IsOptional()
-  @Type(() => Number)
+  @ToNumber()
   uploadedSize?: number
 }

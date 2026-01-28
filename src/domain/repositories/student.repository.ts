@@ -5,6 +5,7 @@ import {
   StudentFilterOptions,
   StudentPaginationOptions,
   StudentListResult,
+  StudentStatusStats,
 } from '../interface/student/student.interface'
 
 export interface IStudentRepository {
@@ -24,6 +25,17 @@ export interface IStudentRepository {
     filters?: StudentFilterOptions,
   ): Promise<StudentListResult>
 
+  statsByStatus(filters?: StudentFilterOptions): Promise<StudentStatusStats[]>
+  // IStudentRepository
+  statsByGrade(
+    filters?: StudentFilterOptions,
+  ): Promise<
+    {
+      grade: number
+      active: number
+      inactive: number
+    }[]
+  >
   // Search methods
   searchStudents(searchTerm: string, pagination?: StudentPaginationOptions): Promise<StudentListResult>
 
@@ -34,7 +46,4 @@ export interface IStudentRepository {
   count(filters?: StudentFilterOptions): Promise<number>
   countByGrade(grade: number): Promise<number>
   countBySchool(school: string): Promise<number>
-
-  // Media methods
-  findMediaById(mediaId: number): Promise<any | null>
 }

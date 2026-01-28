@@ -2,6 +2,8 @@
 import { IsEnum, IsOptional, IsInt, Min, Max, IsBoolean } from 'class-validator'
 import { Type } from 'class-transformer'
 import { ToBoolean } from 'src/shared/decorators'
+import { ToNumber } from 'src/shared/decorators'
+
 /**
  * DTO for exporting attendance image options
  */
@@ -21,7 +23,7 @@ export class ExportAttendanceImageOptionsDto {
     @IsInt()
     @Min(0)
     @Max(100)
-    @Type(() => Number)
+    @ToNumber()
     quality?: number = 90
 
     /** Viewport width (default: 1200) */
@@ -29,7 +31,7 @@ export class ExportAttendanceImageOptionsDto {
     @IsInt()
     @Min(320)
     @Max(3840)
-    @Type(() => Number)
+    @ToNumber()
     width?: number = 1200
 
     /** Include student photo (default: true) */

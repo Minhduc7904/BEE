@@ -4,10 +4,11 @@ import { Type } from 'class-transformer'
 import { Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { ListQueryDto } from '../pagination/list-query.dto'
+import { ToNumber } from 'src/shared/decorators'
 
 export class AuditLogListQueryDto extends ListQueryDto {
   @IsOptional()
-  @Type(() => Number)
+  @ToNumber()
   @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('ID Admin') })
   adminId?: number
 

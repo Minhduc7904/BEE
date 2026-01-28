@@ -26,7 +26,7 @@ export class CreateLearningItemDto {
 
     @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('competitionId') })
     @IsOptional()
-    @Type(() => Number)
+    @ToNumber()
     competitionId?: number
 
     @ToNumber()

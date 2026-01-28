@@ -1,11 +1,12 @@
 import { IsString, IsNumber, IsOptional, IsEnum, Min } from 'class-validator'
 import { Type } from 'class-transformer'
 import { MediaType } from 'src/shared/enums'
+import { ToNumber } from 'src/shared/decorators'
 
 export class UploadMediaDto {
   @IsOptional()
   @IsNumber()
-  @Type(() => Number)
+  @ToNumber()
   folderId?: number
 
   @IsOptional()
@@ -23,18 +24,18 @@ export class UploadMediaDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
-  @Type(() => Number)
+  @ToNumber()
   width?: number
 
   @IsOptional()
   @IsNumber()
   @Min(0)
-  @Type(() => Number)
+  @ToNumber()
   height?: number
 
   @IsOptional()
   @IsNumber()
   @Min(0)
-  @Type(() => Number)
+  @ToNumber()
   duration?: number
 }

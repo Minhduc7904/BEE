@@ -18,7 +18,7 @@ export interface ICourseRepository {
     update(id: number, data: UpdateCourseData): Promise<Course>
     delete(id: number): Promise<boolean>
     findAll(): Promise<Course[]>
-
+    findByIds(ids: number[]): Promise<Course[]>
     // Pagination methods
     findAllWithPagination(
         pagination: CoursePaginationOptions,

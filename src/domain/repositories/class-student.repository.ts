@@ -10,6 +10,7 @@ import {
 export interface IClassStudentRepository {
     // Basic CRUD
     create(data: CreateClassStudentData): Promise<ClassStudent>
+    createBulk(data: CreateClassStudentData[]): Promise<ClassStudent[]>
     findByIds(classId: number, studentId: number): Promise<ClassStudent | null>
     delete(classId: number, studentId: number): Promise<boolean>
     findAll(): Promise<ClassStudent[]>
@@ -21,7 +22,7 @@ export interface IClassStudentRepository {
     ): Promise<ClassStudentListResult>
 
     // Query methods (DOMAIN-LEVEL)
-    findByClass(classId: number): Promise<ClassStudent[]>
+    findByClass(classId: number, isActive?: boolean): Promise<ClassStudent[]>
     findByStudent(studentId: number): Promise<ClassStudent[]>
     exists(classId: number, studentId: number): Promise<boolean>
 

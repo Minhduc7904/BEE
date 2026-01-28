@@ -7,6 +7,7 @@ import type {
   StudentPaginationOptions,
   StudentListResult,
   StudentSortOptions,
+  StudentStatusStats,
 } from '../../../domain/interface'
 import { Student } from '../../../domain/entities'
 import { StudentMapper, PaginationMapper } from '../../mappers'
@@ -14,6 +15,26 @@ import { NumberUtil } from '../../../shared/utils'
 
 export class PrismaStudentRepository implements IStudentRepository {
   constructor(private readonly prisma: PrismaService | any) { } // any để hỗ trợ transaction client
+
+  private parseDate(date?: string): Date | undefined {
+    if (!date) return undefined
+    const d = new Date(date)
+    return isNaN(d.getTime()) ? undefined : d
+  }
+
+  private normalizeFromDate(date?: Date): Date | undefined {
+    if (!date) return undefined
+    const d = new Date(date)
+    d.setHours(0, 0, 0, 0)
+    return d
+  }
+
+  private normalizeToDate(date?: Date): Date | undefined {
+    if (!date) return undefined
+    const d = new Date(date)
+    d.setHours(23, 59, 59, 999)
+    return d
+  }
 
   async create(data: CreateStudentData): Promise<Student> {
     const numericUserId = NumberUtil.ensureValidId(data.userId, 'User ID')
@@ -191,7 +212,17 @@ export class PrismaStudentRepository implements IStudentRepository {
         skip,
         take: limit,
         include: {
-          user: true
+          user: true,
+          classStudents: {
+            include: {
+              courseClass: {
+                select: {
+                  className: true,
+                  classId: true,
+                },
+              }
+            }
+          },
         },
       }),
       this.prisma.student.count({ where }),
@@ -310,6 +341,19 @@ export class PrismaStudentRepository implements IStudentRepository {
       conditions.push(`u.last_login_at <= ?`)
       params.push(filters.lastLoginBefore)
       paramIndex++
+    }
+
+    const fromDate = filters.fromDate ? new Date(filters.fromDate) : undefined
+    const toDate = filters.toDate ? new Date(filters.toDate) : undefined
+
+    if (fromDate) {
+      conditions.push(`u.created_at >= ?`)
+      params.push(fromDate)
+    }
+
+    if (toDate) {
+      conditions.push(`u.created_at <= ?`)
+      params.push(toDate)
     }
 
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
@@ -453,132 +497,195 @@ export class PrismaStudentRepository implements IStudentRepository {
     if (!filters) return {}
 
     const where: any = {}
-
-    // Student direct fields
-    if (filters.grade !== undefined) {
-      where.grade = filters.grade
-    }
-
-    if (filters.school) {
-      where.school = {
-        contains: filters.school,
-      }
-    }
-
-    if (filters.studentPhone) {
-      where.studentPhone = {
-        contains: filters.studentPhone,
-      }
-    }
-
-    if (filters.parentPhone) {
-      where.parentPhone = {
-        contains: filters.parentPhone,
-      }
-    }
-
-    // User relation fields
     const userFilters: any = {}
 
-    if (filters.username) {
-      userFilters.username = {
-        contains: filters.username,
+    const rawFromDate = this.parseDate(filters.fromDate)
+    const rawToDate = this.parseDate(filters.toDate)
+
+    const fromDate = this.normalizeFromDate(rawFromDate)
+    const toDate = this.normalizeToDate(rawToDate)
+
+    if (fromDate || toDate) {
+      userFilters.createdAt = {}
+
+      if (fromDate) {
+        userFilters.createdAt.gte = fromDate
       }
+
+      if (toDate) {
+        userFilters.createdAt.lte = toDate
+      }
+    }
+    // ===== existing user filters =====
+    if (filters.username) {
+      userFilters.username = { contains: filters.username }
     }
 
     if (filters.email) {
-      userFilters.email = {
-        contains: filters.email,
-      }
+      userFilters.email = { contains: filters.email }
     }
 
     if (filters.firstName) {
-      userFilters.firstName = {
-        contains: filters.firstName,
-      }
+      userFilters.firstName = { contains: filters.firstName }
     }
 
     if (filters.lastName) {
-      userFilters.lastName = {
-        contains: filters.lastName,
-      }
+      userFilters.lastName = { contains: filters.lastName }
     }
 
     if (filters.isActive !== undefined) {
       userFilters.isActive = filters.isActive
     }
 
-    // Date filters
-    if (filters.createdAfter || filters.createdBefore) {
-      userFilters.createdAt = {}
-      if (filters.createdAfter) {
-        userFilters.createdAt.gte = filters.createdAfter
-      }
-      if (filters.createdBefore) {
-        userFilters.createdAt.lte = filters.createdBefore
-      }
+    // ===== student filters =====
+    if (filters.grade !== undefined) {
+      where.grade = filters.grade
     }
 
-    if (filters.lastLoginAfter || filters.lastLoginBefore) {
-      userFilters.lastLoginAt = {}
-      if (filters.lastLoginAfter) {
-        userFilters.lastLoginAt.gte = filters.lastLoginAfter
-      }
-      if (filters.lastLoginBefore) {
-        userFilters.lastLoginAt.lte = filters.lastLoginBefore
-      }
+    if (filters.school) {
+      where.school = { contains: filters.school }
     }
 
-    // Search across multiple fields
-    if (filters.search) {
-      const searchTerms = {
-        OR: [
-          {
-            user: {
-              username: {
-                contains: filters.search,
-              },
-            },
-          },
-          {
-            user: {
-              email: {
-                contains: filters.search,
-              },
-            },
-          },
-          {
-            user: {
-              firstName: {
-                contains: filters.search,
-              },
-            },
-          },
-          {
-            user: {
-              lastName: {
-                contains: filters.search,
-              },
-            },
-          },
-          {
-            school: {
-              contains: filters.search,
-            },
-          },
-        ],
-      } // Merge search with existing conditions
-      if (Object.keys(where).length > 0 || Object.keys(userFilters).length > 0) {
-        where.AND = [searchTerms, ...(Object.keys(userFilters).length > 0 ? [{ user: userFilters }] : [])]
-      } else {
-        Object.assign(where, searchTerms)
-      }
-    } else if (Object.keys(userFilters).length > 0) {
+    // ===== attach user =====
+    if (Object.keys(userFilters).length > 0) {
       where.user = userFilters
     }
 
     return where
   }
+
+  async statsByStatus(filters?: StudentFilterOptions): Promise<StudentStatusStats[]> {
+    const conditions: string[] = []
+    const params: any[] = []
+
+    const rawFromDate = this.parseDate(filters?.fromDate)
+    const rawToDate = this.parseDate(filters?.toDate)
+
+    const fromDate = this.normalizeFromDate(rawFromDate)
+    const toDate = this.normalizeToDate(rawToDate)
+
+    if (fromDate) {
+      conditions.push(`u.created_at >= ?`)
+      params.push(fromDate)
+    }
+
+    if (toDate) {
+      conditions.push(`u.created_at <= ?`)
+      params.push(toDate)
+    }
+
+    if (filters?.grade !== undefined) {
+      conditions.push(`s.grade = ?`)
+      params.push(filters.grade)
+    }
+
+    if (filters?.isActive !== undefined) {
+      conditions.push(`u.is_active = ?`)
+      params.push(filters.isActive ? 1 : 0)
+    }
+
+    const whereClause =
+      conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+
+    const sql = `
+    SELECT 
+      u.is_active AS isActive,
+      COUNT(*)    AS total
+    FROM students s
+    INNER JOIN users u ON u.user_id = s.user_id
+    ${whereClause}
+    GROUP BY u.is_active
+  `
+
+    const stats = await this.prisma.$queryRawUnsafe(
+      sql,
+      ...params,
+    ) as { isActive: number; total: bigint }[]
+
+    return stats.map(s => ({
+      status: s.isActive === 1 ? 'ACTIVE' : 'INACTIVE',
+      total: Number(s.total),
+    }))
+  }
+
+  async statsByGrade(
+    filters?: StudentFilterOptions,
+  ): Promise<
+    {
+      grade: number
+      active: number
+      inactive: number
+    }[]
+  > {
+    const conditions: string[] = []
+    const params: any[] = []
+
+    const rawFromDate = this.parseDate(filters?.fromDate)
+    const rawToDate = this.parseDate(filters?.toDate)
+
+    const fromDate = this.normalizeFromDate(rawFromDate)
+    const toDate = this.normalizeToDate(rawToDate)
+
+    // ===== date filter =====
+    if (fromDate) {
+      conditions.push(`u.created_at >= ?`)
+      params.push(fromDate)
+    }
+
+    if (toDate) {
+      conditions.push(`u.created_at <= ?`)
+      params.push(toDate)
+    }
+
+    // ===== grade filter (nếu FE filter theo grade) =====
+    if (filters?.grade !== undefined) {
+      conditions.push(`s.grade = ?`)
+      params.push(filters.grade)
+    }
+
+    // ===== user active filter (nếu có) =====
+    if (filters?.isActive !== undefined) {
+      conditions.push(`u.is_active = ?`)
+      params.push(filters.isActive ? 1 : 0)
+    }
+
+    const whereClause =
+      conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+
+    /**
+     * MySQL note:
+     * - BOOLEAN = TINYINT(1)
+     * - COUNT(CASE WHEN ...) là cách chuẩn để pivot
+     */
+    const sql = `
+    SELECT
+      s.grade AS grade,
+      COUNT(CASE WHEN u.is_active = 1 THEN 1 END) AS active,
+      COUNT(CASE WHEN u.is_active = 0 THEN 1 END) AS inactive
+    FROM students s
+    INNER JOIN users u ON u.user_id = s.user_id
+    ${whereClause}
+    GROUP BY s.grade
+    ORDER BY s.grade ASC
+  `
+
+    const result = await this.prisma.$queryRawUnsafe(
+      sql,
+      ...params,
+    ) as {
+      grade: number
+      active: bigint
+      inactive: bigint
+    }[]
+
+    return result.map((row) => ({
+      grade: row.grade,
+      active: Number(row.active),
+      inactive: Number(row.inactive),
+    }))
+  }
+
+
 
   private buildOrderByClause(sortBy?: StudentSortOptions): any {
     if (!sortBy) {
@@ -601,17 +708,5 @@ export class PrismaStudentRepository implements IStudentRepository {
 
     // Default fallback
     return { user: { createdAt: 'desc' } }
-  }
-
-  async findMediaById(mediaId: number): Promise<any | null> {
-    const media = await this.prisma.media.findUnique({
-      where: { mediaId }
-    })
-
-    if (!media) return null
-
-    // Import MediaMapper directly - case sensitive path
-    const { MediaMapper } = require('../mappers')
-    return MediaMapper.toDomain(media)
   }
 }

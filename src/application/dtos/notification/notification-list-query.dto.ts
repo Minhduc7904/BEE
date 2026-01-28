@@ -2,16 +2,17 @@
 import { IsOptional, IsEnum, IsInt, Min, IsString, IsBoolean } from 'class-validator'
 import { Transform, Type } from 'class-transformer'
 import { NotificationType, NotificationLevel } from '../../../shared/enums'
+import { ToNumber } from 'src/shared/decorators'
 
 export class NotificationListQueryDto {
     @IsOptional()
-    @Type(() => Number)
+    @ToNumber()
     @IsInt()
     @Min(1)
     page?: number = 1
 
     @IsOptional()
-    @Type(() => Number)
+    @ToNumber()
     @IsInt()
     @Min(1)
     limit?: number = 20

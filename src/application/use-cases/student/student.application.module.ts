@@ -9,6 +9,9 @@ const STUDENT_USE_CASES = [
   studentUseCase.FetchStudentFromApiUseCase,
   studentUseCase.CreateStudentUseCase,
   studentUseCase.UpdateStudentUseCase,
+  studentUseCase.GetStudentStatsByStatusUseCase,
+  studentUseCase.GetStudentStatsByGradeUseCase,
+  studentUseCase.ExportStudentListUseCase,
 ]
 
 @Module({

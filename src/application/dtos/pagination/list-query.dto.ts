@@ -3,19 +3,21 @@ import { Type } from 'class-transformer'
 import { IsOptional, IsPositive, Min, Max, IsString, MaxLength, IsIn, IsDateString } from 'class-validator'
 import { Trim } from 'src/shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
+import { ToNumber, EmptyToUndefined } from 'src/shared/decorators'
+
 /**
  * DTO flat cho các query list có pagination, sort và filter
  */
 export class ListQueryDto {
   // Pagination properties
   @IsOptional()
-  @Type(() => Number)
+  @ToNumber()
   @IsPositive({ message: VALIDATION_MESSAGES.FIELD_INVALID('Số trang') })
   @Min(1, { message: VALIDATION_MESSAGES.FIELD_INVALID('Số trang') })
   page?: number = 1
 
   @IsOptional()
-  @Type(() => Number)
+  @ToNumber()
   @IsPositive({ message: VALIDATION_MESSAGES.FIELD_INVALID('Kích thước trang') })
   @Min(1, { message: VALIDATION_MESSAGES.FIELD_INVALID('Kích thước trang') })
   @Max(1000, { message: VALIDATION_MESSAGES.FIELD_INVALID('Kích thước trang') })
@@ -30,21 +32,25 @@ export class ListQueryDto {
 
   // Sort properties
   @IsOptional()
+  @EmptyToUndefined()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Trường sắp xếp') })
   @Trim()
   @MaxLength(50, { message: VALIDATION_MESSAGES.FIELD_MAX('Tên trường sắp xếp', 50) })
   sortBy?: string
 
   @IsOptional()
+  @EmptyToUndefined()
   @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Thứ tự sắp xếp') })
   @IsIn(['asc', 'desc'], { message: VALIDATION_MESSAGES.FIELD_INVALID('Thứ tự sắp xếp') })
   sortOrder?: 'asc' | 'desc' = 'desc'
 
   @IsOptional()
+  @EmptyToUndefined()
   @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Từ ngày') })
   fromDate?: string
 
   @IsOptional()
+  @EmptyToUndefined()
   @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Đến ngày') })
   toDate?: string
 
@@ -122,7 +128,7 @@ export class ListQueryDto {
       where.OR = searchFields.map((field) => ({
         [field]: {
           contains: this.search,
-          
+
         },
       }))
     }

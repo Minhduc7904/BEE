@@ -11,6 +11,7 @@ import {
     HttpCode,
     HttpStatus,
     ParseIntPipe,
+    UseInterceptors,
 } from '@nestjs/common'
 import { ClassSessionListQueryDto } from '../../application/dtos/class-session/class-session-list-query.dto'
 import { CreateClassSessionDto } from '../../application/dtos/class-session/create-class-session.dto'
@@ -19,6 +20,7 @@ import {
     ClassSessionListResponseDto,
     ClassSessionResponseDto,
 } from '../../application/dtos/class-session/class-session.dto'
+import { ClassSessionSearchQueryDto } from '../../application/dtos/class-session/class-session-search-query.dto'
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
@@ -65,6 +67,17 @@ export class ClassSessionController {
     @HttpCode(HttpStatus.OK)
     async getAll(
         @Query() query: ClassSessionListQueryDto,
+    ): Promise<ClassSessionListResponseDto> {
+        return ExceptionHandler.execute(() =>
+            this.getAllClassSessionUseCase.execute(query)
+        )
+    }
+
+    @Get('search')
+    @RequirePermission(PERMISSION_CODES.CLASS_SESSION_SEARCH)
+    @HttpCode(HttpStatus.OK)
+    async searchClassSessions(
+        @Query() query: ClassSessionSearchQueryDto,
     ): Promise<ClassSessionListResponseDto> {
         return ExceptionHandler.execute(() =>
             this.getAllClassSessionUseCase.execute(query)

@@ -31,6 +31,41 @@ export class PrismaClassStudentRepository implements IClassStudentRepository {
         return ClassStudentMapper.toDomainClassStudent(prismaClassStudent)!
     }
 
+    async createBulk(
+        data: CreateClassStudentData[]
+    ): Promise<ClassStudent[]> {
+
+        if (!data.length) return [];
+
+        // 1️⃣ createMany: chỉ để ghi
+        await this.prisma.classStudent.createMany({
+            data: data.map(item => ({
+                classId: item.classId,
+                studentId: item.studentId,
+            })),
+            skipDuplicates: true,
+        });
+
+        // 2️⃣ findMany: lấy lại đúng record vừa tạo
+        const createdClassStudents = await this.prisma.classStudent.findMany({
+            where: {
+                OR: data.map(item => ({
+                    classId: item.classId,
+                    studentId: item.studentId,
+                })),
+            },
+            include: {
+                courseClass: true,
+                student: {
+                    include: { user: true },
+                },
+            },
+        });
+
+        return ClassStudentMapper.toDomainClassStudents(createdClassStudents);
+    }
+
+
     async findByIds(classId: number, studentId: number): Promise<ClassStudent | null> {
         const cId = NumberUtil.ensureValidId(classId, 'Class ID')
         const sId = NumberUtil.ensureValidId(studentId, 'Student ID')
@@ -142,21 +177,36 @@ export class PrismaClassStudentRepository implements IClassStudentRepository {
         }
     }
 
-    async findByClass(classId: number): Promise<ClassStudent[]> {
+    async findByClass(
+        classId: number,
+        isActive?: boolean,
+    ): Promise<ClassStudent[]> {
         const id = NumberUtil.ensureValidId(classId, 'Class ID')
 
         const prismaClassStudents = await this.prisma.classStudent.findMany({
-            where: { classId: id },
+            where: {
+                classId: id,
+                ...(isActive !== undefined && {
+                    student: {
+                        user: {
+                            isActive,
+                        },
+                    },
+                }),
+            },
             include: {
                 courseClass: true,
                 student: {
-                    include: { user: true },
+                    include: {
+                        user: true,
+                    },
                 },
             },
         })
 
         return ClassStudentMapper.toDomainClassStudents(prismaClassStudents)
     }
+
 
     async findByStudent(studentId: number): Promise<ClassStudent[]> {
         const id = NumberUtil.ensureValidId(studentId, 'Student ID')

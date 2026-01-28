@@ -4,10 +4,11 @@ import { IsOptional, IsString, IsNumber, IsBoolean, IsDateString, Min, Max } fro
 import { ListQueryDto } from '..'
 import { Trim, ToBoolean } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
+import { ToNumber } from 'src/shared/decorators'
 
 export class StudentListQueryDto extends ListQueryDto {
   @IsOptional()
-  @Type(() => Number)
+  @ToNumber()
   @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Lớp') })
   @Min(1, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Lớp', 1) })
   @Max(12, { message: VALIDATION_MESSAGES.FIELD_MAX_VALUE('Lớp', 12) })
@@ -26,6 +27,8 @@ export class StudentListQueryDto extends ListQueryDto {
       grade: this.grade,
       isActive: this.isActive,
       search: this.search, // Sử dụng flat property từ ListQueryDto
+      fromDate: this.fromDate, // Sử dụng flat property từ ListQueryDto
+      toDate: this.toDate, // Sử dụng flat property từ ListQueryDto
     }
   }
 

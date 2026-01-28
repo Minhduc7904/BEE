@@ -6,15 +6,16 @@ import {
   CourseEnrollmentPaginationOptions,
 } from 'src/domain/interface/course-enrollment/course-enrollment.interface';
 import { CourseEnrollmentStatus, Visibility } from 'src/shared/enums';
+import { ToNumber } from 'src/shared/decorators'
 
 export class CourseEnrollmentListQueryDto extends ListQueryDto {
   @IsOptional()
-  @Type(() => Number)
+  @ToNumber()
   @IsInt({ message: 'ID khóa học phải là số nguyên' })
   courseId?: number;
 
   @IsOptional()
-  @Type(() => Number)
+  @ToNumber()
   @IsInt({ message: 'ID học sinh phải là số nguyên' })
   studentId?: number;
 

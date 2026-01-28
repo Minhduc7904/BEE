@@ -11,6 +11,7 @@ import {
 export interface ICourseEnrollmentRepository {
     // Basic CRUD
     create(data: CreateCourseEnrollmentData): Promise<CourseEnrollment>
+    createBulk(data: CreateCourseEnrollmentData[]): Promise<CourseEnrollment[]>
     findById(id: number): Promise<CourseEnrollment | null>
     update(id: number, data: UpdateCourseEnrollmentData): Promise<CourseEnrollment>
     delete(id: number): Promise<boolean>

@@ -5,15 +5,16 @@ import {
   ClassStudentFilterOptions,
   ClassStudentPaginationOptions,
 } from 'src/domain/interface/class-student/class-student.interface';
+import { ToNumber } from 'src/shared/decorators'
 
 export class ClassStudentListQueryDto extends ListQueryDto {
   @IsOptional()
-  @Type(() => Number)
+  @ToNumber()
   @IsInt({ message: 'ID lớp học phải là số nguyên' })
   classId?: number;
 
   @IsOptional()
-  @Type(() => Number)
+  @ToNumber()
   @IsInt({ message: 'ID học sinh phải là số nguyên' })
   studentId?: number;
 

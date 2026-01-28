@@ -2,20 +2,20 @@
 import { Type } from 'class-transformer'
 import { IsOptional, IsString, IsNumber, IsEnum, Min, Max } from 'class-validator'
 import { ListQueryDto } from '../pagination/list-query.dto'
-import { Trim, ToBoolean } from 'src/shared/decorators'
+import { Trim, ToBoolean, ToNumber } from 'src/shared/decorators'
 import { VALIDATION_MESSAGES } from 'src/shared/constants'
 import { CourseVisibility } from 'src/shared/enums'
 
 export class CourseListQueryDto extends ListQueryDto {
     @IsOptional()
-    @Type(() => Number)
+    @ToNumber()
     @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Khối') })
     @Min(1, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Khối', 1) })
     @Max(12, { message: VALIDATION_MESSAGES.FIELD_MAX_VALUE('Khối', 12) })
     grade?: number
 
     @IsOptional()
-    @Type(() => Number)
+    @ToNumber()
     @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Môn học') })
     subjectId?: number
 
@@ -24,7 +24,7 @@ export class CourseListQueryDto extends ListQueryDto {
     visibility?: CourseVisibility
 
     @IsOptional()
-    @Type(() => Number)
+    @ToNumber()
     @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Giáo viên') })
     teacherId?: number
 
