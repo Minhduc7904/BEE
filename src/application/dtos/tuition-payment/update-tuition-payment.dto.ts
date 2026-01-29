@@ -1,5 +1,6 @@
 import { IsOptional, IsEnum, IsString, IsInt, Min, Max } from 'class-validator'
 import { TuitionPaymentStatus } from 'src/shared/enums'
+import { ToNumber } from 'src/shared/decorators'
 
 export class UpdateTuitionPaymentDto {
   @IsOptional()
@@ -7,12 +8,14 @@ export class UpdateTuitionPaymentDto {
   status?: TuitionPaymentStatus
 
   @IsOptional()
+  @ToNumber()
   @IsInt({ message: 'Tháng phải là số nguyên' })
   @Min(1, { message: 'Tháng phải từ 1 đến 12' })
   @Max(12, { message: 'Tháng phải từ 1 đến 12' })
   month?: number
 
   @IsOptional()
+  @ToNumber()
   @IsInt({ message: 'Năm phải là số nguyên' })
   @Min(2000, { message: 'Năm không hợp lệ' })
   year?: number

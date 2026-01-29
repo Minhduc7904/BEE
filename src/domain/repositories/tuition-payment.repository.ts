@@ -7,7 +7,8 @@ import {
   TuitionPaymentListResult,
   TuitionPaymentStatusStats,
   TuitionPaymentMonthlyStats,
-  TuitionPaymentCourseStats
+  TuitionPaymentCourseStats,
+  TuitionPaymentMoneyStats
 } from '../interface/tuition-payment/tuition-payment.interface'
 import { TuitionPaymentStatus } from 'src/shared/enums'
 
@@ -65,4 +66,5 @@ export interface ITuitionPaymentRepository {
 
   /** Tổng UNPAID (dùng cho cảnh báo / badge đỏ 🔴) */
   countUnpaid(filters?: TuitionPaymentFilterOptions): Promise<number>
+  statsMoney(filters?: TuitionPaymentFilterOptions): Promise<TuitionPaymentMoneyStats>
 }

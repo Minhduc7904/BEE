@@ -9,6 +9,7 @@ import type {
   TuitionPaymentStatusStats,
   TuitionPaymentMonthlyStats,
   TuitionPaymentCourseStats,
+  TuitionPaymentMoneyStats,
 } from '../../../domain/interface'
 import { TuitionPayment } from '../../../domain/entities'
 import { TuitionPaymentStatus } from '../../../shared/enums'
@@ -28,6 +29,7 @@ export class PrismaTuitionPaymentRepository implements ITuitionPaymentRepository
         courseId: data.courseId,
         month: data.month,
         year: data.year,
+        amount: data.amount, // 💰 NEW FIELD (BẮT BUỘC)
         status: data.status || TuitionPaymentStatus.UNPAID,
         paidAt: data.paidAt,
         notes: data.notes,
@@ -349,5 +351,62 @@ export class PrismaTuitionPaymentRepository implements ITuitionPaymentRepository
     }
 
     return Array.from(map.values())
+  }
+
+  // ======================
+  // 💰 MONEY STATISTICS
+  // ======================
+
+  async statsMoney(filters?: TuitionPaymentFilterOptions): Promise<TuitionPaymentMoneyStats> {
+    const whereBase: any = {}
+
+    if (filters?.studentId) whereBase.studentId = filters.studentId
+    if (filters?.courseId) whereBase.courseId = filters.courseId
+    if (filters?.year) whereBase.year = filters.year
+    if (filters?.month) whereBase.month = filters.month
+
+    if (filters?.studentIds?.length) {
+      whereBase.studentId = { in: filters.studentIds }
+    }
+
+    const [paid, unpaid, total] = await Promise.all([
+      // 💰 ĐÃ THU
+      this.prisma.tuitionPayment.aggregate({
+        where: {
+          ...whereBase,
+          status: TuitionPaymentStatus.PAID,
+        },
+        _sum: {
+          amount: true,
+        },
+      }),
+
+      // 💸 CHƯA THU
+      this.prisma.tuitionPayment.aggregate({
+        where: {
+          ...whereBase,
+          status: TuitionPaymentStatus.UNPAID,
+        },
+        _sum: {
+          amount: true,
+        },
+      }),
+
+      // 📊 DỰ KIẾN (TẤT CẢ)
+      this.prisma.tuitionPayment.aggregate({
+        where: {
+          ...whereBase,
+        },
+        _sum: {
+          amount: true,
+        },
+      }),
+    ])
+
+    return {
+      collected: paid._sum.amount ?? 0,
+      uncollected: unpaid._sum.amount ?? 0,
+      expected: total._sum.amount ?? 0,
+    }
   }
 }

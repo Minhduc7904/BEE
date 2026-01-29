@@ -11,7 +11,12 @@ import {
   HttpStatus,
   ParseIntPipe,
   Injectable,
+  StreamableFile,
+  Res,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common'
+import type { Response } from 'express'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
 import { CurrentUser } from '../../shared/decorators/current-user.decorator'
@@ -24,12 +29,15 @@ import {
   TuitionPaymentStatsQueryDto,
   MyTuitionPaymentStatsQueryDto,
   CreateBulkTuitionPaymentDto,
+  ExportExcelTuitionPaymentExampleQueryDto,
 } from '../../application/dtos/tuition-payment'
 
 import {
   TuitionPaymentListResponseDto,
   TuitionPaymentResponseDto,
   TuitionPaymentStatsResponseDto,
+  TuitionPaymentMoneyStatsResponseDto,
+  TuitionPaymentImportPreviewResponse,
 } from '../../application/dtos/tuition-payment'
 
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
@@ -43,7 +51,13 @@ import {
   GetTuitionPaymentStatsByStatusUseCase,
   GetMyTuitionPaymentStatsByStatusUseCase,
   CreateBulkTuitionPaymentUseCase,
+  GetTuitionPaymentStatsByMoneyUseCase,
+  GetMyTuitionPaymentStatsByMoneyUseCase,
+  ExportExcelTuitionPaymentExampleUseCase,
+  PreviewImportTuitionPaymentUseCase,
 } from '../../application/use-cases/tuition-payment'
+import { FileSizeByRoleInterceptor } from 'src/shared/interceptors/file-size-by-role.interceptor'
+import { FileInterceptor } from '@nestjs/platform-express/multer/interceptors/file.interceptor'
 
 @Injectable()
 @Controller('tuition-payments')
@@ -55,7 +69,10 @@ export class TuitionPaymentController {
     private readonly createBulkTuitionPaymentUseCase: CreateBulkTuitionPaymentUseCase,
     private readonly updateTuitionPaymentUseCase: UpdateTuitionPaymentUseCase,
     private readonly deleteTuitionPaymentUseCase: DeleteTuitionPaymentUseCase,
-
+    private readonly getTuitionPaymentStatsByMoneyUseCase: GetTuitionPaymentStatsByMoneyUseCase,
+    private readonly getMyTuitionPaymentStatsByMoneyUseCase: GetMyTuitionPaymentStatsByMoneyUseCase,
+    private readonly exportExcelTuitionPaymentExampleUseCase: ExportExcelTuitionPaymentExampleUseCase,
+    private readonly previewImportTuitionPaymentUseCase: PreviewImportTuitionPaymentUseCase,
     // stats
     private readonly getTuitionPaymentStatsByStatusUseCase: GetTuitionPaymentStatsByStatusUseCase,
     private readonly getMyTuitionPaymentStatsByStatusUseCase: GetMyTuitionPaymentStatsByStatusUseCase,
@@ -90,6 +107,25 @@ export class TuitionPaymentController {
     @CurrentUser('studentId') studentId: number,
   ): Promise<BaseResponseDto<TuitionPaymentStatsResponseDto>> {
     return ExceptionHandler.execute(() => this.getMyTuitionPaymentStatsByStatusUseCase.execute(query, studentId))
+  }
+
+  @Get('stats/money')
+  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT_STATS)
+  @HttpCode(HttpStatus.OK)
+  async statsByMoneyAdmin(
+    @Query() query: TuitionPaymentStatsQueryDto,
+  ): Promise<BaseResponseDto<TuitionPaymentMoneyStatsResponseDto>> {
+    return ExceptionHandler.execute(() => this.getTuitionPaymentStatsByMoneyUseCase.execute(query))
+  }
+
+  @Get('my/stats/money')
+  @RequirePermission(PERMISSION_CODES.MY_TUITION_PAYMENT_STATS)
+  @HttpCode(HttpStatus.OK)
+  async statsByMoneyMy(
+    @Query() query: MyTuitionPaymentStatsQueryDto,
+    @CurrentUser('studentId') studentId: number,
+  ): Promise<BaseResponseDto<TuitionPaymentMoneyStatsResponseDto>> {
+    return ExceptionHandler.execute(() => this.getMyTuitionPaymentStatsByMoneyUseCase.execute(query, studentId))
   }
 
   // ======================================================
@@ -171,7 +207,10 @@ export class TuitionPaymentController {
   @Post()
   @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT_CREATE)
   @HttpCode(HttpStatus.CREATED)
-  async create(@Body() dto: CreateTuitionPaymentDto, @CurrentUser('adminId') adminId: number): Promise<BaseResponseDto<TuitionPaymentResponseDto>> {
+  async create(
+    @Body() dto: CreateTuitionPaymentDto,
+    @CurrentUser('adminId') adminId: number,
+  ): Promise<BaseResponseDto<TuitionPaymentResponseDto>> {
     return ExceptionHandler.execute(() => this.createTuitionPaymentUseCase.execute(dto, adminId))
   }
 
@@ -204,5 +243,34 @@ export class TuitionPaymentController {
     @CurrentUser('adminId') adminId: number,
   ): Promise<BaseResponseDto<{ deleted: boolean }>> {
     return ExceptionHandler.execute(() => this.deleteTuitionPaymentUseCase.execute(id, adminId))
+  }
+
+  @Get('export/excel/example')
+  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT_EXPORT_EXCEL)
+  @HttpCode(HttpStatus.OK)
+  async exportExcelExample(
+    @Query() query: ExportExcelTuitionPaymentExampleQueryDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<StreamableFile> {
+    return ExceptionHandler.execute(async () => {
+      const { buffer, filename } = await this.exportExcelTuitionPaymentExampleUseCase.execute(query)
+
+      // Set response headers for file download
+      res.set({
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition': `attachment; filename="${filename}"`,
+      })
+      return new StreamableFile(buffer)
+    })
+  }
+
+  @UseInterceptors(FileInterceptor('file'), FileSizeByRoleInterceptor)
+  @Post('import/preview')
+  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT_IMPORT_EXCEL)
+  @HttpCode(HttpStatus.OK)
+  async importExcelPreview(
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<BaseResponseDto<TuitionPaymentImportPreviewResponse>> {
+    return ExceptionHandler.execute(() => this.previewImportTuitionPaymentUseCase.execute(file))
   }
 }

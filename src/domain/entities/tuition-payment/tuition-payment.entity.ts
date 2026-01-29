@@ -10,6 +10,7 @@ export class TuitionPayment {
     // =====================
     paymentId: number
     studentId: number
+    amount: number // 💰 tiền phải đóng (snapshot)
     status: TuitionPaymentStatus
     createdAt: Date
     updatedAt: Date
@@ -18,8 +19,8 @@ export class TuitionPayment {
     // Optional business fields
     // =====================
     courseId?: number | null
-    month?: number | null // 1 - 12
-    year?: number | null
+    month: number
+    year: number 
     paidAt?: Date | null
     notes?: string | null
 
@@ -32,11 +33,12 @@ export class TuitionPayment {
     constructor(data: {
         paymentId: number
         studentId: number
+        amount: number
         status: TuitionPaymentStatus
 
         courseId?: number | null
-        month?: number | null
-        year?: number | null
+        month: number
+        year: number 
         paidAt?: Date | null
         notes?: string | null
 
@@ -48,11 +50,12 @@ export class TuitionPayment {
     }) {
         this.paymentId = data.paymentId
         this.studentId = data.studentId
+        this.amount = data.amount
         this.status = data.status
 
         this.courseId = data.courseId ?? null
-        this.month = data.month ?? null
-        this.year = data.year ?? null
+        this.month = data.month 
+        this.year = data.year 
         this.paidAt = data.paidAt ?? null
         this.notes = data.notes ?? null
 
@@ -87,9 +90,6 @@ export class TuitionPayment {
     // Domain actions
     // =====================
 
-    /**
-     * Đánh dấu đã thanh toán
-     */
     markPaid(at: Date = new Date(), notes?: string): void {
         this.status = TuitionPaymentStatus.PAID
         this.paidAt = at
@@ -100,9 +100,6 @@ export class TuitionPayment {
         }
     }
 
-    /**
-     * Reset về chưa thanh toán
-     */
     markUnpaid(notes?: string): void {
         this.status = TuitionPaymentStatus.UNPAID
         this.paidAt = null
@@ -117,31 +114,20 @@ export class TuitionPayment {
     // Business rules
     // =====================
 
-    /**
-     * Quá hạn thanh toán?
-     * Chỉ check nếu CÓ month + year
-     */
     isOverdue(now: Date = new Date()): boolean {
         if (!this.hasPeriod()) return false
         if (this.isPaid()) return false
 
-        // Hạn: đầu tháng kế tiếp
+        // hạn: đầu tháng kế tiếp
         const dueDate = new Date(this.year!, this.month!, 1)
         return now > dueDate
     }
 
-    /**
-     * Chu kỳ học phí dạng YYYY-MM
-     * null nếu không có chu kỳ
-     */
     getPeriodKey(): string | null {
         if (!this.hasPeriod()) return null
         return `${this.year}-${String(this.month).padStart(2, '0')}`
     }
 
-    /**
-     * Label hiển thị
-     */
     getStatusLabel(): string {
         switch (this.status) {
             case TuitionPaymentStatus.PAID:
@@ -165,6 +151,7 @@ export class TuitionPayment {
         return new TuitionPayment({
             paymentId: this.paymentId,
             studentId: this.studentId,
+            amount: this.amount,
             status: this.status,
 
             courseId: this.courseId,
@@ -188,6 +175,7 @@ export class TuitionPayment {
             courseId: this.courseId,
             month: this.month,
             year: this.year,
+            amount: this.amount,
             status: this.status,
             paidAt: this.paidAt,
             notes: this.notes,

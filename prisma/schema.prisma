@@ -174,8 +174,10 @@ model Student {
   classStudents        ClassStudent[]
   homeworkSubmits      HomeworkSubmit[]
   studentLearningItems StudentLearningItem[]
-  tuitionPayments      TuitionPayment[]
+  tuitionPayments      TuitionPayment[] 
 
+  // ✅ UNIQUE theo cặp studentPhone + parentPhone
+  @@unique([studentPhone, parentPhone], map: "uq_student_studentPhone_parentPhone")
   @@index([grade, school], map: "idx_students_grade_school")
   @@map("students")
 }
@@ -991,39 +993,37 @@ model MediaUsage {
 enum TuitionPaymentStatus {
   UNPAID // Chưa nộp
   PAID // Đã nộp
-  LATE // Nộp muộn
 }
 
 model TuitionPayment {
-  paymentId Int                  @id @default(autoincrement()) @map("payment_id")
+  paymentId Int @id @default(autoincrement()) @map("payment_id")
 
   // OPTIONAL FIELDS
-  courseId  Int?                 @map("course_id")
-  month     Int?                 @map("month") @db.TinyInt
-  year      Int?                 @map("year")  @db.SmallInt
+  courseId Int? @map("course_id")
+  month    Int @map("month") @db.TinyInt
+  year     Int @map("year") @db.SmallInt
 
   // REQUIRED
-  studentId Int                  @map("student_id")
+  studentId Int @map("student_id")
+  amount    Int @map("amount") // số tiền phải đóng (VND)
 
-  status    TuitionPaymentStatus @default(UNPAID) @map("status")
-  paidAt    DateTime?            @map("paid_at") @db.Timestamp(0)
-  notes     String?              @map("notes") @db.Text
+  status TuitionPaymentStatus @default(UNPAID) @map("status")
+  paidAt DateTime?            @map("paid_at") @db.Timestamp(0)
+  notes  String?              @map("notes") @db.Text
 
-  createdAt DateTime             @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt DateTime             @updatedAt @map("updated_at") @db.Timestamp(0)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // 🔑 RELATIONS (OPTIONAL PHẢI ĐI KÈM)
-  course  Course?  @relation(fields: [courseId], references: [courseId], onDelete: SetNull)
-  student Student  @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  course  Course? @relation(fields: [courseId], references: [courseId], onDelete: SetNull)
+  student Student @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
 
-  // ❌ BỎ UNIQUE vì month/year có thể NULL
-  // @@unique([studentId, month, year])
+  @@unique([studentId, month, year])
 
   // INDEXES (OK)
   @@index([studentId], map: "idx_tuition_payments_student_id")
   @@index([courseId], map: "idx_tuition_payments_course_id")
   @@index([year, month], map: "idx_tuition_payments_year_month")
   @@index([status], map: "idx_tuition_payments_status")
-
   @@map("tuition_payments")
 }

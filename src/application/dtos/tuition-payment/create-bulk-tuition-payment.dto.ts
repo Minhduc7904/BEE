@@ -45,6 +45,14 @@ export class CreateBulkTuitionPaymentDto {
   grade?: number
 
   /**
+   * 💰 Số tiền học phí (áp dụng cho mỗi học sinh)
+   */
+  @ToNumber()
+  @IsInt({ message: 'Số tiền phải là số nguyên' })
+  @Min(1, { message: 'Số tiền học phí phải lớn hơn 0' })
+  amount: number
+
+  /**
    * Tháng học phí
    */
   @ToNumber()

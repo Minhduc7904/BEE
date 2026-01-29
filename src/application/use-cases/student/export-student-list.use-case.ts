@@ -21,7 +21,6 @@ export class ExportStudentListUseCase {
     }> {
         const filters = options.toStudentFilterOptions()
         const pagination = options.toStudentPaginationOptions()
-        console.log('Filters for export:', filters)
         const result = await this.studentRepository.findByFilters(filters, pagination)
 
         if (result.total === 0) {

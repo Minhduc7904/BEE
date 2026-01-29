@@ -41,6 +41,7 @@ export class CreateTuitionPaymentUseCase {
       const data: CreateTuitionPaymentData = {
         studentId: dto.studentId,
         courseId: dto.courseId,
+        amount: dto.amount,
         month: dto.month,
         year: dto.year,
         status: dto.status,

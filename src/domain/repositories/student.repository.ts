@@ -41,7 +41,7 @@ export interface IStudentRepository {
 
   // Filter methods
   findByFilters(filters: StudentFilterOptions, pagination?: StudentPaginationOptions): Promise<StudentListResult>
-
+  findOneByFilters(filters: StudentFilterOptions): Promise<Student | null>
   // Count methods
   count(filters?: StudentFilterOptions): Promise<number>
   countByGrade(grade: number): Promise<number>

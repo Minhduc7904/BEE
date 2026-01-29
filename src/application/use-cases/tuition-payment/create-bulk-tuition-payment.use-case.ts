@@ -80,6 +80,7 @@ export class CreateBulkTuitionPaymentUseCase {
             studentId,
             courseId: dto.courseId,
             month: dto.month,
+            amount: dto.amount,
             year: dto.year,
             status: dto.status,
             notes: dto.notes,

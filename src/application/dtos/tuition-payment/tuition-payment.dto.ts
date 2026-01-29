@@ -11,6 +11,8 @@ export class TuitionPaymentResponseDto {
   month?: number | null
   year?: number | null
 
+  amount: number // 💰 tiền phải đóng
+
   status: TuitionPaymentStatus
   statusLabel: string
 
@@ -29,6 +31,8 @@ export class TuitionPaymentResponseDto {
     this.courseId = payment.courseId ?? null
     this.month = payment.month ?? null
     this.year = payment.year ?? null
+
+    this.amount = payment.amount // ✅ NEW FIELD
 
     this.status = payment.status
     this.statusLabel = payment.getStatusLabel()

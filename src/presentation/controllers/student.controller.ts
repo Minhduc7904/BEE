@@ -129,7 +129,6 @@ export class StudentController {
     @Res({ passthrough: true }) res: Response,
   ): Promise<StreamableFile> {
     return ExceptionHandler.execute(async () => {
-      console.log('Export options:', options);
       const { buffer, filename } = await this.exportStudentListUseCase.execute(options)
 
       // Set response headers for file download

@@ -14,7 +14,7 @@ import { StudentMapper, PaginationMapper } from '../../mappers'
 import { NumberUtil } from '../../../shared/utils'
 
 export class PrismaStudentRepository implements IStudentRepository {
-  constructor(private readonly prisma: PrismaService | any) { } // any để hỗ trợ transaction client
+  constructor(private readonly prisma: PrismaService | any) {} // any để hỗ trợ transaction client
 
   private parseDate(date?: string): Date | undefined {
     if (!date) return undefined
@@ -63,17 +63,14 @@ export class PrismaStudentRepository implements IStudentRepository {
             userRoles: {
               where: {
                 isActive: true,
-                OR: [
-                  { expiresAt: null },
-                  { expiresAt: { gte: new Date() } }
-                ]
+                OR: [{ expiresAt: null }, { expiresAt: { gte: new Date() } }],
               },
               include: {
-                role: true
-              }
-            }
-          }
-        }
+                role: true,
+              },
+            },
+          },
+        },
       },
     })
 
@@ -93,17 +90,14 @@ export class PrismaStudentRepository implements IStudentRepository {
             userRoles: {
               where: {
                 isActive: true,
-                OR: [
-                  { expiresAt: null },
-                  { expiresAt: { gte: new Date() } }
-                ]
+                OR: [{ expiresAt: null }, { expiresAt: { gte: new Date() } }],
               },
               include: {
-                role: true
-              }
-            }
-          }
-        }
+                role: true,
+              },
+            },
+          },
+        },
       },
     })
 
@@ -220,8 +214,8 @@ export class PrismaStudentRepository implements IStudentRepository {
                   className: true,
                   classId: true,
                 },
-              }
-            }
+              },
+            },
           },
         },
       }),
@@ -483,6 +477,19 @@ export class PrismaStudentRepository implements IStudentRepository {
     })
   }
 
+  async findOneByFilters(filters: StudentFilterOptions): Promise<Student | null> {
+    const where = this.buildWhereClause(filters)
+    const prismaStudent = await this.prisma.student.findFirst({
+      where,
+      include: {
+        user: true,
+      },
+    })
+    if (!prismaStudent) return null
+
+    return StudentMapper.toDomainStudent(prismaStudent)!
+  }
+
   async countBySchool(school: string): Promise<number> {
     const result = (await this.prisma.$queryRawUnsafe(
       `SELECT COUNT(*) as total FROM students WHERE LOWER(school) LIKE LOWER(?)`,
@@ -584,8 +591,7 @@ export class PrismaStudentRepository implements IStudentRepository {
       params.push(filters.isActive ? 1 : 0)
     }
 
-    const whereClause =
-      conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
 
     const sql = `
     SELECT 
@@ -597,20 +603,15 @@ export class PrismaStudentRepository implements IStudentRepository {
     GROUP BY u.is_active
   `
 
-    const stats = await this.prisma.$queryRawUnsafe(
-      sql,
-      ...params,
-    ) as { isActive: number; total: bigint }[]
+    const stats = (await this.prisma.$queryRawUnsafe(sql, ...params)) as { isActive: number; total: bigint }[]
 
-    return stats.map(s => ({
+    return stats.map((s) => ({
       status: s.isActive === 1 ? 'ACTIVE' : 'INACTIVE',
       total: Number(s.total),
     }))
   }
 
-  async statsByGrade(
-    filters?: StudentFilterOptions,
-  ): Promise<
+  async statsByGrade(filters?: StudentFilterOptions): Promise<
     {
       grade: number
       active: number
@@ -649,8 +650,7 @@ export class PrismaStudentRepository implements IStudentRepository {
       params.push(filters.isActive ? 1 : 0)
     }
 
-    const whereClause =
-      conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
 
     /**
      * MySQL note:
@@ -669,10 +669,7 @@ export class PrismaStudentRepository implements IStudentRepository {
     ORDER BY s.grade ASC
   `
 
-    const result = await this.prisma.$queryRawUnsafe(
-      sql,
-      ...params,
-    ) as {
+    const result = (await this.prisma.$queryRawUnsafe(sql, ...params)) as {
       grade: number
       active: bigint
       inactive: bigint
@@ -684,8 +681,6 @@ export class PrismaStudentRepository implements IStudentRepository {
       inactive: Number(row.inactive),
     }))
   }
-
-
 
   private buildOrderByClause(sortBy?: StudentSortOptions): any {
     if (!sortBy) {

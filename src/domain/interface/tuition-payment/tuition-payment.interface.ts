@@ -9,6 +9,9 @@ export interface CreateTuitionPaymentData {
   courseId?: number
   month?: number
   year?: number
+
+  amount: number // 💰 NEW: tiền phải đóng (snapshot)
+
   status?: TuitionPaymentStatus
   paidAt?: Date
   notes?: string
@@ -16,6 +19,7 @@ export interface CreateTuitionPaymentData {
 
 /**
  * ===== UPDATE =====
+ * ❌ KHÔNG cho update amount (audit & lịch sử)
  */
 export interface UpdateTuitionPaymentData {
   status?: TuitionPaymentStatus
@@ -61,6 +65,9 @@ export interface TuitionPaymentListResult {
   totalPages: number
 }
 
+/**
+ * ===== STATS =====
+ */
 export interface TuitionPaymentStatusStats {
   status: TuitionPaymentStatus
   total: number
@@ -79,4 +86,10 @@ export interface TuitionPaymentCourseStats {
   total: number
   paid: number
   unpaid: number
+}
+
+export interface TuitionPaymentMoneyStats {
+  collected: number   // đã thu
+  uncollected: number // chưa thu
+  expected: number    // dự kiến (tổng)
 }
