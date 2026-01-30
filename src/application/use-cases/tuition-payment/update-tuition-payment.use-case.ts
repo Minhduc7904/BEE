@@ -19,6 +19,15 @@ export class UpdateTuitionPaymentUseCase {
     private readonly unitOfWork: IUnitOfWork,
   ) {}
 
+  /**
+   * Helper: Strip time from date (set to 00:00:00)
+   */
+  private getDateWithoutTime(date: Date = new Date()): Date {
+    const d = new Date(date)
+    d.setHours(0, 0, 0, 0)
+    return d
+  }
+
   async execute(
     dto: UpdateTuitionPaymentDto,
     tuitionPaymentId: number,
@@ -56,28 +65,16 @@ export class UpdateTuitionPaymentUseCase {
 
       /**
        * =========================
-       * Domain rules (STATE)
-       * =========================
-       */
-      if (tuitionPayment.status === TuitionPaymentStatus.PAID) {
-        // ❌ Không cho đổi trạng thái
-        if (dto.status && dto.status !== TuitionPaymentStatus.PAID) {
-          throw new InvalidStateException('Không thể thay đổi trạng thái học phí đã thanh toán')
-        }
-
-        // ❌ Không cho đổi kỳ học
-        if (dto.month !== undefined || dto.year !== undefined) {
-          throw new InvalidStateException('Không thể thay đổi tháng/năm của học phí đã thanh toán')
-        }
-      }
-
-      /**
-       * =========================
        * Build update data (SAFE)
        * =========================
        */
       const data: UpdateTuitionPaymentData = {
         notes: dto.notes,
+      }
+
+      // Update amount if provided
+      if (dto.amount !== undefined) {
+        data.amount = dto.amount
       }
 
       // Update status nếu có
@@ -91,9 +88,27 @@ export class UpdateTuitionPaymentUseCase {
         if (dto.year !== undefined) data.year = dto.year
       }
 
-      // Set paidAt ONLY when UNPAID → PAID
-      if (dto.status === TuitionPaymentStatus.PAID && !tuitionPayment.paidAt) {
-        data.paidAt = new Date()
+      /**
+       * Logic xử lý paidAt:
+       * 1. Nếu status = PAID:
+       *    - Nếu có dto.paidAt -> dùng dto.paidAt
+       *    - Nếu không có dto.paidAt và DB chưa có paidAt -> set hiện tại
+       *    - Nếu không có dto.paidAt và DB đã có paidAt -> giữ nguyên (không update)
+       * 2. Nếu status = UNPAID:
+       *    - Gỡ paidAt (set null)
+       */
+      if (dto.status === TuitionPaymentStatus.PAID) {
+        if (dto.paidAt) {
+          // Manual set paidAt
+          data.paidAt = new Date(dto.paidAt)
+        } else if (!tuitionPayment.paidAt) {
+          // Auto set paidAt nếu chưa có
+          data.paidAt = this.getDateWithoutTime()
+        }
+        // Nếu có dto.paidAt hoặc DB đã có paidAt -> không set data.paidAt (giữ nguyên)
+      } else if (dto.status === TuitionPaymentStatus.UNPAID) {
+        // Gỡ paidAt khi UNPAID
+        data.paidAt = null
       }
 
       /**
@@ -102,7 +117,9 @@ export class UpdateTuitionPaymentUseCase {
        * =========================
        */
       const updatedTuitionPayment = await tuitionPaymentRepository.update(tuitionPaymentId, data)
-
+      if (!updatedTuitionPayment) {
+        throw new NotFoundException(`Cập nhật học phí thất bại, không tìm thấy học phí với ID ${tuitionPaymentId}`)
+      }
       /**
        * =========================
        * Audit SUCCESS

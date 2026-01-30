@@ -17,6 +17,13 @@ const TUITION_PAYMENT_USE_CASES = [
   tuitionPaymentUseCase.GetMyTuitionPaymentStatsByMoneyUseCase,
   tuitionPaymentUseCase.ExportExcelTuitionPaymentExampleUseCase,
   tuitionPaymentUseCase.PreviewImportTuitionPaymentUseCase,
+  // bulk array
+  tuitionPaymentUseCase.CreateArrayBulkTuitionPaymentUseCase,
+  tuitionPaymentUseCase.UpdateArrayBulkTuitionPaymentUseCase,
+  // monthly stats
+  tuitionPaymentUseCase.GetMonthlyTuitionPaymentStatsUseCase,
+  // export
+  tuitionPaymentUseCase.ExportTuitionPaymentListUseCase,
 ]
 @Module({
   imports: [

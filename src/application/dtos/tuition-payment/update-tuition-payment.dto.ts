@@ -1,4 +1,4 @@
-import { IsOptional, IsEnum, IsString, IsInt, Min, Max } from 'class-validator'
+import { IsOptional, IsEnum, IsString, IsInt, Min, Max, IsDateString } from 'class-validator'
 import { TuitionPaymentStatus } from 'src/shared/enums'
 import { ToNumber } from 'src/shared/decorators'
 
@@ -6,6 +6,12 @@ export class UpdateTuitionPaymentDto {
   @IsOptional()
   @IsEnum(TuitionPaymentStatus, { message: 'Trạng thái học phí không hợp lệ' })
   status?: TuitionPaymentStatus
+
+  @IsOptional()
+  @ToNumber()
+  @IsInt({ message: 'Số tiền phải là số nguyên' })
+  @Min(1, { message: 'Số tiền học phí phải lớn hơn 0' })
+  amount?: number
 
   @IsOptional()
   @ToNumber()
@@ -23,4 +29,8 @@ export class UpdateTuitionPaymentDto {
   @IsOptional()
   @IsString({ message: 'Ghi chú phải là chuỗi' })
   notes?: string
+
+  @IsOptional()
+  @IsDateString({}, { message: 'Ngày thanh toán không hợp lệ' })
+  paidAt?: string
 }

@@ -9,6 +9,7 @@ import type {
   ITuitionPaymentRepository,
 } from 'src/domain/repositories'
 import { ConflictException } from 'src/shared/exceptions/custom-exceptions'
+import { TuitionPaymentStatus } from 'src/shared/enums'
 
 @Injectable()
 export class PreviewImportTuitionPaymentUseCase {
@@ -20,7 +21,16 @@ export class PreviewImportTuitionPaymentUseCase {
 
     @Inject('ITuitionPaymentRepository')
     private readonly tuitionPaymentRepository: ITuitionPaymentRepository,
-  ) {}
+  ) { }
+
+  /**
+   * Helper: Strip time from date (set to 00:00:00)
+   */
+  private getDateWithoutTime(date: Date = new Date()): Date {
+    const d = new Date(date)
+    d.setHours(0, 0, 0, 0)
+    return d
+  }
 
   async execute(
     file: Express.Multer.File,
@@ -43,14 +53,16 @@ export class PreviewImportTuitionPaymentUseCase {
         'Năm',
         'Đã đóng',
         'Ngày đóng',
+        'Ghi chú',
         'SĐT học sinh',
         'SĐT phụ huynh',
       ],
     })
 
     const invalidRows: any[] = []
-    const existingPayments: any[] = []
     const newPayments: any[] = []
+    const existingPayments: any[] = []
+    const unchangedPayments: any[] = []
 
     /* =====================================================
      * 2. Process từng dòng
@@ -69,7 +81,7 @@ export class PreviewImportTuitionPaymentUseCase {
       const month = Number(row['Tháng']) || null
       const year = Number(row['Năm']) || null
 
-      /* ================= VALIDATE CƠ BẢN ================= */
+      /* ================= VALIDATE ================= */
       if (!firstName || !lastName || !month || !year) {
         invalidRows.push({
           rowNumber,
@@ -90,11 +102,29 @@ export class PreviewImportTuitionPaymentUseCase {
         continue
       }
 
+      /* ================= PAID STATUS ================= */
       const paidRaw = String(row['Đã đóng'] ?? '').toLowerCase()
       const isPaid = ['true', '1', 'x', '✔'].includes(paidRaw)
 
+      const notes = row['Ghi chú']?.toString().trim() || ''
+
+      const paymentPayload = {
+        amount,
+        month,
+        year,
+        status: isPaid
+          ? TuitionPaymentStatus.PAID
+          : TuitionPaymentStatus.UNPAID,
+        paidAt: isPaid
+          ? row['Ngày đóng']
+            ? this.getDateWithoutTime(new Date(row['Ngày đóng']))
+            : this.getDateWithoutTime()
+          : null,
+        notes,
+      }
+
       /* =====================================================
-       * 3. Tìm student
+       * 3. Find student
        * ===================================================== */
       const student = await this.studentRepository.findOneByFilters({
         firstName,
@@ -117,8 +147,15 @@ export class PreviewImportTuitionPaymentUseCase {
         continue
       }
 
+      const studentInfo = {
+        studentId: student.studentId,
+        fullName: `${student.user?.lastName} ${student.user?.firstName}`,
+        studentPhone: student.studentPhone,
+        parentPhone: student.parentPhone,
+      }
+
       /* =====================================================
-       * 4. Tìm học phí theo student + month + year
+       * 4. Find existing payment
        * ===================================================== */
       const existedPayment =
         await this.tuitionPaymentRepository.findByStudentAndPeriod(
@@ -127,41 +164,48 @@ export class PreviewImportTuitionPaymentUseCase {
           year,
         )
 
-      const paymentPayload = {
-        amount,
-        month,
-        year,
-        status: isPaid ? 'PAID' : 'UNPAID',
-        paidAt: isPaid
-          ? row['Ngày đóng']
-            ? new Date(row['Ngày đóng'])
-            : new Date()
-          : null,
+      if (!existedPayment) {
+        /* ================= NEW PAYMENT ================= */
+        newPayments.push({
+          rowNumber,
+          student: studentInfo,
+          payment: paymentPayload,
+          month,
+          year,
+          amount,
+        })
+        continue
       }
 
-      if (existedPayment) {
+      /* ================= EXISTED PAYMENT ================= */
+      const oldPayment = {
+        paymentId: existedPayment.paymentId,
+        amount: existedPayment.amount,
+        status: existedPayment.status,
+        paidAt: existedPayment.paidAt,
+        month: existedPayment.month,
+        year: existedPayment.year,
+        notes: existedPayment.notes,
+      }
+
+      const isSame = this.isSamePayment(oldPayment, paymentPayload)
+
+      if (isSame) {
+        unchangedPayments.push({
+          rowNumber,
+          tuitionPaymentId: existedPayment.paymentId,
+          amount: existedPayment.amount,
+          student: studentInfo,
+          payment: oldPayment,
+        })
+      } else {
         existingPayments.push({
           rowNumber,
           tuitionPaymentId: existedPayment.paymentId,
-          student: {
-            studentId: student.studentId,
-            fullName: `${student.user?.lastName} ${student.user?.firstName}`,
-          },
-          oldPayment: {
-            amount: existedPayment.amount,
-            status: existedPayment.status,
-            paidAt: existedPayment.paidAt,
-          },
+          amount: existedPayment.amount,
+          student: studentInfo,
+          oldPayment,
           newPayment: paymentPayload,
-        })
-      } else {
-        newPayments.push({
-          rowNumber,
-          student: {
-            studentId: student.studentId,
-            fullName: `${student.user?.lastName} ${student.user?.firstName}`,
-          },
-          payment: paymentPayload,
         })
       }
     }
@@ -172,13 +216,18 @@ export class PreviewImportTuitionPaymentUseCase {
     const response: TuitionPaymentImportPreviewResponse = {
       summary: {
         totalRows: parsed.totalRows,
-        validRows: existingPayments.length + newPayments.length,
-        existingPayments: existingPayments.length,
+        validRows:
+          newPayments.length +
+          existingPayments.length +
+          unchangedPayments.length,
         newPayments: newPayments.length,
+        existingPayments: existingPayments.length,
+        unchangedPayments: unchangedPayments.length,
         invalidRows: invalidRows.length,
       },
-      existingPayments,
       newPayments,
+      existingPayments,
+      unchangedPayments,
       invalidRows,
     }
 
@@ -191,6 +240,7 @@ export class PreviewImportTuitionPaymentUseCase {
   /* =====================================================
    * Helpers
    * ===================================================== */
+
   private splitFullName(fullName: string): {
     firstName: string
     lastName: string
@@ -205,5 +255,21 @@ export class PreviewImportTuitionPaymentUseCase {
       firstName: parts[parts.length - 1],
       lastName: parts.slice(0, -1).join(' '),
     }
+  }
+
+  private isSamePayment(oldPayment: any, newPayment: any): boolean {
+    const sameAmount =
+      Number(oldPayment.amount) === Number(newPayment.amount)
+
+    const sameStatus = oldPayment.status === newPayment.status
+
+    const samePaidAt =
+      (!oldPayment.paidAt && !newPayment.paidAt) ||
+      (oldPayment.paidAt &&
+        newPayment.paidAt &&
+        new Date(oldPayment.paidAt).getTime() ===
+        new Date(newPayment.paidAt).getTime())
+
+    return sameAmount && sameStatus && samePaidAt
   }
 }

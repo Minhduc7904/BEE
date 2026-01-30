@@ -6,7 +6,7 @@ import {
   TuitionPaymentFilterOptions,
   TuitionPaymentPaginationOptions,
 } from '../../../domain/interface/tuition-payment/tuition-payment.interface'
-import { ToNumber } from 'src/shared/decorators'
+import { ToNumber, EmptyToUndefined } from 'src/shared/decorators'
 
 export class TuitionPaymentListQueryDto extends ListQueryDto {
   @IsOptional()
@@ -32,6 +32,7 @@ export class TuitionPaymentListQueryDto extends ListQueryDto {
   year?: number
 
   @IsOptional()
+  @EmptyToUndefined()
   @IsEnum(TuitionPaymentStatus, {
     message: 'Trạng thái học phí không hợp lệ',
   })

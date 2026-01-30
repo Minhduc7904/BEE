@@ -11,12 +11,12 @@ import {
   TuitionPaymentMoneyStats
 } from '../interface/tuition-payment/tuition-payment.interface'
 import { TuitionPaymentStatus } from 'src/shared/enums'
-
+import { MonthlyPaymentStats } from '../interface/tuition-payment/tuition-payment.interface'
 export interface ITuitionPaymentRepository {
   // ===== CRUD =====
   create(data: CreateTuitionPaymentData): Promise<TuitionPayment>
   findById(id: number): Promise<TuitionPayment | null>
-  update(id: number, data: UpdateTuitionPaymentData): Promise<TuitionPayment>
+  update(id: number, data: UpdateTuitionPaymentData): Promise<TuitionPayment | null>
   delete(id: number): Promise<boolean>
 
   
@@ -67,4 +67,7 @@ export interface ITuitionPaymentRepository {
   /** Tổng UNPAID (dùng cho cảnh báo / badge đỏ 🔴) */
   countUnpaid(filters?: TuitionPaymentFilterOptions): Promise<number>
   statsMoney(filters?: TuitionPaymentFilterOptions): Promise<TuitionPaymentMoneyStats>
+  
+  /** Thống kê số tiền đã đóng, chưa thu được theo từng tháng của 1 năm */
+  statsByMonthlyAmount(year: number, courseId?: number, studentId?: number): Promise<MonthlyPaymentStats[]>
 }

@@ -10,63 +10,67 @@ import type {
   TuitionPaymentMonthlyStats,
   TuitionPaymentCourseStats,
   TuitionPaymentMoneyStats,
+  MonthlyPaymentStats,
 } from '../../../domain/interface'
 import { TuitionPayment } from '../../../domain/entities'
 import { TuitionPaymentStatus } from '../../../shared/enums'
 import { NumberUtil } from '../../../shared/utils'
+import { TuitionPaymentMapper } from 'src/infrastructure/mappers/tuition-payment/tuition-payment.mapper'
 
 export class PrismaTuitionPaymentRepository implements ITuitionPaymentRepository {
-  constructor(private readonly prisma: PrismaService | any) {}
+  constructor(private readonly prisma: PrismaService | any) { }
 
   // ======================
   // CRUD
   // ======================
 
   async create(data: CreateTuitionPaymentData): Promise<TuitionPayment> {
-    return this.prisma.tuitionPayment.create({
+    const payment = await this.prisma.tuitionPayment.create({
       data: {
         studentId: data.studentId,
         courseId: data.courseId,
         month: data.month,
         year: data.year,
-        amount: data.amount, // 💰 NEW FIELD (BẮT BUỘC)
+        amount: data.amount,
         status: data.status || TuitionPaymentStatus.UNPAID,
         paidAt: data.paidAt,
         notes: data.notes,
       },
       include: {
-        student: true,
+        student: { include: { user: true } },
         course: true,
       },
     })
+
+    return TuitionPaymentMapper.toDomainTuitionPayment(payment)!
   }
+
 
   async findById(id: number): Promise<TuitionPayment | null> {
-    const paymentId = NumberUtil.ensureValidId(id, 'Payment ID')
-
-    return this.prisma.tuitionPayment.findUnique({
-      where: { paymentId },
+    const payment = await this.prisma.tuitionPayment.findUnique({
+      where: { paymentId: NumberUtil.ensureValidId(id, 'Payment ID') },
       include: {
-        student: true,
+        student: { include: { user: true } },
         course: true,
       },
     })
+
+    return TuitionPaymentMapper.toDomainTuitionPayment(payment) || null
   }
 
-  async update(id: number, data: UpdateTuitionPaymentData): Promise<TuitionPayment> {
-    const paymentId = NumberUtil.ensureValidId(id, 'Payment ID')
-
-    return this.prisma.tuitionPayment.update({
-      where: { paymentId },
-      data: {
-        ...data,
-      },
+  async update(id: number, data: UpdateTuitionPaymentData): Promise<TuitionPayment | null> {
+    const payment = await this.prisma.tuitionPayment.update({
+      where: { paymentId: NumberUtil.ensureValidId(id, 'Payment ID') },
+      data,
       include: {
-        student: true,
+        student: { include: { user: true } },
         course: true,
       },
     })
+
+    return TuitionPaymentMapper.toDomainTuitionPayment(payment) || null
   }
+
 
   async delete(id: number): Promise<boolean> {
     const paymentId = NumberUtil.ensureValidId(id, 'Payment ID')
@@ -83,16 +87,17 @@ export class PrismaTuitionPaymentRepository implements ITuitionPaymentRepository
   // ======================
 
   async findAll(): Promise<TuitionPayment[]> {
-    return this.prisma.tuitionPayment.findMany({
+    const payments = await this.prisma.tuitionPayment.findMany({
       include: {
-        student: true,
+        student: { include: { user: true } },
         course: true,
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy: { createdAt: 'desc' },
     })
+
+    return TuitionPaymentMapper.toDomainTuitionPayments(payments)
   }
+
 
   // ======================
   // PAGINATION + FILTER
@@ -131,7 +136,11 @@ export class PrismaTuitionPaymentRepository implements ITuitionPaymentRepository
           [sortBy]: sortOrder,
         },
         include: {
-          student: true,
+          student: {
+            include: {
+              user: true,
+            },
+          },
           course: true,
         },
       }),
@@ -139,7 +148,7 @@ export class PrismaTuitionPaymentRepository implements ITuitionPaymentRepository
     ])
 
     return {
-      data: payments,
+      data: TuitionPaymentMapper.toDomainTuitionPayments(payments),
       total,
       page,
       limit,
@@ -185,16 +194,18 @@ export class PrismaTuitionPaymentRepository implements ITuitionPaymentRepository
       ]
     }
 
-    return this.prisma.tuitionPayment.findMany({
+    const payments = await this.prisma.tuitionPayment.findMany({
       where,
       include: {
-        student: true,
+        student: { include: { user: true } },
         course: true,
       },
       orderBy: {
         createdAt: 'desc',
       },
     })
+
+    return TuitionPaymentMapper.toDomainTuitionPayments(payments)
   }
 
   async exists(filters: TuitionPaymentFilterOptions): Promise<boolean> {
@@ -207,33 +218,40 @@ export class PrismaTuitionPaymentRepository implements ITuitionPaymentRepository
   // ======================
 
   async findByStudent(studentId: number): Promise<TuitionPayment[]> {
-    return this.prisma.tuitionPayment.findMany({
+    const payments = await this.prisma.tuitionPayment.findMany({
       where: { studentId },
       orderBy: { createdAt: 'desc' },
     })
+
+    return TuitionPaymentMapper.toDomainTuitionPayments(payments)
   }
 
   async findByCourse(courseId: number): Promise<TuitionPayment[]> {
-    return this.prisma.tuitionPayment.findMany({
+    const payments = await this.prisma.tuitionPayment.findMany({
       where: { courseId },
       orderBy: { createdAt: 'desc' },
     })
+
+    return TuitionPaymentMapper.toDomainTuitionPayments(payments)
   }
 
   async findByStudentAndPeriod(studentId: number, month: number, year: number): Promise<TuitionPayment | null> {
-    return this.prisma.tuitionPayment.findFirst({
+    const payment = await this.prisma.tuitionPayment.findFirst({
       where: {
         studentId,
         month,
         year,
       },
     })
+    return TuitionPaymentMapper.toDomainTuitionPayment(payment) || null
   }
 
   async findByStatus(status: TuitionPaymentStatus): Promise<TuitionPayment[]> {
-    return this.prisma.tuitionPayment.findMany({
+    const payments = await this.prisma.tuitionPayment.findMany({
       where: { status },
     })
+
+    return TuitionPaymentMapper.toDomainTuitionPayments(payments)
   }
 
   // ======================
@@ -408,5 +426,62 @@ export class PrismaTuitionPaymentRepository implements ITuitionPaymentRepository
       uncollected: unpaid._sum.amount ?? 0,
       expected: total._sum.amount ?? 0,
     }
+  }
+
+  async statsByMonthlyAmount(year: number, courseId?: number, studentId?: number): Promise<MonthlyPaymentStats[]> {
+    const where: any = {
+      year,
+    }
+
+    if (courseId) {
+      where.courseId = courseId
+    }
+
+    if (studentId) {
+      where.studentId = studentId
+    }
+
+    // Get all payments for the year
+    const payments = await this.prisma.tuitionPayment.findMany({
+      where,
+      select: {
+        month: true,
+        amount: true,
+        status: true,
+      },
+    })
+
+    // Initialize monthly stats (1-12)
+    const monthlyStatsMap: Map<number, MonthlyPaymentStats> = new Map()
+    for (let month = 1; month <= 12; month++) {
+      monthlyStatsMap.set(month, {
+        month,
+        paidAmount: 0,
+        unpaidAmount: 0,
+        totalAmount: 0,
+        paidCount: 0,
+        unpaidCount: 0,
+        totalCount: 0,
+      })
+    }
+
+    // Aggregate data by month
+    payments.forEach((payment) => {
+      const stats = monthlyStatsMap.get(payment.month)!
+      
+      stats.totalAmount += payment.amount
+      stats.totalCount += 1
+
+      if (payment.status === TuitionPaymentStatus.PAID) {
+        stats.paidAmount += payment.amount
+        stats.paidCount += 1
+      } else {
+        stats.unpaidAmount += payment.amount
+        stats.unpaidCount += 1
+      }
+    })
+
+    // Convert to array
+    return Array.from(monthlyStatsMap.values())
   }
 }

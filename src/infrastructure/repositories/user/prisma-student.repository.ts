@@ -540,6 +540,14 @@ export class PrismaStudentRepository implements IStudentRepository {
       userFilters.lastName = { contains: filters.lastName }
     }
 
+    if (filters.parentPhone) {
+      where.parentPhone = { contains: filters.parentPhone }
+    }
+
+    if (filters.studentPhone) {
+      where.studentPhone = { contains: filters.studentPhone }
+    }
+
     if (filters.isActive !== undefined) {
       userFilters.isActive = filters.isActive
     }
