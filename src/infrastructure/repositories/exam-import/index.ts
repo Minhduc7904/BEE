@@ -1,0 +1,5 @@
+export * from './prisma-exam-import-session.repository'
+export * from './prisma-temp-exam.repository'
+export * from './prisma-temp-section.repository'
+export * from './prisma-temp-question.repository'
+export * from './prisma-temp-statement.repository'

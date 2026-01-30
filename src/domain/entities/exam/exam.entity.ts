@@ -2,7 +2,7 @@
 import { Subject } from '../subject/subject.entity'
 import { QuestionExam } from './question-exam.entity'
 import { Competition } from './competition.entity'
-import { Visibility } from 'src/shared/enums'
+import { ExamVisibility } from 'src/shared/enums'
 
 export class Exam {
   // Required properties
@@ -10,7 +10,7 @@ export class Exam {
   title: string
   grade: number
   createdBy: number
-  visibility: Visibility
+  visibility: ExamVisibility
   createdAt: Date
   updatedAt: Date
 
@@ -29,7 +29,7 @@ export class Exam {
     title: string
     grade: number
     createdBy: number
-    visibility: Visibility
+    visibility: ExamVisibility
     createdAt: Date
     updatedAt: Date
     description?: string | null
@@ -65,21 +65,28 @@ export class Exam {
    * Kiểm tra exam đã được xuất bản chưa
    */
   isPublished(): boolean {
-    return this.visibility === Visibility.PUBLISHED
+    return this.visibility === ExamVisibility.PUBLISHED
   }
 
   /**
    * Kiểm tra exam đang ở trạng thái draft
    */
   isDraft(): boolean {
-    return this.visibility === Visibility.DRAFT
+    return this.visibility === ExamVisibility.DRAFT
   }
 
   /**
    * Kiểm tra exam ở trạng thái private
    */
   isPrivate(): boolean {
-    return this.visibility === Visibility.PRIVATE
+    return this.visibility === ExamVisibility.PRIVATE
+  }
+
+  /**
+   * Kiểm tra exam đã bị lưu trữ
+   */
+  isArchived(): boolean {
+    return this.visibility === ExamVisibility.ARCHIVED
   }
 
   /**
@@ -87,9 +94,10 @@ export class Exam {
    */
   getVisibilityDisplay(): string {
     const visibilityMap = {
-      [Visibility.DRAFT]: 'Bản nháp',
-      [Visibility.PRIVATE]: 'Riêng tư',
-      [Visibility.PUBLISHED]: 'Đã xuất bản'
+      [ExamVisibility.DRAFT]: 'Bản nháp',
+      [ExamVisibility.PRIVATE]: 'Riêng tư',
+      [ExamVisibility.PUBLISHED]: 'Đã xuất bản',
+      [ExamVisibility.ARCHIVED]: 'Đã lưu trữ'
     }
     return visibilityMap[this.visibility] || 'Không xác định'
   }
@@ -322,7 +330,7 @@ export class Exam {
       grade: data.grade,
       subjectId: data.subjectId,
       createdBy: data.createdBy,
-      visibility: data.visibility as Visibility,
+      visibility: data.visibility as ExamVisibility,
       description: data.description,
       competitions: data.competitions,
       questions: data.questions
@@ -339,7 +347,7 @@ export class Exam {
   /**
    * Tạo exam cơ bản
    */
-  static createBasic(examId: number, title: string, grade: number, subjectId: number, createdBy: number, visibility: Visibility = Visibility.DRAFT): Exam {
+  static createBasic(examId: number, title: string, grade: number, subjectId: number, createdBy: number, visibility: ExamVisibility = ExamVisibility.DRAFT): Exam {
     const now = new Date()
     return new Exam({
       examId,

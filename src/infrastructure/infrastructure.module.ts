@@ -28,6 +28,11 @@ import {
   PrismaAttendanceRepository,
   PrismaNotificationRepository,
   PrismaTuitionPaymentRepository,
+  PrismaTempExamRepository,
+  PrismaTempSectionRepository,
+  PrismaTempQuestionRepository,
+  PrismaTempStatementRepository,
+  PrismaExamImportSessionRepository,
 } from './repositories'
 import {
   PasswordService,
@@ -177,6 +182,31 @@ import supabaseConfig from '../config/supabase.config'
       inject: [PrismaService],
     },
     {
+      provide: 'ITempExamRepository',
+      useFactory: (prisma: PrismaService) => new PrismaTempExamRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'ITempSectionRepository',
+      useFactory: (prisma: PrismaService) => new PrismaTempSectionRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'ITempQuestionRepository',
+      useFactory: (prisma: PrismaService) => new PrismaTempQuestionRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'ITempStatementRepository',
+      useFactory: (prisma: PrismaService) => new PrismaTempStatementRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IExamImportSessionRepository',
+      useFactory: (prisma: PrismaService) => new PrismaExamImportSessionRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
       provide: 'PASSWORD_SERVICE',
       useClass: PasswordService,
     },
@@ -235,6 +265,11 @@ import supabaseConfig from '../config/supabase.config'
     'ILessonLearningItemRepository',
     'IClassSessionRepository',
     'ITuitionPaymentRepository',
+    'ITempExamRepository',
+    'ITempSectionRepository',
+    'ITempQuestionRepository',
+    'ITempStatementRepository',
+    'IExamImportSessionRepository',
     'PASSWORD_SERVICE',
     'JWT_TOKEN_SERVICE',
     'TOKEN_HASH_SERVICE',

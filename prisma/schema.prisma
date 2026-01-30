@@ -25,6 +25,24 @@ enum Visibility {
   PUBLISHED // Công khai hiển thị ở nơi người dùng có thể thấy
 }
 
+enum ExamVisibility {
+  DRAFT // Bản nháp, chưa công bố
+  PUBLISHED // Đã xuất bản, công khai
+  PRIVATE // Riêng tư, chỉ người có link mới xem được
+  ARCHIVED // Đã lưu trữ, không còn sử dụng
+}
+
+enum ImportStatus {
+  PENDING // Đang chờ xử lý
+  PROCESSING // Đang xử lý PDF
+  PARSED // Đã parse xong, chờ review
+  REVIEWING // Đang được review/chỉnh sửa
+  APPROVED // Đã duyệt, sẵn sàng migrate
+  COMPLETED // Đã migrate sang bảng chính
+  REJECTED // Bị từ chối
+  FAILED // Xử lý thất bại
+}
+
 enum PaymentType {
   ONE_TIME // Đóng 1 lần cho toàn bộ khóa học
   MONTHLY // Đóng theo tháng
@@ -174,7 +192,7 @@ model Student {
   classStudents        ClassStudent[]
   homeworkSubmits      HomeworkSubmit[]
   studentLearningItems StudentLearningItem[]
-  tuitionPayments      TuitionPayment[] 
+  tuitionPayments      TuitionPayment[]
 
   // ✅ UNIQUE theo cặp studentPhone + parentPhone
   @@unique([studentPhone, parentPhone], map: "uq_student_studentPhone_parentPhone")
@@ -359,11 +377,13 @@ model Subject {
   code      String? @unique
 
   // Relations
-  chapters  Chapter[]
-  admins    Admin[]    @relation("AdminSubject")
-  exams     Exam[]     @relation("ExamSubject")
-  questions Question[] @relation("QuestionSubject")
-  courses   Course[]   @relation("CourseSubject")
+  chapters      Chapter[]      @relation("SubjectChapters")
+  admins        Admin[]        @relation("AdminSubject")
+  exams         Exam[]         @relation("ExamSubject")
+  questions     Question[]     @relation("QuestionSubject")
+  courses       Course[]       @relation("CourseSubject")
+  tempExams     TempExam[]     @relation("TempExamSubject")
+  tempQuestions TempQuestion[] @relation("TempQuestionSubject")
 
   @@index([name], map: "idx_subjects_name")
   @@map("subjects")
@@ -383,7 +403,7 @@ model Chapter {
   level Int @default(0)
 
   // Quan hệ
-  subject          Subject           @relation(fields: [subjectId], references: [subjectId], onDelete: Cascade)
+  subject          Subject           @relation("SubjectChapters", fields: [subjectId], references: [subjectId], onDelete: Cascade)
   parent           Chapter?          @relation("ChapterToChildren", fields: [parentChapterId], references: [chapterId], onDelete: Cascade)
   children         Chapter[]         @relation("ChapterToChildren")
   questionChapters QuestionChapter[]
@@ -397,21 +417,23 @@ model Chapter {
 }
 
 model Exam {
-  examId      Int        @id @default(autoincrement()) @map("exam_id") @db.Int
-  title       String     @map("title") @db.VarChar(255)
-  description String?    @map("description") @db.Text
-  grade       Int        @map("grade") @db.TinyInt
-  subjectId   Int?       @map("subject_id")
-  createdBy   Int        @map("created_by")
-  visibility  Visibility @default(DRAFT) @map("visibility")
-  createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt   DateTime   @updatedAt @map("updated_at") @db.Timestamp(0)
+  examId      Int            @id @default(autoincrement()) @map("exam_id") @db.Int
+  title       String         @map("title") @db.VarChar(255)
+  description String?        @map("description") @db.Text
+  grade       Int            @map("grade") @db.TinyInt
+  subjectId   Int?           @map("subject_id")
+  createdBy   Int            @map("created_by")
+  visibility  ExamVisibility @default(DRAFT) @map("visibility")
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime       @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
   subject      Subject?       @relation("ExamSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
   admin        Admin          @relation("ExamCreatedBy", fields: [createdBy], references: [adminId], onDelete: Cascade)
   competitions Competition[]
+  sections     Section[]      @relation("ExamSections")
   questions    QuestionExam[]
+  tempExam     TempExam?      @relation("TempExamFinal")
 
   @@index([grade, subjectId], map: "idx_exams_grade_subject")
   @@index([subjectId], map: "idx_exams_subject_id")
@@ -420,9 +442,28 @@ model Exam {
   @@map("exams")
 }
 
+model Section {
+  sectionId   Int      @id @default(autoincrement()) @map("section_id")
+  examId      Int      @map("exam_id")
+  title       String   @map("title") @db.VarChar(255)
+  description String?  @map("description") @db.Text
+  order       Int      @map("order") // thứ tự section trong đề thi
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  exam        Exam           @relation("ExamSections", fields: [examId], references: [examId], onDelete: Cascade)
+  questions   QuestionExam[]
+  tempSection TempSection?   @relation("TempSectionFinal")
+
+  @@unique([examId, order], map: "unique_exam_section_order")
+  @@index([examId], map: "idx_sections_exam_id")
+  @@map("sections")
+}
+
 model Question {
   questionId         Int          @id @default(autoincrement()) @map("question_id")
-  content            String       @map("content") @db.Text
+  content            String       @map("content") @db.LongText
   type               QuestionType @map("type")
   correctAnswer      String?      @map("correct_answer") @db.Text
   solution           String?      @map("solution") @db.Text
@@ -431,6 +472,7 @@ model Question {
   grade              Int          @map("grade") @db.TinyInt // cấp lớp của câu hỏi
   subjectId          Int?         @map("subject_id")
   pointsOrigin       Int?         @map("points_origin") // điểm gốc của câu hỏi
+  visibility         Visibility   @default(DRAFT) @map("visibility") // trạng thái công khai của câu hỏi
   createdBy          Int?         @map("created_by") // admin tạo câu hỏi
   createdAt          DateTime     @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt          DateTime     @updatedAt @map("updated_at") @db.Timestamp(0)
@@ -441,6 +483,7 @@ model Question {
   statements       Statement[]
   examQuestions    QuestionExam[]
   questionChapters QuestionChapter[]
+  tempQuestion     TempQuestion?     @relation("TempQuestionFinal")
 
   @@index([subjectId, grade], map: "idx_questions_subject_grade")
   @@index([subjectId], map: "idx_questions_subject_id")
@@ -449,6 +492,135 @@ model Question {
   @@index([createdBy], map: "idx_questions_created_by")
   @@index([createdAt], map: "idx_questions_created_at")
   @@map("questions")
+}
+
+// ============================================
+// EXAM IMPORT/UPLOAD FLOW - TEMPORARY TABLES
+// ============================================
+
+model ExamImportSession {
+  sessionId   String       @id @default(uuid()) @map("session_id")
+  status      ImportStatus @default(PENDING) @map("status")
+  fileName    String       @map("file_name") @db.VarChar(255) // tên file PDF gốc
+  fileUrl     String?      @map("file_url") @db.VarChar(1000) // URL file trong MinIO
+  rawContent  String?      @map("raw_content") @db.LongText // nội dung text đã parse từ PDF
+  errorLog    String?      @map("error_log") @db.Text // log lỗi nếu có
+  metadata    Json?        @map("metadata") // metadata bổ sung (AI model used, confidence score, etc)
+  createdBy   Int          @map("created_by")
+  approvedBy  Int?         @map("approved_by") // admin duyệt
+  approvedAt  DateTime?    @map("approved_at") @db.Timestamp(0)
+  completedAt DateTime?    @map("completed_at") @db.Timestamp(0) // thời điểm migrate sang bảng chính
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime     @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  tempExam      TempExam?
+  tempSections  TempSection[]
+  tempQuestions TempQuestion[]
+
+  @@index([status], map: "idx_exam_import_status")
+  @@index([createdBy], map: "idx_exam_import_created_by")
+  @@index([createdAt], map: "idx_exam_import_created_at")
+  @@map("exam_import_sessions")
+}
+
+model TempExam {
+  tempExamId  String         @id @default(uuid()) @map("temp_exam_id")
+  sessionId   String         @unique @map("session_id")
+  title       String         @map("title") @db.VarChar(255)
+  description String?        @map("description") @db.Text
+  grade       Int?           @map("grade") @db.TinyInt
+  subjectId   Int?           @map("subject_id")
+  visibility  ExamVisibility @default(DRAFT) @map("visibility")
+  metadata    Json?          @map("metadata") // dữ liệu bổ sung từ AI parsing
+  examId      Int?           @unique @map("exam_id") // ID của exam chính sau khi migrate
+  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime       @updatedAt @map("updated_at") @db.Timestamp(0)
+  rawContent  String?        @map("raw_content") @db.LongText // nội dung thô đã parse từ PDF
+  // Relations
+  session      ExamImportSession @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
+  subject      Subject?          @relation("TempExamSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
+  finalExam    Exam?             @relation("TempExamFinal", fields: [examId], references: [examId], onDelete: SetNull)
+  tempSections TempSection[]
+
+  @@index([sessionId], map: "idx_temp_exams_session")
+  @@index([subjectId], map: "idx_temp_exams_subject")
+  @@map("temp_exams")
+}
+
+model TempSection {
+  tempSectionId String   @id @default(uuid()) @map("temp_section_id")
+  sessionId     String   @map("session_id")
+  tempExamId    String   @map("temp_exam_id")
+  title         String   @map("title") @db.VarChar(255)
+  description   String?  @map("description") @db.Text
+  order         Int      @map("order")
+  metadata      Json?    @map("metadata")
+  sectionId     Int?     @unique @map("section_id") // ID của section chính sau khi migrate
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  session       ExamImportSession @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
+  tempExam      TempExam          @relation(fields: [tempExamId], references: [tempExamId], onDelete: Cascade)
+  finalSection  Section?          @relation("TempSectionFinal", fields: [sectionId], references: [sectionId], onDelete: SetNull)
+  tempQuestions TempQuestion[]
+
+  @@index([sessionId], map: "idx_temp_sections_session")
+  @@index([tempExamId], map: "idx_temp_sections_exam")
+  @@map("temp_sections")
+}
+
+model TempQuestion {
+  tempQuestionId     String       @id @default(uuid()) @map("temp_question_id")
+  sessionId          String       @map("session_id")
+  tempSectionId      String?      @map("temp_section_id")
+  content            String       @map("content") @db.LongText
+  type               QuestionType @map("type")
+  correctAnswer      String?      @map("correct_answer") @db.Text
+  solution           String?      @map("solution") @db.Text
+  difficulty         Difficulty?  @map("difficulty")
+  solutionYoutubeUrl String?      @map("solution_youtube_url") @db.VarChar(500)
+  grade              Int?         @map("grade") @db.TinyInt
+  subjectId          Int?         @map("subject_id")
+  pointsOrigin       Int?         @map("points_origin")
+  order              Int          @map("order") // thứ tự câu hỏi trong section/exam
+  metadata           Json?        @map("metadata") // confidence score, AI notes, etc
+  questionId         Int?         @unique @map("question_id") // ID của question chính sau khi migrate
+  createdAt          DateTime     @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt          DateTime     @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  session        ExamImportSession @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
+  tempSection    TempSection?      @relation(fields: [tempSectionId], references: [tempSectionId], onDelete: Cascade)
+  subject        Subject?          @relation("TempQuestionSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
+  finalQuestion  Question?         @relation("TempQuestionFinal", fields: [questionId], references: [questionId], onDelete: SetNull)
+  tempStatements TempStatement[]
+
+  @@index([sessionId], map: "idx_temp_questions_session")
+  @@index([tempSectionId], map: "idx_temp_questions_section")
+  @@index([subjectId], map: "idx_temp_questions_subject")
+  @@map("temp_questions")
+}
+
+model TempStatement {
+  tempStatementId String      @id @default(uuid()) @map("temp_statement_id")
+  tempQuestionId  String      @map("temp_question_id")
+  content         String      @map("content") @db.Text
+  isCorrect       Boolean     @map("is_correct")
+  order           Int?        @map("order")
+  difficulty      Difficulty? @map("difficulty")
+  metadata        Json?       @map("metadata")
+  statementId     Int?        @unique @map("statement_id") // ID của statement chính sau khi migrate
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt       DateTime    @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  tempQuestion   TempQuestion @relation(fields: [tempQuestionId], references: [tempQuestionId], onDelete: Cascade)
+  finalStatement Statement?   @relation("TempStatementFinal", fields: [statementId], references: [statementId], onDelete: SetNull)
+
+  @@index([tempQuestionId], map: "idx_temp_statements_question")
+  @@map("temp_statements")
 }
 
 model QuestionChapter {
@@ -475,7 +647,8 @@ model Statement {
   updatedAt   DateTime    @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
-  question Question @relation(fields: [questionId], references: [questionId], onDelete: Cascade)
+  question      Question       @relation(fields: [questionId], references: [questionId], onDelete: Cascade)
+  tempStatement TempStatement? @relation("TempStatementFinal")
 
   @@index([questionId], map: "idx_statements_question_id")
   @@index([isCorrect], map: "idx_statements_is_correct")
@@ -485,17 +658,20 @@ model Statement {
 model QuestionExam {
   questionId Int      @map("question_id")
   examId     Int      @map("exam_id")
-  order      Int      @map("order") // thứ tự câu hỏi trong đề thi
+  sectionId  Int?     @map("section_id") // câu hỏi thuộc section nào (nullable để tương thích với dữ liệu cũ)
+  order      Int      @map("order") // thứ tự câu hỏi trong section hoặc trong đề thi
   points     Int?     @map("points") // điểm số riêng cho câu hỏi này 
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp(0)
 
   // Relations
   question Question @relation(fields: [questionId], references: [questionId], onDelete: Cascade)
   exam     Exam     @relation(fields: [examId], references: [examId], onDelete: Cascade)
+  section  Section? @relation(fields: [sectionId], references: [sectionId], onDelete: Cascade)
 
   @@id([questionId, examId])
   @@index([examId], map: "idx_question_exams_exam_id")
   @@index([questionId], map: "idx_question_exams_question_id")
+  @@index([sectionId], map: "idx_question_exams_section_id")
   @@map("questions_exams")
 }
 
@@ -1000,8 +1176,8 @@ model TuitionPayment {
 
   // OPTIONAL FIELDS
   courseId Int? @map("course_id")
-  month    Int @map("month") @db.TinyInt
-  year     Int @map("year") @db.SmallInt
+  month    Int  @map("month") @db.TinyInt
+  year     Int  @map("year") @db.SmallInt
 
   // REQUIRED
   studentId Int @map("student_id")
@@ -1019,7 +1195,6 @@ model TuitionPayment {
   student Student @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
 
   @@unique([studentId, month, year])
-
   // INDEXES (OK)
   @@index([studentId], map: "idx_tuition_payments_student_id")
   @@index([courseId], map: "idx_tuition_payments_course_id")

@@ -29,3 +29,8 @@ export * from './media-usage.repository';
 export * from './media-folder.repository';
 export * from './notification.repository';
 export * from './tuition-payment.repository';
+export * from './exam-import-session.repository';
+export * from './temp-exam.repository';
+export * from './temp-section.repository';
+export * from './temp-question.repository';
+export * from './temp-statement.repository';

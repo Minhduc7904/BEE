@@ -1,0 +1,19 @@
+import { Module } from '@nestjs/common'
+
+import * as examImportSessionUseCase from './'
+import { InfrastructureModule } from 'src/infrastructure/infrastructure.module'
+
+const EXAM_IMPORT_SESSION_USE_CASES = [
+  examImportSessionUseCase.CreateExamImportSessionUseCase,
+  examImportSessionUseCase.GetAllExamImportSessionsUseCase,
+    examImportSessionUseCase.GetExamImportSessionByIdUseCase,
+]
+
+@Module({
+  imports: [
+    InfrastructureModule, // 🔥 BẮT BUỘC
+  ],
+  providers: EXAM_IMPORT_SESSION_USE_CASES,
+  exports: EXAM_IMPORT_SESSION_USE_CASES,
+})
+export class ExamImportSessionApplicationModule {}

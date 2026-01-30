@@ -28,7 +28,7 @@ import { SubjectApplicationModule } from './use-cases/subject/subject.applicatio
 import { UserApplicationModule } from './use-cases/user/user.application.module'
 import { NotificationApplicationModule } from './use-cases/notification/notification.application.module'
 import { TuitionPaymentApplicationModule } from './use-cases/tuition-payment/tuition-payment.application.module'
-
+import { ExamImportSessionApplicationModule } from './use-cases/exam-import-session/exam-import-session.application.module'
 const modules = [
   // Auth & Account
   AuthApplicationModule,
@@ -71,6 +71,8 @@ const modules = [
   NotificationApplicationModule,
   // Tuition Payment
   TuitionPaymentApplicationModule,
+  // Exam Import Session
+  ExamImportSessionApplicationModule,
 ]
 
 @Module({

@@ -6,6 +6,7 @@ import { Subject } from '../subject/subject.entity'
 import { Statement } from './statement.entity'
 import { QuestionExam } from './question-exam.entity'
 import { QuestionChapter } from './question-chapter.entity'
+import { Visibility } from 'src/shared/enums'
 
 export class Question {
   // Required properties
@@ -14,6 +15,7 @@ export class Question {
   type: QuestionType
   difficulty: Difficulty
   grade: number
+  visibility: Visibility
   createdAt: Date
   updatedAt: Date
 
@@ -51,6 +53,7 @@ export class Question {
     statements?: Statement[]
     examQuestions?: QuestionExam[]
     questionChapters?: QuestionChapter[]
+    visibility: Visibility
   }) {
     this.questionId = data.questionId
     this.content = data.content
@@ -70,6 +73,7 @@ export class Question {
     this.statements = data.statements
     this.examQuestions = data.examQuestions
     this.questionChapters = data.questionChapters
+    this.visibility = data.visibility
   }
 
   /**
@@ -439,6 +443,7 @@ export class Question {
       statements: data.statements,
       examQuestions: data.examQuestions,
       questionChapters: data.questionChapters,
+      visibility: data.visibility,
     })
   }
 
@@ -463,6 +468,7 @@ export class Question {
       createdAt: now,
       updatedAt: now,
       createdBy,
+      visibility: Visibility.DRAFT,
     })
   }
 
