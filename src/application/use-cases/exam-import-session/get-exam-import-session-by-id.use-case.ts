@@ -11,7 +11,7 @@ export class GetExamImportSessionByIdUseCase {
     private readonly sessionRepository: IExamImportSessionRepository,
   ) {}
 
-  async execute(sessionId: string): Promise<BaseResponseDto<ExamImportSessionResponseDto>> {
+  async execute(sessionId: number): Promise<BaseResponseDto<ExamImportSessionResponseDto>> {
     const session = await this.sessionRepository.findByIdWithRelations(sessionId)
 
     if (!session) {

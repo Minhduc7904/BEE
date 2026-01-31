@@ -1,6 +1,6 @@
 import { MediaVisibility } from 'src/shared/enums'
 import { MediaUsageEntity } from '../../../domain/entities'
-
+import { MediaResponseDto } from '../media/media-response.dto'
 /**
  * MediaUsageResponseDto - Response DTO for MediaUsage
  */
@@ -13,6 +13,7 @@ export class MediaUsageResponseDto {
   usedBy: number | null
   visibility: MediaVisibility
   createdAt: Date
+  media?: MediaResponseDto | null
 
   static fromEntity(entity: MediaUsageEntity): MediaUsageResponseDto {
     const dto = new MediaUsageResponseDto()
@@ -24,6 +25,9 @@ export class MediaUsageResponseDto {
     dto.usedBy = entity.usedBy
     dto.visibility = entity.visibility
     dto.createdAt = entity.createdAt
+    dto.media = entity.media
+      ? MediaResponseDto.fromEntity(entity.media)
+      : null
     return dto
   }
 }

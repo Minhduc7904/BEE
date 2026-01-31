@@ -6,12 +6,9 @@ import { IsString, IsOptional, IsEnum, IsNumber } from 'class-validator'
 import { Trim } from '../../../shared/decorators'
 
 export class ExamImportSessionResponseDto {
-  sessionId: string
+  sessionId: number
   status: ImportStatus
-  fileName: string
-  fileUrl?: string
   rawContent?: string
-  errorLog?: string
   metadata?: any
   createdBy: number
   approvedBy?: number
@@ -36,10 +33,7 @@ export class ExamImportSessionResponseDto {
     return new ExamImportSessionResponseDto({
       sessionId: session.sessionId,
       status: session.status,
-      fileName: session.fileName,
-      fileUrl: session.fileUrl,
       rawContent: session.rawContent,
-      errorLog: session.errorLog,
       metadata: session.metadata,
       createdBy: session.createdBy,
       approvedBy: session.approvedBy,
@@ -75,39 +69,14 @@ export class ExamImportSessionListResponseDto extends PaginationResponseDto<Exam
   declare data: ExamImportSessionResponseDto[]
 }
 
-export class CreateExamImportSessionDto {
-  @IsString({ message: 'Tên file không hợp lệ' })
-  @Trim()
-  fileName: string
-
-  @IsOptional()
-  @IsString({ message: 'URL file không hợp lệ' })
-  fileUrl?: string
-
-  @IsOptional()
-  @IsString({ message: 'Nội dung không hợp lệ' })
-  rawContent?: string
-
-  @IsOptional()
-  metadata?: any
-}
-
 export class UpdateExamImportSessionDto {
   @IsOptional()
   @IsEnum(ImportStatus, { message: 'Trạng thái không hợp lệ' })
   status?: ImportStatus
 
   @IsOptional()
-  @IsString({ message: 'URL file không hợp lệ' })
-  fileUrl?: string
-
-  @IsOptional()
   @IsString({ message: 'Nội dung không hợp lệ' })
   rawContent?: string
-
-  @IsOptional()
-  @IsString({ message: 'Log lỗi không hợp lệ' })
-  errorLog?: string
 
   @IsOptional()
   metadata?: any

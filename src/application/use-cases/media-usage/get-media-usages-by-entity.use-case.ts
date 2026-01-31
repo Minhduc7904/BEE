@@ -34,16 +34,19 @@ export class GetMediaUsagesByEntityUseCase {
     )
 
     let filteredUsages = usages
-
     // 1️⃣ Chưa đăng nhập → chỉ PUBLIC
     if (userId === undefined) {
+      filteredUsages = usages.filter(
+        (u) => u.visibility === MediaVisibility.PUBLIC,
+      )
     }
-    // 2️⃣ Đã đăng nhập → PUBLIC + PROTECTED
+    // 2️⃣ Đã đăng nhập → PUBLIC + PROTECTED + media của chính mình (bất kể visibility)
     else {
       filteredUsages = usages.filter(
         (u) =>
           u.visibility === MediaVisibility.PUBLIC ||
-          u.visibility === MediaVisibility.PROTECTED,
+          u.visibility === MediaVisibility.PROTECTED ||
+          u.media?.uploadedBy === userId, // Người upload luôn thấy được media của mình
       )
     }
 

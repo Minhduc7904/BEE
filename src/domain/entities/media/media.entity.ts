@@ -5,6 +5,7 @@ import { MediaFolderEntity } from './media-folder.entity'
 export class MediaEntity {
   mediaId: number
   folderId?: number
+  parentId?: number
   bucketName: string
   objectKey: string
   originalFilename: string
@@ -16,8 +17,11 @@ export class MediaEntity {
   width?: number
   height?: number
   duration?: number
+  rawContent?: string
   uploadedBy: number
   uploader?: User
+  parent?: MediaEntity
+  children?: MediaEntity[]
   usages?: Array<MediaUsageEntity>
   folder?: MediaFolderEntity
   createdAt: Date
@@ -26,6 +30,7 @@ export class MediaEntity {
   constructor(data: {
     mediaId: number
     folderId?: number
+    parentId?: number
     bucketName: string
     objectKey: string
     originalFilename: string
@@ -37,8 +42,11 @@ export class MediaEntity {
     width?: number
     height?: number
     duration?: number
+    rawContent?: string
     uploadedBy: number
     uploader?: User
+    parent?: MediaEntity
+    children?: MediaEntity[]
     usages?: Array<MediaUsageEntity>
     folder?: MediaFolderEntity
     createdAt: Date

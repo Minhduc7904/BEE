@@ -1,6 +1,6 @@
 import { MediaVisibility } from 'src/shared/enums'
 import { MediaUsageEntity } from '../entities'
-
+import { EntityType } from 'src/shared/constants/entity-type.constants'
 /**
  * IMediaUsageRepository - Domain interface for media usage tracking
  * 
@@ -17,7 +17,7 @@ export interface IMediaUsageRepository {
    */
   attach(data: {
     mediaId: number
-    entityType: string
+    entityType: EntityType
     entityId: number
     fieldName?: string
     usedBy?: number
@@ -42,7 +42,7 @@ export interface IMediaUsageRepository {
    * @returns Number of records deleted
    */
   detachByEntity(
-    entityType: string,
+    entityType: EntityType,
     entityId: number,
     fieldName?: string,
   ): Promise<number>
@@ -50,7 +50,7 @@ export interface IMediaUsageRepository {
   findAll(
     filter: {
       mediaId?: number,
-      entityType?: string,
+      entityType?: EntityType,
       entityId?: number,
       fieldName?: string,
     }
@@ -92,7 +92,7 @@ export interface IMediaUsageRepository {
    * @returns Array of MediaUsageEntity
    */
   findByEntity(
-    entityType: string,
+    entityType: EntityType,
     entityId: number,
     fieldName?: string,
   ): Promise<MediaUsageEntity[]>
@@ -108,7 +108,7 @@ export interface IMediaUsageRepository {
    */
   exists(
     mediaId?: number,
-    entityType?: string,
+    entityType?: EntityType,
     entityId?: number,
     fieldName?: string,
   ): Promise<boolean>

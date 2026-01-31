@@ -9,6 +9,7 @@ export class MediaMapper {
     return new MediaEntity({
       mediaId: prismaMedia.mediaId,
       folderId: prismaMedia.folderId ?? undefined,
+      parentId: prismaMedia.parentId ?? undefined,
       bucketName: prismaMedia.bucketName,
       objectKey: prismaMedia.objectKey,
       originalFilename: prismaMedia.originalName,
@@ -20,8 +21,13 @@ export class MediaMapper {
       width: prismaMedia.width ?? undefined,
       height: prismaMedia.height ?? undefined,
       duration: prismaMedia.duration ?? undefined,
+      rawContent: prismaMedia.rawContent ?? undefined,
       uploadedBy: prismaMedia.uploadedBy!,
       uploader: UserMapper.toDomainUser(prismaMedia.uploader) ?? undefined,
+      parent: prismaMedia.parent ? this.toDomain(prismaMedia.parent) : undefined,
+      children: prismaMedia.children
+        ? prismaMedia.children.map((child: any) => this.toDomain(child))
+        : undefined,
       usages: prismaMedia.usages
         ? prismaMedia.usages.map((usage: any) => MediaUsageMapper.toDomain(usage))
         : undefined,

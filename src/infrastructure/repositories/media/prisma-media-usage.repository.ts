@@ -222,6 +222,7 @@ export class PrismaMediaUsageRepository implements IMediaUsageRepository {
         entityId,
         ...(fieldName && { fieldName }),
       },
+      include: { media: true }, // Include media for visibility checks
       orderBy: { createdAt: 'asc' }, // oldest first
     })
 

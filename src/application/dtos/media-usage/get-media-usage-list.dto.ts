@@ -1,7 +1,7 @@
 import { IsInt, IsString, IsOptional, MaxLength } from 'class-validator'
 import { Type } from 'class-transformer'
 import { ToNumber } from 'src/shared/decorators'
-
+import { EntityType } from 'src/shared/constants/entity-type.constants'
 /**
  * GetMediaUsageListDto - Request DTO for listing media usages
  */
@@ -14,7 +14,7 @@ export class GetMediaUsageListDto {
   @IsOptional()
   @IsString()
   @MaxLength(50)
-  entityType?: string
+  entityType?: EntityType
 
   @IsOptional()
   @IsInt()

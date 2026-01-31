@@ -34,6 +34,9 @@ import {
   GetBucketStatisticsUseCase,
   GetAdminMediaViewUrlUseCase,
   GetAdminMediaDownloadUrlUseCase,
+  ExtractMediaTextUseCase,
+  GetAdminMediaRawContentUseCase,
+  GetMyMediaRawContentUseCase,
 } from '../../application/use-cases'
 import {
   UploadMediaDto,
@@ -47,6 +50,9 @@ import {
   CreatePresignedUploadDto,
   PresignedUploadResponseDto,
   CompleteUploadDto,
+  ExtractMediaTextDto,
+  MediaTextExtractionResponseDto,
+  MediaRawContentResponseDto,
 } from '../../application/dtos/media'
 import { BaseResponseDto } from '../../application/dtos'
 import { PaginationResponseDto } from '../../application/dtos/pagination/pagination-response.dto'
@@ -75,7 +81,10 @@ export class MediaController {
     private readonly completePresignedUploadUseCase: CompletePresignedUploadUseCase,
     private readonly getBucketStatisticsUseCase: GetBucketStatisticsUseCase,
     private readonly getAdminMediaViewUrlUseCase: GetAdminMediaViewUrlUseCase,
-    private readonly getAdminMediaDownloadUrlUseCase: GetAdminMediaDownloadUrlUseCase
+    private readonly getAdminMediaDownloadUrlUseCase: GetAdminMediaDownloadUrlUseCase,
+    private readonly extractMediaTextUseCase: ExtractMediaTextUseCase,
+    private readonly getAdminMediaRawContentUseCase: GetAdminMediaRawContentUseCase,
+    private readonly getMyMediaRawContentUseCase: GetMyMediaRawContentUseCase,
   ) { }
 
   @UseInterceptors(
@@ -125,8 +134,9 @@ export class MediaController {
   @HttpCode(HttpStatus.OK)
   async getMediaList(
     @Query() dto: GetMediaListDto,
+    @CurrentUser('userId') userId?: number,
   ): Promise<PaginationResponseDto<MediaResponseDto>> {
-    return ExceptionHandler.execute(() => this.getMediaListUseCase.execute(dto))
+    return ExceptionHandler.execute(() => this.getMediaListUseCase.execute(dto, userId))
   }
 
   @Get('my')
@@ -137,7 +147,7 @@ export class MediaController {
     @CurrentUser('userId') userId: number,
   ): Promise<PaginationResponseDto<MediaResponseDto>> {
     dto.uploadedBy = userId
-    return ExceptionHandler.execute(() => this.getMediaListUseCase.execute(dto))
+    return ExceptionHandler.execute(() => this.getMediaListUseCase.execute(dto, userId))
   }
 
   /**
@@ -311,6 +321,59 @@ export class MediaController {
     return ExceptionHandler.execute(() => {
       return this.getBucketStatisticsUseCase.execute()
     })
+  }
+
+  /**
+   * Get raw content with presigned URLs for admin
+   * Admin can view any media's raw content
+   */
+  @Get('admin/:id/raw-content')
+  @RequirePermission(PERMISSION_CODES.MEDIA_ADMIN_VIEW)
+  @HttpCode(HttpStatus.OK)
+  async getAdminMediaRawContent(
+    @Param('id', ParseIntPipe) mediaId: number,
+    @Query('expiry', new DefaultValuePipe(3600), ParseIntPipe) expirySeconds: number,
+  ): Promise<BaseResponseDto<MediaRawContentResponseDto>> {
+    return ExceptionHandler.execute(() =>
+      this.getAdminMediaRawContentUseCase.execute(mediaId, expirySeconds),
+    )
+  }
+
+  /**
+   * Extract text from PDF or image using Mistral AI OCR
+   */
+  @Post(':id/extract-text')
+  @RequirePermission(PERMISSION_CODES.MEDIA_GET_MY_MEDIA)
+  @HttpCode(HttpStatus.OK)
+  async extractMediaText(
+    @Param('id', ParseIntPipe) mediaId: number,
+    @Body() dto: ExtractMediaTextDto,
+    @CurrentUser('userId') userId: number,
+  ): Promise<BaseResponseDto<MediaTextExtractionResponseDto>> {
+    return ExceptionHandler.execute(() =>
+      this.extractMediaTextUseCase.execute({
+        mediaId,
+        userId,
+        includeImageBase64: dto.includeImageBase64,
+      }),
+    )
+  }
+
+  /**
+   * Get raw content with presigned URLs for my media
+   * Can only view raw content of media uploaded by self
+   */
+  @Get(':id/raw-content/my')
+  @RequirePermission(PERMISSION_CODES.MEDIA_VIEW_MY)
+  @HttpCode(HttpStatus.OK)
+  async getMyMediaRawContent(
+    @Param('id', ParseIntPipe) mediaId: number,
+    @Query('expiry', new DefaultValuePipe(3600), ParseIntPipe) expirySeconds: number,
+    @CurrentUser('userId') userId: number,
+  ): Promise<BaseResponseDto<MediaRawContentResponseDto>> {
+    return ExceptionHandler.execute(() =>
+      this.getMyMediaRawContentUseCase.execute(mediaId, userId, expirySeconds),
+    )
   }
 
   /**

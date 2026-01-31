@@ -47,6 +47,8 @@ export class PrismaMediaRepository implements IMediaRepository {
     uploadedBy?: number
     description?: string
     alt?: string
+    rawContent?: string
+    parentId?: number
   }): Promise<MediaEntity> {
     const media = await this.prisma.media.create({
       data: {
@@ -65,6 +67,8 @@ export class PrismaMediaRepository implements IMediaRepository {
         description: data.description,
         alt: data.alt,
         uploadedBy: data.uploadedBy ?? null,
+        rawContent: data.rawContent ?? null,
+        parentId: data.parentId ?? null,
       },
     })
 
@@ -107,6 +111,24 @@ export class PrismaMediaRepository implements IMediaRepository {
     })
 
     return media ? MediaMapper.toDomain(media) : null
+  }
+
+  /**
+   * Find all child media by parent ID
+   * 
+   * @param parentId - Parent media ID
+   * @returns Array of child MediaEntity
+   */
+  async findByParentId(parentId: number): Promise<MediaEntity[]> {
+    const media = await this.prisma.media.findMany({
+      where: { 
+        parentId,
+        status: { not: MediaStatus.DELETED }
+      },
+      orderBy: { mediaId: 'asc' }
+    })
+
+    return media.map(m => MediaMapper.toDomain(m))
   }
 
   /**
@@ -230,6 +252,8 @@ export class PrismaMediaRepository implements IMediaRepository {
       duration?: number
       description?: string
       alt?: string
+      rawContent?: string
+      parentId?: number
     },
   ): Promise<MediaEntity> {
     const media = await this.prisma.media.update({

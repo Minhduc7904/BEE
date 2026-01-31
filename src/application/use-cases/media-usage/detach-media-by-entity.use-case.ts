@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common'
 import type { IMediaUsageRepository } from '../../../domain/repositories/media-usage.repository'
 import { BaseResponseDto } from '../../dtos'
-
+import { EntityType } from '../../../shared/constants/entity-type.constants'
 /**
  * DetachMediaByEntityUseCase - Detach all media from specific entity
  */
@@ -12,7 +12,7 @@ export class DetachMediaByEntityUseCase {
     private readonly mediaUsageRepository: IMediaUsageRepository,
   ) {}
 
-  async execute(entityType: string, entityId: number, fieldName?: string) {
+  async execute(entityType: EntityType, entityId: number, fieldName?: string) {
     const deletedCount = await this.mediaUsageRepository.detachByEntity(
       entityType,
       entityId,

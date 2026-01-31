@@ -499,12 +499,9 @@ model Question {
 // ============================================
 
 model ExamImportSession {
-  sessionId   String       @id @default(uuid()) @map("session_id")
+  sessionId   Int          @id @default(autoincrement()) @map("session_id")
   status      ImportStatus @default(PENDING) @map("status")
-  fileName    String       @map("file_name") @db.VarChar(255) // tên file PDF gốc
-  fileUrl     String?      @map("file_url") @db.VarChar(1000) // URL file trong MinIO
   rawContent  String?      @map("raw_content") @db.LongText // nội dung text đã parse từ PDF
-  errorLog    String?      @map("error_log") @db.Text // log lỗi nếu có
   metadata    Json?        @map("metadata") // metadata bổ sung (AI model used, confidence score, etc)
   createdBy   Int          @map("created_by")
   approvedBy  Int?         @map("approved_by") // admin duyệt
@@ -525,18 +522,18 @@ model ExamImportSession {
 }
 
 model TempExam {
-  tempExamId  String         @id @default(uuid()) @map("temp_exam_id")
-  sessionId   String         @unique @map("session_id")
-  title       String         @map("title") @db.VarChar(255)
-  description String?        @map("description") @db.Text
-  grade       Int?           @map("grade") @db.TinyInt
-  subjectId   Int?           @map("subject_id")
-  visibility  ExamVisibility @default(DRAFT) @map("visibility")
-  metadata    Json?          @map("metadata") // dữ liệu bổ sung từ AI parsing
-  examId      Int?           @unique @map("exam_id") // ID của exam chính sau khi migrate
-  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt   DateTime       @updatedAt @map("updated_at") @db.Timestamp(0)
-  rawContent  String?        @map("raw_content") @db.LongText // nội dung thô đã parse từ PDF
+  tempExamId   Int               @id @default(autoincrement()) @map("temp_exam_id")
+  sessionId    Int               @unique @map("session_id")
+  title        String            @map("title") @db.VarChar(255)
+  description  String?           @map("description") @db.Text
+  grade        Int?              @map("grade") @db.TinyInt
+  subjectId    Int?              @map("subject_id")
+  visibility   ExamVisibility    @default(DRAFT) @map("visibility")
+  metadata     Json?             @map("metadata") // dữ liệu bổ sung từ AI parsing
+  examId       Int?              @unique @map("exam_id") // ID của exam chính sau khi migrate
+  createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt    DateTime          @updatedAt @map("updated_at") @db.Timestamp(0)
+  
   // Relations
   session      ExamImportSession @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
   subject      Subject?          @relation("TempExamSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
@@ -549,9 +546,9 @@ model TempExam {
 }
 
 model TempSection {
-  tempSectionId String   @id @default(uuid()) @map("temp_section_id")
-  sessionId     String   @map("session_id")
-  tempExamId    String   @map("temp_exam_id")
+  tempSectionId Int      @id @default(autoincrement()) @map("temp_section_id")
+  sessionId     Int      @map("session_id")
+  tempExamId    Int      @map("temp_exam_id")
   title         String   @map("title") @db.VarChar(255)
   description   String?  @map("description") @db.Text
   order         Int      @map("order")
@@ -572,9 +569,9 @@ model TempSection {
 }
 
 model TempQuestion {
-  tempQuestionId     String       @id @default(uuid()) @map("temp_question_id")
-  sessionId          String       @map("session_id")
-  tempSectionId      String?      @map("temp_section_id")
+  tempQuestionId     Int          @id @default(autoincrement()) @map("temp_question_id")
+  sessionId          Int          @map("session_id")
+  tempSectionId      Int?         @map("temp_section_id")
   content            String       @map("content") @db.LongText
   type               QuestionType @map("type")
   correctAnswer      String?      @map("correct_answer") @db.Text
@@ -604,8 +601,8 @@ model TempQuestion {
 }
 
 model TempStatement {
-  tempStatementId String      @id @default(uuid()) @map("temp_statement_id")
-  tempQuestionId  String      @map("temp_question_id")
+  tempStatementId Int         @id @default(autoincrement()) @map("temp_statement_id")
+  tempQuestionId  Int         @map("temp_question_id")
   content         String      @map("content") @db.Text
   isCorrect       Boolean     @map("is_correct")
   order           Int?        @map("order")
@@ -1111,7 +1108,7 @@ model Media {
   fileSize     BigInt      @map("file_size") // bytes
   type         MediaType   @map("type")
   status       MediaStatus @default(UPLOADING) @map("status")
-
+  
   // MinIO specific fields
   bucketName String  @map("bucket_name") @db.VarChar(100)
   objectKey  String  @map("object_key") @db.VarChar(500) // path trong bucket
@@ -1124,8 +1121,10 @@ model Media {
 
   // Organization
   folderId    Int?    @map("folder_id")
+  parentId    Int?    @map("parent_id") // parent media for hierarchical structure
   description String? @map("description") @db.Text
   alt         String? @map("alt") @db.VarChar(255) // alt text cho image
+  rawContent  String? @map("raw_content") @db.LongText // extracted text content from OCR
 
   uploadedBy Int?     @map("uploaded_by")
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp(0)
@@ -1133,6 +1132,8 @@ model Media {
 
   // Relations
   folder   MediaFolder? @relation(fields: [folderId], references: [folderId], onDelete: SetNull)
+  parent   Media?       @relation("MediaHierarchy", fields: [parentId], references: [mediaId], onDelete: SetNull)
+  children Media[]      @relation("MediaHierarchy")
   uploader User?        @relation("MediaUploader", fields: [uploadedBy], references: [userId], onDelete: SetNull)
   usages   MediaUsage[]
 
@@ -1140,6 +1141,7 @@ model Media {
   @@index([type], map: "idx_media_type")
   @@index([status], map: "idx_media_status")
   @@index([folderId], map: "idx_media_folder")
+  @@index([parentId], map: "idx_media_parent")
   @@index([uploadedBy], map: "idx_media_uploaded_by")
   @@index([createdAt], map: "idx_media_created_at")
   @@index([mimeType], map: "idx_media_mime_type")

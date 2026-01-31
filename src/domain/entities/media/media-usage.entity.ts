@@ -1,5 +1,5 @@
 import { MediaVisibility } from 'src/shared/enums'
-
+import { MediaEntity } from './media.entity'
 /**
  * MediaUsageEntity - Domain entity for media attachment tracking
  * 
@@ -20,6 +20,7 @@ export class MediaUsageEntity {
   usedBy: number | null
   visibility: MediaVisibility
   createdAt: Date
+  media: MediaEntity  | null
 
   constructor(data: {
     usageId: number
@@ -30,6 +31,7 @@ export class MediaUsageEntity {
     usedBy: number | null
     visibility: MediaVisibility
     createdAt: Date
+    media?: MediaEntity | null
   }) {
     Object.assign(this, data)
   }

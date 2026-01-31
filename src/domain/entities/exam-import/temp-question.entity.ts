@@ -10,7 +10,7 @@ import { TempStatement } from './temp-statement.entity'
 export class TempQuestion {
   // Required properties
   tempQuestionId: string
-  sessionId: string
+  sessionId: number
   content: string
   type: QuestionType
   order: number
@@ -38,7 +38,7 @@ export class TempQuestion {
 
   constructor(data: {
     tempQuestionId: string
-    sessionId: string
+    sessionId: number
     content: string
     type: QuestionType
     order: number

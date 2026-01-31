@@ -9,7 +9,7 @@ import { ExamImportSession } from './exam-import-session.entity'
 export class TempExam {
   // Required properties
   tempExamId: string
-  sessionId: string
+  sessionId: number
   title: string
   createdAt: Date
   updatedAt: Date
@@ -21,7 +21,6 @@ export class TempExam {
   visibility: ExamVisibility
   metadata?: any | null
   examId?: number | null
-  rawContent?: string | null
 
   // Relations
   session?: ExamImportSession | null
@@ -31,7 +30,7 @@ export class TempExam {
 
   constructor(data: {
     tempExamId: string
-    sessionId: string
+    sessionId: number
     title: string
     createdAt: Date
     updatedAt: Date
@@ -41,7 +40,6 @@ export class TempExam {
     visibility?: ExamVisibility
     metadata?: any | null
     examId?: number | null
-    rawContent?: string | null
     session?: ExamImportSession | null
     subject?: Subject | null
     finalExam?: Exam | null
@@ -58,7 +56,6 @@ export class TempExam {
     this.visibility = data.visibility || ExamVisibility.DRAFT
     this.metadata = data.metadata
     this.examId = data.examId
-    this.rawContent = data.rawContent
     this.session = data.session
     this.subject = data.subject
     this.finalExam = data.finalExam
@@ -98,13 +95,6 @@ export class TempExam {
    */
   hasSections(): boolean {
     return Boolean(this.tempSections && this.tempSections.length > 0)
-  }
-
-  /**
-   * Kiểm tra có raw content chưa
-   */
-  hasRawContent(): boolean {
-    return Boolean(this.rawContent && this.rawContent.trim().length > 0)
   }
 
   /**
@@ -148,7 +138,6 @@ export class TempExam {
       visibility: this.visibility,
       metadata: this.metadata,
       examId: this.examId,
-      rawContent: this.rawContent,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
       // Computed fields
@@ -157,7 +146,6 @@ export class TempExam {
       hasSubject: this.hasSubject(),
       isMigrated: this.isMigrated(),
       hasSections: this.hasSections(),
-      hasRawContent: this.hasRawContent(),
       sectionsCount: this.getSectionsCount(),
       visibilityDisplay: this.getVisibilityDisplay(),
       subjectName: this.getSubjectName(),
@@ -181,7 +169,6 @@ export class TempExam {
       visibility: data.visibility as ExamVisibility,
       metadata: data.metadata,
       examId: data.examId,
-      rawContent: data.rawContent,
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
       session: data.session,

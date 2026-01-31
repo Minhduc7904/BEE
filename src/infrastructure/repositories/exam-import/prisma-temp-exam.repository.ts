@@ -63,7 +63,7 @@ export class PrismaTempExamRepository implements ITempExamRepository {
     return TempExamMapper.toDomainTempExam(tempExam)!
   }
 
-  async findBySessionId(sessionId: string): Promise<TempExam | null> {
+  async findBySessionId(sessionId: number): Promise<TempExam | null> {
     const tempExam = await this.prisma.tempExam.findUnique({
       where: { sessionId },
       include: {

@@ -12,6 +12,8 @@ import { MediaType, MediaStatus } from 'src/shared/enums'
 export interface IMediaRepository {
   create(data: {
     folderId?: number
+    parentId?: number
+    rawContent?: string
     bucketName: string
     objectKey: string
     originalFilename: string
@@ -28,6 +30,8 @@ export interface IMediaRepository {
   }): Promise<MediaEntity>
 
   findById(mediaId: number): Promise<MediaEntity | null>
+
+  findByParentId(parentId: number): Promise<MediaEntity[]>
 
   findMany(filters: {
     folderId?: number
@@ -57,6 +61,8 @@ export interface IMediaRepository {
       duration?: number
       description?: string
       alt?: string
+      rawContent?: string
+      parentId?: number
     },
   ): Promise<MediaEntity>
 

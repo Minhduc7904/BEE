@@ -7,17 +7,14 @@ import { TempQuestion } from './temp-question.entity'
 
 export class ExamImportSession {
   // Required properties
-  sessionId: string
+  sessionId: number
   status: ImportStatus
-  fileName: string
   createdBy: number
   createdAt: Date
   updatedAt: Date
 
   // Optional properties
-  fileUrl?: string | null
   rawContent?: string | null
-  errorLog?: string | null
   metadata?: any | null
   approvedBy?: number | null
   approvedAt?: Date | null
@@ -29,15 +26,12 @@ export class ExamImportSession {
   tempQuestions?: TempQuestion[]
 
   constructor(data: {
-    sessionId: string
+    sessionId: number
     status: ImportStatus
-    fileName: string
     createdBy: number
     createdAt: Date
     updatedAt: Date
-    fileUrl?: string | null
     rawContent?: string | null
-    errorLog?: string | null
     metadata?: any | null
     approvedBy?: number | null
     approvedAt?: Date | null
@@ -48,13 +42,10 @@ export class ExamImportSession {
   }) {
     this.sessionId = data.sessionId
     this.status = data.status
-    this.fileName = data.fileName
     this.createdBy = data.createdBy
     this.createdAt = data.createdAt
     this.updatedAt = data.updatedAt
-    this.fileUrl = data.fileUrl
     this.rawContent = data.rawContent
-    this.errorLog = data.errorLog
     this.metadata = data.metadata
     this.approvedBy = data.approvedBy
     this.approvedAt = data.approvedAt
@@ -118,20 +109,6 @@ export class ExamImportSession {
    */
   isFailed(): boolean {
     return this.status === ImportStatus.FAILED
-  }
-
-  /**
-   * Kiểm tra session có lỗi không
-   */
-  hasError(): boolean {
-    return Boolean(this.errorLog && this.errorLog.trim().length > 0)
-  }
-
-  /**
-   * Kiểm tra session có file URL không
-   */
-  hasFileUrl(): boolean {
-    return Boolean(this.fileUrl && this.fileUrl.trim().length > 0)
   }
 
   /**
@@ -221,10 +198,7 @@ export class ExamImportSession {
     return {
       sessionId: this.sessionId,
       status: this.status,
-      fileName: this.fileName,
-      fileUrl: this.fileUrl,
       rawContent: this.rawContent,
-      errorLog: this.errorLog,
       metadata: this.metadata,
       createdBy: this.createdBy,
       approvedBy: this.approvedBy,
@@ -241,8 +215,6 @@ export class ExamImportSession {
       isCompleted: this.isCompleted(),
       isRejected: this.isRejected(),
       isFailed: this.isFailed(),
-      hasError: this.hasError(),
-      hasFileUrl: this.hasFileUrl(),
       hasRawContent: this.hasRawContent(),
       hasApprover: this.hasApprover(),
       hasTempExam: this.hasTempExam(),
@@ -265,10 +237,7 @@ export class ExamImportSession {
     return new ExamImportSession({
       sessionId: data.sessionId,
       status: data.status as ImportStatus,
-      fileName: data.fileName,
-      fileUrl: data.fileUrl,
       rawContent: data.rawContent,
-      errorLog: data.errorLog,
       metadata: data.metadata,
       createdBy: data.createdBy,
       approvedBy: data.approvedBy,

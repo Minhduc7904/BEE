@@ -26,7 +26,6 @@ export class TempExamMapper {
       visibility: prismaExam.visibility as ExamVisibility,
       metadata: prismaExam.metadata,
       examId: prismaExam.examId,
-      rawContent: prismaExam.rawContent,
       createdAt: prismaExam.createdAt,
       updatedAt: prismaExam.updatedAt,
 

@@ -7,7 +7,7 @@ import { TempQuestion } from './temp-question.entity'
 export class TempSection {
   // Required properties
   tempSectionId: string
-  sessionId: string
+  sessionId: number
   tempExamId: string
   title: string
   order: number
@@ -27,7 +27,7 @@ export class TempSection {
 
   constructor(data: {
     tempSectionId: string
-    sessionId: string
+    sessionId: number
     tempExamId: string
     title: string
     order: number

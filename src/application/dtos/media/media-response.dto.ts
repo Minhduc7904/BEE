@@ -25,6 +25,7 @@ export class MediaResponseDto {
   uploader?: UserResponseDto
   usages?: Array<MediaUsageResponseDto>
   folder?: MediaFolderResponseDto
+  viewUrl?: string
   createdAt: Date
   updatedAt: Date
 

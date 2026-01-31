@@ -56,7 +56,7 @@ export class PrismaTempSectionRepository implements ITempSectionRepository {
     return TempSectionMapper.toDomainTempSection(tempSection)!
   }
 
-  async findBySessionId(sessionId: string): Promise<TempSection[]> {
+  async findBySessionId(sessionId: number): Promise<TempSection[]> {
     const tempSections = await this.prisma.tempSection.findMany({
       where: { sessionId },
       orderBy: { order: 'asc' },

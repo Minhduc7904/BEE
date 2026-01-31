@@ -2,8 +2,6 @@ import { ExamImportSession } from '../entities/exam-import/exam-import-session.e
 import { ImportStatus } from '../../shared/enums'
 
 export interface CreateExamImportSessionData {
-  fileName: string
-  fileUrl?: string
   rawContent?: string
   metadata?: any
   createdBy: number
@@ -11,9 +9,7 @@ export interface CreateExamImportSessionData {
 
 export interface UpdateExamImportSessionData {
   status?: ImportStatus
-  fileUrl?: string
   rawContent?: string
-  errorLog?: string
   metadata?: any
   approvedBy?: number
   approvedAt?: Date
@@ -39,14 +35,14 @@ export interface FindAllExamImportSessionsResult {
 
 export interface IExamImportSessionRepository {
   create(data: CreateExamImportSessionData): Promise<ExamImportSession>
-  findById(sessionId: string): Promise<ExamImportSession | null>
-  findByIdWithRelations(sessionId: string): Promise<ExamImportSession | null>
+  findById(sessionId: number): Promise<ExamImportSession | null>
+  findByIdWithRelations(sessionId: number): Promise<ExamImportSession | null>
   findAll(options: FindAllExamImportSessionsOptions): Promise<FindAllExamImportSessionsResult>
   findByStatus(status: ImportStatus): Promise<ExamImportSession[]>
   findByCreatedBy(createdBy: number): Promise<ExamImportSession[]>
-  update(sessionId: string, data: UpdateExamImportSessionData): Promise<ExamImportSession>
-  delete(sessionId: string): Promise<void>
-  updateStatus(sessionId: string, status: ImportStatus): Promise<ExamImportSession>
-  approve(sessionId: string, approvedBy: number): Promise<ExamImportSession>
-  complete(sessionId: string): Promise<ExamImportSession>
+  update(sessionId: number, data: UpdateExamImportSessionData): Promise<ExamImportSession>
+  delete(sessionId: number): Promise<void>
+  updateStatus(sessionId: number, status: ImportStatus): Promise<ExamImportSession>
+  approve(sessionId: number, approvedBy: number): Promise<ExamImportSession>
+  complete(sessionId: number): Promise<ExamImportSession>
 }

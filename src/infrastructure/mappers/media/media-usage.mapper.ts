@@ -1,6 +1,10 @@
-import { MediaUsage } from '@prisma/client'
+import { MediaUsage, Media } from '@prisma/client'
 import { MediaUsageEntity } from '../../../domain/entities'
 import { MediaVisibility } from 'src/shared/enums'
+import { MediaMapper } from './media.mapper'
+
+type MediaUsageWithMedia = MediaUsage & { media?: Media | null }
+
 /**
  * MediaUsageMapper - Maps between Prisma MediaUsage and Domain MediaUsageEntity
  * 
@@ -14,7 +18,7 @@ export class MediaUsageMapper {
    * @param prismaUsage - Prisma MediaUsage model
    * @returns MediaUsageEntity
    */
-  static toDomain(prismaUsage: MediaUsage): MediaUsageEntity {
+  static toDomain(prismaUsage: MediaUsageWithMedia): MediaUsageEntity {
     return new MediaUsageEntity({
       usageId: prismaUsage.usageId,
       mediaId: prismaUsage.mediaId,
@@ -24,6 +28,9 @@ export class MediaUsageMapper {
       usedBy: prismaUsage.usedBy,
       visibility: prismaUsage.visibility as MediaVisibility,
       createdAt: prismaUsage.createdAt,
+      media: prismaUsage.media
+        ? MediaMapper.toDomain(prismaUsage.media)
+        : null,
     })
   }
 
@@ -33,7 +40,7 @@ export class MediaUsageMapper {
    * @param prismaUsages - Array of Prisma MediaUsage models
    * @returns Array of MediaUsageEntity
    */
-  static toDomainList(prismaUsages: MediaUsage[]): MediaUsageEntity[] {
+  static toDomainList(prismaUsages: MediaUsageWithMedia[]): MediaUsageEntity[] {
     return prismaUsages.map((usage) => this.toDomain(usage))
   }
 }

@@ -2,7 +2,7 @@ import { TempQuestion } from '../entities/exam-import/temp-question.entity'
 import { QuestionType, Difficulty } from '../../shared/enums'
 
 export interface CreateTempQuestionData {
-  sessionId: string
+  sessionId: number
   tempSectionId?: string
   content: string
   type: QuestionType
@@ -46,7 +46,7 @@ export interface ITempQuestionRepository {
   create(data: CreateTempQuestionData): Promise<TempQuestion>
   findById(tempQuestionId: string): Promise<TempQuestion | null>
   findByIdWithRelations(tempQuestionId: string): Promise<TempQuestion | null>
-  findBySessionId(sessionId: string): Promise<TempQuestion[]>
+  findBySessionId(sessionId: number): Promise<TempQuestion[]>
   findByTempSectionId(tempSectionId: string): Promise<TempQuestion[]>
   findByQuestionId(questionId: number): Promise<TempQuestion | null>
   findAll(options?: FindTempQuestionsOptions): Promise<TempQuestion[]>

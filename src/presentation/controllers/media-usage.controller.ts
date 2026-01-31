@@ -29,6 +29,7 @@ import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
 import { CurrentUser } from '../../shared/decorators'
 import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
+import { EntityType } from 'src/shared/constants/entity-type.constants'
 
 @Injectable()
 @Controller('media-usages')
@@ -101,7 +102,7 @@ export class MediaUsageController {
     @RequirePermission(PERMISSION_CODES.MEDIA_USAGE_GET_BY_ENTITY)
     @HttpCode(HttpStatus.OK)
     async getMediaUsagesByEntity(
-        @Param('entityType') entityType: string,
+        @Param('entityType') entityType: EntityType,
         @Param('entityId', ParseIntPipe) entityId: number,
         @Query('fieldName') fieldName?: string,
         @CurrentUser('userId') userId?: number,
@@ -138,7 +139,7 @@ export class MediaUsageController {
     @RequirePermission(PERMISSION_CODES.MEDIA_USAGE_DETACH)
     @HttpCode(HttpStatus.OK)
     async detachMediaByEntity(
-        @Param('entityType') entityType: string,
+        @Param('entityType') entityType: EntityType,
         @Param('entityId', ParseIntPipe) entityId: number,
         @Query('fieldName') fieldName?: string,
     ): Promise<

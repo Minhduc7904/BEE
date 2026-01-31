@@ -61,7 +61,7 @@ export class PrismaTempQuestionRepository implements ITempQuestionRepository {
     return TempQuestionMapper.toDomainTempQuestion(tempQuestion)!
   }
 
-  async findBySessionId(sessionId: string): Promise<TempQuestion[]> {
+  async findBySessionId(sessionId: number): Promise<TempQuestion[]> {
     const tempQuestions = await this.prisma.tempQuestion.findMany({
       where: { sessionId },
       orderBy: { order: 'asc' },

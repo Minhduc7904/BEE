@@ -18,8 +18,6 @@ export class PrismaExamImportSessionRepository implements IExamImportSessionRepo
   async create(data: CreateExamImportSessionData): Promise<ExamImportSession> {
     const created = await this.prisma.examImportSession.create({
       data: {
-        fileName: data.fileName,
-        fileUrl: data.fileUrl,
         rawContent: data.rawContent,
         metadata: data.metadata,
         createdBy: data.createdBy,
@@ -30,7 +28,7 @@ export class PrismaExamImportSessionRepository implements IExamImportSessionRepo
     return ExamImportSessionMapper.toDomainExamImportSession(created)!
   }
 
-  async findById(sessionId: string): Promise<ExamImportSession | null> {
+  async findById(sessionId: number): Promise<ExamImportSession | null> {
     const session = await this.prisma.examImportSession.findUnique({
       where: { sessionId },
     })
@@ -40,7 +38,7 @@ export class PrismaExamImportSessionRepository implements IExamImportSessionRepo
     return ExamImportSessionMapper.toDomainExamImportSession(session)!
   }
 
-  async findByIdWithRelations(sessionId: string): Promise<ExamImportSession | null> {
+  async findByIdWithRelations(sessionId: number): Promise<ExamImportSession | null> {
     const session = await this.prisma.examImportSession.findUnique({
       where: { sessionId },
       include: {
@@ -161,16 +159,14 @@ export class PrismaExamImportSessionRepository implements IExamImportSessionRepo
   }
 
   async update(
-    sessionId: string,
+    sessionId: number,
     data: UpdateExamImportSessionData,
   ): Promise<ExamImportSession> {
     const updated = await this.prisma.examImportSession.update({
       where: { sessionId },
       data: {
         status: data.status,
-        fileUrl: data.fileUrl,
         rawContent: data.rawContent,
-        errorLog: data.errorLog,
         metadata: data.metadata,
         approvedBy: data.approvedBy,
         approvedAt: data.approvedAt,
@@ -181,13 +177,13 @@ export class PrismaExamImportSessionRepository implements IExamImportSessionRepo
     return ExamImportSessionMapper.toDomainExamImportSession(updated)!
   }
 
-  async delete(sessionId: string): Promise<void> {
+  async delete(sessionId: number): Promise<void> {
     await this.prisma.examImportSession.delete({
       where: { sessionId },
     })
   }
 
-  async updateStatus(sessionId: string, status: ImportStatus): Promise<ExamImportSession> {
+  async updateStatus(sessionId: number, status: ImportStatus): Promise<ExamImportSession> {
     const updated = await this.prisma.examImportSession.update({
       where: { sessionId },
       data: { status },
@@ -196,7 +192,7 @@ export class PrismaExamImportSessionRepository implements IExamImportSessionRepo
     return ExamImportSessionMapper.toDomainExamImportSession(updated)!
   }
 
-  async approve(sessionId: string, approvedBy: number): Promise<ExamImportSession> {
+  async approve(sessionId: number, approvedBy: number): Promise<ExamImportSession> {
     const updated = await this.prisma.examImportSession.update({
       where: { sessionId },
       data: {
@@ -209,7 +205,7 @@ export class PrismaExamImportSessionRepository implements IExamImportSessionRepo
     return ExamImportSessionMapper.toDomainExamImportSession(updated)!
   }
 
-  async complete(sessionId: string): Promise<ExamImportSession> {
+  async complete(sessionId: number): Promise<ExamImportSession> {
     const updated = await this.prisma.examImportSession.update({
       where: { sessionId },
       data: {

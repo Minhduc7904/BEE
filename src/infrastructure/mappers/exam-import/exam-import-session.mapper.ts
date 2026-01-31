@@ -20,10 +20,7 @@ export class ExamImportSessionMapper {
     return new ExamImportSession({
       sessionId: prismaSession.sessionId,
       status: prismaSession.status as ImportStatus,
-      fileName: prismaSession.fileName,
-      fileUrl: prismaSession.fileUrl,
       rawContent: prismaSession.rawContent,
-      errorLog: prismaSession.errorLog,
       metadata: prismaSession.metadata,
       createdBy: prismaSession.createdBy,
       approvedBy: prismaSession.approvedBy,

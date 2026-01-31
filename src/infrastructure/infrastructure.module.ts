@@ -47,6 +47,8 @@ import {
   ExcelService,
 } from './services'
 import { ImageExportService } from './services/image-export.service'
+import { MistralService } from './services/mistral.service'
+import { FileConverterService } from './services/file-converter.service'
 import { GoogleAdminStrategy } from './strategies/google-admin.strategy'
 import { GoogleStudentStrategy } from './strategies/google-student.strategy'
 import jwtConfig from '../config/jwt.config'
@@ -54,6 +56,7 @@ import googleOAuthConfig from '../config/google-oauth.config'
 import emailConfig from '../config/email.config'
 import httpClientConfig from '../config/http-client.config'
 import supabaseConfig from '../config/supabase.config'
+import mistralConfig from '../config/mistral.config'
 
 @Module({
   imports: [
@@ -63,6 +66,7 @@ import supabaseConfig from '../config/supabase.config'
     ConfigModule.forFeature(googleOAuthConfig),
     ConfigModule.forFeature(emailConfig),
     ConfigModule.forFeature(httpClientConfig),
+    ConfigModule.forFeature(mistralConfig),
     // ConfigModule.forFeature(supabaseConfig), // Disabled: not using Supabase anymore
     JwtModule.register({}), // Empty config, sẽ override trong service
   ],
@@ -237,6 +241,8 @@ import supabaseConfig from '../config/supabase.config'
     // },
     MediaProcessingService,
     ExcelService,
+    MistralService,
+    FileConverterService,
     GoogleAdminStrategy,
     GoogleStudentStrategy,
     ImageExportService,
@@ -280,6 +286,8 @@ import supabaseConfig from '../config/supabase.config'
     // 'IStorageService', // Disabled: not using Supabase anymore
     MediaProcessingService,
     ExcelService,
+    MistralService,
+    FileConverterService,
     ImageExportService,
   ],
 })
