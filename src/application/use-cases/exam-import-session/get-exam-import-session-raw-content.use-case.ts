@@ -1,11 +1,12 @@
 // src/application/use-cases/exam-import-session/get-exam-import-session-raw-content.use-case.ts
-import { Injectable, NotFoundException, ForbiddenException, Inject } from '@nestjs/common'
+import { Injectable, Inject } from '@nestjs/common'
 import type { IExamImportSessionRepository } from '../../../domain/repositories/exam-import-session.repository'
 import type { IMediaRepository } from '../../../domain/repositories/media.repository'
 import { MinioService } from '../../../infrastructure/services/minio.service'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 import { MediaRawContentResponseDto } from '../../dtos/media/media-raw-content-response.dto'
-
+import { extractMediaIdsFromAlt } from '../../../shared/utils'
+import { NotFoundException, ForbiddenException, ValidationException } from 'src/shared/exceptions/custom-exceptions'
 @Injectable()
 export class GetExamImportSessionRawContentUseCase {
   constructor(
@@ -18,12 +19,15 @@ export class GetExamImportSessionRawContentUseCase {
 
   async execute(
     sessionId: number,
-    userId: number,
+    adminId: number,
     expirySeconds = 3600,
   ): Promise<BaseResponseDto<MediaRawContentResponseDto>> {
     /* ------------------------------------------------------------------
      * 1. Find exam import session
      * ------------------------------------------------------------------ */
+    if (!sessionId) {
+      throw new ValidationException('Exam import session ID is required')
+    }
     const session = await this.examImportSessionRepository.findById(sessionId)
     if (!session) {
       throw new NotFoundException('Exam import session not found')
@@ -32,7 +36,7 @@ export class GetExamImportSessionRawContentUseCase {
     /* ------------------------------------------------------------------
      * 2. Ownership check
      * ------------------------------------------------------------------ */
-    if (session.createdBy !== userId) {
+    if (session.createdBy !== adminId) {
       throw new ForbiddenException('You can only access your own exam import sessions')
     }
 
@@ -57,13 +61,7 @@ export class GetExamImportSessionRawContentUseCase {
     /* ------------------------------------------------------------------
      * 4. Extract mediaIds from ALT: [media:123]
      * ------------------------------------------------------------------ */
-    const mediaIdPattern = /\[media:(\d+)\]/g
-    const mediaIds = new Set<number>()
-    let match: RegExpExecArray | null
-
-    while ((match = mediaIdPattern.exec(rawContent)) !== null) {
-      mediaIds.add(Number(match[1]))
-    }
+    const mediaIds = extractMediaIdsFromAlt(rawContent)
 
     /* ------------------------------------------------------------------
      * 5. Generate presigned URLs

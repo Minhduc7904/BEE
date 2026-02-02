@@ -24,6 +24,12 @@ import { IVideoContentRepository } from './video-content.repository'
 import { IYoutubeContentRepository } from './youtube-content.repository'
 import { INotificationRepository } from './notification.repository'
 import { ITuitionPaymentRepository } from './tuition-payment.repository'
+import { IExamImportSessionRepository } from './exam-import-session.repository'
+import { ITempExamRepository } from './temp-exam.repository'
+import { ITempSectionRepository } from './temp-section.repository'
+import { ITempQuestionRepository } from './temp-question.repository'
+import { ITempStatementRepository } from './temp-statement.repository'
+import { IMediaUsageRepository } from './media-usage.repository'
 // src/domain/repositories/unit-of-work.repository.ts
 export interface UnitOfWorkRepos {
   userRepository: IUserRepository
@@ -51,6 +57,12 @@ export interface UnitOfWorkRepos {
   youtubeContentRepository: IYoutubeContentRepository
   notificationRepository: INotificationRepository
   tuitionPaymentRepository: ITuitionPaymentRepository
+  examImportSessionRepository: IExamImportSessionRepository
+  tempExamRepository: ITempExamRepository
+  tempSectionRepository: ITempSectionRepository
+  tempQuestionRepository: ITempQuestionRepository
+  tempStatementRepository: ITempStatementRepository
+  mediaUsageRepository: IMediaUsageRepository
 }
 
 export interface IUnitOfWork {

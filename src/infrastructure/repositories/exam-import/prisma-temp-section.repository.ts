@@ -16,7 +16,7 @@ export class PrismaTempSectionRepository implements ITempSectionRepository {
     const created = await this.prisma.tempSection.create({
       data: {
         sessionId: data.sessionId,
-        tempExamId: data.tempExamId,
+        tempExamId: data.tempExamId ?? null,
         title: data.title,
         description: data.description,
         order: data.order,
@@ -27,7 +27,7 @@ export class PrismaTempSectionRepository implements ITempSectionRepository {
     return TempSectionMapper.toDomainTempSection(created)!
   }
 
-  async findById(tempSectionId: string): Promise<TempSection | null> {
+  async findById(tempSectionId: number): Promise<TempSection | null> {
     const tempSection = await this.prisma.tempSection.findUnique({
       where: { tempSectionId },
     })
@@ -37,7 +37,7 @@ export class PrismaTempSectionRepository implements ITempSectionRepository {
     return TempSectionMapper.toDomainTempSection(tempSection)!
   }
 
-  async findByIdWithRelations(tempSectionId: string): Promise<TempSection | null> {
+  async findByIdWithRelations(tempSectionId: number): Promise<TempSection | null> {
     const tempSection = await this.prisma.tempSection.findUnique({
       where: { tempSectionId },
       include: {
@@ -65,7 +65,7 @@ export class PrismaTempSectionRepository implements ITempSectionRepository {
     return TempSectionMapper.toDomainTempSections(tempSections)
   }
 
-  async findByTempExamId(tempExamId: string): Promise<TempSection[]> {
+  async findByTempExamId(tempExamId: number): Promise<TempSection[]> {
     const tempSections = await this.prisma.tempSection.findMany({
       where: { tempExamId },
       orderBy: { order: 'asc' },
@@ -101,7 +101,7 @@ export class PrismaTempSectionRepository implements ITempSectionRepository {
     return TempSectionMapper.toDomainTempSections(tempSections)
   }
 
-  async update(tempSectionId: string, data: UpdateTempSectionData): Promise<TempSection> {
+  async update(tempSectionId: number, data: UpdateTempSectionData): Promise<TempSection> {
     const updated = await this.prisma.tempSection.update({
       where: { tempSectionId },
       data: {
@@ -116,13 +116,13 @@ export class PrismaTempSectionRepository implements ITempSectionRepository {
     return TempSectionMapper.toDomainTempSection(updated)!
   }
 
-  async delete(tempSectionId: string): Promise<void> {
+  async delete(tempSectionId: number): Promise<void> {
     await this.prisma.tempSection.delete({
       where: { tempSectionId },
     })
   }
 
-  async linkToFinalSection(tempSectionId: string, sectionId: number): Promise<TempSection> {
+  async linkToFinalSection(tempSectionId: number, sectionId: number): Promise<TempSection> {
     const updated = await this.prisma.tempSection.update({
       where: { tempSectionId },
       data: { sectionId },

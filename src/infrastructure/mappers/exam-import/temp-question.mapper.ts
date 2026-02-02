@@ -26,6 +26,7 @@ export class TempQuestionMapper {
       solution: prismaQuestion.solution,
       difficulty: prismaQuestion.difficulty ? (prismaQuestion.difficulty as Difficulty) : undefined,
       order: prismaQuestion.order,
+      grade: prismaQuestion.grade,
       subjectId: prismaQuestion.subjectId,
       metadata: prismaQuestion.metadata,
       questionId: prismaQuestion.questionId,

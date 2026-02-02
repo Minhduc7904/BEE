@@ -31,6 +31,8 @@ export interface IMediaRepository {
 
   findById(mediaId: number): Promise<MediaEntity | null>
 
+  findByIds(mediaIds: number[]): Promise<MediaEntity[]>
+
   findByParentId(parentId: number): Promise<MediaEntity[]>
 
   findMany(filters: {

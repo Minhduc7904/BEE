@@ -35,9 +35,15 @@ export class PrismaTempQuestionRepository implements ITempQuestionRepository {
     return TempQuestionMapper.toDomainTempQuestion(created)!
   }
 
-  async findById(tempQuestionId: string): Promise<TempQuestion | null> {
+  async findById(tempQuestionId: number): Promise<TempQuestion | null> {
     const tempQuestion = await this.prisma.tempQuestion.findUnique({
       where: { tempQuestionId },
+      include: {
+        subject: true,
+        tempStatements: {
+          orderBy: { order: 'asc' },
+        },
+      },
     })
 
     if (!tempQuestion) return null
@@ -45,7 +51,7 @@ export class PrismaTempQuestionRepository implements ITempQuestionRepository {
     return TempQuestionMapper.toDomainTempQuestion(tempQuestion)!
   }
 
-  async findByIdWithRelations(tempQuestionId: string): Promise<TempQuestion | null> {
+  async findByIdWithRelations(tempQuestionId: number): Promise<TempQuestion | null> {
     const tempQuestion = await this.prisma.tempQuestion.findUnique({
       where: { tempQuestionId },
       include: {
@@ -76,7 +82,7 @@ export class PrismaTempQuestionRepository implements ITempQuestionRepository {
     return TempQuestionMapper.toDomainTempQuestions(tempQuestions)
   }
 
-  async findByTempSectionId(tempSectionId: string): Promise<TempQuestion[]> {
+  async findByTempSectionId(tempSectionId: number): Promise<TempQuestion[]> {
     const tempQuestions = await this.prisma.tempQuestion.findMany({
       where: { tempSectionId },
       orderBy: { order: 'asc' },
@@ -127,7 +133,7 @@ export class PrismaTempQuestionRepository implements ITempQuestionRepository {
     return TempQuestionMapper.toDomainTempQuestions(tempQuestions)
   }
 
-  async update(tempQuestionId: string, data: UpdateTempQuestionData): Promise<TempQuestion> {
+  async update(tempQuestionId: number, data: UpdateTempQuestionData): Promise<TempQuestion> {
     const updated = await this.prisma.tempQuestion.update({
       where: { tempQuestionId },
       data: {
@@ -150,13 +156,13 @@ export class PrismaTempQuestionRepository implements ITempQuestionRepository {
     return TempQuestionMapper.toDomainTempQuestion(updated)!
   }
 
-  async delete(tempQuestionId: string): Promise<void> {
+  async delete(tempQuestionId: number): Promise<void> {
     await this.prisma.tempQuestion.delete({
       where: { tempQuestionId },
     })
   }
 
-  async linkToFinalQuestion(tempQuestionId: string, questionId: number): Promise<TempQuestion> {
+  async linkToFinalQuestion(tempQuestionId: number, questionId: number): Promise<TempQuestion> {
     const updated = await this.prisma.tempQuestion.update({
       where: { tempQuestionId },
       data: { questionId },

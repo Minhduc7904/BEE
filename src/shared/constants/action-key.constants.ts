@@ -121,6 +121,10 @@ export const ACTION_KEYS = {
     UPDATE: 'UPDATE_TUITION_PAYMENT',
     DELETE: 'DELETE_TUITION_PAYMENT',
   },
+  EXAM_IMPORT_SESSION: {
+    SPLIT_FROM_SESSION: 'SPLIT_EXAM_FROM_SESSION',
+    SPLIT_FROM_RAW_CONTENT: 'SPLIT_EXAM_FROM_RAW_CONTENT',
+  },
 } as const
 
 // Mapping action to reverse action for rollback

@@ -30,6 +30,9 @@ import { NotificationApplicationModule } from './use-cases/notification/notifica
 import { TuitionPaymentApplicationModule } from './use-cases/tuition-payment/tuition-payment.application.module'
 import { ExamImportSessionApplicationModule } from './use-cases/exam-import-session/exam-import-session.application.module'
 import { TempExamApplicationModule } from './use-cases/temp-exam/temp-exam.application.module'
+import { TempSectionApplicationModule } from './use-cases/temp-section/temp-section.application.module'
+import { TempQuestionApplicationModule } from './use-cases/temp-question/temp-question.application.module'
+import { TempStatementApplicationModule } from './use-cases/temp-statement/temp-statement.application.module'
 const modules = [
   // Auth & Account
   AuthApplicationModule,
@@ -75,6 +78,9 @@ const modules = [
   // Exam Import Session
   ExamImportSessionApplicationModule,
   TempExamApplicationModule,
+  TempSectionApplicationModule,
+  TempQuestionApplicationModule,
+  TempStatementApplicationModule,
 ]
 
 @Module({

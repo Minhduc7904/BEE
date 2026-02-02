@@ -29,7 +29,7 @@ export class PrismaTempExamRepository implements ITempExamRepository {
     return TempExamMapper.toDomainTempExam(created)!
   }
 
-  async findById(tempExamId: string): Promise<TempExam | null> {
+  async findById(tempExamId: number): Promise<TempExam | null> {
     const tempExam = await this.prisma.tempExam.findUnique({
       where: { tempExamId },
     })
@@ -39,7 +39,7 @@ export class PrismaTempExamRepository implements ITempExamRepository {
     return TempExamMapper.toDomainTempExam(tempExam)!
   }
 
-  async findByIdWithRelations(tempExamId: string): Promise<TempExam | null> {
+  async findByIdWithRelations(tempExamId: number): Promise<TempExam | null> {
     const tempExam = await this.prisma.tempExam.findUnique({
       where: { tempExamId },
       include: {
@@ -105,7 +105,7 @@ export class PrismaTempExamRepository implements ITempExamRepository {
     return TempExamMapper.toDomainTempExams(tempExams)
   }
 
-  async update(tempExamId: string, data: UpdateTempExamData): Promise<TempExam> {
+  async update(tempExamId: number, data: UpdateTempExamData): Promise<TempExam> {
     const updated = await this.prisma.tempExam.update({
       where: { tempExamId },
       data: {
@@ -123,13 +123,13 @@ export class PrismaTempExamRepository implements ITempExamRepository {
     return TempExamMapper.toDomainTempExam(updated)!
   }
 
-  async delete(tempExamId: string): Promise<void> {
+  async delete(tempExamId: number): Promise<void> {
     await this.prisma.tempExam.delete({
       where: { tempExamId },
     })
   }
 
-  async linkToFinalExam(tempExamId: string, examId: number): Promise<TempExam> {
+  async linkToFinalExam(tempExamId: number, examId: number): Promise<TempExam> {
     const updated = await this.prisma.tempExam.update({
       where: { tempExamId },
       data: { examId },

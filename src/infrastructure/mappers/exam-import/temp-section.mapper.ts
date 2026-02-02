@@ -17,7 +17,7 @@ export class TempSectionMapper {
     return new TempSection({
       tempSectionId: prismaSection.tempSectionId,
       sessionId: prismaSection.sessionId,
-      tempExamId: prismaSection.tempExamId,
+      tempExamId: prismaSection.tempExamId ?? null,
       title: prismaSection.title,
       description: prismaSection.description,
       order: prismaSection.order,

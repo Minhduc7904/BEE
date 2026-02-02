@@ -9,7 +9,7 @@ import { TempStatement } from './temp-statement.entity'
 
 export class TempQuestion {
   // Required properties
-  tempQuestionId: string
+  tempQuestionId: number
   sessionId: number
   content: string
   type: QuestionType
@@ -37,7 +37,7 @@ export class TempQuestion {
   tempStatements?: TempStatement[]
 
   constructor(data: {
-    tempQuestionId: string
+    tempQuestionId: number
     sessionId: number
     content: string
     type: QuestionType
@@ -161,9 +161,9 @@ export class TempQuestion {
     const typeMap = {
       [QuestionType.SINGLE_CHOICE]: 'Trắc nghiệm một đáp án',
       [QuestionType.MULTIPLE_CHOICE]: 'Trắc nghiệm nhiều đáp án',
-      [QuestionType.FILL_IN_THE_BLANK]: 'Điền vào chỗ trống',
       [QuestionType.SHORT_ANSWER]: 'Trả lời ngắn',
       [QuestionType.ESSAY]: 'Tự luận',
+      [QuestionType.TRUE_FALSE]: 'Đúng/Sai',
     }
     return typeMap[this.type] || 'Không xác định'
   }

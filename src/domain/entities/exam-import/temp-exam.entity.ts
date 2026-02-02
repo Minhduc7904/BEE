@@ -8,7 +8,7 @@ import { ExamImportSession } from './exam-import-session.entity'
 
 export class TempExam {
   // Required properties
-  tempExamId: string
+  tempExamId: number
   sessionId: number
   title: string
   createdAt: Date
@@ -29,7 +29,7 @@ export class TempExam {
   tempSections?: TempSection[]
 
   constructor(data: {
-    tempExamId: string
+    tempExamId: number
     sessionId: number
     title: string
     createdAt: Date

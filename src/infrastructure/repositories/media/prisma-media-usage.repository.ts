@@ -229,6 +229,23 @@ export class PrismaMediaUsageRepository implements IMediaUsageRepository {
     return MediaUsageMapper.toDomainList(usages)
   }
 
+  async findExistingByEntity(
+    mediaIds: number[],
+    entityType: string,
+    entityId: number,
+    fieldName?: string,
+  ): Promise<MediaUsageEntity[]> {
+    const usages = await this.prisma.mediaUsage.findMany({
+      where: {
+        mediaId: { in: mediaIds },
+        entityType,
+        entityId,
+        ...(fieldName && { fieldName }),
+      },
+    })
+    return MediaUsageMapper.toDomainList(usages)
+  }
+
   /**
    * Check if a media usage exists
    * Useful for preventing duplicate attachments
@@ -256,6 +273,8 @@ export class PrismaMediaUsageRepository implements IMediaUsageRepository {
 
     return count > 0
   }
+
+
 
   /**
    * Count how many times a media file is used

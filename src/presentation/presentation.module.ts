@@ -39,6 +39,9 @@ import { NotificationController } from './controllers/notification.controller'
 import { TuitionPaymentController } from './controllers/tuition-payment.controller'
 import { ExamImportSessionController } from './controllers/exam-import-session.controller'
 import { TempExamController } from './controllers/temp-exam.controller'
+import { TempSectionController } from './controllers/temp-section.controller'
+import { TempQuestionController } from './controllers/temp-question.controller'
+import { TempStatementController } from './controllers/temp-statement.controller'
 @Module({
   imports: [
     ApplicationModule, // ✅ lấy toàn bộ UseCase đã export
@@ -76,6 +79,9 @@ import { TempExamController } from './controllers/temp-exam.controller'
     TuitionPaymentController,
     ExamImportSessionController,
     TempExamController,
+    TempSectionController,
+    TempQuestionController,
+    TempStatementController,
   ],
   providers: [
     // WebSocket Gateways

@@ -203,9 +203,9 @@ export class Question {
     const typeMap = {
       [QuestionType.SINGLE_CHOICE]: 'Trắc nghiệm một đáp án',
       [QuestionType.MULTIPLE_CHOICE]: 'Trắc nghiệm nhiều đáp án',
-      [QuestionType.FILL_IN_THE_BLANK]: 'Điền vào chỗ trống',
       [QuestionType.SHORT_ANSWER]: 'Trả lời ngắn',
       [QuestionType.ESSAY]: 'Tự luận',
+      [QuestionType.TRUE_FALSE]: 'Đúng/Sai',
     }
     return typeMap[this.type] || 'Không xác định'
   }
@@ -231,10 +231,6 @@ export class Question {
 
   isMultipleChoice(): boolean {
     return this.type === QuestionType.MULTIPLE_CHOICE
-  }
-
-  isFillInTheBlank(): boolean {
-    return this.type === QuestionType.FILL_IN_THE_BLANK
   }
 
   isShortAnswer(): boolean {

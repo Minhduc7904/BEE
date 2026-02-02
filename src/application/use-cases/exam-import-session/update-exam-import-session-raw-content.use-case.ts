@@ -5,6 +5,7 @@ import type { IMediaRepository } from '../../../domain/repositories/media.reposi
 import type { IMediaUsageRepository } from '../../../domain/repositories/media-usage.repository'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 import { EntityType } from '../../../shared/constants/entity-type.constants'
+import { extractMediaIdsFromImages, normalizeMediaMarkdown } from '../../../shared/utils'
 
 @Injectable()
 export class UpdateExamImportSessionRawContentUseCase {
@@ -19,8 +20,9 @@ export class UpdateExamImportSessionRawContentUseCase {
 
   async execute(
     sessionId: number,
-    userId: number,
+    adminId: number,
     newRawContent: string,
+    userId: number,
   ): Promise<BaseResponseDto<{ sessionId: number; rawContent: string; deletedMediaCount: number }>> {
     /* ------------------------------------------------------------------
      * 1. Find session
@@ -33,7 +35,7 @@ export class UpdateExamImportSessionRawContentUseCase {
     /* ------------------------------------------------------------------
      * 2. Ownership check
      * ------------------------------------------------------------------ */
-    if (session.createdBy !== userId) {
+    if (session.createdBy !== adminId) {
       throw new ForbiddenException('You can only update your own exam import sessions')
     }
 
@@ -41,13 +43,13 @@ export class UpdateExamImportSessionRawContentUseCase {
      * 3. Normalize markdown
      * ![media:75](anything) → ![media:75](media:75)
      * ------------------------------------------------------------------ */
-    const normalizedRawContent = this.normalizeMediaMarkdown(newRawContent)
+    const normalizedRawContent = normalizeMediaMarkdown(newRawContent)
 
     /* ------------------------------------------------------------------
      * 4. Extract media IDs from image markdown
      * ------------------------------------------------------------------ */
-    const oldMediaIds = this.extractMediaIdsFromImages(session.rawContent || '')
-    const newMediaIds = this.extractMediaIdsFromImages(normalizedRawContent)
+    const oldMediaIds = extractMediaIdsFromImages(session.rawContent || '')
+    const newMediaIds = extractMediaIdsFromImages(normalizedRawContent)
 
     /* ------------------------------------------------------------------
      * 5. Attach NEW media usage
@@ -125,38 +127,4 @@ export class UpdateExamImportSessionRawContentUseCase {
     })
   }
 
-  /* ==================================================================
-   * Helpers
-   * ================================================================== */
-
-  /**
-   * Normalize markdown:
-   * ![media:123](ANYTHING) → ![media:123](media:123)
-   */
-  private normalizeMediaMarkdown(content: string): string {
-    if (!content) return content
-
-    const pattern = /!\[(media:\d+)\]\(([^)]*)\)/g
-
-    return content.replace(pattern, (match, mediaTag, link) => {
-      if (link === mediaTag) return match
-      return `![${mediaTag}](${mediaTag})`
-    })
-  }
-
-  /**
-   * Extract media IDs ONLY from image markdown
-   * Pattern: ![media:123](...)
-   */
-  private extractMediaIdsFromImages(content: string): Set<number> {
-    const mediaIds = new Set<number>()
-    const pattern = /!\[media:(\d+)\]\([^)]+\)/g
-    let match: RegExpExecArray | null
-
-    while ((match = pattern.exec(content)) !== null) {
-      mediaIds.add(Number(match[1]))
-    }
-
-    return mediaIds
-  }
 }

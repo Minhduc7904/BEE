@@ -48,6 +48,8 @@ import {
 } from './services'
 import { ImageExportService } from './services/image-export.service'
 import { MistralService } from './services/mistral.service'
+import { OpenAIService } from './services/openai.service'
+import { ExamSplitService } from './services/exam-split.service'
 import { FileConverterService } from './services/file-converter.service'
 import { GoogleAdminStrategy } from './strategies/google-admin.strategy'
 import { GoogleStudentStrategy } from './strategies/google-student.strategy'
@@ -57,6 +59,7 @@ import emailConfig from '../config/email.config'
 import httpClientConfig from '../config/http-client.config'
 import supabaseConfig from '../config/supabase.config'
 import mistralConfig from '../config/mistral.config'
+import openaiConfig from '../config/openai.config'
 
 @Module({
   imports: [
@@ -67,6 +70,7 @@ import mistralConfig from '../config/mistral.config'
     ConfigModule.forFeature(emailConfig),
     ConfigModule.forFeature(httpClientConfig),
     ConfigModule.forFeature(mistralConfig),
+    ConfigModule.forFeature(openaiConfig),
     // ConfigModule.forFeature(supabaseConfig), // Disabled: not using Supabase anymore
     JwtModule.register({}), // Empty config, sẽ override trong service
   ],
@@ -242,6 +246,8 @@ import mistralConfig from '../config/mistral.config'
     MediaProcessingService,
     ExcelService,
     MistralService,
+    OpenAIService,
+    ExamSplitService,
     FileConverterService,
     GoogleAdminStrategy,
     GoogleStudentStrategy,
@@ -287,6 +293,8 @@ import mistralConfig from '../config/mistral.config'
     MediaProcessingService,
     ExcelService,
     MistralService,
+    OpenAIService,
+    ExamSplitService,
     FileConverterService,
     ImageExportService,
   ],

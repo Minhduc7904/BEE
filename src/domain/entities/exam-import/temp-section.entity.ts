@@ -6,15 +6,15 @@ import { TempQuestion } from './temp-question.entity'
 
 export class TempSection {
   // Required properties
-  tempSectionId: string
+  tempSectionId: number
   sessionId: number
-  tempExamId: string
   title: string
   order: number
   createdAt: Date
   updatedAt: Date
 
   // Optional properties
+  tempExamId?: number | null
   description?: string | null
   metadata?: any | null
   sectionId?: number | null
@@ -26,13 +26,13 @@ export class TempSection {
   tempQuestions?: TempQuestion[]
 
   constructor(data: {
-    tempSectionId: string
+    tempSectionId: number
     sessionId: number
-    tempExamId: string
     title: string
     order: number
     createdAt: Date
     updatedAt: Date
+    tempExamId?: number | null
     description?: string | null
     metadata?: any | null
     sectionId?: number | null
@@ -43,11 +43,11 @@ export class TempSection {
   }) {
     this.tempSectionId = data.tempSectionId
     this.sessionId = data.sessionId
-    this.tempExamId = data.tempExamId
     this.title = data.title
     this.order = data.order
     this.createdAt = data.createdAt
     this.updatedAt = data.updatedAt
+    this.tempExamId = data.tempExamId
     this.description = data.description
     this.metadata = data.metadata
     this.sectionId = data.sectionId

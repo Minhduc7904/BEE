@@ -5,8 +5,8 @@ import { TempQuestion } from './temp-question.entity'
 
 export class TempStatement {
   // Required properties
-  tempStatementId: string
-  tempQuestionId: string
+  tempStatementId: number
+  tempQuestionId: number
   content: string
   isCorrect: boolean
   createdAt: Date
@@ -23,8 +23,8 @@ export class TempStatement {
   finalStatement?: any | null // Statement entity
 
   constructor(data: {
-    tempStatementId: string
-    tempQuestionId: string
+    tempStatementId: number
+    tempQuestionId: number
     content: string
     isCorrect: boolean
     createdAt: Date

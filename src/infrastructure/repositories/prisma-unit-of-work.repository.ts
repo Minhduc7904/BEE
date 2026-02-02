@@ -67,6 +67,12 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _youtubeContentRepository: any
     let _notificationRepository: any
     let _tuitionPaymentRepository: any
+    let _examImportSessionRepository: any
+    let _tempExamRepository: any
+    let _tempSectionRepository: any
+    let _tempQuestionRepository: any
+    let _tempStatementRepository: any
+    let _mediaUsageRepository: any
 
     Object.defineProperty(repos, 'studentRepository', {
       get: () => (_studentRepository ??= new Repositories.PrismaStudentRepository(client)),
@@ -165,6 +171,36 @@ export class PrismaUnitOfWork implements IUnitOfWork {
 
     Object.defineProperty(repos, 'tuitionPaymentRepository', {
       get: () => (_tuitionPaymentRepository ??= new Repositories.PrismaTuitionPaymentRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'examImportSessionRepository', {
+      get: () => (_examImportSessionRepository ??= new Repositories.PrismaExamImportSessionRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'tempExamRepository', {
+      get: () => (_tempExamRepository ??= new Repositories.PrismaTempExamRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'tempSectionRepository', {
+      get: () => (_tempSectionRepository ??= new Repositories.PrismaTempSectionRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'tempQuestionRepository', {
+      get: () => (_tempQuestionRepository ??= new Repositories.PrismaTempQuestionRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'tempStatementRepository', {
+      get: () => (_tempStatementRepository ??= new Repositories.PrismaTempStatementRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'mediaUsageRepository', {
+      get: () => (_mediaUsageRepository ??= new Repositories.PrismaMediaUsageRepository(client)),
       enumerable: true,
     })
 

@@ -3,7 +3,7 @@ import { TempExam } from '../../../domain/entities/exam-import/temp-exam.entity'
 import { ExamVisibility } from '../../../shared/enums'
 
 export class TempExamResponseDto {
-  tempExamId: string
+  tempExamId: number
   sessionId: number
   title: string
   description?: string | null

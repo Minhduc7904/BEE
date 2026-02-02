@@ -52,9 +52,9 @@ enum PaymentType {
 enum QuestionType {
   SINGLE_CHOICE
   MULTIPLE_CHOICE
-  FILL_IN_THE_BLANK
   SHORT_ANSWER
   ESSAY
+  TRUE_FALSE
 }
 
 enum Difficulty {
@@ -548,7 +548,7 @@ model TempExam {
 model TempSection {
   tempSectionId Int      @id @default(autoincrement()) @map("temp_section_id")
   sessionId     Int      @map("session_id")
-  tempExamId    Int      @map("temp_exam_id")
+  tempExamId    Int?     @map("temp_exam_id")
   title         String   @map("title") @db.VarChar(255)
   description   String?  @map("description") @db.Text
   order         Int      @map("order")
@@ -559,7 +559,7 @@ model TempSection {
 
   // Relations
   session       ExamImportSession @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
-  tempExam      TempExam          @relation(fields: [tempExamId], references: [tempExamId], onDelete: Cascade)
+  tempExam      TempExam?         @relation(fields: [tempExamId], references: [tempExamId], onDelete: Cascade)
   finalSection  Section?          @relation("TempSectionFinal", fields: [sectionId], references: [sectionId], onDelete: SetNull)
   tempQuestions TempQuestion[]
 
@@ -589,7 +589,7 @@ model TempQuestion {
 
   // Relations
   session        ExamImportSession @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
-  tempSection    TempSection?      @relation(fields: [tempSectionId], references: [tempSectionId], onDelete: Cascade)
+  tempSection    TempSection?      @relation(fields: [tempSectionId], references: [tempSectionId], onDelete: SetNull)
   subject        Subject?          @relation("TempQuestionSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
   finalQuestion  Question?         @relation("TempQuestionFinal", fields: [questionId], references: [questionId], onDelete: SetNull)
   tempStatements TempStatement[]

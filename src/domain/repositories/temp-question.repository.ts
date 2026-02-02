@@ -3,7 +3,7 @@ import { QuestionType, Difficulty } from '../../shared/enums'
 
 export interface CreateTempQuestionData {
   sessionId: number
-  tempSectionId?: string
+  tempSectionId?: number | null
   content: string
   type: QuestionType
   correctAnswer?: string
@@ -18,7 +18,7 @@ export interface CreateTempQuestionData {
 }
 
 export interface UpdateTempQuestionData {
-  tempSectionId?: string
+  tempSectionId?: number | null
   content?: string
   type?: QuestionType
   correctAnswer?: string
@@ -34,8 +34,8 @@ export interface UpdateTempQuestionData {
 }
 
 export interface FindTempQuestionsOptions {
-  sessionId?: string
-  tempSectionId?: string
+  sessionId?: number
+  tempSectionId?: number
   subjectId?: number
   type?: QuestionType
   difficulty?: Difficulty
@@ -44,13 +44,13 @@ export interface FindTempQuestionsOptions {
 
 export interface ITempQuestionRepository {
   create(data: CreateTempQuestionData): Promise<TempQuestion>
-  findById(tempQuestionId: string): Promise<TempQuestion | null>
-  findByIdWithRelations(tempQuestionId: string): Promise<TempQuestion | null>
+  findById(tempQuestionId: number): Promise<TempQuestion | null>
+  findByIdWithRelations(tempQuestionId: number): Promise<TempQuestion | null>
   findBySessionId(sessionId: number): Promise<TempQuestion[]>
-  findByTempSectionId(tempSectionId: string): Promise<TempQuestion[]>
+  findByTempSectionId(tempSectionId: number): Promise<TempQuestion[]>
   findByQuestionId(questionId: number): Promise<TempQuestion | null>
   findAll(options?: FindTempQuestionsOptions): Promise<TempQuestion[]>
-  update(tempQuestionId: string, data: UpdateTempQuestionData): Promise<TempQuestion>
-  delete(tempQuestionId: string): Promise<void>
-  linkToFinalQuestion(tempQuestionId: string, questionId: number): Promise<TempQuestion>
+  update(tempQuestionId: number, data: UpdateTempQuestionData): Promise<TempQuestion>
+  delete(tempQuestionId: number): Promise<void>
+  linkToFinalQuestion(tempQuestionId: number, questionId: number): Promise<TempQuestion>
 }

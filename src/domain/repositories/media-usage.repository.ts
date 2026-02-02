@@ -97,6 +97,13 @@ export interface IMediaUsageRepository {
     fieldName?: string,
   ): Promise<MediaUsageEntity[]>
 
+  findExistingByEntity(
+    mediaIds: number[],
+    entityType: EntityType,
+    entityId: number,
+    fieldName?: string,
+  ): Promise<MediaUsageEntity[]>
+
   /**
    * Check if a media usage exists
    * 

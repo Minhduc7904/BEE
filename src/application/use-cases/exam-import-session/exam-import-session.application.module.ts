@@ -9,6 +9,9 @@ const EXAM_IMPORT_SESSION_USE_CASES = [
   examImportSessionUseCase.GetExamImportSessionByIdUseCase,
   examImportSessionUseCase.GetExamImportSessionRawContentUseCase,
   examImportSessionUseCase.UpdateExamImportSessionRawContentUseCase,
+  examImportSessionUseCase.SplitExamFromSessionUseCase,
+  examImportSessionUseCase.SplitExamFromRawContentUseCase,
+  examImportSessionUseCase.SaveSplitResultToTempUseCase,
 ]
 
 @Module({

@@ -27,7 +27,7 @@ export class PrismaTempStatementRepository implements ITempStatementRepository {
     return TempStatementMapper.toDomainTempStatement(created)!
   }
 
-  async findById(tempStatementId: string): Promise<TempStatement | null> {
+  async findById(tempStatementId: number): Promise<TempStatement | null> {
     const tempStatement = await this.prisma.tempStatement.findUnique({
       where: { tempStatementId },
     })
@@ -37,7 +37,7 @@ export class PrismaTempStatementRepository implements ITempStatementRepository {
     return TempStatementMapper.toDomainTempStatement(tempStatement)!
   }
 
-  async findByTempQuestionId(tempQuestionId: string): Promise<TempStatement[]> {
+  async findByTempQuestionId(tempQuestionId: number): Promise<TempStatement[]> {
     const tempStatements = await this.prisma.tempStatement.findMany({
       where: { tempQuestionId },
       orderBy: { order: 'asc' },
@@ -64,7 +64,7 @@ export class PrismaTempStatementRepository implements ITempStatementRepository {
     return TempStatementMapper.toDomainTempStatements(tempStatements)
   }
 
-  async update(tempStatementId: string, data: UpdateTempStatementData): Promise<TempStatement> {
+  async update(tempStatementId: number, data: UpdateTempStatementData): Promise<TempStatement> {
     const updated = await this.prisma.tempStatement.update({
       where: { tempStatementId },
       data: {
@@ -80,13 +80,13 @@ export class PrismaTempStatementRepository implements ITempStatementRepository {
     return TempStatementMapper.toDomainTempStatement(updated)!
   }
 
-  async delete(tempStatementId: string): Promise<void> {
+  async delete(tempStatementId: number): Promise<void> {
     await this.prisma.tempStatement.delete({
       where: { tempStatementId },
     })
   }
 
-  async linkToFinalStatement(tempStatementId: string, statementId: number): Promise<TempStatement> {
+  async linkToFinalStatement(tempStatementId: number, statementId: number): Promise<TempStatement> {
     const updated = await this.prisma.tempStatement.update({
       where: { tempStatementId },
       data: { statementId },

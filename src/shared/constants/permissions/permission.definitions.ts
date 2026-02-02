@@ -967,4 +967,77 @@ export const PERMISSION_DEFINITIONS = {
             },
         },
     },
+
+    tempQuestion: {
+        group: 'TEMP_QUESTION',
+        isSystem: true,
+        actions: {
+            getBySession: {
+                name: 'Xem câu hỏi tạm theo session',
+                description: 'Xem danh sách câu hỏi tạm thời của một session',
+            },
+            getById: {
+                name: 'Xem câu hỏi tạm theo ID',
+                description: 'Xem chi tiết câu hỏi tạm thời',
+            },
+            create: {
+                name: 'Tạo câu hỏi tạm',
+                description: 'Tạo câu hỏi tạm thời mới',
+            },
+            update: {
+                name: 'Cập nhật câu hỏi tạm',
+                description: 'Chỉnh sửa câu hỏi tạm thời',
+            },
+            delete: {
+                name: 'Xóa câu hỏi tạm',
+                description: 'Xóa câu hỏi tạm thời',
+            },
+        },
+    },
+
+    tempSection: {
+        group: 'TEMP_SECTION',
+        isSystem: true,
+        actions: {
+            getByExam: {
+                name: 'Xem section tạm theo exam',
+                description: 'Xem danh sách section tạm thời của một exam',
+            },
+            getById: {
+                name: 'Xem section tạm theo ID',
+                description: 'Xem chi tiết section tạm thời',
+            },
+            create: {
+                name: 'Tạo section tạm',
+                description: 'Tạo section tạm thời mới',
+            },
+            update: {
+                name: 'Cập nhật section tạm',
+                description: 'Chỉnh sửa section tạm thời',
+            },
+            delete: {
+                name: 'Xóa section tạm',
+                description: 'Xóa section tạm thời',
+            },
+        },
+    },
+
+    tempStatement: {
+        group: 'TEMP_STATEMENT',
+        isSystem: true,
+        actions: {
+            create: {
+                name: 'Tạo đáp án tạm',
+                description: 'Tạo đáp án tạm thời mới cho câu hỏi',
+            },
+            update: {
+                name: 'Cập nhật đáp án tạm',
+                description: 'Chỉnh sửa đáp án tạm thời',
+            },
+            delete: {
+                name: 'Xóa đáp án tạm',
+                description: 'Xóa đáp án tạm thời',
+            },
+        },
+    },
 } as const;

@@ -113,6 +113,39 @@ export class PrismaMediaRepository implements IMediaRepository {
     return media ? MediaMapper.toDomain(media) : null
   }
 
+  findByIds(mediaIds: number[]): Promise<MediaEntity[]> {
+    return this.prisma.media.findMany({
+      where: {
+        mediaId: { in: mediaIds },
+        status: { not: MediaStatus.DELETED }
+      },
+      include: {
+        folder: true,
+        uploader: {
+          select: {
+            userId: true,
+            username: true,
+            firstName: true,
+            lastName: true,
+          },
+        },
+        usages: {
+          select: {
+            usageId: true,
+            entityType: true,
+            entityId: true,
+            fieldName: true,
+            visibility: true,
+            createdAt: true,
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+      },
+    }).then(medias => MediaMapper.toDomainList(medias))
+  }
+
   /**
    * Find all child media by parent ID
    * 
@@ -121,7 +154,7 @@ export class PrismaMediaRepository implements IMediaRepository {
    */
   async findByParentId(parentId: number): Promise<MediaEntity[]> {
     const media = await this.prisma.media.findMany({
-      where: { 
+      where: {
         parentId,
         status: { not: MediaStatus.DELETED }
       },

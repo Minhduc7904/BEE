@@ -72,7 +72,7 @@ export class TempExamController {
   @RequirePermission(PERMISSION_CODES.TEMP_EXAM_UPDATE)
   @HttpCode(HttpStatus.OK)
   async updateTempExam(
-    @Param('tempExamId') tempExamId: string,
+    @Param('tempExamId') tempExamId: number,
     @Body() dto: UpdateTempExamDto,
   ): Promise<BaseResponseDto<TempExamResponseDto>> {
     return ExceptionHandler.execute(() =>

@@ -12,7 +12,7 @@ export class UpdateTempExamUseCase {
   ) {}
 
   async execute(
-    tempExamId: string,
+    tempExamId: number,
     dto: UpdateTempExamDto,
   ): Promise<BaseResponseDto<TempExamResponseDto>> {
     // Kiểm tra TempExam tồn tại
