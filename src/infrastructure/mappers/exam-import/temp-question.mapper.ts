@@ -24,6 +24,7 @@ export class TempQuestionMapper {
       type: prismaQuestion.type as QuestionType,
       correctAnswer: prismaQuestion.correctAnswer,
       solution: prismaQuestion.solution,
+      solutionYoutubeUrl: prismaQuestion.solutionYoutubeUrl,
       difficulty: prismaQuestion.difficulty ? (prismaQuestion.difficulty as Difficulty) : undefined,
       order: prismaQuestion.order,
       grade: prismaQuestion.grade,

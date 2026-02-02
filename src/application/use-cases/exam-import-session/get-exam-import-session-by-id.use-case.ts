@@ -12,7 +12,7 @@ export class GetExamImportSessionByIdUseCase {
   ) {}
 
   async execute(sessionId: number): Promise<BaseResponseDto<ExamImportSessionResponseDto>> {
-    const session = await this.sessionRepository.findByIdWithRelations(sessionId)
+    const session = await this.sessionRepository.findById(sessionId)
 
     if (!session) {
       throw new NotFoundException(`Không tìm thấy phiên import với ID ${sessionId}`)

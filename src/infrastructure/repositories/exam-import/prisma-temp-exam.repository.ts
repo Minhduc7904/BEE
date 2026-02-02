@@ -23,6 +23,7 @@ export class PrismaTempExamRepository implements ITempExamRepository {
         visibility: data.visibility,
         metadata: data.metadata,
         rawContent: data.rawContent,
+        solutionYoutubeUrl: data.solutionYoutubeUrl,
       },
     })
 
@@ -117,6 +118,7 @@ export class PrismaTempExamRepository implements ITempExamRepository {
         metadata: data.metadata,
         rawContent: data.rawContent,
         examId: data.examId,
+        solutionYoutubeUrl: data.solutionYoutubeUrl,
       },
     })
 

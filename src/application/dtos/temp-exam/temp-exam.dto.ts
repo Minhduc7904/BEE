@@ -11,6 +11,7 @@ export class TempExamResponseDto {
   subjectId?: number | null
   subjectName?: string
   visibility: string
+  solutionYoutubeUrl?: string | null
   metadata?: any
   examId?: number | null
   createdAt: Date
@@ -32,6 +33,7 @@ export class TempExamResponseDto {
       subjectId: tempExam.subjectId ?? undefined,
       subjectName: tempExam.subject?.name,
       visibility: tempExam.visibility,
+      solutionYoutubeUrl: tempExam.solutionYoutubeUrl ?? undefined,
       metadata: tempExam.metadata,
       examId: tempExam.examId ?? undefined,
       createdAt: tempExam.createdAt,

@@ -30,6 +30,7 @@ export class UpdateTempExamUseCase {
       visibility: dto.visibility,
       metadata: dto.metadata,
       rawContent: dto.rawContent,
+      solutionYoutubeUrl: dto.solutionYoutubeUrl,
     })
 
     return BaseResponseDto.success(

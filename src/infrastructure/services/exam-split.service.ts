@@ -89,7 +89,34 @@ NHIỆM VỤ BẮT BUỘC:
 - Giữ nguyên ký hiệu toán học, công thức, văn phong và media placeholder (ví dụ: ![media:3]).
 
 ----------------------------------------------------------------
+XỬ LÝ BẢNG SỐ LIỆU (QUY TẮC BẮT BUỘC – RẤT QUAN TRỌNG):
 
+Nếu trong đề có bảng số liệu, bảng tần số, bảng thống kê, bảng ghép nhóm:
+
+1. TUYỆT ĐỐI KHÔNG sử dụng LaTeX tabular:
+   - CẤM dùng \begin{tabular}, \end{tabular}, |c|c|, \hline, v.v.
+   - CẤM dùng bảng LaTeX dưới mọi hình thức.
+
+2. BẮT BUỘC chuyển bảng sang Markdown Table chuẩn (GitHub Flavored Markdown):
+   - Dùng cú pháp | cột | cột |
+   - Có dòng phân cách bằng ---.
+   - Mỗi bảng phải độc lập, dễ render bằng react-markdown + remark-gfm.
+
+3. KHÔNG thay đổi nội dung bảng:
+   - Giữ nguyên số liệu.
+   - Giữ nguyên nhãn cột, nhãn hàng.
+   - Không rút gọn, không diễn giải.
+
+4. Nếu bảng thuộc về mẫu số liệu khác nhau (ví dụ: M₁, M₂):
+   - Mỗi bảng phải được trình bày riêng biệt.
+   - Có tiêu đề rõ ràng ngay trước bảng (ví dụ: **M₁**, **M₂**).
+
+Ví dụ ĐÚNG (chỉ để tham chiếu, KHÔNG thêm nội dung mới):
+| Nhóm | [8;10) | [10;12) |
+|------|--------|---------|
+| Tần số | 3 | 4 |
+
+----------------------------------------------------------------
 SỬA LỖI KÝ HIỆU TOÁN HỌC (CHỈ SỬA LỖI OCR):
 
 Bạn ĐƯỢC PHÉP sửa các lỗi ký hiệu toán học do OCR gây ra, NHƯNG PHẢI TUÂN THEO TẤT CẢ CÁC QUY TẮC SAU:
@@ -112,7 +139,6 @@ Nếu KHÔNG chắc chắn một ký hiệu là lỗi OCR:
 → GIỮ NGUYÊN, KHÔNG SỬA.
 
 ----------------------------------------------------------------
-
 PHÂN LOẠI CÂU HỎI (QuestionType):
 - ${questionTypes}
 
@@ -126,13 +152,11 @@ Nếu không xác định được loại câu hỏi:
 → Chọn loại phù hợp nhất, KHÔNG tạo loại mới.
 
 ----------------------------------------------------------------
-
 ĐỘ KHÓ (Difficulty):
 - ${difficulties}
 - Nếu không xác định được → difficulty = null.
 
 ----------------------------------------------------------------
-
 XÁC ĐỊNH ĐÁP ÁN (QUY TẮC BẮT BUỘC – TUYỆT ĐỐI TUÂN THỦ):
 
 NGUYÊN TẮC TỔNG QUÁT:
@@ -165,7 +189,6 @@ NGUYÊN TẮC AN TOÀN:
 → Thiếu thông tin thì để null hoặc false. KHÔNG BỊA.
 
 ----------------------------------------------------------------
-
 OUTPUT JSON FORMAT (BẮT BUỘC – PHẢI ĐÚNG CHÍNH XÁC):
 
 {
@@ -192,7 +215,6 @@ OUTPUT JSON FORMAT (BẮT BUỘC – PHẢI ĐÚNG CHÍNH XÁC):
 }
 
 ----------------------------------------------------------------
-
 YÊU CẦU CUỐI CÙNG:
 - CHỈ trả về JSON thuần.
 - KHÔNG markdown.
@@ -290,13 +312,6 @@ ${rawContent}
         const orders = new Set<number>()
 
         result.questions.forEach((q, index) => {
-            // order
-            if (typeof q.order !== 'number') {
-                throw new Error(`Question ${index}: order phải là number`)
-            }
-            if (orders.has(q.order)) {
-                throw new Error(`Order bị trùng: ${q.order}`)
-            }
             orders.add(q.order)
 
             // content
@@ -323,48 +338,10 @@ ${rawContent}
 
                 const correctCount = q.statements.filter((s) => s.isCorrect).length
 
-                if (
-                    q.type === QuestionType.SINGLE_CHOICE &&
-                    correctCount !== 1
-                ) {
-                    throw new Error(
-                        `Question ${index}: SINGLE_CHOICE phải có đúng 1 đáp án đúng`,
-                    )
-                }
-
-                if (
-                    q.type === QuestionType.MULTIPLE_CHOICE ||
-                    q.type === QuestionType.TRUE_FALSE &&
-                    correctCount === 0
-                ) {
-                    throw new Error(
-                        `Question ${index}: MULTIPLE_CHOICE phải có ít nhất 1 đáp án đúng`,
-                    )
-                }
-
-                // validate statements.order
-                q.statements.forEach((s, stmtIndex) => {
-                    if (typeof s.order !== 'number') {
-                        throw new Error(
-                            `Question ${index}, statement ${stmtIndex}: order phải là number`,
-                        )
-                    }
-                })
             } else {
                 if (q.statements && q.statements.length > 0) {
                     throw new Error(
                         `Question ${index}: câu hỏi tự luận không có statements`,
-                    )
-                }
-
-                if (
-                    q.type === QuestionType.SHORT_ANSWER &&
-                    q.correctAnswer !== null &&
-                    q.correctAnswer !== undefined &&
-                    typeof q.correctAnswer !== 'string'
-                ) {
-                    throw new Error(
-                        `Question ${index}: correctAnswer phải là string hoặc null`,
                     )
                 }
             }

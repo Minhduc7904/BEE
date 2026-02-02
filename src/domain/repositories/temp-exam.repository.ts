@@ -10,6 +10,7 @@ export interface CreateTempExamData {
   visibility?: ExamVisibility
   metadata?: any
   rawContent?: string
+  solutionYoutubeUrl?: string
 }
 
 export interface UpdateTempExamData {
@@ -21,6 +22,7 @@ export interface UpdateTempExamData {
   metadata?: any
   rawContent?: string
   examId?: number
+  solutionYoutubeUrl?: string
 }
 
 export interface ITempExamRepository {

@@ -17,6 +17,7 @@ export class Exam {
   // Optional properties
   description?: string | null
   subjectId?: number | null
+  solutionYoutubeUrl?: string | null
 
   // Relations (optional - sẽ được populate khi cần)
   subject?: Subject | null
@@ -34,6 +35,7 @@ export class Exam {
     updatedAt: Date
     description?: string | null
     subjectId?: number | null
+    solutionYoutubeUrl?: string | null
     subject?: Subject | null
     admin?: any
     competitions?: Competition[]
@@ -48,6 +50,7 @@ export class Exam {
     this.updatedAt = data.updatedAt
     this.description = data.description
     this.subjectId = data.subjectId
+    this.solutionYoutubeUrl = data.solutionYoutubeUrl
     this.subject = data.subject
     this.admin = data.admin
     this.competitions = data.competitions

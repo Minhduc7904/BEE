@@ -32,6 +32,11 @@ export class UpdateTempExamDto {
   visibility?: ExamVisibility
 
   @IsOptional()
+  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Link Youtube lời giải') })
+  @Trim()
+  solutionYoutubeUrl?: string
+
+  @IsOptional()
   metadata?: any
 
   @IsOptional()

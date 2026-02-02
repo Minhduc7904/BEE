@@ -37,6 +37,7 @@ export class CreateTempExamUseCase {
       visibility: dto.visibility,
       metadata: dto.metadata,
       rawContent: dto.rawContent,
+      solutionYoutubeUrl: dto.solutionYoutubeUrl,
     })
 
     return BaseResponseDto.success('Tạo TempExam thành công', TempExamResponseDto.fromEntity(tempExam))

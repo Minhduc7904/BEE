@@ -24,6 +24,7 @@ export class TempExamMapper {
       grade: prismaExam.grade,
       subjectId: prismaExam.subjectId,
       visibility: prismaExam.visibility as ExamVisibility,
+      solutionYoutubeUrl: prismaExam.solutionYoutubeUrl,
       metadata: prismaExam.metadata,
       examId: prismaExam.examId,
       createdAt: prismaExam.createdAt,

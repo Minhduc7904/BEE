@@ -43,6 +43,26 @@ enum ImportStatus {
   FAILED // Xử lý thất bại
 }
 
+enum JobStatus {
+  PENDING // Đang chờ xử lý
+  PROCESSING // Đang xử lý
+  COMPLETED // Hoàn thành
+  FAILED // Thất bại
+  CANCELLED // Đã hủy
+  RETRYING // Đang thử lại
+}
+
+enum JobType {
+  AI_EXAM_PARSE // Parse đề thi bằng AI
+  AI_QUESTION_GENERATE // Tạo câu hỏi bằng AI
+  AI_CONTENT_GENERATE // Tạo nội dung bằng AI
+  AI_GRADING // Chấm bài tự động bằng AI
+  EMAIL_SEND // Gửi email
+  REPORT_GENERATE // Tạo báo cáo
+  DATA_EXPORT // Xuất dữ liệu
+  DATA_IMPORT // Import dữ liệu
+}
+
 enum PaymentType {
   ONE_TIME // Đóng 1 lần cho toàn bộ khóa học
   MONTHLY // Đóng theo tháng
@@ -97,6 +117,7 @@ model User {
   EmailVerificationToken EmailVerificationToken[]
   PasswordResetToken     PasswordResetToken[]
   notifications          Notification[]
+  createdJobs            Job[]                    @relation("JobCreator")
 
   @@index([lastName, firstName], map: "idx_users_name")
   @@map("users")
@@ -417,15 +438,16 @@ model Chapter {
 }
 
 model Exam {
-  examId      Int            @id @default(autoincrement()) @map("exam_id") @db.Int
-  title       String         @map("title") @db.VarChar(255)
-  description String?        @map("description") @db.Text
-  grade       Int            @map("grade") @db.TinyInt
-  subjectId   Int?           @map("subject_id")
-  createdBy   Int            @map("created_by")
-  visibility  ExamVisibility @default(DRAFT) @map("visibility")
-  createdAt   DateTime       @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt   DateTime       @updatedAt @map("updated_at") @db.Timestamp(0)
+  examId             Int            @id @default(autoincrement()) @map("exam_id") @db.Int
+  title              String         @map("title") @db.VarChar(255)
+  description        String?        @map("description") @db.Text
+  grade              Int            @map("grade") @db.TinyInt
+  subjectId          Int?           @map("subject_id")
+  createdBy          Int            @map("created_by")
+  visibility         ExamVisibility @default(DRAFT) @map("visibility")
+  solutionYoutubeUrl String?        @map("solution_youtube_url") @db.VarChar(500)
+  createdAt          DateTime       @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt          DateTime       @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
   subject      Subject?       @relation("ExamSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
@@ -522,18 +544,19 @@ model ExamImportSession {
 }
 
 model TempExam {
-  tempExamId   Int               @id @default(autoincrement()) @map("temp_exam_id")
-  sessionId    Int               @unique @map("session_id")
-  title        String            @map("title") @db.VarChar(255)
-  description  String?           @map("description") @db.Text
-  grade        Int?              @map("grade") @db.TinyInt
-  subjectId    Int?              @map("subject_id")
-  visibility   ExamVisibility    @default(DRAFT) @map("visibility")
-  metadata     Json?             @map("metadata") // dữ liệu bổ sung từ AI parsing
-  examId       Int?              @unique @map("exam_id") // ID của exam chính sau khi migrate
-  createdAt    DateTime          @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt    DateTime          @updatedAt @map("updated_at") @db.Timestamp(0)
-  
+  tempExamId         Int            @id @default(autoincrement()) @map("temp_exam_id")
+  sessionId          Int            @unique @map("session_id")
+  title              String         @map("title") @db.VarChar(255)
+  description        String?        @map("description") @db.Text
+  grade              Int?           @map("grade") @db.TinyInt
+  subjectId          Int?           @map("subject_id")
+  visibility         ExamVisibility @default(DRAFT) @map("visibility")
+  solutionYoutubeUrl String?        @map("solution_youtube_url") @db.VarChar(500)
+  metadata           Json?          @map("metadata") // dữ liệu bổ sung từ AI parsing
+  examId             Int?           @unique @map("exam_id") // ID của exam chính sau khi migrate
+  createdAt          DateTime       @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt          DateTime       @updatedAt @map("updated_at") @db.Timestamp(0)
+
   // Relations
   session      ExamImportSession @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
   subject      Subject?          @relation("TempExamSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
@@ -1108,7 +1131,7 @@ model Media {
   fileSize     BigInt      @map("file_size") // bytes
   type         MediaType   @map("type")
   status       MediaStatus @default(UPLOADING) @map("status")
-  
+
   // MinIO specific fields
   bucketName String  @map("bucket_name") @db.VarChar(100)
   objectKey  String  @map("object_key") @db.VarChar(500) // path trong bucket
@@ -1203,4 +1226,48 @@ model TuitionPayment {
   @@index([year, month], map: "idx_tuition_payments_year_month")
   @@index([status], map: "idx_tuition_payments_status")
   @@map("tuition_payments")
+}
+
+// ============================================
+// JOB QUEUE - Hàng đợi xử lý tác vụ bất đồng bộ
+// ============================================
+
+model Job {
+  jobId    Int       @id @default(autoincrement()) @map("job_id")
+  type     JobType   @map("type") // Loại job
+  status   JobStatus @default(PENDING) @map("status") // Trạng thái job
+  priority Int       @default(0) @map("priority") // Độ ưu tiên (số càng cao càng ưu tiên)
+
+  // Dữ liệu
+  payload Json? @map("payload") // Dữ liệu đầu vào (params, file path, etc)
+  result  Json? @map("result") // Kết quả đầu ra
+
+  // Thông tin lỗi
+  errorMessage String? @map("error_message") @db.Text
+  errorStack   String? @map("error_stack") @db.Text
+
+  // Retry logic
+  retryCount Int @default(0) @map("retry_count") // Số lần đã thử lại
+  maxRetries Int @default(3) @map("max_retries") // Số lần thử lại tối đa
+
+  // Thời gian
+  scheduledAt DateTime? @map("scheduled_at") @db.Timestamp(0) // Thời gian dự kiến chạy
+  startedAt   DateTime? @map("started_at") @db.Timestamp(0) // Thời gian bắt đầu xử lý
+  completedAt DateTime? @map("completed_at") @db.Timestamp(0) // Thời gian hoàn thành
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Metadata
+  createdBy Int?  @map("created_by") // User tạo job
+  metadata  Json? @map("metadata") // Thông tin bổ sung (progress, logs, etc)
+
+  // Relations
+  creator User? @relation("JobCreator", fields: [createdBy], references: [userId], onDelete: SetNull)
+
+  // INDEXES
+  @@index([status, priority, createdAt], map: "idx_jobs_status_priority_created")
+  @@index([type, status], map: "idx_jobs_type_status")
+  @@index([createdBy], map: "idx_jobs_created_by")
+  @@index([scheduledAt], map: "idx_jobs_scheduled_at")
+  @@map("jobs")
 }

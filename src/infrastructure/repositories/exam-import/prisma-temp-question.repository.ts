@@ -152,7 +152,6 @@ export class PrismaTempQuestionRepository implements ITempQuestionRepository {
         questionId: data.questionId,
       },
     })
-
     return TempQuestionMapper.toDomainTempQuestion(updated)!
   }
 

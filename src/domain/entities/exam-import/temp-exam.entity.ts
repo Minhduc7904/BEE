@@ -19,6 +19,7 @@ export class TempExam {
   grade?: number | null
   subjectId?: number | null
   visibility: ExamVisibility
+  solutionYoutubeUrl?: string | null
   metadata?: any | null
   examId?: number | null
 
@@ -38,6 +39,7 @@ export class TempExam {
     grade?: number | null
     subjectId?: number | null
     visibility?: ExamVisibility
+    solutionYoutubeUrl?: string | null
     metadata?: any | null
     examId?: number | null
     session?: ExamImportSession | null
@@ -54,6 +56,7 @@ export class TempExam {
     this.grade = data.grade
     this.subjectId = data.subjectId
     this.visibility = data.visibility || ExamVisibility.DRAFT
+    this.solutionYoutubeUrl = data.solutionYoutubeUrl
     this.metadata = data.metadata
     this.examId = data.examId
     this.session = data.session
