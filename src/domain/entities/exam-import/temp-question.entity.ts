@@ -6,6 +6,7 @@ import { Question } from '../exam/question.entity'
 import { ExamImportSession } from './exam-import-session.entity'
 import { TempSection } from './temp-section.entity'
 import { TempStatement } from './temp-statement.entity'
+import { TempQuestionChapter } from './temp-question-chapter.entity'
 
 export class TempQuestion {
   // Required properties
@@ -35,6 +36,7 @@ export class TempQuestion {
   subject?: Subject | null
   finalQuestion?: Question | null
   tempStatements?: TempStatement[]
+  tempQuestionChapters?: TempQuestionChapter[]
 
   constructor(data: {
     tempQuestionId: number
@@ -59,6 +61,7 @@ export class TempQuestion {
     subject?: Subject | null
     finalQuestion?: Question | null
     tempStatements?: TempStatement[]
+    tempQuestionChapters?: TempQuestionChapter[]
   }) {
     this.tempQuestionId = data.tempQuestionId
     this.sessionId = data.sessionId
@@ -82,6 +85,7 @@ export class TempQuestion {
     this.subject = data.subject
     this.finalQuestion = data.finalQuestion
     this.tempStatements = data.tempStatements
+    this.tempQuestionChapters = data.tempQuestionChapters
   }
 
   /**

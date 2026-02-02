@@ -7,6 +7,7 @@ export class QuestionExam {
   // Required properties
   questionId: number
   examId: number
+  sectionId: number
   order: number
   createdAt: Date
 
@@ -20,6 +21,7 @@ export class QuestionExam {
   constructor(data: {
     questionId: number
     examId: number
+    sectionId: number
     order: number
     createdAt: Date
     points?: number | null
@@ -28,6 +30,7 @@ export class QuestionExam {
   }) {
     this.questionId = data.questionId
     this.examId = data.examId
+    this.sectionId = data.sectionId
     this.order = data.order
     this.createdAt = data.createdAt
     this.points = data.points
@@ -189,6 +192,7 @@ export class QuestionExam {
     return new QuestionExam({
       questionId: data.questionId,
       examId: data.examId,
+      sectionId: data.sectionId,
       order: data.order,
       createdAt: data.createdAt,
       points: data.points,

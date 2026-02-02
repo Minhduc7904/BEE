@@ -24,6 +24,8 @@ import {
   UpdateExamImportSessionRawContentUseCase,
   SplitExamFromSessionUseCase,
   SplitExamFromRawContentUseCase,
+  ClassifyQuestionChaptersUseCase,
+  MigrateTempToFinalExamUseCase,
 } from '../../application/use-cases/exam-import-session'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
@@ -36,7 +38,7 @@ import {
   SplitExamFromRawContentDto,
   SplitExamResponseDto,
 } from '../../application/dtos/exam-import-session'
-
+import { ClassifyQuestionChaptersResponseDto } from '../../application/use-cases/exam-import-session/classify-question-chapters.use-case'
 @Controller('exam-import-sessions')
 export class ExamImportSessionController {
   constructor(
@@ -47,6 +49,8 @@ export class ExamImportSessionController {
     private readonly updateExamImportSessionRawContentUseCase: UpdateExamImportSessionRawContentUseCase,
     private readonly createExamImportSessionUseCase: CreateExamImportSessionUseCase,
     private readonly getExamImportSessionByIdUseCase: GetExamImportSessionByIdUseCase,
+    private readonly classifyQuestionChaptersUseCase: ClassifyQuestionChaptersUseCase,
+    private readonly migrateTempToFinalExamUseCase: MigrateTempToFinalExamUseCase,
   ) { }
 
   @Get()
@@ -147,6 +151,46 @@ export class ExamImportSessionController {
   ): Promise<BaseResponseDto<SplitExamResponseDto>> {
     return ExceptionHandler.execute(() =>
       this.splitExamFromRawContentUseCase.execute(sessionId, dto.rawContent, user.adminId, user.userId),
+    )
+  }
+
+  /**
+   * Phân loại chapters cho các câu hỏi của session
+   * Sử dụng AI để phân loại và lưu kết quả vào TempQuestionChapter
+   * Chỉ người tạo session mới được sử dụng
+   */
+  @Post(':sessionId/classify-chapters/my')
+  @RequirePermission(PERMISSION_CODES.EXAM_IMPORT_SESSION_GET_BY_ID)
+  @HttpCode(HttpStatus.OK)
+  async classifyQuestionChapters(
+    @Param('sessionId') sessionId: number,
+    @CurrentUser('adminId') adminId: number,
+  ): Promise<BaseResponseDto<ClassifyQuestionChaptersResponseDto>> {
+    return ExceptionHandler.execute(() =>
+      this.classifyQuestionChaptersUseCase.execute(sessionId, adminId),
+    )
+  }
+
+  /**
+   * Migrate temp exam data to final exam tables
+   * Tạo Exam, Sections, Questions, Statements từ temp tables
+   * Chỉ người tạo session mới được sử dụng
+   */
+  @Post(':sessionId/migrate/my')
+  @RequirePermission(PERMISSION_CODES.EXAM_IMPORT_SESSION_GET_BY_ID)
+  @HttpCode(HttpStatus.OK)
+  async migrateTempToFinalExam(
+    @Param('sessionId') sessionId: number,
+    @CurrentUser('adminId') adminId: number,
+  ): Promise<BaseResponseDto<{
+    examId: number
+    totalSections: number
+    totalQuestions: number
+    totalStatements: number
+    totalChapters: number
+  }>> {
+    return ExceptionHandler.execute(() =>
+      this.migrateTempToFinalExamUseCase.execute({ sessionId, adminId }),
     )
   }
 }

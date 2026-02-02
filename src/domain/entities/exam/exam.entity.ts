@@ -8,7 +8,7 @@ export class Exam {
   // Required properties
   examId: number
   title: string
-  grade: number
+  grade?: number
   createdBy: number
   visibility: ExamVisibility
   createdAt: Date
@@ -28,7 +28,7 @@ export class Exam {
   constructor(data: {
     examId: number
     title: string
-    grade: number
+    grade?: number
     createdBy: number
     visibility: ExamVisibility
     createdAt: Date
@@ -247,16 +247,6 @@ export class Exam {
   }
 
   /**
-   * Lấy độ khó của exam (dựa trên lớp)
-   */
-  getDifficultyLevel(): string {
-    if (this.grade <= 6) return 'Cơ bản'
-    if (this.grade <= 9) return 'Trung bình'
-    if (this.grade <= 12) return 'Nâng cao'
-    return 'Không xác định'
-  }
-
-  /**
    * Kiểm tra exam có được tạo sau ngày cụ thể không
    */
   isCreatedAfter(date: Date): boolean {
@@ -307,7 +297,6 @@ export class Exam {
       fullTitle: this.getFullTitle(),
       isComplete: this.isComplete(),
       canBeUsedInCompetition: this.canBeUsedInCompetition(),
-      difficultyLevel: this.getDifficultyLevel(),
       wasUpdatedRecently: this.wasUpdatedRecently(),
       totalPoints: this.getTotalPoints(),
       questionsCount: this.getQuestionsCount(),

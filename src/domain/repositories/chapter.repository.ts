@@ -39,6 +39,7 @@ export interface FindAllChaptersResult {
 export interface IChapterRepository {
   create(data: CreateChapterData): Promise<Chapter>
   findById(id: number): Promise<Chapter | null>
+  findByIds(ids: number[]): Promise<Chapter[]>
   findBySlug(slug: string): Promise<Chapter | null>
   findBySubjectId(subjectId: number): Promise<Chapter[]>
   findByParentChapterId(parentChapterId: number | null): Promise<Chapter[]>

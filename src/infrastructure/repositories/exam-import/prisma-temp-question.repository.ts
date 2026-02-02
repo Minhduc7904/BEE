@@ -11,7 +11,7 @@ import { TempQuestionMapper } from '../../mappers/exam-import/temp-question.mapp
 
 @Injectable()
 export class PrismaTempQuestionRepository implements ITempQuestionRepository {
-  constructor(private readonly prisma: PrismaService | any) {}
+  constructor(private readonly prisma: PrismaService | any) { }
 
   async create(data: CreateTempQuestionData): Promise<TempQuestion> {
     const created = await this.prisma.tempQuestion.create({
@@ -43,6 +43,21 @@ export class PrismaTempQuestionRepository implements ITempQuestionRepository {
         tempStatements: {
           orderBy: { order: 'asc' },
         },
+        tempQuestionChapters: {
+          include: {
+            chapter: {
+              include: {
+                subject: true,
+                parent: true,
+              },
+            },
+          },
+          orderBy: {
+            chapter: {
+              orderInParent: 'asc',
+            },
+          },
+        },
       },
     })
 
@@ -58,6 +73,21 @@ export class PrismaTempQuestionRepository implements ITempQuestionRepository {
         subject: true,
         tempStatements: {
           orderBy: { order: 'asc' },
+        },
+        tempQuestionChapters: {
+          include: {
+            chapter: {
+              include: {
+                subject: true,
+                parent: true,
+              },
+            },
+          },
+          orderBy: {
+            chapter: {
+              orderInParent: 'asc',
+            },
+          },
         },
       },
     })
@@ -76,6 +106,21 @@ export class PrismaTempQuestionRepository implements ITempQuestionRepository {
         tempStatements: {
           orderBy: { order: 'asc' },
         },
+        tempQuestionChapters: {
+          include: {
+            chapter: {
+              include: {
+                subject: true,
+                parent: true,
+              },
+            },
+          },
+          orderBy: {
+            chapter: {
+              orderInParent: 'asc',
+            },
+          },
+        },
       },
     })
 
@@ -90,6 +135,21 @@ export class PrismaTempQuestionRepository implements ITempQuestionRepository {
         subject: true,
         tempStatements: {
           orderBy: { order: 'asc' },
+        },
+        tempQuestionChapters: {
+          include: {
+            chapter: {
+              include: {
+                subject: true,
+                parent: true,
+              },
+            },
+          },
+          orderBy: {
+            chapter: {
+              orderInParent: 'asc',
+            },
+          },
         },
       },
     })
@@ -127,6 +187,21 @@ export class PrismaTempQuestionRepository implements ITempQuestionRepository {
         tempStatements: {
           orderBy: { order: 'asc' },
         },
+        tempQuestionChapters: {
+          include: {
+            chapter: {
+              include: {
+                subject: true,
+                parent: true,
+              },
+            },
+          },
+          orderBy: {
+            chapter: {
+              orderInParent: 'asc',
+            },
+          },
+        },
       },
     })
 
@@ -151,6 +226,27 @@ export class PrismaTempQuestionRepository implements ITempQuestionRepository {
         metadata: data.metadata,
         questionId: data.questionId,
       },
+      include: {
+        subject: true,
+        tempStatements: {
+          orderBy: { order: 'asc' },
+        },
+        tempQuestionChapters: {
+          include: {
+            chapter: {
+              include: {
+                subject: true,
+                parent: true,
+              },
+            },
+          },
+          orderBy: {
+            chapter: {
+              orderInParent: 'asc',
+            },
+          },
+        },
+      },
     })
     return TempQuestionMapper.toDomainTempQuestion(updated)!
   }
@@ -168,5 +264,19 @@ export class PrismaTempQuestionRepository implements ITempQuestionRepository {
     })
 
     return TempQuestionMapper.toDomainTempQuestion(updated)!
+  }
+
+  async updateGrade(tempQuestionId: number, grade: number): Promise<void> {
+    await this.prisma.tempQuestion.update({
+      where: { tempQuestionId },
+      data: { grade },
+    })
+  }
+
+  async updateDifficulty(tempQuestionId: number, difficulty: string): Promise<void> {
+    await this.prisma.tempQuestion.update({
+      where: { tempQuestionId },
+      data: { difficulty },
+    })
   }
 }

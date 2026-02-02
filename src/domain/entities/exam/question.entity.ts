@@ -13,8 +13,8 @@ export class Question {
   questionId: number
   content: string
   type: QuestionType
-  difficulty: Difficulty
-  grade: number
+  difficulty: Difficulty | null
+  grade: number | null
   visibility: Visibility
   createdAt: Date
   updatedAt: Date
@@ -38,8 +38,8 @@ export class Question {
     questionId: number
     content: string
     type: QuestionType
-    difficulty: Difficulty
-    grade: number
+    difficulty: Difficulty | null
+    grade: number | null
     createdAt: Date
     updatedAt: Date
     correctAnswer?: string | null
@@ -211,6 +211,8 @@ export class Question {
   }
 
   getDifficultyDisplay(): string {
+    if (!this.difficulty) return 'Chưa phân loại'
+    
     const difficultyMap = {
       [Difficulty.TH]: 'Thông hiểu',
       [Difficulty.NB]: 'Nhận biết',
@@ -221,6 +223,7 @@ export class Question {
   }
 
   getGradeDisplay(): string {
+    if (!this.grade) return 'Chưa phân loại'
     return `Lớp ${this.grade}`
   }
 

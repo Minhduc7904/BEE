@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common'
 import { OpenAIService } from './openai.service'
 import { QuestionType, Difficulty } from 'src/shared/enums'
+import { SUBJECTS } from 'src/shared/constants/subjects.constant'
 
 /**
  * Cấu trúc một đáp án trắc nghiệm
@@ -20,6 +21,7 @@ export interface SplitQuestion {
     part: string | null
     content: string
     type: QuestionType
+    subjectId?: number | null
     correctAnswer?: string | null
     solution?: string | null
     difficulty?: Difficulty | null
@@ -70,6 +72,7 @@ export class ExamSplitService {
 
             const questionTypes = Object.values(QuestionType).join(', ')
             const difficulties = Object.values(Difficulty).join(', ')
+            const subjects = SUBJECTS.map(s => `${s.id} - ${s.name} (${s.code})`).join(', ')
 
             /** SYSTEM PROMPT */
             const systemMessage = `
@@ -152,6 +155,31 @@ Nếu không xác định được loại câu hỏi:
 → Chọn loại phù hợp nhất, KHÔNG tạo loại mới.
 
 ----------------------------------------------------------------
+PHÂN LOẠI MÔN HỌC (subjectId):
+Danh sách môn học:
+${subjects}
+
+QUY TẮC PHÂN LOẠI MÔN HỌC:
+- Dựa vào nội dung câu hỏi, xác định môn học phù hợp.
+- Chỉ sử dụng các subjectId trong danh sách trên.
+- Nếu không xác định được môn học chính xác → subjectId = null.
+- KHÔNG tự tạo môn học mới.
+- Ưu tiên phân loại dựa trên:
+  + Thuật ngữ chuyên môn trong câu hỏi
+  + Công thức toán học, hóa học, vật lý
+  + Ngữ cảnh và kiến thức liên quan
+
+Ví dụ phân loại:
+- Câu hỏi có phương trình, đạo hàm, tích phân → subjectId = 1 (Toán học)
+- Câu hỏi về lực, vận tốc, điện từ → subjectId = 2 (Vật lý)
+- Câu hỏi về phản ứng hóa học, nguyên tố → subjectId = 3 (Hóa học)
+- Câu hỏi về tế bào, gen, sinh thái → subjectId = 4 (Sinh học)
+- Câu hỏi về văn học, tác phẩm, thơ ca → subjectId = 5 (Ngữ văn)
+- Câu hỏi tiếng Anh, grammar, vocabulary → subjectId = 6 (Tiếng Anh)
+- Câu hỏi về sự kiện lịch sử, niên đại → subjectId = 7 (Lịch sử)
+- Câu hỏi về địa hình, khí hậu, quốc gia → subjectId = 8 (Địa lý)
+
+----------------------------------------------------------------
 ĐỘ KHÓ (Difficulty):
 - ${difficulties}
 - Nếu không xác định được → difficulty = null.
@@ -198,6 +226,7 @@ OUTPUT JSON FORMAT (BẮT BUỘC – PHẢI ĐÚNG CHÍNH XÁC):
       "part": string | null,
       "content": string,
       "type": "${questionTypes}",
+      "subjectId": number | null,
       "correctAnswer": string | null,
       "solution": string | null,
       "difficulty": "${difficulties}" | null,
@@ -353,6 +382,17 @@ ${rawContent}
                 !Object.values(Difficulty).includes(q.difficulty)
             ) {
                 throw new Error(`Question ${index}: difficulty không hợp lệ`)
+            }
+
+            // subjectId
+            if (
+                q.subjectId !== null &&
+                q.subjectId !== undefined
+            ) {
+                const validSubjectIds = SUBJECTS.map(s => s.id)
+                if (!validSubjectIds.includes(q.subjectId)) {
+                    throw new Error(`Question ${index}: subjectId không hợp lệ`)
+                }
             }
         })
 

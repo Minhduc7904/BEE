@@ -32,7 +32,14 @@ import {
   PrismaTempSectionRepository,
   PrismaTempQuestionRepository,
   PrismaTempStatementRepository,
+  PrismaTempQuestionChapterRepository,
   PrismaExamImportSessionRepository,
+  PrismaExamRepository,
+  PrismaSectionRepository,
+  PrismaQuestionRepository,
+  PrismaStatementRepository,
+  PrismaQuestionExamRepository,
+  PrismaQuestionChapterRepository,
 } from './repositories'
 import {
   PasswordService,
@@ -50,6 +57,7 @@ import { ImageExportService } from './services/image-export.service'
 import { MistralService } from './services/mistral.service'
 import { OpenAIService } from './services/openai.service'
 import { ExamSplitService } from './services/exam-split.service'
+import { QuestionChapterClassificationService } from './services/question-chapter-classification.service'
 import { FileConverterService } from './services/file-converter.service'
 import { GoogleAdminStrategy } from './strategies/google-admin.strategy'
 import { GoogleStudentStrategy } from './strategies/google-student.strategy'
@@ -210,8 +218,43 @@ import openaiConfig from '../config/openai.config'
       inject: [PrismaService],
     },
     {
+      provide: 'ITempQuestionChapterRepository',
+      useFactory: (prisma: PrismaService) => new PrismaTempQuestionChapterRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
       provide: 'IExamImportSessionRepository',
       useFactory: (prisma: PrismaService) => new PrismaExamImportSessionRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IExamRepository',
+      useFactory: (prisma: PrismaService) => new PrismaExamRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'ISectionRepository',
+      useFactory: (prisma: PrismaService) => new PrismaSectionRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IQuestionRepository',
+      useFactory: (prisma: PrismaService) => new PrismaQuestionRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IStatementRepository',
+      useFactory: (prisma: PrismaService) => new PrismaStatementRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IQuestionExamRepository',
+      useFactory: (prisma: PrismaService) => new PrismaQuestionExamRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IQuestionChapterRepository',
+      useFactory: (prisma: PrismaService) => new PrismaQuestionChapterRepository(prisma),
       inject: [PrismaService],
     },
     {
@@ -248,6 +291,7 @@ import openaiConfig from '../config/openai.config'
     MistralService,
     OpenAIService,
     ExamSplitService,
+    QuestionChapterClassificationService,
     FileConverterService,
     GoogleAdminStrategy,
     GoogleStudentStrategy,
@@ -281,7 +325,14 @@ import openaiConfig from '../config/openai.config'
     'ITempSectionRepository',
     'ITempQuestionRepository',
     'ITempStatementRepository',
+    'ITempQuestionChapterRepository',
     'IExamImportSessionRepository',
+    'IExamRepository',
+    'ISectionRepository',
+    'IQuestionRepository',
+    'IStatementRepository',
+    'IQuestionExamRepository',
+    'IQuestionChapterRepository',
     'PASSWORD_SERVICE',
     'JWT_TOKEN_SERVICE',
     'TOKEN_HASH_SERVICE',
@@ -295,6 +346,7 @@ import openaiConfig from '../config/openai.config'
     MistralService,
     OpenAIService,
     ExamSplitService,
+    QuestionChapterClassificationService,
     FileConverterService,
     ImageExportService,
   ],

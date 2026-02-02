@@ -4,6 +4,7 @@ import { TempQuestion } from '../../../domain/entities/exam-import/temp-question
 import { SubjectMapper } from '../subject/subject.mapper'
 import { TempStatementMapper } from './temp-statement.mapper'
 import { QuestionType, Difficulty } from 'src/shared/enums'
+import { TempQuestionChapterMapper } from './temp-question-chapter.mapper'
 
 /**
  * Mapper class để convert từ Prisma TempQuestion model
@@ -40,6 +41,12 @@ export class TempQuestionMapper {
         : undefined,
       tempStatements: prismaQuestion.tempStatements
         ? TempStatementMapper.toDomainTempStatements(prismaQuestion.tempStatements)
+        : undefined,
+
+      tempQuestionChapters: prismaQuestion.tempQuestionChapters
+        ? TempQuestionChapterMapper.toDomainTempQuestionChapters(
+          prismaQuestion.tempQuestionChapters,
+        )
         : undefined,
     })
   }

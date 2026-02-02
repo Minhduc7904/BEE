@@ -29,7 +29,14 @@ import { ITempExamRepository } from './temp-exam.repository'
 import { ITempSectionRepository } from './temp-section.repository'
 import { ITempQuestionRepository } from './temp-question.repository'
 import { ITempStatementRepository } from './temp-statement.repository'
+import { ITempQuestionChapterRepository } from './temp-question-chapter.repository'
 import { IMediaUsageRepository } from './media-usage.repository'
+import { IExamRepository } from './exam.repository'
+import { ISectionRepository } from './section.repository'
+import { IQuestionRepository } from './question.repository'
+import { IStatementRepository } from './statement.repository'
+import { IQuestionExamRepository } from './question-exam.repository'
+import { IQuestionChapterRepository } from './question-chapter.repository'
 // src/domain/repositories/unit-of-work.repository.ts
 export interface UnitOfWorkRepos {
   userRepository: IUserRepository
@@ -62,7 +69,14 @@ export interface UnitOfWorkRepos {
   tempSectionRepository: ITempSectionRepository
   tempQuestionRepository: ITempQuestionRepository
   tempStatementRepository: ITempStatementRepository
+  tempQuestionChapterRepository: ITempQuestionChapterRepository
   mediaUsageRepository: IMediaUsageRepository
+  examRepository: IExamRepository
+  sectionRepository: ISectionRepository
+  questionRepository: IQuestionRepository
+  statementRepository: IStatementRepository
+  questionExamRepository: IQuestionExamRepository
+  questionChapterRepository: IQuestionChapterRepository
 }
 
 export interface IUnitOfWork {

@@ -1,0 +1,6 @@
+export * from './prisma-exam.repository'
+export * from './prisma-section.repository'
+export * from './prisma-question.repository'
+export * from './prisma-statement.repository'
+export * from './prisma-question-exam.repository'
+export * from './prisma-question-chapter.repository'

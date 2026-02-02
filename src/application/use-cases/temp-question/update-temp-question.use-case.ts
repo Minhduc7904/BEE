@@ -3,11 +3,15 @@ import {
   Injectable,
   Inject,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common'
 import type {
   IUnitOfWork,
   IMediaRepository,
   IMediaUsageRepository,
+  ISubjectRepository,
+  IChapterRepository,
+  ITempQuestionChapterRepository,
 } from '../../../domain/repositories'
 import {
   ITempQuestionRepository,
@@ -43,6 +47,12 @@ export class UpdateTempQuestionUseCase {
         repos.tempQuestionRepository
       const mediaUsageRepository: IMediaUsageRepository =
         repos.mediaUsageRepository
+      const subjectRepository: ISubjectRepository =
+        repos.subjectRepository
+      const chapterRepository: IChapterRepository =
+        repos.chapterRepository
+      const tempQuestionChapterRepository: ITempQuestionChapterRepository =
+        repos.tempQuestionChapterRepository
 
       /* ------------------------------------------------------------------
        * 1. Find existing TempQuestion
@@ -52,6 +62,32 @@ export class UpdateTempQuestionUseCase {
         throw new NotFoundException(
           `TempQuestion ${tempQuestionId} không tồn tại`,
         )
+      }
+
+      /* ------------------------------------------------------------------
+       * 1.1. Validate subjectId if provided
+       * ------------------------------------------------------------------ */
+      if (dto.subjectId !== undefined) {
+        const subject = await subjectRepository.findById(dto.subjectId)
+        if (!subject) {
+          throw new BadRequestException(
+            `Môn học với ID ${dto.subjectId} không tồn tại`,
+          )
+        }
+      }
+
+      /* ------------------------------------------------------------------
+       * 1.2. Validate chapterIds if provided
+       * ------------------------------------------------------------------ */
+      if (dto.chapterIds && dto.chapterIds.length > 0) {
+        const chapters = await chapterRepository.findByIds(dto.chapterIds)
+        if (chapters.length !== dto.chapterIds.length) {
+          const foundIds = chapters.map(c => c.chapterId)
+          const missingIds = dto.chapterIds.filter(id => !foundIds.includes(id))
+          throw new BadRequestException(
+            `Các chương sau không tồn tại: ${missingIds.join(', ')}`,
+          )
+        }
       }
 
       /* ------------------------------------------------------------------
@@ -124,6 +160,24 @@ export class UpdateTempQuestionUseCase {
       })
       // console.log('DTO:', dto);
       // console.log('Updated TempQuestion:', updated);
+
+      /* ------------------------------------------------------------------
+       * 6.1. Update TempQuestionChapter if chapterIds provided
+       * ------------------------------------------------------------------ */
+      // console.log('Updating chapters with IDs:', dto.chapterIds);
+      if (dto.chapterIds !== undefined) {
+        // Delete all existing chapters
+        await tempQuestionChapterRepository.deleteByTempQuestionId(tempQuestionId)
+        
+        // Create new chapters if provided
+        if (dto.chapterIds.length > 0) {
+          const chapterData = dto.chapterIds.map(chapterId => ({
+            tempQuestionId,
+            chapterId,
+          }))
+          await tempQuestionChapterRepository.createMany(chapterData)
+        }
+      }
 
       /* ------------------------------------------------------------------
        * 7. Response

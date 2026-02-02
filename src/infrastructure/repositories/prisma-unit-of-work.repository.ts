@@ -72,7 +72,14 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _tempSectionRepository: any
     let _tempQuestionRepository: any
     let _tempStatementRepository: any
+    let _tempQuestionChapterRepository: any
     let _mediaUsageRepository: any
+    let _examRepository: any
+    let _sectionRepository: any
+    let _questionRepository: any
+    let _statementRepository: any
+    let _questionExamRepository: any
+    let _questionChapterRepository: any
 
     Object.defineProperty(repos, 'studentRepository', {
       get: () => (_studentRepository ??= new Repositories.PrismaStudentRepository(client)),
@@ -199,8 +206,43 @@ export class PrismaUnitOfWork implements IUnitOfWork {
       enumerable: true,
     })
 
+    Object.defineProperty(repos, 'tempQuestionChapterRepository', {
+      get: () => (_tempQuestionChapterRepository ??= new Repositories.PrismaTempQuestionChapterRepository(client)),
+      enumerable: true,
+    })
+
     Object.defineProperty(repos, 'mediaUsageRepository', {
       get: () => (_mediaUsageRepository ??= new Repositories.PrismaMediaUsageRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'examRepository', {
+      get: () => (_examRepository ??= new Repositories.PrismaExamRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'sectionRepository', {
+      get: () => (_sectionRepository ??= new Repositories.PrismaSectionRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'questionRepository', {
+      get: () => (_questionRepository ??= new Repositories.PrismaQuestionRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'statementRepository', {
+      get: () => (_statementRepository ??= new Repositories.PrismaStatementRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'questionExamRepository', {
+      get: () => (_questionExamRepository ??= new Repositories.PrismaQuestionExamRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'questionChapterRepository', {
+      get: () => (_questionChapterRepository ??= new Repositories.PrismaQuestionChapterRepository(client)),
       enumerable: true,
     })
 

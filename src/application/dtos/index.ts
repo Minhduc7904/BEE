@@ -36,6 +36,7 @@ export * from './subject/subject-list-query.dto'
 // Chapter DTOs
 export * from './chapter/chapter.dto'
 export * from './chapter/chapter-list-query.dto'
+export * from './chapter/chapter-search-query.dto'
 
 // User DTOs
 export * from './user/user.dto'

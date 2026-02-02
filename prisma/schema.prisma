@@ -37,6 +37,7 @@ enum ImportStatus {
   PROCESSING // Đang xử lý PDF
   PARSED // Đã parse xong, chờ review
   REVIEWING // Đang được review/chỉnh sửa
+  MIGRATING // Đang migrate sang bảng chính
   APPROVED // Đã duyệt, sẵn sàng migrate
   COMPLETED // Đã migrate sang bảng chính
   REJECTED // Bị từ chối
@@ -424,11 +425,12 @@ model Chapter {
   level Int @default(0)
 
   // Quan hệ
-  subject          Subject           @relation("SubjectChapters", fields: [subjectId], references: [subjectId], onDelete: Cascade)
-  parent           Chapter?          @relation("ChapterToChildren", fields: [parentChapterId], references: [chapterId], onDelete: Cascade)
-  children         Chapter[]         @relation("ChapterToChildren")
-  questionChapters QuestionChapter[]
-  lessonChapters   LessonChapter[]
+  subject              Subject               @relation("SubjectChapters", fields: [subjectId], references: [subjectId], onDelete: Cascade)
+  parent               Chapter?              @relation("ChapterToChildren", fields: [parentChapterId], references: [chapterId], onDelete: Cascade)
+  children             Chapter[]             @relation("ChapterToChildren")
+  questionChapters     QuestionChapter[]
+  tempQuestionChapters TempQuestionChapter[]
+  lessonChapters       LessonChapter[]
 
   @@unique([subjectId, name, parentChapterId]) // tên chương không trùng trong cùng 1 cha của 1 môn
   @@unique([subjectId, parentChapterId, orderInParent]) // đảm bảo thứ tự duy nhất trong nhóm anh/chị em
@@ -441,7 +443,7 @@ model Exam {
   examId             Int            @id @default(autoincrement()) @map("exam_id") @db.Int
   title              String         @map("title") @db.VarChar(255)
   description        String?        @map("description") @db.Text
-  grade              Int            @map("grade") @db.TinyInt
+  grade              Int?           @map("grade") @db.TinyInt
   subjectId          Int?           @map("subject_id")
   createdBy          Int            @map("created_by")
   visibility         ExamVisibility @default(DRAFT) @map("visibility")
@@ -489,9 +491,9 @@ model Question {
   type               QuestionType @map("type")
   correctAnswer      String?      @map("correct_answer") @db.Text
   solution           String?      @map("solution") @db.Text
-  difficulty         Difficulty   @map("difficulty")
+  difficulty         Difficulty?  @map("difficulty") // độ khó (nullable nếu AI không phân loại được)
   solutionYoutubeUrl String?      @map("solution_youtube_url") @db.VarChar(500)
-  grade              Int          @map("grade") @db.TinyInt // cấp lớp của câu hỏi
+  grade              Int?         @map("grade") @db.TinyInt // cấp lớp của câu hỏi (nullable nếu AI không phân loại được)
   subjectId          Int?         @map("subject_id")
   pointsOrigin       Int?         @map("points_origin") // điểm gốc của câu hỏi
   visibility         Visibility   @default(DRAFT) @map("visibility") // trạng thái công khai của câu hỏi
@@ -611,11 +613,12 @@ model TempQuestion {
   updatedAt          DateTime     @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
-  session        ExamImportSession @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
-  tempSection    TempSection?      @relation(fields: [tempSectionId], references: [tempSectionId], onDelete: SetNull)
-  subject        Subject?          @relation("TempQuestionSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
-  finalQuestion  Question?         @relation("TempQuestionFinal", fields: [questionId], references: [questionId], onDelete: SetNull)
-  tempStatements TempStatement[]
+  session              ExamImportSession     @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
+  tempSection          TempSection?          @relation(fields: [tempSectionId], references: [tempSectionId], onDelete: SetNull)
+  subject              Subject?              @relation("TempQuestionSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
+  finalQuestion        Question?             @relation("TempQuestionFinal", fields: [questionId], references: [questionId], onDelete: SetNull)
+  tempStatements       TempStatement[]
+  tempQuestionChapters TempQuestionChapter[]
 
   @@index([sessionId], map: "idx_temp_questions_session")
   @@index([tempSectionId], map: "idx_temp_questions_section")
@@ -641,6 +644,19 @@ model TempStatement {
 
   @@index([tempQuestionId], map: "idx_temp_statements_question")
   @@map("temp_statements")
+}
+
+model TempQuestionChapter {
+  tempQuestionId Int @map("temp_question_id")
+  chapterId      Int @map("chapter_id")
+
+  // Relations
+  tempQuestion TempQuestion @relation(fields: [tempQuestionId], references: [tempQuestionId], onDelete: Cascade)
+  chapter      Chapter      @relation(fields: [chapterId], references: [chapterId], onDelete: Cascade)
+
+  @@id([tempQuestionId, chapterId])
+  @@index([chapterId], map: "idx_temp_question_chapters_chapter_id")
+  @@map("temp_questions_chapters")
 }
 
 model QuestionChapter {

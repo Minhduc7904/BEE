@@ -3,11 +3,15 @@ import {
   Injectable,
   Inject,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common'
 import type {
   IUnitOfWork,
   IMediaRepository,
   IMediaUsageRepository,
+  ISubjectRepository,
+  IChapterRepository,
+  ITempQuestionChapterRepository,
 } from '../../../domain/repositories'
 import type {
   ITempQuestionRepository,
@@ -48,6 +52,12 @@ export class CreateTempQuestionUseCase {
         repos.tempQuestionRepository
       const mediaUsageRepository: IMediaUsageRepository =
         repos.mediaUsageRepository
+      const subjectRepository: ISubjectRepository =
+        repos.subjectRepository
+      const chapterRepository: IChapterRepository =
+        repos.chapterRepository
+      const tempQuestionChapterRepository: ITempQuestionChapterRepository =
+        repos.tempQuestionChapterRepository
 
       /* ------------------------------------------------------------------
        * 1. Check session
@@ -57,6 +67,32 @@ export class CreateTempQuestionUseCase {
         throw new NotFoundException(
           `Session ${sessionId} không tồn tại`,
         )
+      }
+
+      /* ------------------------------------------------------------------
+       * 1.1. Validate subjectId if provided
+       * ------------------------------------------------------------------ */
+      if (dto.subjectId) {
+        const subject = await subjectRepository.findById(dto.subjectId)
+        if (!subject) {
+          throw new BadRequestException(
+            `Môn học với ID ${dto.subjectId} không tồn tại`,
+          )
+        }
+      }
+
+      /* ------------------------------------------------------------------
+       * 1.2. Validate chapterIds if provided
+       * ------------------------------------------------------------------ */
+      if (dto.chapterIds && dto.chapterIds.length > 0) {
+        const chapters = await chapterRepository.findByIds(dto.chapterIds)
+        if (chapters.length !== dto.chapterIds.length) {
+          const foundIds = chapters.map(c => c.chapterId)
+          const missingIds = dto.chapterIds.filter(id => !foundIds.includes(id))
+          throw new BadRequestException(
+            `Các chương sau không tồn tại: ${missingIds.join(', ')}`,
+          )
+        }
       }
 
       /* ------------------------------------------------------------------
@@ -117,6 +153,17 @@ export class CreateTempQuestionUseCase {
         userId,
         mediaUsageRepository,
       )
+
+      /* ------------------------------------------------------------------
+       * 6.1. Create TempQuestionChapter records if chapterIds provided
+       * ------------------------------------------------------------------ */
+      if (dto.chapterIds && dto.chapterIds.length > 0) {
+        const chapterData = dto.chapterIds.map(chapterId => ({
+          tempQuestionId: tempQuestion.tempQuestionId,
+          chapterId,
+        }))
+        await tempQuestionChapterRepository.createMany(chapterData)
+      }
 
       /* ------------------------------------------------------------------
        * 7. Response

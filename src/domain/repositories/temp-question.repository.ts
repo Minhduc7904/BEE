@@ -53,4 +53,6 @@ export interface ITempQuestionRepository {
   update(tempQuestionId: number, data: UpdateTempQuestionData): Promise<TempQuestion>
   delete(tempQuestionId: number): Promise<void>
   linkToFinalQuestion(tempQuestionId: number, questionId: number): Promise<TempQuestion>
+  updateGrade(tempQuestionId: number, grade: number): Promise<void>
+  updateDifficulty(tempQuestionId: number, difficulty: string): Promise<void>
 }

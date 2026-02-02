@@ -1,6 +1,9 @@
 // src/application/dtos/temp-question/temp-question.dto.ts
 import { TempQuestion } from '../../../domain/entities/exam-import/temp-question.entity'
 import { QuestionType, Difficulty } from '../../../shared/enums'
+import { Subject } from '../../../domain/entities/subject/subject.entity'
+import { Chapter } from '../../../domain/entities/chapter/chapter.entity'
+import { TempQuestionChapter } from 'src/domain/entities'
 
 export class TempStatementResponseDto {
   tempStatementId: number
@@ -35,10 +38,11 @@ export class TempQuestionResponseDto {
   questionId?: number | null
   createdAt: Date
   updatedAt: Date
-
+  subject?: Subject
+  chapters?: Chapter[]
   // Relations
   tempStatements?: TempStatementResponseDto[]
-
+  tempQuestionChapters?: TempQuestionChapter[]
   // Computed
   hasCorrectAnswer: boolean
   hasSolution: boolean
@@ -66,6 +70,9 @@ export class TempQuestionResponseDto {
       order: tempQuestion.order,
       metadata: tempQuestion.metadata,
       questionId: tempQuestion.questionId ?? null,
+      subject: tempQuestion.subject ?? undefined,
+      chapters: tempQuestion.tempQuestionChapters?.map(tqc => tqc.chapter).filter(Boolean) as Chapter[] | undefined,
+      tempQuestionChapters: tempQuestion.tempQuestionChapters,
       createdAt: tempQuestion.createdAt,
       updatedAt: tempQuestion.updatedAt,
       tempStatements: tempQuestion.tempStatements?.map((stmt) => ({

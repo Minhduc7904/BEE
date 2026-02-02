@@ -68,6 +68,7 @@ export class SaveSplitResultToTempUseCase {
                     sessionId,
                     content: question.content,
                     type: question.type,
+                    subjectId: question.subjectId || undefined,
                     correctAnswer: question.correctAnswer || undefined,
                     solution: question.solution || undefined,
                     difficulty: question.difficulty || undefined,

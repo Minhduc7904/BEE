@@ -54,5 +54,9 @@ export class UpdateTempQuestionDto {
   tempSectionId?: number
 
   @IsOptional()
+  @IsNumber({}, { each: true, message: VALIDATION_MESSAGES.FIELD_INVALID('Danh sách chương') })
+  chapterIds?: number[]
+
+  @IsOptional()
   metadata?: any
 }

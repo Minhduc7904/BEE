@@ -34,3 +34,4 @@ export * from './temp-exam.repository';
 export * from './temp-section.repository';
 export * from './temp-question.repository';
 export * from './temp-statement.repository';
+export * from './temp-question-chapter.repository';

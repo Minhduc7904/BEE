@@ -18,6 +18,7 @@ import {
   ChapterDetailResponseDto,
   BaseResponseDto,
   ChapterListQueryDto,
+  ChapterSearchQueryDto,
   PaginationResponseDto,
 } from '../../application/dtos'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
@@ -81,6 +82,33 @@ export class ChapterController {
     @Query() query: ChapterListQueryDto,
   ): Promise<PaginationResponseDto<ChapterResponseDto>> {
     return ExceptionHandler.execute(() => this.getAllChaptersUseCase.execute(query))
+  }
+
+  /**
+   * Search chapters - lightweight search for autocomplete/dropdown
+   * GET /chapters/search
+   * Query params:
+   * - search: tìm kiếm theo name, slug, code
+   * - subjectId: filter theo môn học (optional)
+   * Returns: First 10 chapters sorted by orderInParent asc
+   */
+  @Get('search')
+  @RequirePermission(PERMISSION_CODES.CHAPTER_GET_ALL)
+  @HttpCode(HttpStatus.OK)
+  async searchChapters(
+    @Query() query: ChapterSearchQueryDto,
+  ): Promise<PaginationResponseDto<ChapterResponseDto>> {
+    return ExceptionHandler.execute(() => {
+      // Convert ChapterSearchQueryDto to ChapterListQueryDto
+      const listQuery = new ChapterListQueryDto()
+      listQuery.search = query.search
+      listQuery.subjectId = query.subjectId
+      listQuery.page = 1
+      listQuery.limit = 10
+      listQuery.sortBy = 'orderInParent'
+      listQuery.sortOrder = 'asc'
+      return this.getAllChaptersUseCase.execute(listQuery)
+    })
   }
 
   /**

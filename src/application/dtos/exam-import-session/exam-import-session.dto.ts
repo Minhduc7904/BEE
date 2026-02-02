@@ -58,6 +58,7 @@ export class ExamImportSessionResponseDto {
       [ImportStatus.REVIEWING]: 'Đang duyệt',
       [ImportStatus.APPROVED]: 'Đã duyệt',
       [ImportStatus.COMPLETED]: 'Hoàn thành',
+      [ImportStatus.MIGRATING]: 'Đang di chuyển',
       [ImportStatus.REJECTED]: 'Từ chối',
       [ImportStatus.FAILED]: 'Thất bại',
     }

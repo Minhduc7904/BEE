@@ -54,6 +54,24 @@ export class PrismaChapterRepository implements IChapterRepository {
     return ChapterMapper.toDomainChapterWithRelations(chapter)!
   }
 
+  async findByIds(ids: number[]): Promise<Chapter[]> {
+    if (ids.length === 0) return []
+
+    const chapters = await this.prisma.chapter.findMany({
+      where: {
+        chapterId: {
+          in: ids,
+        },
+      },
+      include: {
+        subject: true,
+        parent: true,
+      },
+    })
+
+    return ChapterMapper.toDomainChapters(chapters)
+  }
+
   async findBySlug(slug: string): Promise<Chapter | null> {
     const chapter = await this.prisma.chapter.findUnique({
       where: { slug: slug },
