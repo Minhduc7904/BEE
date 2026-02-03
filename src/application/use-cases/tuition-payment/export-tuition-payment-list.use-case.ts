@@ -4,6 +4,7 @@ import { ExcelService, ExcelColumn } from '../../../infrastructure/services/exce
 import { ExportTuitionPaymentListOptionDto } from '../../dtos/tuition-payment/export-tuition-payment-list-option.dto'
 import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 import { TuitionPaymentStatus } from '@prisma/client'
+import { SortOrder } from 'src/shared/enums/sort-order.enum'
 
 @Injectable()
 export class ExportTuitionPaymentListUseCase {
@@ -31,7 +32,7 @@ export class ExportTuitionPaymentListUseCase {
             page: options.page || 1,
             limit: options.limit || 1000, // Default limit cao hơn cho export
             sortBy: options.sortBy || 'createdAt',
-            sortOrder: options.sortOrder || 'desc',
+            sortOrder: options.sortOrder || SortOrder.DESC,
         }
 
         const result = await this.tuitionPaymentRepository.findAllWithPagination(pagination, filters)

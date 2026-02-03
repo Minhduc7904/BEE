@@ -1,11 +1,17 @@
 // src/application/dtos/videoContent/update-video-content.dto.ts
-import { IsString, IsOptional } from 'class-validator'
-import { VALIDATION_MESSAGES } from '../../../shared/constants'
-import { Trim } from '../../../shared/decorators'
+import { IsOptionalString } from 'src/shared/decorators/validate'
 
+/**
+ * DTO for updating video content
+ * 
+ * @description Used to update an existing video content item
+ */
 export class UpdateVideoContentDto {
-    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('content') })
-    @IsOptional()
-    @Trim()
+    /**
+     * Video URL or video description
+     * @optional
+     * @example '/videos/lesson-1-updated.mp4'
+     */
+    @IsOptionalString('Nội dung video')
     content?: string
 }

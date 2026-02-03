@@ -1,7 +1,13 @@
 // src/infrastructure/repositories/exam/prisma-exam.repository.ts
 import { Injectable } from '@nestjs/common'
 import { Exam } from '../../../domain/entities/exam/exam.entity'
-import { IExamRepository, CreateExamData } from '../../../domain/repositories/exam.repository'
+import {
+  IExamRepository,
+  CreateExamData,
+  ExamFilterOptions,
+  ExamPaginationOptions,
+  ExamListResult,
+} from '../../../domain/repositories/exam.repository'
 import { PrismaService } from '../../../prisma/prisma.service'
 import { ExamMapper } from '../../mappers/exam/exam.mapper'
 
@@ -68,5 +74,84 @@ export class PrismaExamRepository implements IExamRepository {
     await client.exam.delete({
       where: { examId: id },
     })
+  }
+
+  async findAllWithPagination(
+    pagination: ExamPaginationOptions,
+    filters?: ExamFilterOptions,
+    txClient?: any,
+  ): Promise<ExamListResult> {
+    const client = txClient || this.prisma
+
+    const page = pagination.page || 1
+    const limit = pagination.limit || 10
+    const sortBy = pagination.sortBy || 'createdAt'
+    const sortOrder = pagination.sortOrder || 'desc'
+    const skip = (page - 1) * limit
+
+    // Build where clause
+    const where: any = {}
+
+    if (filters?.search) {
+      where.OR = [
+        { title: { contains: filters.search } },
+        { description: { contains: filters.search } },
+      ]
+    }
+
+    if (filters?.subjectId !== undefined) {
+      where.subjectId = filters.subjectId
+    }
+
+    if (filters?.grade !== undefined) {
+      where.grade = filters.grade
+    }
+
+    if (filters?.visibility) {
+      where.visibility = filters.visibility
+    }
+
+    if (filters?.createdBy !== undefined) {
+      where.createdBy = filters.createdBy
+    }
+
+    // Build orderBy
+    const orderBy: any = {}
+    orderBy[sortBy] = sortOrder
+
+    const [prismaExams, total] = await Promise.all([
+      client.exam.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy,
+        include: {
+          subject: true,
+          admin: {
+            include: {
+              user: true,
+            },
+          },
+          questions: {
+            orderBy: {
+              order: 'asc',
+            },
+          },
+          competitions: true,
+        },
+      }),
+      client.exam.count({ where }),
+    ])
+
+    const exams = ExamMapper.toDomainExams(prismaExams)
+    const totalPages = Math.ceil(total / limit)
+
+    return {
+      exams,
+      total,
+      page,
+      limit,
+      totalPages,
+    }
   }
 }

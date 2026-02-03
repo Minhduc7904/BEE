@@ -33,6 +33,9 @@ import { TempExamApplicationModule } from './use-cases/temp-exam/temp-exam.appli
 import { TempSectionApplicationModule } from './use-cases/temp-section/temp-section.application.module'
 import { TempQuestionApplicationModule } from './use-cases/temp-question/temp-question.application.module'
 import { TempStatementApplicationModule } from './use-cases/temp-statement/temp-statement.application.module'
+import { QuestionApplicationModule } from './use-cases/question/question.application.module'
+import { StatementApplicationModule } from './use-cases/statement/statement.application.module'
+import { ExamApplicationModule } from './use-cases/exam/exam.application.module'
 const modules = [
   // Auth & Account
   AuthApplicationModule,
@@ -81,6 +84,9 @@ const modules = [
   TempSectionApplicationModule,
   TempQuestionApplicationModule,
   TempStatementApplicationModule,
+  QuestionApplicationModule,
+  StatementApplicationModule,
+  ExamApplicationModule,
 ]
 
 @Module({

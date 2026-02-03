@@ -1,72 +1,97 @@
-import {
-  IsOptional,
-  IsString,
-  MaxLength,
-  MinLength,
-  IsBoolean,
-} from 'class-validator'
-import { Trim } from '../../../shared/decorators'
-import { VALIDATION_MESSAGES } from '../../../shared/constants'
+import { IsRequiredString, IsOptionalString, IsOptionalBoolean } from 'src/shared/decorators/validate'
 
+/**
+ * DTO for creating permission
+ * 
+ * @description Used to create a new permission in the system
+ */
 export class CreatePermissionDto {
-  @Trim()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Mã permission') })
-  @MinLength(2, { message: VALIDATION_MESSAGES.FIELD_MIN('Mã permission', 2) })
-  @MaxLength(100, { message: VALIDATION_MESSAGES.FIELD_MAX('Mã permission', 100) })
+  /**
+   * Permission code (2-100 characters)
+   * @required
+   * @example 'user.create'
+   */
+  @IsRequiredString('Mã permission', 100, 2)
   code: string
 
-  @Trim()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Tên permission') })
-  @MinLength(2, { message: VALIDATION_MESSAGES.FIELD_MIN('Tên permission', 2) })
-  @MaxLength(100, { message: VALIDATION_MESSAGES.FIELD_MAX('Tên permission', 100) })
+  /**
+   * Permission name (2-100 characters)
+   * @required
+   * @example 'Create User'
+   */
+  @IsRequiredString('Tên permission', 100, 2)
   name: string
 
-  @Trim()
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Mô tả') })
-  @MaxLength(255, { message: VALIDATION_MESSAGES.FIELD_MAX('Mô tả', 255) })
+  /**
+   * Permission description
+   * @optional
+   * @example 'Allows creating new users'
+   */
+  @IsOptionalString('Mô tả', 255)
   description?: string
 
-  @Trim()
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Nhóm') })
-  @MaxLength(50, { message: VALIDATION_MESSAGES.FIELD_MAX('Nhóm', 50) })
+  /**
+   * Permission group
+   * @optional
+   * @example 'User Management'
+   */
+  @IsOptionalString('Nhóm', 50)
   group?: string
 
-  @IsOptional()
-  @IsBoolean()
+  /**
+   * Is system permission (cannot be deleted)
+   * @optional
+   * @default false
+   * @example false
+   */
+  @IsOptionalBoolean('Là permission hệ thống')
   isSystem?: boolean
 }
 
+/**
+ * DTO for updating permission
+ * 
+ * @description Used to update an existing permission
+ */
 export class UpdatePermissionDto {
-  @Trim()
-  @IsOptional()
-  @IsString()
-  @MinLength(2)
-  @MaxLength(100)
+  /**
+   * Permission code (2-100 characters)
+   * @optional
+   * @example 'user.update'
+   */
+  @IsOptionalString('Mã permission', 100, 2)
   code?: string
 
-  @Trim()
-  @IsOptional()
-  @IsString()
-  @MinLength(2)
-  @MaxLength(100)
+  /**
+   * Permission name (2-100 characters)
+   * @optional
+   * @example 'Update User'
+   */
+  @IsOptionalString('Tên permission', 100, 2)
   name?: string
 
-  @Trim()
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
+  /**
+   * Permission description
+   * @optional
+   * @example 'Allows updating user information'
+   */
+  @IsOptionalString('Mô tả', 255)
   description?: string
 
-  @Trim()
-  @IsOptional()
-  @IsString()
-  @MaxLength(50)
+  /**
+   * Permission group
+   * @optional
+   * @example 'User Management'
+   */
+  @IsOptionalString('Nhóm', 50)
   group?: string
 
-  @IsOptional()
-  @IsBoolean()
+  /**
+   * Is system permission
+   * @optional
+   * @example false
+   */
+  @IsOptionalBoolean('Là permission hệ thống')
   isSystem?: boolean
 }
 

@@ -1,7 +1,13 @@
 // src/infrastructure/repositories/exam/prisma-question.repository.ts
 import { Injectable } from '@nestjs/common'
 import { Question } from '../../../domain/entities/exam/question.entity'
-import { IQuestionRepository, CreateQuestionData } from '../../../domain/repositories/question.repository'
+import {
+    IQuestionRepository,
+    CreateQuestionData,
+    QuestionFilterOptions,
+    QuestionPaginationOptions,
+    QuestionListResult,
+} from '../../../domain/repositories/question.repository'
 import { PrismaService } from '../../../prisma/prisma.service'
 import { QuestionMapper } from '../../mappers/exam/question.mapper'
 
@@ -59,6 +65,24 @@ export class PrismaQuestionRepository implements IQuestionRepository {
 
         const question = await client.question.findUnique({
             where: { questionId: id },
+            include: {
+                subject: true,
+                admin: {
+                    include: {
+                        user: true,
+                    },
+                },
+                statements: {
+                    orderBy: {
+                        order: 'asc',
+                    },
+                },
+                questionChapters: {
+                    include: {
+                        chapter: true,
+                    },
+                },
+            },
         })
 
         if (!question) return null
@@ -106,5 +130,105 @@ export class PrismaQuestionRepository implements IQuestionRepository {
         await client.question.delete({
             where: { questionId: id },
         })
+    }
+
+    async findAllWithPagination(
+        pagination: QuestionPaginationOptions,
+        filters?: QuestionFilterOptions,
+        txClient?: any,
+    ): Promise<QuestionListResult> {
+        const client = txClient || this.prisma
+
+        const page = pagination.page || 1
+        const limit = pagination.limit || 10
+        const sortBy = pagination.sortBy || 'createdAt'
+        const sortOrder = pagination.sortOrder || 'desc'
+        const skip = (page - 1) * limit
+
+        // Build where clause
+        const where: any = {}
+
+        if (filters?.search) {
+            where.OR = [
+                { content: { contains: filters.search } },
+                { correctAnswer: { contains: filters.search } },
+                { solution: { contains: filters.search } },
+            ]
+        }
+
+        if (filters?.subjectId !== undefined) {
+            where.subjectId = filters.subjectId
+        }
+
+        if (filters?.type) {
+            where.type = filters.type
+        }
+
+        if (filters?.difficulty) {
+            where.difficulty = filters.difficulty
+        }
+
+        if (filters?.grade !== undefined) {
+            where.grade = filters.grade
+        }
+
+        if (filters?.visibility) {
+            where.visibility = filters.visibility
+        }
+
+        if (filters?.createdBy !== undefined) {
+            where.createdBy = filters.createdBy
+        }
+
+        if (filters?.chapterId !== undefined) {
+            where.questionChapters = {
+                some: {
+                    chapterId: filters.chapterId,
+                },
+            }
+        }
+
+        // Build orderBy
+        const orderBy: any = {}
+        orderBy[sortBy] = sortOrder
+
+        const [prismaQuestions, total] = await Promise.all([
+            client.question.findMany({
+                where,
+                skip,
+                take: limit,
+                orderBy,
+                include: {
+                    subject: true,
+                    admin: {
+                        include: {
+                            user: true,
+                        },
+                    },
+                    statements: {
+                        orderBy: {
+                            order: 'asc',
+                        },
+                    },
+                    questionChapters: {
+                        include: {
+                            chapter: true,
+                        },
+                    },
+                },
+            }),
+            client.question.count({ where }),
+        ])
+
+        const questions = QuestionMapper.toDomainQuestions(prismaQuestions)
+        const totalPages = Math.ceil(total / limit)
+
+        return {
+            questions,
+            total,
+            page,
+            limit,
+            totalPages,
+        }
     }
 }

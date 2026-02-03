@@ -1,30 +1,50 @@
-import { IsInt, IsString, IsOptional, IsEnum, MaxLength } from 'class-validator'
-import { Type } from 'class-transformer'
+import { IsRequiredIdNumber, IsRequiredString, IsOptionalString, IsOptionalEnumValue } from 'src/shared/decorators/validate'
 import { MediaVisibility } from 'src/shared/enums'
-import { ToNumber } from 'src/shared/decorators'
 import { EntityType } from 'src/shared/constants/entity-type.constants'
+
 /**
- * AttachMediaDto - Request DTO for attaching media to entity
+ * DTO for attaching media to entity
+ * 
+ * @description Used to link media files to other entities (e.g., courses, lessons, questions)
  */
 export class AttachMediaDto {
-  @IsInt()
-  @ToNumber()
+  /**
+   * Media ID to attach
+   * @required
+   * @example 123
+   */
+  @IsRequiredIdNumber('ID media')
   mediaId: number
 
-  @IsString()
-  @MaxLength(50)
+  /**
+   * Entity type to attach to
+   * @required
+   * @example 'course'
+   */
+  @IsRequiredString('Loại thực thể', 50)
   entityType: EntityType
 
-  @IsInt()
-  @ToNumber()
+  /**
+   * Entity ID to attach to
+   * @required
+   * @example 456
+   */
+  @IsRequiredIdNumber('ID thực thể')
   entityId: number
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(100)
+  /**
+   * Field name in entity
+   * @optional
+   * @example 'thumbnailImage'
+   */
+  @IsOptionalString('Tên trường', 100)
   fieldName?: string
 
-  @IsOptional()
-  @IsEnum(MediaVisibility)
+  /**
+   * Media visibility
+   * @optional
+   * @example MediaVisibility.PUBLIC
+   */
+  @IsOptionalEnumValue(MediaVisibility, 'Độ hiển thị')
   visibility?: MediaVisibility
 }

@@ -1,26 +1,37 @@
-import { IsOptional, IsInt, Min } from 'class-validator'
-import { Type } from 'class-transformer'
 import { ListQueryDto } from '../pagination/list-query.dto'
-import { VALIDATION_MESSAGES } from '../../../shared/constants'
-import { ToNumber } from 'src/shared/decorators'
+import { IsOptionalIdNumber, IsOptionalInt } from 'src/shared/decorators/validate'
+import { SortOrder } from 'src/shared/enums/sort-order.enum'
 
+/**
+ * DTO for querying chapter list with filters and pagination
+ * Extends ListQueryDto for common pagination and sorting fields
+ * 
+ * Filter fields:
+ * - Subject ID (ID môn học)
+ * - Parent Chapter ID (ID chương cha)
+ * - Level (Cấp độ)
+ */
 export class ChapterListQueryDto extends ListQueryDto {
-  @IsOptional()
-  @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('ID môn học') })
-  @ToNumber()
-  @Min(1)
+  /**
+   * Filter by subject ID
+   * @optional
+   */
+  @IsOptionalIdNumber('ID môn học')
   subjectId?: number
 
-  @IsOptional()
-  @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('ID chương cha') })
-  @ToNumber()
-  @Min(1)
+  /**
+   * Filter by parent chapter ID
+   * @optional
+   */
+  @IsOptionalIdNumber('ID chương cha')
   parentChapterId?: number
 
-  @IsOptional()
-  @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('Cấp độ') })
-  @ToNumber()
-  @Min(0)
+  /**
+   * Filter by hierarchical level
+   * @optional
+   * @min 0
+   */
+  @IsOptionalInt('Cấp độ', 0)
   level?: number
 
   /**
@@ -42,7 +53,7 @@ export class ChapterListQueryDto extends ListQueryDto {
    */
   toChapterPaginationOptions() {
     const sortField = this.sortBy || 'orderInParent'
-    const sortDirection = this.sortOrder || 'asc'
+    const sortDirection = this.sortOrder || SortOrder.ASC
 
     // Validate sort field
     const allowedSortFields = [

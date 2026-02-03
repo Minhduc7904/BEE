@@ -1,25 +1,40 @@
-import { IsString, IsOptional, IsInt, MaxLength } from 'class-validator'
-import { Type } from 'class-transformer'
-import { ToNumber } from 'src/shared/decorators'
+import { IsRequiredString, IsOptionalString, IsOptionalIdNumber } from 'src/shared/decorators/validate'
 
 /**
- * CreateMediaFolderDto - Request DTO for creating media folder
+ * DTO for creating media folder
+ * 
+ * @description Used to create a new folder in the media library
  */
 export class CreateMediaFolderDto {
-  @IsString()
-  @MaxLength(255)
+  /**
+   * Folder name
+   * @required
+   * @example 'Course Images'
+   */
+  @IsRequiredString('Tên thư mục', 255)
   name: string
 
-  @IsString()
-  @MaxLength(255)
+  /**
+   * URL-friendly slug
+   * @required
+   * @example 'course-images'
+   */
+  @IsRequiredString('Slug', 255)
   slug: string
 
-  @IsOptional()
-  @IsString()
+  /**
+   * Folder description
+   * @optional
+   * @example 'Images used in course materials'
+   */
+  @IsOptionalString('Mô tả')
   description?: string
 
-  @IsOptional()
-  @IsInt()
-  @ToNumber()
+  /**
+   * Parent folder ID (for nested folders)
+   * @optional
+   * @example 5
+   */
+  @IsOptionalIdNumber('ID thư mục cha')
   parentId?: number
 }

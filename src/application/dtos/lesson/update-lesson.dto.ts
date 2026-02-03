@@ -1,44 +1,71 @@
 // src/application/dtos/lesson/update-lesson.dto.ts
-import { IsString, IsOptional, IsNumber, MinLength, MaxLength, IsEnum, IsBoolean, IsArray } from 'class-validator'
-import { Trim } from '../../../shared/decorators'
+import { MinLength } from 'class-validator'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { Visibility } from '../../../shared/enums'
-import { Type, Transform } from 'class-transformer'
-import { ToNumber } from 'src/shared/decorators'
+import { 
+  IsOptionalString,
+  IsOptionalEnumValue,
+  IsOptionalInt,
+  IsOptionalIdNumber,
+  IsOptionalBoolean,
+  IsOptionalIntArray
+} from 'src/shared/decorators/validate'
 
+/**
+ * DTO for updating an existing lesson
+ * All fields are optional - only provided fields will be updated
+ */
 export class UpdateLessonDto {
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tiêu đề bài học') })
-  @MinLength(3, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Tiêu đề bài học', 3) })
-  @MaxLength(200, { message: VALIDATION_MESSAGES.FIELD_MAX_VALUE('Tiêu đề bài học', 200) })
-  @Trim()
+  // Lesson information
+  /**
+   * Lesson title
+   * @optional
+   * @minLength 3
+   * @maxLength 200
+   */
+  @IsOptionalString('Tiêu đề bài học', 200, 3)
   title?: string
 
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Mô tả') })
-  @Trim()
+  /**
+   * Lesson description
+   * @optional
+   */
+  @IsOptionalString('Mô tả', 500)
   description?: string
 
-  @IsOptional()
-  @IsEnum(Visibility, { message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái hiển thị') })
+  /**
+   * Lesson visibility status
+   * @optional
+   */
+  @IsOptionalEnumValue(Visibility, 'Trạng thái hiển thị')
   visibility?: Visibility
 
-  @IsOptional()
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Thứ tự bài học') })
+  /**
+   * Order position in course
+   * @optional
+   * @min 0
+   */
+  @IsOptionalInt('Thứ tự bài học', 0)
   orderInCourse?: number
 
-  @IsOptional()
-  @Transform(({ value }) => value === '' || value === null || value === undefined ? undefined : Number(value))
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Giáo viên') })
+  /**
+   * Teacher ID assigned to this lesson
+   * @optional
+   */
+  @IsOptionalIdNumber('Giáo viên')
   teacherId?: number
 
-  @IsOptional()
-  @IsBoolean({ message: VALIDATION_MESSAGES.FIELD_INVALID('Cho phép học thử') })
+  /**
+   * Allow students to trial this lesson
+   * @optional
+   */
+  @IsOptionalBoolean('Cho phép học thử')
   allowTrial?: boolean
 
-  @IsOptional()
-  @IsArray({ message: VALIDATION_MESSAGES.FIELD_INVALID('Danh sách chương') })
-  @IsNumber({}, { each: true, message: VALIDATION_MESSAGES.FIELD_INVALID('ID chương') })
-  @ToNumber()
+  /**
+   * List of chapter IDs associated with this lesson
+   * @optional
+   */
+  @IsOptionalIntArray('Danh sách chương')
   chapterIds?: number[]
 }

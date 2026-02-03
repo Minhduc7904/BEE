@@ -1,36 +1,56 @@
 // src/application/dtos/course/course-list-query.dto.ts
-import { Type } from 'class-transformer'
-import { IsOptional, IsString, IsNumber, IsEnum, Min, Max } from 'class-validator'
 import { ListQueryDto } from '../pagination/list-query.dto'
-import { Trim, ToBoolean, ToNumber } from 'src/shared/decorators'
+import { Trim, ToNumber } from 'src/shared/decorators'
 import { VALIDATION_MESSAGES } from 'src/shared/constants'
 import { CourseVisibility } from 'src/shared/enums'
+import { IsOptionalInt, IsOptionalIdNumber, IsOptionalEnumValue, IsOptionalString } from 'src/shared/decorators/validate'
 
+/**
+ * DTO truy vấn danh sách khóa học
+ * @description Chứa các tham số lọc và phân trang cho danh sách khóa học
+ */
 export class CourseListQueryDto extends ListQueryDto {
-    @IsOptional()
+    /**
+     * Khối lớp (1-12)
+     * @optional
+     * @example 10
+     */
     @ToNumber()
-    @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Khối') })
-    @Min(1, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Khối', 1) })
-    @Max(12, { message: VALIDATION_MESSAGES.FIELD_MAX_VALUE('Khối', 12) })
+    @IsOptionalInt('Khối', 1, 12)
     grade?: number
 
-    @IsOptional()
+    /**
+     * ID môn học
+     * @optional
+     * @example 5
+     */
     @ToNumber()
-    @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Môn học') })
+    @IsOptionalIdNumber('Môn học')
     subjectId?: number
 
-    @IsOptional()
-    @IsEnum(CourseVisibility, { message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái') })
+    /**
+     * Trạng thái hiển thị
+     * @optional
+     * @example "PUBLIC"
+     */
+    @IsOptionalEnumValue(CourseVisibility, 'Trạng thái')
     visibility?: CourseVisibility
 
-    @IsOptional()
+    /**
+     * ID giáo viên
+     * @optional
+     * @example 3
+     */
     @ToNumber()
-    @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Giáo viên') })
+    @IsOptionalIdNumber('Giáo viên')
     teacherId?: number
 
-    @IsOptional()
-    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Năm học') })
-    @Trim()
+    /**
+     * Năm học
+     * @optional
+     * @example "2024-2025"
+     */
+    @IsOptionalString('Năm học')
     academicYear?: string
 
     /**

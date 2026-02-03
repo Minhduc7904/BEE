@@ -4,17 +4,13 @@ import { IsOptional, IsNumber, IsString, MaxLength } from 'class-validator'
 import { VALIDATION_MESSAGES } from 'src/shared/constants'
 import { ToNumber } from 'src/shared/decorators'
 import { Trim } from 'src/shared/decorators/trim.decorator'
-
+import { IsOptionalString, IsOptionalIdNumber } from 'src/shared/decorators/validate'
+import { SortOrder } from 'src/shared/enums/sort-order.enum'
 export class CourseSearchQueryDto {
-    @IsOptional()
-    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Từ khóa tìm kiếm') })
-    @Trim()
-    @MaxLength(255, { message: VALIDATION_MESSAGES.FIELD_MAX('Từ khóa tìm kiếm', 255) })
+    @IsOptionalString('Từ khóa tìm kiếm', 255)
     search?: string
 
-    @IsOptional()
-    @ToNumber() 
-    @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Giáo viên') })
+    @IsOptionalIdNumber('ID giáo viên')
     teacherId?: number
 
     /* ===================== FILTER ===================== */
@@ -31,7 +27,7 @@ export class CourseSearchQueryDto {
             page: 1,
             limit: 10,
             sortBy: 'createdAt',
-            sortOrder: 'desc' as const,
+            sortOrder: SortOrder.DESC,
         }
     }
 }

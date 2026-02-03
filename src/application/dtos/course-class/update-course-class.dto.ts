@@ -1,38 +1,48 @@
-import {
-  IsString,
-  IsOptional,
-  IsInt,
-  IsDateString,
-  MinLength,
-  MaxLength,
-  Min,
-} from 'class-validator';
-import { Trim } from '../../../shared/decorators/trim.decorator';
+import { Trim } from '../../../shared/decorators/trim.decorator'
+import { IsOptionalString, IsOptionalDate, IsOptionalIdNumber } from 'src/shared/decorators/validate'
 
+/**
+ * DTO cập nhật lớp học
+ * @description Chứa các trường có thể cập nhật của lớp học
+ */
 export class UpdateCourseClassDto {
-  @IsOptional()
-  @IsString({ message: 'Tên lớp học phải là chuỗi ký tự' })
-  @MinLength(3, { message: 'Tên lớp học phải có ít nhất 3 ký tự' })
-  @MaxLength(100, { message: 'Tên lớp học không được vượt quá 100 ký tự' })
-  @Trim()
-  className?: string;
+  /**
+   * Tên lớp học (3-100 ký tự)
+   * @optional
+   * @example "Lớp Toán 10A"
+   */
+  @IsOptionalString('Tên lớp học', 100, 3)
+  className?: string
 
-  @IsOptional()
-  @IsDateString({}, { message: 'Ngày bắt đầu phải là định dạng ngày hợp lệ' })
-  startDate?: string | null;
+  /**
+   * Ngày bắt đầu
+   * @optional
+   * @example "2024-01-15"
+   */
+  @IsOptionalDate('Ngày bắt đầu')
+  startDate?: string | null
 
-  @IsOptional()
-  @IsDateString({}, { message: 'Ngày kết thúc phải là định dạng ngày hợp lệ' })
-  endDate?: string | null;
+  /**
+   * Ngày kết thúc
+   * @optional
+   * @example "2024-06-30"
+   */
+  @IsOptionalDate('Ngày kết thúc')
+  endDate?: string | null
 
-  @IsOptional()
-  @IsString({ message: 'Phòng học phải là chuỗi ký tự' })
-  @MaxLength(100, { message: 'Phòng học không được vượt quá 100 ký tự' })
-  @Trim()
-  room?: string | null;
+  /**
+   * Phòng học (tối đa 100 ký tự)
+   * @optional
+   * @example "Phòng A101"
+   */
+  @IsOptionalString('Phòng học', 100)
+  room?: string | null
 
-  @IsOptional()
-  @IsInt({ message: 'ID giáo viên phải là số nguyên' })
-  @Min(1, { message: 'ID giáo viên phải lớn hơn 0' })
-  instructorId?: number | null;
+  /**
+   * ID giáo viên
+   * @optional
+   * @example 3
+   */
+  @IsOptionalIdNumber('ID giáo viên')
+  instructorId?: number | null
 }

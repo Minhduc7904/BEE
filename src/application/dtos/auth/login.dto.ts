@@ -1,49 +1,101 @@
-import { IsString, IsNotEmpty, MinLength, IsOptional, IsEmail } from 'class-validator'
-import { Trim } from '../../../shared/decorators'
-import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { AdminResponseDto, StudentResponseDto } from '..'
+import { IsOptionalString, IsRequiredString, IsOptionalEmail } from 'src/shared/decorators/validate'
+import { MinLength } from 'class-validator'
+import { VALIDATION_MESSAGES } from '../../../shared/constants'
 
+/**
+ * DTO for user login request
+ * 
+ * Required fields:
+ * - Password (Mật khẩu)
+ * 
+ * Optional fields (at least one required):
+ * - Username (Tên đăng nhập)
+ * - Email
+ * 
+ * Optional metadata fields:
+ * - User Agent
+ * - IP Address  
+ * - Device Fingerprint
+ */
 export class LoginRequestDto {
-  @Trim()
-  @IsOptional()
-  @IsNotEmpty({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Tên đăng nhập') })
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tên đăng nhập') })
+  // Login credentials (at least one required)
+  /**
+   * Username for login
+   * @optional
+   */
+  @IsOptionalString('Tên đăng nhập')
   username?: string
 
-  @Trim()
-  @IsOptional()
-  @IsEmail({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Email') })
+  /**
+   * Email for login
+   * @optional
+   */
+  @IsOptionalEmail('Email')
   email?: string
 
-  @Trim()
-  @IsNotEmpty({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Mật khẩu') })
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Mật khẩu') })
-  @MinLength(6, { message: VALIDATION_MESSAGES.FIELD_MIN('Mật khẩu', 6) })
+  /**
+   * User password
+   * @required
+   * @minLength 6
+   */
+  @IsRequiredString('Mật khẩu', 6)
   password: string
 
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('User Agent') })
+  // Session metadata
+  /**
+   * Browser user agent
+   * @optional
+   */
+  @IsOptionalString('User Agent')
   userAgent?: string
 
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('IP Address') })
+  /**
+   * Client IP address
+   * @optional
+   */
+  @IsOptionalString('Địa chỉ IP')
   ipAddress?: string
 
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Device Fingerprint') })
+  /**
+   * Unique device identifier
+   * @optional
+   */
+  @IsOptionalString('Dấu vân tay thiết bị')
   deviceFingerprint?: string
 }
 
+/**
+ * DTO for authentication tokens
+ */
 export class TokensDto {
+  /**
+   * JWT access token
+   */
   accessToken: string
 
+  /**
+   * JWT refresh token
+   */
   refreshToken: string
 
+  /**
+   * Token expiration time in seconds
+   */
   expiresIn: number
 }
 
+/**
+ * Response DTO after successful login
+ */
 export class LoginResponseDto {
+  /**
+   * Authentication tokens
+   */
   tokens: TokensDto
 
+  /**
+   * Authenticated user data
+   */
   user: AdminResponseDto | StudentResponseDto
 }

@@ -1,33 +1,50 @@
-import { IsOptional, IsEnum, IsNumber, IsString } from 'class-validator'
-import { Type } from 'class-transformer'
+import { IsOptionalIdNumber, IsOptionalEnumValue, IsOptionalString } from 'src/shared/decorators/validate'
 import { MediaType, MediaStatus } from 'src/shared/enums'
-import { Trim } from '../../../shared/decorators'
-import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { ListQueryDto } from '../pagination/list-query.dto'
-import { ToNumber } from 'src/shared/decorators'
 
+/**
+ * DTO for querying media list with filters
+ * 
+ * @description Extends ListQueryDto with media-specific filters
+ */
 export class GetMediaListDto extends ListQueryDto {
-  @IsOptional()
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('ID thư mục') })
-  @ToNumber()
+  /**
+   * Filter by folder ID
+   * @optional
+   * @example 5
+   */
+  @IsOptionalIdNumber('ID thư mục')
   folderId?: number
 
-  @IsOptional()
-  @IsEnum(MediaType, { message: VALIDATION_MESSAGES.FIELD_INVALID('Loại media') })
+  /**
+   * Filter by media type
+   * @optional
+   * @example MediaType.IMAGE
+   */
+  @IsOptionalEnumValue(MediaType, 'Loại media')
   type?: MediaType
 
-  @IsOptional()
-  @IsEnum(MediaStatus, { message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái') })
+  /**
+   * Filter by status
+   * @optional
+   * @example MediaStatus.ACTIVE
+   */
+  @IsOptionalEnumValue(MediaStatus, 'Trạng thái')
   status?: MediaStatus
 
-  @IsOptional()
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Người tải lên') })
-  @ToNumber()
+  /**
+   * Filter by uploader ID
+   * @optional
+   * @example 10
+   */
+  @IsOptionalIdNumber('Người tải lên')
   uploadedBy?: number
 
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Bucket name') })
-  @Trim()
+  /**
+   * Filter by bucket name
+   * @optional
+   * @example 'my-bucket'
+   */
+  @IsOptionalString('Tên bucket')
   bucketName?: string
-
 }

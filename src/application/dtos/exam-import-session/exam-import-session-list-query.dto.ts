@@ -3,6 +3,7 @@ import { IsOptional, IsEnum, IsNumber } from 'class-validator'
 import { ListQueryDto } from '../pagination/list-query.dto'
 import { ToNumber } from '../../../shared/decorators'
 import { ImportStatus } from '../../../shared/enums'
+import { SortOrder } from 'src/shared/enums/sort-order.enum'
 
 export class ExamImportSessionListQueryDto extends ListQueryDto {
   @IsOptional()
@@ -32,7 +33,7 @@ export class ExamImportSessionListQueryDto extends ListQueryDto {
    */
   toPaginationOptions() {
     const sortField = this.sortBy || 'createdAt'
-    const sortDirection = this.sortOrder || 'desc'
+    const sortDirection = this.sortOrder || SortOrder.DESC
 
     // Validate sort field
     const allowedSortFields = [

@@ -11,4 +11,5 @@ export interface IQuestionChapterRepository {
   createMany(dataArray: CreateQuestionChapterData[], txClient?: any): Promise<number>
   findByQuestionId(questionId: number, txClient?: any): Promise<QuestionChapter[]>
   delete(questionId: number, chapterId: number, txClient?: any): Promise<void>
+  deleteByQuestionId(questionId: number, txClient?: any): Promise<number>
 }

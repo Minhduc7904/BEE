@@ -1,55 +1,92 @@
-import { IsEnum, IsNumber, IsOptional, IsString, MaxLength, Min } from 'class-validator'
-import { Trim } from '../../../shared/decorators'
-import { VALIDATION_MESSAGES } from '../../../shared/constants'
+import { IsRequiredIdNumber, IsRequiredEnumValue, IsRequiredNumber, IsRequiredString, IsOptionalEnumValue, IsOptionalNumber, IsOptionalString } from 'src/shared/decorators/validate'
 
 export enum PointType {
   BONUS = 'BONUS',
   PENALTY = 'PENALTY',
 }
 
+/**
+ * DTO for creating student point log
+ * 
+ * @description Used to record bonus or penalty points for a student
+ */
 export class CreateStudentPointLogDto {
-  @IsNumber()
-  @Min(1, { message: 'Student ID phải lớn hơn 0' })
+  /**
+   * Student ID
+   * @required
+   * @example 10
+   */
+  @IsRequiredIdNumber('ID học sinh')
   studentId: number
 
-  @IsEnum(PointType, { message: 'Loại điểm không hợp lệ' })
+  /**
+   * Point type (bonus or penalty)
+   * @required
+   * @example PointType.BONUS
+   */
+  @IsRequiredEnumValue(PointType, 'Loại điểm')
   type: PointType
 
-  @IsNumber()
-  @Min(0, { message: 'Điểm số phải lớn hơn hoặc bằng 0' })
+  /**
+   * Points amount (minimum 0)
+   * @required
+   * @example 10
+   */
+  @IsRequiredNumber('Điểm số', 0)
   points: number
 
-  @Trim()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Nguồn điểm') })
-  @MaxLength(255, { message: VALIDATION_MESSAGES.FIELD_MAX('Nguồn điểm', 255) })
+  /**
+   * Point source/reason
+   * @required
+   * @example 'Excellent behavior in class'
+   */
+  @IsRequiredString('Nguồn điểm', 255)
   source: string
 
-  @Trim()
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Ghi chú') })
-  @MaxLength(500, { message: VALIDATION_MESSAGES.FIELD_MAX('Ghi chú', 500) })
+  /**
+   * Additional notes
+   * @optional
+   * @example 'Helped other students'
+   */
+  @IsOptionalString('Ghi chú', 500)
   note?: string
 }
 
+/**
+ * DTO for updating student point log
+ * 
+ * @description Used to update an existing point log entry
+ */
 export class UpdateStudentPointLogDto {
-  @IsOptional()
-  @IsEnum(PointType, { message: 'Loại điểm không hợp lệ' })
+  /**
+   * Point type (bonus or penalty)
+   * @optional
+   * @example PointType.PENALTY
+   */
+  @IsOptionalEnumValue(PointType, 'Loại điểm')
   type?: PointType
 
-  @IsOptional()
-  @IsNumber()
-  @Min(0, { message: 'Điểm số phải lớn hơn hoặc bằng 0' })
+  /**
+   * Points amount (minimum 0)
+   * @optional
+   * @example 5
+   */
+  @IsOptionalNumber('Điểm số', 0)
   points?: number
 
-  @Trim()
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
+  /**
+   * Point source/reason
+   * @optional
+   * @example 'Late to class'
+   */
+  @IsOptionalString('Nguồn điểm', 255)
   source?: string
 
-  @Trim()
-  @IsOptional()
-  @IsString()
-  @MaxLength(500)
+  /**
+   * Additional notes
+   * @optional
+   * @example 'Updated reason'
+   */
+  @IsOptionalString('Ghi chú', 500)
   note?: string
 }

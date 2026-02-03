@@ -1,57 +1,70 @@
-import {
-  IsInt,
-  IsNotEmpty,
-  IsEnum,
-  IsOptional,
-  IsString,
-  Min,
-  Max,
-} from 'class-validator'
 import { TuitionPaymentStatus } from 'src/shared/enums'
 import { ToNumber } from 'src/shared/decorators'
+import { IsRequiredIdNumber, IsOptionalIdNumber, IsRequiredInt, IsOptionalInt, IsRequiredEnumValue, IsOptionalString } from 'src/shared/decorators/validate'
 
+/**
+ * DTO tạo thanh toán học phí
+ * @description Chứa thông tin để tạo bản ghi thanh toán học phí
+ */
 export class CreateTuitionPaymentDto {
+  /**
+   * ID học sinh
+   * @required
+   * @example 10
+   */
   @ToNumber()
-  @IsInt({ message: 'ID học sinh phải là số nguyên' })
-  @Min(1, { message: 'ID học sinh phải lớn hơn 0' })
-  @IsNotEmpty({ message: 'ID học sinh không được để trống' })
+  @IsRequiredIdNumber('ID học sinh')
   studentId: number
 
-  @IsOptional()
+  /**
+   * ID khóa học
+   * @optional
+   * @example 5
+   */
   @ToNumber()
-  @IsInt({ message: 'ID khoá học phải là số nguyên' })
-  @Min(1, { message: 'ID khoá học phải lớn hơn 0' })
+  @IsOptionalIdNumber('ID khoá học')
   courseId?: number
 
   /**
-   * 💰 Số tiền học phí (snapshot)
+   * Số tiền học phí (snapshot)
+   * @required
+   * @example 500000
    */
   @ToNumber()
-  @IsInt({ message: 'Số tiền phải là số nguyên' })
-  @Min(1, { message: 'Số tiền học phí phải lớn hơn 0' })
-  @IsNotEmpty({ message: 'Số tiền học phí không được để trống' })
+  @IsRequiredInt('Số tiền học phí', 1)
   amount: number
 
-  @IsOptional()
+  /**
+   * Tháng (1-12)
+   * @optional
+   * @example 1
+   */
   @ToNumber()
-  @IsInt({ message: 'Tháng phải là số nguyên' })
-  @Min(1, { message: 'Tháng phải từ 1 đến 12' })
-  @Max(12, { message: 'Tháng phải từ 1 đến 12' })
+  @IsOptionalInt('Tháng', 1, 12)
   month?: number
 
-  @IsOptional()
+  /**
+   * Năm (từ 2000)
+   * @optional
+   * @example 2024
+   */
   @ToNumber()
-  @IsInt({ message: 'Năm phải là số nguyên' })
-  @Min(2000, { message: 'Năm không hợp lệ' })
+  @IsOptionalInt('Năm', 2000)
   year?: number
 
-  @IsEnum(TuitionPaymentStatus, {
-    message: 'Trạng thái học phí không hợp lệ',
-  })
-  @IsNotEmpty({ message: 'Trạng thái học phí không được để trống' })
+  /**
+   * Trạng thái học phí
+   * @required
+   * @example "PAID"
+   */
+  @IsRequiredEnumValue(TuitionPaymentStatus, 'Trạng thái học phí')
   status: TuitionPaymentStatus
 
-  @IsOptional()
-  @IsString({ message: 'Ghi chú phải là chuỗi' })
+  /**
+   * Ghi chú
+   * @optional
+   * @example "Đã thanh toán đầy đủ"
+   */
+  @IsOptionalString('Ghi chú')
   notes?: string
 }

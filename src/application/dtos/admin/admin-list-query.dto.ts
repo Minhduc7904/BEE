@@ -1,13 +1,9 @@
 // src/application/dtos/admin/admin-list-query.dto.ts
-import { IsOptional, IsString, MaxLength, IsBoolean } from 'class-validator'
 import { ListQueryDto } from '../pagination/list-query.dto'
-import { Trim, ToBoolean } from '../../../shared/decorators'
-import { VALIDATION_MESSAGES } from '../../../shared/constants'
+import { IsOptionalBoolean } from 'src/shared/decorators/validate'
 
 export class AdminListQueryDto extends ListQueryDto {
-    @IsOptional()
-    @ToBoolean()
-    @IsBoolean({ message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái hoạt động') })
+    @IsOptionalBoolean('Trạng thái hoạt động')
     isActive?: boolean
 
     /**

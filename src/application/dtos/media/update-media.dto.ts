@@ -1,38 +1,65 @@
-import { IsOptional, IsNumber, IsString, IsEnum } from 'class-validator'
-import { Type } from 'class-transformer'
+import { IsOptionalIdNumber, IsOptionalEnumValue, IsOptionalString, IsOptionalInt } from 'src/shared/decorators/validate'
 import { MediaStatus } from 'src/shared/enums'
-import { ToNumber } from 'src/shared/decorators'
 
+/**
+ * DTO for updating media metadata
+ * 
+ * @description Used to update media properties like folder, status, description, dimensions
+ */
 export class UpdateMediaDto {
-  @IsOptional()
-  @IsNumber()
-  @ToNumber()
+  /**
+   * Folder ID to move media to
+   * @optional
+   * @example 10
+   */
+  @IsOptionalIdNumber('ID thư mục')
   folderId?: number
 
-  @IsOptional()
-  @IsEnum(MediaStatus)
+  /**
+   * Media status
+   * @optional
+   * @example MediaStatus.ACTIVE
+   */
+  @IsOptionalEnumValue(MediaStatus, 'Trạng thái')
   status?: MediaStatus
 
-  @IsOptional()
-  @IsString()
+  /**
+   * Media description
+   * @optional
+   * @example 'Product image for item XYZ'
+   */
+  @IsOptionalString('Mô tả')
   description?: string
 
-  @IsOptional()
-  @IsString()
+  /**
+   * Alt text for accessibility
+   * @optional
+   * @example 'A red bicycle on a sunny day'
+   */
+  @IsOptionalString('Chữ thay thế')
   alt?: string
 
-  @IsOptional()
-  @IsNumber()
-  @ToNumber()
+  /**
+   * Image/video width in pixels
+   * @optional
+   * @example 1920
+   */
+  @IsOptionalInt('Độ rộng')
   width?: number
 
-  @IsOptional()
-  @IsNumber()
-  @ToNumber()
+  /**
+   * Image/video height in pixels
+   * @optional
+   * @example 1080
+   */
+  @IsOptionalInt('Độ cao')
   height?: number
 
-  @IsOptional()
-  @IsNumber()
-  @ToNumber()
+  /**
+   * Video duration in seconds
+   * @optional
+   * @example 120
+   */
+  @IsOptionalInt('Thời lượng')
   duration?: number
 }

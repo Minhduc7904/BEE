@@ -1,36 +1,60 @@
-import { IsOptional, IsEnum, IsString, IsInt, Min, Max, IsDateString } from 'class-validator'
 import { TuitionPaymentStatus } from 'src/shared/enums'
 import { ToNumber } from 'src/shared/decorators'
+import { IsOptionalEnumValue, IsOptionalInt, IsOptionalString, IsOptionalDate } from 'src/shared/decorators/validate'
 
+/**
+ * DTO cập nhật thanh toán học phí
+ * @description Chứa các trường có thể cập nhật của thanh toán học phí
+ */
 export class UpdateTuitionPaymentDto {
-  @IsOptional()
-  @IsEnum(TuitionPaymentStatus, { message: 'Trạng thái học phí không hợp lệ' })
+  /**
+   * Trạng thái học phí
+   * @optional
+   * @example "PAID"
+   */
+  @IsOptionalEnumValue(TuitionPaymentStatus, 'Trạng thái học phí')
   status?: TuitionPaymentStatus
 
-  @IsOptional()
+  /**
+   * Số tiền học phí
+   * @optional
+   * @example 500000
+   */
   @ToNumber()
-  @IsInt({ message: 'Số tiền phải là số nguyên' })
-  @Min(1, { message: 'Số tiền học phí phải lớn hơn 0' })
+  @IsOptionalInt('Số tiền học phí', 1)
   amount?: number
 
-  @IsOptional()
+  /**
+   * Tháng (1-12)
+   * @optional
+   * @example 1
+   */
   @ToNumber()
-  @IsInt({ message: 'Tháng phải là số nguyên' })
-  @Min(1, { message: 'Tháng phải từ 1 đến 12' })
-  @Max(12, { message: 'Tháng phải từ 1 đến 12' })
+  @IsOptionalInt('Tháng', 1, 12)
   month?: number
 
-  @IsOptional()
+  /**
+   * Năm (từ 2000)
+   * @optional
+   * @example 2024
+   */
   @ToNumber()
-  @IsInt({ message: 'Năm phải là số nguyên' })
-  @Min(2000, { message: 'Năm không hợp lệ' })
+  @IsOptionalInt('Năm', 2000)
   year?: number
 
-  @IsOptional()
-  @IsString({ message: 'Ghi chú phải là chuỗi' })
+  /**
+   * Ghi chú
+   * @optional
+   * @example "Đã thanh toán đầy đủ"
+   */
+  @IsOptionalString('Ghi chú')
   notes?: string
 
-  @IsOptional()
-  @IsDateString({}, { message: 'Ngày thanh toán không hợp lệ' })
+  /**
+   * Ngày thanh toán
+   * @optional
+   * @example "2024-01-15"
+   */
+  @IsOptionalDate('Ngày thanh toán')
   paidAt?: string
 }

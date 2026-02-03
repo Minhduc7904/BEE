@@ -34,7 +34,7 @@ import {
 import { CurrentUser } from '../../shared/decorators/current-user.decorator'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
 import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
-
+import { SortOrder } from 'src/shared/enums/sort-order.enum'
 @Controller('chapters')
 export class ChapterController {
   constructor(
@@ -106,7 +106,7 @@ export class ChapterController {
       listQuery.page = 1
       listQuery.limit = 10
       listQuery.sortBy = 'orderInParent'
-      listQuery.sortOrder = 'asc'
+      listQuery.sortOrder = SortOrder.ASC
       return this.getAllChaptersUseCase.execute(listQuery)
     })
   }

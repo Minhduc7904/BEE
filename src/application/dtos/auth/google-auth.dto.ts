@@ -1,46 +1,100 @@
 // src/application/dtos/auth/google-auth.dto.ts
-import { IsEmail, IsOptional, IsString } from 'class-validator'
-import { Trim } from '../../../shared/decorators'
+import { IsRequiredString, IsRequiredEmail, IsOptionalString } from 'src/shared/decorators/validate'
+import { IsBoolean } from 'class-validator'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 
+/**
+ * DTO for Google user profile data
+ */
 export class GoogleUserProfileDto {
-    @Trim()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Google ID') })
+  /**
+   * Google account ID
+   * @required
+   */
+  @IsRequiredString('Google ID')
   googleId: string
 
-    @Trim()
-  @IsEmail({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Email') })
+  /**
+   * Google account email
+   * @required
+   */
+  @IsRequiredEmail('Email')
   email: string
 
-    @Trim()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tên') })
+  /**
+   * User first name
+   * @required
+   */
+  @IsRequiredString('Tên')
   firstName: string
 
-    @Trim()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Họ') })
+  /**
+   * User last name
+   * @required
+   */
+  @IsRequiredString('Họ')
   lastName: string
 
-    @Trim()
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Avatar URL') })
+  /**
+   * Google profile picture URL
+   * @optional
+   */
+  @IsOptionalString('URL ảnh đại diện')
   picture?: string
 
-    verified: boolean
+  /**
+   * Whether Google email is verified
+   */
+  @IsBoolean({ message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái xác thực') })
+  verified: boolean
 }
 
+/**
+ * Response DTO after Google authentication
+ */
 export class GoogleAuthResponseDto {
-    message: string
+  /**
+   * Authentication result message
+   */
+  message: string
 
-    accessToken: string
+  /**
+   * JWT access token
+   */
+  accessToken: string
 
-    refreshToken: string
+  /**
+   * JWT refresh token
+   */
+  refreshToken: string
 
-    user: {
+  /**
+   * Authenticated user information
+   */
+  user: {
+    /**
+     * User ID in database
+     */
     userId: number
+    /**
+     * User email
+     */
     email: string
+    /**
+     * User first name
+     */
     firstName: string
+    /**
+     * User last name
+     */
     lastName: string
+    /**
+     * Username
+     */
     username: string
+    /**
+     * User type (admin or student)
+     */
     userType: 'admin' | 'student'
   }
 }

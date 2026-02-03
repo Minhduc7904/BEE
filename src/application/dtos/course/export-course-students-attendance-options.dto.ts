@@ -1,8 +1,9 @@
-import { IsBoolean, IsOptional } from 'class-validator'
-import { Transform } from 'class-transformer'
-import { ToBoolean } from 'src/shared/decorators'
+import { IsOptionalBoolean } from 'src/shared/decorators/validate'
+
 /**
  * DTO for customizing course students attendance export fields
+ * 
+ * @description Used to configure which columns to include in course attendance export
  * 
  * Default fields (always included):
  * - STT (序号)
@@ -25,46 +26,42 @@ import { ToBoolean } from 'src/shared/decorators'
 export class ExportCourseStudentsAttendanceOptionsDto {
     /**
      * Include school field
+     * @optional
      * @default true
+     * @example true
      */
-    @IsOptional()
-    @ToBoolean()
-    @IsBoolean()
+    @IsOptionalBoolean('Bao gồm trường')
     includeSchool?: boolean = true
 
     /**
      * Include parent phone field
+     * @optional
      * @default true
+     * @example true
      */
-    @IsOptional()
-    @ToBoolean()
-    @IsBoolean()
+    @IsOptionalBoolean('Bao gồm số điện thoại phụ huynh')
     includeParentPhone?: boolean = true
 
     /**
      * Include student phone field
+     * @optional
      * @default false
+     * @example false
      */
-    @IsOptional()
-    @ToBoolean()
-    @IsBoolean()
+    @IsOptionalBoolean('Bao gồm số điện thoại học sinh')
     includeStudentPhone?: boolean = false
 
     /**
      * Include grade field
      * @default true
      */
-    @IsOptional()
-    @ToBoolean()
-    @IsBoolean()
+    @IsOptionalBoolean('Bao gồm lớp')
     includeGrade?: boolean = true
 
     /**
      * Include email field
      * @default true
      */
-    @IsOptional()
-    @ToBoolean()
-    @IsBoolean()
+    @IsOptionalBoolean('Bao gồm email')
     includeEmail?: boolean = true
 }

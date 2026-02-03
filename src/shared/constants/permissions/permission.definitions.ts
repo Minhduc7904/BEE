@@ -1040,4 +1040,46 @@ export const PERMISSION_DEFINITIONS = {
             },
         },
     },
+
+    question: {
+        group: 'QUESTION',
+        isSystem: true,
+        actions: {
+            getAll: {
+                name: 'Xem danh sách câu hỏi',
+                description: 'Xem danh sách tất cả câu hỏi',
+            },
+            getById: {
+                name: 'Xem câu hỏi theo ID',
+                description: 'Xem chi tiết câu hỏi',
+            },
+            create: {
+                name: 'Tạo câu hỏi',
+                description: 'Tạo câu hỏi mới',
+            },
+            update: {
+                name: 'Cập nhật câu hỏi',
+                description: 'Chỉnh sửa câu hỏi',
+            },
+            delete: {
+                name: 'Xóa câu hỏi',
+                description: 'Xóa câu hỏi',
+            },
+        },
+    },
+
+    statement: {
+        group: 'STATEMENT',
+        isSystem: true,
+        actions: {
+            update: {
+                name: 'Cập nhật đáp án',
+                description: 'Chỉnh sửa đáp án',
+            },
+            delete: {
+                name: 'Xóa đáp án',
+                description: 'Xóa đáp án',
+            },
+        },
+    },
 } as const;

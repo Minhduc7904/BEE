@@ -1,30 +1,60 @@
-import { IsOptional, IsNumber, Min, IsDateString, IsBoolean, NotEquals } from 'class-validator'
+import { IsRequiredIdNumber, IsOptionalDate, IsOptionalBoolean } from 'src/shared/decorators/validate'
+import { NotEquals } from 'class-validator'
 import { RoleWithPermissionsResponseDto } from './role.dto'
 import { PermissionResponseDto } from './permission.dto'
-import { VALIDATION_MESSAGES } from '../../../shared/constants'
 
+/**
+ * DTO for assigning role to user
+ * 
+ * @description Used to assign a role to a user with optional expiration
+ */
 export class AssignUserRoleDto {
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_REQUIRED('User ID') })
-  @Min(1, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('User ID', 1) })
+  /**
+   * User ID to assign role to
+   * @required
+   * @example 10
+   */
+  @IsRequiredIdNumber('ID người dùng')
   userId: number
 
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_REQUIRED('Role ID') })
-  @Min(1, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Role ID', 1) })
+  /**
+   * Role ID to assign (cannot be 1 - system role)
+   * @required
+   * @example 5
+   */
+  @IsRequiredIdNumber('ID vai trò')
   @NotEquals(1, { message: 'Không được gán role hệ thống (roleId = 1)' })
   roleId: number
 
-  @IsOptional()
-  @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Thời gian hết hạn') })
+  /**
+   * Role expiration date
+   * @optional
+   * @example '2024-12-31T23:59:59Z'
+   */
+  @IsOptionalDate('Thời gian hết hạn')
   expiresAt?: string
 }
 
+/**
+ * DTO for updating user role assignment
+ * 
+ * @description Used to update role expiration or activation status
+ */
 export class UpdateUserRoleDto {
-  @IsOptional()
-  @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Thời gian hết hạn') })
+  /**
+   * Role expiration date
+   * @optional
+   * @example '2024-12-31T23:59:59Z'
+   */
+  @IsOptionalDate('Thời gian hết hạn')
   expiresAt?: string
 
-  @IsOptional()
-  @IsBoolean({ message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái active') })
+  /**
+   * Active status
+   * @optional
+   * @example true
+   */
+  @IsOptionalBoolean('Trạng thái kích hoạt')
   isActive?: boolean
 }
 

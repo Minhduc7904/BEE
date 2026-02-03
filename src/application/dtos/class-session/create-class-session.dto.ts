@@ -1,37 +1,55 @@
-import {
-  IsInt,
-  IsNotEmpty,
-  IsDateString,
-  IsString,
-  IsOptional,
-  MaxLength,
-  Min,
-} from 'class-validator';
+import { IsRequiredIdNumber, IsRequiredString, IsRequiredDate, IsOptionalString } from 'src/shared/decorators/validate'
 
+/**
+ * DTO tạo buổi học mới
+ * @description Chứa thông tin để tạo một buổi học trong lớp
+ */
 export class CreateClassSessionDto {
-  @IsInt({ message: 'ID lớp học phải là số nguyên' })
-  @Min(1, { message: 'ID lớp học phải lớn hơn 0' })
-  @IsNotEmpty({ message: 'ID lớp học không được để trống' })
-  classId: number;
+  /**
+   * ID lớp học
+   * @required
+   * @example 5
+   */
+  @IsRequiredIdNumber('ID lớp học')
+  classId: number
 
-  @IsString({ message: 'Tên buổi học phải là chuỗi' })
-  @IsNotEmpty({ message: 'Tên buổi học không được để trống' })
-  @MaxLength(200, { message: 'Tên buổi học không được vượt quá 200 ký tự' })
-  name: string;
+  /**
+   * Tên buổi học (tối đa 200 ký tự)
+   * @required
+   * @example "Buổi 1: Giới thiệu toán học"
+   */
+  @IsRequiredString('Tên buổi học', 200)
+  name: string
 
-  @IsDateString({}, { message: 'Ngày học phải là định dạng ngày hợp lệ' })
-  @IsNotEmpty({ message: 'Ngày học không được để trống' })
-  sessionDate: string;
+  /**
+   * Ngày học
+   * @required
+   * @example "2024-01-15"
+   */
+  @IsRequiredDate('Ngày học')
+  sessionDate: string
 
-  @IsDateString({}, { message: 'Giờ bắt đầu phải là định dạng thời gian hợp lệ' })
-  @IsNotEmpty({ message: 'Giờ bắt đầu không được để trống' })
-  startTime: string;
+  /**
+   * Giờ bắt đầu
+   * @required
+   * @example "08:00:00"
+   */
+  @IsRequiredDate('Giờ bắt đầu')
+  startTime: string
 
-  @IsDateString({}, { message: 'Giờ kết thúc phải là định dạng thời gian hợp lệ' })
-  @IsNotEmpty({ message: 'Giờ kết thúc không được để trống' })
-  endTime: string;
+  /**
+   * Giờ kết thúc
+   * @required
+   * @example "10:00:00"
+   */
+  @IsRequiredDate('Giờ kết thúc')
+  endTime: string
 
-  @IsString({ message: 'Ghi chú học bù phải là chuỗi' })
-  @IsOptional()
-  makeupNote?: string;
+  /**
+   * Ghi chú học bù
+   * @optional
+   * @example "Buổi học bù cho ngày 10/01"
+   */
+  @IsOptionalString('Ghi chú học bù')
+  makeupNote?: string
 }

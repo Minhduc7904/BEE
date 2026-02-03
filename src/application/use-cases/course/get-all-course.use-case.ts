@@ -3,8 +3,6 @@ import { Inject, Injectable } from '@nestjs/common'
 import type { ICourseRepository } from '../../../domain/repositories'
 import { CourseListQueryDto } from '../../dtos/course/course-list-query.dto'
 import { CourseListResponseDto, CourseResponseDto } from '../../dtos/course/course.dto'
-import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
-import { CourseVisibility } from '../../../shared/enums/course-visibility.enum'
 import { CourseSearchQueryDto } from 'src/application/dtos/course/course-search-query.dto'
 
 @Injectable()

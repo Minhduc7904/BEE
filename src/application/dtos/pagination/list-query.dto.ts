@@ -1,57 +1,72 @@
 // src/application/dtos/list-query.dto.ts
-import { Type } from 'class-transformer'
-import { IsOptional, IsPositive, Min, Max, IsString, MaxLength, IsIn, IsDateString } from 'class-validator'
-import { Trim } from 'src/shared/decorators'
-import { VALIDATION_MESSAGES } from '../../../shared/constants'
-import { ToNumber, EmptyToUndefined } from 'src/shared/decorators'
+import { IsOptionalDate, IsOptionalEnumValue, IsOptionalInt, IsOptionalString } from 'src/shared/decorators/validate'
+import { IsOptional, IsIn, IsDateString } from 'class-validator'
+import { EmptyToUndefined } from 'src/shared/decorators'
+import { SortOrder } from 'src/shared/enums/sort-order.enum'
 
 /**
- * DTO flat cho các query list có pagination, sort và filter
+ * Base DTO for list queries with pagination, sorting and filtering
+ * 
+ * @description Provides common pagination, sorting and date range filtering functionality
  */
 export class ListQueryDto {
-  // Pagination properties
-  @IsOptional()
-  @ToNumber()
-  @IsPositive({ message: VALIDATION_MESSAGES.FIELD_INVALID('Số trang') })
-  @Min(1, { message: VALIDATION_MESSAGES.FIELD_INVALID('Số trang') })
+  /**
+   * Page number (minimum 1)
+   * @optional
+   * @default 1
+   * @example 1
+   */
+  @IsOptionalInt('Số trang', 1, 1000)
   page?: number = 1
 
-  @IsOptional()
-  @ToNumber()
-  @IsPositive({ message: VALIDATION_MESSAGES.FIELD_INVALID('Kích thước trang') })
-  @Min(1, { message: VALIDATION_MESSAGES.FIELD_INVALID('Kích thước trang') })
-  @Max(1000, { message: VALIDATION_MESSAGES.FIELD_INVALID('Kích thước trang') })
+  /**
+   * Items per page (minimum 1, maximum 1000)
+   * @optional
+   * @default 10
+   * @example 10
+   */
+  @IsOptionalInt('Kích thước trang', 1, 1000)
   limit?: number = 10
 
-  // Search property
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Từ khóa tìm kiếm') })
-  @Trim()
-  @MaxLength(255, { message: VALIDATION_MESSAGES.FIELD_MAX('Từ khóa tìm kiếm', 255) })
+  /**
+   * Search keyword
+   * @optional
+   * @example 'search term'
+   */
+  @IsOptionalString('Từ khóa tìm kiếm', 255)
   search?: string
 
-  // Sort properties
-  @IsOptional()
-  @EmptyToUndefined()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Trường sắp xếp') })
-  @Trim()
-  @MaxLength(50, { message: VALIDATION_MESSAGES.FIELD_MAX('Tên trường sắp xếp', 50) })
+  /**
+   * Field name to sort by
+   * @optional
+   * @example 'createdAt'
+   */
+  @IsOptionalString('Trường sắp xếp', 50)
   sortBy?: string
 
-  @IsOptional()
-  @EmptyToUndefined()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Thứ tự sắp xếp') })
-  @IsIn(['asc', 'desc'], { message: VALIDATION_MESSAGES.FIELD_INVALID('Thứ tự sắp xếp') })
-  sortOrder?: 'asc' | 'desc' = 'desc'
+  /**
+   * Sort order (asc or desc)
+   * @optional
+   * @default 'desc'
+   * @example 'desc'
+   */
+  @IsOptionalEnumValue(SortOrder, 'Thứ tự sắp xếp')
+  sortOrder?: SortOrder = SortOrder.DESC
 
-  @IsOptional()
-  @EmptyToUndefined()
-  @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Từ ngày') })
+  /**
+   * Filter from date (ISO date string)
+   * @optional
+   * @example '2024-01-01'
+   */
+  @IsOptionalDate('Từ ngày')
   fromDate?: string
 
-  @IsOptional()
-  @EmptyToUndefined()
-  @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Đến ngày') })
+  /**
+   * Filter to date (ISO date string)
+   * @optional
+   * @example '2024-12-31'
+   */
+  @IsOptionalDate('Đến ngày')
   toDate?: string
 
   /**
@@ -67,7 +82,7 @@ export class ListQueryDto {
   normalize(): void {
     this.page = Math.max(1, this.page || 1)
     this.limit = Math.min(1000, Math.max(1, this.limit || 10))
-    this.sortOrder = this.sortOrder === 'asc' ? 'asc' : 'desc'
+    this.sortOrder = this.sortOrder === SortOrder.ASC ? SortOrder.ASC : SortOrder.DESC
 
     // Trim search string
     if (this.search) {
@@ -107,13 +122,13 @@ export class ListQueryDto {
   /**
    * Tạo object sort cho Prisma
    */
-  toPrismaSort(): Record<string, 'asc' | 'desc'> | undefined {
+  toPrismaSort(): Record<string, SortOrder> | undefined {
     if (!this.sortBy) {
       return undefined
     }
 
     return {
-      [this.sortBy]: this.sortOrder || 'desc',
+      [this.sortBy]: this.sortOrder || SortOrder.DESC,
     }
   }
 

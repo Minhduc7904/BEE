@@ -4,18 +4,14 @@ import { IsOptional, IsNumber, IsArray, IsString, MaxLength,  } from 'class-vali
 import { VALIDATION_MESSAGES } from 'src/shared/constants'
 import { Trim } from 'src/shared/decorators/trim.decorator'
 import { ToNumberArray } from 'src/shared/decorators'
+import { SortOrder } from 'src/shared/enums/sort-order.enum'
+import { IsOptionalString, IsOptionalIdNumber, IsOptionalIntArray } from 'src/shared/decorators/validate'
 
 export class ClassSessionSearchQueryDto {
-    @IsOptional()
-    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Từ khóa tìm kiếm') })
-    @Trim()
-    @MaxLength(255, { message: VALIDATION_MESSAGES.FIELD_MAX('Từ khóa tìm kiếm', 255) })
+    @IsOptionalString('Từ khóa tìm kiếm', 255)
     search?: string
 
-    @IsOptional()
-    @IsArray()
-    @IsNumber({}, { each: true })
-    @ToNumberArray()
+    @IsOptionalIntArray('IDs lớp học')
     classIds?: number[]
 
     /* ===================== FILTER ===================== */
@@ -32,7 +28,7 @@ export class ClassSessionSearchQueryDto {
             page: 1,
             limit: 10,
             sortBy: 'sessionDate',
-            sortOrder: 'desc' as const,
+            sortOrder: SortOrder.DESC,
         }
     }
 }

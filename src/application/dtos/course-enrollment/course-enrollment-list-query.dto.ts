@@ -1,39 +1,67 @@
-import { IsOptional, IsInt, IsString, IsDateString } from 'class-validator';
-import { Type } from 'class-transformer';
-import { ListQueryDto } from '../pagination/list-query.dto';
+import { Type } from 'class-transformer'
+import { ListQueryDto } from '../pagination/list-query.dto'
 import {
   CourseEnrollmentFilterOptions,
   CourseEnrollmentPaginationOptions,
-} from 'src/domain/interface/course-enrollment/course-enrollment.interface';
-import { CourseEnrollmentStatus, Visibility } from 'src/shared/enums';
+} from 'src/domain/interface/course-enrollment/course-enrollment.interface'
+import { CourseEnrollmentStatus, Visibility } from 'src/shared/enums'
 import { ToNumber } from 'src/shared/decorators'
+import { IsOptionalIdNumber, IsOptionalString, IsOptionalDate } from 'src/shared/decorators/validate'
 
+/**
+ * DTO truy vấn danh sách đăng ký khóa học
+ * @description Chứa các tham số lọc và phân trang cho danh sách đăng ký
+ */
 export class CourseEnrollmentListQueryDto extends ListQueryDto {
-  @IsOptional()
+  /**
+   * ID khóa học
+   * @optional
+   * @example 5
+   */
   @ToNumber()
-  @IsInt({ message: 'ID khóa học phải là số nguyên' })
-  courseId?: number;
+  @IsOptionalIdNumber('ID khóa học')
+  courseId?: number
 
-  @IsOptional()
+  /**
+   * ID học sinh
+   * @optional
+   * @example 10
+   */
   @ToNumber()
-  @IsInt({ message: 'ID học sinh phải là số nguyên' })
-  studentId?: number;
+  @IsOptionalIdNumber('ID học sinh')
+  studentId?: number
 
-  @IsOptional()
-  @IsString({ message: 'Trạng thái phải là chuỗi ký tự' })
-  status?: CourseEnrollmentStatus;
+  /**
+   * Trạng thái đăng ký
+   * @optional
+   * @example "ACTIVE"
+   */
+  @IsOptionalString('Trạng thái')
+  status?: CourseEnrollmentStatus
 
-  @IsOptional()
-  @IsDateString({}, { message: 'Ngày đăng ký từ phải là định dạng ngày hợp lệ' })
-  enrolledAtFrom?: string;
+  /**
+   * Ngày đăng ký từ
+   * @optional
+   * @example "2024-01-01"
+   */
+  @IsOptionalDate('Ngày đăng ký từ')
+  enrolledAtFrom?: string
 
-  @IsOptional()
-  @IsDateString({}, { message: 'Ngày đăng ký đến phải là định dạng ngày hợp lệ' })
-  enrolledAtTo?: string;
+  /**
+   * Ngày đăng ký đến
+   * @optional
+   * @example "2024-12-31"
+   */
+  @IsOptionalDate('Ngày đăng ký đến')
+  enrolledAtTo?: string
 
-  @IsOptional()
-  @IsString({ message: 'Trạng thái hiển thị khóa học phải là chuỗi ký tự' })
-  courseVisibility?: Visibility;
+  /**
+   * Trạng thái hiển thị khóa học
+   * @optional
+   * @example "PUBLIC"
+   */
+  @IsOptionalString('Trạng thái hiển thị khóa học')
+  courseVisibility?: Visibility
 
   toCourseEnrollmentFilterOptions(): CourseEnrollmentFilterOptions {
     return {

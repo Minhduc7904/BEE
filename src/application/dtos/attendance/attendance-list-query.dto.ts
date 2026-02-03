@@ -1,31 +1,22 @@
-import { IsOptional, IsInt, IsEnum } from 'class-validator'
-import { Type } from 'class-transformer'
 import { ListQueryDto } from '../pagination/list-query.dto'
 import { AttendanceStatus } from 'src/shared/enums'
 import {
   AttendanceFilterOptions,
   AttendancePaginationOptions,
 } from '../../../domain/interface/attendance/attendance.interface'
-import { ToNumber } from 'src/shared/decorators'
+import { IsOptionalIdNumber, IsOptionalEnumValue } from 'src/shared/decorators/validate'
 
 export class AttendanceListQueryDto extends ListQueryDto {
-  @IsOptional()
-  @ToNumber()
-  @IsInt({ message: 'ID buổi học phải là số nguyên' })
+  @IsOptionalIdNumber('ID buổi học')
   sessionId?: number
 
-  @IsOptional()
-  @ToNumber()
-  @IsInt({ message: 'ID học sinh phải là số nguyên' })
+  @IsOptionalIdNumber('ID học sinh')
   studentId?: number
 
-  @IsOptional()
-  @ToNumber()
-  @IsInt({ message: 'ID lớp học phải là số nguyên' })
+  @IsOptionalIdNumber('ID lớp học')
   classId?: number
 
-  @IsOptional()
-  @IsEnum(AttendanceStatus, { message: 'Trạng thái điểm danh không hợp lệ' })
+  @IsOptionalEnumValue(AttendanceStatus, 'Trạng thái điểm danh')
   status?: AttendanceStatus
 
   toAttendanceFilterOptions(): AttendanceFilterOptions {

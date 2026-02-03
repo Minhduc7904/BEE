@@ -1,18 +1,25 @@
 // src/application/dtos/documentContent/update-document-content.dto.ts
-import { IsString, IsInt, IsOptional } from 'class-validator'
-import { Type } from 'class-transformer'
-import { VALIDATION_MESSAGES } from '../../../shared/constants'
-import { Trim } from '../../../shared/decorators'
-import { ToNumber } from 'src/shared/decorators'
+import { IsOptionalString, IsOptionalInt } from 'src/shared/decorators/validate'
 
+/**
+ * DTO for updating document content
+ * 
+ * @description Used to update an existing document content item
+ */
 export class UpdateDocumentContentDto {
-    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('content') })
-    @IsOptional()
-    @Trim()
+    /**
+     * Document content
+     * @optional
+     * @example 'Updated document content...'
+     */
+    @IsOptionalString('Nội dung tài liệu')
     content?: string
 
-    @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('orderInDocument') })
-    @IsOptional()
-    @ToNumber()
+    /**
+     * Order in document
+     * @optional
+     * @example 2
+     */
+    @IsOptionalInt('Thứ tự trong tài liệu')
     orderInDocument?: number
 }

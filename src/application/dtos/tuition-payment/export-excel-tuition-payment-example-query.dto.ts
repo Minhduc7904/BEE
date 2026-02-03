@@ -1,20 +1,24 @@
-import { IsInt, IsOptional, Min, Max } from 'class-validator'
-import { ToNumber } from 'src/shared/decorators'
+import { IsRequiredInt } from 'src/shared/decorators/validate'
+
+/**
+ * DTO for exporting tuition payment example Excel file
+ * 
+ * @description Parameters for generating a template Excel file for tuition payment import
+ */
 export class ExportExcelTuitionPaymentExampleQueryDto {
   /**
-   * Lọc theo năm
+   * Year (min: 2000)
+   * @required
+   * @example 2024
    */
-  @ToNumber()
-  @IsInt({ message: 'Năm phải là số nguyên' })
-  @Min(2000, { message: 'Năm không hợp lệ' })
+  @IsRequiredInt('Năm', 2000)
   year: number
 
   /**
-   * Lọc theo tháng
+   * Month (1-12)
+   * @required
+   * @example 6
    */
-  @ToNumber()
-  @IsInt({ message: 'Tháng phải là số nguyên' })
-  @Min(1, { message: 'Tháng phải từ 1 đến 12' })
-  @Max(12, { message: 'Tháng phải từ 1 đến 12' })
+  @IsRequiredInt('Tháng', 1, 12)
   month: number
 }

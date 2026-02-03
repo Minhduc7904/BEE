@@ -1,7 +1,4 @@
-import { IsBoolean, IsOptional, IsEnum } from 'class-validator'
-import { Transform } from 'class-transformer'
-import { ToBoolean } from 'src/shared/decorators'
-
+import { IsOptionalBoolean, IsOptionalEnumValue } from 'src/shared/decorators/validate'
 /**
  * DTO for customizing attendance export fields
  * 
@@ -28,81 +25,63 @@ export class ExportAttendanceOptionsDto {
      * Include school field
      * @default true
      */
-    @IsOptional()
-    @ToBoolean()
-    @IsBoolean()
+    @IsOptionalBoolean('Bao gồm trường')
     includeSchool?: boolean = true
 
     /**
      * Include parent phone field
      * @default true
      */
-    @IsOptional()
-    @ToBoolean()
-    @IsBoolean()
+    @IsOptionalBoolean('Bao gồm số điện thoại phụ huynh')
     includeParentPhone?: boolean = true
 
     /**
      * Include student phone field
      * @default false
      */
-    @IsOptional()
-    @ToBoolean()
-    @IsBoolean()
+    @IsOptionalBoolean('Bao gồm số điện thoại học sinh')
     includeStudentPhone?: boolean = false
 
     /**
      * Include grade field
      * @default true
      */
-    @IsOptional()
-    @ToBoolean()
-    @IsBoolean()
+    @IsOptionalBoolean('Bao gồm khối')
     includeGrade?: boolean = true
 
     /**
      * Include email field
      * @default true
      */
-    @IsOptional()
-    @ToBoolean()
-    @IsBoolean()
+    @IsOptionalBoolean('Bao gồm email')
     includeEmail?: boolean = true
 
     /**
      * Include marked at timestamp field
      * @default true
      */
-    @IsOptional()
-    @ToBoolean()
-    @IsBoolean()
+    @IsOptionalBoolean('Bao gồm thời gian điểm danh')
     includeMarkedAt?: boolean = true
 
     /**
      * Include notes field
      * @default true
      */
-    @IsOptional()
-    @ToBoolean()
-    @IsBoolean()
+    @IsOptionalBoolean('Bao gồm ghi chú')
     includeNotes?: boolean = true
 
     /**
      * Include makeup note field
      * @default false
      */
-    @IsOptional()
-    @ToBoolean()
-    @IsBoolean()
+    @IsOptionalBoolean('Bao gồm ghi chú điểm danh bù')
     includeMakeupNote?: boolean = false
 
     /**
      * Include marker name field
      * @default true
      */
-    @IsOptional()
-    @ToBoolean()
-    @IsBoolean()
+    @IsOptionalBoolean('Bao gồm tên người điểm danh')
     includeMarkerName?: boolean = true
 }
 

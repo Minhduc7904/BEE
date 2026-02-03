@@ -1,116 +1,221 @@
-import { IsString, IsEmail, MinLength, IsOptional, Matches, IsInt, Min, Max, IsDateString } from 'class-validator'
-import { ToNumberArray, Trim } from '../../../shared/decorators'
-import { VALIDATION_MESSAGES, PHONE_VN_REGEX } from '../../../shared/constants'
-import { BaseResponseDto, ErrorResponseDto, StudentResponseDto, AdminResponseDto } from '..'
-import { IsEnumValue } from '../../../shared/decorators'
+import { IsInt, Min, Max, MinLength } from 'class-validator'
+import { BaseResponseDto, StudentResponseDto, AdminResponseDto } from '..'
+import { 
+  IsRequiredString, 
+  IsOptionalString, 
+  IsOptionalEmail, 
+  IsOptionalNumber,
+  IsOptionalEnumValue,
+  IsOptionalDate,
+  IsOptionalIntArray,
+  IsRequiredNumber,
+  IsOptionalPhoneVN
+} from 'src/shared/decorators/validate'
 import { Gender } from 'src/shared/enums'
+import { VALIDATION_MESSAGES } from '../../../shared/constants'
 
-
+/**
+ * DTO for admin registration
+ * 
+ * Required fields:
+ * - Username (Tên đăng nhập)
+ * - Password (Mật khẩu)
+ * - First Name (Họ)
+ * - Last Name (Tên)
+ * 
+ * Optional fields:
+ * - Email
+ * - Subject ID (Môn học)
+ * - Role IDs (Danh sách vai trò)
+ */
 export class RegisterAdminDto {
-  @Trim()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tên đăng nhập') })
+  // Account credentials
+  /**
+   * Admin username
+   * @required
+   */
+  @IsRequiredString('Tên đăng nhập')
   username: string
 
-  @Trim()
-  @IsOptional()
-  @IsEmail({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Email') })
+  /**
+   * Admin email
+   * @optional
+   */
+  @IsOptionalEmail('Email')
   email?: string
 
-  @Trim()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Mật khẩu') })
-  @MinLength(6, { message: VALIDATION_MESSAGES.FIELD_MIN('Mật khẩu', 6) })
+  /**
+   * Admin password
+   * @required
+   * @minLength 6
+   */
+  @IsRequiredString('Mật khẩu')
+  @MinLength(6, { message: VALIDATION_MESSAGES.FIELD_MIN_LENGTH('Mật khẩu', 6) })
   password: string
 
-  @Trim()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Họ') })
+  // Personal information
+  /**
+   * Admin first name
+   * @required
+   */
+  @IsRequiredString('Họ')
   firstName: string
 
-  @Trim()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tên') })
+  /**
+   * Admin last name
+   * @required
+   */
+  @IsRequiredString('Tên')
   lastName: string
 
-  @Trim()
-  @IsOptional()
-  @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('Môn học') })
+  // Role and permissions
+  /**
+   * Subject ID that admin teaches
+   * @optional
+   */
+  @IsOptionalNumber('Môn học')
   subjectId?: number
 
-  @IsOptional()
+  /**
+   * List of role IDs assigned to admin
+   * @optional
+   */
+  @IsOptionalIntArray('Danh sách vai trò')
   @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('Danh sách vai trò'), each: true })
   roleIds?: number[]
 }
 
+/**
+ * DTO for student registration
+ * 
+ * Required fields:
+ * - Username (Tên đăng nhập)
+ * - Password (Mật khẩu)
+ * - First Name (Họ)
+ * - Last Name (Tên)
+ * - Grade (Khối lớp)
+ * 
+ * Optional fields:
+ * - Email
+ * - Gender (Giới tính)
+ * - Date of Birth (Ngày sinh)
+ * - Student Phone (SĐT học sinh)
+ * - Parent Phone (SĐT phụ huynh)
+ * - School (Trường)
+ * - Course IDs (Danh sách khóa học)
+ * - Class IDs (Danh sách lớp học)
+ * - Session IDs (Danh sách buổi học)
+ */
 export class RegisterStudentDto {
-  @Trim()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tên đăng nhập') })
+  // Account credentials
+  /**
+   * Student username
+   * @required
+   */
+  @IsRequiredString('Tên đăng nhập')
   username: string
 
-  @Trim()
-  @IsOptional()
-  @IsEmail({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Email') })
+  /**
+   * Student email
+   * @optional
+   */
+  @IsOptionalEmail('Email')
   email?: string
 
-  @Trim()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Mật khẩu') })
-  @MinLength(6, { message: VALIDATION_MESSAGES.FIELD_MIN('Mật khẩu', 6) })
+  /**
+   * Student password
+   * @required
+   * @minLength 6
+   */
+  @IsRequiredString('Mật khẩu')
+  @MinLength(6, { message: VALIDATION_MESSAGES.FIELD_MIN_LENGTH('Mật khẩu', 6) })
   password: string
 
-  @Trim()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Họ') })
+  // Personal information
+  /**
+   * Student first name
+   * @required
+   */
+  @IsRequiredString('Họ')
   firstName: string
 
-  @Trim()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tên') })
+  /**
+   * Student last name
+   * @required
+   */
+  @IsRequiredString('Tên')
   lastName: string
 
-  // NEW: gender
-  @IsOptional()
-  @IsEnumValue(Gender, { message: VALIDATION_MESSAGES.FIELD_INVALID('Giới tính') })
+  /**
+   * Student gender
+   * @optional
+   */
+  @IsOptionalEnumValue(Gender, 'Giới tính')
   gender?: Gender
 
-  @IsOptional()
-  @IsDateString({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Ngày sinh') })
+  /**
+   * Student date of birth
+   * @optional
+   */
+  @IsOptionalDate('Ngày sinh')
   dateOfBirth?: Date
 
-  @Trim()
-  @IsOptional()
-  @Matches(PHONE_VN_REGEX, {
-    message: VALIDATION_MESSAGES.FIELD_INVALID('Số điện thoại học sinh'),
-  })
+  // Contact information
+  /**
+   * Student phone number (Vietnamese format)
+   * @optional
+   */
+  @IsOptionalPhoneVN('Số điện thoại học sinh')
   studentPhone?: string
 
-  @Trim()
-  @IsOptional()
-  @Matches(PHONE_VN_REGEX, {
-    message: VALIDATION_MESSAGES.FIELD_INVALID('Số điện thoại phụ huynh'),
-  })
+  /**
+   * Parent phone number (Vietnamese format)
+   * @optional
+   */
+  @IsOptionalPhoneVN('Số điện thoại phụ huynh')
   parentPhone?: string
 
-  @Trim()
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Trường') })
+  // School information
+  /**
+   * School name
+   * @optional
+   */
+  @IsOptionalString('Trường')
   school?: string
 
-  @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('Khối lớp') })
-  @Min(1, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Khối lớp', 1) })
-  @Max(12, { message: VALIDATION_MESSAGES.FIELD_MAX_VALUE('Khối lớp', 12) })
+  /**
+   * Grade level (1-12)
+   * @required
+   */
+  @IsRequiredNumber('Khối lớp', 1, 12)
   grade: number
 
-  @IsOptional()
-  @ToNumberArray()
-  @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('Danh sách khoá học'), each: true })
+  // Course enrollment
+  /**
+   * List of course IDs to enroll
+   * @optional
+   */
+  @IsOptionalIntArray('Danh sách khóa học')
   courseIds?: number[]
 
-  @IsOptional()
-  @ToNumberArray()
-  @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('Danh sách lớp học'), each: true })
+  /**
+   * List of class IDs to join
+   * @optional
+   */
+  @IsOptionalIntArray('Danh sách lớp học')
   classIds?: number[]
 
-  @IsOptional()
-  @ToNumberArray()
-  @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('Danh sách buổi học'), each: true })
+  /**
+   * List of session IDs to attend
+   * @optional
+   */
+  @IsOptionalIntArray('Danh sách buổi học')
   sessionIds?: number[]
 }
 
+/**
+ * Response DTO after admin registration
+ */
 export class RegisterAdminResponseDto extends BaseResponseDto<AdminResponseDto> {
   declare data: AdminResponseDto
 }

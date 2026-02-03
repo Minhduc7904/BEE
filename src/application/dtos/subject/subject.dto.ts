@@ -1,46 +1,82 @@
-import {
-  IsOptional,
-  IsString,
-  MaxLength,
-  MinLength,
-} from 'class-validator'
-import { Trim } from '../../../shared/decorators'
-import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { Subject } from '../../../domain/entities/subject/subject.entity'
+import { IsRequiredString, IsOptionalString } from 'src/shared/decorators/validate'
+import { MinLength } from 'class-validator'
+import { VALIDATION_MESSAGES } from '../../../shared/constants'
 
+/**
+ * DTO for creating a new subject
+ * 
+ * Required fields:
+ * - Name (Tên môn học)
+ * 
+ * Optional fields:
+ * - Code (Mã môn học)
+ */
 export class CreateSubjectDto {
-  @Trim()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Tên môn học') })
-  @MinLength(2, { message: VALIDATION_MESSAGES.FIELD_MIN('Tên môn học', 2) })
-  @MaxLength(100, { message: VALIDATION_MESSAGES.FIELD_MAX('Tên môn học', 100) })
+  /**
+   * Subject name
+   * @required
+   * @minLength 2
+   * @maxLength 100
+   */
+  @IsRequiredString('Tên môn học', 100, 2)
   name: string
 
-  @Trim()
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Mã môn học') })
-  @MaxLength(50, { message: VALIDATION_MESSAGES.FIELD_MAX('Mã môn học', 50) })
+  /**
+   * Subject code (optional identifier)
+   * @optional
+   * @maxLength 50
+   */
+  @IsOptionalString('Mã môn học', 50)
   code?: string
 }
 
+/**
+ * DTO for updating an existing subject
+ * All fields are optional - only provided fields will be updated
+ */
 export class UpdateSubjectDto {
-  @Trim()
-  @IsOptional()
-  @IsString()
-  @MinLength(2)
-  @MaxLength(100)
+  /**
+   * Subject name
+   * @optional
+   * @minLength 2
+   * @maxLength 100
+   */
+  @IsOptionalString('Tên môn học', 100)
+  @MinLength(2, { message: VALIDATION_MESSAGES.FIELD_MIN_LENGTH('Tên môn học', 2) })
   name?: string
 
-  @Trim()
-  @IsOptional()
-  @IsString()
-  @MaxLength(50)
+  /**
+   * Subject code
+   * @optional
+   * @maxLength 50
+   */
+  @IsOptionalString('Mã môn học', 50)
   code?: string
 }
 
+/**
+ * Response DTO for subject data
+ */
 export class SubjectResponseDto {
+  /**
+   * Subject unique identifier
+   */
   subjectId: number
+
+  /**
+   * Subject name
+   */
   name: string
+
+  /**
+   * Subject code (optional)
+   */
   code?: string | null
+
+  /**
+   * Total number of chapters in this subject
+   */
   chaptersCount?: number
 
   static fromSubject(subject: Subject): SubjectResponseDto {
@@ -57,7 +93,13 @@ export class SubjectResponseDto {
   }
 }
 
+/**
+ * Detailed response DTO for subject with chapters
+ */
 export class SubjectDetailResponseDto extends SubjectResponseDto {
+  /**
+   * List of chapters in this subject
+   */
   chapters?: any[]
 
   static fromSubjectWithChapters(subject: Subject): SubjectDetailResponseDto {

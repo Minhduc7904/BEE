@@ -1,35 +1,63 @@
 // src/application/dtos/youtubeContent/youtube-content-list-query.dto.ts
-import { Type } from 'class-transformer'
-import { IsOptional, IsInt, Min, Max, IsEnum, IsString } from 'class-validator'
-import { ToNumber } from 'src/shared/decorators'
+import { IsOptionalInt, IsOptionalIdNumber, IsOptionalString } from 'src/shared/decorators/validate'
+import { IsIn } from 'class-validator'
+
+/**
+ * DTO for querying youtube content list
+ * 
+ * @description Used to query and filter youtube content with pagination and sorting
+ */
 export class YoutubeContentListQueryDto {
-    @IsOptional()
-    @IsInt()
-    @Min(1)
-    @ToNumber()
-    page?: number = 1
+  /**
+   * Page number (min: 1)
+   * @optional
+   * @default 1
+   * @example 1
+   */
+  @IsOptionalInt('Số trang', 1)
+  page?: number = 1
 
-    @IsOptional()
-    @IsInt()
-    @Min(1)
-    @Max(100)
-    @ToNumber()
-    limit?: number = 10
+  /**
+   * Items per page (min: 1, max: 100)
+   * @optional
+   * @default 10
+   * @example 10
+   */
+  @IsOptionalInt('Số lượng/trang', 1, 100)
+  limit?: number = 10
 
-    @IsOptional()
-    @IsString()
-    sortBy?: string = 'createdAt'
+  /**
+   * Sort by field
+   * @optional
+   * @default 'createdAt'
+   * @example 'createdAt'
+   */
+  @IsOptionalString('Sắp xếp theo')
+  sortBy?: string = 'createdAt'
 
-    @IsOptional()
-    @IsEnum(['asc', 'desc'])
-    sortOrder?: 'asc' | 'desc' = 'desc'
+  /**
+   * Sort order
+   * @optional
+   * @default 'desc'
+   * @example 'asc'
+   */
+  @IsOptionalString('Thứ tự sắp xếp')
+  @IsIn(['asc', 'desc'], { message: 'Thứ tự sắp xếp phải là asc hoặc desc' })
+  sortOrder?: 'asc' | 'desc' = 'desc'
 
-    @IsOptional()
-    @IsInt()
-    @ToNumber()
-    learningItemId?: number
+  /**
+   * Filter by learning item ID
+   * @optional
+   * @example 5
+   */
+  @IsOptionalIdNumber('ID learning item')
+  learningItemId?: number
 
-    @IsOptional()
-    @IsString()
-    search?: string
+  /**
+   * Search keyword
+   * @optional
+   * @example 'tutorial'
+   */
+  @IsOptionalString('Từ khóa tìm kiếm')
+  search?: string
 }

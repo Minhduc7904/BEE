@@ -1,8 +1,7 @@
 // src/application/dtos/admin/admin-response.dto.ts
 import { UserResponseDto, UpdateUserDto } from '..'
-import { IsOptional, IsNumber, IsPositive } from 'class-validator'
-import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { RoleWithPermissionsResponseDto } from '../role/role.dto'
+import { IsOptionalIdNumber } from 'src/shared/decorators/validate'
 
 export class AdminResponseDto extends UserResponseDto {
   adminId: number
@@ -54,9 +53,16 @@ export class AdminResponseDto extends UserResponseDto {
   }
 }
 
+/**
+ * DTO cập nhật thông tin admin
+ * @description Chứa các trường có thể cập nhật của admin (extends UpdateUserDto)
+ */
 export class UpdateAdminDto extends UpdateUserDto {
-  @IsOptional()
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Subject ID') })
-  @IsPositive({ message: 'Subject ID phải là số dương' })
+  /**
+   * Mã môn học phụ trách
+   * @optional
+   * @example 5
+   */
+  @IsOptionalIdNumber('Mã môn học')
   subjectId?: number
 }

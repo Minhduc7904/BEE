@@ -1,44 +1,72 @@
-// src/application/dtos/temp-exam/create-temp-exam.dto.ts
-import { IsString, IsOptional, IsNumber, IsEnum, Min, Max, MinLength, MaxLength } from 'class-validator'
 import { Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { ExamVisibility } from '../../../shared/enums'
+import { IsRequiredString, IsOptionalString, IsOptionalInt, IsOptionalIdNumber, IsOptionalEnumValue } from 'src/shared/decorators/validate'
 
+/**
+ * DTO tạo đề thi tạm
+ * @description Chứa thông tin để tạo đề thi tạm thời
+ */
 export class CreateTempExamDto {
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Tiêu đề') })
-  @MinLength(3, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Tiêu đề', 3) })
-  @MaxLength(200, { message: VALIDATION_MESSAGES.FIELD_MAX_VALUE('Tiêu đề', 200) })
-  @Trim()
+  /**
+   * Tiêu đề đề thi (3-200 ký tự)
+   * @required
+   * @example "Đề thi giữa kỳ Toán 10"
+   */
+  @IsRequiredString('Tiêu đề', 200, 3)
   title: string
 
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Mô tả') })
-  @Trim()
+  /**
+   * Mô tả đề thi
+   * @optional
+   * @example "Đề thi trắc nghiệm và tự luận"
+   */
+  @IsOptionalString('Mô tả')
   description?: string
 
-  @IsOptional()
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Khối') })
-  @Min(1, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Khối', 1) })
-  @Max(12, { message: VALIDATION_MESSAGES.FIELD_MAX_VALUE('Khối', 12) })
+  /**
+   * Khối lớp (1-12)
+   * @optional
+   * @example 10
+   */
+  @IsOptionalInt('Khối', 1, 12)
   grade?: number
 
-  @IsOptional()
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Môn học') })
+  /**
+   * ID môn học
+   * @optional
+   * @example 5
+   */
+  @IsOptionalIdNumber('Môn học')
   subjectId?: number
 
-  @IsOptional()
-  @IsEnum(ExamVisibility, { message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái hiển thị') })
+  /**
+   * Trạng thái hiển thị
+   * @optional
+   * @example "PUBLIC"
+   */
+  @IsOptionalEnumValue(ExamVisibility, 'Trạng thái hiển thị')
   visibility?: ExamVisibility
 
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Link Youtube lời giải') })
-  @Trim()
+  /**
+   * Link Youtube lời giải
+   * @optional
+   * @example "https://youtube.com/watch?v=xxx"
+   */
+  @IsOptionalString('Link Youtube lời giải')
   solutionYoutubeUrl?: string
 
-  @IsOptional()
+  /**
+   * Dữ liệu metadata
+   * @optional
+   */
+  @IsOptionalString('Metadata')
   metadata?: any
 
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Nội dung thô') })
+  /**
+   * Nội dung thô
+   * @optional
+   */
+  @IsOptionalString('Nội dung thô')
   rawContent?: string
 }

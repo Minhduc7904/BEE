@@ -1,13 +1,20 @@
-import { IsOptional, IsString, MaxLength } from 'class-validator'
 import { ListQueryDto } from '../pagination/list-query.dto'
-import { Trim } from '../../../shared/decorators'
-import { VALIDATION_MESSAGES } from '../../../shared/constants'
-
+import { IsOptionalString } from 'src/shared/decorators/validate'
+import { SortOrder } from 'src/shared/enums/sort-order.enum'
+/**
+ * DTO for querying subject list with filters and pagination
+ * Extends ListQueryDto for common pagination and sorting fields
+ * 
+ * Filter fields:
+ * - Code (Mã môn học)
+ */
 export class SubjectListQueryDto extends ListQueryDto {
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Mã môn học') })
-  @Trim()
-  @MaxLength(50, { message: VALIDATION_MESSAGES.FIELD_MAX('Mã môn học', 50) })
+  /**
+   * Filter by subject code
+   * @optional
+   * @maxLength 50
+   */
+  @IsOptionalString('Mã môn học', 50)
   code?: string
 
   /**
@@ -27,7 +34,7 @@ export class SubjectListQueryDto extends ListQueryDto {
    */
   toSubjectPaginationOptions() {
     const sortField = this.sortBy || 'createdAt'
-    const sortDirection = this.sortOrder || 'desc'
+    const sortDirection = this.sortOrder || SortOrder.DESC
 
     // Validate sort field
     const allowedSortFields = [

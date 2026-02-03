@@ -1,56 +1,90 @@
 // src/application/dtos/course/create-course.dto.ts
-import { IsString, IsOptional, IsNumber, IsEnum, IsBoolean, Min, Max, MinLength, MaxLength } from 'class-validator'
 import { Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { CourseVisibility } from 'src/shared/enums'
+import { IsRequiredString, IsOptionalString, IsOptionalInt, IsRequiredNumber, IsOptionalNumber, IsOptionalEnumValue, IsOptionalIdNumber } from 'src/shared/decorators/validate'
+/**
+ * DTO tạo khóa học mới
+ * @description Chứa thông tin cơ bản để tạo khóa học mới
+ */
 export class CreateCourseDto {
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Tiêu đề') })
-  @MinLength(3, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Tiêu đề', 3) })
-  @MaxLength(200, { message: VALIDATION_MESSAGES.FIELD_MAX_VALUE('Tiêu đề', 200) })
-  @Trim()
+  /**
+   * Tiêu đề khóa học (3-200 ký tự)
+   * @required
+   * @example "Toán học lớp 10"
+   */
+  @IsRequiredString('Tiêu đề', 200, 3)
   title: string
 
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Phụ đề') })
-  @MaxLength(255, { message: VALIDATION_MESSAGES.FIELD_MAX_VALUE('Phụ đề', 255) })
-  @Trim()
+  /**
+   * Phụ đề khóa học (tối đa 255 ký tự)
+   * @optional
+   * @example "Cơ bản và nâng cao"
+   */
+  @IsOptionalString('Phụ đề', 255)
   subtitle?: string
 
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Năm học') })
-  @MaxLength(9, { message: VALIDATION_MESSAGES.FIELD_MAX_VALUE('Năm học', 9) })
-  @Trim()
+  /**
+   * Năm học (tối đa 9 ký tự, format: YYYY-YYYY)
+   * @optional
+   * @example "2024-2025"
+   */
+  @IsOptionalString('Năm học', 9)
   academicYear?: string
 
-  @IsOptional()
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Khối') })
-  @Min(1, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Khối', 1) })
-  @Max(12, { message: VALIDATION_MESSAGES.FIELD_MAX_VALUE('Khối', 12) })
+  /**
+   * Khối lớp (1-12)
+   * @optional
+   * @example 10
+   */
+  @IsOptionalInt('Khối', 1, 12)
   grade?: number
 
-  @IsOptional()
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Môn học') })
+  /**
+   * ID môn học
+   * @optional
+   * @example 5
+   */
+  @IsOptionalIdNumber('Môn học')
   subjectId?: number
 
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Mô tả') })
-  @Trim()
+  /**
+   * Mô tả khóa học
+   * @optional
+   * @example "Khóa học toán cơ bản và nâng cao cho học sinh lớp 10"
+   */
+  @IsOptionalString('Mô tả')
   description?: string
 
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Giá') })
-  @Min(0, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Giá', 0) })
+  /**
+   * Giá khóa học (VNĐ, ≥ 0)
+   * @required
+   * @example 500000
+   */
+  @IsRequiredNumber('Giá', 0)
   priceVND: number
 
-  @IsOptional()
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Giá gốc') })
-  @Min(0, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Giá gốc', 0) })
+  /**
+   * Giá gốc trước khi giảm (VNĐ, ≥ 0)
+   * @optional
+   * @example 700000
+   */
+  @IsOptionalNumber('Giá gốc', 0)
   compareAtVND?: number
 
-  @IsOptional()
-  @IsEnum(CourseVisibility, { message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái') })
+  /**
+   * Trạng thái hiển thị khóa học
+   * @optional
+   * @example "PUBLIC"
+   */
+  @IsOptionalEnumValue(CourseVisibility, 'Trạng thái')
   visibility?: CourseVisibility
 
-  @IsOptional()
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Giáo viên') })
+  /**
+   * ID giáo viên phụ trách
+   * @optional
+   * @example 3
+   */
+  @IsOptionalIdNumber('Giáo viên')
   teacherId?: number
 }

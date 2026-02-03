@@ -1,108 +1,211 @@
-import { IsOptional, IsString, MaxLength, MinLength, IsInt, Min } from 'class-validator'
-import { Type } from 'class-transformer'
-import { Trim } from '../../../shared/decorators'
-import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { Chapter } from '../../../domain/entities/chapter/chapter.entity'
-import { ToNumber } from 'src/shared/decorators'
+import { 
+  IsRequiredIdNumber, 
+  IsRequiredString, 
+  IsOptionalString, 
+  IsOptionalIdNumber,
+  IsRequiredInt,
+  IsOptionalInt
+} from 'src/shared/decorators/validate'
+import { MinLength } from 'class-validator'
+import { VALIDATION_MESSAGES } from '../../../shared/constants'
 
+/**
+ * DTO for creating a new chapter
+ * 
+ * Required fields:
+ * - Subject ID (ID môn học)
+ * - Name (Tên chương)
+ * - Slug (Đường dẫn thân thiện)
+ * - Order in Parent (Thứ tự)
+ * 
+ * Optional fields:
+ * - Code (Mã chương)
+ * - Parent Chapter ID (ID chương cha)
+ * - Level (Cấp độ)
+ */
 export class CreateChapterDto {
-  @IsInt({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('ID môn học') })
-  @ToNumber()
-  @Min(1)
+  // Subject and hierarchy
+  /**
+   * Subject ID that this chapter belongs to
+   * @required
+   */
+  @IsRequiredIdNumber('ID môn học')
   subjectId: number
 
-  @Trim()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Tên chương') })
-  @MinLength(2, { message: VALIDATION_MESSAGES.FIELD_MIN('Tên chương', 2) })
-  @MaxLength(200, { message: VALIDATION_MESSAGES.FIELD_MAX('Tên chương', 200) })
-  name: string
-
-  @Trim()
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Mã chương') })
-  @MaxLength(50, { message: VALIDATION_MESSAGES.FIELD_MAX('Mã chương', 50) })
-  code?: string
-
-  @Trim()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Slug') })
-  @MinLength(2, { message: VALIDATION_MESSAGES.FIELD_MIN('Slug', 2) })
-  @MaxLength(200, { message: VALIDATION_MESSAGES.FIELD_MAX('Slug', 200) })
-  slug: string
-
-  @IsOptional()
-  @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('ID chương cha') })
-  @ToNumber()
-  @Min(1)
+  /**
+   * Parent chapter ID for nested structure
+   * @optional
+   */
+  @IsOptionalIdNumber('ID chương cha')
   parentChapterId?: number
 
-  @IsInt({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Thứ tự') })
-  @ToNumber()
-  @Min(0)
+  // Chapter information
+  /**
+   * Chapter name
+   * @required
+   * @minLength 2
+   * @maxLength 200
+   */
+  @IsRequiredString('Tên chương', 200)
+  @MinLength(2, { message: VALIDATION_MESSAGES.FIELD_MIN_LENGTH('Tên chương', 2) })
+  name: string
+
+  /**
+   * Chapter code (optional identifier)
+   * @optional
+   * @maxLength 50
+   */
+  @IsOptionalString('Mã chương', 50)
+  code?: string
+
+  /**
+   * URL-friendly slug
+   * @required
+   * @minLength 2
+   * @maxLength 200
+   */
+  @IsRequiredString('Slug', 200)
+  @MinLength(2, { message: VALIDATION_MESSAGES.FIELD_MIN_LENGTH('Slug', 2) })
+  slug: string
+
+  // Ordering and level
+  /**
+   * Order position within parent chapter
+   * @required
+   * @min 0
+   */
+  @IsRequiredInt('Thứ tự', 0)
   orderInParent: number
 
-  @IsOptional()
-  @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('Cấp độ') })
-  @ToNumber()
-  @Min(0)
+  /**
+   * Hierarchical level (0 = root)
+   * @optional
+   * @min 0
+   */
+  @IsOptionalInt('Cấp độ', 0)
   level?: number
 }
 
+/**
+ * DTO for updating an existing chapter
+ * All fields are optional - only provided fields will be updated
+ */
 export class UpdateChapterDto {
-  @IsOptional()
-  @IsInt()
-  @ToNumber()
-  @Min(1)
+  // Subject and hierarchy
+  /**
+   * Subject ID that this chapter belongs to
+   * @optional
+   */
+  @IsOptionalIdNumber('ID môn học')
   subjectId?: number
 
-  @Trim()
-  @IsOptional()
-  @IsString()
-  @MinLength(2)
-  @MaxLength(200)
-  name?: string
-
-  @Trim()
-  @IsOptional()
-  @IsString()
-  @MaxLength(50)
-  code?: string
-
-  @Trim()
-  @IsOptional()
-  @IsString()
-  @MinLength(2)
-  @MaxLength(200)
-  slug?: string
-
-  @IsOptional()
-  @IsInt()
-  @ToNumber()
-  @Min(1)
+  /**
+   * Parent chapter ID for nested structure
+   * @optional
+   */
+  @IsOptionalIdNumber('ID chương cha')
   parentChapterId?: number
 
-  @IsOptional()
-  @IsInt()
-  @ToNumber()
-  @Min(0)
+  // Chapter information
+  /**
+   * Chapter name
+   * @optional
+   * @minLength 2
+   * @maxLength 200
+   */
+  @IsOptionalString('Tên chương', 200)
+  @MinLength(2, { message: VALIDATION_MESSAGES.FIELD_MIN_LENGTH('Tên chương', 2) })
+  name?: string
+
+  /**
+   * Chapter code (optional identifier)
+   * @optional
+   * @maxLength 50
+   */
+  @IsOptionalString('Mã chương', 50)
+  code?: string
+
+  /**
+   * URL-friendly slug
+   * @optional
+   * @minLength 2
+   * @maxLength 200
+   */
+  @IsOptionalString('Slug', 200)
+  @MinLength(2, { message: VALIDATION_MESSAGES.FIELD_MIN_LENGTH('Slug', 2) })
+  slug?: string
+
+  // Ordering and level
+  /**
+   * Order position within parent chapter
+   * @optional
+   * @min 0
+   */
+  @IsOptionalInt('Thứ tự', 0)
   orderInParent?: number
 
-  @IsOptional()
-  @IsInt()
-  @ToNumber()
-  @Min(0)
+  /**
+   * Hierarchical level (0 = root)
+   * @optional
+   * @min 0
+   */
+  @IsOptionalInt('Cấp độ', 0)
   level?: number
 }
 
+/**
+ * Response DTO for chapter data
+ */
 export class ChapterResponseDto {
+  /**
+   * Chapter unique identifier
+   */
   chapterId: number
+
+  /**
+   * Subject ID that this chapter belongs to
+   */
   subjectId: number
+
+  /**
+   * Chapter name
+   */
   name: string
+
+  /**
+   * Chapter code (optional)
+   */
   code?: string | null
+
+  /**
+   * URL-friendly slug
+   */
   slug: string
+
+  /**
+   * Parent chapter ID (null for root chapters)
+   */
   parentChapterId?: number | null
+
+  /**
+   * Order position within parent
+   */
   orderInParent: number
+
+  /**
+   * Hierarchical level
+   */
   level: number
+
+  /**
+   * Subject name (populated from relation)
+   */
   subjectName?: string
+
+  /**
+   * Parent chapter name (populated from relation)
+   */
   parentName?: string
 
   static fromChapter(chapter: Chapter): ChapterResponseDto {
@@ -125,8 +228,18 @@ export class ChapterResponseDto {
   }
 }
 
+/**
+ * Detailed response DTO for chapter with children and full path
+ */
 export class ChapterDetailResponseDto extends ChapterResponseDto {
+  /**
+   * Child chapters (nested structure)
+   */
   children?: ChapterResponseDto[]
+
+  /**
+   * Full hierarchical path (e.g., "Math > Algebra > Linear Equations")
+   */
   fullPath?: string
 
   static fromChapterWithChildren(chapter: Chapter): ChapterDetailResponseDto {

@@ -1,25 +1,26 @@
-import { IsInt, IsOptional, Min, Max } from 'class-validator'
-import { ToNumber } from 'src/shared/decorators'
+import { IsOptionalInt } from 'src/shared/decorators/validate'
 import { TuitionPaymentFilterOptions } from 'src/domain/interface/tuition-payment/tuition-payment.interface'
 
+/**
+ * DTO for querying my tuition payment statistics
+ * 
+ * @description Filter options for student's own tuition payment statistics
+ */
 export class MyTuitionPaymentStatsQueryDto {
   /**
-   * Lọc theo năm
+   * Filter by year (min: 2000)
+   * @optional
+   * @example 2024
    */
-  @IsOptional()
-  @ToNumber()
-  @IsInt({ message: 'Năm phải là số nguyên' })
-  @Min(2000, { message: 'Năm không hợp lệ' })
+  @IsOptionalInt('Năm', 2000)
   year?: number
 
   /**
-   * Lọc theo tháng
+   * Filter by month (1-12)
+   * @optional
+   * @example 6
    */
-  @IsOptional()
-  @ToNumber()
-  @IsInt({ message: 'Tháng phải là số nguyên' })
-  @Min(1, { message: 'Tháng phải từ 1 đến 12' })
-  @Max(12, { message: 'Tháng phải từ 1 đến 12' })
+  @IsOptionalInt('Tháng', 1, 12)
   month?: number
 
   /**

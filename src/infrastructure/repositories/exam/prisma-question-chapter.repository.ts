@@ -58,4 +58,14 @@ export class PrismaQuestionChapterRepository implements IQuestionChapterReposito
       },
     })
   }
+
+  async deleteByQuestionId(questionId: number, txClient?: any): Promise<number> {
+    const client = txClient || this.prisma
+
+    const result = await client.questionChapter.deleteMany({
+      where: { questionId },
+    })
+
+    return result.count
+  }
 }

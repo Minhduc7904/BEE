@@ -1,1078 +1,823 @@
-# DTO (Data Transfer Object) Guide - NestJS với Clean Architecture
+# DTO (Data Transfer Object) Guide
 
-## 📖 Mục lục
-1. [Giới thiệu về DTO](#giới-thiệu-về-dto)
-2. [Cấu trúc thư mục](#cấu-trúc-thư-mục)
-3. [Các loại DTO](#các-loại-dto)
-4. [Decorators chính](#decorators-chính)
-5. [Validation Decorators](#validation-decorators)
-6. [Transform Decorators](#transform-decorators)
-7. [Custom Decorators](#custom-decorators)
-8. [Best Practices](#best-practices)
-9. [Ví dụ thực tế](#ví-dụ-thực-tế)
-10. [Troubleshooting](#troubleshooting)
+## Mục Lục
+- [Giới Thiệu](#giới-thiệu)
+- [Cấu Trúc DTO](#cấu-trúc-dto)
+- [Best Practices](#best-practices)
+- [Ví Dụ Thực Tế](#ví-dụ-thực-tế)
+- [Validation Decorators](#validation-decorators)
+- [Hướng Dẫn Chọn Decorator Đúng](#hướng-dẫn-chọn-decorator-đúng)
+- [Quy Tắc Đặt Tên](#quy-tắc-đặt-tên)
+- [Checklist](#checklist)
+- [Lưu Ý Quan Trọng](#lưu-ý-quan-trọng)
+- [Kết Luận](#kết-luận)
 
----
+## Giới Thiệu
 
-## 🎯 Giới thiệu về DTO
+DTO (Data Transfer Object) là các class được sử dụng để định nghĩa cấu trúc dữ liệu được truyền giữa các layer trong ứng dụng. DTOs giúp:
+- Validate dữ liệu đầu vào
+- Định nghĩa rõ ràng contract API
+- Tự động generate API documentation
+- Type-safe cho TypeScript
 
-**Data Transfer Object (DTO)** là pattern để truyền tải dữ liệu giữa các layer trong ứng dụng. Trong NestJS, DTO được sử dụng để:
+## Cấu Trúc DTO
 
-- **Validation**: Kiểm tra dữ liệu đầu vào
-- **Transformation**: Chuyển đổi dữ liệu
-- **Documentation**: Tự động tạo Swagger docs
-- **Type Safety**: Đảm bảo kiểu dữ liệu TypeScript
-- **Serialization**: Kiểm soát dữ liệu trả về client
-
----
-
-## 📁 Cấu trúc thư mục
-
-```
-src/application/dtos/
-├── auth/
-│   ├── login.dto.ts
-│   ├── register.dto.ts
-│   └── google-auth.dto.ts
-├── user/
-│   ├── user.dto.ts
-│   └── user-list-query.dto.ts
-├── student/
-│   ├── student.dto.ts
-│   └── student-list-query.dto.ts
-├── document/
-│   └── document.dto.ts
-├── pagination/
-│   ├── list-query.dto.ts
-│   └── pagination-response.dto.ts
-└── base/
-    ├── base-response.dto.ts
-    └── error-response.dto.ts
-```
-
----
-
-## 🏗️ Các loại DTO
-
-### 1. **Input DTOs** (Request)
-- `CreateXxxDto`: Tạo mới resource
-- `UpdateXxxDto`: Cập nhật resource  
-- `XxxQueryDto`: Tham số query/filter
-- `XxxParamsDto`: Tham số URL params
-
-### 2. **Output DTOs** (Response)
-- `XxxResponseDto`: Trả về dữ liệu single resource
-- `XxxListResponseDto`: Trả về danh sách có pagination
-- `ErrorResponseDto`: Trả về lỗi
-
-### 3. **Base DTOs**
-- `ListQueryDto`: Base class cho query pagination
-- `BaseResponseDto`: Base class cho response
-
----
-
-## 🎨 Decorators chính
-
-### 1. **Swagger Decorators**
+### 1. Class Declaration
 
 ```typescript
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-
-export class UserDto {
-    @ApiProperty({
-        description: 'Tên đăng nhập của user',
-        example: 'john_doe',
-        minLength: 3,
-        maxLength: 50
-    })
-    username: string;
-
-    @ApiPropertyOptional({
-        description: 'Email của user (tùy chọn)',
-        example: 'john@example.com',
-        format: 'email'
-    })
-    email?: string;
-
-    @ApiProperty({
-        description: 'Tuổi của user',
-        example: 25,
-        minimum: 18,
-        maximum: 100
-    })
-    age: number;
-
-    @ApiProperty({
-        description: 'Vai trò của user',
-        enum: ['ADMIN', 'USER', 'MODERATOR'],
-        example: 'USER'
-    })
-    role: string;
-
-    @ApiProperty({
-        description: 'Danh sách sở thích',
-        type: [String],
-        example: ['reading', 'gaming']
-    })
-    hobbies: string[];
-
-    @ApiProperty({
-        description: 'Thông tin địa chỉ',
-        type: () => AddressDto
-    })
-    address: AddressDto;
+export class ExampleDto {
+    // properties với validation decorators
 }
 ```
 
-**Các thuộc tính Swagger:**
-- `description`: Mô tả field
-- `example`: Ví dụ giá trị
-- `required`: Bắt buộc (mặc định true cho @ApiProperty)
-- `type`: Kiểu dữ liệu
-- `enum`: Danh sách giá trị hợp lệ
-- `minimum/maximum`: Giá trị min/max cho number
-- `minLength/maxLength`: Độ dài min/max cho string
-- `format`: Định dạng (email, date, etc.)
+### 2. JSDoc Comments
 
-### 2. **Validation Decorators**
+Mỗi DTO class và property nên có JSDoc comments đầy đủ:
+
+```typescript
+/**
+ * DTO for [mô tả chức năng]
+ * 
+ * Default fields (always included):
+ * - Field 1 (Tên tiếng Việt)
+ * - Field 2 (Tên tiếng Việt)
+ * 
+ * Optional fields (can be toggled):
+ * - Field 3 (Tên tiếng Việt)
+ * - Field 4 (Tên tiếng Việt)
+ */
+export class ExampleDto {
+    /**
+     * Mô tả property
+     * @default giá trị mặc định
+     */
+    @ValidationDecorator('Tên tiếng Việt')
+    propertyName?: type = defaultValue
+}
+```
+
+### 3. Properties
+
+- Sử dụng `camelCase` cho tên property
+- Khai báo type rõ ràng
+- Đặt default value nếu cần
+- Sử dụng optional (`?`) cho các field không bắt buộc
+
+### 4. Validation Decorators
+
+Luôn thêm validation decorator với message tiếng Việt:
+
+```typescript
+@IsOptionalBoolean('Bao gồm trường')
+includeSchool?: boolean = true
+
+@IsOptionalEnumValue(StatusEnum, 'Trạng thái')
+status?: StatusEnum
+
+@IsRequiredString('Tên đăng nhập')
+username: string
+
+@IsOptionalEmail('Email')
+email?: string
+
+@IsOptionalPhoneVN('Số điện thoại')
+phone?: string
+```
+
+## Best Practices
+
+### ✅ Nên Làm
+
+1. **Đặt tên rõ ràng và mô tả đầy đủ**
+```typescript
+/**
+ * DTO for customizing attendance export fields
+ */
+export class ExportAttendanceOptionsDto {
+    /**
+     * Include school field
+     * @default true
+     */
+    @IsOptionalBoolean('Bao gồm trường')
+    includeSchool?: boolean = true
+}
+```
+
+2. **Nhóm các field liên quan**
+```typescript
+// School-related fields
+@IsOptionalBoolean('Bao gồm trường')
+includeSchool?: boolean = true
+
+@IsOptionalBoolean('Bao gồm khối')
+includeGrade?: boolean = true
+
+// Contact-related fields
+@IsOptionalBoolean('Bao gồm số điện thoại phụ huynh')
+includeParentPhone?: boolean = true
+
+@IsOptionalBoolean('Bao gồm email')
+includeEmail?: boolean = true
+```
+
+3. **Đặt default values hợp lý**
+```typescript
+// Các field quan trọng mặc định true
+@IsOptionalBoolean('Bao gồm email')
+includeEmail?: boolean = true
+
+// Các field ít dùng mặc định false
+@IsOptionalBoolean('Bao gồm số điện thoại học sinh')
+includeStudentPhone?: boolean = false
+```
+
+4. **Thêm interface hỗ trợ nếu cần**
+```typescript
+/**
+ * Interface for column configuration
+ */
+export interface AttendanceExportColumn {
+    header: string
+    key: string
+    width: number
+    enabled: boolean
+}
+```
+
+### ❌ Không Nên Làm
+
+```typescript
+// ❌ Thiếu JSDoc
+export class ExportDto {
+    include?: boolean
+}
+
+// ❌ Không có validation decorator
+export class ExportDto {
+  includeSchool?: boolean
+}
+
+// ❌ Tên property không rõ ràng
+export class ExportDto {
+  @IsOptionalBoolean('Field')
+  field1?: boolean
+}
+
+// ❌ Thiếu default value cho optional field
+export class ExportDto {
+  @IsOptionalBoolean('Bao gồm trường')
+  includeSchool?: boolean // Nên có = true hoặc = false
+}
+
+// ❌ Sử dụng sai thứ tự tham số cho enum
+export class ExportDto {
+  @IsOptionalEnumValue('Trạng thái', StatusEnum) // SAI!
+  status?: StatusEnum
+}
+
+// ❌ Sử dụng decorator không phù hợp với type
+export class ExportDto {
+  @IsOptionalString('ID')  // SAI! ID nên dùng IsOptionalIdNumber
+  id?: number
+  
+  @IsOptionalInt('Danh sách ID')  // SAI! Array nên dùng IsOptionalIntArray
+  ids?: number[]
+}
+
+// ❌ Thiếu import decorator
+import { IsOptional, IsString } from 'class-validator'  // SAI! Nên import từ shared/decorators
+
+export class ExportDto {
+  @IsOptional()
+  @IsString()
+  name?: string
+}
+```
+
+## Hướng Dẫn Chọn Decorator Đúng
+
+### Khi nào dùng decorator nào?
+
+#### String Fields
+- **Tên, mô tả, text thông thường**: `IsOptionalString` / `IsRequiredString`
+- **Email**: `IsOptionalEmail` / `IsRequiredEmail`
+- **Số điện thoại VN**: `IsOptionalPhoneVN` / `IsRequiredPhoneVN`
+
+#### Number Fields
+- **ID, khóa ngoại** (phải là số nguyên dương): `IsOptionalIdNumber` / `IsRequiredIdNumber`
+- **Số nguyên** (integer): `IsOptionalInt` / `IsRequiredInt`
+- **Số thực** (float/decimal): `IsOptionalNumber` / `IsRequiredNumber`
+- **Số nguyên với min/max**: `IsRequiredInt('Khối lớp', 1, 12)`
+- **Số thực với min/max**: `IsOptionalNumber('Điểm số', 0, 10)`
+
+#### Array Fields
+- **Mảng các ID** (positive integers): `IsOptionalIntArray` / `IsRequiredIntArray`
+- **Mảng các số nguyên**: `IsOptionalNumberArray` / `IsRequiredNumberArray`
+
+#### Other Fields
+- **Boolean**: `IsOptionalBoolean` / `IsRequiredBoolean`
+- **Enum**: `IsOptionalEnumValue(EnumType, 'Label')` / `IsRequiredEnumValue(EnumType, 'Label')`
+- **Date**: `IsOptionalDate` / `IsRequiredDate`
+
+### Ví dụ chọn decorator đúng:
+
+```typescript
+export class StudentDto {
+  // ID - dùng IsRequiredIdNumber
+  @IsRequiredIdNumber('ID học sinh')
+  id: number
+
+  // Tên - dùng IsRequiredString
+  @IsRequiredString('Tên học sinh')
+  name: string
+
+  // Email - dùng IsOptionalEmail
+  @IsOptionalEmail('Email')
+  email?: string
+
+  // Số điện thoại - dùng IsOptionalPhoneVN
+  @IsOptionalPhoneVN('Số điện thoại')
+  phone?: string
+
+  // Khối lớp (1-12) - dùng IsRequiredInt với min/max
+  @IsRequiredInt('Khối lớp', 1, 12)
+  grade: number
+
+  // Điểm số - dùng IsOptionalNumber với min/max
+  @IsOptionalNumber('Điểm trung bình', 0, 10)
+  gpa?: number
+
+  // Giới tính - dùng IsOptionalEnumValue
+  @IsOptionalEnumValue(Gender, 'Giới tính')
+  gender?: Gender
+
+  // Ngày sinh - dùng IsOptionalDate
+  @IsOptionalDate('Ngày sinh')
+  dateOfBirth?: Date
+
+  // Danh sách ID khóa học - dùng IsOptionalIntArray
+  @IsOptionalIntArray('Danh sách khóa học')
+  courseIds?: number[]
+
+  // Trạng thái kích hoạt - dùng IsOptionalBoolean
+  @IsOptionalBoolean('Kích hoạt')
+  isActive?: boolean = true
+}
+```
+
+### Bảng Tóm Tắt Nhanh
+
+| Loại Field | Optional Decorator | Required Decorator | Ghi chú |
+|------------|-------------------|-------------------|---------|
+| **String** | `IsOptionalString('Label')` | `IsRequiredString('Label')` | Có thể thêm maxLength |
+| **Email** | `IsOptionalEmail('Email')` | `IsRequiredEmail('Email')` | Tự động validate format |
+| **Phone VN** | `IsOptionalPhoneVN('SĐT')` | `IsRequiredPhoneVN('SĐT')` | Regex Vietnamese phone |
+| **Boolean** | `IsOptionalBoolean('Label')` | `IsRequiredBoolean('Label')` | Nên có default value |
+| **Integer** | `IsOptionalInt('Label', min?, max?)` | `IsRequiredInt('Label', min?, max?)` | Số nguyên |
+| **Number** | `IsOptionalNumber('Label', min?, max?)` | `IsRequiredNumber('Label', min?, max?)` | Số thực |
+| **ID** | `IsOptionalIdNumber('Label')` | `IsRequiredIdNumber('Label')` | Positive integer |
+| **Enum** | `IsOptionalEnumValue(Enum, 'Label')` | `IsRequiredEnumValue(Enum, 'Label')` | ⚠️ Enum trước, Label sau |
+| **Date** | `IsOptionalDate('Label')` | `IsRequiredDate('Label')` | ISO date string |
+| **Array (int)** | `IsOptionalNumberArray('Label')` | `IsRequiredNumberArray('Label')` | Array of integers |
+| **Array (IDs)** | `IsOptionalIntArray('Label')` | `IsRequiredIntArray('Label')` | Array of positive int |
+
+## Ví Dụ Thực Tế
+
+### Example 1: Export Options DTO
+
+```typescript
+import { IsOptionalBoolean } from 'src/shared/decorators'
+
+/**
+ * DTO for customizing attendance export fields
+ * 
+ * Default fields (always included):
+ * - STT (序号)
+ * - Mã học sinh (Student Code)
+ * - Họ (Last Name)
+ * - Tên (First Name)
+ * - Trạng thái (Status)
+ * 
+ * Optional fields (can be toggled):
+ * - Trường (School)
+ * - SĐT phụ huynh (Parent Phone)
+ * - SĐT học sinh (Student Phone)
+ * - Lớp (Grade)
+ * - Email
+ * - Thời gian điểm danh (Marked At)
+ * - Ghi chú (Notes)
+ */
+export class ExportAttendanceOptionsDto {
+    /**
+     * Include school field
+     * @default true
+     */
+    @IsOptionalBoolean('Bao gồm trường')
+    includeSchool?: boolean = true
+
+    /**
+     * Include parent phone field
+     * @default true
+     */
+    @IsOptionalBoolean('Bao gồm số điện thoại phụ huynh')
+    includeParentPhone?: boolean = true
+
+    /**
+     * Include student phone field
+     * @default false
+     */
+    @IsOptionalBoolean('Bao gồm số điện thoại học sinh')
+    includeStudentPhone?: boolean = false
+
+    /**
+     * Include grade field
+     * @default true
+     */
+    @IsOptionalBoolean('Bao gồm khối')
+    includeGrade?: boolean = true
+
+    /**
+     * Include email field
+     * @default true
+     */
+    @IsOptionalBoolean('Bao gồm email')
+    includeEmail?: boolean = true
+
+    /**
+     * Include marked at timestamp field
+     * @default true
+     */
+    @IsOptionalBoolean('Bao gồm thời gian điểm danh')
+    includeMarkedAt?: boolean = true
+
+    /**
+     * Include notes field
+     * @default true
+     */
+    @IsOptionalBoolean('Bao gồm ghi chú')
+    includeNotes?: boolean = true
+
+    /**
+     * Include makeup note field
+     * @default false
+     */
+    @IsOptionalBoolean('Bao gồm ghi chú điểm danh bù')
+    includeMakeupNote?: boolean = false
+
+    /**
+     * Include marker name field
+     * @default true
+     */
+    @IsOptionalBoolean('Bao gồm tên người điểm danh')
+    includeMarkerName?: boolean = true
+}
+```
+
+### Example 2: Filter DTO
+
+```typescript
+import { IsOptionalEnumValue, IsOptionalDate, IsOptionalString } from 'src/shared/decorators'
+import { AttendanceStatus } from 'src/shared/enums'
+
+/**
+ * DTO for filtering attendance records
+ */
+export class FilterAttendanceDto {
+  /**
+   * Filter by status
+   * @optional
+   */
+  @IsOptionalEnumValue(AttendanceStatus, 'Trạng thái')
+  status?: AttendanceStatus
+
+  /**
+   * Filter by date range start
+   * @optional
+   */
+  @IsOptionalDate('Từ ngày')
+  fromDate?: Date
+
+  /**
+   * Filter by date range end
+   * @optional
+   */
+  @IsOptionalDate('Đến ngày')
+  toDate?: Date
+
+  /**
+   * Filter by class ID
+   * @optional
+   */
+  @IsOptionalIdNumber('ID lớp học')
+  classId?: number
+}
+```
+
+### Example 3: Create/Update DTO
+
+```typescript
+import { IsRequiredString, IsRequiredEnumValue, IsOptionalString, IsRequiredIdNumber } from 'src/shared/decorators'
+import { AttendanceStatus } from 'src/shared/enums'
+
+/**
+ * DTO for creating or updating attendance record
+ */
+export class CreateAttendanceDto {
+  /**
+   * Student ID
+   * @required
+   */
+  @IsRequiredIdNumber('ID học sinh')
+  studentId: number
+
+  /**
+   * Class ID
+   * @required
+   */
+  @IsRequiredIdNumber('ID lớp học')
+  classId: number
+
+  /**
+   * Attendance status
+   * @required
+   */
+  @IsRequiredEnumValue(AttendanceStatus, 'Trạng thái')
+  status: AttendanceStatus
+
+  /**
+   * Notes
+   * @optional
+   */
+  @IsOptionalString('Ghi chú')
+  notes?: string
+
+  /**
+   * Makeup note
+   * @optional
+   */
+  @IsOptionalString('Ghi chú điểm danh bù')
+  makeupNote?: string
+}
+```
+
+### Example 4: Registration DTO with Arrays
 
 ```typescript
 import { 
-    IsString, IsNumber, IsEmail, IsOptional, 
-    MinLength, MaxLength, Min, Max,
-    IsEnum, IsArray, IsBoolean, IsDate,
-    IsUrl, IsUUID, Matches, IsNotEmpty
-} from 'class-validator';
+  IsRequiredString, 
+  IsOptionalEmail, 
+  IsOptionalIntArray,
+  IsRequiredInt 
+} from 'src/shared/decorators'
+import { MinLength } from 'class-validator'
+import { VALIDATION_MESSAGES } from 'src/shared/constants'
 
-export class CreateUserDto {
-    // String validation
-    @IsString({ message: 'Username phải là chuỗi ký tự' })
-    @IsNotEmpty({ message: 'Username không được để trống' })
-    @MinLength(3, { message: 'Username phải có ít nhất 3 ký tự' })
-    @MaxLength(50, { message: 'Username không được vượt quá 50 ký tự' })
-    username: string;
+/**
+ * DTO for student registration
+ * 
+ * Required fields:
+ * - Username (Tên đăng nhập)
+ * - Password (Mật khẩu)
+ * - Grade (Khối lớp)
+ * 
+ * Optional fields:
+ * - Email
+ * - Course IDs (Danh sách khóa học)
+ * - Class IDs (Danh sách lớp học)
+ */
+export class RegisterStudentDto {
+  /**
+   * Student username
+   * @required
+   */
+  @IsRequiredString('Tên đăng nhập')
+  username: string
 
-    // Email validation
-    @IsEmail({}, { message: 'Email không đúng định dạng' })
-    @IsOptional() // Field tùy chọn
-    email?: string;
+  /**
+   * Student email
+   * @optional
+   */
+  @IsOptionalEmail('Email')
+  email?: string
 
-    // Number validation
-    @IsNumber({}, { message: 'Tuổi phải là số' })
-    @Min(18, { message: 'Tuổi phải từ 18 trở lên' })
-    @Max(100, { message: 'Tuổi không được quá 100' })
-    age: number;
+  /**
+   * Student password
+   * @required
+   * @minLength 6
+   */
+  @IsRequiredString('Mật khẩu')
+  @MinLength(6, { message: VALIDATION_MESSAGES.FIELD_MIN_LENGTH('Mật khẩu', 6) })
+  password: string
 
-    // Enum validation
-    @IsEnum(['ADMIN', 'USER', 'MODERATOR'], { 
-        message: 'Vai trò phải là ADMIN, USER hoặc MODERATOR' 
-    })
-    role: string;
+  /**
+   * Grade level (1-12)
+   * @required
+   */
+  @IsRequiredInt('Khối lớp', 1, 12)
+  grade: number
 
-    // Array validation
-    @IsArray({ message: 'Sở thích phải là mảng' })
-    @IsString({ each: true, message: 'Mỗi sở thích phải là chuỗi' })
-    hobbies: string[];
+  /**
+   * List of course IDs to enroll
+   * @optional
+   */
+  @IsOptionalIntArray('Danh sách khóa học')
+  courseIds?: number[]
 
-    // Boolean validation
-    @IsBoolean({ message: 'Trạng thái phải là true/false' })
-    isActive: boolean;
+  /**
+   * List of class IDs to join
+   * @optional
+   */
+  @IsOptionalIntArray('Danh sách lớp học')
+  classIds?: number[]
+## Validation Decorators
 
-    // URL validation
-    @IsUrl({}, { message: 'URL không hợp lệ' })
-    @IsOptional()
-    website?: string;
+### Custom Decorators
 
-    // UUID validation
-    @IsUUID(4, { message: 'ID phải là UUID version 4' })
-    @IsOptional()
-    externalId?: string;
+Dự án sử dụng các custom decorators từ `src/shared/decorators/validate`:
 
-    // Regex validation
-    @Matches(/^[0-9]{10,11}$/, { 
-        message: 'Số điện thoại phải có 10-11 chữ số' 
-    })
-    @IsOptional()
-    phone?: string;
+#### Boolean
+```typescript
+// Optional boolean field
+@IsOptionalBoolean('Tên field tiếng Việt')
+fieldName?: boolean
 
-    // Date validation
-    @IsDate({ message: 'Ngày sinh phải là ngày hợp lệ' })
-    @IsOptional()
-    birthDate?: Date;
-}
+// Required boolean field
+@IsRequiredBoolean('Tên field tiếng Việt')
+fieldName: boolean
 ```
 
-### 3. **Transform Decorators**
+#### String
+```typescript
+// Optional string field
+@IsOptionalString('Tên field tiếng Việt')
+fieldName?: string
+
+// Optional string with max length
+@IsOptionalString('Tên field tiếng Việt', 255)
+fieldName?: string
+
+// Required string field
+@IsRequiredString('Tên field tiếng Việt')
+fieldName: string
+
+// Required string with max length
+@IsRequiredString('Tên field tiếng Việt', 100)
+fieldName: string
+```
+
+#### Email
+```typescript
+// Optional email field
+@IsOptionalEmail('Email')
+email?: string
+
+// Required email field
+@IsRequiredEmail('Email')
+email: string
+```
+
+#### Phone (Vietnamese Format)
+```typescript
+// Optional Vietnamese phone number
+@IsOptionalPhoneVN('Số điện thoại')
+phone?: string
+
+// Required Vietnamese phone number
+@IsRequiredPhoneVN('Số điện thoại')
+phone: string
+```
+
+#### Number
+```typescript
+// Optional number (float/decimal)
+@IsOptionalNumber('Tên field tiếng Việt')
+fieldName?: number
+
+// Optional number with min/max
+@IsOptionalNumber('Điểm số', 0, 100)
+score?: number
+
+// Required number
+@IsRequiredNumber('Tên field tiếng Việt')
+fieldName: number
+
+// Required number with min/max
+@IsRequiredNumber('Tuổi', 0, 150)
+age: number
+```
+
+#### Integer
+```typescript
+// Optional integer
+@IsOptionalInt('Tên field tiếng Việt')
+fieldName?: number
+
+// Optional integer with min/max
+@IsOptionalInt('Số lượng', 0, 100)
+quantity?: number
+
+// Required integer
+@IsRequiredInt('Tên field tiếng Việt')
+fieldName: number
+
+// Required integer with min/max
+@IsRequiredInt('Khối lớp', 1, 12)
+grade: number
+```
+
+#### ID Number (Positive Integer)
+```typescript
+// Optional ID (positive integer)
+@IsOptionalIdNumber('ID môn học')
+subjectId?: number
+
+// Required ID (positive integer)
+@IsRequiredIdNumber('ID học sinh')
+studentId: number
+```
+
+#### Enum
+```typescript
+// Optional enum field
+@IsOptionalEnumValue(StatusEnum, 'Trạng thái')
+status?: StatusEnum
+
+// Required enum field
+@IsRequiredEnumValue(GenderEnum, 'Giới tính')
+gender: GenderEnum
+```
+**Lưu ý:** Tham số đầu tiên là enum type, tham số thứ hai là label tiếng Việt.
+
+#### Date
+```typescript
+// Optional date field
+@IsOptionalDate('Ngày sinh')
+dateOfBirth?: Date
+
+// Required date field
+@IsRequiredDate('Ngày bắt đầu')
+startDate: Date
+```
+
+#### Array
+```typescript
+// Optional number array (integers)
+@IsOptionalNumberArray('Danh sách ID')
+ids?: number[]
+
+// Required number array (integers)
+@IsRequiredNumberArray('Danh sách ID')
+ids: number[]
+
+// Optional positive integer array (for IDs)
+@IsOptionalIntArray('Danh sách ID khóa học')
+courseIds?: number[]
+
+// Required positive integer array (for IDs)
+@IsRequiredIntArray('Danh sách ID lớp học')
+classIds: number[]
+```
+**Lưu ý:** 
+- `IsOptionalNumberArray` / `IsRequiredNumberArray`: Chỉ validate array of integers
+- `IsOptionalIntArray` / `IsRequiredIntArray`: Validate array of positive integers (dùng cho IDs)
+
+## Quy Tắc Đặt Tên
+
+### DTO Class Names
+
+| Loại DTO | Pattern | Ví dụ |
+|----------|---------|-------|
+| Create | `Create[Entity]Dto` | `CreateAttendanceDto` |
+| Update | `Update[Entity]Dto` | `UpdateAttendanceDto` |
+| Filter/Query | `Filter[Entity]Dto` hoặc `Query[Entity]Dto` | `FilterAttendanceDto` |
+| Export Options | `Export[Entity]OptionsDto` | `ExportAttendanceOptionsDto` |
+| Response | `[Entity]ResponseDto` | `AttendanceResponseDto` |
+
+### Property Names
+
+- Sử dụng `camelCase`
+- Tên tiếng Anh rõ ràng
+- Prefix cho boolean: `is`, `has`, `include`, `enable`
 
 ```typescript
-import { Transform, Type } from 'class-transformer';
+// ✅ Tốt
+includeSchool?: boolean
+isActive?: boolean
+hasPermission?: boolean
 
-export class QueryDto {
-    // Transform string to number
-    @Transform(({ value }) => parseInt(value))
-    @IsNumber()
-    page: number;
-
-    // Transform string to boolean
-    @Transform(({ value }) => {
-        if (value === 'true') return true;
-        if (value === 'false') return false;
-        return value;
-    })
-    @IsBoolean()
-    isActive: boolean;
-
-    // Transform array of strings to numbers
-    @Transform(({ value }) => {
-        if (Array.isArray(value)) {
-            return value.map(v => parseInt(v));
-        }
-        return [parseInt(value)];
-    })
-    @IsArray()
-    @IsNumber({}, { each: true })
-    ids: number[];
-
-    // Using Type decorator for nested objects
-    @Type(() => Date)
-    @IsDate()
-    createdAt: Date;
-
-    // Transform string to uppercase
-    @Transform(({ value }) => value?.toUpperCase())
-    @IsString()
-    code: string;
-}
+// ❌ Không tốt
+school?: boolean
+active?: boolean
+permission?: boolean
 ```
 
----
+## Checklist
 
-## 🎯 Swagger Properties Constants
+Khi tạo DTO mới, đảm bảo:
 
-### **Sử dụng Constants để tái sử dụng**
+- [ ] Class name theo đúng convention
+- [ ] JSDoc đầy đủ cho class
+- [ ] JSDoc đầy đủ cho mỗi property (bao gồm @required/@optional)
+- [ ] Validation decorator cho mỗi property
+- [ ] Message tiếng Việt cho decorator
+- [ ] Default value cho optional fields (đặc biệt là boolean)
+- [ ] Type declaration rõ ràng
+- [ ] Import decorators từ `src/shared/decorators`
+- [ ] Nhóm các field liên quan với comments phân loại
+- [ ] Interface hỗ trợ nếu cần
+- [ ] Chọn đúng decorator cho từng loại field:
+  - [ ] ID → `IsOptionalIdNumber` / `IsRequiredIdNumber`
+  - [ ] Email → `IsOptionalEmail` / `IsRequiredEmail`
+  - [ ] Phone → `IsOptionalPhoneVN` / `IsRequiredPhoneVN`
+  - [ ] Enum → `IsOptionalEnumValue(EnumType, 'Label')` (đúng thứ tự!)
+  - [ ] Array of IDs → `IsOptionalIntArray` / `IsRequiredIntArray`
+  - [ ] Number với min/max → `IsRequiredInt('Label', min, max)`
 
+## Lưu Ý Quan Trọng
+
+### 1. Thứ tự tham số Enum Decorator
 ```typescript
-// src/shared/constants/swagger-properties.constants.ts
-export const SWAGGER_PROPERTIES = {
-    USERNAME: {
-        description: 'Tên đăng nhập',
-        example: 'admin123'
-    },
-    
-    EMAIL: {
-        description: 'Địa chỉ email',
-        example: 'user@example.com'
-    },
-    
-    PHONE: {
-        description: 'Số điện thoại',
-        example: '0123456789'
-    }
-    // ... more properties
-};
+// ✅ ĐÚNG
+@IsOptionalEnumValue(StatusEnum, 'Trạng thái')
+status?: StatusEnum
 
-// Sử dụng trong DTO
-export class LoginDto {
-    @ApiProperty(SWAGGER_PROPERTIES.USERNAME)
-    @Trim()
-    @IsString()
-    username: string;
-
-    @ApiProperty(SWAGGER_PROPERTIES.EMAIL)
-    @Trim()
-    @IsEmail()
-    email: string;
-
-    // Override properties nếu cần
-    @ApiProperty({
-        ...SWAGGER_PROPERTIES.PHONE,
-        description: 'Số điện thoại sinh viên' // Override description
-    })
-    @Trim()
-    @IsString()
-    studentPhone: string;
-}
-
-// Helper functions
-export const createApiProperty = (baseProperty: any, overrides?: any) => ({
-    ...baseProperty,
-    ...overrides
-});
-
-export const createOptionalApiProperty = (baseProperty: any, overrides?: any) => ({
-    ...baseProperty,
-    required: false,
-    ...overrides
-});
+// ❌ SAI
+@IsOptionalEnumValue('Trạng thái', StatusEnum)
+status?: StatusEnum
 ```
 
-**Lợi ích:**
-- **DRY Principle**: Không lặp lại description/example
-- **Consistency**: Đảm bảo tất cả DTO có cùng format
-- **Maintainability**: Chỉ cần sửa 1 chỗ khi thay đổi
-- **Scalability**: Dễ dàng thêm properties mới
-
-## 🛠️ Custom Decorators
-
-### 1. **@Trim Decorator**
-
+### 2. Import từ đúng nguồn
 ```typescript
-// src/shared/decorators/trim.decorator.ts
-import { Transform } from 'class-transformer';
+// ✅ ĐÚNG - Import từ shared decorators
+import { IsRequiredString, IsOptionalEmail } from 'src/shared/decorators'
 
-export const Trim = () => Transform(({ value }) => {
-    if (typeof value === 'string') {
-        return value.trim();
-    }
-    return value;
-});
-
-// Sử dụng
-export class UserDto {
-    @Trim()
-    @IsString()
-    username: string;
-}
+// ❌ SAI - Import trực tiếp từ class-validator
+import { IsString, IsEmail, IsOptional } from 'class-validator'
 ```
 
-### 2. **@IsEnumValue Decorator**
-
+### 3. Chọn đúng decorator cho ID
 ```typescript
-// src/shared/decorators/is-enum-value.decorator.ts
-import { registerDecorator, ValidationOptions, ValidationArguments } from 'class-validator';
+// ✅ ĐÚNG - Dùng IsOptionalIdNumber cho ID
+@IsOptionalIdNumber('ID môn học')
+subjectId?: number
 
-export function IsEnumValue(enumObject: any, validationOptions?: ValidationOptions) {
-    return function (object: Object, propertyName: string) {
-        registerDecorator({
-            name: 'isEnumValue',
-            target: object.constructor,
-            propertyName: propertyName,
-            options: validationOptions,
-            validator: {
-                validate(value: any, args: ValidationArguments) {
-                    return Object.values(enumObject).includes(value);
-                },
-                defaultMessage(args: ValidationArguments) {
-                    return `${args.property} phải là một trong các giá trị: ${Object.values(enumObject).join(', ')}`;
-                }
-            }
-        });
-    };
-}
-
-// Sử dụng
-enum UserRole {
-    ADMIN = 'ADMIN',
-    USER = 'USER'
-}
-
-export class CreateUserDto {
-    @IsEnumValue(UserRole)
-    role: UserRole;
-}
+// ❌ SAI - Dùng IsOptionalInt hoặc IsOptionalNumber
+@IsOptionalInt('ID môn học')
+subjectId?: number
 ```
 
-### 3. **@IsPhoneNumber Decorator**
-
+### 4. Chọn đúng decorator cho Array
 ```typescript
-// src/shared/decorators/is-phone.decorator.ts
-import { registerDecorator, ValidationOptions, ValidationArguments } from 'class-validator';
+// ✅ ĐÚNG - Dùng IsOptionalIntArray cho array of IDs
+@IsOptionalIntArray('Danh sách ID khóa học')
+courseIds?: number[]
 
-export function IsPhoneNumber(validationOptions?: ValidationOptions) {
-    return function (object: Object, propertyName: string) {
-        registerDecorator({
-            name: 'isPhoneNumber',
-            target: object.constructor,
-            propertyName: propertyName,
-            options: validationOptions,
-            validator: {
-                validate(value: any, args: ValidationArguments) {
-                    if (typeof value !== 'string') return false;
-                    return /^[0-9]{10,11}$/.test(value);
-                },
-                defaultMessage(args: ValidationArguments) {
-                    return 'Số điện thoại phải có 10-11 chữ số';
-                }
-            }
-        });
-    };
-}
+// ❌ SAI - Dùng decorator khác
+@IsOptionalArray('Danh sách ID khóa học')
+courseIds?: number[]
 ```
 
----
-
-## 🏆 Best Practices
-
-### 1. **Naming Convention**
+### 5. Default value cho Boolean fields
 ```typescript
-// ✅ Good
-CreateUserDto, UpdateUserDto, UserResponseDto
-UserListQueryDto, UserListResponseDto
+// ✅ ĐÚNG - Có default value rõ ràng
+@IsOptionalBoolean('Kích hoạt')
+isActive?: boolean = true
 
-// ❌ Bad  
-UserCreateDto, UserUpdateDto, User
-UserQuery, UserList
+// ❌ SAI - Thiếu default value
+@IsOptionalBoolean('Kích hoạt')
+isActive?: boolean
 ```
 
-### 2. **Optional vs Required Fields**
+### 6. MaxLength cho String
 ```typescript
-export class UpdateUserDto {
-    // ✅ Update DTO - tất cả field đều optional
-    @IsOptional()
-    @IsString()
-    username?: string;
+// ✅ ĐÚNG - Thêm maxLength khi cần
+@IsRequiredString('Tên đăng nhập', 50)
+username: string
 
-    @IsOptional()
-    @IsEmail()
-    email?: string;
-}
-
-export class CreateUserDto {
-    // ✅ Create DTO - field bắt buộc không có @IsOptional
-    @IsString()
-    @IsNotEmpty()
-    username: string;
-
-    // ✅ Field tùy chọn có @IsOptional
-    @IsOptional()
-    @IsEmail()
-    email?: string;
-}
+// ✅ ĐÚNG - Không cần maxLength cho text dài
+@IsOptionalString('Mô tả')
+description?: string
 ```
 
-### 3. **Validation Messages**
+### 7. Min/Max cho Number
 ```typescript
-export class CreateUserDto {
-    @IsString({ message: 'Username phải là chuỗi ký tự' })
-    @MinLength(3, { message: 'Username phải có ít nhất 3 ký tự' })
-    @MaxLength(50, { message: 'Username không được vượt quá 50 ký tự' })
-    username: string;
-}
+// ✅ ĐÚNG - Thêm min/max validation
+@IsRequiredInt('Khối lớp', 1, 12)
+grade: number
+
+@IsOptionalNumber('Điểm số', 0, 10)
+score?: number
+
+// ⚠️ CẢNH BÁO - Không có min/max cho field có giới hạn rõ ràng
+@IsRequiredInt('Khối lớp')  // Nên thêm min=1, max=12
+grade: number
 ```
 
-### 4. **Inheritance Pattern**
-```typescript
-// Base DTO
-export class BaseUserDto {
-    @ApiProperty(SWAGGER_PROPERTIES.USERNAME)
-    @Trim()
-    @IsString()
-    @MinLength(3)
-    @MaxLength(50)
-    username: string;
+## Kết Luận
 
-    @ApiPropertyOptional(SWAGGER_PROPERTIES.EMAIL)
-    @Trim()
-    @IsOptional()
-    @IsEmail()
-    email?: string;
-}
+DTOs là phần quan trọng trong kiến trúc ứng dụng. Việc tuân thủ các best practices giúp:
+- Code dễ đọc và maintain
+- API documentation tự động và chính xác
+- Validation nhất quán
+- Giảm bugs từ dữ liệu đầu vào không hợp lệ
 
-// Extend base DTO
-export class CreateUserDto extends BaseUserDto {
-    @ApiProperty(SWAGGER_PROPERTIES.PASSWORD)
-    @IsString()
-    @MinLength(8)
-    password: string;
-}
-
-export class UpdateUserDto extends BaseUserDto {
-    // Tất cả fields từ BaseUserDto đã là optional trong update
-}
-```
-
-### 5. **Constants Usage Pattern**
-```typescript
-// ✅ Good - Sử dụng constants
-@ApiProperty(SWAGGER_PROPERTIES.USERNAME)
-@ApiPropertyOptional(SWAGGER_PROPERTIES.EMAIL)
-
-// ✅ Good - Override với spread operator
-@ApiProperty({
-    ...SWAGGER_PROPERTIES.PHONE,
-    description: 'Số điện thoại sinh viên'
-})
-
-// ❌ Bad - Hard-code values
-@ApiProperty({
-    description: 'Tên đăng nhập',
-    example: 'admin123'
-})
-```
-
-### 5. **Query DTO Pattern**
-```typescript
-export class UserListQueryDto extends ListQueryDto {
-    // Kế thừa pagination, sort, search từ ListQueryDto
-    
-    @ApiPropertyOptional({
-        description: 'Lọc theo vai trò',
-        enum: UserRole
-    })
-    @IsOptional()
-    @IsEnumValue(UserRole)
-    role?: UserRole;
-
-    @ApiPropertyOptional({
-        description: 'Lọc theo trạng thái',
-        example: true
-    })
-    @IsOptional()
-    @Type(() => Boolean)
-    @IsBoolean()
-    isActive?: boolean;
-}
-```
-
----
-
-## 💡 Ví dụ thực tế
-
-### 1. **User Management DTO**
-
-```typescript
-// create-user.dto.ts
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsEmail, IsOptional, MinLength, MaxLength, IsEnum } from 'class-validator';
-import { Trim } from '../../../shared/decorators/trim.decorator';
-
-export enum UserRole {
-    ADMIN = 'ADMIN',
-    USER = 'USER',
-    MODERATOR = 'MODERATOR'
-}
-
-export class CreateUserDto {
-    @ApiProperty({
-        description: 'Tên đăng nhập',
-        example: 'john_doe',
-        minLength: 3,
-        maxLength: 50
-    })
-    @Trim()
-    @IsString({ message: 'Username phải là chuỗi ký tự' })
-    @MinLength(3, { message: 'Username phải có ít nhất 3 ký tự' })
-    @MaxLength(50, { message: 'Username không được vượt quá 50 ký tự' })
-    username: string;
-
-    @ApiProperty({
-        description: 'Mật khẩu',
-        example: 'SecurePass123!',
-        minLength: 8
-    })
-    @IsString({ message: 'Mật khẩu phải là chuỗi ký tự' })
-    @MinLength(8, { message: 'Mật khẩu phải có ít nhất 8 ký tự' })
-    password: string;
-
-    @ApiPropertyOptional({
-        description: 'Email người dùng',
-        example: 'john@example.com'
-    })
-    @Trim()
-    @IsOptional()
-    @IsEmail({}, { message: 'Email không đúng định dạng' })
-    email?: string;
-
-    @ApiProperty({
-        description: 'Họ',
-        example: 'Doe',
-        maxLength: 100
-    })
-    @Trim()
-    @IsString({ message: 'Họ phải là chuỗi ký tự' })
-    @MaxLength(100, { message: 'Họ không được vượt quá 100 ký tự' })
-    lastName: string;
-
-    @ApiProperty({
-        description: 'Tên',
-        example: 'John',
-        maxLength: 50
-    })
-    @Trim()
-    @IsString({ message: 'Tên phải là chuỗi ký tự' })
-    @MaxLength(50, { message: 'Tên không được vượt quá 50 ký tự' })
-    firstName: string;
-
-    @ApiProperty({
-        description: 'Vai trò người dùng',
-        enum: UserRole,
-        example: UserRole.USER
-    })
-    @IsEnum(UserRole, { message: 'Vai trò không hợp lệ' })
-    role: UserRole;
-}
-
-// update-user.dto.ts
-export class UpdateUserDto {
-    @ApiPropertyOptional({
-        description: 'Tên đăng nhập mới',
-        example: 'john_doe_new'
-    })
-    @Trim()
-    @IsOptional()
-    @IsString({ message: 'Username phải là chuỗi ký tự' })
-    @MinLength(3, { message: 'Username phải có ít nhất 3 ký tự' })
-    @MaxLength(50, { message: 'Username không được vượt quá 50 ký tự' })
-    username?: string;
-
-    @ApiPropertyOptional({
-        description: 'Email mới',
-        example: 'john.new@example.com'
-    })
-    @Trim()
-    @IsOptional()
-    @IsEmail({}, { message: 'Email không đúng định dạng' })
-    email?: string;
-
-    @ApiPropertyOptional({
-        description: 'Họ mới',
-        example: 'Smith'
-    })
-    @Trim()
-    @IsOptional()
-    @IsString({ message: 'Họ phải là chuỗi ký tự' })
-    @MaxLength(100, { message: 'Họ không được vượt quá 100 ký tự' })
-    lastName?: string;
-
-    @ApiPropertyOptional({
-        description: 'Tên mới',
-        example: 'Jane'
-    })
-    @Trim()
-    @IsOptional()
-    @IsString({ message: 'Tên phải là chuỗi ký tự' })
-    @MaxLength(50, { message: 'Tên không được vượt quá 50 ký tự' })
-    firstName?: string;
-}
-
-// user-response.dto.ts
-export class UserResponseDto {
-    @ApiProperty({
-        description: 'ID người dùng',
-        example: 1
-    })
-    userId: number;
-
-    @ApiProperty({
-        description: 'Tên đăng nhập',
-        example: 'john_doe'
-    })
-    username: string;
-
-    @ApiProperty({
-        description: 'Email',
-        example: 'john@example.com',
-        nullable: true
-    })
-    email?: string;
-
-    @ApiProperty({
-        description: 'Họ và tên đầy đủ',
-        example: 'John Doe'
-    })
-    fullName: string;
-
-    @ApiProperty({
-        description: 'Vai trò',
-        enum: UserRole,
-        example: UserRole.USER
-    })
-    role: UserRole;
-
-    @ApiProperty({
-        description: 'Trạng thái hoạt động',
-        example: true
-    })
-    isActive: boolean;
-
-    @ApiProperty({
-        description: 'Ngày tạo',
-        example: '2024-01-01T00:00:00.000Z'
-    })
-    createdAt: Date;
-
-    @ApiProperty({
-        description: 'Ngày cập nhật',
-        example: '2024-01-02T00:00:00.000Z'
-    })
-    updatedAt: Date;
-
-    constructor(partial: Partial<UserResponseDto>) {
-        Object.assign(this, partial);
-    }
-
-    static fromEntity(user: any): UserResponseDto {
-        return new UserResponseDto({
-            userId: user.userId,
-            username: user.username,
-            email: user.email,
-            fullName: `${user.firstName} ${user.lastName}`.trim(),
-            role: user.role,
-            isActive: user.isActive,
-            createdAt: user.createdAt,
-            updatedAt: user.updatedAt
-        });
-    }
-}
-```
-
-### 2. **Pagination Query DTO**
-
-```typescript
-// user-list-query.dto.ts
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { IsOptional, IsString, IsBoolean, IsEnum } from 'class-validator';
-import { ListQueryDto } from '../pagination/list-query.dto';
-import { Trim } from '../../../shared/decorators/trim.decorator';
-
-export class UserListQueryDto extends ListQueryDto {
-    @ApiPropertyOptional({
-        description: 'Lọc theo vai trò',
-        enum: UserRole,
-        example: UserRole.USER
-    })
-    @IsOptional()
-    @IsEnum(UserRole, { message: 'Vai trò không hợp lệ' })
-    role?: UserRole;
-
-    @ApiPropertyOptional({
-        description: 'Lọc theo trạng thái hoạt động',
-        example: true
-    })
-    @IsOptional()
-    @Type(() => Boolean)
-    @IsBoolean({ message: 'Trạng thái phải là true hoặc false' })
-    isActive?: boolean;
-
-    @ApiPropertyOptional({
-        description: 'Lọc theo email',
-        example: 'john@example.com'
-    })
-    @Trim()
-    @IsOptional()
-    @IsString({ message: 'Email phải là chuỗi' })
-    email?: string;
-
-    /**
-     * Convert to filter options for repository
-     */
-    toFilterOptions() {
-        return {
-            role: this.role,
-            isActive: this.isActive,
-            email: this.email,
-            search: this.search // From base ListQueryDto
-        };
-    }
-
-    /**
-     * Get Prisma where clause
-     */
-    toPrismaWhere() {
-        const where: any = {};
-
-        if (this.role) {
-            where.role = this.role;
-        }
-
-        if (this.isActive !== undefined) {
-            where.isActive = this.isActive;
-        }
-
-        if (this.email) {
-            where.email = {
-                contains: this.email,
-                mode: 'insensitive'
-            };
-        }
-
-        // Add search functionality
-        if (this.search) {
-            where.OR = [
-                {
-                    username: {
-                        contains: this.search,
-                        mode: 'insensitive'
-                    }
-                },
-                {
-                    firstName: {
-                        contains: this.search,
-                        mode: 'insensitive'
-                    }
-                },
-                {
-                    lastName: {
-                        contains: this.search,
-                        mode: 'insensitive'
-                    }
-                },
-                {
-                    email: {
-                        contains: this.search,
-                        mode: 'insensitive'
-                    }
-                }
-            ];
-        }
-
-        return where;
-    }
-}
-```
-
-### 3. **File Upload DTO**
-
-```typescript
-// upload-file.dto.ts
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsOptional, IsEnum, MaxLength } from 'class-validator';
-import { Trim } from '../../../shared/decorators/trim.decorator';
-
-export enum FileType {
-    IMAGE = 'image',
-    DOCUMENT = 'document',
-    VIDEO = 'video'
-}
-
-export class UploadFileDto {
-    @ApiProperty({
-        description: 'Tệp tin cần upload',
-        type: 'string',
-        format: 'binary'
-    })
-    file: Express.Multer.File;
-
-    @ApiProperty({
-        description: 'Loại tệp tin',
-        enum: FileType,
-        example: FileType.IMAGE
-    })
-    @IsEnum(FileType, { message: 'Loại tệp tin không hợp lệ' })
-    type: FileType;
-
-    @ApiProperty({
-        description: 'Mô tả tệp tin',
-        example: 'Avatar người dùng',
-        maxLength: 255,
-        required: false
-    })
-    @Trim()
-    @IsOptional()
-    @IsString({ message: 'Mô tả phải là chuỗi ký tự' })
-    @MaxLength(255, { message: 'Mô tả không được vượt quá 255 ký tự' })
-    description?: string;
-}
-
-export class FileResponseDto {
-    @ApiProperty({
-        description: 'ID của tệp tin',
-        example: 1
-    })
-    fileId: number;
-
-    @ApiProperty({
-        description: 'Tên tệp tin gốc',
-        example: 'avatar.jpg'
-    })
-    originalName: string;
-
-    @ApiProperty({
-        description: 'Tên tệp tin đã lưu',
-        example: '1642758000000_avatar.jpg'
-    })
-    fileName: string;
-
-    @ApiProperty({
-        description: 'URL truy cập tệp tin',
-        example: 'https://example.com/uploads/1642758000000_avatar.jpg'
-    })
-    url: string;
-
-    @ApiProperty({
-        description: 'Kích thước tệp tin (bytes)',
-        example: 1024000
-    })
-    size: number;
-
-    @ApiProperty({
-        description: 'MIME type',
-        example: 'image/jpeg'
-    })
-    mimeType: string;
-
-    @ApiProperty({
-        description: 'Loại tệp tin',
-        enum: FileType,
-        example: FileType.IMAGE
-    })
-    type: FileType;
-
-    @ApiProperty({
-        description: 'Ngày upload',
-        example: '2024-01-01T00:00:00.000Z'
-    })
-    createdAt: Date;
-}
-```
-
----
-
-## 🐛 Troubleshooting
-
-### 1. **Validation không hoạt động**
-
-```typescript
-// ❌ Thiếu ValidationPipe trong main.ts
-async function bootstrap() {
-    const app = await NestFactory.create(AppModule);
-    await app.listen(3000);
-}
-
-// ✅ Thêm ValidationPipe
-import { ValidationPipe } from '@nestjs/common';
-
-async function bootstrap() {
-    const app = await NestFactory.create(AppModule);
-    
-    app.useGlobalPipes(new ValidationPipe({
-        whitelist: true, // Loại bỏ properties không có trong DTO
-        forbidNonWhitelisted: true, // Throw error nếu có extra properties
-        transform: true, // Tự động transform types
-        disableErrorMessages: false, // Hiển thị error messages
-    }));
-    
-    await app.listen(3000);
-}
-```
-
-### 2. **Transform không hoạt động**
-
-```typescript
-// ❌ Thiếu @Type decorator
-export class QueryDto {
-    @Transform(({ value }) => parseInt(value))
-    page: number; // Có thể không work
-}
-
-// ✅ Sử dụng @Type decorator
-export class QueryDto {
-    @ToNumber()
-    @Transform(({ value }) => parseInt(value))
-    page: number;
-}
-```
-
-### 3. **Nested validation không hoạt động**
-
-```typescript
-// ❌ Thiếu @ValidateNested và @Type
-export class CreateUserDto {
-    @IsObject()
-    address: AddressDto; // Validation cho AddressDto không chạy
-}
-
-// ✅ Thêm @ValidateNested và @Type
-import { ValidateNested } from 'class-validator';
-import { Type } from 'class-transformer';
-
-export class CreateUserDto {
-    @ValidateNested()
-    @Type(() => AddressDto)
-    address: AddressDto;
-}
-```
-
-### 4. **Array validation không hoạt động**
-
-```typescript
-// ❌ Thiếu { each: true }
-export class CreateUserDto {
-    @IsString() // Chỉ validate array, không validate từng element
-    hobbies: string[];
-}
-
-// ✅ Thêm { each: true }
-export class CreateUserDto {
-    @IsArray()
-    @IsString({ each: true }) // Validate từng element trong array
-    hobbies: string[];
-}
-```
-
-### 5. **Custom decorator không hoạt động**
-
-```typescript
-// ❌ Không register decorator đúng cách
-export function IsPhoneNumber(validationOptions?: ValidationOptions) {
-    return function (object: Object, propertyName: string) {
-        // Missing registerDecorator call
-    };
-}
-
-// ✅ Register decorator đúng cách
-import { registerDecorator, ValidationOptions, ValidationArguments } from 'class-validator';
-
-export function IsPhoneNumber(validationOptions?: ValidationOptions) {
-    return function (object: Object, propertyName: string) {
-        registerDecorator({
-            name: 'isPhoneNumber',
-            target: object.constructor,
-            propertyName: propertyName,
-            options: validationOptions,
-            validator: {
-                validate(value: any, args: ValidationArguments) {
-                    return typeof value === 'string' && /^[0-9]{10,11}$/.test(value);
-                }
-            }
-        });
-    };
-}
-```
-
----
-
-## 🎯 Checklist cho DTO hoàn chỉnh
-
-### ✅ **Input DTO (Request)**
-- [ ] Import đúng decorators
-- [ ] @ApiProperty cho required fields
-- [ ] @ApiPropertyOptional cho optional fields  
-- [ ] @IsOptional() cho optional fields
-- [ ] @Trim() cho string fields
-- [ ] Validation decorators phù hợp
-- [ ] Error messages bằng tiếng Việt
-- [ ] Transform decorators nếu cần
-
-### ✅ **Output DTO (Response)**
-- [ ] @ApiProperty cho tất cả fields
-- [ ] Constructor nhận Partial<T>
-- [ ] Static factory methods (fromEntity, etc.)
-- [ ] Computed properties (getters) nếu cần
-- [ ] Không có validation decorators
-
-### ✅ **Query DTO**
-- [ ] Kế thừa từ ListQueryDto nếu có pagination
-- [ ] @Type() cho number/boolean từ query string
-- [ ] @Transform() nếu cần custom transformation
-- [ ] Helper methods (toPrismaWhere, toFilterOptions)
-
-### ✅ **File Structure**
-- [ ] Tên file theo convention (kebab-case)
-- [ ] Export classes với tên rõ ràng
-- [ ] Group related DTOs trong cùng file/folder
-- [ ] Import paths sử dụng relative paths
-
----
-
-## 📚 Tài liệu tham khảo
-
-- [NestJS Validation](https://docs.nestjs.com/techniques/validation)
-- [Class Validator](https://github.com/typestack/class-validator)
-- [Class Transformer](https://github.com/typestack/class-transformer)
-- [Swagger/OpenAPI](https://docs.nestjs.com/openapi/introduction)
-
----
-
-*Tài liệu này được tạo để hướng dẫn team phát triển viết DTO một cách nhất quán và hiệu quả trong dự án NestJS với Clean Architecture.*

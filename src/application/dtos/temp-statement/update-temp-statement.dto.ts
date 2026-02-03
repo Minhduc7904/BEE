@@ -1,24 +1,41 @@
-// src/application/dtos/temp-statement/update-temp-statement.dto.ts
-import { IsString, IsBoolean, IsOptional, IsNumber, IsEnum, MinLength, Min } from 'class-validator'
 import { Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { Difficulty } from '../../../shared/enums'
+import { IsOptionalString, IsOptionalBoolean, IsOptionalEnumValue } from 'src/shared/decorators/validate'
 
+/**
+ * DTO cập nhật đáp án tạm
+ * @description Chứa các trường có thể cập nhật của đáp án
+ */
 export class UpdateTempStatementDto {
-    @IsOptional()
-    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Nội dung đáp án') })
-    @MinLength(1, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Nội dung đáp án', 1) })
-    @Trim()
+    /**
+     * Nội dung đáp án
+     * @optional
+     * @example "y' = 2x"
+     */
+    @IsOptionalString('Nội dung đáp án')
     content?: string
 
-    @IsOptional()
-    @IsBoolean({ message: VALIDATION_MESSAGES.FIELD_INVALID('Đáp án đúng/sai') })
+    /**
+     * Đáp án đúng/sai
+     * @optional
+     * @example true
+     */
+    @IsOptionalBoolean('Đáp án đúng/sai')
     isCorrect?: boolean
 
-    @IsOptional()
-    @IsEnum(Difficulty, { message: VALIDATION_MESSAGES.FIELD_INVALID('Độ khó') })
+    /**
+     * Độ khó
+     * @optional
+     * @example "EASY"
+     */
+    @IsOptionalEnumValue(Difficulty, 'Độ khó')
     difficulty?: Difficulty
 
-    @IsOptional()
+    /**
+     * Dữ liệu metadata
+     * @optional
+     */
+    @IsOptionalString('Metadata')
     metadata?: any
 }

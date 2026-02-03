@@ -1,15 +1,24 @@
 // src/application/dtos/auth/logout.dto.ts
-import { IsString, IsNotEmpty } from 'class-validator'
-import { Trim } from '../../../shared/decorators'
-import { VALIDATION_MESSAGES } from '../../../shared/constants'
+import { IsRequiredString } from 'src/shared/decorators/validate'
 
+/**
+ * DTO for user logout request
+ */
 export class LogoutRequestDto {
-    @Trim()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Refresh token') })
-  @IsNotEmpty({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Refresh token') })
+  /**
+   * Refresh token to invalidate
+   * @required
+   */
+  @IsRequiredString('Refresh token')
   refreshToken: string
 }
 
+/**
+ * Response DTO after successful logout
+ */
 export class LogoutResponseDto {
-    message: string
+  /**
+   * Logout confirmation message
+   */
+  message: string
 }

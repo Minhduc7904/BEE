@@ -1,19 +1,32 @@
-import { IsInt, Min, Max, IsOptional } from 'class-validator'
-import { ToNumber } from 'src/shared/decorators'
+import { IsRequiredInt, IsOptionalIdNumber } from 'src/shared/decorators/validate'
+
+/**
+ * DTO for querying monthly tuition payment statistics
+ * 
+ * @description Get tuition payment statistics grouped by month for a specific year
+ */
 export class MonthlyTuitionPaymentStatsQueryDto {
-  @ToNumber()
-  @IsInt({ message: 'Năm phải là số nguyên' })
-  @Min(2000, { message: 'Năm phải từ 2000 trở lên' })
-  @Max(2100, { message: 'Năm không được quá 2100' })
+  /**
+   * Year (2000-2100)
+   * @required
+   * @example 2024
+   */
+  @IsRequiredInt('Năm', 2000, 2100)
   year: number
 
-  @ToNumber()
-  @IsOptional()
-  @IsInt({ message: 'courseId phải là số nguyên' })
+  /**
+   * Filter by course ID
+   * @optional
+   * @example 5
+   */
+  @IsOptionalIdNumber('ID khoá học')
   courseId?: number
 
-  @ToNumber()
-  @IsOptional()
-  @IsInt({ message: 'studentId phải là số nguyên' })
+  /**
+   * Filter by student ID
+   * @optional
+   * @example 10
+   */
+  @IsOptionalIdNumber('ID học sinh')
   studentId?: number
 }

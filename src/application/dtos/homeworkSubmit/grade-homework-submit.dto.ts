@@ -1,25 +1,33 @@
 // src/application/dtos/homeworkSubmit/grade-homework-submit.dto.ts
-import { IsNotEmpty, IsString, IsInt, IsOptional, Min, Max } from 'class-validator'
-import { Type } from 'class-transformer'
-import { VALIDATION_MESSAGES } from '../../../shared/constants'
-import { Trim } from '../../../shared/decorators'
-import { ToNumber } from 'src/shared/decorators'
+import { IsRequiredInt, IsRequiredIdNumber, IsOptionalString } from 'src/shared/decorators/validate'
 
+/**
+ * DTO for grading homework submission
+ * 
+ * @description Used when a teacher grades a student's homework submission
+ */
 export class GradeHomeworkSubmitDto {
-    @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('points') })
-    @IsNotEmpty({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('points') })
-    @Min(0, { message: VALIDATION_MESSAGES.FIELD_MIN('points', 0) })
-    @Max(100, { message: VALIDATION_MESSAGES.FIELD_MAX('points', 100) })
-    @ToNumber()
+    /**
+     * Points awarded (0-100)
+     * @required
+     * @example 85
+     */
+    @IsRequiredInt('Điểm số', 0, 100)
     points: number
 
-    @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('graderId') })
-    @IsNotEmpty({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('graderId') })
-    @ToNumber()
+    /**
+     * Grader ID (teacher ID)
+     * @required
+     * @example 3
+     */
+    @IsRequiredIdNumber('ID người chấm')
     graderId: number
 
-    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('feedback') })
-    @IsOptional()
-    @Trim()
+    /**
+     * Feedback from teacher
+     * @optional
+     * @example 'Good work, but needs improvement in section 2'
+     */
+    @IsOptionalString('Nhận xét')
     feedback?: string
 }

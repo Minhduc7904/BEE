@@ -1,30 +1,32 @@
-import { IsInt, IsOptional, IsString } from 'class-validator'
-import { Type } from 'class-transformer'
-import { ToNumber } from 'src/shared/decorators'
+import { IsRequiredIdNumber, IsOptionalString, IsOptionalInt } from 'src/shared/decorators/validate'
 
 /**
  * DTO for completing presigned upload
- * Frontend calls this after successfully uploading to MinIO
+ * 
+ * @description Frontend calls this after successfully uploading to MinIO to finalize the upload
  */
 export class CompleteUploadDto {
-  @IsInt()
-  @ToNumber()
+  /**
+   * Media ID returned from presigned upload request
+   * @required
+   * @example 123
+   */
+  @IsRequiredIdNumber('ID media')
   mediaId: number
 
   /**
-   * Optional: ETag returned by MinIO after upload
-   * Can be used for verification
+   * ETag returned by MinIO after upload (for verification)
+   * @optional
+   * @example '"d41d8cd98f00b204e9800998ecf8427e"'
    */
-  @IsString()
-  @IsOptional()
+  @IsOptionalString('ETag')
   etag?: string
 
   /**
-   * Optional: Actual file size uploaded
-   * For verification against expected size
+   * Actual file size uploaded (for verification against expected size)
+   * @optional
+   * @example 1024000
    */
-  @IsInt()
-  @IsOptional()
-  @ToNumber()
+  @IsOptionalInt('Kích thước đã tải lên')
   uploadedSize?: number
 }

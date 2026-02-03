@@ -1,41 +1,63 @@
-// src/application/dtos/learningItem/create-learning-item.dto.ts
-import { IsEnum, IsNotEmpty, IsString, IsOptional, IsInt, MinLength, MaxLength } from 'class-validator'
 import { Type } from 'class-transformer'
 import { LearningItemType } from '../../../shared/enums'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { Trim } from '../../../shared/decorators'
 import { ToNumber } from '../../../shared/decorators'
+import { IsRequiredEnumValue, IsRequiredString, IsOptionalString, IsOptionalIdNumber, IsOptionalInt } from 'src/shared/decorators/validate'
 
+/**
+ * DTO tạo mục học tập
+ * @description Chứa thông tin đệ tạo mục học tập (video, document, homework, exam)
+ */
 export class CreateLearningItemDto {
-    @IsEnum(LearningItemType, { message: VALIDATION_MESSAGES.FIELD_INVALID('type') })
-    @IsNotEmpty({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('type') })
+    /**
+     * Loại mục học tập
+     * @required
+     * @example "VIDEO"
+     */
+    @IsRequiredEnumValue(LearningItemType, 'type')
     type: LearningItemType
 
-    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('title') })
-    @IsNotEmpty({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('title') })
-    @MinLength(3, { message: VALIDATION_MESSAGES.FIELD_MIN('title', 3) })
-    @MaxLength(200, { message: VALIDATION_MESSAGES.FIELD_MAX('title', 200) })
-    @Trim()
+    /**
+     * Tiêu đề (3-200 ký tự)
+     * @required
+     * @example "Video bài giảng 1"
+     */
+    @IsRequiredString('title', 200, 3)
     title: string
 
-    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('description') })
-    @IsOptional()
-    @MaxLength(1000, { message: VALIDATION_MESSAGES.FIELD_MAX('description', 1000) })
-    @Trim()
+    /**
+     * Mô tả (tối đa 1000 ký tự)
+     * @optional
+     * @example "Nội dung giới thiệu cơ bản"
+     */
+    @IsOptionalString('description', 1000)
     description?: string
 
-    @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('competitionId') })
-    @IsOptional()
+    /**
+     * ID cuộc thi
+     * @optional
+     * @example 5
+     */
     @ToNumber()
+    @IsOptionalIdNumber('competitionId')
     competitionId?: number
 
+    /**
+     * ID bài học
+     * @optional
+     * @example 10
+     */
     @ToNumber()
-    @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('lessonId') })
-    @IsOptional()
+    @IsOptionalIdNumber('lessonId')
     lessonId?: number
 
+    /**
+     * Thứ tự hiển thị
+     * @optional
+     * @example 1
+     */
     @ToNumber()
-    @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('order') })
-    @IsOptional()
+    @IsOptionalInt('order')
     order?: number
 }

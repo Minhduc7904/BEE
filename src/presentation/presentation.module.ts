@@ -42,6 +42,9 @@ import { TempExamController } from './controllers/temp-exam.controller'
 import { TempSectionController } from './controllers/temp-section.controller'
 import { TempQuestionController } from './controllers/temp-question.controller'
 import { TempStatementController } from './controllers/temp-statement.controller'
+import { QuestionController } from './controllers/question.controller'
+import { StatementController } from './controllers/statement.controller'
+import { ExamController } from './controllers/exam.controller'
 @Module({
   imports: [
     ApplicationModule, // ✅ lấy toàn bộ UseCase đã export
@@ -82,6 +85,9 @@ import { TempStatementController } from './controllers/temp-statement.controller
     TempSectionController,
     TempQuestionController,
     TempStatementController,
+    QuestionController,
+    StatementController,
+    ExamController,
   ],
   providers: [
     // WebSocket Gateways

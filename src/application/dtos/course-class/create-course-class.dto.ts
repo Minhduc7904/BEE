@@ -1,44 +1,56 @@
-import {
-  IsString,
-  IsNotEmpty,
-  IsInt,
-  IsOptional,
-  IsDateString,
-  MinLength,
-  MaxLength,
-  Min,
-} from 'class-validator';
-import { Trim } from '../../../shared/decorators/trim.decorator';
+import { Trim } from '../../../shared/decorators/trim.decorator'
+import { IsRequiredIdNumber, IsRequiredString, IsOptionalDate, IsOptionalString, IsOptionalIdNumber } from 'src/shared/decorators/validate'
 
+/**
+ * DTO tạo lớp học mới
+ * @description Chứa thông tin để tạo lớp học trong khóa học
+ */
 export class CreateCourseClassDto {
-  @IsInt({ message: 'ID khóa học phải là số nguyên' })
-  @Min(1, { message: 'ID khóa học phải lớn hơn 0' })
-  @IsNotEmpty({ message: 'ID khóa học không được để trống' })
-  courseId: number;
+  /**
+   * ID khóa học
+   * @required
+   * @example 5
+   */
+  @IsRequiredIdNumber('ID khóa học')
+  courseId: number
 
-  @IsString({ message: 'Tên lớp học phải là chuỗi ký tự' })
-  @IsNotEmpty({ message: 'Tên lớp học không được để trống' })
-  @MinLength(3, { message: 'Tên lớp học phải có ít nhất 3 ký tự' })
-  @MaxLength(100, { message: 'Tên lớp học không được vượt quá 100 ký tự' })
-  @Trim()
-  className: string;
+  /**
+   * Tên lớp học (3-100 ký tự)
+   * @required
+   * @example "Lớp Toán 10A"
+   */
+  @IsRequiredString('Tên lớp học', 100, 3)
+  className: string
 
-  @IsOptional()
-  @IsDateString({}, { message: 'Ngày bắt đầu phải là định dạng ngày hợp lệ' })
-  startDate?: string;
+  /**
+   * Ngày bắt đầu
+   * @optional
+   * @example "2024-01-15"
+   */
+  @IsOptionalDate('Ngày bắt đầu')
+  startDate?: string
 
-  @IsOptional()
-  @IsDateString({}, { message: 'Ngày kết thúc phải là định dạng ngày hợp lệ' })
-  endDate?: string;
+  /**
+   * Ngày kết thúc
+   * @optional
+   * @example "2024-06-30"
+   */
+  @IsOptionalDate('Ngày kết thúc')
+  endDate?: string
 
-  @IsOptional()
-  @IsString({ message: 'Phòng học phải là chuỗi ký tự' })
-  @MaxLength(100, { message: 'Phòng học không được vượt quá 100 ký tự' })
-  @Trim()
-  room?: string;
+  /**
+   * Phòng học (tối đa 100 ký tự)
+   * @optional
+   * @example "Phòng A101"
+   */
+  @IsOptionalString('Phòng học', 100)
+  room?: string
 
-  @IsOptional()
-  @IsInt({ message: 'ID giáo viên phải là số nguyên' })
-  @Min(1, { message: 'ID giáo viên phải lớn hơn 0' })
-  instructorId?: number;
+  /**
+   * ID giáo viên
+   * @optional
+   * @example 3
+   */
+  @IsOptionalIdNumber('ID giáo viên')
+  instructorId?: number
 }

@@ -1,52 +1,96 @@
 // src/application/dtos/notification/notification-list-query.dto.ts
-import { IsOptional, IsEnum, IsInt, Min, IsString, IsBoolean } from 'class-validator'
-import { Transform, Type } from 'class-transformer'
+import { IsOptionalInt, IsOptionalEnumValue, IsOptionalBoolean, IsOptionalString, IsOptionalDate } from 'src/shared/decorators/validate'
+import { IsIn } from 'class-validator'
 import { NotificationType, NotificationLevel } from '../../../shared/enums'
-import { ToNumber } from 'src/shared/decorators'
 
+/**
+ * DTO for querying notification list
+ * 
+ * @description Used to query and filter notifications with pagination and sorting
+ */
 export class NotificationListQueryDto {
-    @IsOptional()
-    @ToNumber()
-    @IsInt()
-    @Min(1)
-    page?: number = 1
+  /**
+   * Page number (min: 1)
+   * @optional
+   * @default 1
+   * @example 1
+   */
+  @IsOptionalInt('Số trang', 1)
+  page?: number = 1
 
-    @IsOptional()
-    @ToNumber()
-    @IsInt()
-    @Min(1)
-    limit?: number = 20
+  /**
+   * Items per page (min: 1)
+   * @optional
+   * @default 20
+   * @example 20
+   */
+  @IsOptionalInt('Số lượng/trang', 1)
+  limit?: number = 20
 
-    @IsOptional()
-    @IsString()
-    sortBy?: string = 'createdAt'
+  /**
+   * Sort by field
+   * @optional
+   * @default 'createdAt'
+   * @example 'createdAt'
+   */
+  @IsOptionalString('Sắp xếp theo')
+  sortBy?: string = 'createdAt'
 
-    @IsOptional()
-    @IsEnum(['asc', 'desc'])
-    sortOrder?: 'asc' | 'desc' = 'desc'
+  /**
+   * Sort order
+   * @optional
+   * @default 'desc'
+   * @example 'asc'
+   */
+  @IsOptionalString('Thứ tự sắp xếp')
+  @IsIn(['asc', 'desc'], { message: 'Thứ tự sắp xếp phải là asc hoặc desc' })
+  sortOrder?: 'asc' | 'desc' = 'desc'
 
-    @IsOptional()
-    @IsEnum(NotificationType)
-    type?: NotificationType
+  /**
+   * Filter by notification type
+   * @optional
+   * @example NotificationType.SYSTEM
+   */
+  @IsOptionalEnumValue(NotificationType, 'Loại thông báo')
+  type?: NotificationType
 
-    @IsOptional()
-    @IsEnum(NotificationLevel)
-    level?: NotificationLevel
+  /**
+   * Filter by notification level
+   * @optional
+   * @example NotificationLevel.INFO
+   */
+  @IsOptionalEnumValue(NotificationLevel, 'Mức độ')
+  level?: NotificationLevel
 
-    @IsOptional()
-    @Transform(({ value }) => value === 'true' || value === true)
-    @IsBoolean()
-    isRead?: boolean
+  /**
+   * Filter by read status
+   * @optional
+   * @example true
+   */
+  @IsOptionalBoolean('Đã đọc')
+  isRead?: boolean
 
-    @IsOptional()
-    @IsString()
-    search?: string
+  /**
+   * Search keyword
+   * @optional
+   * @example 'payment'
+   */
+  @IsOptionalString('Từ khóa tìm kiếm')
+  search?: string
 
-    @IsOptional()
-    @Type(() => Date)
-    fromDate?: Date
+  /**
+   * Filter from date
+   * @optional
+   * @example new Date('2024-01-01')
+   */
+  @IsOptionalDate('Từ ngày')
+  fromDate?: Date
 
-    @IsOptional()
-    @Type(() => Date)
-    toDate?: Date
+  /**
+   * Filter to date
+   * @optional
+   * @example new Date('2024-12-31')
+   */
+  @IsOptionalDate('Đến ngày')
+  toDate?: Date
 }

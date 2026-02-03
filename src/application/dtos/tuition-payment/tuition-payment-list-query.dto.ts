@@ -1,41 +1,55 @@
-import { IsOptional, IsInt, IsEnum, Min, Max } from 'class-validator'
-import { Type } from 'class-transformer'
+import { IsOptionalIdNumber, IsOptionalInt, IsOptionalEnumValue } from 'src/shared/decorators/validate'
 import { ListQueryDto } from '../pagination/list-query.dto'
 import { TuitionPaymentStatus } from 'src/shared/enums'
 import {
   TuitionPaymentFilterOptions,
   TuitionPaymentPaginationOptions,
 } from '../../../domain/interface/tuition-payment/tuition-payment.interface'
-import { ToNumber, EmptyToUndefined } from 'src/shared/decorators'
 
+/**
+ * DTO for querying tuition payment list
+ * 
+ * @description Extends ListQueryDto with tuition payment specific filters
+ */
 export class TuitionPaymentListQueryDto extends ListQueryDto {
-  @IsOptional()
-  @ToNumber()
-  @IsInt({ message: 'ID học sinh phải là số nguyên' })
+  /**
+   * Filter by student ID
+   * @optional
+   * @example 10
+   */
+  @IsOptionalIdNumber('ID học sinh')
   studentId?: number
 
-  @IsOptional()
-  @ToNumber()
-  @IsInt({ message: 'ID khoá học phải là số nguyên' })
+  /**
+   * Filter by course ID
+   * @optional
+   * @example 5
+   */
+  @IsOptionalIdNumber('ID khoá học')
   courseId?: number
 
-  @IsOptional()
-  @ToNumber()
-  @IsInt({ message: 'Tháng phải là số nguyên' })
-  @Min(1, { message: 'Tháng phải từ 1 đến 12' })
-  @Max(12, { message: 'Tháng phải từ 1 đến 12' })
+  /**
+   * Filter by month (1-12)
+   * @optional
+   * @example 6
+   */
+  @IsOptionalInt('Tháng', 1, 12)
   month?: number
 
-  @IsOptional()
-  @ToNumber()
-  @IsInt({ message: 'Năm phải là số nguyên' })
+  /**
+   * Filter by year
+   * @optional
+   * @example 2024
+   */
+  @IsOptionalInt('Năm')
   year?: number
 
-  @IsOptional()
-  @EmptyToUndefined()
-  @IsEnum(TuitionPaymentStatus, {
-    message: 'Trạng thái học phí không hợp lệ',
-  })
+  /**
+   * Filter by payment status
+   * @optional
+   * @example TuitionPaymentStatus.PAID
+   */
+  @IsOptionalEnumValue(TuitionPaymentStatus, 'Trạng thái học phí')
   status?: TuitionPaymentStatus
 
   // ======================

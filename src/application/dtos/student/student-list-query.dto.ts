@@ -1,22 +1,31 @@
 // src/application/dtos/student/student-list-query.dto.ts
-import { Type } from 'class-transformer'
-import { IsOptional, IsString, IsNumber, IsBoolean, IsDateString, Min, Max } from 'class-validator'
 import { ListQueryDto } from '..'
-import { Trim, ToBoolean } from '../../../shared/decorators'
+import { ToBoolean } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { ToNumber } from 'src/shared/decorators'
-
+import { IsOptionalBoolean, IsOptionalInt } from 'src/shared/decorators/validate'
+import { SortOrder } from 'src/shared/enums/sort-order.enum'
+/**
+ * DTO truy vấn danh sách học sinh
+ * @description Chứa các tham số lọc và phân trang cho danh sách học sinh
+ */
 export class StudentListQueryDto extends ListQueryDto {
-  @IsOptional()
+  /**
+   * Khối lớp (1-12)
+   * @optional
+   * @example 10
+   */
   @ToNumber()
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Lớp') })
-  @Min(1, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Lớp', 1) })
-  @Max(12, { message: VALIDATION_MESSAGES.FIELD_MAX_VALUE('Lớp', 12) })
+  @IsOptionalInt('Lớp', 1, 12)
   grade?: number
 
-  @IsOptional()
+  /**
+   * Trạng thái hoạt động
+   * @optional
+   * @example true
+   */
   @ToBoolean()
-  @IsBoolean({ message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái hoạt động') })
+  @IsOptionalBoolean('Trạng thái hoạt động')
   isActive?: boolean
 
   /**
@@ -37,7 +46,7 @@ export class StudentListQueryDto extends ListQueryDto {
    */
   toStudentPaginationOptions() {
     const sortField = this.sortBy || 'createdAt' // Sử dụng flat property
-    const sortDirection = this.sortOrder || 'desc' // Sử dụng flat property
+    const sortDirection = this.sortOrder || SortOrder.DESC // Sử dụng flat property
 
     // Validate sort field
     const allowedSortFields = [

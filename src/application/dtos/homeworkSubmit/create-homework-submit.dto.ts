@@ -1,23 +1,33 @@
 // src/application/dtos/homeworkSubmit/create-homework-submit.dto.ts
-import { IsNotEmpty, IsString, IsInt } from 'class-validator'
-import { Type } from 'class-transformer'
-import { VALIDATION_MESSAGES } from '../../../shared/constants'
-import { Trim } from '../../../shared/decorators'
-import { ToNumber } from 'src/shared/decorators'
+import { IsRequiredIdNumber, IsRequiredString } from 'src/shared/decorators/validate'
 
+/**
+ * DTO for creating homework submission
+ * 
+ * @description Used when a student submits homework
+ */
 export class CreateHomeworkSubmitDto {
-    @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('homeworkContentId') })
-    @IsNotEmpty({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('homeworkContentId') })
-    @ToNumber()
+    /**
+     * Homework content ID
+     * @required
+     * @example 1
+     */
+    @IsRequiredIdNumber('ID nội dung bài tập')
     homeworkContentId: number
 
-    @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('studentId') })
-    @IsNotEmpty({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('studentId') })
-    @ToNumber()
+    /**
+     * Student ID
+     * @required
+     * @example 10
+     */
+    @IsRequiredIdNumber('ID học sinh')
     studentId: number
 
-    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('content') })
-    @IsNotEmpty({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('content') })
-    @Trim()
+    /**
+     * Submission content (answer)
+     * @required
+     * @example 'Answer to question 1: ...'
+     */
+    @IsRequiredString('Nội dung bài làm')
     content: string
 }

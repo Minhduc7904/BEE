@@ -1,67 +1,96 @@
-import {
-  IsOptional,
-  IsString,
-  MaxLength,
-  MinLength,
-  IsBoolean,
-  IsArray,
-  IsNumber,
-  ArrayMinSize,
-} from 'class-validator'
 import { Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
+import { IsRequiredString, IsOptionalString, IsOptionalBoolean, IsOptionalIntArray, IsRequiredIntArray } from 'src/shared/decorators/validate'
+import { ArrayMinSize } from 'class-validator'
 
+/**
+ * DTO tạo role mới
+ * @description Chứa thông tin để tạo một role mới trong hệ thống
+ */
 export class CreateRoleDto {
-  @Trim()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Tên role') })
-  @MinLength(2, { message: VALIDATION_MESSAGES.FIELD_MIN('Tên role', 2) })
-  @MaxLength(50, { message: VALIDATION_MESSAGES.FIELD_MAX('Tên role', 50) })
+  /**
+   * Tên role (2-50 ký tự)
+   * @required
+   * @example "ADMIN"
+   */
+  @IsRequiredString('Tên role', 50, 2)
   roleName: string
 
-  @Trim()
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Mô tả role') })
-  @MaxLength(255, { message: VALIDATION_MESSAGES.FIELD_MAX('Mô tả', 255) })
+  /**
+   * Mô tả role (tối đa 255 ký tự)
+   * @optional
+   * @example "Quản trị viên hệ thống"
+   */
+  @IsOptionalString('Mô tả role', 255)
   description?: string
 
-  @IsOptional()
-  @IsBoolean()
+  /**
+   * Có thể gán cho người dùng không
+   * @optional
+   * @example true
+   */
+  @IsOptionalBoolean('Có thể gán')
   isAssignable?: boolean
 
-  @IsOptional()
-  @IsArray()
-  @IsNumber({}, { each: true })
+  /**
+   * Danh sách ID các quyền
+   * @optional
+   * @example [1, 2, 3]
+   */
+  @IsOptionalIntArray('Danh sách quyền')
   permissionIds?: number[]
 }
 
+/**
+ * DTO cập nhật role
+ * @description Chứa các trường có thể cập nhật của role
+ */
 export class UpdateRoleDto {
-  @Trim()
-  @IsOptional()
-  @IsString()
-  @MinLength(2)
-  @MaxLength(50)
+  /**
+   * Tên role (2-50 ký tự)
+   * @optional
+   * @example "ADMIN"
+   */
+  @IsOptionalString('Tên role', 50, 2)
   roleName?: string
 
-  @Trim()
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
+  /**
+   * Mô tả (tối đa 255 ký tự)
+   * @optional
+   * @example "Quản trị viên hệ thống"
+   */
+  @IsOptionalString('Mô tả', 255)
   description?: string
 
-  @IsOptional()
-  @IsBoolean()
+  /**
+   * Có thể gán
+   * @optional
+   * @example true
+   */
+  @IsOptionalBoolean('Có thể gán')
   isAssignable?: boolean
 
-  @IsOptional()
-  @IsArray()
-  @IsNumber({}, { each: true })
+  /**
+   * Danh sách ID quyền
+   * @optional
+   * @example [1, 2, 3]
+   */
+  @IsOptionalIntArray('Danh sách quyền')
   permissionIds?: number[]
 }
 
+/**
+ * DTO gán quyền cho role
+ * @description Chứa danh sách ID các quyền cần gán
+ */
 export class AssignPermissionsToRoleDto {
-  @IsArray()
+  /**
+   * Danh sách ID quyền (tối thiểu 1)
+   * @required
+   * @example [1, 2, 3]
+   */
   @ArrayMinSize(1, { message: 'Cần ít nhất 1 permission' })
-  @IsNumber({}, { each: true })
+  @IsRequiredIntArray('Danh sách quyền')
   permissionIds: number[]
 }
 

@@ -1,32 +1,50 @@
 // src/application/dtos/homeworkContent/create-homework-content.dto.ts
-import { IsNotEmpty, IsString, IsInt, IsOptional, IsBoolean, IsDate } from 'class-validator'
-import { Type } from 'class-transformer'
-import { VALIDATION_MESSAGES } from '../../../shared/constants'
-import { Trim } from '../../../shared/decorators'
-import { ToNumber } from 'src/shared/decorators'
+import { IsRequiredIdNumber, IsRequiredString, IsOptionalDate, IsOptionalIdNumber, IsOptionalBoolean } from 'src/shared/decorators/validate'
 
+/**
+ * DTO for creating homework content
+ * 
+ * @description Used to create a new homework content item for a learning item
+ */
 export class CreateHomeworkContentDto {
-    @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('learningItemId') })
-    @IsNotEmpty({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('learningItemId') })
-    @ToNumber()
+    /**
+     * Learning item ID
+     * @required
+     * @example 1
+     */
+    @IsRequiredIdNumber('ID mục học')
     learningItemId: number
 
-    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('content') })
-    @IsNotEmpty({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('content') })
-    @Trim()
+    /**
+     * Homework content description
+     * @required
+     * @example 'Complete exercises 1-10 on page 25'
+     */
+    @IsRequiredString('Nội dung bài tập')
     content: string
 
-    @IsDate({ message: VALIDATION_MESSAGES.FIELD_INVALID('dueDate') })
-    @IsOptional()
-    @Type(() => Date)
+    /**
+     * Homework due date
+     * @optional
+     * @example '2024-12-31T23:59:59Z'
+     */
+    @IsOptionalDate('Ngày hết hạn')
     dueDate?: Date
 
-    @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('competitionId') })
-    @IsOptional()
-    @ToNumber()
+    /**
+     * Competition ID (if homework is part of a competition)
+     * @optional
+     * @example 5
+     */
+    @IsOptionalIdNumber('ID cuộc thi')
     competitionId?: number
 
-    @IsBoolean({ message: VALIDATION_MESSAGES.FIELD_INVALID('allowLateSubmit') })
-    @IsOptional()
+    /**
+     * Allow late submission
+     * @optional
+     * @default false
+     * @example true
+     */
+    @IsOptionalBoolean('Cho phép nộp muộn')
     allowLateSubmit?: boolean
 }

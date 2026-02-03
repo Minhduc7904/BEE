@@ -1,12 +1,23 @@
-import { IsInt, IsNotEmpty, Min } from 'class-validator';
+import { IsRequiredIdNumber, IsOptionalIdNumber } from 'src/shared/decorators/validate'
 
+/**
+ * DTO thêm học sinh vào lớp
+ * @description Chứa thông tin để thêm học sinh vào lớp học
+ */
 export class CreateClassStudentDto {
-  @IsInt({ message: 'ID lớp học phải là số nguyên' })
-  @Min(1, { message: 'ID lớp học phải lớn hơn 0' })
-  @IsNotEmpty({ message: 'ID lớp học không được để trống' })
-  classId: number;
+  /**
+   * ID lớp học
+   * @required
+   * @example 5
+   */
+  @IsRequiredIdNumber('ID lớp học')
+  classId: number
 
-  @IsInt({ message: 'ID học sinh phải là số nguyên' })
-  @Min(1, { message: 'ID học sinh phải lớn hơn 0' })
-  studentId?: number;
+  /**
+   * ID học sinh
+   * @optional
+   * @example 10
+   */
+  @IsOptionalIdNumber('ID học sinh')
+  studentId?: number
 }

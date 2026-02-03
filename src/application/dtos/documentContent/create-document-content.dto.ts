@@ -1,23 +1,33 @@
 // src/application/dtos/documentContent/create-document-content.dto.ts
-import { IsNotEmpty, IsString, IsInt, IsOptional, MaxLength } from 'class-validator'
-import { Type } from 'class-transformer'
-import { VALIDATION_MESSAGES } from '../../../shared/constants'
-import { Trim } from '../../../shared/decorators'
-import { ToNumber } from 'src/shared/decorators'
+import { IsRequiredIdNumber, IsRequiredString, IsOptionalInt } from 'src/shared/decorators/validate'
 
+/**
+ * DTO for creating document content
+ * 
+ * @description Used to create a new document content item for a learning item
+ */
 export class CreateDocumentContentDto {
-    @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('learningItemId') })
-    @IsNotEmpty({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('learningItemId') })
-    @ToNumber()
+    /**
+     * Learning item ID
+     * @required
+     * @example 1
+     */
+    @IsRequiredIdNumber('ID mục học')
     learningItemId: number
 
-    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('content') })
-    @IsNotEmpty({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('content') })
-    @Trim()
+    /**
+     * Document content
+     * @required
+     * @example 'This is the document content...'
+     */
+    @IsRequiredString('Nội dung tài liệu')
     content: string
 
-    @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('orderInDocument') })
-    @IsOptional()
-    @ToNumber()
+    /**
+     * Order in document
+     * @optional
+     * @example 1
+     */
+    @IsOptionalInt('Thứ tự trong tài liệu')
     orderInDocument?: number
 }

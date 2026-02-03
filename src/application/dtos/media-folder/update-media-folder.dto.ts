@@ -1,27 +1,40 @@
-import { IsString, IsOptional, IsInt, MaxLength } from 'class-validator'
-import { Type } from 'class-transformer'
-import { ToNumber } from 'src/shared/decorators'
+import { IsOptionalString, IsOptionalIdNumber } from 'src/shared/decorators/validate'
 
 /**
- * UpdateMediaFolderDto - Request DTO for updating media folder
+ * DTO for updating media folder
+ * 
+ * @description Used to update an existing folder's properties
  */
 export class UpdateMediaFolderDto {
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
+  /**
+   * Folder name
+   * @optional
+   * @example 'Updated Course Images'
+   */
+  @IsOptionalString('Tên thư mục', 255)
   name?: string
 
-  @IsOptional()
-  @IsString()
-  @MaxLength(255)
+  /**
+   * URL-friendly slug
+   * @optional
+   * @example 'updated-course-images'
+   */
+  @IsOptionalString('Slug', 255)
   slug?: string
 
-  @IsOptional()
-  @IsString()
+  /**
+   * Folder description
+   * @optional
+   * @example 'Updated: Images used in course materials'
+   */
+  @IsOptionalString('Mô tả')
   description?: string
 
-  @IsOptional()
-  @IsInt()
-  @ToNumber()
+  /**
+   * Parent folder ID (for moving folder)
+   * @optional
+   * @example 10
+   */
+  @IsOptionalIdNumber('ID thư mục cha')
   parentId?: number
 }

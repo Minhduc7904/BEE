@@ -1,19 +1,34 @@
 // src/application/dtos/auth/refresh-token.dto.ts
-import { IsString, IsNotEmpty } from 'class-validator'
-import { Trim } from '../../../shared/decorators'
-import { VALIDATION_MESSAGES } from '../../../shared/constants'
+import { IsRequiredString } from 'src/shared/decorators/validate'
 
+/**
+ * DTO for refreshing access token
+ */
 export class RefreshTokenRequestDto {
-    @Trim()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Refresh token') })
-  @IsNotEmpty({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('Refresh token') })
+  /**
+   * Refresh token to generate new access token
+   * @required
+   */
+  @IsRequiredString('Refresh token')
   refreshToken: string
 }
 
+/**
+ * Response DTO after refreshing token
+ */
 export class RefreshTokenResponseDto {
-    accessToken: string
+  /**
+   * New JWT access token
+   */
+  accessToken: string
 
-    refreshToken: string
+  /**
+   * New JWT refresh token
+   */
+  refreshToken: string
 
-    expiresIn: number
+  /**
+   * Token expiration time in seconds
+   */
+  expiresIn: number
 }

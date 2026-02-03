@@ -1,19 +1,33 @@
-import { IsInt, IsNotEmpty, IsOptional, IsString, MinLength, MaxLength, Min } from 'class-validator';
-import { Trim, IsEnumValue } from '../../../shared/decorators';
-import { CourseEnrollmentStatus } from 'src/shared/enums';
+import { Trim, IsEnumValue } from '../../../shared/decorators'
+import { CourseEnrollmentStatus } from 'src/shared/enums'
+import { IsRequiredIdNumber, IsOptionalIdNumber, IsOptionalEnumValue } from 'src/shared/decorators/validate'
 
+/**
+ * DTO tạo đăng ký khóa học
+ * @description Chứa thông tin để đăng ký học sinh vào khóa học
+ */
 export class CreateCourseEnrollmentDto {
-  @IsInt({ message: 'ID khóa học phải là số nguyên' })
-  @Min(1, { message: 'ID khóa học phải lớn hơn 0' })
-  @IsNotEmpty({ message: 'ID khóa học không được để trống' })
-  courseId: number;
+  /**
+   * ID khóa học
+   * @required
+   * @example 5
+   */
+  @IsRequiredIdNumber('ID khóa học')
+  courseId: number
 
-  @IsInt({ message: 'ID học sinh phải là số nguyên' })
-  @Min(1, { message: 'ID học sinh phải lớn hơn 0' })
-  studentId?: number;
+  /**
+   * ID học sinh
+   * @optional
+   * @example 10
+   */
+  @IsOptionalIdNumber('ID học sinh')
+  studentId?: number
 
-  @IsOptional()
-  @Trim()
-  @IsEnumValue(CourseEnrollmentStatus, { message: 'Trạng thái không hợp lệ' })
-  status?: CourseEnrollmentStatus;
+  /**
+   * Trạng thái đăng ký
+   * @optional
+   * @example "ACTIVE"
+   */
+  @IsOptionalEnumValue(CourseEnrollmentStatus, 'Trạng thái')
+  status?: CourseEnrollmentStatus
 }

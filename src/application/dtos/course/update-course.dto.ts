@@ -1,91 +1,133 @@
-import {
-  IsString,
-  IsOptional,
-  IsNumber,
-  IsEnum,
-  IsBoolean,
-  Min,
-  Max,
-  MinLength,
-  MaxLength,
-} from 'class-validator'
 import { Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { CourseVisibility, PaymentType } from 'src/shared/enums'
+import { IsOptionalString, IsOptionalInt, IsOptionalIdNumber, IsOptionalEnumValue, IsOptionalNumber, IsOptionalBoolean } from 'src/shared/decorators/validate'
 
+/**
+ * DTO cập nhật thông tin cơ bản khóa học
+ * @description Chứa các trường thông tin cơ bản có thể cập nhật
+ */
 export class UpdateCourseBasicInfoDto {
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tiêu đề') })
-  @MinLength(3, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Tiêu đề', 3) })
-  @MaxLength(200, { message: VALIDATION_MESSAGES.FIELD_MAX_VALUE('Tiêu đề', 200) })
-  @Trim()
+  /**
+   * Tiêu đề khóa học (3-200 ký tự)
+   * @optional
+   * @example "Toán học lớp 10"
+   */
+  @IsOptionalString('Tiêu đề', 200, 3)
   title?: string
 
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Phụ đề') })
-  @MaxLength(255, { message: VALIDATION_MESSAGES.FIELD_MAX_VALUE('Phụ đề', 255) })
-  @Trim()
+  /**
+   * Phụ đề khóa học (tối đa 255 ký tự)
+   * @optional
+   * @example "Cơ bản và nâng cao"
+   */
+  @IsOptionalString('Phụ đề', 255)
   subtitle?: string
 
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Năm học') })
-  @MaxLength(9, { message: VALIDATION_MESSAGES.FIELD_MAX_VALUE('Năm học', 9) })
-  @Trim()
+  /**
+   * Năm học (tối đa 9 ký tự)
+   * @optional
+   * @example "2024-2025"
+   */
+  @IsOptionalString('Năm học', 9)
   academicYear?: string
 
-  @IsOptional()
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Khối') })
-  @Min(1, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Khối', 1) })
-  @Max(12, { message: VALIDATION_MESSAGES.FIELD_MAX_VALUE('Khối', 12) })
+  /**
+   * Khối lớp (1-12)
+   * @optional
+   * @example 10
+   */
+  @IsOptionalInt('Khối', 1, 12)
   grade?: number
 
-  @IsOptional()
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Môn học') })
+  /**
+   * ID môn học
+   * @optional
+   * @example 5
+   */
+  @IsOptionalIdNumber('Môn học')
   subjectId?: number
 
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Mô tả') })
-  @Trim()
+  /**
+   * Mô tả khóa học
+   * @optional
+   */
+  @IsOptionalString('Mô tả')
   description?: string
 
-  @IsOptional()
-  @IsEnum(CourseVisibility, { message: VALIDATION_MESSAGES.FIELD_INVALID('Trạng thái') })
+  /**
+   * Trạng thái hiển thị
+   * @optional
+   */
+  @IsOptionalEnumValue(CourseVisibility, 'Trạng thái')
   visibility?: CourseVisibility
 
-  @IsOptional()
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Giáo viên') })
+  /**
+   * ID giáo viên
+   * @optional
+   */
+  @IsOptionalIdNumber('Giáo viên')
   teacherId?: number
 }
 
+/**
+ * DTO cập nhật thông tin giá cả khóa học
+ * @description Chứa các trường về giá, thanh toán, học phí
+ */
 export class UpdateCoursePricingDto {
-  @IsOptional()
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Giá') })
-  @Min(0, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Giá', 0) })
+  /**
+   * Giá khóa học (VNĐ)
+   * @optional
+   * @example 500000
+   */
+  @IsOptionalNumber('Giá', 0)
   priceVND?: number
 
-  @IsOptional()
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Giá gốc') })
-  @Min(0, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Giá gốc', 0) })
+  /**
+   * Giá gốc (VNĐ)
+   * @optional
+   * @example 700000
+   */
+  @IsOptionalNumber('Giá gốc', 0)
   compareAtVND?: number
 
-  @IsOptional()
-  @IsBoolean({ message: VALIDATION_MESSAGES.FIELD_INVALID('Có thu học phí') })
+  /**
+   * Có thu học phí không
+   * @optional
+   * @example true
+   */
+  @IsOptionalBoolean('Có thu học phí')
   hasTuitionFee?: boolean
 
-  @IsOptional()
-  @IsEnum(PaymentType, { message: VALIDATION_MESSAGES.FIELD_INVALID('Loại thanh toán') })
+  /**
+   * Loại thanh toán
+   * @optional
+   * @example "MONTHLY"
+   */
+  @IsOptionalEnumValue(PaymentType, 'Loại thanh toán')
   paymentType?: PaymentType
 
-  @IsOptional()
-  @IsBoolean({ message: VALIDATION_MESSAGES.FIELD_INVALID('Tự động gia hạn') })
+  /**
+   * Tự động gia hạn
+   * @optional
+   * @example true
+   */
+  @IsOptionalBoolean('Tự động gia hạn')
   autoRenew?: boolean
 
-  @IsOptional()
-  @IsBoolean({ message: VALIDATION_MESSAGES.FIELD_INVALID('Chặn học khi chưa đóng phí') })
+  /**
+   * Chặn học khi chưa đóng phí
+   * @optional
+   * @example false
+   */
+  @IsOptionalBoolean('Chặn học khi chưa đóng phí')
   blockUnpaid?: boolean
 
-  @IsOptional()
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Số ngày ân hạn') })
-  @Min(0, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Số ngày ân hạn', 0) })
+  /**
+   * Số ngày ân hạn
+   * @optional
+   * @example 7
+   */
+  @IsOptionalNumber('Số ngày ân hạn', 0)
   gracePeriodDays?: number | null
 }

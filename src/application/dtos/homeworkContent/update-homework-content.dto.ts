@@ -1,27 +1,41 @@
 // src/application/dtos/homeworkContent/update-homework-content.dto.ts
-import { IsString, IsInt, IsOptional, IsBoolean, IsDate } from 'class-validator'
-import { Type } from 'class-transformer'
-import { VALIDATION_MESSAGES } from '../../../shared/constants'
-import { Trim } from '../../../shared/decorators'
-import { ToNumber } from 'src/shared/decorators'
+import { IsOptionalString, IsOptionalDate, IsOptionalIdNumber, IsOptionalBoolean } from 'src/shared/decorators/validate'
 
+/**
+ * DTO for updating homework content
+ * 
+ * @description Used to update an existing homework content item
+ */
 export class UpdateHomeworkContentDto {
-    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('content') })
-    @IsOptional()
-    @Trim()
+    /**
+     * Homework content description
+     * @optional
+     * @example 'Updated: Complete exercises 1-15 on page 25'
+     */
+    @IsOptionalString('Nội dung bài tập')
     content?: string
 
-    @IsDate({ message: VALIDATION_MESSAGES.FIELD_INVALID('dueDate') })
-    @IsOptional()
-    @Type(() => Date)
+    /**
+     * Homework due date
+     * @optional
+     * @example '2024-12-31T23:59:59Z'
+     */
+    @IsOptionalDate('Ngày hết hạn')
     dueDate?: Date
 
-    @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('competitionId') })
-    @IsOptional()
-    @ToNumber()
+    /**
+     * Competition ID (if homework is part of a competition)
+     * @optional
+     * @example 5
+     */
+    @IsOptionalIdNumber('ID cuộc thi')
     competitionId?: number
 
-    @IsBoolean({ message: VALIDATION_MESSAGES.FIELD_INVALID('allowLateSubmit') })
-    @IsOptional()
+    /**
+     * Allow late submission
+     * @optional
+     * @example false
+     */
+    @IsOptionalBoolean('Cho phép nộp muộn')
     allowLateSubmit?: boolean
 }

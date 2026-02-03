@@ -1,14 +1,20 @@
 // src/application/dtos/permission/permission-list-query.dto.ts
-import { IsOptional, IsString, MaxLength } from 'class-validator'
 import { ListQueryDto } from '../pagination/list-query.dto'
 import { Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
+import { IsOptionalString } from 'src/shared/decorators/validate'
 
+/**
+ * DTO truy vấn danh sách quyền
+ * @description Chứa các tham số lọc và phân trang cho danh sách quyền
+ */
 export class PermissionListQueryDto extends ListQueryDto {
-    @IsOptional()
-    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Nhóm quyền') })
-    @Trim()
-    @MaxLength(100, { message: VALIDATION_MESSAGES.FIELD_MAX('Nhóm quyền', 100) })
+    /**
+     * Nhóm quyền (tối đa 100 ký tự)
+     * @optional
+     * @example "USER_MANAGEMENT"
+     */
+    @IsOptionalString('Nhóm quyền', 100)
     group?: string
 
     /**

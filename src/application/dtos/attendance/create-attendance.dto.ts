@@ -1,29 +1,40 @@
-import {
-  IsInt,
-  IsNotEmpty,
-  IsEnum,
-  IsOptional,
-  IsString,
-  Min,
-} from 'class-validator'
 import { AttendanceStatus } from 'src/shared/enums'
+import { IsRequiredEnumValue, IsRequiredIdNumber, IsOptionalString } from 'src/shared/decorators/validate'
 
+/**
+ * DTO tạo bản ghi điểm danh
+ * @description Chứa thông tin để tạo một bản ghi điểm danh cho học sinh
+ */
 export class CreateAttendanceDto {
-  @IsInt({ message: 'ID buổi học phải là số nguyên' })
-  @Min(1, { message: 'ID buổi học phải lớn hơn 0' })
-  @IsNotEmpty({ message: 'ID buổi học không được để trống' })
+  /**
+   * ID buổi học
+   * @required
+   * @example 10
+   */
+  @IsRequiredIdNumber('ID buổi học')
   sessionId: number
 
-  @IsInt({ message: 'ID học sinh phải là số nguyên' })
-  @Min(1, { message: 'ID học sinh phải lớn hơn 0' })
-  @IsNotEmpty({ message: 'ID học sinh không được để trống' })
+  /**
+   * ID học sinh
+   * @required
+   * @example 15
+   */
+  @IsRequiredIdNumber('ID học sinh')
   studentId: number
 
-  @IsEnum(AttendanceStatus, { message: 'Trạng thái điểm danh không hợp lệ' })
-  @IsNotEmpty({ message: 'Trạng thái điểm danh không được để trống' })
+  /**
+   * Trạng thái điểm danh
+   * @required
+   * @example "PRESENT"
+   */
+  @IsRequiredEnumValue(AttendanceStatus, 'Trạng thái điểm danh')
   status: AttendanceStatus
 
-  @IsOptional()
-  @IsString({ message: 'Ghi chú phải là chuỗi' })
+  /**
+   * Ghi chú (tối đa 500 ký tự)
+   * @optional
+   * @example "Học sinh đi muộn"
+   */
+  @IsOptionalString('Ghi chú', 500)
   notes?: string
 }

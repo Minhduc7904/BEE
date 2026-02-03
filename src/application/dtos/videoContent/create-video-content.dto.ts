@@ -1,18 +1,25 @@
 // src/application/dtos/videoContent/create-video-content.dto.ts
-import { IsNotEmpty, IsString, IsInt } from 'class-validator'
-import { Type } from 'class-transformer'
-import { VALIDATION_MESSAGES } from '../../../shared/constants'
-import { Trim } from '../../../shared/decorators'
-import { ToNumber } from 'src/shared/decorators'
+import { IsRequiredIdNumber, IsRequiredString } from 'src/shared/decorators/validate'
 
+/**
+ * DTO for creating video content
+ * 
+ * @description Used to create a new video content item for a learning item
+ */
 export class CreateVideoContentDto {
-    @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('learningItemId') })
-    @IsNotEmpty({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('learningItemId') })
-    @ToNumber()
+    /**
+     * Learning item ID
+     * @required
+     * @example 1
+     */
+    @IsRequiredIdNumber('ID mục học')
     learningItemId: number
 
-    @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('content') })
-    @IsNotEmpty({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('content') })
-    @Trim()
+    /**
+     * Video URL or video description
+     * @required
+     * @example '/videos/lesson-1.mp4'
+     */
+    @IsRequiredString('Nội dung video')
     content: string
 }

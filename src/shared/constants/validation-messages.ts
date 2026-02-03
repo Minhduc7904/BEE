@@ -1,6 +1,6 @@
 export const VALIDATION_MESSAGES = {
-  FIELD_MIN: (field: string, min: number) => `${field} phải có ít nhất ${min} ký tự`,
-  FIELD_MAX: (field: string, max: number) => `${field} phải có tối đa ${max} ký tự`,
+  FIELD_MIN_LENGTH: (field: string, min: number) => `${field} phải có ít nhất ${min} ký tự`,
+  FIELD_MAX_LENGTH: (field: string, max: number) => `${field} phải có tối đa ${max} ký tự`,
   FIELD_MIN_VALUE: (field: string, min: number) => `${field} phải lớn hơn hoặc bằng ${min}`,
   FIELD_MAX_VALUE: (field: string, max: number) => `${field} phải nhỏ hơn hoặc bằng ${max}`,
   FIELD_REQUIRED: (field: string) => `${field} là bắt buộc`,

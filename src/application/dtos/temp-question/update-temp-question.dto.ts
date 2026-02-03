@@ -1,62 +1,105 @@
-// src/application/dtos/temp-question/update-temp-question.dto.ts
-import { IsString, IsOptional, IsNumber, IsEnum, Min, Max, MinLength } from 'class-validator'
 import { Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { QuestionType, Difficulty } from '../../../shared/enums'
+import { IsOptionalString, IsOptionalEnumValue, IsOptionalInt, IsOptionalIdNumber, IsOptionalNumber, IsOptionalIntArray } from 'src/shared/decorators/validate'
 
+/**
+ * DTO cập nhật câu hỏi tạm
+ * @description Chứa các trường có thể cập nhật của câu hỏi tạm
+ */
 export class UpdateTempQuestionDto {
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Nội dung câu hỏi') })
-  @MinLength(1, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Nội dung câu hỏi', 1) })
-  @Trim()
+  /**
+   * Nội dung câu hỏi
+   * @optional
+   * @example "Tính đạo hàm của hàm số y = x^2"
+   */
+  @IsOptionalString('Nội dung câu hỏi')
   content?: string
 
-  @IsOptional()
-  @IsEnum(QuestionType, { message: VALIDATION_MESSAGES.FIELD_INVALID('Loại câu hỏi') })
+  /**
+   * Loại câu hỏi
+   * @optional
+   * @example "MULTIPLE_CHOICE"
+   */
+  @IsOptionalEnumValue(QuestionType, 'Loại câu hỏi')
   type?: QuestionType
 
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Đáp án đúng') })
-  @Trim()
+  /**
+   * Đáp án đúng
+   * @optional
+   * @example "A"
+   */
+  @IsOptionalString('Đáp án đúng')
   correctAnswer?: string
 
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Lời giải') })
-  @Trim()
+  /**
+   * Lời giải chi tiết
+   * @optional
+   * @example "Sử dụng quy tắc đạo hàm cơ bản"
+   */
+  @IsOptionalString('Lời giải')
   solution?: string
 
-  @IsOptional()
-  @IsEnum(Difficulty, { message: VALIDATION_MESSAGES.FIELD_INVALID('Độ khó') })
+  /**
+   * Độ khó
+   * @optional
+   * @example "MEDIUM"
+   */
+  @IsOptionalEnumValue(Difficulty, 'Độ khó')
   difficulty?: Difficulty
 
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Link Youtube lời giải') })
-  @Trim()
+  /**
+   * Link Youtube lời giải
+   * @optional
+   * @example "https://youtube.com/watch?v=xxx"
+   */
+  @IsOptionalString('Link Youtube lời giải')
   solutionYoutubeUrl?: string
 
-  @IsOptional()
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Khối') })
-  @Min(1, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Khối', 1) })
-  @Max(12, { message: VALIDATION_MESSAGES.FIELD_MAX_VALUE('Khối', 12) })
+  /**
+   * Khối lớp (1-12)
+   * @optional
+   * @example 10
+   */
+  @IsOptionalInt('Khối', 1, 12)
   grade?: number
 
-  @IsOptional()
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Môn học') })
+  /**
+   * ID môn học
+   * @optional
+   * @example 5
+   */
+  @IsOptionalIdNumber('Môn học')
   subjectId?: number
 
-  @IsOptional()
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Điểm gốc') })
-  @Min(0, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Điểm gốc', 0) })
+  /**
+   * Điểm gốc
+   * @optional
+   * @example 1.0
+   */
+  @IsOptionalNumber('Điểm gốc', 0)
   pointsOrigin?: number
 
-  @IsOptional()
-  @IsNumber({}, { message: VALIDATION_MESSAGES.FIELD_INVALID('Section') })
+  /**
+   * ID section
+   * @optional
+   * @example 3
+   */
+  @IsOptionalIdNumber('Section')
   tempSectionId?: number
 
-  @IsOptional()
-  @IsNumber({}, { each: true, message: VALIDATION_MESSAGES.FIELD_INVALID('Danh sách chương') })
+  /**
+   * Danh sách ID chương
+   * @optional
+   * @example [1, 2, 3]
+   */
+  @IsOptionalIntArray('Danh sách chương')
   chapterIds?: number[]
 
-  @IsOptional()
+  /**
+   * Dữ liệu metadata
+   * @optional
+   */
+  @IsOptionalString('Metadata')
   metadata?: any
 }

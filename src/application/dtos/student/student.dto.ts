@@ -2,9 +2,9 @@
 import { UserResponseDto, UpdateUserDto } from '../user/user.dto'
 import { PaginationResponseDto } from '../pagination/pagination-response.dto'
 import { RoleResponseDto } from '../role/role.dto'
-import { IsOptional, IsString, IsInt, Min, Max, Matches } from 'class-validator'
 import { Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
+import { IsOptionalInt, IsOptionalPhoneVN, IsOptionalString } from 'src/shared/decorators/validate'
 import { CourseEnrollmentResponseDto } from '../course-enrollment/course-enrollment.dto'
 import { ClassStudentResponseDto } from '../class-student/class-student.dto'
 export class StudentResponseDto extends UserResponseDto {
@@ -87,27 +87,40 @@ export class StudentListResponseDto extends PaginationResponseDto<StudentRespons
   declare data: StudentResponseDto[]
 }
 
+/**
+ * DTO cập nhật thông tin học sinh
+ * @description Chứa các trường có thể cập nhật của học sinh
+ */
 export class UpdateStudentDto extends UpdateUserDto {
-  @Trim()
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Số điện thoại sinh viên') })
-  @Matches(/^[0-9]{10,11}$/, { message: VALIDATION_MESSAGES.FIELD_INVALID('Số điện thoại sinh viên') })
+  /**
+   * Số điện thoại sinh viên (10-11 số)
+   * @optional
+   * @example "0987654321"
+   */
+  @IsOptionalPhoneVN('Số điện thoại sinh viên')
   studentPhone?: string
 
-  @Trim()
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Số điện thoại phụ huynh') })
-  @Matches(/^[0-9]{10,11}$/, { message: VALIDATION_MESSAGES.FIELD_INVALID('Số điện thoại phụ huynh') })
+  /**
+   * Số điện thoại phụ huynh (10-11 số)
+   * @optional
+   * @example "0912345678"
+   */
+  @IsOptionalPhoneVN('Số điện thoại phụ huynh')
   parentPhone?: string
 
-  @IsOptional()
-  @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('Khối lớp') })
-  @Min(1, { message: VALIDATION_MESSAGES.FIELD_MIN_VALUE('Khối lớp', 1) })
-  @Max(12, { message: VALIDATION_MESSAGES.FIELD_MAX_VALUE('Khối lớp', 12) })
+  /**
+   * Khối lớp (1-12)
+   * @optional
+   * @example 10
+   */
+  @IsOptionalInt('Khối lớp', 1, 12)
   grade?: number
 
-  @Trim()
-  @IsOptional()
-  @IsString({ message: VALIDATION_MESSAGES.FIELD_INVALID('Trường học') })
+  /**
+   * Trường học
+   * @optional
+   * @example "THPT Chuyên Lê Hồng Phong"
+   */
+  @IsOptionalString('Trường học')
   school?: string
 }

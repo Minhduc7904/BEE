@@ -4,7 +4,7 @@ import { IsNotEmpty, IsDateString, IsOptional, IsEnum } from 'class-validator'
 import { ListQueryDto } from '../pagination/list-query.dto'
 import { VALIDATION_MESSAGES } from 'src/shared/constants'
 import { AttendanceStatus } from 'src/shared/enums'
-
+import { SortOrder } from 'src/shared/enums/sort-order.enum'
 /**
  * DTO for querying students attendance by course
  * Requires fromDate and toDate to filter attendance records
@@ -42,7 +42,7 @@ export class CourseStudentsAttendanceQueryDto extends ListQueryDto {
             page: this.page || 1,
             limit: this.limit || 10,
             sortBy: this.sortBy || 'studentId',
-            sortOrder: this.sortOrder || 'asc',
+            sortOrder: this.sortOrder || SortOrder.ASC,
         }
     }
 }

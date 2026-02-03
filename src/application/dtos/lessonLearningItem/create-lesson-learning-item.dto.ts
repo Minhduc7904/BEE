@@ -1,17 +1,28 @@
-// src/application/dtos/lessonLearningItem/create-lesson-learning-item.dto.ts
-import { IsNotEmpty, IsInt } from 'class-validator'
 import { Type } from 'class-transformer'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { ToNumber } from 'src/shared/decorators'
+import { IsRequiredIdNumber } from 'src/shared/decorators/validate'
 
+/**
+ * DTO tạo liên kết bài học - mục học tập
+ * @description Chứa thông tin để liên kết mục học tập với bài học
+ */
 export class CreateLessonLearningItemDto {
-    @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('lessonId') })
-    @IsNotEmpty({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('lessonId') })
+    /**
+     * ID bài học
+     * @required
+     * @example 10
+     */
     @ToNumber()
+    @IsRequiredIdNumber('lessonId')
     lessonId: number
 
-    @IsInt({ message: VALIDATION_MESSAGES.FIELD_INVALID('learningItemId') })
-    @IsNotEmpty({ message: VALIDATION_MESSAGES.FIELD_REQUIRED('learningItemId') })
+    /**
+     * ID mục học tập
+     * @required
+     * @example 15
+     */
     @ToNumber()
+    @IsRequiredIdNumber('learningItemId')
     learningItemId: number
 }

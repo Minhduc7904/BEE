@@ -27,6 +27,9 @@ export const RESOURCE_TYPES = {
   NOTIFICATION: 'NOTIFICATION',
   TUITION_PAYMENT: 'TUITION_PAYMENT',
   EXAM_IMPORT_SESSION: 'EXAM_IMPORT_SESSION',
+  QUESTION: 'QUESTION',
+  STATEMENT: 'STATEMENT',
+  EXAM: 'EXAM',
 } as const
 
 export const RESOURCE_TYPE_TABLE = {
@@ -185,6 +188,24 @@ export const RESOURCE_TYPE_TABLE = {
     tableName: 'exam_import_sessions',
     primaryKey: 'sessionId',
     repositoryName: 'examImportSessionRepository',
+  },
+  [RESOURCE_TYPES.QUESTION]: {
+    displayName: 'Question',
+    tableName: 'questions',
+    primaryKey: 'questionId',
+    repositoryName: 'questionRepository',
+  },
+  [RESOURCE_TYPES.STATEMENT]: {
+    displayName: 'Statement',
+    tableName: 'statements',
+    primaryKey: 'statementId',
+    repositoryName: 'statementRepository',
+  },
+  [RESOURCE_TYPES.EXAM]: {
+    displayName: 'Exam',
+    tableName: 'exams',
+    primaryKey: 'examId',
+    repositoryName: 'examRepository',
   },
 } as const
 
