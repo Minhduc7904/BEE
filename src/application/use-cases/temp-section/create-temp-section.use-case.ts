@@ -49,7 +49,7 @@ export class CreateTempSectionUseCase {
                 order,
                 metadata: dto.metadata,
             })
-
+            
             const responseDto = TempSectionResponseDto.fromEntity(tempSection)
 
             return {

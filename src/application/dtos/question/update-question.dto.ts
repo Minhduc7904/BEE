@@ -27,14 +27,6 @@ export class UpdateQuestionDto {
   content?: string
 
   /**
-   * Question type
-   * @optional
-   * @example "MULTIPLE_CHOICE"
-   */
-  @IsOptionalEnumValue(QuestionType, 'Loại câu hỏi')
-  type?: QuestionType
-
-  /**
    * Correct answer
    * @optional
    * @example "3x^2"

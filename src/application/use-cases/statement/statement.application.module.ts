@@ -5,6 +5,7 @@ import * as statementUseCase from './'
 import { InfrastructureModule } from 'src/infrastructure/infrastructure.module'
 
 const STATEMENT_USE_CASES = [
+  statementUseCase.CreateStatementUseCase,
   statementUseCase.UpdateStatementUseCase,
   statementUseCase.DeleteStatementUseCase,
 ]

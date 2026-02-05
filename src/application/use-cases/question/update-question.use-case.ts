@@ -87,7 +87,6 @@ export class UpdateQuestionUseCase {
       }
 
       // Update other basic fields
-      if (dto.type !== undefined) updateData.type = dto.type
       if (dto.correctAnswer !== undefined) updateData.correctAnswer = dto.correctAnswer
       if (dto.solutionYoutubeUrl !== undefined) updateData.solutionYoutubeUrl = dto.solutionYoutubeUrl
       if (dto.difficulty !== undefined) updateData.difficulty = dto.difficulty

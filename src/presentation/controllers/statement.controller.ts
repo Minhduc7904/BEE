@@ -1,6 +1,7 @@
 // src/presentation/controllers/statement.controller.ts
 import {
   Controller,
+  Post,
   Put,
   Delete,
   Param,
@@ -12,6 +13,7 @@ import {
 import { Injectable } from '@nestjs/common'
 import {
   StatementResponseDto,
+  CreateStatementDto,
   UpdateStatementDto,
 } from '../../application/dtos/statement'
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
@@ -20,6 +22,7 @@ import { RequirePermission } from '../../shared/decorators/permissions.decorator
 import { CurrentUser } from '../../shared/decorators/current-user.decorator'
 import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 import {
+  CreateStatementUseCase,
   UpdateStatementUseCase,
   DeleteStatementUseCase,
 } from '../../application/use-cases/statement'
@@ -28,9 +31,38 @@ import {
 @Controller('statements')
 export class StatementController {
   constructor(
+    private readonly createStatementUseCase: CreateStatementUseCase,
     private readonly updateStatementUseCase: UpdateStatementUseCase,
     private readonly deleteStatementUseCase: DeleteStatementUseCase,
   ) {}
+
+  /**
+   * Create a new statement for a question
+   *
+   * @route POST /statements/question/:questionId
+   * @param questionId - Question ID to attach statement to
+   * @param dto - Statement data
+   * @param adminId - Current admin ID
+   * @returns Created statement
+   *
+   * @example
+   * POST /statements/question/123
+   * Body: {
+   *   "content": "y' = 2x",
+   *   "isCorrect": true,
+   *   "order": 1
+   * }
+   */
+  @Post('question/:questionId')
+  @RequirePermission(PERMISSION_CODES.STATEMENT_CREATE)
+  @HttpCode(HttpStatus.CREATED)
+  async createStatement(
+    @Param('questionId', ParseIntPipe) questionId: number,
+    @Body() dto: CreateStatementDto,
+    @CurrentUser('adminId') adminId?: number,
+  ): Promise<BaseResponseDto<StatementResponseDto>> {
+    return ExceptionHandler.execute(() => this.createStatementUseCase.execute(questionId, dto, adminId))
+  }
 
   /**
    * Update statement
