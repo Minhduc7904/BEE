@@ -3,6 +3,8 @@ import { Module } from '@nestjs/common'
 
 import * as examUseCase from './'
 import { InfrastructureModule } from 'src/infrastructure/infrastructure.module'
+import { AttachMediaFromContentUseCase } from '../media/attach-media-from-content.use-case'
+import { ProcessContentWithPresignedUrlsUseCase } from '../media/process-content-with-presigned-urls.use-case'
 
 const EXAM_USE_CASES = [
   examUseCase.GetAllExamsUseCase,
@@ -10,6 +12,8 @@ const EXAM_USE_CASES = [
   examUseCase.CreateExamUseCase,
   examUseCase.UpdateExamUseCase,
   examUseCase.DeleteExamUseCase,
+  AttachMediaFromContentUseCase,
+  ProcessContentWithPresignedUrlsUseCase,
 ]
 
 @Module({

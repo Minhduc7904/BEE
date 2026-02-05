@@ -8,8 +8,9 @@ import { ACTION_KEYS } from '../../../shared/constants/action-key.constants'
 import { AuditStatus } from '../../../shared/enums/audit-status.enum'
 import { RESOURCE_TYPES } from '../../../shared/constants/resource-type.constants'
 import { Visibility } from 'src/shared/enums'
-import { extractAllMediaIds, normalizeMediaMarkdown } from '../../../shared/utils'
 import { EntityType } from '../../../shared/constants/entity-type.constants'
+import { AttachMediaFromContentUseCase } from '../media/attach-media-from-content.use-case'
+import { QUESTION_MEDIA_FIELDS, STATEMENT_MEDIA_FIELDS } from '../../../shared/constants/media-field-name.constants'
 
 @Injectable()
 export class CreateQuestionUseCase {
@@ -19,6 +20,8 @@ export class CreateQuestionUseCase {
 
     @Inject('IMediaRepository')
     private readonly mediaRepository: IMediaRepository,
+
+    private readonly attachMediaFromContentUseCase: AttachMediaFromContentUseCase,
   ) {}
 
   async execute(dto: CreateQuestionDto, adminId?: number): Promise<BaseResponseDto<QuestionResponseDto>> {
@@ -29,15 +32,17 @@ export class CreateQuestionUseCase {
       const mediaUsageRepository = repos.mediaUsageRepository
       const adminAuditLogRepository = repos.adminAuditLogRepository
 
-      // Normalize content and solution
-      const normalizedContent = dto.content ? normalizeMediaMarkdown(dto.content) : dto.content
-      const normalizedSolution = dto.solution ? normalizeMediaMarkdown(dto.solution) : dto.solution
+      // Normalize and extract media from question content
+      const questionResults = this.attachMediaFromContentUseCase.normalizeAndExtract([
+        { fieldName: QUESTION_MEDIA_FIELDS.CONTENT, content: dto.content },
+        { fieldName: QUESTION_MEDIA_FIELDS.SOLUTION, content: dto.solution },
+      ])
 
       const createData = {
-        content: normalizedContent,
+        content: this.attachMediaFromContentUseCase.getNormalizedContent(questionResults, QUESTION_MEDIA_FIELDS.CONTENT) || '',
         type: dto.type,
         correctAnswer: dto.correctAnswer,
-        solution: normalizedSolution,
+        solution: this.attachMediaFromContentUseCase.getNormalizedContent(questionResults, QUESTION_MEDIA_FIELDS.SOLUTION) || undefined,
         solutionYoutubeUrl: dto.solutionYoutubeUrl,
         difficulty: dto.difficulty || null,
         grade: dto.grade || null,
@@ -49,9 +54,9 @@ export class CreateQuestionUseCase {
 
       const question = await questionRepository.create(createData)
 
-      // Attach media for question (from content and solution)
-      await this.attachMediaFromContents(
-        [normalizedContent, normalizedSolution],
+      // Attach media for question
+      await this.attachMediaFromContentUseCase.attachMedia(
+        questionResults,
         EntityType.QUESTION,
         question.questionId,
         adminId!,
@@ -73,13 +78,13 @@ export class CreateQuestionUseCase {
           const statement = dto.statements[i]
           
           // Normalize statement content
-          const normalizedStatementContent = statement.content 
-            ? normalizeMediaMarkdown(statement.content) 
-            : statement.content
+          const statementResults = this.attachMediaFromContentUseCase.normalizeAndExtract([
+            { fieldName: STATEMENT_MEDIA_FIELDS.CONTENT, content: statement.content },
+          ])
 
           const statementData = {
             questionId: question.questionId,
-            content: normalizedStatementContent,
+            content: this.attachMediaFromContentUseCase.getNormalizedContent(statementResults, STATEMENT_MEDIA_FIELDS.CONTENT) || '',
             isCorrect: statement.isCorrect,
             order: statement.order !== undefined ? statement.order : i + 1,
             difficulty: statement.difficulty || null,
@@ -88,8 +93,8 @@ export class CreateQuestionUseCase {
           const createdStatement = await statementRepository.create(statementData)
 
           // Attach media for statement
-          await this.attachMediaFromContents(
-            [normalizedStatementContent],
+          await this.attachMediaFromContentUseCase.attachMedia(
+            statementResults,
             EntityType.STATEMENT,
             createdStatement.statementId,
             adminId!,
@@ -122,49 +127,5 @@ export class CreateQuestionUseCase {
       message: 'Tạo câu hỏi thành công',
       data: QuestionResponseDto.fromEntity(result!),
     }
-  }
-
-  /**
-   * Extract mediaIds from multiple contents and attach usage (batch-safe)
-   */
-  private async attachMediaFromContents(
-    contents: Array<string | null | undefined>,
-    entityType: EntityType,
-    entityId: number,
-    userId: number,
-    mediaUsageRepository: any,
-  ) {
-    const mediaIds = new Set<number>()
-
-    for (const content of contents) {
-      if (!content) continue
-      extractAllMediaIds(content).forEach((id) => mediaIds.add(id))
-    }
-
-    if (mediaIds.size === 0) return
-
-    const ids = Array.from(mediaIds)
-
-    const medias = await this.mediaRepository.findByIds(ids)
-    const existingUsages = await mediaUsageRepository.findExistingByEntity(
-      ids,
-      entityType,
-      entityId,
-    )
-
-    const existingMediaIds = new Set(existingUsages.map((u) => u.mediaId))
-
-    const attachTasks = medias
-      .filter((m) => !existingMediaIds.has(m.mediaId))
-      .map((media) =>
-        mediaUsageRepository.attach({
-          mediaId: media.mediaId,
-          entityType,
-          entityId,
-          usedBy: userId,
-        }),
-      )
-
-    await Promise.all(attachTasks)
   }
 }

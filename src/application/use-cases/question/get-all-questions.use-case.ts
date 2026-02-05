@@ -1,20 +1,18 @@
 // src/application/use-cases/question/get-all-questions.use-case.ts
 import { Inject, Injectable } from '@nestjs/common'
-import type { IQuestionRepository, IMediaRepository } from '../../../domain/repositories'
+import type { IQuestionRepository } from '../../../domain/repositories'
 import { QuestionListQueryDto } from '../../dtos/question/question-list-query.dto'
 import { QuestionListResponseDto, QuestionResponseDto } from '../../dtos/question/question.dto'
 import { SortOrder } from 'src/shared/enums/sort-order.enum'
-import { MinioService } from '../../../infrastructure/services/minio.service'
-import { extractMediaIdsFromAlt } from '../../../shared/utils'
+import { ProcessContentWithPresignedUrlsUseCase, type ContentField } from '../media/process-content-with-presigned-urls.use-case'
+import { QUESTION_CONTENT_FIELDS } from '../../../shared/constants/media-field-name.constants'
 
 @Injectable()
 export class GetAllQuestionsUseCase {
   constructor(
     @Inject('IQuestionRepository')
     private readonly questionRepository: IQuestionRepository,
-    @Inject('IMediaRepository')
-    private readonly mediaRepository: IMediaRepository,
-    private readonly minioService: MinioService,
+    private readonly processContentUseCase: ProcessContentWithPresignedUrlsUseCase,
   ) {}
 
   async execute(query: QuestionListQueryDto, expirySeconds = 3600): Promise<QuestionListResponseDto> {
@@ -40,95 +38,53 @@ export class GetAllQuestionsUseCase {
 
     const questionResponses = QuestionResponseDto.fromEntities(result.questions)
 
-    /* ------------------------------------------------------------------
-     * Extract all mediaIds from questions and statements
-     * ------------------------------------------------------------------ */
-    const allMediaIds = new Set<number>()
-
+    // Process all questions with presigned URLs
     for (const dto of questionResponses) {
-      // Extract from question content
-      const contentMediaIds = extractMediaIdsFromAlt(dto.content)
-      contentMediaIds.forEach((id) => allMediaIds.add(id))
+      // Prepare content fields for this question
+      const contentFields: ContentField[] = [
+        { fieldName: QUESTION_CONTENT_FIELDS.CONTENT, content: dto.content },
+      ]
 
-      // Extract from solution
       if (dto.solution) {
-        const solutionMediaIds = extractMediaIdsFromAlt(dto.solution)
-        solutionMediaIds.forEach((id) => allMediaIds.add(id))
+        contentFields.push({ fieldName: QUESTION_CONTENT_FIELDS.SOLUTION, content: dto.solution })
       }
 
-      // Extract from statements
+      // Add statement contents
       if (dto.statements) {
-        for (const stmt of dto.statements) {
-          const stmtMediaIds = extractMediaIdsFromAlt(stmt.content)
-          stmtMediaIds.forEach((id) => allMediaIds.add(id))
-        }
+        dto.statements.forEach((stmt, index) => {
+          contentFields.push({
+            fieldName: `${QUESTION_CONTENT_FIELDS.STATEMENT_PREFIX}${index}`,
+            content: stmt.content,
+          })
+        })
       }
-    }
 
-    /* ------------------------------------------------------------------
-     * Generate presigned URLs for all mediaIds
-     * ------------------------------------------------------------------ */
-    const mediaIdToUrlMap = new Map<number, string>()
-
-    if (allMediaIds.size > 0) {
-      const mediaList = await Promise.all(
-        Array.from(allMediaIds).map((id) => this.mediaRepository.findById(id)),
+      // Process all contents at once
+      const processedResults = await this.processContentUseCase.execute(
+        contentFields,
+        expirySeconds,
       )
 
-      const validMedia = mediaList.filter(
-        (m): m is NonNullable<typeof m> => m !== null,
-      )
+      // Map processed contents back to response
+      dto.processedContent = this.processContentUseCase.getProcessedContent(
+        processedResults,
+        QUESTION_CONTENT_FIELDS.CONTENT,
+      ) || dto.content
 
-      await Promise.all(
-        validMedia.map(async (media) => {
-          try {
-            const url = await this.minioService.getPresignedUrl(
-              media.bucketName,
-              media.objectKey,
-              expirySeconds,
-            )
-            mediaIdToUrlMap.set(media.mediaId, url)
-          } catch (error) {
-            console.error(
-              `Failed to generate presigned URL for media ${media.mediaId}:`,
-              error,
-            )
-          }
-        }),
-      )
-    }
-
-    /* ------------------------------------------------------------------
-     * Helper function to replace markdown images
-     * Pattern: ![media:75](media:75) -> ![media:75](presigned-url)
-     * ------------------------------------------------------------------ */
-    const replaceMarkdownImages = (content: string): string => {
-      const imagePattern = /!\[media:(\d+)\]\([^)]+\)/g
-      return content.replace(imagePattern, (fullMatch, mediaIdStr) => {
-        const id = Number(mediaIdStr)
-        const url = mediaIdToUrlMap.get(id)
-        if (!url) return fullMatch
-        return `![media:${id}](${url})`
-      })
-    }
-
-    /* ------------------------------------------------------------------
-     * Process each question and statement
-     * ------------------------------------------------------------------ */
-    for (const dto of questionResponses) {
-      // Process question content
-      dto.processedContent = replaceMarkdownImages(dto.content)
-
-      // Process solution
       if (dto.solution) {
-        dto.processedSolution = replaceMarkdownImages(dto.solution)
+        dto.processedSolution = this.processContentUseCase.getProcessedContent(
+          processedResults,
+          QUESTION_CONTENT_FIELDS.SOLUTION,
+        ) || dto.solution
       }
 
-      // Process statements
       if (dto.statements) {
-        for (const stmt of dto.statements) {
-          stmt.processedContent = replaceMarkdownImages(stmt.content)
-        }
+        dto.statements.forEach((stmt, index) => {
+          stmt.processedContent = this.processContentUseCase.getProcessedContent(
+            processedResults,
+            `${QUESTION_CONTENT_FIELDS.STATEMENT_PREFIX}${index}`,
+          ) || stmt.content
+        })
       }
     }
 

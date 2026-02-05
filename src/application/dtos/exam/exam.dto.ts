@@ -112,6 +112,9 @@ export class ExamResponseDto {
   questionCount: number
   competitionCount: number
 
+  // Processed content with presigned URLs
+  processedDescription?: string | null
+
   static fromEntity(exam: Exam): ExamResponseDto {
     const dto = new ExamResponseDto()
 

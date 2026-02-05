@@ -8,30 +8,50 @@ import { ACTION_KEYS } from '../../../shared/constants/action-key.constants'
 import { AuditStatus } from '../../../shared/enums/audit-status.enum'
 import { RESOURCE_TYPES } from '../../../shared/constants/resource-type.constants'
 import { ExamVisibility } from 'src/shared/enums'
+import { AttachMediaFromContentUseCase } from '../media/attach-media-from-content.use-case'
+import { EntityType } from '../../../shared/constants/entity-type.constants'
+import { EXAM_MEDIA_FIELDS } from '../../../shared/constants/media-field-name.constants'
 
 @Injectable()
 export class CreateExamUseCase {
   constructor(
     @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
+
+    private readonly attachMediaFromContentUseCase: AttachMediaFromContentUseCase,
   ) {}
 
   async execute(dto: CreateExamDto, adminId?: number): Promise<BaseResponseDto<ExamResponseDto>> {
     const result = await this.unitOfWork.executeInTransaction(async (repos) => {
       const examRepository = repos.examRepository
+      const mediaUsageRepository = repos.mediaUsageRepository
       const adminAuditLogRepository = repos.adminAuditLogRepository
+
+      // Normalize and extract media from content fields
+      const normalizedResults = this.attachMediaFromContentUseCase.normalizeAndExtract([
+        { fieldName: EXAM_MEDIA_FIELDS.DESCRIPTION, content: dto.description },
+      ])
 
       const createData = {
         title: dto.title,
         grade: dto.grade,
         visibility: dto.visibility || ExamVisibility.DRAFT,
         adminId: adminId!,
-        description: dto.description,
+        description: this.attachMediaFromContentUseCase.getNormalizedContent(normalizedResults, EXAM_MEDIA_FIELDS.DESCRIPTION),
         subjectId: dto.subjectId,
         solutionYoutubeUrl: dto.solutionYoutubeUrl,
       }
 
       const exam = await examRepository.create(createData)
+
+      // Attach media to exam
+      await this.attachMediaFromContentUseCase.attachMedia(
+        normalizedResults,
+        EntityType.EXAM,
+        exam.examId,
+        adminId!,
+        mediaUsageRepository,
+      )
 
       // TODO: Link questions if provided (need QuestionExam repository)
       // if (dto.questionIds && dto.questionIds.length > 0) {

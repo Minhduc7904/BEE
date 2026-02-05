@@ -59,9 +59,9 @@ export class StatementController {
   async createStatement(
     @Param('questionId', ParseIntPipe) questionId: number,
     @Body() dto: CreateStatementDto,
-    @CurrentUser('adminId') adminId?: number,
+    @CurrentUser() user: { adminId?: number, userId?: number },
   ): Promise<BaseResponseDto<StatementResponseDto>> {
-    return ExceptionHandler.execute(() => this.createStatementUseCase.execute(questionId, dto, adminId))
+    return ExceptionHandler.execute(() => this.createStatementUseCase.execute(questionId, dto, user.adminId, user.userId))
   }
 
   /**
@@ -87,9 +87,9 @@ export class StatementController {
   async updateStatement(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateStatementDto,
-    @CurrentUser('adminId') adminId?: number,
+    @CurrentUser() user: { adminId?: number, userId?: number },
   ): Promise<BaseResponseDto<StatementResponseDto>> {
-    return ExceptionHandler.execute(() => this.updateStatementUseCase.execute(id, dto, adminId))
+    return ExceptionHandler.execute(() => this.updateStatementUseCase.execute(id, dto, user.adminId, user.userId))
   }
 
   /**
@@ -108,8 +108,8 @@ export class StatementController {
   @HttpCode(HttpStatus.OK)
   async deleteStatement(
     @Param('id', ParseIntPipe) id: number,
-    @CurrentUser('adminId') adminId?: number,
+    @CurrentUser() user: { adminId?: number, userId?: number },
   ): Promise<BaseResponseDto<boolean>> {
-    return ExceptionHandler.execute(() => this.deleteStatementUseCase.execute(id, adminId))
+    return ExceptionHandler.execute(() => this.deleteStatementUseCase.execute(id, user.adminId))
   }
 }

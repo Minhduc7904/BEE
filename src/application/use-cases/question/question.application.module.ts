@@ -3,6 +3,8 @@ import { Module } from '@nestjs/common'
 
 import * as questionUseCase from './'
 import { InfrastructureModule } from 'src/infrastructure/infrastructure.module'
+import { AttachMediaFromContentUseCase } from '../media/attach-media-from-content.use-case'
+import { ProcessContentWithPresignedUrlsUseCase } from '../media/process-content-with-presigned-urls.use-case'
 
 const QUESTION_USE_CASES = [
   questionUseCase.GetAllQuestionsUseCase,
@@ -10,6 +12,8 @@ const QUESTION_USE_CASES = [
   questionUseCase.CreateQuestionUseCase,
   questionUseCase.UpdateQuestionUseCase,
   questionUseCase.DeleteQuestionUseCase,
+  AttachMediaFromContentUseCase,
+  ProcessContentWithPresignedUrlsUseCase,
 ]
 
 @Module({

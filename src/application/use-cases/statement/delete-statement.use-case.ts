@@ -7,13 +7,16 @@ import { ACTION_KEYS } from '../../../shared/constants/action-key.constants'
 import { AuditStatus } from '../../../shared/enums/audit-status.enum'
 import { RESOURCE_TYPES } from '../../../shared/constants/resource-type.constants'
 import { EntityType } from '../../../shared/constants/entity-type.constants'
+import { AttachMediaFromContentUseCase } from '../media/attach-media-from-content.use-case'
 
 @Injectable()
 export class DeleteStatementUseCase {
   constructor(
     @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
-  ) {}
+
+    private readonly attachMediaFromContentUseCase: AttachMediaFromContentUseCase,
+  ) { }
 
   async execute(statementId: number, adminId?: number): Promise<BaseResponseDto<boolean>> {
     const result = await this.unitOfWork.executeInTransaction(async (repos) => {
@@ -38,7 +41,7 @@ export class DeleteStatementUseCase {
       }
 
       // Detach all media from statement
-      await this.detachAllMediaFromEntity(
+      await this.attachMediaFromContentUseCase.detachAllMediaFromEntity(
         EntityType.STATEMENT,
         statementId,
         mediaUsageRepository,
@@ -68,20 +71,6 @@ export class DeleteStatementUseCase {
       success: true,
       message: 'Xóa đáp án thành công',
       data: result,
-    }
-  }
-
-  /**
-   * Detach all media from an entity
-   */
-  private async detachAllMediaFromEntity(
-    entityType: EntityType,
-    entityId: number,
-    mediaUsageRepository: any,
-  ) {
-    const existingUsages = await mediaUsageRepository.findByEntity(entityType, entityId)
-    for (const usage of existingUsages) {
-      await mediaUsageRepository.detach(usage.usageId)
     }
   }
 }

@@ -7,12 +7,15 @@ import { ACTION_KEYS } from '../../../shared/constants/action-key.constants'
 import { AuditStatus } from '../../../shared/enums/audit-status.enum'
 import { RESOURCE_TYPES } from '../../../shared/constants/resource-type.constants'
 import { EntityType } from '../../../shared/constants/entity-type.constants'
+import { AttachMediaFromContentUseCase } from '../media/attach-media-from-content.use-case'
 
 @Injectable()
 export class DeleteQuestionUseCase {
   constructor(
     @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
+
+    private readonly attachMediaFromContentUseCase: AttachMediaFromContentUseCase,
   ) {}
 
   async execute(questionId: number, adminId?: number): Promise<BaseResponseDto<boolean>> {
@@ -39,7 +42,7 @@ export class DeleteQuestionUseCase {
       }
 
       // Detach all media from question (content, solution)
-      await this.detachAllMediaFromEntity(
+      await this.attachMediaFromContentUseCase.detachAllMediaFromEntity(
         EntityType.QUESTION,
         questionId,
         mediaUsageRepository,
@@ -48,7 +51,7 @@ export class DeleteQuestionUseCase {
       // Get all statements and detach their media
       const statements = await statementRepository.findByQuestionId(questionId)
       for (const statement of statements) {
-        await this.detachAllMediaFromEntity(
+        await this.attachMediaFromContentUseCase.detachAllMediaFromEntity(
           EntityType.STATEMENT,
           statement.statementId,
           mediaUsageRepository,
@@ -80,20 +83,6 @@ export class DeleteQuestionUseCase {
       success: true,
       message: 'Xóa câu hỏi thành công',
       data: result,
-    }
-  }
-
-  /**
-   * Detach all media from an entity
-   */
-  private async detachAllMediaFromEntity(
-    entityType: EntityType,
-    entityId: number,
-    mediaUsageRepository: any,
-  ) {
-    const existingUsages = await mediaUsageRepository.findByEntity(entityType, entityId)
-    for (const usage of existingUsages) {
-      await mediaUsageRepository.detach(usage.usageId)
     }
   }
 }
