@@ -24,6 +24,7 @@ export interface QuestionFilterOptions {
   visibility?: Visibility
   createdBy?: number
   chapterId?: number
+  examId?: number
   search?: string
 }
 

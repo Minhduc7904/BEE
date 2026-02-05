@@ -238,6 +238,11 @@ import openaiConfig from '../config/openai.config'
       inject: [PrismaService],
     },
     {
+      provide: 'ISectionRepository',
+      useFactory: (prisma: PrismaService) => new PrismaSectionRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
       provide: 'IQuestionRepository',
       useFactory: (prisma: PrismaService) => new PrismaQuestionRepository(prisma),
       inject: [PrismaService],

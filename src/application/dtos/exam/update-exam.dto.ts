@@ -7,7 +7,7 @@ export class UpdateExamDto {
    * Tên đề thi
    * @example "Đề thi Toán học kỳ 1 năm 2024"
    */
-  @IsOptionalString('Tên đề thi', 1, 500)
+  @IsOptionalString('Tên đề thi', 500, 1)
   title?: string
 
   /**
@@ -28,7 +28,7 @@ export class UpdateExamDto {
    * Mô tả đề thi
    * @example "Đề thi giữa kỳ môn Toán lớp 10"
    */
-  @IsOptionalString('Mô tả', 0, 2000)
+  @IsOptionalString('Mô tả', 2000, 0)
   description?: string
 
   /**
@@ -42,7 +42,7 @@ export class UpdateExamDto {
    * URL video hướng dẫn giải
    * @example "https://youtube.com/watch?v=abc123"
    */
-  @IsOptionalString('URL video hướng dẫn', 0, 500)
+  @IsOptionalString('URL video hướng dẫn', 500, 0)
   solutionYoutubeUrl?: string
 
   /**

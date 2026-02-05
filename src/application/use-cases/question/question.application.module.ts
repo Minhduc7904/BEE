@@ -12,6 +12,7 @@ const QUESTION_USE_CASES = [
   questionUseCase.CreateQuestionUseCase,
   questionUseCase.UpdateQuestionUseCase,
   questionUseCase.DeleteQuestionUseCase,
+  questionUseCase.GetQuestionsByExamUseCase,
   AttachMediaFromContentUseCase,
   ProcessContentWithPresignedUrlsUseCase,
 ]

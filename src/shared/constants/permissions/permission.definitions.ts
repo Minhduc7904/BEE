@@ -1082,4 +1082,31 @@ export const PERMISSION_DEFINITIONS = {
             },
         },
     },
+
+    section: {
+        group: 'SECTION',
+        isSystem: true,
+        actions: {
+            getByExam: {
+                name: 'Xem section theo exam',
+                description: 'Xem danh sách section của một exam',
+            },
+            getById: {
+                name: 'Xem section theo ID',
+                description: 'Xem chi tiết section',
+            },
+            create: {
+                name: 'Tạo section',
+                description: 'Tạo section mới',
+            },
+            update: {
+                name: 'Cập nhật section',
+                description: 'Chỉnh sửa section',
+            },
+            delete: {
+                name: 'Xóa section',
+                description: 'Xóa section',
+            },
+        },
+    },
 } as const;

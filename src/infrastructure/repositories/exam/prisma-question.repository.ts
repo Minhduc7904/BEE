@@ -188,6 +188,14 @@ export class PrismaQuestionRepository implements IQuestionRepository {
             }
         }
 
+        if (filters?.examId !== undefined) {
+            where.examQuestions = {
+                some: {
+                    examId: filters.examId,
+                },
+            }
+        }
+
         // Build orderBy
         const orderBy: any = {}
         orderBy[sortBy] = sortOrder

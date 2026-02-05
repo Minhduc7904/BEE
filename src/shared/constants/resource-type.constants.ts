@@ -29,6 +29,7 @@ export const RESOURCE_TYPES = {
   EXAM_IMPORT_SESSION: 'EXAM_IMPORT_SESSION',
   QUESTION: 'QUESTION',
   STATEMENT: 'STATEMENT',
+  SECTION: 'SECTION',
   EXAM: 'EXAM',
 } as const
 
@@ -200,6 +201,12 @@ export const RESOURCE_TYPE_TABLE = {
     tableName: 'statements',
     primaryKey: 'statementId',
     repositoryName: 'statementRepository',
+  },
+  [RESOURCE_TYPES.SECTION]: {
+    displayName: 'Section',
+    tableName: 'sections',
+    primaryKey: 'sectionId',
+    repositoryName: 'sectionRepository',
   },
   [RESOURCE_TYPES.EXAM]: {
     displayName: 'Exam',

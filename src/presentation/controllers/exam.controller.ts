@@ -20,6 +20,8 @@ import {
   UpdateExamDto,
   ExamListQueryDto,
 } from '../../application/dtos/exam'
+import { QuestionListResponseDto, QuestionByExamQueryDto } from '../../application/dtos/question'
+import { SectionResponseDto } from '../../application/dtos/section'
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
@@ -32,6 +34,8 @@ import {
   UpdateExamUseCase,
   DeleteExamUseCase,
 } from '../../application/use-cases/exam'
+import { GetQuestionsByExamUseCase } from '../../application/use-cases/question'
+import { GetSectionsByExamUseCase } from '../../application/use-cases/section'
 
 @Injectable()
 @Controller('exams')
@@ -42,6 +46,8 @@ export class ExamController {
     private readonly createExamUseCase: CreateExamUseCase,
     private readonly updateExamUseCase: UpdateExamUseCase,
     private readonly deleteExamUseCase: DeleteExamUseCase,
+    private readonly getQuestionsByExamUseCase: GetQuestionsByExamUseCase,
+    private readonly getSectionsByExamUseCase: GetSectionsByExamUseCase,
   ) {}
 
   /**
@@ -152,5 +158,45 @@ export class ExamController {
     @CurrentUser('adminId') adminId?: number,
   ): Promise<BaseResponseDto<boolean>> {
     return ExceptionHandler.execute(() => this.deleteExamUseCase.execute(id, adminId))
+  }
+
+  /**
+   * Get all questions for a specific exam
+   *
+   * @route GET /exams/:id/questions
+   * @param id - Exam ID
+   * @param query - Query parameters (page, limit, type, difficulty, etc.)
+   * @returns Paginated list of questions for the exam
+   *
+   * @example
+   * GET /exams/123/questions?page=1&limit=10&type=SINGLE_CHOICE
+   */
+  @Get(':id/questions')
+  @RequirePermission(PERMISSION_CODES.QUESTION_GET_ALL)
+  @HttpCode(HttpStatus.OK)
+  async getQuestionsByExam(
+    @Param('id', ParseIntPipe) id: number,
+    @Query() query: QuestionByExamQueryDto,
+  ): Promise<QuestionListResponseDto> {
+    return ExceptionHandler.execute(() => this.getQuestionsByExamUseCase.execute(id, query))
+  }
+
+  /**
+   * Get all sections for a specific exam
+   *
+   * @route GET /exams/:id/sections
+   * @param id - Exam ID
+   * @returns List of sections for the exam ordered by 'order' field
+   *
+   * @example
+   * GET /exams/123/sections
+   */
+  @Get(':id/sections')
+  @RequirePermission(PERMISSION_CODES.SECTION_GET_BY_EXAM)
+  @HttpCode(HttpStatus.OK)
+  async getSectionsByExam(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<BaseResponseDto<SectionResponseDto[]>> {
+    return ExceptionHandler.execute(() => this.getSectionsByExamUseCase.execute(id))
   }
 }

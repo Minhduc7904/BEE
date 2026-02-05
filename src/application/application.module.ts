@@ -36,6 +36,7 @@ import { TempStatementApplicationModule } from './use-cases/temp-statement/temp-
 import { QuestionApplicationModule } from './use-cases/question/question.application.module'
 import { StatementApplicationModule } from './use-cases/statement/statement.application.module'
 import { ExamApplicationModule } from './use-cases/exam/exam.application.module'
+import { SectionApplicationModule } from './use-cases/section/section.application.module'
 const modules = [
   // Auth & Account
   AuthApplicationModule,
@@ -87,6 +88,7 @@ const modules = [
   QuestionApplicationModule,
   StatementApplicationModule,
   ExamApplicationModule,
+  SectionApplicationModule,
 ]
 
 @Module({
