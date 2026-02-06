@@ -9,15 +9,10 @@ export class QuestionExamMapper {
   static toDomainQuestionExam(prisma: PrismaQuestionExam | null): QuestionExam | null {
     if (!prisma) return null
 
-    // sectionId is required in domain entity
-    if (!prisma.sectionId) {
-      throw new Error('QuestionExam must have a sectionId')
-    }
-
     return new QuestionExam({
       questionId: prisma.questionId,
       examId: prisma.examId,
-      sectionId: prisma.sectionId,
+      sectionId: prisma.sectionId ?? null,
       order: prisma.order,
       createdAt: prisma.createdAt || new Date(),
       points: prisma.points,

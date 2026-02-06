@@ -223,6 +223,11 @@ export class PrismaQuestionRepository implements IQuestionRepository {
                             chapter: true,
                         },
                     },
+                    examQuestions: filters?.examId !== undefined ? {
+                        where: {
+                            examId: filters.examId,
+                        },
+                    } : false,
                 },
             }),
             client.question.count({ where }),

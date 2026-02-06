@@ -8,18 +8,24 @@ import { ACTION_KEYS } from '../../../shared/constants/action-key.constants'
 import { AuditStatus } from '../../../shared/enums/audit-status.enum'
 import { RESOURCE_TYPES } from '../../../shared/constants/resource-type.constants'
 import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
+import { AttachMediaFromContentUseCase } from '../media/attach-media-from-content.use-case'
+import { EntityType } from '../../../shared/constants/entity-type.constants'
+import { SECTION_MEDIA_FIELDS } from '../../../shared/constants/media-field-name.constants'
 
 @Injectable()
 export class CreateSectionUseCase {
   constructor(
     @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
+
+    private readonly attachMediaFromContentUseCase: AttachMediaFromContentUseCase,
   ) {}
 
   async execute(dto: CreateSectionDto, adminId?: number): Promise<BaseResponseDto<SectionResponseDto>> {
     const result = await this.unitOfWork.executeInTransaction(async (repos) => {
       const sectionRepository = repos.sectionRepository
       const examRepository = repos.examRepository
+      const mediaUsageRepository = repos.mediaUsageRepository
       const adminAuditLogRepository = repos.adminAuditLogRepository
 
       // Verify exam exists
@@ -38,14 +44,40 @@ export class CreateSectionUseCase {
         throw new NotFoundException('Không tìm thấy đề thi')
       }
 
+      // Calculate order if not provided
+      let order = dto.order
+      if (order === undefined || order === null) {
+        const existingSections = await sectionRepository.findByExamId(dto.examId)
+        order = existingSections.length > 0 
+          ? Math.max(...existingSections.map(s => s.order)) + 1 
+          : 1
+      }
+
+      // Normalize and extract media from description
+      const normalizedResults = this.attachMediaFromContentUseCase.normalizeAndExtract([
+        { fieldName: SECTION_MEDIA_FIELDS.DESCRIPTION, content: dto.description },
+      ])
+
       const createData = {
         examId: dto.examId,
         title: dto.title,
-        description: dto.description,
-        order: dto.order,
+        description: this.attachMediaFromContentUseCase.getNormalizedContent(
+          normalizedResults, 
+          SECTION_MEDIA_FIELDS.DESCRIPTION
+        ),
+        order,
       }
 
       const section = await sectionRepository.create(createData)
+
+      // Attach media to section
+      await this.attachMediaFromContentUseCase.attachMedia(
+        normalizedResults,
+        EntityType.SECTION,
+        section.sectionId,
+        adminId!,
+        mediaUsageRepository,
+      )
 
       if (adminId) {
         await adminAuditLogRepository.create({

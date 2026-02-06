@@ -19,6 +19,9 @@ import {
   CreateQuestionDto,
   UpdateQuestionDto,
   QuestionListQueryDto,
+  ReorderQuestionsDto,
+  RemoveQuestionFromExamDto,
+  AddQuestionToSectionDto,
 } from '../../application/dtos/question'
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
@@ -31,6 +34,9 @@ import {
   CreateQuestionUseCase,
   UpdateQuestionUseCase,
   DeleteQuestionUseCase,
+  ReorderQuestionsUseCase,
+  RemoveQuestionFromExamUseCase,
+  AddQuestionToSectionUseCase,
 } from '../../application/use-cases/question'
 
 @Injectable()
@@ -42,6 +48,9 @@ export class QuestionController {
     private readonly createQuestionUseCase: CreateQuestionUseCase,
     private readonly updateQuestionUseCase: UpdateQuestionUseCase,
     private readonly deleteQuestionUseCase: DeleteQuestionUseCase,
+    private readonly reorderQuestionsUseCase: ReorderQuestionsUseCase,
+    private readonly removeQuestionFromExamUseCase: RemoveQuestionFromExamUseCase,
+    private readonly addQuestionToSectionUseCase: AddQuestionToSectionUseCase,
   ) {}
 
   /**
@@ -108,6 +117,31 @@ export class QuestionController {
   }
 
   /**
+   * Reorder questions
+   *
+   * @route PUT /questions/reorder
+   * @param dto - Array of questions with new order
+   * @returns Success message
+   *
+   * @example
+   * PUT /questions/reorder
+   * Body: {
+   *   "items": [
+   *     { "id": 1, "order": 2 },
+   *     { "id": 2, "order": 1 }
+   *   ]
+   * }
+   */
+  @Put('reorder')
+  @RequirePermission(PERMISSION_CODES.QUESTION_UPDATE)
+  @HttpCode(HttpStatus.OK)
+  async reorderQuestions(
+    @Body() dto: ReorderQuestionsDto,
+  ): Promise<BaseResponseDto<boolean>> {
+    return ExceptionHandler.execute(() => this.reorderQuestionsUseCase.execute(dto))
+  }
+
+  /**
    * Update question
    *
    * @route PUT /questions/:id
@@ -133,6 +167,55 @@ export class QuestionController {
     @CurrentUser('adminId') adminId?: number,
   ): Promise<BaseResponseDto<QuestionResponseDto>> {
     return ExceptionHandler.execute(() => this.updateQuestionUseCase.execute(id, dto, adminId))
+  }
+
+  /**
+   * Add question to section
+   *
+   * @route POST /questions/section
+   * @param dto - Question, Exam, and Section IDs with optional order and points
+   * @returns Success message
+   *
+   * @example
+   * POST /questions/section
+   * Body: {
+   *   "examId": 10,
+   *   "questionId": 123,
+   *   "sectionId": 5,
+   *   "order": 1,
+   *   "points": 10
+   * }
+   */
+  @Post('section')
+  @RequirePermission(PERMISSION_CODES.QUESTION_UPDATE)
+  @HttpCode(HttpStatus.OK)
+  async addQuestionToSection(
+    @Body() dto: AddQuestionToSectionDto,
+  ): Promise<BaseResponseDto<boolean>> {
+    return ExceptionHandler.execute(() => this.addQuestionToSectionUseCase.execute(dto))
+  }
+
+  /**
+   * Remove question from exam
+   *
+   * @route DELETE /questions/exam
+   * @param dto - Exam and Question IDs
+   * @returns Success message
+   *
+   * @example
+   * DELETE /questions/exam
+   * Body: {
+   *   "examId": 10,
+   *   "questionId": 123
+   * }
+   */
+  @Delete('exam')
+  @RequirePermission(PERMISSION_CODES.QUESTION_UPDATE)
+  @HttpCode(HttpStatus.OK)
+  async removeQuestionFromExam(
+    @Body() dto: RemoveQuestionFromExamDto,
+  ): Promise<BaseResponseDto<boolean>> {
+    return ExceptionHandler.execute(() => this.removeQuestionFromExamUseCase.execute(dto))
   }
 
   /**

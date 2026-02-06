@@ -58,6 +58,10 @@ export class QuestionResponseDto {
   questionChapters?: QuestionChapter[]
   statements?: StatementResponseDto[]
 
+  // ===== Exam Context (from QuestionExam) =====
+  order?: number | null
+  sectionId?: number | null
+
   // ===== Metadata =====
   createdBy?: number | null
   createdAt: Date
@@ -98,6 +102,10 @@ export class QuestionResponseDto {
       subject: question.subject ?? undefined,
       questionChapters: question.questionChapters,
       statements: question.statements?.map((stmt) => StatementResponseDto.fromEntity(stmt)),
+
+      // Exam Context (from first examQuestion if exists)
+      order: question.examQuestions?.[0]?.order ?? null,
+      sectionId: question.examQuestions?.[0]?.sectionId ?? null,
 
       // Metadata
       createdBy: question.createdBy ?? null,

@@ -4,6 +4,7 @@ import { Question } from '../../../domain/entities/exam/question.entity'
 import { StatementMapper } from './statement.mapper'
 import { SubjectMapper } from '../subject/subject.mapper'
 import { QuestionChapterMapper } from './question-chapter.mapper'
+import { QuestionExamMapper } from './question-exam.mapper'
 
 export class QuestionMapper {
   /**
@@ -31,6 +32,7 @@ export class QuestionMapper {
       admin: prisma.admin,
       statements: prisma.statements ? StatementMapper.toDomainStatements(prisma.statements) : undefined,
       questionChapters: prisma.questionChapters ? QuestionChapterMapper.toDomainQuestionChapters(prisma.questionChapters) : undefined,
+      examQuestions: prisma.examQuestions ? QuestionExamMapper.toDomainQuestionExams(prisma.examQuestions) : undefined,
     })
   }
 

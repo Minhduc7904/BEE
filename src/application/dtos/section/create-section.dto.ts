@@ -3,7 +3,7 @@ import {
   IsRequiredString,
   IsOptionalString,
   IsRequiredIdNumber,
-  IsRequiredInt,
+  IsOptionalInt,
 } from 'src/shared/decorators/validate'
 
 /**
@@ -38,9 +38,9 @@ export class CreateSectionDto {
 
   /**
    * Order of section in exam
-   * @required
+   * @optional - If not provided, will be automatically set to last position
    * @example 1
    */
-  @IsRequiredInt('Thứ tự', 1)
-  order: number
+  @IsOptionalInt('Thứ tự', 1)
+  order?: number
 }

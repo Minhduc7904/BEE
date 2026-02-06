@@ -9,7 +9,7 @@ import { PaginationResponseDto, PaginationMetaDto } from '../pagination/paginati
 export class QuestionExamResponseDto {
   questionId: number
   examId: number
-  sectionId: number
+  sectionId: number | null
   order: number
   points?: number | null
   createdAt: Date

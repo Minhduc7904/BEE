@@ -16,6 +16,9 @@ export class SectionResponseDto {
   createdAt: Date
   updatedAt: Date
 
+  // Processed content with presigned URLs
+  processedDescription?: string | null
+
   static fromEntity(entity: Section): SectionResponseDto {
     const dto = new SectionResponseDto()
     dto.sectionId = entity.sectionId

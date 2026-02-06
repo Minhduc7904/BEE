@@ -7,7 +7,7 @@ export class QuestionExam {
   // Required properties
   questionId: number
   examId: number
-  sectionId: number
+  sectionId: number | null
   order: number
   createdAt: Date
 
@@ -21,7 +21,7 @@ export class QuestionExam {
   constructor(data: {
     questionId: number
     examId: number
-    sectionId: number
+    sectionId: number | null
     order: number
     createdAt: Date
     points?: number | null

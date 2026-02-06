@@ -125,10 +125,11 @@ SỬA LỖI KÝ HIỆU TOÁN HỌC (CHỈ SỬA LỖI OCR):
 Bạn ĐƯỢC PHÉP sửa các lỗi ký hiệu toán học do OCR gây ra, NHƯNG PHẢI TUÂN THEO TẤT CẢ CÁC QUY TẮC SAU:
 
 1. CHỈ sửa lỗi ký hiệu hiển thị, KHÔNG được biến đổi bản chất toán học.
-2. KHÔNG được rút gọn biểu thức.
-3. KHÔNG được tính toán.
-4. KHÔNG được suy luận thêm.
-5. Giữ nguyên cấu trúc biểu thức ban đầu.
+2. Đảm bảo các biểu thức toán học nằm trong dấu $...$ hoặc $$...$$ vẫn giữ nguyên ý nghĩa.
+3. KHÔNG được rút gọn biểu thức.
+4. KHÔNG được tính toán.
+5. KHÔNG được suy luận thêm.
+6. Giữ nguyên cấu trúc biểu thức ban đầu.
 
 Các lỗi được phép sửa (không giới hạn):
 - Dấu trừ unicode (−) → dấu trừ chuẩn (-)

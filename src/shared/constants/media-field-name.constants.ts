@@ -46,6 +46,21 @@ export const EXAM_MEDIA_FIELDS = {
 } as const
 
 /**
+ * Media field names for Section
+ */
+export const SECTION_MEDIA_FIELDS = {
+  DESCRIPTION: 'DESCRIPTION',
+} as const
+
+/**
+ * Content processing field names for Section
+ * Used for identifying fields when processing presigned URLs
+ */
+export const SECTION_CONTENT_FIELDS = {
+  DESCRIPTION: 'description',
+} as const
+
+/**
  * Content processing field names for Exam
  * Used for identifying fields when processing presigned URLs
  */

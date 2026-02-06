@@ -64,6 +64,41 @@ export class PrismaQuestionExamRepository implements IQuestionExamRepository {
     return QuestionExamMapper.toDomainQuestionExams(questionExams)
   }
 
+  async findByQuestionAndExam(questionId: number, examId: number, txClient?: any): Promise<QuestionExam | null> {
+    const client = txClient || this.prisma
+
+    const questionExam = await client.questionExam.findUnique({
+      where: {
+        questionId_examId: {
+          questionId,
+          examId,
+        },
+      },
+    })
+
+    return questionExam ? QuestionExamMapper.toDomainQuestionExam(questionExam) : null
+  }
+
+  async update(questionId: number, examId: number, data: Partial<CreateQuestionExamData>, txClient?: any): Promise<QuestionExam> {
+    const client = txClient || this.prisma
+
+    const updated = await client.questionExam.update({
+      where: {
+        questionId_examId: {
+          questionId,
+          examId,
+        },
+      },
+      data: {
+        ...(data.sectionId !== undefined && { sectionId: data.sectionId }),
+        ...(data.order !== undefined && { order: data.order }),
+        ...(data.points !== undefined && { points: data.points }),
+      },
+    })
+
+    return QuestionExamMapper.toDomainQuestionExam(updated)!
+  }
+
   async delete(questionId: number, examId: number, txClient?: any): Promise<void> {
     const client = txClient || this.prisma
 
