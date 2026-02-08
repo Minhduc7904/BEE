@@ -47,7 +47,7 @@ export class CourseClassController {
     ) { }
 
     @Get()
-    @RequirePermission(PERMISSION_CODES.COURSE_CLASS_GET_ALL)
+    @RequirePermission(PERMISSION_CODES.COURSE_CLASS.GET_ALL)
     @HttpCode(HttpStatus.OK)
     async getAll(
         @Query() query: CourseClassListQueryDto,
@@ -58,7 +58,7 @@ export class CourseClassController {
     }
 
     @Get('search')
-    @RequirePermission(PERMISSION_CODES.COURSE_CLASS_SEARCH)
+    @RequirePermission(PERMISSION_CODES.COURSE_CLASS.SEARCH)
     @HttpCode(HttpStatus.OK)
     async searchCourseClasses(
         @Query() query: CourseClassSearchQueryDto,
@@ -69,7 +69,7 @@ export class CourseClassController {
     }
 
     @Get('admin/my')
-    @RequirePermission(PERMISSION_CODES.COURSE_CLASS_GET_MY_CLASSES)
+    @RequirePermission(PERMISSION_CODES.COURSE_CLASS.GET_MY_CLASSES)
     @HttpCode(HttpStatus.OK)
     async getMyClasses(
         @CurrentUser('adminId') adminId: number,
@@ -83,7 +83,7 @@ export class CourseClassController {
     }
 
     @Get(':id')
-    @RequirePermission(PERMISSION_CODES.COURSE_CLASS_GET_BY_ID)
+    @RequirePermission(PERMISSION_CODES.COURSE_CLASS.GET_BY_ID)
     @HttpCode(HttpStatus.OK)
     async getById(
         @Param('id', ParseIntPipe) id: number,
@@ -95,7 +95,7 @@ export class CourseClassController {
     }
 
     @Post()
-    @RequirePermission(PERMISSION_CODES.COURSE_CLASS_CREATE)
+    @RequirePermission(PERMISSION_CODES.COURSE_CLASS.CREATE)
     @HttpCode(HttpStatus.CREATED)
     async create(
         @Body() dto: CreateCourseClassDto,
@@ -107,7 +107,7 @@ export class CourseClassController {
     }
 
     @Put(':id')
-    @RequirePermission(PERMISSION_CODES.COURSE_CLASS_UPDATE)
+    @RequirePermission(PERMISSION_CODES.COURSE_CLASS.UPDATE)
     @HttpCode(HttpStatus.OK)
     async update(
         @Param('id', ParseIntPipe) id: number,
@@ -120,7 +120,7 @@ export class CourseClassController {
     }
 
     @Delete(':id')
-    @RequirePermission(PERMISSION_CODES.COURSE_CLASS_DELETE)
+    @RequirePermission(PERMISSION_CODES.COURSE_CLASS.DELETE)
     @HttpCode(HttpStatus.OK)
     async delete(
         @Param('id', ParseIntPipe) id: number,

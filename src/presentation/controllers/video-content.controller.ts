@@ -30,14 +30,14 @@ export class VideoContentController {
     ) { }
 
     @Get()
-    @RequirePermission(PERMISSION_CODES.VIDEO_CONTENT_GET_ALL)
+    @RequirePermission(PERMISSION_CODES.VIDEO_CONTENT.GET_ALL)
     @HttpCode(HttpStatus.OK)
     async getAllVideoContents(@Query() query: VideoContentListQueryDto): Promise<VideoContentListResponseDto> {
         return ExceptionHandler.execute(() => this.getAllVideoContentUseCase.execute(query))
     }
 
     @Get(':id')
-    @RequirePermission(PERMISSION_CODES.VIDEO_CONTENT_GET_BY_ID)
+    @RequirePermission(PERMISSION_CODES.VIDEO_CONTENT.GET_BY_ID)
     @HttpCode(HttpStatus.OK)
     async getVideoContentById(
         @Param('id', ParseIntPipe) id: number
@@ -46,7 +46,7 @@ export class VideoContentController {
     }
 
     @Post()
-    @RequirePermission(PERMISSION_CODES.VIDEO_CONTENT_CREATE)
+    @RequirePermission(PERMISSION_CODES.VIDEO_CONTENT.CREATE)
     @HttpCode(HttpStatus.CREATED)
     async createVideoContent(
         @Body() dto: CreateVideoContentDto,
@@ -56,7 +56,7 @@ export class VideoContentController {
     }
 
     @Put(':id')
-    @RequirePermission(PERMISSION_CODES.VIDEO_CONTENT_UPDATE)
+    @RequirePermission(PERMISSION_CODES.VIDEO_CONTENT.UPDATE)
     @HttpCode(HttpStatus.OK)
     async updateVideoContent(
         @Param('id', ParseIntPipe) id: number,
@@ -67,7 +67,7 @@ export class VideoContentController {
     }
 
     @Delete(':id')
-    @RequirePermission(PERMISSION_CODES.VIDEO_CONTENT_DELETE)
+    @RequirePermission(PERMISSION_CODES.VIDEO_CONTENT.DELETE)
     @HttpCode(HttpStatus.OK)
     async deleteVideoContent(
         @Param('id', ParseIntPipe) id: number,

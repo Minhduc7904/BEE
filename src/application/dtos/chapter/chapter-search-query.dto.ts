@@ -1,5 +1,6 @@
 // src/application/dtos/chapter/chapter-search-query.dto.ts
 import { IsOptionalString, IsOptionalIdNumber } from 'src/shared/decorators/validate'
+import { ListQueryDto } from '../pagination/list-query.dto'
 
 /**
  * DTO for searching chapters with keyword and filters
@@ -8,14 +9,7 @@ import { IsOptionalString, IsOptionalIdNumber } from 'src/shared/decorators/vali
  * - Search keyword (Từ khóa tìm kiếm)
  * - Subject ID (ID môn học)
  */
-export class ChapterSearchQueryDto  {
-  /**
-   * Search keyword for chapter name, code, or slug
-   * @optional
-   * @maxLength 255
-   */
-  @IsOptionalString('Từ khóa tìm kiếm', 255)
-  search?: string
+export class ChapterSearchQueryDto extends ListQueryDto {
 
   /**
    * Filter by subject ID
@@ -32,13 +26,13 @@ export class ChapterSearchQueryDto  {
     }
   }
 
-  /* ===================== PAGINATION (FIXED) ===================== */
+  /* ===================== PAGINATION ===================== */
   toChapterPaginationOptions() {
     return {
-      page: 1,
-      limit: 10,
-      sortBy: 'orderInParent',
-      sortOrder: 'asc' as const,
+      page: this.page || 1,
+      limit: this.limit || 10,
+      sortBy: this.sortBy || 'orderInParent',
+      sortOrder: this.sortOrder || 'asc' as const,
     }
   }
 }

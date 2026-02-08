@@ -1,85 +1,314 @@
-// src/core/constants/permission/permission.codes.ts
+export const PERMISSION_CODES = {
+  EXAM: {
+    GET_MY_EXAMS: 'exam:get-my-exams',
+    GET_ALL: 'exam:get-all',
+    GET_BY_ID: 'exam:get-by-id',
+    CREATE: 'exam:create',
+    UPDATE: 'exam:update',
+    DELETE: 'exam:delete',
+  },
+  QUESTION: {
+    GET_MY_QUESTIONS: 'question:get-my-questions',
+    SEARCH: 'question:search',
+    GET_ALL: 'question:get-all',
+    GET_BY_ID: 'question:get-by-id',
+    CREATE: 'question:create',
+    REORDER: 'question:reorder',
+    UPDATE: 'question:update',
+    ADD_TO_EXAM: 'question:add-to-exam',
+    ADD_TO_SECTION: 'question:add-to-section',
+    REMOVE_FROM_EXAM: 'question:remove-from-exam',
+    DELETE: 'question:delete',
+  },
+  SECTION: {
+    GET_BY_EXAM: 'section:get-by-exam',
+    GET_BY_ID: 'section:get-by-id',
+    CREATE: 'section:create',
+    UPDATE: 'section:update',
+    DELETE: 'section:delete',
+  },
+  STATEMENT: {
+    CREATE: 'statement:create',
+    UPDATE: 'statement:update',
+    DELETE: 'statement:delete',
+  },
+  COURSE: {
+    GET_ALL: 'course:get-all',
+    SEARCH: 'course:search',
+    GET_MY_COURSES: 'course:get-my-courses',
+    GET_BY_ID: 'course:get-by-id',
+    CREATE: 'course:create',
+    UPDATE: 'course:update',
+    UPDATE_PRICING: 'course:update-pricing',
+    DELETE: 'course:delete',
+    GET_STUDENTS_ATTENDANCE: 'course:get-students-attendance',
+  },
+  STUDENT: {
+    GET_ALL: 'student:get-all',
+    SEARCH: 'student:search',
+    GET_BY_ID: 'student:get-by-id',
+    CREATE: 'student:create',
+    UPDATE: 'student:update',
+    EXPORT_EXCEL: 'student:export-excel',
+  },
+  SUBJECT: {
+    GET_ALL: 'subject:get-all',
+    GET_BY_ID: 'subject:get-by-id',
+    CREATE: 'subject:create',
+    UPDATE: 'subject:update',
+    DELETE: 'subject:delete',
+  },
+  LESSON: {
+    GET_ALL: 'lesson:get-all',
+    GET_BY_ID: 'lesson:get-by-id',
+    CREATE: 'lesson:create',
+    UPDATE: 'lesson:update',
+    DELETE: 'lesson:delete',
+  },
+  CHAPTER: {
+    GET_ALL: 'chapter:get-all',
+    GET_BY_ID: 'chapter:get-by-id',
+    CREATE: 'chapter:create',
+    UPDATE: 'chapter:update',
+    DELETE: 'chapter:delete',
+  },
+  ADMIN: {
+    GET_ALL: 'admin:get-all',
+    SEARCH: 'admin:search',
+    GET_BY_ID: 'admin:get-by-id',
+    CREATE: 'admin:create',
+  },
+  ROLE: {
+    GET_ALL: 'role:get-all',
+    GET_BY_ID: 'role:get-by-id',
+    CREATE: 'role:create',
+    UPDATE: 'role:update',
+    DELETE: 'role:delete',
+    ASSIGN: 'role:assign',
+    REMOVE_FROM_USER: 'role:remove-from-user',
+    GET_USER_ROLES: 'role:get-user-roles',
+    TOGGLE_ROLE_PERMISSION: 'role:toggle-role-permission',
+  },
+  PERMISSION: {
+    GET_ALL: 'permission:get-all',
+    GET_BY_ID: 'permission:get-by-id',
+    GET_GROUPS: 'permission:get-groups',
+    CREATE: 'permission:create',
+    UPDATE: 'permission:update',
+    DELETE: 'permission:delete',
+  },
+  USER: {
+    TOGGLE_ACTIVATION: 'user:toggle-activation',
+  },
+  MEDIA: {
+    UPLOAD: 'media:upload',
+    GET_ALL: 'media:get-all',
+    GET_MY_MEDIA: 'media:get-my-media',
+    GET_BUCKETS: 'media:get-buckets',
+    GET_BY_ID: 'media:get-by-id',
+    UPDATE: 'media:update',
+    DOWNLOAD: 'media:download',
+    VIEW_MY: 'media:view-my',
+    ADMIN_VIEW: 'media:admin-view',
+    ADMIN_DOWNLOAD: 'media:admin-download',
+    DOWNLOAD_MY: 'media:download-my',
+    GET_STATISTICS_BUCKETS: 'media:get-statistics-buckets',
+    DELETE: 'media:delete',
+    PERMANENT_DELETE: 'media:permanent-delete',
+    DELETE_MY: 'media:delete-my',
+  },
+  ATTENDANCE: {
+    GET_ALL: 'attendance:get-all',
+    GET_ALL_BY_SESSION: 'attendance:get-all-by-session',
+    GET_MY_ATTENDANCES: 'attendance:get-my-attendances',
+    GET_BY_ID: 'attendance:get-by-id',
+    CREATE: 'attendance:create',
+    UPDATE: 'attendance:update',
+    DELETE: 'attendance:delete',
+  },
+  CLASS_SESSION: {
+    GET_ALL: 'class-session:get-all',
+    SEARCH: 'class-session:search',
+    GET_BY_ID: 'class-session:get-by-id',
+    CREATE: 'class-session:create',
+    UPDATE: 'class-session:update',
+    DELETE: 'class-session:delete',
+  },
+  COURSE_CLASS: {
+    GET_ALL: 'course-class:get-all',
+    SEARCH: 'course-class:search',
+    GET_MY_CLASSES: 'course-class:get-my-classes',
+    GET_BY_ID: 'course-class:get-by-id',
+    CREATE: 'course-class:create',
+    UPDATE: 'course-class:update',
+    DELETE: 'course-class:delete',
+  },
+  COURSE_ENROLLMENT: {
+    GET_ALL: 'course-enrollment:get-all',
+    GET_MY_ENROLLMENTS: 'course-enrollment:get-my-enrollments',
+    GET_BY_ID: 'course-enrollment:get-by-id',
+    CREATE: 'course-enrollment:create',
+    UPDATE: 'course-enrollment:update',
+    DELETE: 'course-enrollment:delete',
+  },
+  NOTIFICATION: {
+    GET_MY: 'notification:get-my',
+    GET_BY_USER_ID: 'notification:get-by-user-id',
+    MARK_READ: 'notification:mark-read',
+    DELETE: 'notification:delete',
+    SEND: 'notification:send',
+  },
+  MEDIA_FOLDER: {
+    CREATE: 'media-folder:create',
+    VIEW: 'media-folder:view',
+    UPDATE: 'media-folder:update',
+    DELETE: 'media-folder:delete',
+  },
+  MEDIA_USAGE: {
+    ATTACH: 'media-usage:attach',
+    GET_ALL: 'media-usage:get-all',
+    GET_BY_MEDIA: 'media-usage:get-by-media',
+    GET_BY_ENTITY: 'media-usage:get-by-entity',
+    DETACH: 'media-usage:detach',
+  },
+  LEARNING_ITEM: {
+    GET_ALL: 'learning-item:get-all',
+    GET_MY_LEARNING_ITEMS: 'learning-item:get-my-learning-items',
+    GET_BY_ID: 'learning-item:get-by-id',
+    CREATE: 'learning-item:create',
+    UPDATE: 'learning-item:update',
+    DELETE: 'learning-item:delete',
+  },
+  TUITION_PAYMENT: {
+    STATS: 'tuition-payment:stats',
+    GET_ALL: 'tuition-payment:get-all',
+    GET_BY_COURSE: 'tuition-payment:get-by-course',
+    GET_BY_STUDENT: 'tuition-payment:get-by-student',
+    GET_MY: 'tuition-payment:get-my',
+    GET_BY_ID: 'tuition-payment:get-by-id',
+    CREATE: 'tuition-payment:create',
+    CREATE_BULK: 'tuition-payment:create-bulk',
+    UPDATE: 'tuition-payment:update',
+    DELETE: 'tuition-payment:delete',
+    EXPORT_EXCEL: 'tuition-payment:export-excel',
+    IMPORT_EXCEL: 'tuition-payment:import-excel',
+  },
+  MY_TUITION_PAYMENT_STATS: 'my-tuition-payment:stats',
+  TEMP_EXAM: {
+    GET_BY_SESSION: 'temp-exam:get-by-session',
+    CREATE: 'temp-exam:create',
+    UPDATE: 'temp-exam:update',
+  },
+  TEMP_SECTION: {
+    GET_BY_EXAM: 'temp-section:get-by-exam',
+    GET_BY_ID: 'temp-section:get-by-id',
+    CREATE: 'temp-section:create',
+    UPDATE: 'temp-section:update',
+    DELETE: 'temp-section:delete',
+  },
+  TEMP_QUESTION: {
+    GET_BY_SESSION: 'temp-question:get-by-session',
+    GET_BY_ID: 'temp-question:get-by-id',
+    CREATE: 'temp-question:create',
+    UPDATE: 'temp-question:update',
+    DELETE: 'temp-question:delete',
+  },
+  TEMP_STATEMENT: {
+    CREATE: 'temp-statement:create',
+    UPDATE: 'temp-statement:update',
+    DELETE: 'temp-statement:delete',
+  },
+  VIDEO_CONTENT: {
+    GET_ALL: 'video-content:get-all',
+    GET_BY_ID: 'video-content:get-by-id',
+    CREATE: 'video-content:create',
+    UPDATE: 'video-content:update',
+    DELETE: 'video-content:delete',
+  },
+  YOUTUBE_CONTENT: {
+    GET_ALL: 'youtube-content:get-all',
+    GET_BY_ID: 'youtube-content:get-by-id',
+    CREATE: 'youtube-content:create',
+    UPDATE: 'youtube-content:update',
+    DELETE: 'youtube-content:delete',
+  },
+  AUDIT_LOG: {
+    GET_ALL: 'audit-log:get-all',
+    GET_ALL_BY_ADMIN: 'audit-log:get-all-by-admin',
+    GET_BY_ID: 'audit-log:get-by-id',
+    ROLLBACK: 'audit-log:rollback',
+  },
+  CLASS_STUDENT: {
+    GET_ALL: 'class-student:get-all',
+    GET_MY_CLASSES: 'class-student:get-my-classes',
+    CREATE: 'class-student:create',
+    DELETE: 'class-student:delete',
+  },
+  DOCUMENT_CONTENT: {
+    GET_ALL: 'document-content:get-all',
+    GET_BY_ID: 'document-content:get-by-id',
+    CREATE: 'document-content:create',
+    UPDATE: 'document-content:update',
+    DELETE: 'document-content:delete',
+  },
+  EXAM_IMPORT_SESSION: {
+    GET_ALL: 'exam-import-session:get-all',
+    CREATE: 'exam-import-session:create',
+    GET_BY_ID: 'exam-import-session:get-by-id',
+  },
+  HOMEWORK_CONTENT: {
+    GET_ALL: 'homework-content:get-all',
+    GET_BY_ID: 'homework-content:get-by-id',
+    CREATE: 'homework-content:create',
+    UPDATE: 'homework-content:update',
+    DELETE: 'homework-content:delete',
+  },
+  HOMEWORK_SUBMIT: {
+    GET_ALL: 'homework-submit:get-all',
+    GET_BY_ID: 'homework-submit:get-by-id',
+    CREATE: 'homework-submit:create',
+    UPDATE: 'homework-submit:update',
+    GRADE: 'homework-submit:grade',
+    DELETE: 'homework-submit:delete',
+  },
+  LESSON_LEARNING_ITEM: {
+    GET_ALL: 'lesson-learning-item:get-all',
+    GET_BY_ID: 'lesson-learning-item:get-by-id',
+    CREATE: 'lesson-learning-item:create',
+    DELETE: 'lesson-learning-item:delete',
+  },
 
-import { PERMISSION_DEFINITIONS } from './permission.definitions';
-
-/**
- * Convert camelCase sang snake_case
- * viewStudentManagement -> view_student_management
- */
-function camelToSnakeCase(str: string): string {
-    return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`);
+  
+  // ===================================
+  // ADMIN PAGE PERMISSIONS
+  // ===================================
+  ADMIN_PAGE: {
+    DASHBOARD: 'admin:page:dashboard',
+    ROLES: 'admin:page:roles',
+    ROLE_CREATE: 'admin:page:role-create',
+    ROLE_EDIT: 'admin:page:role-edit',
+    PERMISSIONS: 'admin:page:permissions',
+    AUDIT_LOGS: 'admin:page:audit-logs',
+    MEDIA: 'admin:page:media',
+    MEDIA_FOLDERS: 'admin:page:media-folders',
+    ADMINS: 'admin:page:admins',
+    ADMIN_DETAIL: 'admin:page:admin-detail',
+    STUDENTS: 'admin:page:students',
+    STUDENT_DETAIL: 'admin:page:student-detail',
+    CHAPTERS: 'admin:page:chapters',
+    SUBJECTS: 'admin:page:subjects',
+    COURSES: 'admin:page:courses',
+    COURSE_DETAIL: 'admin:page:course-detail',
+    MY_COURSES: 'admin:page:my-courses',
+    CLASSES: 'admin:page:classes',
+    CLASS_DETAIL: 'admin:page:class-detail',
+    MY_CLASSES: 'admin:page:my-classes',
+    BROADCAST_NOTIFICATIONS: 'admin:page:broadcast-notifications',
+    TUITION_PAYMENTS: 'admin:page:tuition-payments',
+    EXAM_IMPORT_SESSIONS: 'admin:page:exam-import-sessions',
+    QUESTIONS: 'admin:page:questions',
+    MY_QUESTIONS: 'admin:page:my-questions',
+    EXAMS: 'admin:page:exams',
+    MY_EXAMS: 'admin:page:my-exams',
+    },
 }
-
-/**
- * Kiểu action có thể lồng nhau
- */
-type PermissionAction =
-    | {
-        name?: string;
-        description?: string;
-        actions?: Record<string, PermissionAction>;
-    }
-    | undefined;
-
-/**
- * Kiểu permission definition tổng
- */
-type PermissionDefinitions = Record<
-    string,
-    {
-        actions?: Record<string, PermissionAction>;
-    }
->;
-
-/**
- * Flatten permission definitions thành:
- * [
- *   ['NOTIFICATION_GET_MY', 'notification.getMy'],
- *   ['MEDIA_FOLDER_CREATE', 'media.folder.create'],
- *   ...
- * ]
- */
-function flattenPermissions(
-    definitions: PermissionDefinitions,
-    prefix = ''
-): Array<[string, string]> {
-    const result: Array<[string, string]> = [];
-
-    Object.entries(definitions).forEach(([key, value]) => {
-        const currentPrefix = prefix ? `${prefix}.${key}` : key;
-
-        if (!value || typeof value !== 'object' || !value.actions) return;
-
-        Object.entries(value.actions).forEach(([actionKey, actionValue]) => {
-            // Case: nested actions (vd: media.folder.create)
-            if (
-                actionValue &&
-                typeof actionValue === 'object' &&
-                'actions' in actionValue &&
-                actionValue.actions
-            ) {
-                result.push(
-                    ...flattenPermissions(
-                        { [actionKey]: actionValue },
-                        currentPrefix
-                    )
-                );
-            } else {
-                // Case: action thường
-                const code = `${currentPrefix}.${actionKey}`;
-
-                // camelCase -> snake_case -> UPPERCASE
-                const snakeCase = camelToSnakeCase(code);
-                const constName = snakeCase.toUpperCase().replace(/\./g, '_');
-
-                result.push([constName, code]);
-            }
-        });
-    });
-
-    return result;
-}
-
-export const PERMISSION_CODES: Record<string, string> = Object.fromEntries(
-    flattenPermissions(PERMISSION_DEFINITIONS as PermissionDefinitions)
-);

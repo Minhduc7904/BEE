@@ -30,14 +30,14 @@ export class HomeworkContentController {
     ) { }
 
     @Get()
-    @RequirePermission(PERMISSION_CODES.HOMEWORK_CONTENT_GET_ALL)
+    @RequirePermission(PERMISSION_CODES.HOMEWORK_CONTENT.GET_ALL)
     @HttpCode(HttpStatus.OK)
     async getAllHomeworkContents(@Query() query: HomeworkContentListQueryDto): Promise<HomeworkContentListResponseDto> {
         return ExceptionHandler.execute(() => this.getAllHomeworkContentUseCase.execute(query))
     }
 
     @Get(':id')
-    @RequirePermission(PERMISSION_CODES.HOMEWORK_CONTENT_GET_BY_ID)
+    @RequirePermission(PERMISSION_CODES.HOMEWORK_CONTENT.GET_BY_ID)
     @HttpCode(HttpStatus.OK)
     async getHomeworkContentById(
         @Param('id', ParseIntPipe) id: number
@@ -46,7 +46,7 @@ export class HomeworkContentController {
     }
 
     @Post()
-    @RequirePermission(PERMISSION_CODES.HOMEWORK_CONTENT_CREATE)
+    @RequirePermission(PERMISSION_CODES.HOMEWORK_CONTENT.CREATE)
     @HttpCode(HttpStatus.CREATED)
     async createHomeworkContent(
         @Body() dto: CreateHomeworkContentDto,
@@ -56,7 +56,7 @@ export class HomeworkContentController {
     }
 
     @Put(':id')
-    @RequirePermission(PERMISSION_CODES.HOMEWORK_CONTENT_UPDATE)
+    @RequirePermission(PERMISSION_CODES.HOMEWORK_CONTENT.UPDATE)
     @HttpCode(HttpStatus.OK)
     async updateHomeworkContent(
         @Param('id', ParseIntPipe) id: number,
@@ -67,7 +67,7 @@ export class HomeworkContentController {
     }
 
     @Delete(':id')
-    @RequirePermission(PERMISSION_CODES.HOMEWORK_CONTENT_DELETE)
+    @RequirePermission(PERMISSION_CODES.HOMEWORK_CONTENT.DELETE)
     @HttpCode(HttpStatus.OK)
     async deleteHomeworkContent(
         @Param('id', ParseIntPipe) id: number,

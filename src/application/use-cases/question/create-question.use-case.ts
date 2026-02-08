@@ -11,6 +11,7 @@ import { Visibility } from 'src/shared/enums'
 import { EntityType } from '../../../shared/constants/entity-type.constants'
 import { AttachMediaFromContentUseCase } from '../media/attach-media-from-content.use-case'
 import { QUESTION_MEDIA_FIELDS, STATEMENT_MEDIA_FIELDS } from '../../../shared/constants/media-field-name.constants'
+import { TextSearchUtil } from '../../../shared/utils/text-search.util'
 
 @Injectable()
 export class CreateQuestionUseCase {
@@ -38,8 +39,20 @@ export class CreateQuestionUseCase {
         { fieldName: QUESTION_MEDIA_FIELDS.SOLUTION, content: dto.solution },
       ])
 
+      const normalizedContent = this.attachMediaFromContentUseCase.getNormalizedContent(questionResults, QUESTION_MEDIA_FIELDS.CONTENT) || ''
+      
+      // Generate slug from content (take first 100 chars)
+      const contentPreview = TextSearchUtil.stripMarkdownForSearch(normalizedContent).substring(0, 100)
+      const baseSlug = TextSearchUtil.generateSlug(contentPreview)
+      const slug = TextSearchUtil.generateUniqueSlug(baseSlug)
+      
+      // Generate searchable content
+      const searchableContent = TextSearchUtil.stripMarkdownForSearch(normalizedContent)
+
       const createData = {
-        content: this.attachMediaFromContentUseCase.getNormalizedContent(questionResults, QUESTION_MEDIA_FIELDS.CONTENT) || '',
+        content: normalizedContent,
+        slug: slug,
+        searchableContent: searchableContent,
         type: dto.type,
         correctAnswer: dto.correctAnswer,
         solution: this.attachMediaFromContentUseCase.getNormalizedContent(questionResults, QUESTION_MEDIA_FIELDS.SOLUTION) || undefined,

@@ -100,7 +100,7 @@ export class TuitionPaymentController {
    * ADMIN: thống kê học phí theo status
    */
   @Get('stats/status')
-  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT_STATS)
+  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT.STATS)
   @HttpCode(HttpStatus.OK)
   async statsByStatusAdmin(
     @Query() query: TuitionPaymentStatsQueryDto,
@@ -123,7 +123,7 @@ export class TuitionPaymentController {
   }
 
   @Get('stats/money')
-  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT_STATS)
+  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT.STATS)
   @HttpCode(HttpStatus.OK)
   async statsByMoneyAdmin(
     @Query() query: TuitionPaymentStatsQueryDto,
@@ -146,7 +146,7 @@ export class TuitionPaymentController {
    * ADMIN: thống kê số tiền đã đóng, chưa thu được theo từng tháng của 1 năm
    */
   @Get('stats/monthly')
-  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT_STATS)
+  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT.STATS)
   @HttpCode(HttpStatus.OK)
   async statsMonthly(
     @Query() query: MonthlyTuitionPaymentStatsQueryDto,
@@ -163,7 +163,7 @@ export class TuitionPaymentController {
    * ADMIN: list + filter + pagination
    */
   @Get()
-  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT_GET_ALL)
+  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT.GET_ALL)
   @HttpCode(HttpStatus.OK)
   async getAll(@Query() query: TuitionPaymentListQueryDto): Promise<TuitionPaymentListResponseDto> {
     return ExceptionHandler.execute(() => this.getTuitionPaymentsUseCase.execute(query))
@@ -173,7 +173,7 @@ export class TuitionPaymentController {
    * GET /tuition-payments/course/:courseId
    */
   @Get('course/:courseId')
-  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT_GET_BY_COURSE)
+  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT.GET_BY_COURSE)
   @HttpCode(HttpStatus.OK)
   async getByCourse(
     @Param('courseId', ParseIntPipe) courseId: number,
@@ -187,7 +187,7 @@ export class TuitionPaymentController {
    * GET /tuition-payments/student/:studentId
    */
   @Get('student/:studentId')
-  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT_GET_BY_STUDENT)
+  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT.GET_BY_STUDENT)
   @HttpCode(HttpStatus.OK)
   async getByStudent(
     @Param('studentId', ParseIntPipe) studentId: number,
@@ -202,7 +202,7 @@ export class TuitionPaymentController {
    * STUDENT: list học phí của chính mình
    */
   @Get('my')
-  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT_GET_MY)
+  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT.GET_MY)
   @HttpCode(HttpStatus.OK)
   async getMy(
     @Query() query: TuitionPaymentListQueryDto,
@@ -220,7 +220,7 @@ export class TuitionPaymentController {
    * GET /tuition-payments/:id
    */
   @Get(':id')
-  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT_GET_BY_ID)
+  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT.GET_BY_ID)
   @HttpCode(HttpStatus.OK)
   async getById(@Param('id', ParseIntPipe) id: number): Promise<BaseResponseDto<TuitionPaymentResponseDto>> {
     return ExceptionHandler.execute(() => this.getTuitionPaymentByIdUseCase.execute(id))
@@ -231,7 +231,7 @@ export class TuitionPaymentController {
   // ======================================================
 
   @Post()
-  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT_CREATE)
+  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT.CREATE)
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Body() dto: CreateTuitionPaymentDto,
@@ -241,7 +241,7 @@ export class TuitionPaymentController {
   }
 
   @Post('bulk')
-  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT_CREATE_BULK)
+  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT.CREATE_BULK)
   @HttpCode(HttpStatus.CREATED)
   async createBulk(
     @Body() dto: CreateBulkTuitionPaymentDto,
@@ -251,7 +251,7 @@ export class TuitionPaymentController {
   }
 
   @Post('bulk-array')
-  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT_CREATE_BULK)
+  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT.CREATE_BULK)
   @HttpCode(HttpStatus.CREATED)
   async createBulkArray(
     @Body() dto: CreateArrayBulkTuitionPaymentDto,
@@ -261,7 +261,7 @@ export class TuitionPaymentController {
   }
 
   @Put('bulk-array')
-  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT_UPDATE)
+  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT.UPDATE)
   @HttpCode(HttpStatus.OK)
   async updateBulkArray(
     @Body() dto: UpdateArrayBulkTuitionPaymentDto,
@@ -271,7 +271,7 @@ export class TuitionPaymentController {
   }
 
   @Put(':id')
-  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT_UPDATE)
+  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT.UPDATE)
   @HttpCode(HttpStatus.OK)
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -282,7 +282,7 @@ export class TuitionPaymentController {
   }
 
   @Delete(':id')
-  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT_DELETE)
+  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT.DELETE)
   @HttpCode(HttpStatus.OK)
   async delete(
     @Param('id', ParseIntPipe) id: number,
@@ -292,7 +292,7 @@ export class TuitionPaymentController {
   }
 
   @Get('export/excel/example')
-  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT_EXPORT_EXCEL)
+  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT.EXPORT_EXCEL)
   @HttpCode(HttpStatus.OK)
   async exportExcelExample(
     @Query() query: ExportExcelTuitionPaymentExampleQueryDto,
@@ -312,7 +312,7 @@ export class TuitionPaymentController {
 
   @UseInterceptors(FileInterceptor('file'), FileSizeByRoleInterceptor)
   @Post('import/excel/preview')
-  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT_IMPORT_EXCEL)
+  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT.IMPORT_EXCEL)
   @HttpCode(HttpStatus.OK)
   async importExcelPreview(
     @UploadedFile() file: Express.Multer.File,
@@ -321,7 +321,7 @@ export class TuitionPaymentController {
   }
 
   @Get('export/excel')
-  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT_EXPORT_EXCEL)
+  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT.EXPORT_EXCEL)
   @HttpCode(HttpStatus.OK)
   async exportTuitionPaymentList(
     @Query() options: ExportTuitionPaymentListOptionDto,

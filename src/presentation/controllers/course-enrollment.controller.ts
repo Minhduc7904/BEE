@@ -47,7 +47,7 @@ export class CourseEnrollmentController {
   ) { }
 
   @Get()
-  @RequirePermission(PERMISSION_CODES.COURSE_ENROLLMENT_GET_ALL)
+  @RequirePermission(PERMISSION_CODES.COURSE_ENROLLMENT.GET_ALL)
   @HttpCode(HttpStatus.OK)
   async getAll(
     @Query() query: CourseEnrollmentListQueryDto,
@@ -62,7 +62,7 @@ export class CourseEnrollmentController {
   }
 
   @Get('student/my')
-  @RequirePermission(PERMISSION_CODES.COURSE_ENROLLMENT_GET_MY_ENROLLMENTS)
+  @RequirePermission(PERMISSION_CODES.COURSE_ENROLLMENT.GET_MY_ENROLLMENTS)
   @HttpCode(HttpStatus.OK)
   async getMyEnrollments(
     @CurrentUser('studentId') studentId: number,
@@ -76,7 +76,7 @@ export class CourseEnrollmentController {
   }
 
   @Get(':id')
-  @RequirePermission(PERMISSION_CODES.COURSE_ENROLLMENT_GET_BY_ID)
+  @RequirePermission(PERMISSION_CODES.COURSE_ENROLLMENT.GET_BY_ID)
   @HttpCode(HttpStatus.OK)
   async getById(
     @Param('id', ParseIntPipe) id: number,
@@ -86,7 +86,7 @@ export class CourseEnrollmentController {
   }
 
   @Post()
-  @RequirePermission(PERMISSION_CODES.COURSE_ENROLLMENT_CREATE)
+  @RequirePermission(PERMISSION_CODES.COURSE_ENROLLMENT.CREATE)
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Body() dto: CreateCourseEnrollmentDto,
@@ -100,7 +100,7 @@ export class CourseEnrollmentController {
   }
 
   @Put(':id')
-  @RequirePermission(PERMISSION_CODES.COURSE_ENROLLMENT_UPDATE)
+  @RequirePermission(PERMISSION_CODES.COURSE_ENROLLMENT.UPDATE)
   @HttpCode(HttpStatus.OK)
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -111,7 +111,7 @@ export class CourseEnrollmentController {
   }
 
   @Delete(':id')
-  @RequirePermission(PERMISSION_CODES.COURSE_ENROLLMENT_DELETE)
+  @RequirePermission(PERMISSION_CODES.COURSE_ENROLLMENT.DELETE)
   @HttpCode(HttpStatus.OK)
   async delete(
     @Param('id', ParseIntPipe) id: number,

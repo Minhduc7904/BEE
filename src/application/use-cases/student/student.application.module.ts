@@ -5,6 +5,7 @@ import { InfrastructureModule } from 'src/infrastructure/infrastructure.module'
 
 const STUDENT_USE_CASES = [
   studentUseCase.GetAllStudentUseCase,
+  studentUseCase.SearchStudentUseCase,
   studentUseCase.GetProfileStudentUseCase,
   studentUseCase.FetchStudentFromApiUseCase,
   studentUseCase.CreateStudentUseCase,

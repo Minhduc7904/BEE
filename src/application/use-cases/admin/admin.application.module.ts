@@ -7,6 +7,7 @@ const ADMIN_USE_CASES = [
   adminUseCases.GetAdminByIdUseCase,
   adminUseCases.UpdateAdminUseCase,
   adminUseCases.GetAllAdminUseCase,
+  adminUseCases.SearchAdminUseCase,
 ]
 
 @Module({

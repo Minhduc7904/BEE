@@ -73,6 +73,7 @@ export class QuestionResponseDto {
   hasSolutionYoutube: boolean
   hasStatements: boolean
   hasChapters: boolean
+  relevanceScore?: number // Search relevance score (0-100)
 
   static fromEntity(question: Question): QuestionResponseDto {
     return {

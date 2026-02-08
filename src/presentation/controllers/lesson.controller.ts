@@ -29,14 +29,14 @@ export class LessonController {
     ) { }
 
     @Get()
-    @RequirePermission(PERMISSION_CODES.LESSON_GET_ALL)
+    @RequirePermission(PERMISSION_CODES.LESSON.GET_ALL)
     @HttpCode(HttpStatus.OK)
     async getAllLessons(@Query() query: LessonListQueryDto): Promise<LessonListResponseDto> {
         return ExceptionHandler.execute(() => this.getAllLessonUseCase.execute(query))
     }
 
     @Get(':id')
-    @RequirePermission(PERMISSION_CODES.LESSON_GET_BY_ID)
+    @RequirePermission(PERMISSION_CODES.LESSON.GET_BY_ID)
     @HttpCode(HttpStatus.OK)
     async getLessonById(
         @Param('id', ParseIntPipe) id: number
@@ -45,7 +45,7 @@ export class LessonController {
     }
 
     @Post()
-    @RequirePermission(PERMISSION_CODES.LESSON_CREATE)
+    @RequirePermission(PERMISSION_CODES.LESSON.CREATE)
     @HttpCode(HttpStatus.CREATED)
     async createLesson(
         @Body() dto: CreateLessonDto
@@ -54,7 +54,7 @@ export class LessonController {
     }
 
     @Put(':id')
-    @RequirePermission(PERMISSION_CODES.LESSON_UPDATE)
+    @RequirePermission(PERMISSION_CODES.LESSON.UPDATE)
     @HttpCode(HttpStatus.OK)
     async updateLesson(
         @Param('id', ParseIntPipe) id: number,
@@ -64,7 +64,7 @@ export class LessonController {
     }
 
     @Delete(':id')
-    @RequirePermission(PERMISSION_CODES.LESSON_DELETE)
+    @RequirePermission(PERMISSION_CODES.LESSON.DELETE)
     @HttpCode(HttpStatus.OK)
     async deleteLesson(
         @Param('id', ParseIntPipe) id: number

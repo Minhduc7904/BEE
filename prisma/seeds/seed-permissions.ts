@@ -1,6 +1,6 @@
 // prisma/seeds/seed-permissions.ts
 import { PrismaClient } from '@prisma/client'
-import { PERMISSIONS } from '../../src/shared/constants'
+import { PERMISSIONS } from '../../src/shared/constants/permissions.constants'
 
 export async function seedPermissions(prisma: PrismaClient) {
     console.log('🔐 Seeding permissions...')

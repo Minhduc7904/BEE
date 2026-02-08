@@ -42,4 +42,20 @@ export async function seedUserRoles(
             expiresAt: null,
         },
     })
+
+    await prisma.userRole.upsert({
+        where: {
+            userId_roleId: {
+                userId: users.adminUser.userId,
+                roleId: ROLE_IDS.BASIC_ADMIN,
+            },
+        },
+        update: {},
+        create: {
+            userId: users.adminUser.userId,
+            roleId: ROLE_IDS.BASIC_ADMIN,
+            assignedBy: users.superAdminUser.userId,
+            expiresAt: null,
+        },
+    })
 }

@@ -53,7 +53,7 @@ export class SectionController {
    * GET /sections?examId=123
    */
   @Get()
-  @RequirePermission(PERMISSION_CODES.SECTION_GET_BY_EXAM)
+  @RequirePermission(PERMISSION_CODES.SECTION.GET_BY_EXAM)
   @HttpCode(HttpStatus.OK)
   async getSectionsByExam(
     @Query('examId', ParseIntPipe) examId: number,
@@ -72,7 +72,7 @@ export class SectionController {
    * GET /sections/1
    */
   @Get(':id')
-  @RequirePermission(PERMISSION_CODES.SECTION_GET_BY_ID)
+  @RequirePermission(PERMISSION_CODES.SECTION.GET_BY_ID)
   @HttpCode(HttpStatus.OK)
   async getSectionById(@Param('id', ParseIntPipe) id: number): Promise<BaseResponseDto<SectionResponseDto>> {
     return ExceptionHandler.execute(() => this.getSectionByIdUseCase.execute(id))
@@ -96,7 +96,7 @@ export class SectionController {
    * }
    */
   @Post()
-  @RequirePermission(PERMISSION_CODES.SECTION_CREATE)
+  @RequirePermission(PERMISSION_CODES.SECTION.CREATE)
   @HttpCode(HttpStatus.CREATED)
   async createSection(
     @Body() dto: CreateSectionDto,
@@ -122,7 +122,7 @@ export class SectionController {
    * }
    */
   @Put(':id')
-  @RequirePermission(PERMISSION_CODES.SECTION_UPDATE)
+  @RequirePermission(PERMISSION_CODES.SECTION.UPDATE)
   @HttpCode(HttpStatus.OK)
   async updateSection(
     @Param('id', ParseIntPipe) id: number,
@@ -144,7 +144,7 @@ export class SectionController {
    * DELETE /sections/1
    */
   @Delete(':id')
-  @RequirePermission(PERMISSION_CODES.SECTION_DELETE)
+  @RequirePermission(PERMISSION_CODES.SECTION.DELETE)
   @HttpCode(HttpStatus.OK)
   async deleteSection(
     @Param('id', ParseIntPipe) id: number,

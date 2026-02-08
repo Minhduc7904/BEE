@@ -26,14 +26,14 @@ export class LessonLearningItemController {
     ) { }
 
     @Get()
-    @RequirePermission(PERMISSION_CODES.LESSON_LEARNING_ITEM_GET_ALL)
+    @RequirePermission(PERMISSION_CODES.LESSON_LEARNING_ITEM.GET_ALL)
     @HttpCode(HttpStatus.OK)
     async getAllLessonLearningItems(@Query() query: LessonLearningItemListQueryDto): Promise<LessonLearningItemListResponseDto> {
         return ExceptionHandler.execute(() => this.getAllLessonLearningItemUseCase.execute(query))
     }
 
     @Get(':lessonId/:learningItemId')
-    @RequirePermission(PERMISSION_CODES.LESSON_LEARNING_ITEM_GET_BY_ID)
+    @RequirePermission(PERMISSION_CODES.LESSON_LEARNING_ITEM.GET_BY_ID)
     @HttpCode(HttpStatus.OK)
     async getLessonLearningItemById(
         @Param('lessonId', ParseIntPipe) lessonId: number,
@@ -43,7 +43,7 @@ export class LessonLearningItemController {
     }
 
     @Post()
-    @RequirePermission(PERMISSION_CODES.LESSON_LEARNING_ITEM_CREATE)
+    @RequirePermission(PERMISSION_CODES.LESSON_LEARNING_ITEM.CREATE)
     @HttpCode(HttpStatus.CREATED)
     async createLessonLearningItem(
         @Body() dto: CreateLessonLearningItemDto
@@ -52,7 +52,7 @@ export class LessonLearningItemController {
     }
 
     @Delete(':lessonId/:learningItemId')
-    @RequirePermission(PERMISSION_CODES.LESSON_LEARNING_ITEM_DELETE)
+    @RequirePermission(PERMISSION_CODES.LESSON_LEARNING_ITEM.DELETE)
     @HttpCode(HttpStatus.OK)
     async deleteLessonLearningItem(
         @Param('lessonId', ParseIntPipe) lessonId: number,

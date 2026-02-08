@@ -56,6 +56,12 @@ export class SplitExamFromRawContentUseCase {
                 throw new Error('Bạn không có quyền truy cập session này')
             }
 
+            // Lấy exam subjectId từ session (nếu có) để dùng làm default cho questions
+            let defaultSubjectId: number | null = null
+            if (session.tempExam?.subjectId) {
+                defaultSubjectId = session.tempExam.subjectId
+            }
+
             // Validate rawContent không được rỗng
             if (!rawContent || rawContent.trim().length === 0) {
                 await this.auditLogRepository.create({
@@ -93,7 +99,8 @@ export class SplitExamFromRawContentUseCase {
                 sessionId,
                 result.questions,
                 adminId,
-                userId
+                userId,
+                defaultSubjectId // Truyền exam subjectId làm default cho questions
             )
 
             console.log('SplitExamFromRawContentUseCase - Saved split result:', saveResult)

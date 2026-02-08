@@ -92,7 +92,7 @@ export class MediaController {
     FileSizeByRoleInterceptor,
   )
   @Post('upload')
-  @RequirePermission(PERMISSION_CODES.MEDIA_UPLOAD)
+  @RequirePermission(PERMISSION_CODES.MEDIA.UPLOAD)
   @HttpCode(HttpStatus.CREATED)
   async uploadMedia(
     @UploadedFile() file: Express.Multer.File,
@@ -105,7 +105,7 @@ export class MediaController {
   }
 
   @Post('upload/presigned')
-  @RequirePermission(PERMISSION_CODES.MEDIA_UPLOAD)
+  @RequirePermission(PERMISSION_CODES.MEDIA.UPLOAD)
   @HttpCode(HttpStatus.OK)
   async createPresignedUpload(
     @Body() dto: CreatePresignedUploadDto,
@@ -117,7 +117,7 @@ export class MediaController {
   }
 
   @Post('upload/complete')
-  @RequirePermission(PERMISSION_CODES.MEDIA_UPLOAD)
+  @RequirePermission(PERMISSION_CODES.MEDIA.UPLOAD)
   @HttpCode(HttpStatus.OK)
   async completePresignedUpload(
     @Body() dto: CompleteUploadDto,
@@ -130,7 +130,7 @@ export class MediaController {
 
 
   @Get()
-  @RequirePermission(PERMISSION_CODES.MEDIA_GET_ALL)
+  @RequirePermission(PERMISSION_CODES.MEDIA.GET_ALL)
   @HttpCode(HttpStatus.OK)
   async getMediaList(
     @Query() dto: GetMediaListDto,
@@ -140,7 +140,7 @@ export class MediaController {
   }
 
   @Get('my')
-  @RequirePermission(PERMISSION_CODES.MEDIA_GET_MY_MEDIA)
+  @RequirePermission(PERMISSION_CODES.MEDIA.GET_MY_MEDIA)
   @HttpCode(HttpStatus.OK)
   async getMyMediaList(
     @Query() dto: GetMediaListDto,
@@ -154,7 +154,7 @@ export class MediaController {
    * Get all available buckets
    */
   @Get('buckets')
-  @RequirePermission(PERMISSION_CODES.MEDIA_GET_BUCKETS)
+  @RequirePermission(PERMISSION_CODES.MEDIA.GET_BUCKETS)
   @HttpCode(HttpStatus.OK)
   async getBuckets(): Promise<
     BaseResponseDto<{ data: Array<{ name: string; label: string; description: string }>; total: number }>
@@ -163,7 +163,7 @@ export class MediaController {
   }
 
   @Get(':id')
-  @RequirePermission(PERMISSION_CODES.MEDIA_GET_BY_ID)
+  @RequirePermission(PERMISSION_CODES.MEDIA.GET_BY_ID)
   @HttpCode(HttpStatus.OK)
   async getMedia(
     @Param('id', ParseIntPipe) id: number,
@@ -172,7 +172,7 @@ export class MediaController {
   }
 
   @Put(':id')
-  @RequirePermission(PERMISSION_CODES.MEDIA_UPDATE)
+  @RequirePermission(PERMISSION_CODES.MEDIA.UPDATE)
   @HttpCode(HttpStatus.OK)
   async updateMedia(
     @Param('id', ParseIntPipe) id: number,
@@ -186,7 +186,7 @@ export class MediaController {
    * URL expires after specified time (default: 1 hour)
    */
   @Get(':id/download')
-  @RequirePermission(PERMISSION_CODES.MEDIA_DOWNLOAD)
+  @RequirePermission(PERMISSION_CODES.MEDIA.DOWNLOAD)
   @HttpCode(HttpStatus.OK)
   async getMediaDownloadUrl(
     @Param('id', ParseIntPipe) mediaId: number,
@@ -230,7 +230,7 @@ export class MediaController {
   }
 
   @Get(':id/view/my')
-  @RequirePermission(PERMISSION_CODES.MEDIA_VIEW_MY)
+  @RequirePermission(PERMISSION_CODES.MEDIA.VIEW_MY)
   @HttpCode(HttpStatus.OK)
   async getMyMediaViewUrl(
     @Param('id', ParseIntPipe) mediaId: number,
@@ -247,7 +247,7 @@ export class MediaController {
   }
 
   @Get('admin/:id/view')
-  @RequirePermission(PERMISSION_CODES.MEDIA_ADMIN_VIEW)
+  @RequirePermission(PERMISSION_CODES.MEDIA.ADMIN_VIEW)
   @HttpCode(HttpStatus.OK)
   async getAdminMediaViewUrl(
     @Param('id', ParseIntPipe) mediaId: number,
@@ -262,7 +262,7 @@ export class MediaController {
   }
 
   @Get('admin/:id/download')
-  @RequirePermission(PERMISSION_CODES.MEDIA_ADMIN_DOWNLOAD)
+  @RequirePermission(PERMISSION_CODES.MEDIA.ADMIN_DOWNLOAD)
   @HttpCode(HttpStatus.OK)
   async getAdminMediaDownloadUrl(
     @Param('id', ParseIntPipe) mediaId: number,
@@ -278,7 +278,7 @@ export class MediaController {
 
 
   @Get(':id/download/my')
-  @RequirePermission(PERMISSION_CODES.MEDIA_DOWNLOAD_MY)
+  @RequirePermission(PERMISSION_CODES.MEDIA.DOWNLOAD_MY)
   @HttpCode(HttpStatus.OK)
   async getMyMediaDownloadUrl(
     @Param('id', ParseIntPipe) mediaId: number,
@@ -302,7 +302,7 @@ export class MediaController {
    * Returns URL for each valid media with error handling
    */
   @Post('batch/view/my')
-  @RequirePermission(PERMISSION_CODES.MEDIA_VIEW_MY)
+  @RequirePermission(PERMISSION_CODES.MEDIA.VIEW_MY)
   @HttpCode(HttpStatus.OK)
   async getBatchMediaViewUrl(
     @Body() dto: GetBatchMediaViewUrlDto,
@@ -315,7 +315,7 @@ export class MediaController {
   }
 
   @Get('statistics/buckets')
-  @RequirePermission(PERMISSION_CODES.MEDIA_GET_STATISTICS_BUCKETS)
+  @RequirePermission(PERMISSION_CODES.MEDIA.GET_STATISTICS_BUCKETS)
   @HttpCode(HttpStatus.OK)
   async getStatisticsBuckets(): Promise<BaseResponseDto<BucketStatisticsResponseDto>> {
     return ExceptionHandler.execute(() => {
@@ -328,7 +328,7 @@ export class MediaController {
    * Admin can view any media's raw content
    */
   @Get('admin/:id/raw-content')
-  @RequirePermission(PERMISSION_CODES.MEDIA_ADMIN_VIEW)
+  @RequirePermission(PERMISSION_CODES.MEDIA.ADMIN_VIEW)
   @HttpCode(HttpStatus.OK)
   async getAdminMediaRawContent(
     @Param('id', ParseIntPipe) mediaId: number,
@@ -343,7 +343,7 @@ export class MediaController {
    * Extract text from PDF or image using Mistral AI OCR
    */
   @Post(':id/extract-text')
-  @RequirePermission(PERMISSION_CODES.MEDIA_GET_MY_MEDIA)
+  @RequirePermission(PERMISSION_CODES.MEDIA.GET_MY_MEDIA)
   @HttpCode(HttpStatus.OK)
   async extractMediaText(
     @Param('id', ParseIntPipe) mediaId: number,
@@ -364,7 +364,7 @@ export class MediaController {
    * Can only view raw content of media uploaded by self
    */
   @Get(':id/raw-content/my')
-  @RequirePermission(PERMISSION_CODES.MEDIA_VIEW_MY)
+  @RequirePermission(PERMISSION_CODES.MEDIA.VIEW_MY)
   @HttpCode(HttpStatus.OK)
   async getMyMediaRawContent(
     @Param('id', ParseIntPipe) mediaId: number,
@@ -381,7 +381,7 @@ export class MediaController {
    * Media file remains in storage, can be restored
    */
   @Delete(':id')
-  @RequirePermission(PERMISSION_CODES.MEDIA_DELETE)
+  @RequirePermission(PERMISSION_CODES.MEDIA.DELETE)
   @HttpCode(HttpStatus.OK)
   async softDeleteMedia(
     @Param('id', ParseIntPipe) id: number,
@@ -396,7 +396,7 @@ export class MediaController {
    * WARNING: This action cannot be undone
    */
   @Delete(':id/permanent')
-  @RequirePermission(PERMISSION_CODES.MEDIA_PERMANENT_DELETE)
+  @RequirePermission(PERMISSION_CODES.MEDIA.PERMANENT_DELETE)
   @HttpCode(HttpStatus.OK)
   async hardDeleteMedia(
     @Param('id', ParseIntPipe) id: number,
@@ -407,7 +407,7 @@ export class MediaController {
   }
 
   @Delete(':id/my')
-  @RequirePermission(PERMISSION_CODES.MEDIA_DELETE_MY)
+  @RequirePermission(PERMISSION_CODES.MEDIA.DELETE_MY)
   @HttpCode(HttpStatus.OK)
   async deleteMyMedia(
     @Param('id', ParseIntPipe) id: number,

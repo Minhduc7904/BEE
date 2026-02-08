@@ -40,14 +40,14 @@ export class AdminAuditLogController {
    * - sortOrder: asc hoặc desc (default: desc)
    */
   @Get()
-  @RequirePermission(PERMISSION_CODES.AUDIT_LOG_GET_ALL)
+  @RequirePermission(PERMISSION_CODES.AUDIT_LOG.GET_ALL)
   @HttpCode(HttpStatus.OK)
   async getAllAuditLogs(@Query() query: AuditLogListQueryDto): Promise<PaginationResponseDto<LogResponseDto>> {
     return ExceptionHandler.execute(() => this.getAllAuditLogsUseCase.execute(query))
   }
 
   @Get('admin/:adminId')
-  @RequirePermission(PERMISSION_CODES.AUDIT_LOG_GET_ALL_BY_ADMIN)
+  @RequirePermission(PERMISSION_CODES.AUDIT_LOG.GET_ALL_BY_ADMIN)
   @HttpCode(HttpStatus.OK)
   async getAllAuditLogsByAdmin(
     @Param('adminId', ParseIntPipe) adminId: number,
@@ -62,7 +62,7 @@ export class AdminAuditLogController {
    * GET /admin-audit-log/:id
    */
   @Get(':id')
-  @RequirePermission(PERMISSION_CODES.AUDIT_LOG_GET_BY_ID)
+  @RequirePermission(PERMISSION_CODES.AUDIT_LOG.GET_BY_ID)
   @HttpCode(HttpStatus.OK)
   async getAuditLog(@Param('id', ParseIntPipe) id: number): Promise<BaseResponseDto<LogResponseDto>> {
     return ExceptionHandler.execute(() => this.getAuditLogUseCase.execute(id))
@@ -73,7 +73,7 @@ export class AdminAuditLogController {
    * POST /admin-audit-log/rollback/:id
    */
   @Post('rollback/:id')
-  @RequirePermission(PERMISSION_CODES.AUDIT_LOG_ROLLBACK)
+  @RequirePermission(PERMISSION_CODES.AUDIT_LOG.ROLLBACK)
   @HttpCode(HttpStatus.OK)
   async rollback(@Param('id', ParseIntPipe) logId: number): Promise<BaseResponseDto<boolean>> {
     return ExceptionHandler.execute(() => this.rollbackUseCase.execute(logId))

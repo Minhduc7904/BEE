@@ -11,6 +11,7 @@ import { RESOURCE_TYPES } from '../../../shared/constants/resource-type.constant
 import { EntityType } from '../../../shared/constants/entity-type.constants'
 import { AttachMediaFromContentUseCase } from '../media/attach-media-from-content.use-case'
 import { QUESTION_MEDIA_FIELDS } from '../../../shared/constants/media-field-name.constants'
+import { TextSearchUtil } from '../../../shared/utils/text-search.util'
 
 @Injectable()
 export class UpdateQuestionUseCase {
@@ -67,6 +68,8 @@ export class UpdateQuestionUseCase {
         ) || ''
 
         updateData.content = normalizedContent
+        // Auto-update searchableContent when content changes
+        updateData.searchableContent = TextSearchUtil.stripMarkdownForSearch(normalizedContent)
 
         // Sync media changes for content
         await this.attachMediaFromContentUseCase.syncMediaOnUpdate(

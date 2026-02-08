@@ -30,14 +30,14 @@ export class DocumentContentController {
     ) { }
 
     @Get()
-    @RequirePermission(PERMISSION_CODES.DOCUMENT_CONTENT_GET_ALL)
+    @RequirePermission(PERMISSION_CODES.DOCUMENT_CONTENT.GET_ALL)
     @HttpCode(HttpStatus.OK)
     async getAllDocumentContents(@Query() query: DocumentContentListQueryDto): Promise<DocumentContentListResponseDto> {
         return ExceptionHandler.execute(() => this.getAllDocumentContentUseCase.execute(query))
     }
 
     @Get(':id')
-    @RequirePermission(PERMISSION_CODES.DOCUMENT_CONTENT_GET_BY_ID)
+    @RequirePermission(PERMISSION_CODES.DOCUMENT_CONTENT.GET_BY_ID)
     @HttpCode(HttpStatus.OK)
     async getDocumentContentById(
         @Param('id', ParseIntPipe) id: number
@@ -46,7 +46,7 @@ export class DocumentContentController {
     }
 
     @Post()
-    @RequirePermission(PERMISSION_CODES.DOCUMENT_CONTENT_CREATE)
+    @RequirePermission(PERMISSION_CODES.DOCUMENT_CONTENT.CREATE)
     @HttpCode(HttpStatus.CREATED)
     async createDocumentContent(
         @Body() dto: CreateDocumentContentDto,
@@ -56,7 +56,7 @@ export class DocumentContentController {
     }
 
     @Put(':id')
-    @RequirePermission(PERMISSION_CODES.DOCUMENT_CONTENT_UPDATE)
+    @RequirePermission(PERMISSION_CODES.DOCUMENT_CONTENT.UPDATE)
     @HttpCode(HttpStatus.OK)
     async updateDocumentContent(
         @Param('id', ParseIntPipe) id: number,
@@ -67,7 +67,7 @@ export class DocumentContentController {
     }
 
     @Delete(':id')
-    @RequirePermission(PERMISSION_CODES.DOCUMENT_CONTENT_DELETE)
+    @RequirePermission(PERMISSION_CODES.DOCUMENT_CONTENT.DELETE)
     @HttpCode(HttpStatus.OK)
     async deleteDocumentContent(
         @Param('id', ParseIntPipe) id: number,

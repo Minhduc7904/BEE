@@ -15,11 +15,13 @@ import {
     GetAllAdminUseCase,
     GetAdminByIdUseCase,
     RegisterAdminUseCase,
+    SearchAdminUseCase,
 } from '../../application/use-cases'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { CurrentUser } from '../../shared/decorators/current-user.decorator'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
 import { AdminListQueryDto, AdminResponseDto, BaseResponseDto, PaginationResponseDto, RegisterAdminDto, RegisterAdminResponseDto } from 'src/application/dtos'
+import { AdminSearchQueryDto } from 'src/application/dtos/admin/admin-search-query.dto'
 import { Injectable } from '@nestjs/common'
 import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 
@@ -30,6 +32,7 @@ export class AdminController {
         private readonly getAllAdminUseCase: GetAllAdminUseCase,
         private readonly getAdminByIdUseCase: GetAdminByIdUseCase,
         private readonly registerAdminUseCase: RegisterAdminUseCase,
+        private readonly searchAdminUseCase: SearchAdminUseCase,
     ) { }
 
     /**
@@ -37,7 +40,7 @@ export class AdminController {
      * GET /admin
      */
     @Get()
-    @RequirePermission(PERMISSION_CODES.ADMIN_GET_ALL)
+    @RequirePermission(PERMISSION_CODES.ADMIN.GET_ALL)
     @HttpCode(HttpStatus.OK)
     async getAllAdmins(
         @Query() query: AdminListQueryDto,
@@ -48,10 +51,25 @@ export class AdminController {
     }
 
     /**
+     * Search admins
+     * GET /admins/search
+     */
+    @Get('search')
+    @RequirePermission(PERMISSION_CODES.ADMIN.SEARCH)
+    @HttpCode(HttpStatus.OK)
+    async searchAdmins(
+        @Query() query: AdminSearchQueryDto,
+    ): Promise<PaginationResponseDto<AdminResponseDto>> {
+        return ExceptionHandler.execute(() => {
+            return this.searchAdminUseCase.execute(query)
+        })
+    }
+
+    /**
      * Get admin profile
      */
     @Get(':id')
-    @RequirePermission(PERMISSION_CODES.ADMIN_GET_BY_ID)
+    @RequirePermission(PERMISSION_CODES.ADMIN.GET_BY_ID)
     @HttpCode(HttpStatus.OK)
     async getAdminById(
         @Param('id', ParseIntPipe) id: number,
@@ -67,7 +85,7 @@ export class AdminController {
      * Post admin
      */
     @Post()
-    @RequirePermission(PERMISSION_CODES.ADMIN_CREATE)
+    @RequirePermission(PERMISSION_CODES.ADMIN.CREATE)
     @HttpCode(HttpStatus.CREATED)
     async createAdmin(
         @Body() dto: RegisterAdminDto,

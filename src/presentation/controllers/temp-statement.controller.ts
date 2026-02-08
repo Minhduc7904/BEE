@@ -41,7 +41,7 @@ export class TempStatementController {
      * POST /temp-statements/question/:tempQuestionId
      */
     @Post('question/:tempQuestionId')
-    @RequirePermission(PERMISSION_CODES.TEMP_STATEMENT_CREATE)
+    @RequirePermission(PERMISSION_CODES.TEMP_STATEMENT.CREATE)
     @HttpCode(HttpStatus.CREATED)
     async createTempStatement(
         @Param('tempQuestionId') tempQuestionId: number,
@@ -58,7 +58,7 @@ export class TempStatementController {
      * PUT /temp-statements/reorder
      */
     @Put('reorder')
-    @RequirePermission(PERMISSION_CODES.TEMP_STATEMENT_UPDATE)
+    @RequirePermission(PERMISSION_CODES.TEMP_STATEMENT.UPDATE)
     @HttpCode(HttpStatus.OK)
     async reorderTempStatements(
         @Body() dto: ReorderTempStatementsDto,
@@ -73,7 +73,7 @@ export class TempStatementController {
      * PUT /temp-statements/:tempStatementId
      */
     @Put(':tempStatementId')
-    @RequirePermission(PERMISSION_CODES.TEMP_STATEMENT_UPDATE)
+    @RequirePermission(PERMISSION_CODES.TEMP_STATEMENT.UPDATE)
     @HttpCode(HttpStatus.OK)
     async updateTempStatement(
         @Param('tempStatementId') tempStatementId: number,
@@ -90,7 +90,7 @@ export class TempStatementController {
      * DELETE /temp-statements/:tempStatementId
      */
     @Delete(':tempStatementId')
-    @RequirePermission(PERMISSION_CODES.TEMP_STATEMENT_DELETE)
+    @RequirePermission(PERMISSION_CODES.TEMP_STATEMENT.DELETE)
     @HttpCode(HttpStatus.OK)
     async deleteTempStatement(
         @Param('tempStatementId') tempStatementId: number,

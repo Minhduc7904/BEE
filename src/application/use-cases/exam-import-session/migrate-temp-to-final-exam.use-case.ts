@@ -25,6 +25,7 @@ import { EntityType } from 'src/shared/constants/entity-type.constants'
 import { ACTION_KEYS } from 'src/shared/constants/action-key.constants'
 import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
 import { TEMP_EXAM_TO_EXAM_FIELD_MAP } from 'src/shared/constants/media-field-name.constants'
+import { TextSearchUtil } from 'src/shared/utils/text-search.util'
 
 interface MigrateTempToFinalExamParams {
     sessionId: number
@@ -185,6 +186,11 @@ export class MigrateTempToFinalExamUseCase {
                 // Check if already migrated
                 if (tempExam.examId) {
                     throw new BadRequestException('TempExam has already been migrated')
+                }
+
+                // Validate exam has subjectId
+                if (!tempExam.subjectId) {
+                    throw new BadRequestException('Exam chưa có môn học. Vui lòng cập nhật môn học trước khi migrate.')
                 }
 
                 // 4.2. Create Exam using repository
@@ -352,9 +358,34 @@ export class MigrateTempToFinalExamUseCase {
         const tempStatementMapping: Array<{ tempStatementId: number; questionId: number; order: number }> = []
 
         for (const tempQuestion of tempQuestions) {
+            // Validate question has subjectId
+            if (!tempQuestion.subjectId) {
+                throw new BadRequestException(
+                    `Câu hỏi thứ ${tempQuestion.order || 'N/A'} chưa có môn học. Vui lòng cập nhật môn học trước khi migrate.`
+                )
+            }
+
+            // Generate slug and searchableContent from TempQuestion
+            // Use tempQuestion's values if available, otherwise generate from content
+            const content = tempQuestion.content || ''
+            const searchableContent = tempQuestion.searchableContent || TextSearchUtil.stripMarkdownForSearch(content)
+            
+            // Generate slug: use tempQuestion.slug if exists, otherwise generate from content
+            let slug: string
+            if (tempQuestion.slug) {
+                slug = tempQuestion.slug
+            } else {
+                // Generate slug from first 100 chars of searchable content
+                const contentPreview = searchableContent.substring(0, 100)
+                const baseSlug = TextSearchUtil.generateSlug(contentPreview)
+                slug = TextSearchUtil.generateUniqueSlug(baseSlug)
+            }
+
             // Create Question using repository
             const question = await repos.questionRepository.create({
-                content: tempQuestion.content,
+                content,
+                slug,
+                searchableContent,
                 type: tempQuestion.type,
                 correctAnswer: tempQuestion.correctAnswer,
                 solution: tempQuestion.solution,

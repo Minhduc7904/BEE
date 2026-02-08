@@ -63,7 +63,7 @@ export class ClassSessionController {
      * - sortOrder: asc hoặc desc (default: desc)
      */
     @Get()
-    @RequirePermission(PERMISSION_CODES.CLASS_SESSION_GET_ALL)
+    @RequirePermission(PERMISSION_CODES.CLASS_SESSION.GET_ALL)
     @HttpCode(HttpStatus.OK)
     async getAll(
         @Query() query: ClassSessionListQueryDto,
@@ -74,7 +74,7 @@ export class ClassSessionController {
     }
 
     @Get('search')
-    @RequirePermission(PERMISSION_CODES.CLASS_SESSION_SEARCH)
+    @RequirePermission(PERMISSION_CODES.CLASS_SESSION.SEARCH)
     @HttpCode(HttpStatus.OK)
     async searchClassSessions(
         @Query() query: ClassSessionSearchQueryDto,
@@ -85,7 +85,7 @@ export class ClassSessionController {
     }
 
     @Get(':id')
-    @RequirePermission(PERMISSION_CODES.CLASS_SESSION_GET_BY_ID)
+    @RequirePermission(PERMISSION_CODES.CLASS_SESSION.GET_BY_ID)
     @HttpCode(HttpStatus.OK)
     async getById(
         @Param('id', ParseIntPipe) id: number,
@@ -96,7 +96,7 @@ export class ClassSessionController {
     }
 
     @Post()
-    @RequirePermission(PERMISSION_CODES.CLASS_SESSION_CREATE)
+    @RequirePermission(PERMISSION_CODES.CLASS_SESSION.CREATE)
     @HttpCode(HttpStatus.CREATED)
     async create(
         @Body() dto: CreateClassSessionDto,
@@ -108,7 +108,7 @@ export class ClassSessionController {
     }
 
     @Put(':id')
-    @RequirePermission(PERMISSION_CODES.CLASS_SESSION_UPDATE)
+    @RequirePermission(PERMISSION_CODES.CLASS_SESSION.UPDATE)
     @HttpCode(HttpStatus.OK)
     async update(
         @Param('id', ParseIntPipe) id: number,
@@ -121,7 +121,7 @@ export class ClassSessionController {
     }
 
     @Delete(':id')
-    @RequirePermission(PERMISSION_CODES.CLASS_SESSION_DELETE)
+    @RequirePermission(PERMISSION_CODES.CLASS_SESSION.DELETE)
     @HttpCode(HttpStatus.OK)
     async delete(
         @Param('id', ParseIntPipe) id: number,

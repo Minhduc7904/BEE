@@ -12,6 +12,7 @@ export class Question {
   // Required properties
   questionId: number
   content: string
+  slug: string
   type: QuestionType
   difficulty: Difficulty | null
   grade: number | null
@@ -20,6 +21,7 @@ export class Question {
   updatedAt: Date
 
   // Optional properties
+  searchableContent?: string | null
   correctAnswer?: string | null
   solution?: string | null
   solutionYoutubeUrl?: string | null
@@ -37,11 +39,13 @@ export class Question {
   constructor(data: {
     questionId: number
     content: string
+    slug: string
     type: QuestionType
     difficulty: Difficulty | null
     grade: number | null
     createdAt: Date
     updatedAt: Date
+    searchableContent?: string | null
     correctAnswer?: string | null
     solution?: string | null
     solutionYoutubeUrl?: string | null
@@ -57,11 +61,13 @@ export class Question {
   }) {
     this.questionId = data.questionId
     this.content = data.content
+    this.slug = data.slug
     this.type = data.type
     this.difficulty = data.difficulty
     this.grade = data.grade
     this.createdAt = data.createdAt
     this.updatedAt = data.updatedAt
+    this.searchableContent = data.searchableContent
     this.correctAnswer = data.correctAnswer
     this.solution = data.solution
     this.solutionYoutubeUrl = data.solutionYoutubeUrl
@@ -426,11 +432,13 @@ export class Question {
     return new Question({
       questionId: data.questionId,
       content: data.content,
+      slug: data.slug || `question-${data.questionId}`,
       type: data.type,
       difficulty: data.difficulty,
       grade: data.grade,
       subjectId: data.subjectId,
       pointsOrigin: data.pointsOrigin,
+      searchableContent: data.searchableContent,
       correctAnswer: data.correctAnswer,
       solution: data.solution,
       solutionYoutubeUrl: data.solutionYoutubeUrl,
@@ -461,6 +469,7 @@ export class Question {
     return new Question({
       questionId,
       content,
+      slug: `question-${questionId}`,
       type,
       difficulty,
       grade,

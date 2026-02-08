@@ -6,6 +6,7 @@ import { seedUsers } from './seeds/seed-users'
 import { seedUserRoles } from './seeds/seed-user-roles'
 import { seedSubjects } from './seeds/seed-subjects'
 import { seedChapters } from './seeds/seed-chapters'
+import { seedRolePermissions } from './seeds/seed-role-permissions'
 
 const prisma = new PrismaClient()
 
@@ -14,6 +15,7 @@ async function main() {
 
     await seedRoles(prisma)
     await seedPermissions(prisma)
+    await seedRolePermissions(prisma)
 
     const users = await seedUsers(prisma)
     await seedUserRoles(prisma, users)

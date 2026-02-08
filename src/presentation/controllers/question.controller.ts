@@ -22,6 +22,8 @@ import {
   ReorderQuestionsDto,
   RemoveQuestionFromExamDto,
   AddQuestionToSectionDto,
+  AddQuestionToExamDto,
+  SearchQuestionsDto,
 } from '../../application/dtos/question'
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
@@ -37,6 +39,8 @@ import {
   ReorderQuestionsUseCase,
   RemoveQuestionFromExamUseCase,
   AddQuestionToSectionUseCase,
+  AddQuestionToExamUseCase,
+  SearchQuestionsUseCase,
 } from '../../application/use-cases/question'
 
 @Injectable()
@@ -51,7 +55,49 @@ export class QuestionController {
     private readonly reorderQuestionsUseCase: ReorderQuestionsUseCase,
     private readonly removeQuestionFromExamUseCase: RemoveQuestionFromExamUseCase,
     private readonly addQuestionToSectionUseCase: AddQuestionToSectionUseCase,
+    private readonly addQuestionToExamUseCase: AddQuestionToExamUseCase,
+    private readonly searchQuestionsUseCase: SearchQuestionsUseCase,
   ) {}
+
+  /**
+   * Get my questions (created by current user)
+   *
+   * @route GET /questions/my-questions
+   * @param query - Query parameters (page, limit, type, difficulty, grade, etc.)
+   * @param adminId - Current admin ID (auto-injected)
+   * @returns Paginated list of questions created by current user
+   *
+   * @example
+   * GET /questions/my-questions?page=1&limit=10&grade=10
+   */
+  @Get('my-questions')
+  @RequirePermission(PERMISSION_CODES.QUESTION.GET_MY_QUESTIONS)
+  @HttpCode(HttpStatus.OK)
+  async getMyQuestions(
+    @Query() query: QuestionListQueryDto,
+    @CurrentUser('adminId') adminId?: number,
+  ): Promise<QuestionListResponseDto> {
+    // Automatically filter by current user's adminId
+    query.createdBy = adminId
+    return ExceptionHandler.execute(() => this.getAllQuestionsUseCase.execute(query))
+  }
+
+  /**
+   * Search questions with advanced filters
+   *
+   * @route GET /questions/search
+   * @param query - Search parameters (content, difficulty, type, chapterId, grade, subjectId, page, limit)
+   * @returns Paginated list of questions matching search criteria
+   *
+   * @example
+   * GET /questions/search?content=đạo+hàm&difficulty=VD&grade=10&chapterId=5&page=1&limit=10
+   */
+  @Get('search')
+  @RequirePermission(PERMISSION_CODES.QUESTION.SEARCH)
+  @HttpCode(HttpStatus.OK)
+  async searchQuestions(@Query() query: SearchQuestionsDto): Promise<QuestionListResponseDto> {
+    return ExceptionHandler.execute(() => this.searchQuestionsUseCase.execute(query))
+  }
 
   /**
    * Get all questions with filters
@@ -64,7 +110,7 @@ export class QuestionController {
    * GET /questions?page=1&limit=10&subjectId=5&grade=10
    */
   @Get()
-  @RequirePermission(PERMISSION_CODES.QUESTION_GET_ALL)
+  @RequirePermission(PERMISSION_CODES.QUESTION.GET_ALL)
   @HttpCode(HttpStatus.OK)
   async getAllQuestions(@Query() query: QuestionListQueryDto): Promise<QuestionListResponseDto> {
     return ExceptionHandler.execute(() => this.getAllQuestionsUseCase.execute(query))
@@ -81,7 +127,7 @@ export class QuestionController {
    * GET /questions/123
    */
   @Get(':id')
-  @RequirePermission(PERMISSION_CODES.QUESTION_GET_BY_ID)
+  @RequirePermission(PERMISSION_CODES.QUESTION.GET_BY_ID)
   @HttpCode(HttpStatus.OK)
   async getQuestionById(@Param('id', ParseIntPipe) id: number): Promise<BaseResponseDto<QuestionResponseDto>> {
     return ExceptionHandler.execute(() => this.getQuestionByIdUseCase.execute(id))
@@ -107,7 +153,7 @@ export class QuestionController {
    * }
    */
   @Post()
-  @RequirePermission(PERMISSION_CODES.QUESTION_CREATE)
+  @RequirePermission(PERMISSION_CODES.QUESTION.CREATE)
   @HttpCode(HttpStatus.CREATED)
   async createQuestion(
     @Body() dto: CreateQuestionDto,
@@ -133,7 +179,7 @@ export class QuestionController {
    * }
    */
   @Put('reorder')
-  @RequirePermission(PERMISSION_CODES.QUESTION_UPDATE)
+  @RequirePermission(PERMISSION_CODES.QUESTION.REORDER)
   @HttpCode(HttpStatus.OK)
   async reorderQuestions(
     @Body() dto: ReorderQuestionsDto,
@@ -159,7 +205,7 @@ export class QuestionController {
    * }
    */
   @Put(':id')
-  @RequirePermission(PERMISSION_CODES.QUESTION_UPDATE)
+  @RequirePermission(PERMISSION_CODES.QUESTION.UPDATE)
   @HttpCode(HttpStatus.OK)
   async updateQuestion(
     @Param('id', ParseIntPipe) id: number,
@@ -167,6 +213,31 @@ export class QuestionController {
     @CurrentUser('adminId') adminId?: number,
   ): Promise<BaseResponseDto<QuestionResponseDto>> {
     return ExceptionHandler.execute(() => this.updateQuestionUseCase.execute(id, dto, adminId))
+  }
+
+  /**
+   * Add question to exam
+   *
+   * @route POST /questions/exam
+   * @param dto - Question and Exam IDs with optional order and points
+   * @returns Success message
+   *
+   * @example
+   * POST /questions/exam
+   * Body: {
+   *   "examId": 10,
+   *   "questionId": 123,
+   *   "order": 1,
+   *   "points": 10
+   * }
+   */
+  @Post('exam')
+  @RequirePermission(PERMISSION_CODES.QUESTION.ADD_TO_EXAM)
+  @HttpCode(HttpStatus.OK)
+  async addQuestionToExam(
+    @Body() dto: AddQuestionToExamDto,
+  ): Promise<BaseResponseDto<boolean>> {
+    return ExceptionHandler.execute(() => this.addQuestionToExamUseCase.execute(dto))
   }
 
   /**
@@ -187,7 +258,7 @@ export class QuestionController {
    * }
    */
   @Post('section')
-  @RequirePermission(PERMISSION_CODES.QUESTION_UPDATE)
+  @RequirePermission(PERMISSION_CODES.QUESTION.ADD_TO_SECTION)
   @HttpCode(HttpStatus.OK)
   async addQuestionToSection(
     @Body() dto: AddQuestionToSectionDto,
@@ -210,7 +281,7 @@ export class QuestionController {
    * }
    */
   @Delete('exam')
-  @RequirePermission(PERMISSION_CODES.QUESTION_UPDATE)
+  @RequirePermission(PERMISSION_CODES.QUESTION.REMOVE_FROM_EXAM)
   @HttpCode(HttpStatus.OK)
   async removeQuestionFromExam(
     @Body() dto: RemoveQuestionFromExamDto,
@@ -229,7 +300,7 @@ export class QuestionController {
    * DELETE /questions/123
    */
   @Delete(':id')
-  @RequirePermission(PERMISSION_CODES.QUESTION_DELETE)
+  @RequirePermission(PERMISSION_CODES.QUESTION.DELETE)
   @HttpCode(HttpStatus.OK)
   async deleteQuestion(
     @Param('id', ParseIntPipe) id: number,

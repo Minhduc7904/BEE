@@ -86,6 +86,9 @@ MỤC TIÊU:
 NHIỆM VỤ BẮT BUỘC:
 - Tách đề thi thành danh sách câu hỏi.
 - KHÔNG sửa nội dung gốc của câu hỏi.
+- Không bỏ media placeholder (ví dụ: ![media:3]).
+- Phân loại chính xác QuestionType, subjectId, difficulty.
+- Xác định đáp án dựa trên solution (nếu có).
 - KHÔNG thêm câu hỏi mới.
 - KHÔNG gộp nhiều câu thành một.
 - KHÔNG chia sai ranh giới câu hỏi.

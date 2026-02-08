@@ -30,14 +30,14 @@ export class YoutubeContentController {
     ) { }
 
     @Get()
-    @RequirePermission(PERMISSION_CODES.YOUTUBE_CONTENT_GET_ALL)
+    @RequirePermission(PERMISSION_CODES.YOUTUBE_CONTENT.GET_ALL)
     @HttpCode(HttpStatus.OK)
     async getAllYoutubeContents(@Query() query: YoutubeContentListQueryDto): Promise<YoutubeContentListResponseDto> {
         return ExceptionHandler.execute(() => this.getAllYoutubeContentUseCase.execute(query))
     }
 
     @Get(':id')
-    @RequirePermission(PERMISSION_CODES.YOUTUBE_CONTENT_GET_BY_ID)
+    @RequirePermission(PERMISSION_CODES.YOUTUBE_CONTENT.GET_BY_ID)
     @HttpCode(HttpStatus.OK)
     async getYoutubeContentById(
         @Param('id', ParseIntPipe) id: number
@@ -46,7 +46,7 @@ export class YoutubeContentController {
     }
 
     @Post()
-    @RequirePermission(PERMISSION_CODES.YOUTUBE_CONTENT_CREATE)
+    @RequirePermission(PERMISSION_CODES.YOUTUBE_CONTENT.CREATE)
     @HttpCode(HttpStatus.CREATED)
     async createYoutubeContent(
         @Body() dto: CreateYoutubeContentDto,
@@ -56,7 +56,7 @@ export class YoutubeContentController {
     }
 
     @Put(':id')
-    @RequirePermission(PERMISSION_CODES.YOUTUBE_CONTENT_UPDATE)
+    @RequirePermission(PERMISSION_CODES.YOUTUBE_CONTENT.UPDATE)
     @HttpCode(HttpStatus.OK)
     async updateYoutubeContent(
         @Param('id', ParseIntPipe) id: number,
@@ -67,7 +67,7 @@ export class YoutubeContentController {
     }
 
     @Delete(':id')
-    @RequirePermission(PERMISSION_CODES.YOUTUBE_CONTENT_DELETE)
+    @RequirePermission(PERMISSION_CODES.YOUTUBE_CONTENT.DELETE)
     @HttpCode(HttpStatus.OK)
     async deleteYoutubeContent(
         @Param('id', ParseIntPipe) id: number,

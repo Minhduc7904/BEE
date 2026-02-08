@@ -51,6 +51,29 @@ export class ExamController {
   ) {}
 
   /**
+   * Get my exams (created by current user)
+   *
+   * @route GET /exams/my-exams
+   * @param query - Query parameters (page, limit, subjectId, grade, visibility, etc.)
+   * @param adminId - Current admin ID (auto-injected)
+   * @returns Paginated list of exams created by current user
+   *
+   * @example
+   * GET /exams/my-exams?page=1&limit=10&grade=10
+   */
+  @Get('my-exams')
+  @RequirePermission(PERMISSION_CODES.EXAM.GET_MY_EXAMS)
+  @HttpCode(HttpStatus.OK)
+  async getMyExams(
+    @Query() query: ExamListQueryDto,
+    @CurrentUser('adminId') adminId?: number,
+  ): Promise<ExamListResponseDto> {
+    // Automatically filter by current user's adminId
+    query.createdBy = adminId
+    return ExceptionHandler.execute(() => this.getAllExamsUseCase.execute(query))
+  }
+
+  /**
    * Get all exams with filters
    *
    * @route GET /exams
@@ -61,7 +84,7 @@ export class ExamController {
    * GET /exams?page=1&limit=10&subjectId=5&grade=10
    */
   @Get()
-  @RequirePermission(PERMISSION_CODES.EXAM_GET_ALL)
+  @RequirePermission(PERMISSION_CODES.EXAM.GET_ALL)
   @HttpCode(HttpStatus.OK)
   async getAllExams(@Query() query: ExamListQueryDto): Promise<ExamListResponseDto> {
     return ExceptionHandler.execute(() => this.getAllExamsUseCase.execute(query))
@@ -78,7 +101,7 @@ export class ExamController {
    * GET /exams/123
    */
   @Get(':id')
-  @RequirePermission(PERMISSION_CODES.EXAM_GET_BY_ID)
+  @RequirePermission(PERMISSION_CODES.EXAM.GET_BY_ID)
   @HttpCode(HttpStatus.OK)
   async getExamById(@Param('id', ParseIntPipe) id: number): Promise<BaseResponseDto<ExamResponseDto>> {
     return ExceptionHandler.execute(() => this.getExamByIdUseCase.execute(id))
@@ -103,7 +126,7 @@ export class ExamController {
    * }
    */
   @Post()
-  @RequirePermission(PERMISSION_CODES.EXAM_CREATE)
+  @RequirePermission(PERMISSION_CODES.EXAM.CREATE)
   @HttpCode(HttpStatus.CREATED)
   async createExam(
     @Body() dto: CreateExamDto,
@@ -129,7 +152,7 @@ export class ExamController {
    * }
    */
   @Put(':id')
-  @RequirePermission(PERMISSION_CODES.EXAM_UPDATE)
+  @RequirePermission(PERMISSION_CODES.EXAM.UPDATE)
   @HttpCode(HttpStatus.OK)
   async updateExam(
     @Param('id', ParseIntPipe) id: number,
@@ -151,7 +174,7 @@ export class ExamController {
    * DELETE /exams/123
    */
   @Delete(':id')
-  @RequirePermission(PERMISSION_CODES.EXAM_DELETE)
+  @RequirePermission(PERMISSION_CODES.EXAM.DELETE)
   @HttpCode(HttpStatus.OK)
   async deleteExam(
     @Param('id', ParseIntPipe) id: number,
@@ -172,7 +195,7 @@ export class ExamController {
    * GET /exams/123/questions?page=1&limit=10&type=SINGLE_CHOICE
    */
   @Get(':id/questions')
-  @RequirePermission(PERMISSION_CODES.QUESTION_GET_ALL)
+  @RequirePermission(PERMISSION_CODES.QUESTION.GET_ALL)
   @HttpCode(HttpStatus.OK)
   async getQuestionsByExam(
     @Param('id', ParseIntPipe) id: number,
@@ -192,7 +215,7 @@ export class ExamController {
    * GET /exams/123/sections
    */
   @Get(':id/sections')
-  @RequirePermission(PERMISSION_CODES.SECTION_GET_BY_EXAM)
+  @RequirePermission(PERMISSION_CODES.SECTION.GET_BY_EXAM)
   @HttpCode(HttpStatus.OK)
   async getSectionsByExam(
     @Param('id', ParseIntPipe) id: number,

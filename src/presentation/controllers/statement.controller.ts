@@ -54,7 +54,7 @@ export class StatementController {
    * }
    */
   @Post('question/:questionId')
-  @RequirePermission(PERMISSION_CODES.STATEMENT_CREATE)
+  @RequirePermission(PERMISSION_CODES.STATEMENT.CREATE)
   @HttpCode(HttpStatus.CREATED)
   async createStatement(
     @Param('questionId', ParseIntPipe) questionId: number,
@@ -82,7 +82,7 @@ export class StatementController {
    * }
    */
   @Put(':id')
-  @RequirePermission(PERMISSION_CODES.STATEMENT_UPDATE)
+  @RequirePermission(PERMISSION_CODES.STATEMENT.UPDATE)
   @HttpCode(HttpStatus.OK)
   async updateStatement(
     @Param('id', ParseIntPipe) id: number,
@@ -104,7 +104,7 @@ export class StatementController {
    * DELETE /statements/123
    */
   @Delete(':id')
-  @RequirePermission(PERMISSION_CODES.STATEMENT_DELETE)
+  @RequirePermission(PERMISSION_CODES.STATEMENT.DELETE)
   @HttpCode(HttpStatus.OK)
   async deleteStatement(
     @Param('id', ParseIntPipe) id: number,

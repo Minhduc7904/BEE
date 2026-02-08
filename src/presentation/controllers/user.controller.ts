@@ -64,7 +64,7 @@ export class UserController {
 
   @Patch(':id/toggle-activation')
   @HttpCode(HttpStatus.OK)
-  @RequirePermission(PERMISSION_CODES.USER_TOGGLE_ACTIVATION)
+  @RequirePermission(PERMISSION_CODES.USER.TOGGLE_ACTIVATION)
   async toggleActivation(
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser() user,

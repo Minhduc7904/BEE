@@ -48,7 +48,7 @@ export class MediaUsageController {
      * Creates a MediaUsage record linking media to entity
      */
     @Post('attach')
-    @RequirePermission(PERMISSION_CODES.MEDIA_USAGE_ATTACH)
+    @RequirePermission(PERMISSION_CODES.MEDIA_USAGE.ATTACH)
     @HttpCode(HttpStatus.CREATED)
     async attachMedia(
         @Body() dto: AttachMediaDto,
@@ -64,7 +64,7 @@ export class MediaUsageController {
      * Can filter by mediaId, entityType, entityId, or fieldName
      */
     @Get()
-    @RequirePermission(PERMISSION_CODES.MEDIA_USAGE_GET_ALL)
+    @RequirePermission(PERMISSION_CODES.MEDIA_USAGE.GET_ALL)
     @HttpCode(HttpStatus.OK)
     async getMediaUsages(
         @Query() dto: GetMediaUsageListDto,
@@ -81,7 +81,7 @@ export class MediaUsageController {
      * Useful for checking where a media file is used before deletion
      */
     @Get('by-media/:mediaId')
-    @RequirePermission(PERMISSION_CODES.MEDIA_USAGE_GET_BY_MEDIA)
+    @RequirePermission(PERMISSION_CODES.MEDIA_USAGE.GET_BY_MEDIA)
     @HttpCode(HttpStatus.OK)
     async getMediaUsagesByMedia(
         @Param('mediaId', ParseIntPipe) mediaId: number,
@@ -99,7 +99,7 @@ export class MediaUsageController {
      * Example: GET /media-usages/by-entity/USER/123?fieldName=avatar
      */
     @Get('by-entity/:entityType/:entityId')
-    @RequirePermission(PERMISSION_CODES.MEDIA_USAGE_GET_BY_ENTITY)
+    @RequirePermission(PERMISSION_CODES.MEDIA_USAGE.GET_BY_ENTITY)
     @HttpCode(HttpStatus.OK)
     async getMediaUsagesByEntity(
         @Param('entityType') entityType: EntityType,
@@ -123,7 +123,7 @@ export class MediaUsageController {
      * Removes a specific MediaUsage record
      */
     @Delete(':id')
-    @RequirePermission(PERMISSION_CODES.MEDIA_USAGE_DETACH)
+    @RequirePermission(PERMISSION_CODES.MEDIA_USAGE.DETACH)
     @HttpCode(HttpStatus.OK)
     async detachMedia(
         @Param('id', ParseIntPipe) id: number,
@@ -136,7 +136,7 @@ export class MediaUsageController {
      * Example: DELETE /media-usages/by-entity/USER/123?fieldName=avatar
      */
     @Delete('by-entity/:entityType/:entityId')
-    @RequirePermission(PERMISSION_CODES.MEDIA_USAGE_DETACH)
+    @RequirePermission(PERMISSION_CODES.MEDIA_USAGE.DETACH)
     @HttpCode(HttpStatus.OK)
     async detachMediaByEntity(
         @Param('entityType') entityType: EntityType,

@@ -47,7 +47,7 @@ export class MediaFolderController {
    * Create a new media folder
    */
   @Post()
-  @RequirePermission(PERMISSION_CODES.MEDIA_FOLDER_CREATE)
+  @RequirePermission(PERMISSION_CODES.MEDIA_FOLDER.CREATE)
   @HttpCode(HttpStatus.CREATED)
   async createFolder(
     @Body() dto: CreateMediaFolderDto,
@@ -60,7 +60,7 @@ export class MediaFolderController {
    * Get list of folders with optional filters
    */
   @Get()
-  @RequirePermission(PERMISSION_CODES.MEDIA_FOLDER_VIEW)
+  @RequirePermission(PERMISSION_CODES.MEDIA_FOLDER.VIEW)
   @HttpCode(HttpStatus.OK)
   async getFolderList(
     @Query() dto: GetMediaFolderListDto,
@@ -72,7 +72,7 @@ export class MediaFolderController {
    * Get root folders (parentId = null)
    */
   @Get('roots')
-  @RequirePermission(PERMISSION_CODES.MEDIA_FOLDER_VIEW)
+  @RequirePermission(PERMISSION_CODES.MEDIA_FOLDER.VIEW)
   @HttpCode(HttpStatus.OK)
   async getRootFolders(
     @CurrentUser('userId') userId: number,
@@ -85,7 +85,7 @@ export class MediaFolderController {
    * Get single folder by ID
    */
   @Get(':id')
-  @RequirePermission(PERMISSION_CODES.MEDIA_FOLDER_VIEW)
+  @RequirePermission(PERMISSION_CODES.MEDIA_FOLDER.VIEW)
   @HttpCode(HttpStatus.OK)
   async getFolder(@Param('id', ParseIntPipe) id: number, @CurrentUser('userId') userId: number): Promise<BaseResponseDto<MediaFolderResponseDto>> {
     return ExceptionHandler.execute(() => this.getMediaFolderUseCase.execute(id, userId))
@@ -95,7 +95,7 @@ export class MediaFolderController {
    * Get direct children of a folder
    */
   @Get(':id/children')
-  @RequirePermission(PERMISSION_CODES.MEDIA_FOLDER_VIEW)
+  @RequirePermission(PERMISSION_CODES.MEDIA_FOLDER.VIEW)
   @HttpCode(HttpStatus.OK)
   async getFolderChildren(
     @Param('id', ParseIntPipe) id: number,
@@ -109,7 +109,7 @@ export class MediaFolderController {
    * Update folder metadata
    */
   @Put(':id')
-  @RequirePermission(PERMISSION_CODES.MEDIA_FOLDER_UPDATE)
+  @RequirePermission(PERMISSION_CODES.MEDIA_FOLDER.UPDATE)
   @HttpCode(HttpStatus.OK)
   async updateFolder(
     @Param('id', ParseIntPipe) id: number,
@@ -123,7 +123,7 @@ export class MediaFolderController {
    * Delete folder (cascade delete children and media)
    */
   @Delete(':id')
-  @RequirePermission(PERMISSION_CODES.MEDIA_FOLDER_DELETE)
+  @RequirePermission(PERMISSION_CODES.MEDIA_FOLDER.DELETE)
   @HttpCode(HttpStatus.OK)
   async deleteFolder(
     @Param('id', ParseIntPipe) id: number,

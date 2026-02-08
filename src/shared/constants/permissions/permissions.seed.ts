@@ -43,5 +43,3 @@ function flattenPermissionsForSeed(obj: any, prefix = '', parentGroup = '', pare
     
     return result;
 }
-
-export const PERMISSIONS = flattenPermissionsForSeed(PERMISSION_DEFINITIONS);

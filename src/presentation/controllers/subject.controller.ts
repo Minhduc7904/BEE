@@ -47,7 +47,7 @@ export class SubjectController {
    * POST /subjects
    */
   @Post()
-  @RequirePermission(PERMISSION_CODES.SUBJECT_CREATE)
+  @RequirePermission(PERMISSION_CODES.SUBJECT.CREATE)
   @HttpCode(HttpStatus.CREATED)
   async createSubject(
     @Body() dto: CreateSubjectDto,
@@ -68,7 +68,7 @@ export class SubjectController {
    * - sortOrder: thứ tự sắp xếp (asc, desc)
    */
   @Get()
-  @RequirePermission(PERMISSION_CODES.SUBJECT_GET_ALL)
+  @RequirePermission(PERMISSION_CODES.SUBJECT.GET_ALL)
   @HttpCode(HttpStatus.OK)
   async getAllSubjects(
     @Query() query: SubjectListQueryDto,
@@ -81,7 +81,7 @@ export class SubjectController {
    * GET /subjects/:id
    */
   @Get(':id')
-  @RequirePermission(PERMISSION_CODES.SUBJECT_GET_BY_ID)
+  @RequirePermission(PERMISSION_CODES.SUBJECT.GET_BY_ID)
   @HttpCode(HttpStatus.OK)
   async getSubject(
     @Param('id', ParseIntPipe) id: number,
@@ -94,7 +94,7 @@ export class SubjectController {
    * PUT /subjects/:id
    */
   @Put(':id')
-  @RequirePermission(PERMISSION_CODES.SUBJECT_UPDATE)
+  @RequirePermission(PERMISSION_CODES.SUBJECT.UPDATE)
   @HttpCode(HttpStatus.OK)
   async updateSubject(
     @Param('id', ParseIntPipe) id: number,
@@ -109,7 +109,7 @@ export class SubjectController {
    * DELETE /subjects/:id
    */
   @Delete(':id')
-  @RequirePermission(PERMISSION_CODES.SUBJECT_DELETE)
+  @RequirePermission(PERMISSION_CODES.SUBJECT.DELETE)
   @HttpCode(HttpStatus.OK)
   async deleteSubject(
     @Param('id', ParseIntPipe) id: number,

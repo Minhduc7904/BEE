@@ -30,14 +30,14 @@ export class LearningItemController {
     ) { }
 
     @Get()
-    @RequirePermission(PERMISSION_CODES.LEARNING_ITEM_GET_ALL)
+    @RequirePermission(PERMISSION_CODES.LEARNING_ITEM.GET_ALL)
     @HttpCode(HttpStatus.OK)
     async getAllLearningItems(@Query() query: LearningItemListQueryDto): Promise<LearningItemListResponseDto> {
         return ExceptionHandler.execute(() => this.getAllLearningItemUseCase.execute(query))
     }
 
     @Get('admin/my')
-    @RequirePermission(PERMISSION_CODES.LEARNING_ITEM_GET_MY_LEARNING_ITEMS)
+    @RequirePermission(PERMISSION_CODES.LEARNING_ITEM.GET_MY_LEARNING_ITEMS)
     @HttpCode(HttpStatus.OK)
     async getMyLearningItems(
         @Query() query: LearningItemListQueryDto,
@@ -48,7 +48,7 @@ export class LearningItemController {
     }
 
     @Get(':id')
-    @RequirePermission(PERMISSION_CODES.LEARNING_ITEM_GET_BY_ID)
+    @RequirePermission(PERMISSION_CODES.LEARNING_ITEM.GET_BY_ID)
     @HttpCode(HttpStatus.OK)
     async getLearningItemById(
         @Param('id', ParseIntPipe) id: number
@@ -57,7 +57,7 @@ export class LearningItemController {
     }
 
     @Post()
-    @RequirePermission(PERMISSION_CODES.LEARNING_ITEM_CREATE)
+    @RequirePermission(PERMISSION_CODES.LEARNING_ITEM.CREATE)
     @HttpCode(HttpStatus.CREATED)
     async createLearningItem(
         @Body() dto: CreateLearningItemDto,
@@ -67,7 +67,7 @@ export class LearningItemController {
     }
 
     @Put(':id')
-    @RequirePermission(PERMISSION_CODES.LEARNING_ITEM_UPDATE)
+    @RequirePermission(PERMISSION_CODES.LEARNING_ITEM.UPDATE)
     @HttpCode(HttpStatus.OK)
     async updateLearningItem(
         @Param('id', ParseIntPipe) id: number,
@@ -78,7 +78,7 @@ export class LearningItemController {
     }
 
     @Delete(':id')
-    @RequirePermission(PERMISSION_CODES.LEARNING_ITEM_DELETE)
+    @RequirePermission(PERMISSION_CODES.LEARNING_ITEM.DELETE)
     @HttpCode(HttpStatus.OK)
     async deleteLearningItem(
         @Param('id', ParseIntPipe) id: number,

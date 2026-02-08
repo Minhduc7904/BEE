@@ -10,6 +10,7 @@ import {
 } from '../../../domain/repositories/question.repository'
 import { PrismaService } from '../../../prisma/prisma.service'
 import { QuestionMapper } from '../../mappers/exam/question.mapper'
+import { TextSearchUtil } from '../../../shared/utils/text-search.util'
 
 @Injectable()
 export class PrismaQuestionRepository implements IQuestionRepository {
@@ -21,6 +22,8 @@ export class PrismaQuestionRepository implements IQuestionRepository {
         const created = await client.question.create({
             data: {
                 content: data.content,
+                slug: data.slug,
+                searchableContent: data.searchableContent || TextSearchUtil.stripMarkdownForSearch(data.content),
                 type: data.type,
                 correctAnswer: data.correctAnswer,
                 solution: data.solution,
@@ -43,6 +46,8 @@ export class PrismaQuestionRepository implements IQuestionRepository {
         const result = await client.question.createMany({
             data: dataArray.map(data => ({
                 content: data.content,
+                slug: data.slug,
+                searchableContent: data.searchableContent || TextSearchUtil.stripMarkdownForSearch(data.content),
                 type: data.type,
                 correctAnswer: data.correctAnswer,
                 solution: data.solution,
@@ -90,6 +95,36 @@ export class PrismaQuestionRepository implements IQuestionRepository {
         return QuestionMapper.toDomainQuestion(question)
     }
 
+    async findBySlug(slug: string, txClient?: any): Promise<Question | null> {
+        const client = txClient || this.prisma
+
+        const question = await client.question.findUnique({
+            where: { slug },
+            include: {
+                subject: true,
+                admin: {
+                    include: {
+                        user: true,
+                    },
+                },
+                statements: {
+                    orderBy: {
+                        order: 'asc',
+                    },
+                },
+                questionChapters: {
+                    include: {
+                        chapter: true,
+                    },
+                },
+            },
+        })
+
+        if (!question) return null
+
+        return QuestionMapper.toDomainQuestion(question)
+    }
+
     async findByIds(ids: number[], txClient?: any): Promise<Question[]> {
         const client = txClient || this.prisma
 
@@ -105,20 +140,28 @@ export class PrismaQuestionRepository implements IQuestionRepository {
     async update(id: number, data: Partial<CreateQuestionData>, txClient?: any): Promise<Question> {
         const client = txClient || this.prisma
 
+        const updateData: any = {}
+        
+        if (data.content !== undefined) {
+            updateData.content = data.content
+            // Auto-update searchableContent when content changes
+            updateData.searchableContent = TextSearchUtil.stripMarkdownForSearch(data.content)
+        }
+        if (data.slug !== undefined) updateData.slug = data.slug
+        if (data.searchableContent !== undefined) updateData.searchableContent = data.searchableContent
+        if (data.type !== undefined) updateData.type = data.type
+        if (data.correctAnswer !== undefined) updateData.correctAnswer = data.correctAnswer
+        if (data.solution !== undefined) updateData.solution = data.solution
+        if (data.difficulty !== undefined) updateData.difficulty = data.difficulty
+        if (data.solutionYoutubeUrl !== undefined) updateData.solutionYoutubeUrl = data.solutionYoutubeUrl
+        if (data.grade !== undefined) updateData.grade = data.grade
+        if (data.subjectId !== undefined) updateData.subjectId = data.subjectId
+        if (data.pointsOrigin !== undefined) updateData.pointsOrigin = data.pointsOrigin
+        if (data.visibility !== undefined) updateData.visibility = data.visibility
+
         const updated = await client.question.update({
             where: { questionId: id },
-            data: {
-                ...(data.content && { content: data.content }),
-                ...(data.type && { type: data.type }),
-                ...(data.correctAnswer !== undefined && { correctAnswer: data.correctAnswer }),
-                ...(data.solution !== undefined && { solution: data.solution }),
-                ...(data.difficulty && { difficulty: data.difficulty }),
-                ...(data.solutionYoutubeUrl !== undefined && { solutionYoutubeUrl: data.solutionYoutubeUrl }),
-                ...(data.grade && { grade: data.grade }),
-                ...(data.subjectId !== undefined && { subjectId: data.subjectId }),
-                ...(data.pointsOrigin !== undefined && { pointsOrigin: data.pointsOrigin }),
-                ...(data.visibility && { visibility: data.visibility }),
-            },
+            data: updateData,
         })
 
         return QuestionMapper.toDomainQuestion(updated)!
@@ -149,10 +192,24 @@ export class PrismaQuestionRepository implements IQuestionRepository {
         const where: any = {}
 
         if (filters?.search) {
+            // Use improved search with TextSearchUtil
             where.OR = [
+                // Priority 1: Search in searchableContent (stripped markdown)
+                { searchableContent: { contains: TextSearchUtil.stripMarkdownForSearch(filters.search) } },
+                // Priority 2: Search in original content
                 { content: { contains: filters.search } },
+                // Priority 3: Search in answer
                 { correctAnswer: { contains: filters.search } },
-                { solution: { contains: filters.search } },
+                // Priority 4: Search in solution
+                { solution: { contains: TextSearchUtil.stripMarkdownForSearch(filters.search) } },
+                // Priority 5: Search in statements
+                {
+                    statements: {
+                        some: {
+                            content: { contains: filters.search }
+                        }
+                    }
+                }
             ]
         }
 
@@ -180,10 +237,12 @@ export class PrismaQuestionRepository implements IQuestionRepository {
             where.createdBy = filters.createdBy
         }
 
-        if (filters?.chapterId !== undefined) {
+        if (filters?.chapterIds !== undefined && filters.chapterIds.length > 0) {
             where.questionChapters = {
                 some: {
-                    chapterId: filters.chapterId,
+                    chapterId: {
+                        in: filters.chapterIds,
+                    },
                 },
             }
         }
@@ -196,9 +255,26 @@ export class PrismaQuestionRepository implements IQuestionRepository {
             }
         }
 
+        if (filters?.excludeQuestionIds !== undefined && filters.excludeQuestionIds.length > 0) {
+            where.questionId = {
+                notIn: filters.excludeQuestionIds,
+            }
+        }
+
         // Build orderBy
-        const orderBy: any = {}
-        orderBy[sortBy] = sortOrder
+        let orderBy: any
+        
+        // If filtering by examId, sort by QuestionExam.order
+        if (filters?.examId !== undefined) {
+            orderBy = {
+                examQuestions: {
+                    _count: 'desc',  // This ensures questions in exam come first
+                },
+            }
+        } else {
+            orderBy = {}
+            orderBy[sortBy] = sortOrder
+        }
 
         const [prismaQuestions, total] = await Promise.all([
             client.question.findMany({
@@ -227,13 +303,27 @@ export class PrismaQuestionRepository implements IQuestionRepository {
                         where: {
                             examId: filters.examId,
                         },
+                        orderBy: {
+                            order: 'asc',
+                        },
                     } : false,
                 },
             }),
             client.question.count({ where }),
         ])
 
-        const questions = QuestionMapper.toDomainQuestions(prismaQuestions)
+        // Sort questions by examQuestions.order if filtering by exam
+        let questions = QuestionMapper.toDomainQuestions(prismaQuestions)
+        
+        if (filters?.examId !== undefined) {
+            // Sort by order from QuestionExam table
+            questions = questions.sort((a, b) => {
+                const orderA = a.examQuestions?.[0]?.order ?? Number.MAX_SAFE_INTEGER
+                const orderB = b.examQuestions?.[0]?.order ?? Number.MAX_SAFE_INTEGER
+                return orderA - orderB
+            })
+        }
+
         const totalPages = Math.ceil(total / limit)
 
         return {

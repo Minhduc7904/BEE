@@ -25,7 +25,7 @@ export class GetQuestionsByExamUseCase {
 
     const pagination = {
       page: query.page || 1,
-      limit: query.limit || 10,
+      limit:  100,
       sortBy: query.sortBy || 'createdAt',
       sortOrder: query.sortOrder || SortOrder.DESC,
     }

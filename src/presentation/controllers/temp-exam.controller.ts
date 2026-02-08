@@ -38,7 +38,7 @@ export class TempExamController {
    * GET /temp-exams/session/:sessionId
    */
   @Get('session/:sessionId')
-  @RequirePermission(PERMISSION_CODES.TEMP_EXAM_GET_BY_SESSION)
+  @RequirePermission(PERMISSION_CODES.TEMP_EXAM.GET_BY_SESSION)
   @HttpCode(HttpStatus.OK)
   async getTempExamBySession(
     @Param('sessionId') sessionId: number,
@@ -53,7 +53,7 @@ export class TempExamController {
    * POST /temp-exams/session/:sessionId
    */
   @Post('session/:sessionId')
-  @RequirePermission(PERMISSION_CODES.TEMP_EXAM_CREATE)
+  @RequirePermission(PERMISSION_CODES.TEMP_EXAM.CREATE)
   @HttpCode(HttpStatus.CREATED)
   async createTempExam(
     @Param('sessionId') sessionId: number,
@@ -69,7 +69,7 @@ export class TempExamController {
    * PUT /temp-exams/:tempExamId
    */
   @Put(':tempExamId')
-  @RequirePermission(PERMISSION_CODES.TEMP_EXAM_UPDATE)
+  @RequirePermission(PERMISSION_CODES.TEMP_EXAM.UPDATE)
   @HttpCode(HttpStatus.OK)
   async updateTempExam(
     @Param('tempExamId') tempExamId: number,

@@ -16,6 +16,8 @@ const QUESTION_USE_CASES = [
   questionUseCase.ReorderQuestionsUseCase,
   questionUseCase.RemoveQuestionFromExamUseCase,
   questionUseCase.AddQuestionToSectionUseCase,
+  questionUseCase.AddQuestionToExamUseCase,
+  questionUseCase.SearchQuestionsUseCase,
   AttachMediaFromContentUseCase,
   ProcessContentWithPresignedUrlsUseCase,
 ]

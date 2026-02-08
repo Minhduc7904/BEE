@@ -1,6 +1,7 @@
 // src/presentation/controllers/student.controller.ts
 import { Controller, Get, Query, HttpCode, HttpStatus, Param, Body, Put, Post, Req, ParseIntPipe, StreamableFile, Res } from '@nestjs/common'
 import { StudentListQueryDto } from 'src/application/dtos/student/student-list-query.dto'
+import { StudentSearchQueryDto } from 'src/application/dtos/student/student-search-query.dto'
 import {
   StudentListResponseDto,
   StudentResponseDto,
@@ -25,6 +26,7 @@ import {
   GetStudentStatsByStatusUseCase,
   GetStudentStatsByGradeUseCase,
   ExportStudentListUseCase,
+  SearchStudentUseCase,
 } from 'src/application/use-cases'
 import { CurrentUser } from 'src/shared/decorators'
 import { RequirePermission } from 'src/shared/decorators/permissions.decorator'
@@ -42,31 +44,39 @@ export class StudentController {
     private readonly getStudentStatsByStatusUseCase: GetStudentStatsByStatusUseCase,
     private readonly getStudentStatsByGradeUseCase: GetStudentStatsByGradeUseCase,
     private readonly exportStudentListUseCase: ExportStudentListUseCase,
+    private readonly searchStudentUseCase: SearchStudentUseCase,
   ) { }
 
   @Get()
-  @RequirePermission(PERMISSION_CODES.STUDENT_GET_ALL)
+  @RequirePermission(PERMISSION_CODES.STUDENT.GET_ALL)
   @HttpCode(HttpStatus.OK)
   async getAllStudents(@Query() query: StudentListQueryDto): Promise<StudentListResponseDto> {
     return ExceptionHandler.execute(() => this.getAllStudentUseCase.execute(query))
   }
 
+  @Get('search')
+  @RequirePermission(PERMISSION_CODES.STUDENT.SEARCH)
+  @HttpCode(HttpStatus.OK)
+  async searchStudents(@Query() query: StudentSearchQueryDto): Promise<StudentListResponseDto> {
+    return ExceptionHandler.execute(() => this.searchStudentUseCase.execute(query))
+  }
+
   @Get('stats/status')
-  @RequirePermission(PERMISSION_CODES.STUDENT_GET_ALL)
+  @RequirePermission(PERMISSION_CODES.STUDENT.GET_ALL)
   @HttpCode(HttpStatus.OK)
   async getStudentStatusStatics(@Query() query: StudentListQueryDto): Promise<BaseResponseDto<StudentStatsResponseDto>> {
     return ExceptionHandler.execute(() => this.getStudentStatsByStatusUseCase.execute(query))
   }
 
   @Get('stats/grade')
-  @RequirePermission(PERMISSION_CODES.STUDENT_GET_ALL)
+  @RequirePermission(PERMISSION_CODES.STUDENT.GET_ALL)
   @HttpCode(HttpStatus.OK)
   async getStudentGradeStatics(@Query() query: StudentListQueryDto): Promise<BaseResponseDto<StudentGradeStatsListResponseDto>> {
     return ExceptionHandler.execute(() => this.getStudentStatsByGradeUseCase.execute(query))
   }
 
   @Post()
-  @RequirePermission(PERMISSION_CODES.STUDENT_CREATE)
+  @RequirePermission(PERMISSION_CODES.STUDENT.CREATE)
   @HttpCode(HttpStatus.CREATED)
   async createStudent(
     @Body() dto: RegisterStudentDto,
@@ -103,7 +113,7 @@ export class StudentController {
 
   @Get(':studentId')
   @HttpCode(HttpStatus.OK)
-  @RequirePermission(PERMISSION_CODES.STUDENT_GET_BY_ID)
+  @RequirePermission(PERMISSION_CODES.STUDENT.GET_BY_ID)
   async getProfileStudentByAdmin(
     @Param('studentId', ParseIntPipe) studentId: number
   ): Promise<BaseResponseDto<StudentResponseDto>> {
@@ -113,7 +123,7 @@ export class StudentController {
 
   @Put(':studentId')
   @HttpCode(HttpStatus.OK)
-  @RequirePermission(PERMISSION_CODES.STUDENT_UPDATE)
+  @RequirePermission(PERMISSION_CODES.STUDENT.UPDATE)
   async updateStudentByAdmin(
     @Param('studentId', ParseIntPipe) studentId: number,
     @Body() body: UpdateStudentDto
@@ -122,7 +132,7 @@ export class StudentController {
   }
 
   @Get('export/excel')
-  @RequirePermission(PERMISSION_CODES.STUDENT_EXPORT_EXCEL)
+  @RequirePermission(PERMISSION_CODES.STUDENT.EXPORT_EXCEL)
   @HttpCode(HttpStatus.OK)
   async exportStudentList(
     @Query() options: ExportStudentListOptionDto,

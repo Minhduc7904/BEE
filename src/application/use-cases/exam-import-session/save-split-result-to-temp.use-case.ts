@@ -28,6 +28,7 @@ export class SaveSplitResultToTempUseCase {
         questions: SplitQuestion[],
         adminId: number,
         userId: number,
+        defaultSubjectId?: number | null,
     ): Promise<
         BaseResponseDto<{
             savedQuestions: number
@@ -64,11 +65,14 @@ export class SaveSplitResultToTempUseCase {
                 const question = questions[i]
                 const order = maxOrder + i + 1
 
+                // Nếu question chưa có subjectId, dùng subjectId của exam (nếu có)
+                const questionSubjectId = question.subjectId || defaultSubjectId || undefined
+
                 const tempQuestion = await tempQuestionRepository.create({
                     sessionId,
                     content: question.content,
                     type: question.type,
-                    subjectId: question.subjectId || undefined,
+                    subjectId: questionSubjectId,
                     correctAnswer: question.correctAnswer || undefined,
                     solution: question.solution || undefined,
                     difficulty: question.difficulty || undefined,

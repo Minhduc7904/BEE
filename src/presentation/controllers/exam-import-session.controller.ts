@@ -54,7 +54,7 @@ export class ExamImportSessionController {
   ) { }
 
   @Get()
-  @RequirePermission(PERMISSION_CODES.EXAM_IMPORT_SESSION_GET_ALL)
+  @RequirePermission(PERMISSION_CODES.EXAM_IMPORT_SESSION.GET_ALL)
   @HttpCode(HttpStatus.OK)
   async getAllSessions(
     @Query() query: ExamImportSessionListQueryDto,
@@ -63,7 +63,7 @@ export class ExamImportSessionController {
   }
 
   @Post()
-  @RequirePermission(PERMISSION_CODES.EXAM_IMPORT_SESSION_CREATE)
+  @RequirePermission(PERMISSION_CODES.EXAM_IMPORT_SESSION.CREATE)
   @HttpCode(HttpStatus.CREATED)
   async createSession(
     @CurrentUser('adminId') adminId: number,
@@ -74,7 +74,7 @@ export class ExamImportSessionController {
   }
 
   @Get(':sessionId')
-  @RequirePermission(PERMISSION_CODES.EXAM_IMPORT_SESSION_GET_BY_ID)
+  @RequirePermission(PERMISSION_CODES.EXAM_IMPORT_SESSION.GET_BY_ID)
   @HttpCode(HttpStatus.OK)
   async getSessionById(
     @Param('sessionId') sessionId: number,
@@ -89,7 +89,7 @@ export class ExamImportSessionController {
    * Can only view raw content of sessions created by self
    */
   @Get(':sessionId/raw-content/my')
-  @RequirePermission(PERMISSION_CODES.EXAM_IMPORT_SESSION_GET_BY_ID)
+  @RequirePermission(PERMISSION_CODES.EXAM_IMPORT_SESSION.GET_BY_ID)
   @HttpCode(HttpStatus.OK)
   async getSessionRawContent(
     @Param('sessionId') sessionId: number,
@@ -107,7 +107,7 @@ export class ExamImportSessionController {
    * Automatically cleans up unused media
    */
   @Put(':sessionId/raw-content/my')
-  @RequirePermission(PERMISSION_CODES.EXAM_IMPORT_SESSION_GET_BY_ID)
+  @RequirePermission(PERMISSION_CODES.EXAM_IMPORT_SESSION.GET_BY_ID)
   @HttpCode(HttpStatus.OK)
   async updateSessionRawContent(
     @Param('sessionId') sessionId: number,
@@ -125,7 +125,7 @@ export class ExamImportSessionController {
   * Chỉ người tạo session mới được sử dụng
   */
   @Post(':sessionId/split-questions/my')
-  @RequirePermission(PERMISSION_CODES.EXAM_IMPORT_SESSION_GET_BY_ID)
+  @RequirePermission(PERMISSION_CODES.EXAM_IMPORT_SESSION.GET_BY_ID)
   @HttpCode(HttpStatus.OK)
   async splitExamFromSession(
     @Param('sessionId') sessionId: number,
@@ -142,7 +142,7 @@ export class ExamImportSessionController {
    * Chỉ người tạo session mới được sử dụng
    */
   @Post(':sessionId/split-question/raw-content')
-  @RequirePermission(PERMISSION_CODES.EXAM_IMPORT_SESSION_GET_BY_ID)
+  @RequirePermission(PERMISSION_CODES.EXAM_IMPORT_SESSION.GET_BY_ID)
   @HttpCode(HttpStatus.OK)
   async splitExamFromRawContent(
     @Param('sessionId') sessionId: number,
@@ -160,7 +160,7 @@ export class ExamImportSessionController {
    * Chỉ người tạo session mới được sử dụng
    */
   @Post(':sessionId/classify-chapters/my')
-  @RequirePermission(PERMISSION_CODES.EXAM_IMPORT_SESSION_GET_BY_ID)
+  @RequirePermission(PERMISSION_CODES.EXAM_IMPORT_SESSION.GET_BY_ID)
   @HttpCode(HttpStatus.OK)
   async classifyQuestionChapters(
     @Param('sessionId') sessionId: number,
@@ -177,7 +177,7 @@ export class ExamImportSessionController {
    * Chỉ người tạo session mới được sử dụng
    */
   @Post(':sessionId/migrate/my')
-  @RequirePermission(PERMISSION_CODES.EXAM_IMPORT_SESSION_GET_BY_ID)
+  @RequirePermission(PERMISSION_CODES.EXAM_IMPORT_SESSION.GET_BY_ID)
   @HttpCode(HttpStatus.OK)
   async migrateTempToFinalExam(
     @Param('sessionId') sessionId: number,

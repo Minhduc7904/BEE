@@ -4,6 +4,7 @@ import { Visibility } from '../../../shared/enums'
 import { Exam } from './exam.entity'
 import { LearningItem } from '../learningItem'
 import { HomeworkContent } from '../learningItem/homework-content.entity'
+import { Admin } from '../user/admin.entity'
 
 export class Competition {
   // Required properties
@@ -30,7 +31,7 @@ export class Competition {
 
   // Relations (optional - sẽ được populate khi cần)
   exam?: Exam | null
-  admin?: any // AdminEntity
+  admin?: Admin | null
   learningItems?: LearningItem[] // LearningItem[]
   homeworkContents?: HomeworkContent[] // HomeworkContent[]
 

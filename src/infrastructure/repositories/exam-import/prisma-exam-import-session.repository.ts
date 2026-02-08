@@ -31,6 +31,13 @@ export class PrismaExamImportSessionRepository implements IExamImportSessionRepo
   async findById(sessionId: number): Promise<ExamImportSession | null> {
     const session = await this.prisma.examImportSession.findUnique({
       where: { sessionId },
+      include: {
+        tempExam: {
+          include: {
+            subject: true,
+          },
+        },
+      },
     })
 
     if (!session) return null

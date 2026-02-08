@@ -74,7 +74,7 @@ export class AttendanceController {
    * - sortOrder: thứ tự sắp xếp (asc, desc)
    */
   @Get()
-  @RequirePermission(PERMISSION_CODES.ATTENDANCE_GET_ALL)
+  @RequirePermission(PERMISSION_CODES.ATTENDANCE.GET_ALL)
   @HttpCode(HttpStatus.OK)
   async getAll(
     @Query() query: AttendanceListQueryDto,
@@ -85,7 +85,7 @@ export class AttendanceController {
   }
 
   @Get('session/:sessionId')
-  @RequirePermission(PERMISSION_CODES.ATTENDANCE_GET_ALL_BY_SESSION)
+  @RequirePermission(PERMISSION_CODES.ATTENDANCE.GET_ALL_BY_SESSION)
   @HttpCode(HttpStatus.OK)
   async getAllBySession(
     @Param('sessionId', ParseIntPipe) sessionId: number,
@@ -96,7 +96,7 @@ export class AttendanceController {
   }
 
   @Get('student/my')
-  @RequirePermission(PERMISSION_CODES.ATTENDANCE_GET_MY_ATTENDANCES)
+  @RequirePermission(PERMISSION_CODES.ATTENDANCE.GET_MY_ATTENDANCES)
   @HttpCode(HttpStatus.OK)
   async getMyAttendances(
     @CurrentUser('studentId') studentId: number,
@@ -113,7 +113,7 @@ export class AttendanceController {
    * GET /attendances/:id
    */
   @Get(':id')
-  @RequirePermission(PERMISSION_CODES.ATTENDANCE_GET_BY_ID)
+  @RequirePermission(PERMISSION_CODES.ATTENDANCE.GET_BY_ID)
   @HttpCode(HttpStatus.OK)
   async getById(
     @Param('id', ParseIntPipe) id: number,
@@ -127,7 +127,7 @@ export class AttendanceController {
    * POST /attendances
    */
   @Post()
-  @RequirePermission(PERMISSION_CODES.ATTENDANCE_CREATE)
+  @RequirePermission(PERMISSION_CODES.ATTENDANCE.CREATE)
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Body() dto: CreateAttendanceDto,
@@ -148,7 +148,7 @@ export class AttendanceController {
    * Bỏ qua những học sinh đã có attendance rồi
    */
   @Post('bulk/session')
-  @RequirePermission(PERMISSION_CODES.ATTENDANCE_CREATE)
+  @RequirePermission(PERMISSION_CODES.ATTENDANCE.CREATE)
   @HttpCode(HttpStatus.CREATED)
   async createBulkBySession(
     @Body() dto: CreateBulkAttendanceBySessionDto,
@@ -162,7 +162,7 @@ export class AttendanceController {
    * PUT /attendances/:id
    */
   @Put(':id')
-  @RequirePermission(PERMISSION_CODES.ATTENDANCE_UPDATE)
+  @RequirePermission(PERMISSION_CODES.ATTENDANCE.UPDATE)
   @HttpCode(HttpStatus.OK)
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -177,7 +177,7 @@ export class AttendanceController {
    * DELETE /attendances/:id
    */
   @Delete(':id')
-  @RequirePermission(PERMISSION_CODES.ATTENDANCE_DELETE)
+  @RequirePermission(PERMISSION_CODES.ATTENDANCE.DELETE)
   @HttpCode(HttpStatus.OK)
   async delete(
     @Param('id', ParseIntPipe) id: number,
@@ -197,7 +197,7 @@ export class AttendanceController {
    * - makeup: Số lượng học bù
    */
   @Get('statistics/session/:sessionId')
-  @RequirePermission(PERMISSION_CODES.ATTENDANCE_GET_ALL)
+  @RequirePermission(PERMISSION_CODES.ATTENDANCE.GET_ALL)
   @HttpCode(HttpStatus.OK)
   async getStatisticsBySession(
     @Param('sessionId', ParseIntPipe) sessionId: number,
@@ -221,7 +221,7 @@ export class AttendanceController {
    * Download Excel file with attendance list
    */
   @Get('export/session/:sessionId')
-  @RequirePermission(PERMISSION_CODES.ATTENDANCE_GET_ALL)
+  @RequirePermission(PERMISSION_CODES.ATTENDANCE.GET_ALL)
   @HttpCode(HttpStatus.OK)
   async exportBySession(
     @Param('sessionId', ParseIntPipe) sessionId: number,
@@ -262,7 +262,7 @@ export class AttendanceController {
    * - view: Xem trực tiếp trong browser (Content-Disposition: inline)
    */
   @Get('export/image/:id')
-  @RequirePermission(PERMISSION_CODES.ATTENDANCE_GET_BY_ID)
+  @RequirePermission(PERMISSION_CODES.ATTENDANCE.GET_BY_ID)
   @HttpCode(HttpStatus.OK)
   async exportImage(
     @Param('id', ParseIntPipe) id: number,

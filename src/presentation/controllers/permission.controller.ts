@@ -49,7 +49,7 @@ export class PermissionController {
    * POST /permissions
    */
   @Post()
-  @RequirePermission(PERMISSION_CODES.PERMISSION_CREATE)
+  @RequirePermission(PERMISSION_CODES.PERMISSION.CREATE)
   @HttpCode(HttpStatus.CREATED)
   async createPermission(
     @Body() dto: CreatePermissionDto,
@@ -70,7 +70,7 @@ export class PermissionController {
    * - sortOrder: thứ tự sắp xếp (asc, desc)
    */
   @Get()
-  @RequirePermission(PERMISSION_CODES.PERMISSION_GET_ALL)
+  @RequirePermission(PERMISSION_CODES.PERMISSION.GET_ALL)
   @HttpCode(HttpStatus.OK)
   async getAllPermissions(
     @Query() query: PermissionListQueryDto,
@@ -83,7 +83,7 @@ export class PermissionController {
    * GET /permissions/groups
    */
   @Get('groups')
-  @RequirePermission(PERMISSION_CODES.PERMISSION_GET_GROUPS)
+  @RequirePermission(PERMISSION_CODES.PERMISSION.GET_GROUPS)
   @HttpCode(HttpStatus.OK)
   async getPermissionGroups(): Promise<BaseResponseDto<string[]>> {
     return ExceptionHandler.execute(() => this.getPermissionGroupsUseCase.execute())
@@ -94,7 +94,7 @@ export class PermissionController {
    * GET /permissions/:id
    */
   @Get(':id')
-  @RequirePermission(PERMISSION_CODES.PERMISSION_GET_BY_ID)
+  @RequirePermission(PERMISSION_CODES.PERMISSION.GET_BY_ID)
   @HttpCode(HttpStatus.OK)
   async getPermission(
     @Param('id', ParseIntPipe) id: number,
@@ -107,7 +107,7 @@ export class PermissionController {
    * PUT /permissions/:id
    */
   @Put(':id')
-  @RequirePermission(PERMISSION_CODES.PERMISSION_UPDATE)
+  @RequirePermission(PERMISSION_CODES.PERMISSION.UPDATE)
   @HttpCode(HttpStatus.OK)
   async updatePermission(
     @Param('id', ParseIntPipe) id: number,
@@ -124,7 +124,7 @@ export class PermissionController {
    * DELETE /permissions/:id
    */
   @Delete(':id')
-  @RequirePermission(PERMISSION_CODES.PERMISSION_DELETE)
+  @RequirePermission(PERMISSION_CODES.PERMISSION.DELETE)
   @HttpCode(HttpStatus.OK)
   async deletePermission(
     @Param('id', ParseIntPipe) id: number,

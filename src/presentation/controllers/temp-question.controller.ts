@@ -49,7 +49,7 @@ export class TempQuestionController {
      * GET /temp-questions/session/:sessionId
      */
     @Get('session/:sessionId')
-    @RequirePermission(PERMISSION_CODES.TEMP_QUESTION_GET_BY_SESSION)
+    @RequirePermission(PERMISSION_CODES.TEMP_QUESTION.GET_BY_SESSION)
     @HttpCode(HttpStatus.OK)
     async getTempQuestionsBySession(
         @Param('sessionId') sessionId: number,
@@ -60,7 +60,7 @@ export class TempQuestionController {
     }
 
     @Get(':tempQuestionId')
-    @RequirePermission(PERMISSION_CODES.TEMP_QUESTION_GET_BY_ID)
+    @RequirePermission(PERMISSION_CODES.TEMP_QUESTION.GET_BY_ID)
     @HttpCode(HttpStatus.OK)
     async getTempQuestionById(
         @Param('tempQuestionId') tempQuestionId: number,
@@ -75,7 +75,7 @@ export class TempQuestionController {
      * POST /temp-questions/session/:sessionId
      */
     @Post('session/:sessionId')
-    @RequirePermission(PERMISSION_CODES.TEMP_QUESTION_CREATE)
+    @RequirePermission(PERMISSION_CODES.TEMP_QUESTION.CREATE)
     @HttpCode(HttpStatus.CREATED)
     async createTempQuestion(
         @Param('sessionId') sessionId: number,
@@ -92,7 +92,7 @@ export class TempQuestionController {
      * PUT /temp-questions/reorder
      */
     @Put('reorder')
-    @RequirePermission(PERMISSION_CODES.TEMP_QUESTION_UPDATE)
+    @RequirePermission(PERMISSION_CODES.TEMP_QUESTION.UPDATE)
     @HttpCode(HttpStatus.OK)
     async reorderTempQuestions(
         @Body() dto: ReorderTempQuestionsDto,
@@ -107,7 +107,7 @@ export class TempQuestionController {
      * PUT /temp-questions/:tempQuestionId
      */
     @Put(':tempQuestionId')
-    @RequirePermission(PERMISSION_CODES.TEMP_QUESTION_UPDATE)
+    @RequirePermission(PERMISSION_CODES.TEMP_QUESTION.UPDATE)
     @HttpCode(HttpStatus.OK)
     async updateTempQuestion(
         @Param('tempQuestionId') tempQuestionId: number,
@@ -124,7 +124,7 @@ export class TempQuestionController {
      * DELETE /temp-questions/:tempQuestionId
      */
     @Delete(':tempQuestionId')
-    @RequirePermission(PERMISSION_CODES.TEMP_QUESTION_DELETE)
+    @RequirePermission(PERMISSION_CODES.TEMP_QUESTION.DELETE)
     @HttpCode(HttpStatus.OK)
     async deleteTempQuestion(
         @Param('tempQuestionId') tempQuestionId: number,
@@ -141,7 +141,7 @@ export class TempQuestionController {
      * PUT /temp-questions/:tempQuestionId/link-section
      */
     @Put(':tempQuestionId/link-section')
-    @RequirePermission(PERMISSION_CODES.TEMP_QUESTION_UPDATE)
+    @RequirePermission(PERMISSION_CODES.TEMP_QUESTION.UPDATE)
     @HttpCode(HttpStatus.OK)
     async linkQuestionToSection(
         @Param('tempQuestionId') tempQuestionId: number,

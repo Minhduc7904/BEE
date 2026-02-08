@@ -72,6 +72,12 @@ export class SplitExamFromSessionUseCase {
                 throw new Error('Session chưa có rawContent')
             }
 
+            // Lấy exam subjectId từ session (nếu có) để dùng làm default cho questions
+            let defaultSubjectId: number | null = null
+            if (session.tempExam?.subjectId) {
+                defaultSubjectId = session.tempExam.subjectId
+            }
+
             // Validate độ dài rawContent (tối đa từ config)
             const MAX_CONTENT_LENGTH = this.configService.get<number>('examSplit.maxContentLength', 15000)
             if (session.rawContent.length > MAX_CONTENT_LENGTH) {
@@ -93,12 +99,15 @@ export class SplitExamFromSessionUseCase {
             // Gọi ExamSplitService
             const result = await this.examSplitService.splitExam(session.rawContent)
 
+            // console.log('SplitExamFromSessionUseCase - Split result:', result)
+
             // Lưu kết quả vào TempQuestion và TempStatement
             const saveResult = await this.saveSplitResultToTempUseCase.execute(
                 sessionId,
                 result.questions,
                 adminId,
-                userId
+                userId,
+                defaultSubjectId // Truyền exam subjectId làm default cho questions
             )
 
             const processingTimeMs = Date.now() - startTime

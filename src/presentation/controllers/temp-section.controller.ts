@@ -45,7 +45,7 @@ export class TempSectionController {
      * GET /temp-sections/session/:sessionId
      */
     @Get('session/:sessionId')
-    @RequirePermission(PERMISSION_CODES.TEMP_SECTION_GET_BY_EXAM)
+    @RequirePermission(PERMISSION_CODES.TEMP_SECTION.GET_BY_EXAM)
     @HttpCode(HttpStatus.OK)
     async getTempSectionsBySession(
         @Param('sessionId') sessionId: number,
@@ -60,7 +60,7 @@ export class TempSectionController {
      * GET /temp-sections/:tempSectionId
      */
     @Get(':tempSectionId')
-    @RequirePermission(PERMISSION_CODES.TEMP_SECTION_GET_BY_ID)
+    @RequirePermission(PERMISSION_CODES.TEMP_SECTION.GET_BY_ID)
     @HttpCode(HttpStatus.OK)
     async getTempSectionById(
         @Param('tempSectionId') tempSectionId: number,
@@ -75,7 +75,7 @@ export class TempSectionController {
      * POST /temp-sections/session/:sessionId
      */
     @Post('session/:sessionId')
-    @RequirePermission(PERMISSION_CODES.TEMP_SECTION_CREATE)
+    @RequirePermission(PERMISSION_CODES.TEMP_SECTION.CREATE)
     @HttpCode(HttpStatus.CREATED)
     async createTempSection(
         @Param('sessionId') sessionId: number,
@@ -91,7 +91,7 @@ export class TempSectionController {
      * PUT /temp-sections/:tempSectionId
      */
     @Put(':tempSectionId')
-    @RequirePermission(PERMISSION_CODES.TEMP_SECTION_UPDATE)
+    @RequirePermission(PERMISSION_CODES.TEMP_SECTION.UPDATE)
     @HttpCode(HttpStatus.OK)
     async updateTempSection(
         @Param('tempSectionId') tempSectionId: number,
@@ -107,7 +107,7 @@ export class TempSectionController {
      * DELETE /temp-sections/:tempSectionId
      */
     @Delete(':tempSectionId')
-    @RequirePermission(PERMISSION_CODES.TEMP_SECTION_DELETE)
+    @RequirePermission(PERMISSION_CODES.TEMP_SECTION.DELETE)
     @HttpCode(HttpStatus.OK)
     async deleteTempSection(
         @Param('tempSectionId') tempSectionId: number,
@@ -122,7 +122,7 @@ export class TempSectionController {
      * PUT /temp-sections/reorder
      */
     @Put('reorder')
-    @RequirePermission(PERMISSION_CODES.TEMP_SECTION_UPDATE)
+    @RequirePermission(PERMISSION_CODES.TEMP_SECTION.UPDATE)
     @HttpCode(HttpStatus.OK)
     async reorderTempSections(
         @Body() dto: ReorderTempSectionsDto,

@@ -8,7 +8,7 @@ import {
 } from '../../../dtos'
 import { ConflictException } from '../../../../shared/exceptions/custom-exceptions'
 import { PasswordService } from '../../../../infrastructure/services'
-import { ACTION_KEYS } from 'src/shared/constants'
+import { ACTION_KEYS, ROLE_IDS } from 'src/shared/constants'
 import { AuditStatus } from 'src/shared/enums'
 
 @Injectable()
@@ -37,6 +37,11 @@ export class RegisterAdminUseCase {
         .map(Number)
         .filter(id => Number.isInteger(id) && id > 1);
 
+      // Tự động thêm BASIC_ADMIN role nếu chưa có
+      if (!roleIds.includes(ROLE_IDS.BASIC_ADMIN)) {
+        roleIds.push(ROLE_IDS.BASIC_ADMIN);
+      }
+
       const existsRoleIds = await repos.roleRepository.findIdsByIds(roleIds);
       if (existsRoleIds.length !== roleIds.length) {
         throw new ConflictException('Một hoặc nhiều vai trò không tồn tại')
@@ -56,7 +61,7 @@ export class RegisterAdminUseCase {
         isEmailVerified: false,
       })
 
-      // Gán vai trò cho user (nếu có)
+      // Gán vai trò cho user (bao gồm BASIC_ADMIN tự động)
       if (roleIds.length > 0) {
         for (const roleId of roleIds) {
           await repos.roleRepository.assignRoleToUser(user.userId, roleId);

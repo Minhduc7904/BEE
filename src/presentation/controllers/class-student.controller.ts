@@ -28,7 +28,7 @@ export class ClassStudentController {
   ) { }
 
   @Get()
-  @RequirePermission(PERMISSION_CODES.CLASS_STUDENT_GET_ALL)
+  @RequirePermission(PERMISSION_CODES.CLASS_STUDENT.GET_ALL)
   @HttpCode(HttpStatus.OK)
   async getAll(
     @Query() query: ClassStudentListQueryDto,
@@ -43,7 +43,7 @@ export class ClassStudentController {
   }
 
   @Get('student/my')
-  @RequirePermission(PERMISSION_CODES.CLASS_STUDENT_GET_MY_CLASSES)
+  @RequirePermission(PERMISSION_CODES.CLASS_STUDENT.GET_MY_CLASSES)
   @HttpCode(HttpStatus.OK)
   async getMyClasses(
     @Query() query: ClassStudentListQueryDto,
@@ -54,7 +54,7 @@ export class ClassStudentController {
   }
 
   @Post()
-  @RequirePermission(PERMISSION_CODES.CLASS_STUDENT_CREATE)
+  @RequirePermission(PERMISSION_CODES.CLASS_STUDENT.CREATE)
   @HttpCode(HttpStatus.CREATED)
   async create(
     @Body() dto: CreateClassStudentDto,
@@ -67,7 +67,7 @@ export class ClassStudentController {
   }
 
   @Delete(':classId/:studentId')
-  @RequirePermission(PERMISSION_CODES.CLASS_STUDENT_DELETE)
+  @RequirePermission(PERMISSION_CODES.CLASS_STUDENT.DELETE)
   @HttpCode(HttpStatus.OK)
   async delete(
     @Param('classId', ParseIntPipe) classId: number,
