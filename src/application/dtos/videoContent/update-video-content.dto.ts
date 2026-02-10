@@ -1,5 +1,5 @@
 // src/application/dtos/videoContent/update-video-content.dto.ts
-import { IsOptionalString } from 'src/shared/decorators/validate'
+import { IsOptionalString, IsOptionalIdNumber } from 'src/shared/decorators/validate'
 
 /**
  * DTO for updating video content
@@ -14,4 +14,12 @@ export class UpdateVideoContentDto {
      */
     @IsOptionalString('Nội dung video')
     content?: string
+
+    /**
+     * Media ID for video file
+     * @optional
+     * @example 123
+     */
+    @IsOptionalIdNumber('ID media')
+    mediaId?: number
 }

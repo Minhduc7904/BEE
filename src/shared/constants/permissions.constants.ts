@@ -1574,6 +1574,13 @@ export const PERMISSIONS = [
         isSystem: true,
     },
     {
+        code: 'lesson-learning-item:update',
+        name: 'Cập nhật tài liệu bài học',
+        description: 'Cập nhật thông tin và thứ tự tài liệu trong bài học',
+        group: 'LESSON_LEARNING_ITEM_MANAGEMENT',
+        isSystem: true,
+    },
+    {
         code: 'lesson-learning-item:delete',
         name: 'Xóa tài liệu khỏi bài học',
         description: 'Xóa tài liệu ra khỏi bài học',

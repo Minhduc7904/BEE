@@ -8,6 +8,7 @@ const LESSON_LEARNING_ITEM_USE_CASES = [
   lessonLearningItemUseCase.GetLessonLearningItemByIdUseCase,
   lessonLearningItemUseCase.CreateLessonLearningItemUseCase,
   lessonLearningItemUseCase.DeleteLessonLearningItemUseCase,
+  lessonLearningItemUseCase.ReorderLessonLearningItemsUseCase,
 ]
 
 @Module({

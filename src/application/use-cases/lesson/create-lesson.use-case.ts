@@ -13,12 +13,23 @@ export class CreateLessonUseCase {
     ) { }
 
     async execute(dto: CreateLessonDto): Promise<BaseResponseDto<LessonResponseDto>> {
+        // Auto-calculate orderInCourse if not provided
+        let orderInCourse = dto.orderInCourse
+
+        if (orderInCourse === undefined || orderInCourse === null) {
+            const existingLessons = await this.lessonRepository.findByCourse(dto.courseId)
+            const maxOrder = existingLessons.reduce((max, lesson) => {
+                return lesson.orderInCourse && lesson.orderInCourse > max ? lesson.orderInCourse : max
+            }, 0)
+            orderInCourse = maxOrder + 1
+        }
+
         const createData = {
             courseId: dto.courseId,
             title: dto.title,
             description: dto.description,
             visibility: dto.visibility,
-            orderInCourse: dto.orderInCourse,
+            orderInCourse,
             teacherId: dto.teacherId,
             allowTrial: dto.allowTrial,
             chapterIds: dto.chapterIds,

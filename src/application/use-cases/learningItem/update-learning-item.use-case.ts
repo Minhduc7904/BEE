@@ -37,7 +37,6 @@ export class UpdateLearningItemUseCase {
             }
 
             const updatedLearningItem = await learningItemRepository.update(id, {
-                type: dto.type,
                 title: dto.title,
                 description: dto.description,
                 competitionId: dto.competitionId,
@@ -51,12 +50,10 @@ export class UpdateLearningItemUseCase {
                     resourceType: RESOURCE_TYPES.LEARNING_ITEM,
                     resourceId: id.toString(),
                     beforeData: {
-                        type: existingLearningItem.type,
                         title: existingLearningItem.title,
                         description: existingLearningItem.description,
                     },
                     afterData: {
-                        type: updatedLearningItem.type,
                         title: updatedLearningItem.title,
                         description: updatedLearningItem.description,
                     },

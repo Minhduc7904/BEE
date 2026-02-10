@@ -90,7 +90,16 @@ export class ExamResponseDto {
   subjectId?: number | null
   subjectName?: string | null
   createdBy: number
-  createdByName?: string | null
+
+  // Creator Information
+  createdByAdmin?: {
+    adminId: number
+    userId: number
+    firstName: string
+    lastName: string
+    fullName: string
+    email?: string
+  } | null
 
   // Media
   solutionYoutubeUrl?: string | null
@@ -129,7 +138,20 @@ export class ExamResponseDto {
     dto.subjectId = exam.subjectId
     dto.subjectName = exam.subject?.name || null
     dto.createdBy = exam.createdBy
-    dto.createdByName = exam.admin?.user?.fullName || null
+
+    // Creator Information
+    if (exam.admin?.user) {
+      dto.createdByAdmin = {
+        adminId: exam.admin.adminId,
+        userId: exam.admin.user.userId,
+        firstName: exam.admin.user.firstName,
+        lastName: exam.admin.user.lastName,
+        fullName: exam.admin.user.getFullName(),
+        email: exam.admin.user.email,
+      }
+    } else {
+      dto.createdByAdmin = null
+    }
 
     // Media
     dto.solutionYoutubeUrl = exam.solutionYoutubeUrl
@@ -148,7 +170,7 @@ export class ExamResponseDto {
     dto.hasSolution = Boolean(exam.solutionYoutubeUrl)
     dto.isPublished = exam.isPublished()
     dto.isDraft = exam.isDraft()
-    dto.questionCount = exam.questions?.length || 0
+    dto.questionCount = exam.questionCount ?? exam.questions?.length ?? 0
     dto.competitionCount = exam.competitions?.length || 0
 
     return dto

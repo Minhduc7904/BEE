@@ -21,6 +21,8 @@ export const ENTITY_TYPES = {
   CHAPTER: 'CHAPTER',
   MEDIA: 'MEDIA',
   AVATAR: 'AVATAR',
+  DOCUMENT_CONTENT: 'DOCUMENT_CONTENT',
+  VIDEO_CONTENT: 'VIDEO_CONTENT',
 } as const
 
 export enum EntityType {
@@ -40,4 +42,6 @@ export enum EntityType {
   CHAPTER = 'CHAPTER',
   MEDIA = 'MEDIA',
   AVATAR = 'AVATAR',
+  DOCUMENT_CONTENT = 'DOCUMENT_CONTENT',
+  VIDEO_CONTENT = 'VIDEO_CONTENT',
 }

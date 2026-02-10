@@ -1,13 +1,17 @@
 // src/infrastructure/mappers/exam/exam.mapper.ts
 import { Exam as PrismaExam } from '@prisma/client'
 import { Exam } from '../../../domain/entities/exam/exam.entity'
-
+import { SubjectMapper } from '../subject/subject.mapper'
+import { AdminMapper } from '../user/admin.mapper'
 export class ExamMapper {
   /**
    * Convert Prisma model to Domain entity
    */
-  static toDomainExam(prisma: PrismaExam | null): Exam | null {
+  static toDomainExam(prisma: any): Exam | null {
     if (!prisma) return null
+
+    // Count questions from _count or from questions array
+    const questionCount = prisma._count?.questions ?? prisma.questions?.length ?? 0
 
     return new Exam({
       examId: prisma.examId,
@@ -20,6 +24,11 @@ export class ExamMapper {
       description: prisma.description,
       subjectId: prisma.subjectId,
       solutionYoutubeUrl: prisma.solutionYoutubeUrl,
+      questionCount: questionCount,
+      subject: prisma.subject ? SubjectMapper.toDomainSubject(prisma.subject) : null,
+      admin: prisma.admin ? AdminMapper.toDomainAdmin(prisma.admin) : undefined,
+      questions: prisma.questions,
+      competitions: prisma.competitions,
     })
   }
 

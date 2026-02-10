@@ -1,7 +1,7 @@
 // src/presentation/controllers/lesson-learning-item.controller.ts
-import { Controller, Get, Post, Delete, Query, Param, Body, HttpCode, HttpStatus, ParseIntPipe } from '@nestjs/common'
+import { Controller, Get, Post, Delete, Put, Query, Param, Body, HttpCode, HttpStatus, ParseIntPipe } from '@nestjs/common'
 import { LessonLearningItemListQueryDto } from '../../application/dtos/lessonLearningItem/lesson-learning-item-list-query.dto'
-import { CreateLessonLearningItemDto } from '../../application/dtos/lessonLearningItem/create-lesson-learning-item.dto'
+import { CreateLessonLearningItemDto, ReorderLessonLearningItemsDto } from '../../application/dtos/lessonLearningItem'
 import { LessonLearningItemListResponseDto, LessonLearningItemResponseDto } from '../../application/dtos/lessonLearningItem/lesson-learning-item.dto'
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
@@ -12,6 +12,7 @@ import {
     GetLessonLearningItemByIdUseCase,
     CreateLessonLearningItemUseCase,
     DeleteLessonLearningItemUseCase,
+    ReorderLessonLearningItemsUseCase,
 } from '../../application/use-cases/lessonLearningItem'
 import { Injectable } from '@nestjs/common'
 
@@ -23,6 +24,7 @@ export class LessonLearningItemController {
         private readonly getLessonLearningItemByIdUseCase: GetLessonLearningItemByIdUseCase,
         private readonly createLessonLearningItemUseCase: CreateLessonLearningItemUseCase,
         private readonly deleteLessonLearningItemUseCase: DeleteLessonLearningItemUseCase,
+        private readonly reorderLessonLearningItemsUseCase: ReorderLessonLearningItemsUseCase,
     ) { }
 
     @Get()
@@ -49,6 +51,21 @@ export class LessonLearningItemController {
         @Body() dto: CreateLessonLearningItemDto
     ): Promise<BaseResponseDto<LessonLearningItemResponseDto>> {
         return ExceptionHandler.execute(() => this.createLessonLearningItemUseCase.execute(dto))
+    }
+
+    /**
+     * Cập nhật lại thứ tự cho nhiều LessonLearningItem
+     * PUT /lesson-learning-items/reorder
+     */
+    @Put('reorder')
+    @RequirePermission(PERMISSION_CODES.LESSON_LEARNING_ITEM.UPDATE)
+    @HttpCode(HttpStatus.OK)
+    async reorderLessonLearningItems(
+        @Body() dto: ReorderLessonLearningItemsDto,
+    ): Promise<BaseResponseDto<boolean>> {
+        return ExceptionHandler.execute(() =>
+            this.reorderLessonLearningItemsUseCase.execute(dto),
+        )
     }
 
     @Delete(':lessonId/:learningItemId')

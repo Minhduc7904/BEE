@@ -1,0 +1,5 @@
+export * from './prisma-document-content.repository'
+export * from './prisma-homework-content.repository'
+export * from './prisma-homework-submit.repository'
+export * from './prisma-video-content.repository'
+export * from './prisma-youtube-content.repository'

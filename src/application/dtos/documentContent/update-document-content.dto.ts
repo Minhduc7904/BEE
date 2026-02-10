@@ -1,5 +1,5 @@
 // src/application/dtos/documentContent/update-document-content.dto.ts
-import { IsOptionalString, IsOptionalInt } from 'src/shared/decorators/validate'
+import { IsOptionalString, IsOptionalInt, IsOptionalIntArray } from 'src/shared/decorators/validate'
 
 /**
  * DTO for updating document content
@@ -22,4 +22,12 @@ export class UpdateDocumentContentDto {
      */
     @IsOptionalInt('Thứ tự trong tài liệu')
     orderInDocument?: number
+
+    /**
+     * Media IDs for document files
+     * @optional
+     * @example [123, 456]
+     */
+    @IsOptionalIntArray('Danh sách ID media')
+    mediaIds?: number[]
 }

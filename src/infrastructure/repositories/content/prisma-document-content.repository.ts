@@ -230,4 +230,16 @@ export class PrismaDocumentContentRepository implements IDocumentContentReposito
             where: { learningItemId: numericId },
         })
     }
+
+    async getMaxOrderByLearningItem(learningItemId: number): Promise<number> {
+        const numericId = NumberUtil.ensureValidId(learningItemId, 'LearningItem ID')
+
+        const result = await this.prisma.documentContent.findFirst({
+            where: { learningItemId: numericId },
+            orderBy: { orderInDocument: 'desc' },
+            select: { orderInDocument: true },
+        })
+
+        return result?.orderInDocument ?? 0
+    }
 }

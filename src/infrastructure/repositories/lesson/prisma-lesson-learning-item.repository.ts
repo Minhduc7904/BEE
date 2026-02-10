@@ -101,6 +101,46 @@ export class PrismaLessonLearningItemRepository implements ILessonLearningItemRe
         return true
     }
 
+    async updateOrder(lessonId: number, learningItemId: number, order: number): Promise<LessonLearningItem> {
+        const numericLessonId = NumberUtil.ensureValidId(lessonId, 'Lesson ID')
+        const numericLearningItemId = NumberUtil.ensureValidId(learningItemId, 'Learning Item ID')
+
+        const prismaLessonLearningItem = await this.prisma.lessonLearningItem.update({
+            where: {
+                lessonId_learningItemId: {
+                    lessonId: numericLessonId,
+                    learningItemId: numericLearningItemId,
+                },
+            },
+            data: {
+                order,
+            },
+            include: {
+                lesson: {
+                    include: {
+                        course: true,
+                        teacher: {
+                            include: {
+                                user: true,
+                            },
+                        },
+                    },
+                },
+                learningItem: {
+                    include: {
+                        admin: {
+                            include: {
+                                user: true,
+                            },
+                        },
+                    },
+                },
+            },
+        })
+
+        return LessonLearningItemMapper.toDomainLessonLearningItem(prismaLessonLearningItem)!
+    }
+
     async findAll(): Promise<LessonLearningItem[]> {
         const prismaLessonLearningItems = await this.prisma.lessonLearningItem.findMany({
             include: {

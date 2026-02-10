@@ -12,6 +12,7 @@ export interface ILessonLearningItemRepository {
     findByCompositeId(lessonId: number, learningItemId: number): Promise<LessonLearningItem | null>
     delete(lessonId: number, learningItemId: number): Promise<boolean>
     findAll(): Promise<LessonLearningItem[]>
+    updateOrder(lessonId: number, learningItemId: number, order: number): Promise<LessonLearningItem>
 
     // Pagination methods
     findAllWithPagination(

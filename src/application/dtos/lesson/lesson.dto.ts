@@ -3,6 +3,8 @@ import { Lesson } from '../../../domain/entities'
 import { PaginationResponseDto } from '../pagination/pagination-response.dto'
 import { Visibility } from '../../../shared/enums'
 import { LearningItemResponseDto } from '../learningItem'
+import { ChapterResponseDto } from '../chapter/chapter.dto'
+
 export class LessonResponseDto {
     lessonId: number
     courseId: number
@@ -18,7 +20,7 @@ export class LessonResponseDto {
     updatedAt: Date
 
     // Relations
-    chapters?: { chapterId: number; chapterName: string }[]
+    chapters?: ChapterResponseDto[]
     learningItems?: { 
         learningItemId: number; 
         learningItemName: string;
@@ -47,10 +49,9 @@ export class LessonResponseDto {
             allowTrial: lesson.allowTrial,
             createdAt: lesson.createdAt,
             updatedAt: lesson.updatedAt,
-            chapters: lesson.lessonChapters?.map(lc => ({
-                chapterId: lc.chapter?.chapterId ?? 0,
-                chapterName: lc.chapter?.name ?? '',
-            })),
+            chapters: lesson.lessonChapters
+                ?.filter(lc => lc.chapter)
+                .map(lc => ChapterResponseDto.fromChapter(lc.chapter!)),
             learningItems: lesson.learningItems?.map(li => ({
                 learningItemId: li.learningItem?.learningItemId ?? 0,
                 learningItemName: li.learningItem?.title ?? '',

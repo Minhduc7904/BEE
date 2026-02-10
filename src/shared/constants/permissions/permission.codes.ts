@@ -275,6 +275,7 @@ export const PERMISSION_CODES = {
     GET_ALL: 'lesson-learning-item:get-all',
     GET_BY_ID: 'lesson-learning-item:get-by-id',
     CREATE: 'lesson-learning-item:create',
+    UPDATE: 'lesson-learning-item:update',
     DELETE: 'lesson-learning-item:delete',
   },
 

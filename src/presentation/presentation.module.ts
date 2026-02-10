@@ -46,6 +46,11 @@ import { QuestionController } from './controllers/question.controller'
 import { StatementController } from './controllers/statement.controller'
 import { ExamController } from './controllers/exam.controller'
 import { SectionController } from './controllers/section.controller'
+import { HomeworkContentController } from './controllers/homework-content.controller'
+import { YoutubeContentController } from './controllers/youtube-content.controller'
+import { VideoContentController } from './controllers/video-content.controller'
+import { DocumentContentController } from './controllers/document-content.controller'
+
 @Module({
   imports: [
     ApplicationModule, // ✅ lấy toàn bộ UseCase đã export
@@ -90,6 +95,10 @@ import { SectionController } from './controllers/section.controller'
     StatementController,
     ExamController,
     SectionController,
+    HomeworkContentController,
+    YoutubeContentController,
+    VideoContentController,
+    DocumentContentController,
   ],
   providers: [
     // WebSocket Gateways

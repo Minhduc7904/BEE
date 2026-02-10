@@ -40,6 +40,10 @@ import {
   PrismaStatementRepository,
   PrismaQuestionExamRepository,
   PrismaQuestionChapterRepository,
+  PrismaDocumentContentRepository,
+  PrismaVideoContentRepository,
+  PrismaYoutubeContentRepository,
+  PrismaHomeworkContentRepository,
 } from './repositories'
 import {
   PasswordService,
@@ -263,6 +267,26 @@ import openaiConfig from '../config/openai.config'
       inject: [PrismaService],
     },
     {
+      provide: 'IDocumentContentRepository',
+      useFactory: (prisma: PrismaService) => new PrismaDocumentContentRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IVideoContentRepository',
+      useFactory: (prisma: PrismaService) => new PrismaVideoContentRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IYoutubeContentRepository',
+      useFactory: (prisma: PrismaService) => new PrismaYoutubeContentRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IHomeworkContentRepository',
+      useFactory: (prisma: PrismaService) => new PrismaHomeworkContentRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
       provide: 'PASSWORD_SERVICE',
       useClass: PasswordService,
     },
@@ -338,6 +362,10 @@ import openaiConfig from '../config/openai.config'
     'IStatementRepository',
     'IQuestionExamRepository',
     'IQuestionChapterRepository',
+    'IDocumentContentRepository',
+    'IVideoContentRepository',
+    'IYoutubeContentRepository',
+    'IHomeworkContentRepository',
     'PASSWORD_SERVICE',
     'JWT_TOKEN_SERVICE',
     'TOKEN_HASH_SERVICE',

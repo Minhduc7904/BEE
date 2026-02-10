@@ -31,4 +31,7 @@ export interface IDocumentContentRepository {
     // Count methods
     count(filters?: DocumentContentFilterOptions): Promise<number>
     countByLearningItem(learningItemId: number): Promise<number>
+
+    // Order methods
+    getMaxOrderByLearningItem(learningItemId: number): Promise<number>
 }

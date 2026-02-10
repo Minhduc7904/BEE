@@ -3,7 +3,7 @@ import { Subject } from '../subject/subject.entity'
 import { QuestionExam } from './question-exam.entity'
 import { Competition } from './competition.entity'
 import { ExamVisibility } from 'src/shared/enums'
-
+import { Admin } from '../user'
 export class Exam {
   // Required properties
   examId: number
@@ -19,9 +19,12 @@ export class Exam {
   subjectId?: number | null
   solutionYoutubeUrl?: string | null
 
+  // Counts
+  questionCount?: number
+
   // Relations (optional - sẽ được populate khi cần)
   subject?: Subject | null
-  admin?: any // AdminEntity
+  admin?: Admin // AdminEntity
   competitions?: Competition[] // Competition[]
   questions?: QuestionExam[] // QuestionExam[]
 
@@ -36,6 +39,7 @@ export class Exam {
     description?: string | null
     subjectId?: number | null
     solutionYoutubeUrl?: string | null
+    questionCount?: number
     subject?: Subject | null
     admin?: any
     competitions?: Competition[]
@@ -51,6 +55,7 @@ export class Exam {
     this.description = data.description
     this.subjectId = data.subjectId
     this.solutionYoutubeUrl = data.solutionYoutubeUrl
+    this.questionCount = data.questionCount
     this.subject = data.subject
     this.admin = data.admin
     this.competitions = data.competitions

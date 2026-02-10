@@ -8,16 +8,9 @@ import { IsOptionalEnumValue, IsOptionalString, IsOptionalIdNumber } from 'src/s
 /**
  * DTO cập nhật mục học tập
  * @description Chứa các trường có thể cập nhật của mục học tập
+ * @note Type không thể thay đổi sau khi tạo
  */
 export class UpdateLearningItemDto {
-    /**
-     * Loại mục học tập
-     * @optional
-     * @example "VIDEO"
-     */
-    @IsOptionalEnumValue(LearningItemType, 'type')
-    type?: LearningItemType
-
     /**
      * Tiêu đề (3-200 ký tự)
      * @optional

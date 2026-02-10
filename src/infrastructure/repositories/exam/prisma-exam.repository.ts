@@ -13,7 +13,7 @@ import { ExamMapper } from '../../mappers/exam/exam.mapper'
 
 @Injectable()
 export class PrismaExamRepository implements IExamRepository {
-  constructor(private readonly prisma: PrismaService | any) {}
+  constructor(private readonly prisma: PrismaService | any) { }
 
   async create(data: CreateExamData, txClient?: any): Promise<Exam> {
     const client = txClient || this.prisma
@@ -44,6 +44,19 @@ export class PrismaExamRepository implements IExamRepository {
 
     const exam = await client.exam.findUnique({
       where: { examId: id },
+      include: {
+        subject: true,
+        admin: {
+          include: {
+            user: true,
+          },
+        },
+        _count: {
+          select: {
+            questions: true,
+          },
+        },
+      },
     })
 
     if (!exam) return null
@@ -132,12 +145,11 @@ export class PrismaExamRepository implements IExamRepository {
               user: true,
             },
           },
-          questions: {
-            orderBy: {
-              order: 'asc',
+          _count: {
+            select: {
+              questions: true,
             },
           },
-          competitions: true,
         },
       }),
       client.exam.count({ where }),

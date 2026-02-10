@@ -1,5 +1,5 @@
 // src/application/dtos/videoContent/create-video-content.dto.ts
-import { IsRequiredIdNumber, IsRequiredString } from 'src/shared/decorators/validate'
+import { IsRequiredIdNumber, IsRequiredString, IsOptionalIdNumber } from 'src/shared/decorators/validate'
 
 /**
  * DTO for creating video content
@@ -22,4 +22,12 @@ export class CreateVideoContentDto {
      */
     @IsRequiredString('Nội dung video')
     content: string
+
+    /**
+     * Media ID for video file
+     * @optional
+     * @example 123
+     */
+    @IsOptionalIdNumber('ID media')
+    mediaId?: number
 }

@@ -1,10 +1,11 @@
 // src/application/dtos/documentContent/create-document-content.dto.ts
-import { IsRequiredIdNumber, IsRequiredString, IsOptionalInt } from 'src/shared/decorators/validate'
+import { IsRequiredIdNumber, IsRequiredString, IsOptionalIntArray } from 'src/shared/decorators/validate'
 
 /**
  * DTO for creating document content
  * 
  * @description Used to create a new document content item for a learning item
+ * @note orderInDocument will be automatically set to max(orderInDocument) + 1
  */
 export class CreateDocumentContentDto {
     /**
@@ -24,10 +25,10 @@ export class CreateDocumentContentDto {
     content: string
 
     /**
-     * Order in document
+     * Media IDs for document files
      * @optional
-     * @example 1
+     * @example [123, 456]
      */
-    @IsOptionalInt('Thứ tự trong tài liệu')
-    orderInDocument?: number
+    @IsOptionalIntArray('Danh sách ID media')
+    mediaIds?: number[]
 }
