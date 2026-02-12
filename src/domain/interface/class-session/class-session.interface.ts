@@ -24,6 +24,7 @@ export interface ClassSessionFilterOptions {
     isToday?: boolean;
     isUpcoming?: boolean;
     search?: string;
+    studentId?: number;
 }
 
 export interface ClassSessionPaginationOptions {

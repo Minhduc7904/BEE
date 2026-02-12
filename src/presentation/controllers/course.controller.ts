@@ -23,6 +23,7 @@ import {
   CourseListResponseDto,
   CourseResponseDto,
 } from '../../application/dtos/course/course.dto'
+import { StudentCourseDetailResponseDto } from '../../application/dtos/course/student-course-detail.dto'
 import {
   CourseSearchQueryDto,
 } from '../../application/dtos/course/course-search-query.dto'
@@ -43,6 +44,7 @@ import {
   GetCourseStudentsAttendanceUseCase,
   ExportCourseStudentsAttendanceUseCase,
   SearchCoursesUseCase,
+  GetStudentCourseDetailUseCase,
 } from '../../application/use-cases/course'
 import { Injectable } from '@nestjs/common'
 
@@ -58,6 +60,7 @@ export class CourseController {
     private readonly getCourseStudentsAttendanceUseCase: GetCourseStudentsAttendanceUseCase,
     private readonly exportCourseStudentsAttendanceUseCase: ExportCourseStudentsAttendanceUseCase,
     private readonly searchCoursesUseCase: SearchCoursesUseCase,
+    private readonly getStudentCourseDetailUseCase: GetStudentCourseDetailUseCase,
   ) { }
 
   @Get()
@@ -97,6 +100,32 @@ export class CourseController {
   ): Promise<CourseListResponseDto> {
     query.teacherId = adminId
     return ExceptionHandler.execute(() => this.getAllCourseUseCase.execute(query))
+  }
+
+  /**
+   * Get course detail for student
+   * GET /courses/student/:id
+   * 
+   * Kiểm tra:
+   * - Course có tồn tại không
+   * - Course có phải DRAFT không (nếu DRAFT thì throw error)
+   * - Student đã enroll chưa (nếu chưa thì throw error)
+   * 
+   * Trả về thông tin:
+   * - Thông tin cơ bản của course
+   * - Thông tin giáo viên (tên, email)
+   * - Thông tin enrollment của student
+   */
+  @Get('student/:id')
+  @RequirePermission()
+  @HttpCode(HttpStatus.OK)
+  async getStudentCourseDetail(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('studentId') studentId: number,
+  ): Promise<BaseResponseDto<StudentCourseDetailResponseDto>> {
+    return ExceptionHandler.execute(() => 
+      this.getStudentCourseDetailUseCase.execute(id, studentId)
+    )
   }
 
   @Get(':id')

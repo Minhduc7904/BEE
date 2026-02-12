@@ -9,6 +9,8 @@ const LESSON_USE_CASES = [
   lessonUseCase.CreateLessonUseCase,
   lessonUseCase.UpdateLessonUseCase,
   lessonUseCase.DeleteLessonUseCase,
+  lessonUseCase.GetStudentCourseLessonsUseCase,
+  lessonUseCase.GetStudentLessonByIdUseCase,
 ]
 
 @Module({
