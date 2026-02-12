@@ -39,7 +39,7 @@ export class LoginRequestDto {
    * @required
    * @minLength 6
    */
-  @IsRequiredString('Mật khẩu', 6)
+  @IsRequiredString('Mật khẩu', 100, 6)
   password: string
 
   // Session metadata

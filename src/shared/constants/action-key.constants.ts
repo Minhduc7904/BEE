@@ -146,6 +146,11 @@ export const ACTION_KEYS = {
     UPDATE: 'UPDATE_EXAM',
     DELETE: 'DELETE_EXAM',
   },
+  COMPETITION: {
+    CREATE: 'CREATE_COMPETITION',
+    UPDATE: 'UPDATE_COMPETITION',
+    DELETE: 'DELETE_COMPETITION',
+  },
 } as const
 
 // Mapping action to reverse action for rollback

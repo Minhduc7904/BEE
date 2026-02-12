@@ -39,6 +39,15 @@ export class CourseEnrollmentResponseDto {
     }
 }
 
+export class StudentCourseEnrollmentResponseDto extends CourseEnrollmentResponseDto {
+    completionPercentage: number;
+
+    constructor(enrollment: CourseEnrollment, completionPercentage: number) {
+        super(enrollment);
+        this.completionPercentage = completionPercentage;
+    }
+}
+
 export class CourseEnrollmentListResponseDto extends PaginationResponseDto<CourseEnrollmentResponseDto> {
     constructor(
         data: CourseEnrollmentResponseDto[],

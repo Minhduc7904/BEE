@@ -48,11 +48,11 @@ export class LoginStudentUseCase {
       }
 
       if (!userWithDetails) {
-        throw new NotFoundException('User không tồn tại')
+        throw new NotFoundException('Mật khẩu hoặc tên đăng nhập/email không đúng')
       }
 
       if (!userWithDetails?.student) {
-        throw new NotFoundException('Student không tồn tại')
+        throw new NotFoundException('Mật khẩu hoặc tên đăng nhập/email không đúng')
       }
 
       if (!userWithDetails.user.isActive) {
@@ -64,7 +64,7 @@ export class LoginStudentUseCase {
       const isPasswordValid = await this.passwordService.comparePassword(loginDto.password, user.passwordHash)
 
       if (!isPasswordValid) {
-        throw new ValidationException('Mật khẩu không đúng')
+        throw new ValidationException('Mật khẩu hoặc tên đăng nhập/email không đúng')
       }
 
       // 3. Single device login: Revoke tất cả refresh tokens cũ của user

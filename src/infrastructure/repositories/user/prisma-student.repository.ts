@@ -14,7 +14,7 @@ import { StudentMapper, PaginationMapper } from '../../mappers'
 import { NumberUtil } from '../../../shared/utils'
 
 export class PrismaStudentRepository implements IStudentRepository {
-  constructor(private readonly prisma: PrismaService | any) {} // any để hỗ trợ transaction client
+  constructor(private readonly prisma: PrismaService | any) { } // any để hỗ trợ transaction client
 
   private parseDate(date?: string): Date | undefined {
     if (!date) return undefined
@@ -66,7 +66,15 @@ export class PrismaStudentRepository implements IStudentRepository {
                 OR: [{ expiresAt: null }, { expiresAt: { gte: new Date() } }],
               },
               include: {
-                role: true,
+                role: {
+                  include: {
+                    rolePermissions: {
+                      include: {
+                        permission: true,
+                      },
+                    },
+                  },
+                },
               },
             },
           },
@@ -93,7 +101,15 @@ export class PrismaStudentRepository implements IStudentRepository {
                 OR: [{ expiresAt: null }, { expiresAt: { gte: new Date() } }],
               },
               include: {
-                role: true,
+                role: {
+                  include: {
+                    rolePermissions: {
+                      include: {
+                        permission: true,
+                      },
+                    },
+                  },
+                },
               },
             },
           },

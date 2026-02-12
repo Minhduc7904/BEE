@@ -25,6 +25,7 @@ import { RequirePermission } from '../../shared/decorators/permissions.decorator
 import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 import {
   GetAllCourseEnrollmentUseCase,
+  GetStudentCourseEnrollmentsUseCase,
   GetCourseEnrollmentByIdUseCase,
   CreateCourseEnrollmentUseCase,
   UpdateCourseEnrollmentUseCase,
@@ -40,6 +41,7 @@ import { CourseEnrollmentStatus, Visibility } from 'src/shared/enums'
 export class CourseEnrollmentController {
   constructor(
     private readonly getAllCourseEnrollmentUseCase: GetAllCourseEnrollmentUseCase,
+    private readonly getStudentCourseEnrollmentsUseCase: GetStudentCourseEnrollmentsUseCase,
     private readonly getCourseEnrollmentByIdUseCase: GetCourseEnrollmentByIdUseCase,
     private readonly createCourseEnrollmentUseCase: CreateCourseEnrollmentUseCase,
     private readonly updateCourseEnrollmentUseCase: UpdateCourseEnrollmentUseCase,
@@ -62,16 +64,15 @@ export class CourseEnrollmentController {
   }
 
   @Get('student/my')
-  @RequirePermission(PERMISSION_CODES.COURSE_ENROLLMENT.GET_MY_ENROLLMENTS)
+  // @RequirePermission(PERMISSION_CODES.COURSE_ENROLLMENT.GET_MY_ENROLLMENTS)
+  @RequirePermission()
   @HttpCode(HttpStatus.OK)
   async getMyEnrollments(
-    @CurrentUser('studentId') studentId: number,
+    @CurrentUser() user: any,
     @Query() query: CourseEnrollmentListQueryDto,
   ): Promise<CourseEnrollmentListResponseDto> {
     return ExceptionHandler.execute(() => {
-      query.studentId = studentId
-      query.courseVisibility = Visibility.PUBLISHED
-      return this.getAllCourseEnrollmentUseCase.execute(query)
+      return this.getStudentCourseEnrollmentsUseCase.execute(user.studentId, query)
     })
   }
 

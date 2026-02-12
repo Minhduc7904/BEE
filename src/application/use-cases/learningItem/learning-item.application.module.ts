@@ -9,6 +9,7 @@ const LEARNING_ITEM_USE_CASES = [
   learningItemUseCase.CreateLearningItemUseCase,
   learningItemUseCase.UpdateLearningItemUseCase,
   learningItemUseCase.DeleteLearningItemUseCase,
+  learningItemUseCase.GetStudentHomeworksUseCase,
 ]
 
 @Module({

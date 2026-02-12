@@ -41,6 +41,7 @@ export interface CourseFilterOptions {
   grade?: number
   subjectId?: number
   visibility?: CourseVisibility
+  excludeVisibility?: CourseVisibility
   teacherId?: number
   academicYear?: string
   search?: string

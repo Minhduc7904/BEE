@@ -159,6 +159,10 @@ export class PrismaCourseRepository implements ICourseRepository {
             where.visibility = filters.visibility
         }
 
+        if (filters?.excludeVisibility) {
+            where.visibility = { not: filters.excludeVisibility }
+        }
+
         if (filters?.teacherId !== undefined) {
             where.teacherId = filters.teacherId
         }

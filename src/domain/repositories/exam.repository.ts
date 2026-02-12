@@ -16,6 +16,7 @@ export interface ExamFilterOptions {
   subjectId?: number
   grade?: number
   visibility?: ExamVisibility
+  excludeVisibility?: ExamVisibility
   createdBy?: number
   search?: string
 }

@@ -1,9 +1,11 @@
 // src/presentation/controllers/learning-item.controller.ts
 import { Controller, Get, Post, Put, Delete, Query, Param, Body, HttpCode, HttpStatus, ParseIntPipe } from '@nestjs/common'
 import { LearningItemListQueryDto } from '../../application/dtos/learningItem/learning-item-list-query.dto'
+import { StudentHomeworkQueryDto } from '../../application/dtos/learningItem/student-homework-query.dto'
 import { CreateLearningItemDto } from '../../application/dtos/learningItem/create-learning-item.dto'
 import { UpdateLearningItemDto } from '../../application/dtos/learningItem/update-learning-item.dto'
 import { LearningItemListResponseDto, LearningItemResponseDto } from '../../application/dtos/learningItem/learning-item.dto'
+import { StudentHomeworkListResponseDto } from '../../application/dtos/learningItem/student-homework.dto'
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
@@ -14,6 +16,7 @@ import {
     CreateLearningItemUseCase,
     UpdateLearningItemUseCase,
     DeleteLearningItemUseCase,
+    GetStudentHomeworksUseCase,
 } from '../../application/use-cases/learningItem'
 import { Injectable } from '@nestjs/common'
 import { CurrentUser } from 'src/shared/decorators'
@@ -27,6 +30,7 @@ export class LearningItemController {
         private readonly createLearningItemUseCase: CreateLearningItemUseCase,
         private readonly updateLearningItemUseCase: UpdateLearningItemUseCase,
         private readonly deleteLearningItemUseCase: DeleteLearningItemUseCase,
+        private readonly getStudentHomeworksUseCase: GetStudentHomeworksUseCase,
     ) { }
 
     @Get()
@@ -45,6 +49,16 @@ export class LearningItemController {
     ): Promise<LearningItemListResponseDto> {
         query.createdBy = adminId
         return ExceptionHandler.execute(() => this.getAllLearningItemUseCase.execute(query))
+    }
+
+    @Get('student/my-homeworks')
+    @RequirePermission()
+    @HttpCode(HttpStatus.OK)
+    async getMyHomeworks(
+        @Query() query: StudentHomeworkQueryDto,
+        @CurrentUser('studentId') studentId: number,
+    ): Promise<StudentHomeworkListResponseDto> {
+        return ExceptionHandler.execute(() => this.getStudentHomeworksUseCase.execute(studentId, query))
     }
 
     @Get(':id')

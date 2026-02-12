@@ -89,3 +89,18 @@ export const TEMP_EXAM_TO_EXAM_FIELD_MAP: Record<string, string> = {
   [TEMP_EXAM_MEDIA_FIELDS.TEMP_SOLUTION_VIDEO]: EXAM_MEDIA_FIELDS.SOLUTION_VIDEO,
   [TEMP_EXAM_MEDIA_FIELDS.TEMP_EXAM_DOCUMENT]: EXAM_MEDIA_FIELDS.EXAM_DOCUMENT,
 }
+
+/**
+ * Media field names for Competition
+ */
+export const COMPETITION_MEDIA_FIELDS = {
+  POLICIES: 'POLICIES',
+} as const
+
+/**
+ * Content processing field names for Competition
+ * Used for identifying fields when processing presigned URLs
+ */
+export const COMPETITION_CONTENT_FIELDS = {
+  POLICIES: 'policies',
+} as const

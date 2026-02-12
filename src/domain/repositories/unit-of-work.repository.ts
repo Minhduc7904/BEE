@@ -32,6 +32,7 @@ import { ITempStatementRepository } from './temp-statement.repository'
 import { ITempQuestionChapterRepository } from './temp-question-chapter.repository'
 import { IMediaUsageRepository } from './media-usage.repository'
 import { IExamRepository } from './exam.repository'
+import { ICompetitionRepository } from './competition.repository'
 import { ISectionRepository } from './section.repository'
 import { IQuestionRepository } from './question.repository'
 import { IStatementRepository } from './statement.repository'
@@ -72,6 +73,7 @@ export interface UnitOfWorkRepos {
   tempQuestionChapterRepository: ITempQuestionChapterRepository
   mediaUsageRepository: IMediaUsageRepository
   examRepository: IExamRepository
+  competitionRepository: ICompetitionRepository
   sectionRepository: ISectionRepository
   questionRepository: IQuestionRepository
   statementRepository: IStatementRepository

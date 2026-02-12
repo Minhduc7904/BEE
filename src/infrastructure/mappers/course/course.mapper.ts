@@ -3,6 +3,7 @@
 import { Course } from '../../../domain/entities/course/course.entity'
 import { Subject } from '../../../domain/entities/subject/subject.entity'
 import { AdminMapper } from '../user/admin.mapper'
+import { LessonMapper } from '../lesson/lesson.mapper'
 
 /**
  * Mapper class để convert từ Prisma Course model
@@ -44,6 +45,10 @@ export class CourseMapper {
             teacher: prismaCourse.teacher
                 ? AdminMapper.toDomainAdmin(prismaCourse.teacher)
                 : null,
+
+            lessons: prismaCourse.lessons
+                ? LessonMapper.toDomainLessons(prismaCourse.lessons)
+                : undefined,
         })
     }
 

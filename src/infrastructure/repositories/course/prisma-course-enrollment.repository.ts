@@ -178,6 +178,15 @@ export class PrismaCourseEnrollmentRepository implements ICourseEnrollmentReposi
             }
         }
 
+        if (filters?.excludeVisibilities && filters.excludeVisibilities.length > 0) {
+            where.course = {
+                ...where.course,
+                visibility: {
+                    notIn: filters.excludeVisibilities,
+                },
+            }
+        }
+
         const orderBy: any = {}
         orderBy[sortBy] = sortOrder
 
@@ -188,7 +197,21 @@ export class PrismaCourseEnrollmentRepository implements ICourseEnrollmentReposi
                 take: limit,
                 orderBy,
                 include: {
-                    course: true,
+                    course: {
+                        include: {
+                            subject: true,
+                            teacher: {
+                                include: {
+                                    user: true,
+                                },
+                            },
+                            lessons: {
+                                include: {
+                                    learningItems: true,
+                                },
+                            },
+                        },
+                    },
                     student: {
                         include: { user: true },
                     },

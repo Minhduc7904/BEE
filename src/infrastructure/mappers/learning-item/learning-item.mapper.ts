@@ -5,6 +5,7 @@ import { HomeworkContentMapper } from './homework-content.mapper'
 import { DocumentContentMapper } from './document-content.mapper'
 import { YoutubeContentMapper } from './youtube-content.mapper'
 import { VideoContentMapper } from './video-content.mapper'
+import { StudentLearningItemMapper } from './student-learning-item.mapper'
 
 /**
  * Mapper class để convert từ Prisma LearningItem model
@@ -56,7 +57,9 @@ export class LearningItemMapper {
                 : undefined,
 
             studentLearningItems: prismaLearningItem.studentLearningItems
-                ? prismaLearningItem.studentLearningItems
+                ? StudentLearningItemMapper.toDomainStudentLearningItems(
+                    prismaLearningItem.studentLearningItems,
+                )
                 : undefined,
         })
     }

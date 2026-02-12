@@ -124,6 +124,10 @@ export class PrismaExamRepository implements IExamRepository {
       where.visibility = filters.visibility
     }
 
+    if (filters?.excludeVisibility) {
+      where.visibility = { not: filters.excludeVisibility }
+    }
+
     if (filters?.createdBy !== undefined) {
       where.createdBy = filters.createdBy
     }

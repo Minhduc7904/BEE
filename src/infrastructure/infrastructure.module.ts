@@ -21,6 +21,7 @@ import {
   PrismaCourseClassRepository,
   PrismaLessonRepository,
   PrismaLearningItemRepository,
+  PrismaStudentLearningItemRepository,
   PrismaLessonLearningItemRepository,
   PrismaClassSessionRepository,
   PrismaClassStudentRepository,
@@ -35,6 +36,7 @@ import {
   PrismaTempQuestionChapterRepository,
   PrismaExamImportSessionRepository,
   PrismaExamRepository,
+  PrismaCompetitionRepository,
   PrismaSectionRepository,
   PrismaQuestionRepository,
   PrismaStatementRepository,
@@ -167,6 +169,11 @@ import openaiConfig from '../config/openai.config'
       inject: [PrismaService],
     },
     {
+      provide: 'IStudentLearningItemRepository',
+      useFactory: (prisma: PrismaService) => new PrismaStudentLearningItemRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
       provide: 'ILessonLearningItemRepository',
       useFactory: (prisma: PrismaService) => new PrismaLessonLearningItemRepository(prisma),
       inject: [PrismaService],
@@ -234,6 +241,11 @@ import openaiConfig from '../config/openai.config'
     {
       provide: 'IExamRepository',
       useFactory: (prisma: PrismaService) => new PrismaExamRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'ICompetitionRepository',
+      useFactory: (prisma: PrismaService) => new PrismaCompetitionRepository(prisma),
       inject: [PrismaService],
     },
     {
@@ -347,11 +359,13 @@ import openaiConfig from '../config/openai.config'
     'ICourseClassRepository',
     'ILessonRepository',
     'ILearningItemRepository',
+    'IStudentLearningItemRepository',
     'ILessonLearningItemRepository',
     'IClassSessionRepository',
     'ITuitionPaymentRepository',
     'ITempExamRepository',
     'ITempSectionRepository',
+    'ICompetitionRepository',
     'ITempQuestionRepository',
     'ITempStatementRepository',
     'ITempQuestionChapterRepository',

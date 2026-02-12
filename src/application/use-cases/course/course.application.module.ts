@@ -11,6 +11,7 @@ const COURSE_USE_CASES = [
   courseUseCase.DeleteCourseUseCase,
   courseUseCase.GetCourseStudentsAttendanceUseCase,
   courseUseCase.ExportCourseStudentsAttendanceUseCase,
+  courseUseCase.SearchCoursesUseCase,
 ]
 
 @Module({

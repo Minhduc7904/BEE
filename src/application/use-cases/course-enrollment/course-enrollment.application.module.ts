@@ -5,6 +5,7 @@ import { InfrastructureModule } from 'src/infrastructure/infrastructure.module'
 
 const COURSE_ENROLLMENT_USE_CASES = [
   courseEnrollmentUseCase.GetAllCourseEnrollmentUseCase,
+  courseEnrollmentUseCase.GetStudentCourseEnrollmentsUseCase,
   courseEnrollmentUseCase.GetCourseEnrollmentByIdUseCase,
   courseEnrollmentUseCase.CreateCourseEnrollmentUseCase,
   courseEnrollmentUseCase.UpdateCourseEnrollmentUseCase,

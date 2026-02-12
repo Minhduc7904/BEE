@@ -22,6 +22,7 @@ import { MediaUsageApplicationModule } from './use-cases/media-usage/media-usage
 import { PermissionApplicationModule } from './use-cases/permission/permission.application.module'
 import { PasswordRecoveryApplicationModule } from './use-cases/reset-password/password-recovery.application.module'
 import { AdminProfileApplicationModule } from './use-cases/profile/admin-profile.application.module'
+import { StudentProfileApplicationModule } from './use-cases/profile/student-profile.application.module'
 import { RoleApplicationModule } from './use-cases/role/role.application.module'
 import { StudentApplicationModule } from './use-cases/student/student.application.module'
 import { SubjectApplicationModule } from './use-cases/subject/subject.application.module'
@@ -36,6 +37,7 @@ import { TempStatementApplicationModule } from './use-cases/temp-statement/temp-
 import { QuestionApplicationModule } from './use-cases/question/question.application.module'
 import { StatementApplicationModule } from './use-cases/statement/statement.application.module'
 import { ExamApplicationModule } from './use-cases/exam/exam.application.module'
+import { CompetitionApplicationModule } from './use-cases/competition/competition.application.module'
 import { SectionApplicationModule } from './use-cases/section/section.application.module'
 import { HomeworkContentApplicationModule } from './use-cases/homeworkContent/homework-content.application.module'
 import { YoutubeContentApplicationModule } from './use-cases/youtubeContent/youtube-content.application.module'
@@ -52,6 +54,7 @@ const modules = [
   UserApplicationModule,
   StudentApplicationModule,
   AdminProfileApplicationModule,
+  StudentProfileApplicationModule,
   AdminApplicationModule,
 
   // Role & Permission
@@ -93,6 +96,7 @@ const modules = [
   QuestionApplicationModule,
   StatementApplicationModule,
   ExamApplicationModule,
+  CompetitionApplicationModule,
   SectionApplicationModule,
 
   HomeworkContentApplicationModule,

@@ -22,6 +22,7 @@ import { MediaController } from './controllers/media.controller'
 import { MediaUsageController } from './controllers/media-usage.controller'
 import { MediaFolderController } from './controllers/media-folder.controller'
 import { ProfileAdminController } from './controllers/profile.admin.controller'
+import { ProfileStudentController } from './controllers/profile.student.controller'
 import { PermissionController } from './controllers/permission.controller'
 import { AdminController } from './controllers/admin.controller'
 import { CourseController } from './controllers/course.controller'
@@ -45,6 +46,7 @@ import { TempStatementController } from './controllers/temp-statement.controller
 import { QuestionController } from './controllers/question.controller'
 import { StatementController } from './controllers/statement.controller'
 import { ExamController } from './controllers/exam.controller'
+import { CompetitionController } from './controllers/competition.controller'
 import { SectionController } from './controllers/section.controller'
 import { HomeworkContentController } from './controllers/homework-content.controller'
 import { YoutubeContentController } from './controllers/youtube-content.controller'
@@ -71,6 +73,7 @@ import { DocumentContentController } from './controllers/document-content.contro
     MediaUsageController,
     MediaFolderController,
     ProfileAdminController,
+    ProfileStudentController,
     PermissionController,
     AdminController,
     CourseController,
@@ -94,6 +97,7 @@ import { DocumentContentController } from './controllers/document-content.contro
     QuestionController,
     StatementController,
     ExamController,
+    CompetitionController,
     SectionController,
     HomeworkContentController,
     YoutubeContentController,

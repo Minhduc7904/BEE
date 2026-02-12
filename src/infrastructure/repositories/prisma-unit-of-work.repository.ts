@@ -75,6 +75,7 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _tempQuestionChapterRepository: any
     let _mediaUsageRepository: any
     let _examRepository: any
+    let _competitionRepository: any
     let _sectionRepository: any
     let _questionRepository: any
     let _statementRepository: any
@@ -218,6 +219,11 @@ export class PrismaUnitOfWork implements IUnitOfWork {
 
     Object.defineProperty(repos, 'examRepository', {
       get: () => (_examRepository ??= new Repositories.PrismaExamRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'competitionRepository', {
+      get: () => (_competitionRepository ??= new Repositories.PrismaCompetitionRepository(client)),
       enumerable: true,
     })
 

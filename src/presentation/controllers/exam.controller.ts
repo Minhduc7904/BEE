@@ -33,9 +33,11 @@ import {
   CreateExamUseCase,
   UpdateExamUseCase,
   DeleteExamUseCase,
+  SearchExamsUseCase,
 } from '../../application/use-cases/exam'
 import { GetQuestionsByExamUseCase } from '../../application/use-cases/question'
 import { GetSectionsByExamUseCase } from '../../application/use-cases/section'
+import { ExamVisibility } from 'src/shared/enums'
 
 @Injectable()
 @Controller('exams')
@@ -46,9 +48,10 @@ export class ExamController {
     private readonly createExamUseCase: CreateExamUseCase,
     private readonly updateExamUseCase: UpdateExamUseCase,
     private readonly deleteExamUseCase: DeleteExamUseCase,
+    private readonly searchExamsUseCase: SearchExamsUseCase,
     private readonly getQuestionsByExamUseCase: GetQuestionsByExamUseCase,
     private readonly getSectionsByExamUseCase: GetSectionsByExamUseCase,
-  ) {}
+  ) { }
 
   /**
    * Get my exams (created by current user)
@@ -71,6 +74,37 @@ export class ExamController {
     // Automatically filter by current user's adminId
     query.createdBy = adminId
     return ExceptionHandler.execute(() => this.getAllExamsUseCase.execute(query))
+  }
+
+  /**
+   * Search exams
+   *
+   * @route GET /exams/search
+   * @param query - Query parameters (search, page, limit, subjectId, grade, visibility, etc.)
+   * @returns Paginated list of exams matching search criteria
+   *
+   * @example
+   * GET /exams/search?search=toán&page=1&limit=10&grade=10
+   */
+  @Get('search')
+  @RequirePermission(PERMISSION_CODES.EXAM.SEARCH)
+  @HttpCode(HttpStatus.OK)
+  async searchExams(
+    @Query() query: ExamListQueryDto,
+    @CurrentUser() user?: any,
+  ): Promise<ExamListResponseDto> {
+    // All permission logic is handled in the UseCase
+    const context = {
+      user: {
+        adminId: user?.adminId,
+        studentId: user?.studentId,
+        permissions: user?.permissions ?? [],
+      },
+    }
+    
+    return ExceptionHandler.execute(() =>
+      this.searchExamsUseCase.execute(query, context),
+    )
   }
 
   /**

@@ -18,6 +18,7 @@ export interface CourseEnrollmentFilterOptions {
   enrolledAtFrom?: Date;
   enrolledAtTo?: Date;
   courseVisibility?: string;
+  excludeVisibilities?: string[];
 }
 
 export interface CourseEnrollmentPaginationOptions {

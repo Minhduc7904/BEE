@@ -9,6 +9,7 @@ const COURSE_CLASS_USE_CASES = [
   courseClassUseCase.CreateCourseClassUseCase,
   courseClassUseCase.UpdateCourseClassUseCase,
   courseClassUseCase.DeleteCourseClassUseCase,
+  courseClassUseCase.SearchCourseClassesUseCase,
 ]
 
 @Module({

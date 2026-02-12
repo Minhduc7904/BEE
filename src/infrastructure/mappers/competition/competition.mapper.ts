@@ -1,6 +1,6 @@
 // src/infrastructure/mappers/competition.mapper.ts
 import { Competition } from '../../../domain/entities'
-// import { ExamMapper } from './exam.mapper'
+import { ExamMapper } from '../exam/exam.mapper'
 import { AdminMapper } from '../user/admin.mapper'
 import { HomeworkContentMapper } from '../learning-item/homework-content.mapper'
 
@@ -12,8 +12,8 @@ export class CompetitionMapper {
     /**
      * Convert Prisma Competition model sang Domain Competition entity
      */
-    static toDomainCompetition(prismaCompetition: any): Competition | undefined {
-        if (!prismaCompetition) return undefined
+    static toDomainCompetition(prismaCompetition: any): Competition | null {
+        if (!prismaCompetition) return null
 
         return new Competition({
             competitionId: prismaCompetition.competitionId,
@@ -38,9 +38,9 @@ export class CompetitionMapper {
             updatedAt: prismaCompetition.updatedAt,
 
             // Relations
-            // exam: prismaCompetition.exam
-            //     ? ExamMapper.toDomainExam(prismaCompetition.exam)
-            //     : undefined,
+            exam: prismaCompetition.exam
+                ? ExamMapper.toDomainExam(prismaCompetition.exam)
+                : undefined,
 
             admin: prismaCompetition.admin
                 ? AdminMapper.toDomainAdmin(prismaCompetition.admin)

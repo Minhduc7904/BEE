@@ -31,6 +31,7 @@ export const RESOURCE_TYPES = {
   STATEMENT: 'STATEMENT',
   SECTION: 'SECTION',
   EXAM: 'EXAM',
+  COMPETITION: 'COMPETITION',
 } as const
 
 export const RESOURCE_TYPE_TABLE = {
@@ -213,6 +214,12 @@ export const RESOURCE_TYPE_TABLE = {
     tableName: 'exams',
     primaryKey: 'examId',
     repositoryName: 'examRepository',
+  },
+  [RESOURCE_TYPES.COMPETITION]: {
+    displayName: 'Competition',
+    tableName: 'competitions',
+    primaryKey: 'competitionId',
+    repositoryName: 'competitionRepository',
   },
 } as const
 

@@ -727,12 +727,12 @@ model Competition {
   visibility    Visibility @default(DRAFT) @map("visibility")
 
   durationMinutes    Int?    @map("duration_minutes") // Thời lượng làm bài
-  maxAttempts        Int? // số lần được làm, null = không giới hạn
-  showResultDetail   Boolean @default(false) // có xem chi tiết bài làm của người dùng không
-  allowLeaderboard   Boolean @default(false) // có hiển thị bảng xếp hạng không
-  allowViewScore     Boolean @default(true) // có được xem điểm của mình không
-  allowViewAnswer    Boolean @default(false) // thi xong có được xem đáp án không
-  enableAntiCheating Boolean @default(false) // bật tính năng chống gian lận (như chụp hình, chuyển tab)
+  maxAttempts        Int?    @map("max_attempts") // số lần được làm, null = không giới hạn
+  showResultDetail   Boolean @default(false) @map("show_result_detail") // có xem chi tiết bài làm của người dùng không
+  allowLeaderboard   Boolean @default(false) @map("allow_leaderboard") // có hiển thị bảng xếp hạng không
+  allowViewScore     Boolean @default(true) @map("allow_view_score") // có được xem điểm của mình không
+  allowViewAnswer    Boolean @default(false) @map("allow_view_answer") // thi xong có được xem đáp án không
+  enableAntiCheating Boolean @default(false) @map("enable_anti_cheating") // bật tính năng chống gian lận (như chụp hình, chuyển tab)
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)

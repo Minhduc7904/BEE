@@ -31,6 +31,7 @@ import {
     CreateCourseClassUseCase,
     UpdateCourseClassUseCase,
     DeleteCourseClassUseCase,
+    SearchCourseClassesUseCase,
 } from '../../application/use-cases/course-class'
 import { Injectable } from '@nestjs/common'
 import { NormalizeArrayQueryPipe } from 'src/shared/pipes/normalize-array-query.pipe'
@@ -44,6 +45,7 @@ export class CourseClassController {
         private readonly createCourseClassUseCase: CreateCourseClassUseCase,
         private readonly updateCourseClassUseCase: UpdateCourseClassUseCase,
         private readonly deleteCourseClassUseCase: DeleteCourseClassUseCase,
+        private readonly searchCourseClassesUseCase: SearchCourseClassesUseCase,
     ) { }
 
     @Get()
@@ -62,9 +64,19 @@ export class CourseClassController {
     @HttpCode(HttpStatus.OK)
     async searchCourseClasses(
         @Query() query: CourseClassSearchQueryDto,
+        @CurrentUser() user?: any,
     ): Promise<CourseClassListResponseDto> {
+        // All permission logic is handled in the UseCase
+        const context = {
+            user: {
+                adminId: user?.adminId,
+                studentId: user?.studentId,
+                permissions: user?.permissions ?? [],
+            },
+        }
+        
         return ExceptionHandler.execute(() =>
-            this.getAllCourseClassUseCase.execute(query)
+            this.searchCourseClassesUseCase.execute(query, context)
         )
     }
 

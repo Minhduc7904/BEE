@@ -12,6 +12,7 @@ const EXAM_USE_CASES = [
   examUseCase.CreateExamUseCase,
   examUseCase.UpdateExamUseCase,
   examUseCase.DeleteExamUseCase,
+  examUseCase.SearchExamsUseCase,
   AttachMediaFromContentUseCase,
   ProcessContentWithPresignedUrlsUseCase,
 ]

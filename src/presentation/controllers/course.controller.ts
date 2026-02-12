@@ -42,6 +42,7 @@ import {
   DeleteCourseUseCase,
   GetCourseStudentsAttendanceUseCase,
   ExportCourseStudentsAttendanceUseCase,
+  SearchCoursesUseCase,
 } from '../../application/use-cases/course'
 import { Injectable } from '@nestjs/common'
 
@@ -56,6 +57,7 @@ export class CourseController {
     private readonly deleteCourseUseCase: DeleteCourseUseCase,
     private readonly getCourseStudentsAttendanceUseCase: GetCourseStudentsAttendanceUseCase,
     private readonly exportCourseStudentsAttendanceUseCase: ExportCourseStudentsAttendanceUseCase,
+    private readonly searchCoursesUseCase: SearchCoursesUseCase,
   ) { }
 
   @Get()
@@ -68,8 +70,22 @@ export class CourseController {
   @Get('search')
   @RequirePermission(PERMISSION_CODES.COURSE.SEARCH)
   @HttpCode(HttpStatus.OK)
-  async searchCourses(@Query() query: CourseSearchQueryDto): Promise<CourseListResponseDto> {
-    return ExceptionHandler.execute(() => this.getAllCourseUseCase.execute(query))
+  async searchCourses(
+    @Query() query: CourseSearchQueryDto,
+    @CurrentUser() user?: any,
+  ): Promise<CourseListResponseDto> {
+    // All permission logic is handled in the UseCase
+    const context = {
+      user: {
+        adminId: user?.adminId,
+        studentId: user?.studentId,
+        permissions: user?.permissions ?? [],
+      },
+    }
+    
+    return ExceptionHandler.execute(() =>
+      this.searchCoursesUseCase.execute(query, context),
+    )
   }
 
   @Get('admin/my')

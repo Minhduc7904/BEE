@@ -16,6 +16,7 @@ export * from './subject.repository';
 export * from './chapter.repository';
 export * from './lesson.repository';
 export * from './learning-item.repository';
+export * from './student-learning-item.repository';
 export * from './lesson-learning-item.repository';
 export * from './document-content.repository';
 export * from './homework-content.repository';
@@ -40,3 +41,4 @@ export * from './question-chapter.repository';
 export * from './statement.repository';
 export * from './section.repository';
 export * from './exam.repository'
+export * from './competition.repository'
