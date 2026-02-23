@@ -12,6 +12,7 @@ import { LearningItemType } from '../../shared/enums'
 export interface ILearningItemRepository {
     create(data: CreateLearningItemData): Promise<LearningItem>
     findById(id: number): Promise<LearningItem | null>
+    findByIdWithContents(id: number): Promise<LearningItem | null>
     update(id: number, data: UpdateLearningItemData): Promise<LearningItem>
     delete(id: number): Promise<boolean>
     findAll(): Promise<LearningItem[]>

@@ -37,8 +37,8 @@ export class CreateCompetitionUseCase {
                 subtitle: dto.subtitle,
                 examId: dto.examId,
                 policies: this.attachMediaFromContentUseCase.getNormalizedContent(normalizedResults, COMPETITION_MEDIA_FIELDS.POLICIES),
-                startDate: dto.startDate,
-                endDate: dto.endDate,
+                startDate: dto.startDate ?? null,
+                endDate: dto.endDate ?? null,
                 durationMinutes: dto.durationMinutes,
                 maxAttempts: dto.maxAttempts,
                 visibility: dto.visibility || Visibility.DRAFT,
@@ -47,6 +47,8 @@ export class CreateCompetitionUseCase {
                 allowViewScore: dto.allowViewScore ?? true,
                 allowViewAnswer: dto.allowViewAnswer ?? false,
                 enableAntiCheating: dto.enableAntiCheating ?? false,
+                allowViewSolutionYoutubeUrl: dto.allowViewSolutionYoutubeUrl ?? false,
+                allowViewExamContent: dto.allowViewExamContent ?? false,
                 adminId: adminId!,
             }
 

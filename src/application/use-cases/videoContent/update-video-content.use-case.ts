@@ -56,7 +56,9 @@ export class UpdateVideoContentUseCase {
                 }
             }
 
-            const videoContent = await videoContentRepository.update(id, dto)
+            // Exclude mediaId from repository update (handled via mediaUsageRepository)
+            const { mediaId, ...updateData } = dto
+            const videoContent = await videoContentRepository.update(id, updateData)
 
             if (adminId) {
                 await adminAuditLogRepository.create({

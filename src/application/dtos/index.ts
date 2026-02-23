@@ -52,3 +52,9 @@ export * from './pagination/list-query.dto'
 export * from './pagination/pagination-response.dto'
 
 export * from './tuition-payment'
+
+// Competition DTOs
+export * from './competition'
+
+// Competition Submit DTOs
+export * from './competition-submit'

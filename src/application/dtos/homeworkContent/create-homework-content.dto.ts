@@ -47,4 +47,31 @@ export class CreateHomeworkContentDto {
      */
     @IsOptionalBoolean('Cho phép nộp muộn')
     allowLateSubmit?: boolean
+
+    /**
+     * Update points on late submit
+     * @optional
+     * @default false
+     * @example true
+     */
+    @IsOptionalBoolean('Cập nhật điểm khi nộp muộn')
+    updatePointsOnLateSubmit?: boolean
+
+    /**
+     * Update points on re-submit
+     * @optional
+     * @default false
+     * @example true
+     */
+    @IsOptionalBoolean('Cập nhật điểm khi nộp lại')
+    updatePointsOnReSubmit?: boolean
+
+    /**
+     * Update only if new score is higher (max points)
+     * @optional
+     * @default false
+     * @example true
+     */
+    @IsOptionalBoolean('Chỉ cập nhật điểm cao hơn')
+    updateMaxPoints?: boolean
 }

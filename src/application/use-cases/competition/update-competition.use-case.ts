@@ -60,6 +60,8 @@ export class UpdateCompetitionUseCase {
                 ...(dto.allowViewScore !== undefined && { allowViewScore: dto.allowViewScore }),
                 ...(dto.allowViewAnswer !== undefined && { allowViewAnswer: dto.allowViewAnswer }),
                 ...(dto.enableAntiCheating !== undefined && { enableAntiCheating: dto.enableAntiCheating }),
+                ...(dto.allowViewSolutionYoutubeUrl !== undefined && { allowViewSolutionYoutubeUrl: dto.allowViewSolutionYoutubeUrl }),
+                ...(dto.allowViewExamContent !== undefined && { allowViewExamContent: dto.allowViewExamContent }),
             }
 
             // Handle policies with media normalization

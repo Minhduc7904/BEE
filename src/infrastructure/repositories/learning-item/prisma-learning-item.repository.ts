@@ -55,6 +55,36 @@ export class PrismaLearningItemRepository implements ILearningItemRepository {
         return LearningItemMapper.toDomainLearningItem(prismaLearningItem)!
     }
 
+    async findByIdWithContents(id: number): Promise<LearningItem | null> {
+        const numericId = NumberUtil.ensureValidId(id, 'LearningItem ID')
+
+        const prismaLearningItem = await this.prisma.learningItem.findUnique({
+            where: { learningItemId: numericId },
+            include: {
+                admin: {
+                    include: {
+                        user: true,
+                    },
+                },
+                homeworkContents: {
+                    include: {
+                        competition: {
+                            include: {
+                                exam: true,
+                            },
+                        },
+                    },
+                },
+                documentContents: true,
+                youtubeContents: true,
+                videoContents: true,
+            },
+        })
+
+        if (!prismaLearningItem) return null
+        return LearningItemMapper.toDomainLearningItem(prismaLearningItem)!
+    }
+
     async update(id: number, data: UpdateLearningItemData): Promise<LearningItem> {
         const numericId = NumberUtil.ensureValidId(id, 'LearningItem ID')
 

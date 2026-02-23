@@ -6,10 +6,12 @@ import { InfrastructureModule } from 'src/infrastructure/infrastructure.module'
 const LEARNING_ITEM_USE_CASES = [
   learningItemUseCase.GetAllLearningItemUseCase,
   learningItemUseCase.GetLearningItemByIdUseCase,
+  learningItemUseCase.GetStudentLearningItemByIdUseCase,
   learningItemUseCase.CreateLearningItemUseCase,
   learningItemUseCase.UpdateLearningItemUseCase,
   learningItemUseCase.DeleteLearningItemUseCase,
   learningItemUseCase.GetStudentHomeworksUseCase,
+  learningItemUseCase.StreamStudentVideoUseCase,
 ]
 
 @Module({
