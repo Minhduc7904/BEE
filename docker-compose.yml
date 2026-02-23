@@ -17,7 +17,7 @@ services:
       # đổi 3307 nếu máy đã có MySQL; bind localhost để không lộ ra internet
       - "127.0.0.1:3307:3306"
     volumes:
-      - db_data:/var/lib/mysql
+      - ./volumes/mysql_data:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-proot", "-u070904"]
       interval: 5s
@@ -37,13 +37,9 @@ services:
       - "127.0.0.1:9000:9000"  # API port
       - "127.0.0.1:9001:9001"  # Console/Web UI port
     volumes:
-      - minio_data:/data
+      - ./volumes/minio_data:/data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 10s
       timeout: 5s
       retries: 5
-
-volumes:
-  db_data:
-  minio_data:

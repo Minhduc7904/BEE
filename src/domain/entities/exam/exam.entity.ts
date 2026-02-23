@@ -2,7 +2,7 @@
 import { Subject } from '../subject/subject.entity'
 import { QuestionExam } from './question-exam.entity'
 import { Competition } from './competition.entity'
-import { ExamVisibility } from 'src/shared/enums'
+import { ExamVisibility, TypeOfExam } from 'src/shared/enums'
 import { Admin } from '../user'
 export class Exam {
   // Required properties
@@ -18,6 +18,7 @@ export class Exam {
   description?: string | null
   subjectId?: number | null
   solutionYoutubeUrl?: string | null
+  typeOfExam?: TypeOfExam | null
 
   // Counts
   questionCount?: number
@@ -39,6 +40,7 @@ export class Exam {
     description?: string | null
     subjectId?: number | null
     solutionYoutubeUrl?: string | null
+    typeOfExam?: TypeOfExam | null
     questionCount?: number
     subject?: Subject | null
     admin?: any
@@ -55,6 +57,7 @@ export class Exam {
     this.description = data.description
     this.subjectId = data.subjectId
     this.solutionYoutubeUrl = data.solutionYoutubeUrl
+    this.typeOfExam = data.typeOfExam
     this.questionCount = data.questionCount
     this.subject = data.subject
     this.admin = data.admin
