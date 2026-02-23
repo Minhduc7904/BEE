@@ -23,6 +23,12 @@ export interface IClassSessionRepository {
         filters?: ClassSessionFilterOptions,
     ): Promise<ClassSessionListResult>
 
+    findStudentClassSessionsWithPagination(
+        studentId: number,
+        pagination: ClassSessionPaginationOptions,
+        filters?: ClassSessionFilterOptions,
+    ): Promise<ClassSessionListResult>
+
     // Query methods (DOMAIN-LEVEL)
     findByClass(classId: number): Promise<ClassSession[]>
     // findByDateRange(startDate: Date, endDate: Date): Promise<ClassSession[]>

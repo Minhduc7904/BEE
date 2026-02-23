@@ -14,6 +14,7 @@ import {
     UseInterceptors,
 } from '@nestjs/common'
 import { ClassSessionListQueryDto } from '../../application/dtos/class-session/class-session-list-query.dto'
+import { StudentClassSessionQueryDto } from '../../application/dtos/class-session/student-class-session-query.dto'
 import { CreateClassSessionDto } from '../../application/dtos/class-session/create-class-session.dto'
 import { UpdateClassSessionDto } from '../../application/dtos/class-session/update-class-session.dto'
 import {
@@ -32,6 +33,7 @@ import {
     CreateClassSessionUseCase,
     UpdateClassSessionUseCase,
     DeleteClassSessionUseCase,
+    GetStudentClassSessionsUseCase,
 } from '../../application/use-cases/class-session'
 import { Injectable } from '@nestjs/common'
 
@@ -44,6 +46,7 @@ export class ClassSessionController {
         private readonly createClassSessionUseCase: CreateClassSessionUseCase,
         private readonly updateClassSessionUseCase: UpdateClassSessionUseCase,
         private readonly deleteClassSessionUseCase: DeleteClassSessionUseCase,
+        private readonly getStudentClassSessionsUseCase: GetStudentClassSessionsUseCase,
     ) { }
 
     /**
@@ -81,6 +84,33 @@ export class ClassSessionController {
     ): Promise<ClassSessionListResponseDto> {
         return ExceptionHandler.execute(() =>
             this.getAllClassSessionUseCase.execute(query)
+        )
+    }
+
+    /**
+     * Get all class sessions for current student
+     * GET /class-sessions/student/my-sessions
+     * Query params:
+     * - page: số trang (default: 1)
+     * - limit: số lượng mỗi trang (default: 10, max: 100)
+     * - classId: lọc theo ID lớp học
+     * - sessionDateFrom: lọc theo ngày bắt đầu (ISO 8601)
+     * - sessionDateTo: lọc theo ngày kết thúc (ISO 8601)
+     * - isPast: lọc các buổi học đã diễn ra
+     * - isToday: lọc các buổi học diễn ra trong ngày hôm nay
+     * - isUpcoming: lọc các buổi học sắp diễn ra
+     * - sortBy: trường sắp xếp (default: sessionDate)
+     * - sortOrder: asc hoặc desc (default: desc)
+     */
+    @Get('student/my-sessions')
+    @RequirePermission()
+    @HttpCode(HttpStatus.OK)
+    async getMyClassSessions(
+        @Query() query: StudentClassSessionQueryDto,
+        @CurrentUser('studentId') studentId: number,
+    ): Promise<ClassSessionListResponseDto> {
+        return ExceptionHandler.execute(() =>
+            this.getStudentClassSessionsUseCase.execute(studentId, query)
         )
     }
 

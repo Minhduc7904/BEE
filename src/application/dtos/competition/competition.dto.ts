@@ -35,8 +35,8 @@ export class CompetitionResponseDto {
 
     // Settings
     policies?: string | null
-    startDate: Date
-    endDate: Date
+    startDate?: Date | null
+    endDate?: Date | null
     durationMinutes?: number | null
     maxAttempts?: number | null
     visibility: Visibility
@@ -47,12 +47,15 @@ export class CompetitionResponseDto {
     allowViewScore: boolean
     allowViewAnswer: boolean
     enableAntiCheating: boolean
+    allowViewSolutionYoutubeUrl: boolean
+    allowViewExamContent: boolean
 
     // Metadata
     createdAt: Date
     updatedAt: Date
 
     // Computed
+    hasTimeLimit: boolean
     hasSubtitle: boolean
     hasPolicies: boolean
     hasExam: boolean
@@ -115,20 +118,33 @@ export class CompetitionResponseDto {
         dto.allowViewScore = entity.allowViewScore
         dto.allowViewAnswer = entity.allowViewAnswer
         dto.enableAntiCheating = entity.enableAntiCheating
+        dto.allowViewSolutionYoutubeUrl = entity.allowViewSolutionYoutubeUrl
+        dto.allowViewExamContent = entity.allowViewExamContent
 
         // Metadata
         dto.createdAt = entity.createdAt
         dto.updatedAt = entity.updatedAt
 
         // Computed
+        const hasTimeLimit = entity.startDate !== null && entity.startDate !== undefined && 
+                             entity.endDate !== null && entity.endDate !== undefined
+        dto.hasTimeLimit = hasTimeLimit
         dto.hasSubtitle = Boolean(entity.subtitle && entity.subtitle.trim().length > 0)
         dto.hasPolicies = Boolean(entity.policies && entity.policies.trim().length > 0)
         dto.hasExam = entity.examId !== null && entity.examId !== undefined
         dto.isPublished = entity.visibility === Visibility.PUBLISHED
         dto.isDraft = entity.visibility === Visibility.DRAFT
-        dto.isOngoing = now >= entity.startDate && now <= entity.endDate
-        dto.isUpcoming = now < entity.startDate
-        dto.isEnded = now > entity.endDate
+        
+        // Xử lý trường hợp không có giới hạn thời gian
+        if (hasTimeLimit) {
+            dto.isOngoing = now >= entity.startDate! && now <= entity.endDate!
+            dto.isUpcoming = now < entity.startDate!
+            dto.isEnded = now > entity.endDate!
+        } else {
+            dto.isOngoing = true  // Không giới hạn thời gian = luôn đang diễn ra
+            dto.isUpcoming = false
+            dto.isEnded = false
+        }
 
         return dto
     }

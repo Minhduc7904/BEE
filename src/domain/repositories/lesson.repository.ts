@@ -27,6 +27,7 @@ export interface ILessonRepository {
     // Filter methods
     findByFilters(filters: LessonFilterOptions, pagination?: LessonPaginationOptions): Promise<LessonListResult>
     findByCourse(courseId: number): Promise<Lesson[]>
+    findByCourseForStudent(courseId: number): Promise<Lesson[]>
     findByTeacher(teacherId: number): Promise<Lesson[]>
 
     // Count methods

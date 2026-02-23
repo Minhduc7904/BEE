@@ -253,6 +253,37 @@ export class MinioService implements OnModuleInit {
     }
   }
 
+  /**
+   * Get partial file stream with range support (for video streaming)
+   * Supports HTTP Range Requests (e.g., "bytes=0-1023")
+   * 
+   * @param bucketName - Source bucket
+   * @param objectKey - Object path
+   * @param offset - Start byte position (0-based)
+   * @param length - Number of bytes to read (optional, reads to end if not specified)
+   * @returns Readable stream of the requested range
+   */
+  async getPartialStream(
+    bucketName: string, 
+    objectKey: string, 
+    offset: number = 0, 
+    length?: number
+  ): Promise<Readable> {
+    try {
+      // MinIO client supports range requests via getPartialObject
+      const stream = await this.minioClient.getPartialObject(
+        bucketName,
+        objectKey,
+        offset,
+        length
+      )
+      this.logger.log(`✅ Partial stream created: ${bucketName}/${objectKey} (offset: ${offset}, length: ${length || 'to-end'})`)
+      return stream
+    } catch (error) {
+      throw this.normalizeMinioError(error, objectKey)
+    }
+  }
+
   // ==================== PRESIGNED URL OPERATIONS ====================
 
   /**

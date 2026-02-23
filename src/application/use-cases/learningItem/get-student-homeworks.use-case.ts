@@ -6,6 +6,7 @@ import { StudentHomeworkQueryDto, HomeworkStatus } from '../../dtos/learningItem
 import {
     StudentHomeworkResponseDto,
     StudentHomeworkListResponseDto,
+    HomeworkContentWithStatusDto,
 } from '../../dtos/learningItem/student-homework.dto'
 import { LearningItemType } from 'src/shared/enums'
 import { PrismaService } from 'src/prisma/prisma.service'
@@ -61,7 +62,11 @@ export class GetStudentHomeworksUseCase {
                 take: limit,
                 orderBy: { [sortBy]: sortOrder },
                 include: {
-                    homeworkContents: true,
+                    homeworkContents: {
+                        include: {
+                            competition: true,
+                        },
+                    },
                     studentLearningItems: {
                         where: { studentId },
                     },
@@ -96,18 +101,24 @@ export class GetStudentHomeworksUseCase {
 
         // Map to response DTOs
         let homeworkDtos = learningItems.map((item) => {
-            const homeworkContent = item.homeworkContents?.[0]
             const studentLearningItem = item.studentLearningItems?.[0]
             const lesson = item.lessons?.[0]?.lesson
-            const homeworkSubmit = homeworkSubmits.find(
-                (hs) => hs.homeworkContentId === homeworkContent?.homeworkContentId,
-            )
+
+            // Map tất cả homeworkContents với status của từng content
+            const homeworkContentsWithStatus = item.homeworkContents.map((hwContent) => {
+                const homeworkSubmit = homeworkSubmits.find(
+                    (hs) => hs.homeworkContentId === hwContent.homeworkContentId,
+                )
+                return new HomeworkContentWithStatusDto({
+                    homeworkContent: hwContent,
+                    homeworkSubmit,
+                })
+            })
 
             return new StudentHomeworkResponseDto({
                 learningItem: item as any,
-                homeworkContent,
+                homeworkContents: homeworkContentsWithStatus,
                 studentLearningItem,
-                homeworkSubmit,
                 lesson,
             })
         })
@@ -121,7 +132,8 @@ export class GetStudentHomeworksUseCase {
                     case HomeworkStatus.COMPLETED:
                         return hw.isLearned
                     case HomeworkStatus.OVERDUE:
-                        return hw.isOverdue
+                        // Check if any homeworkContent is overdue
+                        return hw.homeworkContents.some((hc) => hc.isOverdue)
                     default:
                         return true
                 }

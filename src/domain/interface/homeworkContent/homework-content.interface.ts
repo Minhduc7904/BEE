@@ -7,6 +7,9 @@ export interface CreateHomeworkContentData {
   dueDate?: Date
   competitionId?: number
   allowLateSubmit?: boolean
+  updatePointsOnLateSubmit?: boolean
+  updatePointsOnReSubmit?: boolean
+  updateMaxPoints?: boolean
 }
 
 export interface UpdateHomeworkContentData {
@@ -14,6 +17,9 @@ export interface UpdateHomeworkContentData {
   dueDate?: Date
   competitionId?: number
   allowLateSubmit?: boolean
+  updatePointsOnLateSubmit?: boolean
+  updatePointsOnReSubmit?: boolean
+  updateMaxPoints?: boolean
 }
 
 export interface HomeworkContentFilterOptions {

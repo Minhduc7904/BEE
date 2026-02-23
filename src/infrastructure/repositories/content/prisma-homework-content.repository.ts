@@ -23,6 +23,9 @@ export class PrismaHomeworkContentRepository implements IHomeworkContentReposito
                 dueDate: data.dueDate,
                 competitionId: data.competitionId,
                 allowLateSubmit: data.allowLateSubmit ?? false,
+                updatePointsOnLateSubmit: data.updatePointsOnLateSubmit ?? false,
+                updatePointsOnReSubmit: data.updatePointsOnReSubmit ?? false,
+                updateMaxPoints: data.updateMaxPoints ?? false,
             },
             include: {
                 learningItem: {

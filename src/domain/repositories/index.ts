@@ -42,3 +42,5 @@ export * from './statement.repository';
 export * from './section.repository';
 export * from './exam.repository'
 export * from './competition.repository'
+export * from './competition-submit.repository'
+export * from './competition-answer.repository'

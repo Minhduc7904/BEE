@@ -47,6 +47,7 @@ import { QuestionController } from './controllers/question.controller'
 import { StatementController } from './controllers/statement.controller'
 import { ExamController } from './controllers/exam.controller'
 import { CompetitionController } from './controllers/competition.controller'
+import { DoCompetitionController } from './controllers/do-competition.controller'
 import { SectionController } from './controllers/section.controller'
 import { HomeworkContentController } from './controllers/homework-content.controller'
 import { YoutubeContentController } from './controllers/youtube-content.controller'
@@ -98,6 +99,7 @@ import { DocumentContentController } from './controllers/document-content.contro
     StatementController,
     ExamController,
     CompetitionController,
+    DoCompetitionController,
     SectionController,
     HomeworkContentController,
     YoutubeContentController,

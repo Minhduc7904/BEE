@@ -4,10 +4,10 @@ import { Visibility } from 'src/shared/enums'
 
 export interface CreateCompetitionData {
     title: string
-    startDate: Date
-    endDate: Date
     adminId: number
     visibility: Visibility
+    startDate?: Date | null
+    endDate?: Date | null
     subtitle?: string | null
     examId?: number | null
     policies?: string | null
@@ -18,6 +18,8 @@ export interface CreateCompetitionData {
     allowViewScore?: boolean
     allowViewAnswer?: boolean
     enableAntiCheating?: boolean
+    allowViewSolutionYoutubeUrl?: boolean
+    allowViewExamContent?: boolean
 }
 
 export interface CompetitionFilterOptions {

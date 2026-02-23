@@ -107,4 +107,18 @@ export class UpdateCompetitionDto {
      */
     @IsOptionalBoolean('Bật chống gian lận')
     enableAntiCheating?: boolean
+
+    /**
+     * Có cho phép xem video giải chi tiết trên YouTube không
+     * @example false
+     */
+    @IsOptionalBoolean('Cho phép xem video giải YouTube')
+    allowViewSolutionYoutubeUrl?: boolean
+
+    /**
+     * Có cho phép xem nội dung đề thi trước khi thi không
+     * @example false
+     */
+    @IsOptionalBoolean('Cho phép xem nội dung đề thi')
+    allowViewExamContent?: boolean
 }

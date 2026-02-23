@@ -36,8 +36,8 @@ export class CompetitionResponseDto {
   subtitle?: string | null
   examId?: number | null
   policies?: string | null
-  startDate: Date
-  endDate: Date
+  startDate?: Date | null
+  endDate?: Date | null
   durationMinutes?: number | null
   maxAttempts?: number | null
   visibility: string
@@ -46,6 +46,8 @@ export class CompetitionResponseDto {
   allowViewScore: boolean
   allowViewAnswer: boolean
   enableAntiCheating: boolean
+  allowViewSolutionYoutubeUrl?: boolean
+  allowViewExamContent?: boolean
   createdBy: number
   createdAt: Date
   updatedAt: Date
@@ -57,8 +59,8 @@ export class CompetitionResponseDto {
     dto.subtitle = competition.subtitle
     dto.examId = competition.examId
     dto.policies = competition.policies
-    dto.startDate = competition.startDate
-    dto.endDate = competition.endDate
+    dto.startDate = competition.startDate ?? null
+    dto.endDate = competition.endDate ?? null
     dto.durationMinutes = competition.durationMinutes
     dto.maxAttempts = competition.maxAttempts
     dto.visibility = competition.visibility
@@ -67,6 +69,8 @@ export class CompetitionResponseDto {
     dto.allowViewScore = competition.allowViewScore
     dto.allowViewAnswer = competition.allowViewAnswer
     dto.enableAntiCheating = competition.enableAntiCheating
+    dto.allowViewSolutionYoutubeUrl = competition.allowViewSolutionYoutubeUrl
+    dto.allowViewExamContent = competition.allowViewExamContent
     dto.createdBy = competition.createdBy
     dto.createdAt = competition.createdAt
     dto.updatedAt = competition.updatedAt
