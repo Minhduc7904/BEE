@@ -1,6 +1,6 @@
 // src/domain/repositories/exam.repository.ts
 import { Exam } from '../entities/exam/exam.entity'
-import { ExamVisibility } from 'src/shared/enums'
+import { ExamVisibility, TypeOfExam } from 'src/shared/enums'
 
 export interface CreateExamData {
   title: string
@@ -10,6 +10,7 @@ export interface CreateExamData {
   description?: string | null
   subjectId?: number | null
   solutionYoutubeUrl?: string | null
+  typeOfExam?: TypeOfExam | null
 }
 
 export interface ExamFilterOptions {

@@ -2,7 +2,7 @@
 import { Exam } from '../../../domain/entities/exam/exam.entity'
 import { QuestionExam } from '../../../domain/entities/exam/question-exam.entity'
 import { Competition } from '../../../domain/entities/exam/competition.entity'
-import { ExamVisibility } from '../../../shared/enums'
+import { ExamVisibility, TypeOfExam } from '../../../shared/enums'
 import { Subject } from '../../../domain/entities/subject/subject.entity'
 import { PaginationResponseDto, PaginationMetaDto } from '../pagination/pagination-response.dto'
 
@@ -108,6 +108,9 @@ export class ExamResponseDto {
   // Media
   solutionYoutubeUrl?: string | null
 
+  // Type of exam
+  typeOfExam?: TypeOfExam | null
+
   // Relations
   subject?: Subject | null
   questions?: QuestionExamResponseDto[]
@@ -159,6 +162,9 @@ export class ExamResponseDto {
 
     // Media
     dto.solutionYoutubeUrl = exam.solutionYoutubeUrl
+
+    // Type of exam
+    dto.typeOfExam = exam.typeOfExam
 
     // Relations
     dto.subject = exam.subject || null

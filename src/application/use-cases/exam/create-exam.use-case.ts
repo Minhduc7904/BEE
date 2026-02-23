@@ -40,6 +40,7 @@ export class CreateExamUseCase {
         description: this.attachMediaFromContentUseCase.getNormalizedContent(normalizedResults, EXAM_MEDIA_FIELDS.DESCRIPTION),
         subjectId: dto.subjectId,
         solutionYoutubeUrl: dto.solutionYoutubeUrl,
+        typeOfExam: dto.typeOfExam,
       }
 
       const exam = await examRepository.create(createData)

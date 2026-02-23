@@ -24,6 +24,7 @@ export class ExamMapper {
       description: prisma.description,
       subjectId: prisma.subjectId,
       solutionYoutubeUrl: prisma.solutionYoutubeUrl,
+      typeOfExam: prisma.typeOfExam as any,
       questionCount: questionCount,
       subject: prisma.subject ? SubjectMapper.toDomainSubject(prisma.subject) : null,
       admin: prisma.admin ? AdminMapper.toDomainAdmin(prisma.admin) : undefined,

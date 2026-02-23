@@ -25,6 +25,7 @@ export class PrismaExamRepository implements IExamRepository {
         grade: data.grade,
         visibility: data.visibility,
         solutionYoutubeUrl: data.solutionYoutubeUrl,
+        typeOfExam: data.typeOfExam,
         admin: {
           connect: { adminId: data.adminId },
         },
@@ -75,6 +76,7 @@ export class PrismaExamRepository implements IExamRepository {
         ...(data.grade && { grade: data.grade }),
         ...(data.visibility && { visibility: data.visibility }),
         ...(data.solutionYoutubeUrl !== undefined && { solutionYoutubeUrl: data.solutionYoutubeUrl }),
+        ...(data.typeOfExam !== undefined && { typeOfExam: data.typeOfExam }),
       },
     })
 

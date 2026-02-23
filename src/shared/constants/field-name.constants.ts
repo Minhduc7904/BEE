@@ -9,6 +9,7 @@ export const FIELD_NAMES = {
   // Document & Video
   DOCUMENT_FILE: 'DOCUMENT_FILE',
   VIDEO_FILE: 'VIDEO_FILE',
+  
 } as const
 
 export type FieldName = typeof FIELD_NAMES[keyof typeof FIELD_NAMES]

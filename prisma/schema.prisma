@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -440,6 +441,19 @@ model Chapter {
   @@map("chapters")
 }
 
+enum TypeOfExam {
+  CK1
+  TSA
+  THPT
+  OTTHPT
+  OT
+  CK2
+  GK1
+  GK2
+  HSA
+  OTHS
+}
+
 model Exam {
   examId             Int            @id @default(autoincrement()) @map("exam_id") @db.Int
   title              String         @map("title") @db.VarChar(255)
@@ -451,6 +465,7 @@ model Exam {
   solutionYoutubeUrl String?        @map("solution_youtube_url") @db.VarChar(500)
   createdAt          DateTime       @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt          DateTime       @updatedAt @map("updated_at") @db.Timestamp(0)
+  typeOfExam         TypeOfExam?    @map("type_of_exam") // ví dụ: "15 phút", "1 tiết", "học kỳ", "tuyển sinh"
 
   // Relations
   subject      Subject?       @relation("ExamSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)

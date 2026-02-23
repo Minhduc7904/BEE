@@ -285,6 +285,13 @@ export const PERMISSIONS = [
         isSystem: true,
     },
     {
+        code: 'student:search',
+        name: 'Tìm kiếm học viên',
+        description: 'Tìm kiếm học viên trong hệ thống',
+        group: 'STUDENT_MANAGEMENT',
+        isSystem: true,
+    },
+    {
         code: 'student:create',
         name: 'Tạo học viên',
         description: 'Tạo học viên mới',
@@ -437,6 +444,13 @@ export const PERMISSIONS = [
         code: 'admin:get-by-id',
         name: 'Xem chi tiết admin',
         description: 'Xem chi tiết thông tin admin',
+        group: 'ADMIN_MANAGEMENT',
+        isSystem: true,
+    },
+    {
+        code: 'admin:search',
+        name: 'Tìm kiếm admin',
+        description: 'Tìm kiếm admin trong hệ thống',
         group: 'ADMIN_MANAGEMENT',
         isSystem: true,
     },

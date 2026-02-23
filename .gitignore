@@ -17,6 +17,8 @@ build/
 
 # Generated files
 /generated/prisma
+/generated/prisma-old
+/backup
 
 # IDE files
 .vscode/
@@ -96,3 +98,5 @@ jspm_packages/
 
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
+# Docker volumes
+volumes/

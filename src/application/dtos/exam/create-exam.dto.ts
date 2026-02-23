@@ -1,6 +1,6 @@
 // src/application/dtos/exam/create-exam.dto.ts
-import { IsRequiredString, IsRequiredInt, IsRequiredEnumValue, IsOptionalString, IsOptionalIdNumber, IsOptionalIntArray } from '../../../shared/decorators/validate'
-import { ExamVisibility } from '../../../shared/enums'
+import { IsRequiredString, IsRequiredInt, IsRequiredEnumValue, IsOptionalString, IsOptionalIdNumber, IsOptionalIntArray, IsOptionalEnumValue } from '../../../shared/decorators/validate'
+import { ExamVisibility, TypeOfExam } from '../../../shared/enums'
 
 export class CreateExamDto {
   /**
@@ -44,6 +44,13 @@ export class CreateExamDto {
    */
   @IsOptionalString('URL video hướng dẫn', 500, 0)
   solutionYoutubeUrl?: string
+
+  /**
+   * Loại đề thi
+   * @example "CK1"
+   */
+  @IsOptionalEnumValue(TypeOfExam, 'Loại đề thi')
+  typeOfExam?: TypeOfExam
 
   /**
    * Danh sách ID câu hỏi
