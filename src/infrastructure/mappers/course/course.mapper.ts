@@ -18,6 +18,7 @@ export class CourseMapper {
 
         return new Course({
             courseId: prismaCourse.courseId,
+            code: prismaCourse.code,
             title: prismaCourse.title,
             priceVND: prismaCourse.priceVND,
             visibility: prismaCourse.visibility,

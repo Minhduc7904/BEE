@@ -17,11 +17,11 @@ async function main() {
     await seedPermissions(prisma)
     await seedRolePermissions(prisma)
 
-    const users = await seedUsers(prisma)
-    await seedUserRoles(prisma, users)
-
     await seedSubjects(prisma)
     await seedChapters(prisma)
+
+    const users = await seedUsers(prisma)
+    await seedUserRoles(prisma, users)
 
     console.log('🎉 Seed completed successfully')
 }

@@ -18,9 +18,47 @@ import { NumberUtil } from '../../../shared/utils'
 export class PrismaCourseRepository implements ICourseRepository {
     constructor(private readonly prisma: PrismaService | any) { }
 
+    /**
+     * Generate random 6-character code for course
+     */
+    private generateCourseCode(): string {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+        let code = ''
+        for (let i = 0; i < 6; i++) {
+            code += chars.charAt(Math.floor(Math.random() * chars.length))
+        }
+        return code
+    }
+
+    /**
+     * Ensure unique course code by checking and regenerating if exists
+     */
+    private async ensureUniqueCourseCode(): Promise<string> {
+        let code = this.generateCourseCode()
+        let attempts = 0
+        const maxAttempts = 10
+
+        while (attempts < maxAttempts) {
+            const existing = await this.prisma.course.findUnique({
+                where: { code },
+            })
+
+            if (!existing) return code
+
+            code = this.generateCourseCode()
+            attempts++
+        }
+
+        // Fallback: add timestamp if still not unique
+        return code + Date.now().toString().slice(-2)
+    }
+
     async create(data: CreateCourseData): Promise<Course> {
+        const code = await this.ensureUniqueCourseCode()
+
         const prismaCourse = await this.prisma.course.create({
             data: {
+                code,
                 title: data.title,
                 subtitle: data.subtitle,
                 academicYear: data.academicYear,
