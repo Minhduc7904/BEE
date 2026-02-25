@@ -401,8 +401,13 @@ export class MinioService implements OnModuleInit {
       // Replace the internal endpoint with public URL
       // Example: http://minio:9000/bucket/file?params → https://beeedu.vn/minio/bucket/file?params
       const publicUrlObj = new URL(this.publicUrl)
+      
+      // Set protocol, hostname, and port separately to ensure port is properly removed
       urlObj.protocol = publicUrlObj.protocol
-      urlObj.host = publicUrlObj.host
+      urlObj.hostname = publicUrlObj.hostname
+      urlObj.port = publicUrlObj.port  // Empty for standard ports (80/443)
+      
+      // Prepend the public URL's path to the existing path
       urlObj.pathname = publicUrlObj.pathname.replace(/\/$/, '') + urlObj.pathname
       
       const replacedUrl = urlObj.toString()
