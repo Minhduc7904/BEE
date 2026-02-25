@@ -6,7 +6,7 @@ import {
     QuestionType,
     Visibility,
 } from '@prisma/client';
-import { TypeOfExam } from '../../generated/prisma';
+import { TypeOfExam } from '@prisma/client';
 import { EntityType } from '../../src/shared/constants/entity-type.constants';
 import {
     STATEMENT_MEDIA_FIELDS,
