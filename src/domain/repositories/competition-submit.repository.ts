@@ -119,4 +119,11 @@ export interface ICompetitionSubmitRepository {
         limit?: number,
         txClient?: any,
     ): Promise<CompetitionSubmit[]>
+    
+    getPaginatedLeaderboard(
+        competitionId: number,
+        page: number,
+        limit: number,
+        txClient?: any,
+    ): Promise<{ submits: CompetitionSubmit[], total: number }>
 }

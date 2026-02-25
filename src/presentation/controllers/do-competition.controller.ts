@@ -18,13 +18,19 @@ import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
 import { CurrentUser } from '../../shared/decorators/current-user.decorator'
 import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
-import { 
+import {
     GetCompetitionRemainingTimeUseCase,
     StartCompetitionAttemptUseCase,
+    GetCompetitionExamUseCase,
+    GetCompetitionAnswersUseCase,
+    SubmitCompetitionAnswerUseCase,
+    FinishCompetitionSubmitUseCase,
 } from '../../application/use-cases/competition-submit'
-import { 
+import {
     SubmitCompetitionAnswerDto,
     UpdateCompetitionAnswerDto,
+    CompetitionExamResponseDto,
+    CompetitionAnswersResponseDto,
 } from '../../application/dtos/competition-submit'
 
 /**
@@ -38,12 +44,11 @@ export class DoCompetitionController {
     constructor(
         private readonly getCompetitionRemainingTimeUseCase: GetCompetitionRemainingTimeUseCase,
         private readonly startCompetitionAttemptUseCase: StartCompetitionAttemptUseCase,
-        // TODO: Inject more use cases here
-        // private readonly getCurrentAttemptUseCase: GetCurrentAttemptUseCase,
-        // private readonly submitAnswerUseCase: SubmitAnswerUseCase,
-        // private readonly submitCompetitionUseCase: SubmitCompetitionUseCase,
-        // private readonly getAttemptHistoryUseCase: GetAttemptHistoryUseCase,
-    ) {}
+        private readonly getCompetitionExamUseCase: GetCompetitionExamUseCase,
+        private readonly getCompetitionAnswersUseCase: GetCompetitionAnswersUseCase,
+        private readonly submitCompetitionAnswerUseCase: SubmitCompetitionAnswerUseCase,
+        private readonly finishCompetitionSubmitUseCase: FinishCompetitionSubmitUseCase,
+    ) { }
 
     /**
      * Start a new competition attempt
@@ -84,6 +89,66 @@ export class DoCompetitionController {
     ): Promise<BaseResponseDto<any>> {
         return ExceptionHandler.execute(() =>
             this.startCompetitionAttemptUseCase.execute(competitionId, studentId),
+        )
+    }
+
+    /**
+     * Get competition exam content
+     * Lấy nội dung đề thi của cuộc thi (không hiển thị đáp án)
+     *
+     * @route GET /do-competition/:competitionId/exam
+     * @param competitionId - Competition ID
+     * @returns Exam with sections, questions, statements (without answers)
+     *
+     * Business Logic:
+     * 1. Check if competition exists and has exam
+     * 2. Check if competition allows viewing exam content (allowViewExamContent)
+     * 3. Return exam with full structure but without answers
+     *
+     * Response Structure:
+     * - Exam: title, description, grade, typeOfExam
+     * - Sections: full information with order
+     * - Questions: content, type, order (NO correctAnswer, NO solution)
+     * - Statements: content, order (NO isCorrect)
+     *
+     * @example
+     * GET /do-competition/1/exam
+     * Response: {
+     *   success: true,
+     *   message: "Lấy đề thi thành công",
+     *   data: {
+     *     examId: 1,
+     *     title: "Đề thi Toán học",
+     *     sections: [
+     *       {
+     *         sectionId: 1,
+     *         title: "Phần 1: Trắc nghiệm",
+     *         order: 1,
+     *         questions: [
+     *           {
+     *             questionId: 1,
+     *             content: "Câu hỏi 1...",
+     *             type: "SINGLE_CHOICE",
+     *             order: 1,
+     *             statements: [
+     *               { statementId: 1, content: "Đáp án A", order: 1 },
+     *               { statementId: 2, content: "Đáp án B", order: 2 }
+     *             ]
+     *           }
+     *         ]
+     *       }
+     *     ]
+     *   }
+     * }
+     */
+    @Get(':competitionId/exam')
+    @RequirePermission()
+    @HttpCode(HttpStatus.OK)
+    async getCompetitionExam(
+        @Param('competitionId', ParseIntPipe) competitionId: number,
+    ): Promise<CompetitionExamResponseDto> {
+        return ExceptionHandler.execute(() =>
+            this.getCompetitionExamUseCase.execute(competitionId),
         )
     }
 
@@ -196,19 +261,18 @@ export class DoCompetitionController {
      *   "timeSpentSeconds": 25
      * }
      */
-    @Post('submit/:submitId/answer')
+    @Post('submit/:submitId/answer/:answerId')
     @RequirePermission()
-    @HttpCode(HttpStatus.CREATED)
+    @HttpCode(HttpStatus.OK)
     async submitAnswer(
         @Param('submitId', ParseIntPipe) submitId: number,
+        @Param('answerId', ParseIntPipe) answerId: number,
         @Body() body: SubmitCompetitionAnswerDto,
         @CurrentUser('studentId') studentId: number,
     ): Promise<BaseResponseDto<any>> {
-        // TODO: Implement with use case
-        // return ExceptionHandler.execute(() =>
-        //     this.submitAnswerUseCase.execute(submitId, body, studentId),
-        // )
-        throw new Error('Not implemented yet')
+        return ExceptionHandler.execute(() =>
+            this.submitCompetitionAnswerUseCase.execute(submitId, answerId, body, studentId),
+        )
     }
 
     /**
@@ -239,12 +303,11 @@ export class DoCompetitionController {
     async submitCompetition(
         @Param('submitId', ParseIntPipe) submitId: number,
         @CurrentUser('studentId') studentId: number,
+        @Body() body?: { homeworkContentId?: number },
     ): Promise<BaseResponseDto<any>> {
-        // TODO: Implement with use case
-        // return ExceptionHandler.execute(() =>
-        //     this.submitCompetitionUseCase.execute(submitId, studentId),
-        // )
-        throw new Error('Not implemented yet')
+        return ExceptionHandler.execute(() =>
+            this.finishCompetitionSubmitUseCase.execute(submitId, studentId, body?.homeworkContentId),
+        )
     }
 
     /**
@@ -315,12 +378,10 @@ export class DoCompetitionController {
     async getAnswers(
         @Param('submitId', ParseIntPipe) submitId: number,
         @CurrentUser('studentId') studentId: number,
-    ): Promise<BaseResponseDto<any[]>> {
-        // TODO: Implement with use case
-        // return ExceptionHandler.execute(() =>
-        //     this.getAnswersUseCase.execute(submitId, studentId),
-        // )
-        throw new Error('Not implemented yet')
+    ): Promise<CompetitionAnswersResponseDto> {
+        return ExceptionHandler.execute(() =>
+            this.getCompetitionAnswersUseCase.execute(submitId, studentId),
+        )
     }
 
     /**

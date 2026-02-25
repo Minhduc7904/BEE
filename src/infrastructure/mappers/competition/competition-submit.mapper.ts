@@ -46,7 +46,7 @@ export class CompetitionSubmitMapper {
 
             competitionAnswers: prismaSubmit.competitionAnswers
                 ? prismaSubmit.competitionAnswers.map(
-                    CompetitionAnswerMapper.toDomainCompetitionAnswer,
+                    (a: any) => CompetitionAnswerMapper.toDomainCompetitionAnswer(a),
                 ).filter(Boolean)
                 : undefined,
         })

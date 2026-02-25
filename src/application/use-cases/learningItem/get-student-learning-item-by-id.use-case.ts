@@ -1,9 +1,15 @@
 // src/application/use-cases/learningItem/get-student-learning-item-by-id.use-case.ts
 import { Inject, Injectable } from '@nestjs/common'
-import type { ILearningItemRepository, IMediaUsageRepository } from '../../../domain/repositories'
+import type {
+    ILearningItemRepository,
+    IMediaUsageRepository,
+    IHomeworkSubmitRepository,
+    ICompetitionSubmitRepository,
+    IExamRepository,
+} from '../../../domain/repositories'
 import type { IStudentLearningItemRepository } from '../../../domain/repositories/student-learning-item.repository'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
-import { StudentLearningItemResponseDto } from '../../dtos/learningItem/student-learning-item.dto'
+import { StudentLearningItemResponseDto, HomeworkProgressDto } from '../../dtos/learningItem/student-learning-item.dto'
 import { MediaFileDto } from '../../dtos/documentContent/document-content.dto'
 import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 import { MinioService } from '../../../infrastructure/services/minio.service'
@@ -21,6 +27,12 @@ export class GetStudentLearningItemByIdUseCase {
         private readonly studentLearningItemRepository: IStudentLearningItemRepository,
         @Inject('IMediaUsageRepository')
         private readonly mediaUsageRepository: IMediaUsageRepository,
+        @Inject('IHomeworkSubmitRepository')
+        private readonly homeworkSubmitRepository: IHomeworkSubmitRepository,
+        @Inject('ICompetitionSubmitRepository')
+        private readonly competitionSubmitRepository: ICompetitionSubmitRepository,
+        @Inject('IExamRepository')
+        private readonly examRepository: IExamRepository,
         private readonly minioService: MinioService,
     ) { }
 
@@ -41,7 +53,65 @@ export class GetStudentLearningItemByIdUseCase {
             learningItemId,
         )
 
-        // 3. Lấy media files cho VIDEO và DOCUMENT content
+        // 3. Xử lý đặc biệt cho HOMEWORK type - tạo progress cho từng homeworkContent
+        const homeworkProgressMap = new Map<number, HomeworkProgressDto>()
+
+        if (learningItem.type === LearningItemType.HOMEWORK && learningItem.homeworkContents?.length) {
+            // Xử lý từng homework content
+            for (const homeworkContent of learningItem.homeworkContents) {
+                // Lấy homework submit của student cho content này
+                const homeworkSubmit = await this.homeworkSubmitRepository.findByHomeworkAndStudent(
+                    homeworkContent.homeworkContentId,
+                    studentId,
+                )
+
+                // Khởi tạo các biến
+                let competitionSubmits: any[] = []
+                let questionCount: number | undefined
+                let endDate: Date | undefined
+                let maxAttempts: number | undefined
+
+                // Nếu có competition, lấy thêm thông tin
+                if (homeworkContent.competitionId) {
+                    // Lấy competition submits
+                    competitionSubmits = await this.competitionSubmitRepository.findByCompetitionAndStudent(
+                        homeworkContent.competitionId,
+                        studentId,
+                    )
+
+                    // Lấy thông tin competition và đếm số câu hỏi
+                    if (homeworkContent.competition) {
+                        endDate = homeworkContent.competition.endDate ?? undefined
+                        maxAttempts = homeworkContent.competition.maxAttempts ?? undefined
+
+                        // Đếm số câu hỏi trong exam
+                        if (homeworkContent.competition.examId) {
+                            questionCount = await this.examRepository.countQuestionsByExamId(
+                                homeworkContent.competition.examId,
+                            )
+                        }
+                    }
+                }
+
+                // Tạo HomeworkProgressDto cho content này
+                const progress = HomeworkProgressDto.create({
+                    studentLearningItem,
+                    homeworkSubmit,
+                    competitionSubmits,
+                    questionCount,
+                    dueDate: homeworkContent.dueDate ?? undefined,
+                    endDate,
+                    maxAttempts,
+                    allowLateSubmit: homeworkContent.allowLateSubmit,
+                    allowViewScore: homeworkContent.competition?.allowViewScore ?? true,
+                })
+
+                // Lưu vào map
+                homeworkProgressMap.set(homeworkContent.homeworkContentId, progress)
+            }
+        }
+
+        // 4. Lấy media files cho VIDEO và DOCUMENT content
         const mediaFilesMap = new Map<number, MediaFileDto[]>()
 
         // Xử lý VIDEO content - Sử dụng streaming URL thay vì presigned URL
@@ -71,11 +141,12 @@ export class GetStudentLearningItemByIdUseCase {
             }
         }
 
-        // 4. Map to response DTO with media files
+        // 5. Map to response DTO with media files and homework progress map
         const response = StudentLearningItemResponseDto.fromEntity(
             learningItem,
             studentLearningItem,
             mediaFilesMap,
+            homeworkProgressMap,
         )
 
         return {

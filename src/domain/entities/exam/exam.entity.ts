@@ -1,6 +1,7 @@
 // src/domain/entities/exam/exam.entity.ts
 import { Subject } from '../subject/subject.entity'
 import { QuestionExam } from './question-exam.entity'
+import { Section } from './section.entity'
 import { Competition } from './competition.entity'
 import { ExamVisibility, TypeOfExam } from 'src/shared/enums'
 import { Admin } from '../user'
@@ -28,6 +29,7 @@ export class Exam {
   admin?: Admin // AdminEntity
   competitions?: Competition[] // Competition[]
   questions?: QuestionExam[] // QuestionExam[]
+  sections?: Section[] // Section[]
 
   constructor(data: {
     examId: number
@@ -46,6 +48,7 @@ export class Exam {
     admin?: any
     competitions?: Competition[]
     questions?: QuestionExam[]
+    sections?: Section[]
   }) {
     this.examId = data.examId
     this.title = data.title
@@ -63,6 +66,7 @@ export class Exam {
     this.admin = data.admin
     this.competitions = data.competitions
     this.questions = data.questions
+    this.sections = data.sections
   }
 
   /**

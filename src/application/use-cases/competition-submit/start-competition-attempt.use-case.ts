@@ -3,7 +3,7 @@ import { Inject, Injectable } from '@nestjs/common'
 import type { ICompetitionSubmitRepository, ICompetitionRepository } from '../../../domain/repositories'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 import { CompetitionSubmitResponseDto } from '../../dtos/competition-submit/competition-submit.dto'
-import { NotFoundException, ValidationException, ConflictException } from '../../../shared/exceptions/custom-exceptions'
+import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 import { CompetitionSubmitStatus } from '../../../shared/enums/competition-submit-status.enum'
 
 @Injectable()
@@ -27,11 +27,19 @@ export class StartCompetitionAttemptUseCase {
     const now = new Date()
 
     if (competition.startDate && now < competition.startDate) {
-      throw new ValidationException(`Cuộc thi chưa bắt đầu. Thời gian bắt đầu: ${competition.startDate.toISOString()}`)
+      return {
+        success: false,
+        message: `Cuộc thi chưa bắt đầu. Thời gian bắt đầu: ${competition.startDate.toISOString()}`,
+        data: null as any,
+      }
     }
 
     if (competition.endDate && now > competition.endDate) {
-      throw new ValidationException(`Cuộc thi đã kết thúc. Thời gian kết thúc: ${competition.endDate.toISOString()}`)
+      return {
+        success: false,
+        message: `Cuộc thi đã kết thúc. Thời gian kết thúc: ${competition.endDate.toISOString()}`,
+        data: null as any,
+      }
     }
 
     // 3. Check if there's already an IN_PROGRESS attempt
@@ -40,11 +48,20 @@ export class StartCompetitionAttemptUseCase {
       studentId,
     )
 
-    // Find IN_PROGRESS attempt
-    const inProgressAttempt = existingAttempts.find((attempt) => attempt.status === CompetitionSubmitStatus.IN_PROGRESS)
+    // Find IN_PROGRESS attempt that has not exceeded durationMinutes
+    const inProgressAttempt = existingAttempts.find((attempt) => {
+      if (attempt.status !== CompetitionSubmitStatus.IN_PROGRESS) return false
+
+      // Nếu không có durationMinutes thì không có giới hạn thời gian -> vẫn còn hiệu lực
+      if (!competition.durationMinutes) return true
+
+      const elapsedMs = now.getTime() - attempt.startedAt.getTime()
+      const durationMs = competition.durationMinutes * 60 * 1000
+      return elapsedMs < durationMs
+    })
 
     if (inProgressAttempt) {
-      // Return existing IN_PROGRESS attempt
+      // Return existing IN_PROGRESS attempt còn trong thời gian làm bài
       const dto = CompetitionSubmitResponseDto.fromEntity(inProgressAttempt)
       return BaseResponseDto.success('Bạn đang có lần làm bài chưa hoàn thành', dto)
     }
@@ -57,7 +74,11 @@ export class StartCompetitionAttemptUseCase {
 
     if (competition.maxAttempts !== null && competition.maxAttempts !== undefined) {
       if (submittedAttempts.length >= competition.maxAttempts) {
-        throw new ConflictException(`Bạn đã vượt quá số lần làm bài cho phép (${competition.maxAttempts} lần)`)
+        return {
+          success: false,
+          message: `Bạn đã vượt quá số lần làm bài cho phép (${competition.maxAttempts} lần)`,
+          data: null as any,
+        }
       }
     }
 

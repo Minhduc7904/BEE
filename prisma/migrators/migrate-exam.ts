@@ -109,7 +109,15 @@ async function migrateQuestion(
     });
 
     if (exists) return exists.questionId;
-
+    const type = mapQuestionType(oldQuestion.typeOfQuestion);
+    let pointOriginal = 0;
+    if (type === QuestionType.MULTIPLE_CHOICE) {
+        pointOriginal = 0.25;
+    } else if (type === QuestionType.TRUE_FALSE) {
+        pointOriginal = 1;
+    } else if (type === QuestionType.SHORT_ANSWER) {
+        pointOriginal = 0.5;
+    }
     return await newDb.$transaction(async (tx) => {
         // 1️⃣ Create question trước
         const question = await tx.question.create({
@@ -118,12 +126,14 @@ async function migrateQuestion(
                 content: oldQuestion.content || '',
                 slug:
                     'question-' + oldQuestion.id,
-                type: mapQuestionType(oldQuestion.typeOfQuestion),
+                type: type,
+                pointsOrigin: pointOriginal,
                 difficulty: mapDifficulty(oldQuestion.difficulty),
                 solution: oldQuestion.solution || '',
                 solutionYoutubeUrl: oldQuestion.solutionUrl,
                 visibility: Visibility.PUBLISHED,
                 createdBy,
+                correctAnswer: oldQuestion.correctAnswer || null,
                 subjectId: 1,
                 grade,
             },
@@ -374,11 +384,17 @@ export async function migrateExams() {
                     where: { questionId: qId },
                 });
 
-                let sectionId = sectionTN.sectionId;
+                let sectionId: number | null = null;
+                let point = 0;
                 if (question?.type === QuestionType.TRUE_FALSE) {
                     sectionId = sectionDS.sectionId;
+                    point = 1;
                 } else if (question?.type === QuestionType.SHORT_ANSWER) {
                     sectionId = sectionTLN.sectionId;
+                    point = 0.5;
+                } else if (question?.type === QuestionType.SINGLE_CHOICE) {
+                    sectionId = sectionTN.sectionId;
+                    point = 0.25;
                 }
 
                 await newDb.questionExam.create({
@@ -387,6 +403,7 @@ export async function migrateExams() {
                         examId: exam.examId,
                         sectionId,
                         order,
+                        points: point,
                     },
                 });
             }
@@ -400,9 +417,7 @@ export async function migrateExams() {
                     createdBy,
                     startDate: null,
                     endDate: null,
-                    visibility: oldExam.public
-                        ? Visibility.PUBLISHED
-                        : Visibility.PRIVATE,
+                    visibility: Visibility.PRIVATE,
                     enableAntiCheating:
                         oldExam.isCheatingCheckEnabled || false,
                     showResultDetail:

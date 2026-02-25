@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  // output   = "../generated/prisma"
 }
 
 datasource db {
@@ -752,7 +752,7 @@ model Competition {
   enableAntiCheating          Boolean @default(false) @map("enable_anti_cheating") // bật tính năng chống gian lận (như chụp hình, chuyển tab)
   allowViewSolutionYoutubeUrl Boolean @default(false) @map("allow_view_solution_youtube_url") // có được xem video giải chi tiết trên youtube không
   allowViewExamContent        Boolean @default(false) @map("allow_view_exam_content") // có được xem nội dung đề thi trước khi thi không
-
+  
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 

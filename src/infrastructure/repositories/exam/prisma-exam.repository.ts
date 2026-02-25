@@ -65,6 +65,55 @@ export class PrismaExamRepository implements IExamRepository {
     return ExamMapper.toDomainExam(exam)
   }
 
+  async findByIdWithFullDetails(id: number, txClient?: any): Promise<Exam | null> {
+    const client = txClient || this.prisma
+
+    const exam = await client.exam.findUnique({
+      where: { examId: id },
+      include: {
+        subject: true,
+        admin: {
+          include: {
+            user: true,
+          },
+        },
+        sections: {
+          orderBy: { order: 'asc' },
+          include: {
+            questions: {
+              orderBy: { order: 'asc' },
+              include: {
+                question: {
+                  include: {
+                    statements: {
+                      orderBy: { order: 'asc' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        questions: {
+          orderBy: { order: 'asc' },
+          include: {
+            question: {
+              include: {
+                statements: {
+                  orderBy: { order: 'asc' },
+                },
+              },
+            },
+          },
+        },
+      },
+    })
+
+    if (!exam) return null
+
+    return ExamMapper.toDomainExam(exam)
+  }
+
   async update(id: number, data: Partial<CreateExamData>, txClient?: any): Promise<Exam> {
     const client = txClient || this.prisma
 
@@ -171,5 +220,17 @@ export class PrismaExamRepository implements IExamRepository {
       limit,
       totalPages,
     }
+  }
+
+  async countQuestionsByExamId(examId: number, txClient?: any): Promise<number> {
+    const client = txClient || this.prisma
+
+    const count = await client.questionExam.count({
+      where: {
+        examId: examId,
+      },
+    })
+
+    return count
   }
 }

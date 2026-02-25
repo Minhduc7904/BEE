@@ -82,6 +82,7 @@ export async function migrateClasses() {
                 lessons: {
                     include: {
                         learningItems: true,
+                        chapterCode: true,
                     },
                 },
             },
@@ -156,6 +157,21 @@ export async function migrateClasses() {
                                 updatedAt: oldLesson.updatedAt || new Date(),
                             },
                         });
+
+                        const chapter = await newDb.chapter.findFirst({
+                            where: {
+                                code: oldLesson.chapter,
+                            },
+                        });
+
+                        if (chapter) {
+                            await newDb.lessonChapter.create({
+                                data: {
+                                    lessonId: lesson.lessonId,
+                                    chapterId: chapter.chapterId,
+                                },
+                            });
+                        }
 
                         lessonCount++;
 
