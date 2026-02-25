@@ -22,6 +22,7 @@ import { Readable } from 'stream'
 export class MinioService implements OnModuleInit {
   private readonly logger = new Logger(MinioService.name)
   private readonly minioClient: Minio.Client
+  private readonly publicClient?: Minio.Client  // Client for generating presigned URLs with public endpoint
   private readonly buckets: Record<string, string>
   private readonly isProduction: boolean
   private readonly maxRetries = 3
@@ -33,6 +34,7 @@ export class MinioService implements OnModuleInit {
     const minioConfig = this.configService.get('minio')
     this.isProduction = this.configService.get('NODE_ENV') === 'production'
 
+    // Internal client for actual operations (upload/download/delete)
     this.minioClient = new Minio.Client({
       endPoint: minioConfig.endPoint,
       port: minioConfig.port,
@@ -42,6 +44,26 @@ export class MinioService implements OnModuleInit {
       region: 'us-east-1', // Default region for MinIO
       pathStyle: true, // Use path-style URLs for MinIO compatibility
     })
+
+    // Public client for generating presigned URLs with correct public domain
+    // This client is ONLY used for presigned URL generation, not for actual operations
+    if (minioConfig.publicUrl) {
+      try {
+        const publicUrlObj = new URL(minioConfig.publicUrl)
+        this.publicClient = new Minio.Client({
+          endPoint: publicUrlObj.hostname,
+          port: publicUrlObj.port ? parseInt(publicUrlObj.port) : (publicUrlObj.protocol === 'https:' ? 443 : 80),
+          useSSL: publicUrlObj.protocol === 'https:',
+          accessKey: minioConfig.accessKey,
+          secretKey: minioConfig.secretKey,
+          region: 'us-east-1',
+          pathStyle: true,
+        })
+        this.logger.log(`✅ Public MinIO client initialized for presigned URLs: ${publicUrlObj.hostname}`)
+      } catch (error) {
+        this.logger.warn(`Failed to initialize public MinIO client: ${error.message}. Will use URL replacement fallback.`)
+      }
+    }
 
     this.buckets = minioConfig.buckets
     this.internalEndpoint = `${minioConfig.useSSL ? 'https' : 'http'}://${minioConfig.endPoint}:${minioConfig.port}`
@@ -316,7 +338,10 @@ export class MinioService implements OnModuleInit {
         requestHeaders['response-content-disposition'] = `attachment; filename="${encodeURIComponent(fileName)}"`
       }
 
-      const url = await this.minioClient.presignedGetObject(
+      // Use public client if available for correct signature
+      const client = this.publicClient || this.minioClient
+      
+      const url = await client.presignedGetObject(
         bucketName,
         objectKey,
         expirySeconds,
@@ -324,6 +349,11 @@ export class MinioService implements OnModuleInit {
       )
 
       this.logger.log(`✅ Presigned download URL generated: ${objectKey} (expires in ${expirySeconds}s)`)
+      
+      // If we used public client, URL is already correct. If not, replace the internal URL
+      if (this.publicClient) {
+        return this.adjustPublicUrlPath(url)
+      }
       return this.replaceInternalUrlWithPublic(url)
     } catch (error) {
       this.logger.error(`❌ Error generating presigned download URL: ${error.message}`)
@@ -346,14 +376,22 @@ export class MinioService implements OnModuleInit {
     expirySeconds = 3600,
   ): Promise<string> {
     try {
+      // Use public client if available for correct signature, otherwise fallback to internal + URL replacement
+      const client = this.publicClient || this.minioClient
+      
       // No Content-Disposition header = inline viewing in browser
-      const url = await this.minioClient.presignedGetObject(
+      const url = await client.presignedGetObject(
         bucketName,
         objectKey,
         expirySeconds,
       )
 
       this.logger.log(`✅ Presigned view URL generated: ${objectKey} (expires in ${expirySeconds}s)`)
+      
+      // If we used public client, URL is already correct. If not, replace the internal URL
+      if (this.publicClient) {
+        return this.adjustPublicUrlPath(url)
+      }
       return this.replaceInternalUrlWithPublic(url)
     } catch (error) {
       this.logger.error(`❌ Error generating presigned view URL: ${error.message}`)
@@ -376,12 +414,49 @@ export class MinioService implements OnModuleInit {
     expirySeconds = 3600,
   ): Promise<string> {
     try {
-      const url = await this.minioClient.presignedPutObject(bucketName, objectKey, expirySeconds)
+      // Use public client if available for correct signature
+      const client = this.publicClient || this.minioClient
+      
+      const url = await client.presignedPutObject(bucketName, objectKey, expirySeconds)
       this.logger.log(`✅ Presigned upload URL generated: ${objectKey} (expires in ${expirySeconds}s)`)
+      
+      // If we used public client, URL is already correct. If not, replace the internal URL
+      if (this.publicClient) {
+        return this.adjustPublicUrlPath(url)
+      }
       return this.replaceInternalUrlWithPublic(url)
     } catch (error) {
       this.logger.error(`❌ Error generating presigned upload URL: ${error.message}`)
       throw new InternalServerErrorException(`Failed to generate upload URL: ${error.message}`)
+    }
+  }
+
+  /**
+   * Adjust URL path when using public client
+   * Public client generates URL with correct host/port but needs path prefix (/minio)
+   * Example: https://beeedu.vn/bucket/file?params → https://beeedu.vn/minio/bucket/file?params
+   */
+  private adjustPublicUrlPath(url: string): string {
+    if (!this.publicUrl) {
+      return url
+    }
+
+    try {
+      const urlObj = new URL(url)
+      const publicUrlObj = new URL(this.publicUrl)
+      
+      // If public URL has a path prefix (like /minio), prepend it to the bucket path
+      const pathPrefix = publicUrlObj.pathname.replace(/\/$/, '')
+      if (pathPrefix && !urlObj.pathname.startsWith(pathPrefix)) {
+        urlObj.pathname = pathPrefix + urlObj.pathname
+      }
+      
+      const adjustedUrl = urlObj.toString()
+      this.logger.debug(`URL path adjusted: ${url.split('?')[0]} → ${adjustedUrl.split('?')[0]}`)
+      return adjustedUrl
+    } catch (error) {
+      this.logger.warn(`Failed to adjust URL path: ${error.message}. Using original URL.`)
+      return url
     }
   }
 
