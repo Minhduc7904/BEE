@@ -53,6 +53,7 @@ import { HomeworkContentController } from './controllers/homework-content.contro
 import { YoutubeContentController } from './controllers/youtube-content.controller'
 import { VideoContentController } from './controllers/video-content.controller'
 import { DocumentContentController } from './controllers/document-content.controller'
+import { HealthController } from './controllers/health.controller'
 
 @Module({
   imports: [
@@ -105,6 +106,7 @@ import { DocumentContentController } from './controllers/document-content.contro
     YoutubeContentController,
     VideoContentController,
     DocumentContentController,
+    HealthController,
   ],
   providers: [
     // WebSocket Gateways
