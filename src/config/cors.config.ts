@@ -8,7 +8,8 @@ export class CorsConfig {
    * Get CORS options based on environment
    */
   static getOptions(): CorsOptions {
-    const isDevelopment = process.env.NODE_ENV === 'development'
+    // const isDevelopment = process.env.NODE_ENV === 'development'
+    const isDevelopment = true // Force development config for testing
 
     if (isDevelopment) {
       return this.getDevelopmentOptions()
