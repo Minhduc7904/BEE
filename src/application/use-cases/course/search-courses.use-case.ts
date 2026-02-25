@@ -53,39 +53,39 @@ export class SearchCoursesUseCase {
         const permissions = user?.permissions ?? []
 
         // Case 1: No user or student user - only PUBLISHED courses
-        if (!user || user.studentId) {
-            return {
-                ...baseFilters,
-                visibility: CourseVisibility.PUBLISHED,
-                teacherId: undefined,
-            }
-        }
+        // if (!user || user.studentId) {
+        //     return {
+        //         ...baseFilters,
+        //         visibility: CourseVisibility.PUBLISHED,
+        //         teacherId: undefined,
+        //     }
+        // }
 
         // Case 2: Admin with GET_ALL permission - PUBLISHED and PRIVATE (exclude DRAFT)
-        if (permissions.includes(PERMISSION_CODES.COURSE.GET_ALL)) {
+        // if (permissions.includes(PERMISSION_CODES.COURSE.GET_ALL)) {
             return {
                 ...baseFilters,
                 visibility: undefined,
                 teacherId: undefined,
                 excludeVisibility: CourseVisibility.DRAFT,
             }
-        }
+        // }
 
         // Case 3: Admin with GET_MY_COURSES permission - only their PUBLISHED and PRIVATE courses
-        if (permissions.includes(PERMISSION_CODES.COURSE.GET_MY_COURSES)) {
-            return {
-                ...baseFilters,
-                visibility: undefined,
-                teacherId: user.adminId,
-                excludeVisibility: CourseVisibility.DRAFT,
-            }
-        }
+        // if (permissions.includes(PERMISSION_CODES.COURSE.GET_MY_COURSES)) {
+        //     return {
+        //         ...baseFilters,
+        //         visibility: undefined,
+        //         teacherId: user.adminId,
+        //         excludeVisibility: CourseVisibility.DRAFT,
+        //     }
+        // }
 
         // Case 4: Default for other authenticated users - only PUBLISHED
-        return {
-            ...baseFilters,
-            visibility: CourseVisibility.PUBLISHED,
-            teacherId: undefined,
-        }
+        // return {
+        //     ...baseFilters,
+        //     visibility: CourseVisibility.PUBLISHED,
+        //     teacherId: undefined,
+        // }
     }
 }
