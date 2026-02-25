@@ -1,21 +1,22 @@
-# Script import file backup.sql vao old_db
-# Encoding: UTF-8
+# =============================================
+# IMPORT backup.sql INTO OLD_DB (UTF8 SAFE)
+# =============================================
 
 Write-Host "=============================================" -ForegroundColor Cyan
-Write-Host "   IMPORT BACKUP.SQL TO OLD_DB" -ForegroundColor Cyan
+Write-Host "   IMPORT BACKUP.SQL TO OLD_DB (UTF8 SAFE)" -ForegroundColor Cyan
 Write-Host "=============================================" -ForegroundColor Cyan
 Write-Host ""
 
-# Doc cau hinh tu .env
+# ---------- Load .env ----------
 $envFile = ".env"
+
 if (-not (Test-Path $envFile)) {
     Write-Host "ERROR: .env file not found" -ForegroundColor Red
-    Write-Host "Please create .env file with OLD_DATABASE_URL" -ForegroundColor Yellow
     exit 1
 }
 
-# Parse OLD_DATABASE_URL from .env
 $dbUrl = ""
+
 Get-Content $envFile | ForEach-Object {
     if ($_ -match '^\s*OLD_DATABASE_URL\s*=\s*"?(.+?)"?\s*$') {
         $dbUrl = $matches[1]
@@ -27,72 +28,86 @@ if ([string]::IsNullOrEmpty($dbUrl)) {
     exit 1
 }
 
-# Parse MySQL connection string: mysql://user:password@host:port/database
+# ---------- Parse connection string ----------
 if ($dbUrl -match 'mysql://([^:]+):([^@]+)@([^:]+):(\d+)/(.+)') {
+
     $dbUser = $matches[1]
     $dbPassword = $matches[2]
     $dbHost = $matches[3]
     $dbPort = $matches[4]
     $dbName = $matches[5]
-    
+
     Write-Host "Database Info:" -ForegroundColor Yellow
     Write-Host "  Host: $dbHost"
     Write-Host "  Port: $dbPort"
     Write-Host "  Database: $dbName"
     Write-Host "  User: $dbUser"
     Write-Host ""
-    
-    # Kiem tra file backup
+
+    # ---------- Check backup file ----------
     $backupFile = "backup\backup.sql"
+
     if (-not (Test-Path $backupFile)) {
-        Write-Host "ERROR: File backup.sql not found at: $backupFile" -ForegroundColor Red
+        Write-Host "ERROR: backup.sql not found at $backupFile" -ForegroundColor Red
         exit 1
     }
-    
+
     Write-Host "Found backup file: $backupFile" -ForegroundColor Green
     Write-Host ""
-    
-    # Tao database neu chua ton tai
-    Write-Host "Creating database if not exists..." -ForegroundColor Yellow
-    $createDbCommand = "CREATE DATABASE IF NOT EXISTS ``$dbName`` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
+    # ---------- Create DB with utf8mb4 ----------
+    Write-Host "Dropping existing database (if any)..." -ForegroundColor Yellow
     
     $env:MYSQL_PWD = $dbPassword
-    mysql -h $dbHost -P $dbPort -u $dbUser -e $createDbCommand 2>&1 | Out-Null
     
+    $dropDbSql = "DROP DATABASE IF EXISTS ``$dbName``;"
+    mysql -h $dbHost -P $dbPort -u $dbUser -e $dropDbSql
+    
+    Write-Host "Creating fresh database..." -ForegroundColor Yellow
+
+    $createDbSql = "CREATE DATABASE ``$dbName`` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+    
+    mysql -h $dbHost -P $dbPort -u $dbUser --default-character-set=utf8mb4 -e $createDbSql
+
     if ($LASTEXITCODE -ne 0) {
         Write-Host "ERROR: Failed to create database" -ForegroundColor Red
         $env:MYSQL_PWD = $null
         exit 1
     }
-    
-    Write-Host "Database ready" -ForegroundColor Green
+
+    Write-Host "Database ready (utf8mb4)" -ForegroundColor Green
     Write-Host ""
-    
-    # Import SQL file using Get-Content and pipe
+
+    # ---------- Import SQL directly (NO PIPE) ----------
     Write-Host "Importing backup.sql..." -ForegroundColor Yellow
     Write-Host "This may take a few minutes..." -ForegroundColor Gray
-    
-    Get-Content $backupFile -Raw | mysql -h $dbHost -P $dbPort -u $dbUser $dbName 2>&1 | Out-Null
-    
+
+    # Prepend foreign key checks disable to SQL content
+    $sqlContent = "SET FOREIGN_KEY_CHECKS=0;`nSET NAMES utf8mb4;`n" + (Get-Content $backupFile -Encoding UTF8 -Raw) + "`nSET FOREIGN_KEY_CHECKS=1;"
+
+    $sqlContent | mysql -h $dbHost -P $dbPort -u $dbUser --default-character-set=utf8mb4 --database=$dbName
+
+    $exitCode = $LASTEXITCODE
     $env:MYSQL_PWD = $null
-    
-    if ($LASTEXITCODE -eq 0) {
+
+    if ($exitCode -eq 0) {
         Write-Host ""
-        Write-Host "Import completed successfully!" -ForegroundColor Green
+        Write-Host "IMPORT SUCCESS (UTF8 SAFE)" -ForegroundColor Green
         Write-Host ""
-        
-        # Hien thi thong tin tables
-        Write-Host "Tables in database:" -ForegroundColor Yellow
+
+        Write-Host "Verifying charset..." -ForegroundColor Yellow
         $env:MYSQL_PWD = $dbPassword
-        mysql -h $dbHost -P $dbPort -u $dbUser $dbName -e "SHOW TABLES;"
+        mysql -h $dbHost -P $dbPort -u $dbUser -e "SHOW CREATE DATABASE \`$dbName\`;"
         $env:MYSQL_PWD = $null
-    } else {
+    }
+    else {
         Write-Host ""
         Write-Host "ERROR: Import failed!" -ForegroundColor Red
         exit 1
     }
-} else {
+
+}
+else {
     Write-Host "ERROR: Cannot parse OLD_DATABASE_URL" -ForegroundColor Red
-    Write-Host "Expected format: mysql://user:password@host:port/database" -ForegroundColor Yellow
     exit 1
 }

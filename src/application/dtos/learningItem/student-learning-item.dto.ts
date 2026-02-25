@@ -1,10 +1,206 @@
 // src/application/dtos/learningItem/student-learning-item.dto.ts
-import { LearningItem, StudentLearningItem } from '../../../domain/entities'
+import { LearningItem, StudentLearningItem, HomeworkSubmit, CompetitionSubmit } from '../../../domain/entities'
 import { LearningItemType } from '../../../shared/enums'
 import { HomeworkContentResponseDto } from '../homeworkContent/homework-content.dto'
 import { DocumentContentResponseDto, MediaFileDto } from '../documentContent/document-content.dto'
 import { YoutubeContentResponseDto } from '../youtubeContent/youtube-content.dto'
 import { VideoContentResponseDto } from '../videoContent/video-content.dto'
+
+/**
+ * Trạng thái làm bài homework/competition
+ */
+export enum HomeworkStatus {
+    DO_NOW = 'DO_NOW',              // Làm ngay (còn hạn, chưa làm hoặc có thể làm lại)
+    REDO = 'REDO',                  // Làm lại (còn hạn, đã làm nhưng chưa đạt max attempts)
+    LATE_SUBMIT = 'LATE_SUBMIT',    // Làm muộn (quá dueDate nhưng còn endDate và cho phép nộp muộn)
+    OVERDUE = 'OVERDUE',            // Quá hạn (không thể làm nữa)
+    COMPLETED = 'COMPLETED'         // Đã hoàn thành (đạt max attempts hoặc đã nộp)
+}
+
+/**
+ * DTO cho Homework Submit info
+ */
+export class HomeworkSubmitDto {
+    homeworkSubmitId: number
+    isDone: boolean
+    submitAt?: Date
+    points?: number
+    gradedAt?: Date
+    feedback?: string
+
+    static fromEntity(homeworkSubmit: HomeworkSubmit | null): HomeworkSubmitDto | undefined {
+        if (!homeworkSubmit) return undefined
+
+        const dto = new HomeworkSubmitDto()
+        dto.homeworkSubmitId = homeworkSubmit.homeworkSubmitId
+        dto.isDone = true // Có submit thì đã done
+        dto.submitAt = homeworkSubmit.submitAt
+        dto.points = homeworkSubmit.points ?? undefined
+        dto.gradedAt = homeworkSubmit.gradedAt ?? undefined
+        dto.feedback = homeworkSubmit.feedback ?? undefined
+        return dto
+    }
+}
+
+/**
+ * DTO cho Competition Submit info
+ */
+export class CompetitionSubmitDto {
+    competitionSubmitId: number
+    attemptNumber: number
+    status: string
+    submittedAt?: Date
+    totalPoints?: number
+    maxPoints?: number
+
+    static fromEntity(submit: CompetitionSubmit): CompetitionSubmitDto {
+        const dto = new CompetitionSubmitDto()
+        dto.competitionSubmitId = submit.competitionSubmitId
+        dto.attemptNumber = submit.attemptNumber
+        dto.status = submit.status
+        dto.submittedAt = submit.submittedAt ?? undefined
+        dto.totalPoints = submit.totalPoints ? Number(submit.totalPoints) : undefined
+        dto.maxPoints = submit.maxPoints ? Number(submit.maxPoints) : undefined
+        return dto
+    }
+}
+
+/**
+ * DTO cho Homework Progress (khi type là HOMEWORK)
+ */
+export class HomeworkProgressDto {
+    // Từ StudentLearningItem
+    isLearned: boolean
+    learnedAt?: Date
+
+    // Từ HomeworkSubmit
+    homeworkSubmit?: HomeworkSubmitDto
+    isDone: boolean
+
+    // Từ CompetitionSubmit
+    competitionSubmits?: CompetitionSubmitDto[]
+    attemptCount: number
+    maxAttempts?: number
+
+    // Thông tin về deadline và trạng thái
+    questionCount?: number
+    dueDate?: Date
+    deadline?: Date  // Deadline cuối cùng (endDate của competition hoặc dueDate)
+    remainingTimeSeconds?: number
+    status: HomeworkStatus
+
+    static create(params: {
+        studentLearningItem: StudentLearningItem | null
+        homeworkSubmit: HomeworkSubmit | null
+        competitionSubmits: CompetitionSubmit[]
+        questionCount?: number
+        dueDate?: Date
+        endDate?: Date
+        maxAttempts?: number
+        allowLateSubmit: boolean
+        /** Nếu false → ẩn điểm khỏi homeworkSubmit và competitionSubmits */
+        allowViewScore?: boolean
+    }): HomeworkProgressDto {
+        const dto = new HomeworkProgressDto()
+        const canViewScore = params.allowViewScore !== false // default true
+        
+        // StudentLearningItem progress
+        dto.isLearned = params.studentLearningItem?.isLearned ?? false
+        dto.learnedAt = params.studentLearningItem?.learnedAt ?? undefined
+
+        // HomeworkSubmit
+        dto.homeworkSubmit = HomeworkSubmitDto.fromEntity(params.homeworkSubmit)
+        if (dto.homeworkSubmit && !canViewScore) {
+            dto.homeworkSubmit.points = undefined
+        }
+        dto.isDone = params.homeworkSubmit !== null
+
+        // CompetitionSubmits
+        dto.competitionSubmits = params.competitionSubmits.map(s => {
+            const submitDto = CompetitionSubmitDto.fromEntity(s)
+            if (!canViewScore) {
+                submitDto.totalPoints = undefined
+                submitDto.maxPoints = undefined
+            }
+            return submitDto
+        })
+        dto.attemptCount = params.competitionSubmits.length
+        dto.maxAttempts = params.maxAttempts
+
+        // Question count
+        dto.questionCount = params.questionCount
+
+        // Deadline calculation
+        dto.dueDate = params.dueDate
+        const now = new Date()
+        
+        // Xác định deadline cuối cùng (ưu tiên endDate nếu có, không thì dùng dueDate)
+        const finalDeadline = params.endDate ?? params.dueDate
+        dto.deadline = finalDeadline
+
+        // Tính thời gian còn lại
+        if (finalDeadline) {
+            const remaining = finalDeadline.getTime() - now.getTime()
+            dto.remainingTimeSeconds = remaining > 0 ? Math.floor(remaining / 1000) : 0
+        }
+
+        // Xác định trạng thái
+        dto.status = HomeworkProgressDto.determineStatus({
+            now,
+            dueDate: params.dueDate,
+            endDate: params.endDate,
+            attemptCount: dto.attemptCount,
+            maxAttempts: params.maxAttempts,
+            allowLateSubmit: params.allowLateSubmit,
+            isDone: dto.isDone,
+        })
+
+        return dto
+    }
+
+    private static determineStatus(params: {
+        now: Date
+        dueDate?: Date
+        endDate?: Date
+        attemptCount: number
+        maxAttempts?: number
+        allowLateSubmit: boolean
+        isDone: boolean
+    }): HomeworkStatus {
+        const { now, dueDate, endDate, attemptCount, maxAttempts, allowLateSubmit, isDone } = params
+
+        // Nếu đã đạt max attempts
+        if (maxAttempts && attemptCount >= maxAttempts) {
+            return HomeworkStatus.COMPLETED
+        }
+
+        // Nếu có endDate và đã quá endDate
+        if (endDate && now > endDate) {
+            return HomeworkStatus.OVERDUE
+        }
+
+        // Nếu có dueDate và đã quá dueDate
+        if (dueDate && now > dueDate) {
+            // Kiểm tra có cho phép nộp muộn không
+            if (allowLateSubmit && endDate && now <= endDate) {
+                return HomeworkStatus.LATE_SUBMIT
+            }
+            // Nếu không có endDate hoặc không cho phép nộp muộn
+            if (!endDate) {
+                return HomeworkStatus.OVERDUE
+            }
+        }
+
+        // Còn trong thời hạn
+        if (attemptCount > 0) {
+            // Đã làm ít nhất 1 lần, có thể làm lại
+            return HomeworkStatus.REDO
+        } else {
+            // Chưa làm lần nào
+            return HomeworkStatus.DO_NOW
+        }
+    }
+}
 
 /**
  * DTO cho Student Learning Item Progress
@@ -33,8 +229,9 @@ export class StudentLearningItemResponseDto {
     createdAt: Date
     updatedAt: Date
 
-    // Progress của student
-    progress: StudentLearningItemProgressDto
+    // Progress của student (cho DOCUMENT, YOUTUBE, VIDEO)
+    // Với HOMEWORK: progress được gắn vào từng homeworkContent
+    progress?: StudentLearningItemProgressDto
 
     // Content tùy theo type (chỉ 1 trong 4 sẽ có giá trị)
     homeworkContents?: HomeworkContentResponseDto[]
@@ -46,6 +243,7 @@ export class StudentLearningItemResponseDto {
         learningItem: LearningItem,
         studentLearningItem: StudentLearningItem | null,
         mediaFilesMap?: Map<number, MediaFileDto[]>,
+        homeworkProgressMap?: Map<number, HomeworkProgressDto>,
     ): StudentLearningItemResponseDto {
         const dto = new StudentLearningItemResponseDto()
         
@@ -57,14 +255,18 @@ export class StudentLearningItemResponseDto {
         dto.createdAt = learningItem.createdAt
         dto.updatedAt = learningItem.updatedAt
 
-        // Progress
-        dto.progress = StudentLearningItemProgressDto.fromEntity(studentLearningItem)
+        // Progress (cho non-homework types)
+        if (learningItem.type !== LearningItemType.HOMEWORK) {
+            dto.progress = StudentLearningItemProgressDto.fromEntity(studentLearningItem)
+        }
 
         // Content theo type
         if (learningItem.type === LearningItemType.HOMEWORK && learningItem.homeworkContents) {
-            dto.homeworkContents = learningItem.homeworkContents.map(hc => 
-                HomeworkContentResponseDto.fromEntity(hc)
-            )
+            // Với HOMEWORK: gắn progress vào từng homeworkContent
+            dto.homeworkContents = learningItem.homeworkContents.map(hc => {
+                const progress = homeworkProgressMap?.get(hc.homeworkContentId)
+                return HomeworkContentResponseDto.fromEntity(hc, progress)
+            })
         }
 
         if (learningItem.type === LearningItemType.DOCUMENT && learningItem.documentContents) {

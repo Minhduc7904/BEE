@@ -8,6 +8,7 @@ import {
     GetAllCompetitionsUseCase,
     GetCompetitionByIdUseCase,
     SearchCompetitionsUseCase,
+    GetCompetitionRankingUseCase,
 } from './index'
 import { AttachMediaFromContentUseCase } from '../media/attach-media-from-content.use-case'
 import { ProcessContentWithPresignedUrlsUseCase } from '../media/process-content-with-presigned-urls.use-case'
@@ -23,6 +24,7 @@ import { ProcessContentWithPresignedUrlsUseCase } from '../media/process-content
         GetAllCompetitionsUseCase,
         GetCompetitionByIdUseCase,
         SearchCompetitionsUseCase,
+        GetCompetitionRankingUseCase,
         AttachMediaFromContentUseCase,
         ProcessContentWithPresignedUrlsUseCase,
     ],
@@ -33,6 +35,7 @@ import { ProcessContentWithPresignedUrlsUseCase } from '../media/process-content
         GetAllCompetitionsUseCase,
         GetCompetitionByIdUseCase,
         SearchCompetitionsUseCase,
+        GetCompetitionRankingUseCase,
     ],
 })
 export class CompetitionApplicationModule { }

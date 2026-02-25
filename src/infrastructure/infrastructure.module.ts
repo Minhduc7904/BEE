@@ -48,6 +48,7 @@ import {
   PrismaVideoContentRepository,
   PrismaYoutubeContentRepository,
   PrismaHomeworkContentRepository,
+  PrismaHomeworkSubmitRepository,
 } from './repositories'
 import {
   PasswordService,
@@ -311,6 +312,11 @@ import openaiConfig from '../config/openai.config'
       inject: [PrismaService],
     },
     {
+      provide: 'IHomeworkSubmitRepository',
+      useFactory: (prisma: PrismaService) => new PrismaHomeworkSubmitRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
       provide: 'PASSWORD_SERVICE',
       useClass: PasswordService,
     },
@@ -394,6 +400,7 @@ import openaiConfig from '../config/openai.config'
     'IVideoContentRepository',
     'IYoutubeContentRepository',
     'IHomeworkContentRepository',
+    'IHomeworkSubmitRepository',
     'PASSWORD_SERVICE',
     'JWT_TOKEN_SERVICE',
     'TOKEN_HASH_SERVICE',

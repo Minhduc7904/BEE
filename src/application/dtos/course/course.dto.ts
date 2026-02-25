@@ -5,6 +5,7 @@ import { PaginationResponseDto } from '../pagination/pagination-response.dto'
 export class CourseResponseDto {
   // ===== Identity =====
   courseId: number
+  code: string
 
   // ===== Basic info =====
   title: string
@@ -46,6 +47,7 @@ export class CourseResponseDto {
     return {
       // Identity
       courseId: course.courseId,
+      code: course.code,
 
       // Basic info
       title: course.title,

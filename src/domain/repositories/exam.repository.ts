@@ -40,6 +40,7 @@ export interface ExamListResult {
 export interface IExamRepository {
   create(data: CreateExamData, txClient?: any): Promise<Exam>
   findById(id: number, txClient?: any): Promise<Exam | null>
+  findByIdWithFullDetails(id: number, txClient?: any): Promise<Exam | null>
   update(id: number, data: Partial<CreateExamData>, txClient?: any): Promise<Exam>
   delete(id: number, txClient?: any): Promise<void>
   findAllWithPagination(
@@ -47,4 +48,7 @@ export interface IExamRepository {
     filters?: ExamFilterOptions,
     txClient?: any,
   ): Promise<ExamListResult>
+  
+  // Count questions in exam
+  countQuestionsByExamId(examId: number, txClient?: any): Promise<number>
 }

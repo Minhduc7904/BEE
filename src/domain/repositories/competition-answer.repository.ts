@@ -5,7 +5,7 @@ export interface CreateCompetitionAnswerData {
     competitionSubmitId: number
     questionId: number
     answer?: string | null
-    selectedStatementIds?: number[]
+    selectedStatementIds?: number[] | null
     isCorrect?: boolean | null
     points?: number | null
     maxPoints?: number | null

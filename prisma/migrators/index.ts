@@ -1,14 +1,12 @@
 import { connectDatabases, disconnectDatabases } from './db-clients';
 import { migrateUsers } from './migrate-users';
-
+import { migrateExams } from './migrate-exam';
+import { migrateClasses } from './migrate-class';
 /**
  * Main migration script
  * Chạy các bước migration theo thứ tự:
- * 1. Subjects (môn học)
- * 2. Chapters (chương)
  * 3. Users (người dùng)
- * 4. Students (học sinh)
- * 5. Questions (câu hỏi)
+ * 6. Exams (đề thi)
  */
 async function main() {
     console.log('╔═══════════════════════════════════════════╗');
@@ -23,16 +21,23 @@ async function main() {
         await connectDatabases();
 
         const results = {
-            subjects: { successCount: 0, skipCount: 0, errorCount: 0, total: 0 },
-            chapters: { successCount: 0, skipCount: 0, errorCount: 0, total: 0 },
             users: { successCount: 0, skipCount: 0, errorCount: 0, total: 0 },
-            students: { successCount: 0, skipCount: 0, errorCount: 0, total: 0 },
-            questions: { successCount: 0, skipCount: 0, errorCount: 0, total: 0 },
+            exams: { successCount: 0, skipCount: 0, errorCount: 0, total: 0 },
+            classes: { successCount: 0, skipCount: 0, errorCount: 0, total: 0 },
+        
         };
 
         // 3. Migrate Users
         console.log('\n👤 STEP 3: Migrating Users...');
         results.users = await migrateUsers();
+
+        // 6. Migrate Exams
+        console.log('\n📚 STEP 6: Migrating Exams...');
+        results.exams = await migrateExams();
+
+        // Migrate Classes
+        console.log('\n🏫 STEP 7: Migrating Classes...');
+        results.classes = await migrateClasses();
         // Summary
         const endTime = Date.now();
         const duration = ((endTime - startTime) / 1000).toFixed(2);

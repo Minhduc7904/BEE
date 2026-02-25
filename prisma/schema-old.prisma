@@ -1,678 +1,678 @@
 generator client {
-  provider = "prisma-client-js"
-  output   = "../generated/prisma-old"
+    provider = "prisma-client-js"
+    output   = "../generated/prisma-old"
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("OLD_DATABASE_URL")
+    provider = "mysql"
+    url      = env("OLD_DATABASE_URL")
 }
 
 model AchievementCategory {
-  id            String             @id @db.VarChar(50)
-  label         String             @db.VarChar(100)
-  title         String             @db.VarChar(200)
-  description   String             @db.Text
-  display_order Int
-  createdAt     DateTime           @default(now()) @db.DateTime(0)
-  updatedAt     DateTime           @default(now()) @db.DateTime(0)
-  images        AchievementImage[]
-  stats         AchievementStat[]
+    id            String             @id @db.VarChar(50)
+    label         String             @db.VarChar(100)
+    title         String             @db.VarChar(200)
+    description   String             @db.Text
+    display_order Int
+    createdAt     DateTime           @default(now()) @db.DateTime(0)
+    updatedAt     DateTime           @default(now()) @db.DateTime(0)
+    images        AchievementImage[]
+    stats         AchievementStat[]
 
-  @@map("achievement_categories")
+    @@map("achievement_categories")
 }
 
 model OldUser {
-  id                Int                     @id @default(autoincrement())
-  lastName          String                  @db.VarChar(255)
-  firstName         String                  @db.VarChar(255)
-  username          String                  @unique(map: "idx_user_username") @db.VarChar(255)
-  password          String                  @db.VarChar(255)
-  userType          String                  @db.VarChar(255)
-  gender            Boolean?
-  birthDate         DateTime?               @db.DateTime(0)
-  phone             String                  @db.VarChar(255)
-  highSchool        String                  @db.VarChar(255)
-  class             String                  @db.VarChar(255)
-  avatarUrl         String?                 @db.Text
-  currentToken      String?                 @db.Text
-  createdAt         DateTime                @db.DateTime(0)
-  updatedAt         DateTime                @db.DateTime(0)
-  isActive          Boolean                 @default(true)
-  graduationYear    Int?
-  averageScore      Decimal?                @db.Decimal(5, 2)
-  AdminActivityLog  AdminActivityLog[]
-  ExamComments      ExamComments[]
-  reportsCreated    AssistantReport[]       @relation("UserReports")
-  reportsReceived   AssistantReport[]       @relation("AssistantReports")
-  attendanceRecords Attendance[]
-  assistantLessons  LessonAssistant[]
-  notifications     Notification[]
-  questionReports   QuestionReport[]
-  sheetLinks        sheetLinks[]
-  classStatuses     StudentClassStatus[]
-  examAttempts      OldStudentExamAttempt[]
-  examStatuses      StudentExamStatus[]
-  studyStatuses     StudentStudyStatus[]
-  tuitionPayments   TuitionPayment[]
-  userTypeCode      AllCode                 @relation("UserType", fields: [userType], references: [code], onDelete: NoAction, map: "user_ibfk_1")
-  classCode         AllCode                 @relation("UserClass", fields: [class], references: [code], onDelete: NoAction, map: "user_ibfk_2")
+    id                Int                     @id @default(autoincrement())
+    lastName          String                  @db.VarChar(255)
+    firstName         String                  @db.VarChar(255)
+    username          String                  @unique(map: "idx_user_username") @db.VarChar(255)
+    password          String                  @db.VarChar(255)
+    userType          String                  @db.VarChar(255)
+    gender            Boolean?
+    birthDate         DateTime?               @db.DateTime(0)
+    phone             String                  @db.VarChar(255)
+    highSchool        String                  @db.VarChar(255)
+    class             String                  @db.VarChar(255)
+    avatarUrl         String?                 @db.Text
+    currentToken      String?                 @db.Text
+    createdAt         DateTime                @db.DateTime(0)
+    updatedAt         DateTime                @db.DateTime(0)
+    isActive          Boolean                 @default(true)
+    graduationYear    Int?
+    averageScore      Decimal?                @db.Decimal(5, 2)
+    AdminActivityLog  AdminActivityLog[]
+    ExamComments      ExamComments[]
+    reportsCreated    AssistantReport[]       @relation("UserReports")
+    reportsReceived   AssistantReport[]       @relation("AssistantReports")
+    attendanceRecords Attendance[]
+    assistantLessons  LessonAssistant[]
+    notifications     Notification[]
+    questionReports   QuestionReport[]
+    sheetLinks        sheetLinks[]
+    classStatuses     StudentClassStatus[]
+    examAttempts      OldStudentExamAttempt[]
+    examStatuses      StudentExamStatus[]
+    studyStatuses     StudentStudyStatus[]
+    tuitionPayments   TuitionPayment[]
+    userTypeCode      AllCode                 @relation("UserType", fields: [userType], references: [code], onDelete: NoAction, map: "user_ibfk_1")
+    classCode         AllCode                 @relation("UserClass", fields: [class], references: [code], onDelete: NoAction, map: "user_ibfk_2")
 
-  @@index([class], map: "class")
-  @@index([phone], map: "idx_user_phone")
-  @@index([userType], map: "idx_user_userType")
-  @@map("user")
+    @@index([class], map: "class")
+    @@index([phone], map: "idx_user_phone")
+    @@index([userType], map: "idx_user_userType")
+    @@map("user")
 }
 
 model AchievementImage {
-  id           Int                 @id @default(autoincrement())
-  categoryId   String              @map("category_id") @db.VarChar(50)
-  imageUrl     String              @map("image_url") @db.VarChar(500)
-  caption      String?             @db.VarChar(200)
-  displayOrder Int                 @map("display_order")
-  isFeatured   Boolean?            @default(false) @map("is_featured")
-  createdAt    DateTime            @default(now()) @db.DateTime(0)
-  updatedAt    DateTime            @default(now()) @db.DateTime(0)
-  category     AchievementCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "achievement_images_ibfk_1")
+    id           Int                 @id @default(autoincrement())
+    categoryId   String              @map("category_id") @db.VarChar(50)
+    imageUrl     String              @map("image_url") @db.VarChar(500)
+    caption      String?             @db.VarChar(200)
+    displayOrder Int                 @map("display_order")
+    isFeatured   Boolean?            @default(false) @map("is_featured")
+    createdAt    DateTime            @default(now()) @db.DateTime(0)
+    updatedAt    DateTime            @default(now()) @db.DateTime(0)
+    category     AchievementCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "achievement_images_ibfk_1")
 
-  @@index([categoryId], map: "category_id")
-  @@map("achievement_images")
+    @@index([categoryId], map: "category_id")
+    @@map("achievement_images")
 }
 
 model AchievementStat {
-  id           Int                 @id @default(autoincrement())
-  categoryId   String              @map("category_id") @db.VarChar(50)
-  value        String              @db.VarChar(20)
-  label        String              @db.VarChar(200)
-  displayOrder Int                 @map("display_order")
-  createdAt    DateTime            @default(now()) @db.DateTime(0)
-  updatedAt    DateTime            @default(now()) @db.DateTime(0)
-  category     AchievementCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "achievement_stats_ibfk_1")
+    id           Int                 @id @default(autoincrement())
+    categoryId   String              @map("category_id") @db.VarChar(50)
+    value        String              @db.VarChar(20)
+    label        String              @db.VarChar(200)
+    displayOrder Int                 @map("display_order")
+    createdAt    DateTime            @default(now()) @db.DateTime(0)
+    updatedAt    DateTime            @default(now()) @db.DateTime(0)
+    category     AchievementCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "achievement_stats_ibfk_1")
 
-  @@index([categoryId], map: "category_id")
-  @@map("achievement_stats")
+    @@index([categoryId], map: "category_id")
+    @@map("achievement_stats")
 }
 
 model AllCode {
-  code                  String               @id @db.VarChar(255)
-  type                  String               @db.VarChar(255)
-  description           String               @db.Text
-  createdAt             DateTime             @db.DateTime(0)
-  updatedAt             DateTime             @db.DateTime(0)
-  articleTypes          Article[]            @relation("ArticleType")
-  articleClasses        Article[]            @relation("ArticleClass")
-  articleChapters       Article[]            @relation("ArticleChapter")
-  cheatTypes            Cheat[]
-  classDays1            OldClass[]           @relation("ClassDay1")
-  classDays2            OldClass[]           @relation("ClassDay2")
-  classAcademicYears    OldClass[]           @relation("ClassAcademicYear")
-  classStatuses         OldClass[]           @relation("ClassStatus")
-  examClasses           OldExam[]            @relation("ExamClass")
-  examTypes             OldExam[]            @relation("ExamType")
-  examChapters          OldExam[]            @relation("ExamChapter")
-  examYears             OldExam[]            @relation("ExamYear")
-  learningItemTypes     LearningItem[]       @relation("LearningItemType")
-  lessonChapters        OldLesson[]          @relation("LessonChapter")
-  questionClasses       OldQuestion[]        @relation("QuestionClass")
-  questionTypes         OldQuestion[]        @relation("QuestionType")
-  questionDifficulties  OldQuestion[]        @relation("QuestionDifficulty")
-  questionChapters      OldQuestion[]        @relation("QuestionChapter")
-  statementDifficulties Statement[]          @relation("StatementDifficulty")
-  studentClassStatuses  StudentClassStatus[] @relation("StudentClassStatusType")
-  userTypes             OldUser[]            @relation("UserType")
-  userClasses           OldUser[]            @relation("UserClass")
+    code                  String               @id @db.VarChar(255)
+    type                  String               @db.VarChar(255)
+    description           String               @db.Text
+    createdAt             DateTime             @db.DateTime(0)
+    updatedAt             DateTime             @db.DateTime(0)
+    articleTypes          Article[]            @relation("ArticleType")
+    articleClasses        Article[]            @relation("ArticleClass")
+    articleChapters       Article[]            @relation("ArticleChapter")
+    cheatTypes            Cheat[]
+    classDays1            OldClass[]           @relation("ClassDay1")
+    classDays2            OldClass[]           @relation("ClassDay2")
+    classAcademicYears    OldClass[]           @relation("ClassAcademicYear")
+    classStatuses         OldClass[]           @relation("ClassStatus")
+    examClasses           OldExam[]            @relation("ExamClass")
+    examTypes             OldExam[]            @relation("ExamType")
+    examChapters          OldExam[]            @relation("ExamChapter")
+    examYears             OldExam[]            @relation("ExamYear")
+    learningItemTypes     LearningItem[]       @relation("LearningItemType")
+    lessonChapters        OldLesson[]          @relation("LessonChapter")
+    questionClasses       OldQuestion[]        @relation("QuestionClass")
+    questionTypes         OldQuestion[]        @relation("QuestionType")
+    questionDifficulties  OldQuestion[]        @relation("QuestionDifficulty")
+    questionChapters      OldQuestion[]        @relation("QuestionChapter")
+    statementDifficulties Statement[]          @relation("StatementDifficulty")
+    studentClassStatuses  StudentClassStatus[] @relation("StudentClassStatusType")
+    userTypes             OldUser[]            @relation("UserType")
+    userClasses           OldUser[]            @relation("UserClass")
 
-  @@map("allCode")
+    @@map("allCode")
 }
 
 model Answer {
-  id            Int                   @id @default(autoincrement())
-  attemptId     Int
-  questionId    Int
-  answerContent String?               @db.VarChar(255)
-  result        Boolean?
-  score         Float?                @db.Float
-  createdAt     DateTime              @db.DateTime(0)
-  updatedAt     DateTime              @db.DateTime(0)
-  attempt       OldStudentExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "answer_ibfk_1")
-  question      OldQuestion           @relation(fields: [questionId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "answer_ibfk_2")
+    id            Int                   @id @default(autoincrement())
+    attemptId     Int
+    questionId    Int
+    answerContent String?               @db.VarChar(255)
+    result        Boolean?
+    score         Float?                @db.Float
+    createdAt     DateTime              @db.DateTime(0)
+    updatedAt     DateTime              @db.DateTime(0)
+    attempt       OldStudentExamAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "answer_ibfk_1")
+    question      OldQuestion           @relation(fields: [questionId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "answer_ibfk_2")
 
-  @@index([attemptId], map: "attemptId")
-  @@index([questionId], map: "questionId")
-  @@map("answer")
+    @@index([attemptId], map: "attemptId")
+    @@index([questionId], map: "questionId")
+    @@map("answer")
 }
 
 model Article {
-  id          Int      @id @default(autoincrement())
-  name        String   @db.VarChar(255)
-  type        String   @db.VarChar(255)
-  class       String?  @db.VarChar(255)
-  chapter     String?  @db.VarChar(255)
-  title       String   @db.VarChar(255)
-  content     String   @db.LongText
-  author      String   @db.VarChar(255)
-  createdAt   DateTime @db.DateTime(0)
-  updatedAt   DateTime @db.DateTime(0)
-  typeCode    AllCode  @relation("ArticleType", fields: [type], references: [code], onDelete: Cascade, map: "article_ibfk_1")
-  classCode   AllCode? @relation("ArticleClass", fields: [class], references: [code], map: "article_ibfk_2")
-  chapterCode AllCode? @relation("ArticleChapter", fields: [chapter], references: [code], map: "article_ibfk_3")
+    id          Int      @id @default(autoincrement())
+    name        String   @db.VarChar(255)
+    type        String   @db.VarChar(255)
+    class       String?  @db.VarChar(255)
+    chapter     String?  @db.VarChar(255)
+    title       String   @db.VarChar(255)
+    content     String   @db.LongText
+    author      String   @db.VarChar(255)
+    createdAt   DateTime @db.DateTime(0)
+    updatedAt   DateTime @db.DateTime(0)
+    typeCode    AllCode  @relation("ArticleType", fields: [type], references: [code], onDelete: Cascade, map: "article_ibfk_1")
+    classCode   AllCode? @relation("ArticleClass", fields: [class], references: [code], map: "article_ibfk_2")
+    chapterCode AllCode? @relation("ArticleChapter", fields: [chapter], references: [code], map: "article_ibfk_3")
 
-  @@index([chapter], map: "chapter")
-  @@index([class], map: "class")
-  @@index([type], map: "type")
-  @@map("article")
+    @@index([chapter], map: "chapter")
+    @@index([class], map: "class")
+    @@index([type], map: "type")
+    @@map("article")
 }
 
 model AssistantReport {
-  id          Int      @id @default(autoincrement())
-  userId      Int
-  assistantId Int
-  content     String   @db.Text
-  star        Int
-  createdAt   DateTime @default(now()) @db.DateTime(0)
-  user        OldUser  @relation("UserReports", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "assistantReport_ibfk_1")
-  assistant   OldUser  @relation("AssistantReports", fields: [assistantId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "assistantReport_ibfk_2")
+    id          Int      @id @default(autoincrement())
+    userId      Int
+    assistantId Int
+    content     String   @db.Text
+    star        Int
+    createdAt   DateTime @default(now()) @db.DateTime(0)
+    user        OldUser  @relation("UserReports", fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "assistantReport_ibfk_1")
+    assistant   OldUser  @relation("AssistantReports", fields: [assistantId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "assistantReport_ibfk_2")
 
-  @@index([assistantId], map: "assistantId")
-  @@index([userId], map: "userId")
-  @@map("assistantReport")
+    @@index([assistantId], map: "assistantId")
+    @@index([userId], map: "userId")
+    @@map("assistantReport")
 }
 
 model Attendance {
-  id                 Int               @id @default(autoincrement())
-  userId             Int
-  lessonId           Int
-  status             attendance_status @default(present)
-  attendanceTime     DateTime          @default(now()) @db.DateTime(0)
-  note               String?           @db.Text
-  createdAt          DateTime          @default(now()) @db.DateTime(0)
-  updatedAt          DateTime          @default(now()) @db.DateTime(0)
-  assignmentFeedback String?           @db.Text
-  hasMessagedParent  Boolean           @default(false)
-  user               OldUser           @relation(fields: [userId], references: [id], onDelete: Cascade, map: "attendance_ibfk_1")
-  lesson             OldLesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade, map: "attendance_ibfk_2")
+    id                 Int               @id @default(autoincrement())
+    userId             Int
+    lessonId           Int
+    status             attendance_status @default(present)
+    attendanceTime     DateTime          @default(now()) @db.DateTime(0)
+    note               String?           @db.Text
+    createdAt          DateTime          @default(now()) @db.DateTime(0)
+    updatedAt          DateTime          @default(now()) @db.DateTime(0)
+    assignmentFeedback String?           @db.Text
+    hasMessagedParent  Boolean           @default(false)
+    user               OldUser           @relation(fields: [userId], references: [id], onDelete: Cascade, map: "attendance_ibfk_1")
+    lesson             OldLesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade, map: "attendance_ibfk_2")
 
-  @@unique([userId, lessonId], map: "unique_attendance_per_user_per_lesson")
-  @@index([lessonId], map: "lessonId")
-  @@map("attendance")
+    @@unique([userId, lessonId], map: "unique_attendance_per_user_per_lesson")
+    @@index([lessonId], map: "lessonId")
+    @@map("attendance")
 }
 
 model Cheat {
-  id          Int                    @id @default(autoincrement())
-  typeOfCheat String                 @db.VarChar(255)
-  attemptId   Int?
-  createdAt   DateTime               @db.DateTime(0)
-  type        AllCode                @relation(fields: [typeOfCheat], references: [code], onDelete: NoAction, map: "cheat_ibfk_1")
-  attempt     OldStudentExamAttempt? @relation(fields: [attemptId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "cheat_ibfk_2")
+    id          Int                    @id @default(autoincrement())
+    typeOfCheat String                 @db.VarChar(255)
+    attemptId   Int?
+    createdAt   DateTime               @db.DateTime(0)
+    type        AllCode                @relation(fields: [typeOfCheat], references: [code], onDelete: NoAction, map: "cheat_ibfk_1")
+    attempt     OldStudentExamAttempt? @relation(fields: [attemptId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "cheat_ibfk_2")
 
-  @@index([attemptId], map: "attemptId")
-  @@index([typeOfCheat], map: "typeOfCheat")
-  @@map("cheat")
+    @@index([attemptId], map: "attemptId")
+    @@index([typeOfCheat], map: "typeOfCheat")
+    @@map("cheat")
 }
 
 model OldClass {
-  id               Int                  @id @default(autoincrement())
-  classCode        String               @unique(map: "class_code") @map("class_code") @db.VarChar(20)
-  name             String               @db.VarChar(255)
-  grade            String?              @db.VarChar(2)
-  description      String?              @db.Text
-  academicYear     String               @db.VarChar(255)
-  status           String               @db.VarChar(255)
-  slideId          Int?
-  startTime2       DateTime?            @db.Time(0)
-  endTime2         DateTime?            @db.Time(0)
-  startTime1       DateTime?            @db.Time(0)
-  endTime1         DateTime?            @db.Time(0)
-  public           Boolean              @default(false)
-  createdAt        DateTime             @db.DateTime(0)
-  updatedAt        DateTime             @db.DateTime(0)
-  dayOfWeek1       String?              @db.VarChar(255)
-  dayOfWeek2       String?              @db.VarChar(255)
-  teacher          String?              @db.VarChar(255)
-  day1Code         AllCode?             @relation("ClassDay1", fields: [dayOfWeek1], references: [code], map: "class_dayOfWeek1_foreign_idx")
-  day2Code         AllCode?             @relation("ClassDay2", fields: [dayOfWeek2], references: [code], map: "class_dayOfWeek2_foreign_idx")
-  academicYearCode AllCode              @relation("ClassAcademicYear", fields: [academicYear], references: [code], onDelete: NoAction, map: "class_ibfk_1")
-  statusCode       AllCode              @relation("ClassStatus", fields: [status], references: [code], onDelete: NoAction, map: "class_ibfk_2")
-  slide            OldSlide?            @relation(fields: [slideId], references: [id], onUpdate: NoAction, map: "class_ibfk_3")
-  lessons          OldLesson[]
-  studentStatuses  StudentClassStatus[]
+    id               Int                  @id @default(autoincrement())
+    classCode        String               @unique(map: "class_code") @map("class_code") @db.VarChar(20)
+    name             String               @db.VarChar(255)
+    grade            String?              @db.VarChar(2)
+    description      String?              @db.Text
+    academicYear     String               @db.VarChar(255)
+    status           String               @db.VarChar(255)
+    slideId          Int?
+    startTime2       DateTime?            @db.Time(0)
+    endTime2         DateTime?            @db.Time(0)
+    startTime1       DateTime?            @db.Time(0)
+    endTime1         DateTime?            @db.Time(0)
+    public           Boolean              @default(false)
+    createdAt        DateTime             @db.DateTime(0)
+    updatedAt        DateTime             @db.DateTime(0)
+    dayOfWeek1       String?              @db.VarChar(255)
+    dayOfWeek2       String?              @db.VarChar(255)
+    teacher          String?              @db.VarChar(255)
+    day1Code         AllCode?             @relation("ClassDay1", fields: [dayOfWeek1], references: [code], map: "class_dayOfWeek1_foreign_idx")
+    day2Code         AllCode?             @relation("ClassDay2", fields: [dayOfWeek2], references: [code], map: "class_dayOfWeek2_foreign_idx")
+    academicYearCode AllCode              @relation("ClassAcademicYear", fields: [academicYear], references: [code], onDelete: NoAction, map: "class_ibfk_1")
+    statusCode       AllCode              @relation("ClassStatus", fields: [status], references: [code], onDelete: NoAction, map: "class_ibfk_2")
+    slide            OldSlide?            @relation(fields: [slideId], references: [id], onUpdate: NoAction, map: "class_ibfk_3")
+    lessons          OldLesson[]
+    studentStatuses  StudentClassStatus[]
 
-  @@index([dayOfWeek1], map: "class_dayOfWeek1_foreign_idx")
-  @@index([dayOfWeek2], map: "class_dayOfWeek2_foreign_idx")
-  @@index([academicYear], map: "idx_class_academicYear")
-  @@index([grade], map: "idx_class_grade")
-  @@index([status], map: "idx_class_status")
-  @@index([slideId], map: "slideId")
-  @@map("class")
+    @@index([dayOfWeek1], map: "class_dayOfWeek1_foreign_idx")
+    @@index([dayOfWeek2], map: "class_dayOfWeek2_foreign_idx")
+    @@index([academicYear], map: "idx_class_academicYear")
+    @@index([grade], map: "idx_class_grade")
+    @@index([status], map: "idx_class_status")
+    @@index([slideId], map: "slideId")
+    @@map("class")
 }
 
 model OldExam {
-  id                     Int                     @id @default(autoincrement())
-  name                   String                  @db.VarChar(255)
-  class                  String                  @db.VarChar(255)
-  typeOfExam             String                  @db.VarChar(255)
-  chapter                String?                 @db.VarChar(255)
-  year                   String                  @db.VarChar(255)
-  testDuration           Int?
-  description            String?                 @db.Text
-  passRate               Int?
-  solutionUrl            String?                 @db.Text
-  solutionPdfUrl         String?                 @db.Text
-  imageUrl               String?                 @db.Text
-  public                 Boolean                 @default(false)
-  seeCorrectAnswer       Boolean                 @default(true)
-  attemptLimit           Int?                    @default(1)
-  isCheatingCheckEnabled Boolean                 @default(false)
-  createdAt              DateTime                @db.DateTime(0)
-  updatedAt              DateTime                @db.DateTime(0)
-  acceptDoExam           Boolean                 @default(true)
-  isClassroomExam        Boolean                 @default(true)
-  fileUrl                String?                 @db.Text
-  ExamComments           ExamComments[]
-  classCode              AllCode                 @relation("ExamClass", fields: [class], references: [code], onDelete: NoAction, map: "exam_ibfk_1")
-  typeCode               AllCode                 @relation("ExamType", fields: [typeOfExam], references: [code], onDelete: NoAction, map: "exam_ibfk_2")
-  chapterCode            AllCode?                @relation("ExamChapter", fields: [chapter], references: [code], map: "exam_ibfk_3")
-  yearCode               AllCode                 @relation("ExamYear", fields: [year], references: [code], onDelete: NoAction, map: "exam_ibfk_4")
-  examQuestions          ExamQuestion[]
-  attempts               OldStudentExamAttempt[]
-  studentStatuses        StudentExamStatus[]
+    id                     Int                     @id @default(autoincrement())
+    name                   String                  @db.VarChar(255)
+    class                  String                  @db.VarChar(255)
+    typeOfExam             String                  @db.VarChar(255)
+    chapter                String?                 @db.VarChar(255)
+    year                   String                  @db.VarChar(255)
+    testDuration           Int?
+    description            String?                 @db.Text
+    passRate               Int?
+    solutionUrl            String?                 @db.Text
+    solutionPdfUrl         String?                 @db.Text
+    imageUrl               String?                 @db.Text
+    public                 Boolean                 @default(false)
+    seeCorrectAnswer       Boolean                 @default(true)
+    attemptLimit           Int?                    @default(1)
+    isCheatingCheckEnabled Boolean                 @default(false)
+    createdAt              DateTime                @db.DateTime(0)
+    updatedAt              DateTime                @db.DateTime(0)
+    acceptDoExam           Boolean                 @default(true)
+    isClassroomExam        Boolean                 @default(true)
+    fileUrl                String?                 @db.Text
+    ExamComments           ExamComments[]
+    classCode              AllCode                 @relation("ExamClass", fields: [class], references: [code], onDelete: NoAction, map: "exam_ibfk_1")
+    typeCode               AllCode                 @relation("ExamType", fields: [typeOfExam], references: [code], onDelete: NoAction, map: "exam_ibfk_2")
+    chapterCode            AllCode?                @relation("ExamChapter", fields: [chapter], references: [code], map: "exam_ibfk_3")
+    yearCode               AllCode                 @relation("ExamYear", fields: [year], references: [code], onDelete: NoAction, map: "exam_ibfk_4")
+    examQuestions          ExamQuestion[]
+    attempts               OldStudentExamAttempt[]
+    studentStatuses        StudentExamStatus[]
 
-  @@index([chapter], map: "chapter")
-  @@index([class], map: "class")
-  @@index([typeOfExam], map: "typeOfExam")
-  @@index([year], map: "year")
-  @@fulltext([name], map: "exam_name_fulltext")
-  @@map("exam")
+    @@index([chapter], map: "chapter")
+    @@index([class], map: "class")
+    @@index([typeOfExam], map: "typeOfExam")
+    @@index([year], map: "year")
+    @@fulltext([name], map: "exam_name_fulltext")
+    @@map("exam")
 }
 
 model ExamQuestion {
-  id         Int         @id @default(autoincrement())
-  questionId Int
-  examId     Int
-  order      Int?
-  question   OldQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "examQuestions_ibfk_1")
-  exam       OldExam     @relation(fields: [examId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "examQuestions_ibfk_2")
+    id         Int         @id @default(autoincrement())
+    questionId Int
+    examId     Int
+    order      Int?
+    question   OldQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "examQuestions_ibfk_1")
+    exam       OldExam     @relation(fields: [examId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "examQuestions_ibfk_2")
 
-  @@index([examId], map: "examId")
-  @@index([questionId], map: "questionId")
-  @@map("examQuestions")
+    @@index([examId], map: "examId")
+    @@index([questionId], map: "questionId")
+    @@map("examQuestions")
 }
 
 model LearningItem {
-  id                   Int                  @id @default(autoincrement())
-  name                 String               @db.VarChar(255)
-  typeOfLearningItem   String               @db.VarChar(255)
-  url                  String?              @db.Text
-  deadline             DateTime?            @db.DateTime(0)
-  lessonId             Int
-  createdAt            DateTime             @db.DateTime(0)
-  updatedAt            DateTime             @db.DateTime(0)
-  description          String?              @db.Text
-  typeCode             AllCode              @relation("LearningItemType", fields: [typeOfLearningItem], references: [code], onDelete: NoAction, map: "learningItem_ibfk_1")
-  lesson               OldLesson            @relation(fields: [lessonId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "learningItem_ibfk_2")
-  studentStudyStatuses StudentStudyStatus[]
+    id                   Int                  @id @default(autoincrement())
+    name                 String               @db.VarChar(255)
+    typeOfLearningItem   String               @db.VarChar(255)
+    url                  String?              @db.Text
+    deadline             DateTime?            @db.DateTime(0)
+    lessonId             Int
+    createdAt            DateTime             @db.DateTime(0)
+    updatedAt            DateTime             @db.DateTime(0)
+    description          String?              @db.Text
+    typeCode             AllCode              @relation("LearningItemType", fields: [typeOfLearningItem], references: [code], onDelete: NoAction, map: "learningItem_ibfk_1")
+    lesson               OldLesson            @relation(fields: [lessonId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "learningItem_ibfk_2")
+    studentStudyStatuses StudentStudyStatus[]
 
-  @@index([lessonId], map: "idx_learningItem_lessonId")
-  @@index([typeOfLearningItem], map: "typeOfLearningItem")
-  @@map("learningItem")
+    @@index([lessonId], map: "idx_learningItem_lessonId")
+    @@index([typeOfLearningItem], map: "typeOfLearningItem")
+    @@map("learningItem")
 }
 
 model OldLesson {
-  id                Int               @id @default(autoincrement())
-  name              String            @db.VarChar(255)
-  description       String?           @db.Text
-  learningItemCount Int?              @default(0)
-  day               DateTime          @db.DateTime(0)
-  classId           Int
-  chapter           String?           @db.VarChar(255)
-  createdAt         DateTime          @db.DateTime(0)
-  updatedAt         DateTime          @db.DateTime(0)
-  attendance        Attendance[]
-  learningItems     LearningItem[]
-  class             OldClass          @relation(fields: [classId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "lesson_ibfk_1")
-  chapterCode       AllCode?          @relation("LessonChapter", fields: [chapter], references: [code], map: "lesson_ibfk_2")
-  lessonAssistants  LessonAssistant[]
+    id                Int               @id @default(autoincrement())
+    name              String            @db.VarChar(255)
+    description       String?           @db.Text
+    learningItemCount Int?              @default(0)
+    day               DateTime          @db.DateTime(0)
+    classId           Int
+    chapter           String?           @db.VarChar(255)
+    createdAt         DateTime          @db.DateTime(0)
+    updatedAt         DateTime          @db.DateTime(0)
+    attendance        Attendance[]
+    learningItems     LearningItem[]
+    class             OldClass          @relation(fields: [classId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "lesson_ibfk_1")
+    chapterCode       AllCode?          @relation("LessonChapter", fields: [chapter], references: [code], map: "lesson_ibfk_2")
+    lessonAssistants  LessonAssistant[]
 
-  @@index([chapter], map: "chapter")
-  @@index([classId], map: "idx_lesson_classId")
-  @@map("lesson")
+    @@index([chapter], map: "chapter")
+    @@index([classId], map: "idx_lesson_classId")
+    @@map("lesson")
 }
 
 model LessonAssistant {
-  lessonId    Int
-  assistantId Int
-  lesson      OldLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "lessonAssistants_ibfk_1")
-  assistant   OldUser   @relation(fields: [assistantId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "lessonAssistants_ibfk_2")
+    lessonId    Int
+    assistantId Int
+    lesson      OldLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "lessonAssistants_ibfk_1")
+    assistant   OldUser   @relation(fields: [assistantId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "lessonAssistants_ibfk_2")
 
-  @@id([lessonId, assistantId])
-  @@index([assistantId], map: "assistantId")
-  @@map("lessonAssistants")
+    @@id([lessonId, assistantId])
+    @@index([assistantId], map: "assistantId")
+    @@map("lessonAssistants")
 }
 
 model Notification {
-  id          Int      @id @default(autoincrement())
-  userId      Int
-  title       String   @db.VarChar(255)
-  content     String   @db.Text
-  type        String   @db.VarChar(50)
-  isRead      Boolean  @default(false)
-  relatedId   Int?
-  relatedType String?  @db.VarChar(50)
-  actionUrl   String?  @db.VarChar(255)
-  createdAt   DateTime @default(now()) @db.DateTime(0)
-  updatedAt   DateTime @default(now()) @db.DateTime(0)
-  user        OldUser  @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "notification_ibfk_1")
+    id          Int      @id @default(autoincrement())
+    userId      Int
+    title       String   @db.VarChar(255)
+    content     String   @db.Text
+    type        String   @db.VarChar(50)
+    isRead      Boolean  @default(false)
+    relatedId   Int?
+    relatedType String?  @db.VarChar(50)
+    actionUrl   String?  @db.VarChar(255)
+    createdAt   DateTime @default(now()) @db.DateTime(0)
+    updatedAt   DateTime @default(now()) @db.DateTime(0)
+    user        OldUser  @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "notification_ibfk_1")
 
-  @@index([createdAt], map: "notification_created_at")
-  @@index([isRead], map: "notification_is_read")
-  @@index([type], map: "notification_type")
-  @@index([userId], map: "notification_user_id")
-  @@map("notification")
+    @@index([createdAt], map: "notification_created_at")
+    @@index([isRead], map: "notification_is_read")
+    @@index([type], map: "notification_type")
+    @@index([userId], map: "notification_user_id")
+    @@map("notification")
 }
 
 model OldQuestion {
-  id                   Int                    @id @default(autoincrement())
-  class                String                 @db.VarChar(255)
-  content              String                 @db.Text
-  typeOfQuestion       String                 @db.VarChar(255)
-  correctAnswer        String?                @db.VarChar(255)
-  difficulty           String?                @db.VarChar(255)
-  chapter              String?                @db.VarChar(255)
-  description          String?                @db.Text
-  solution             String?                @db.Text
-  solutionUrl          String?                @db.Text
-  imageUrl             String?                @db.Text
-  solutionImageUrl     String?                @db.Text
-  createdAt            DateTime               @db.DateTime(0)
-  updatedAt            DateTime               @db.DateTime(0)
-  answers              Answer[]
-  examQuestions        ExamQuestion[]
-  classCode            AllCode                @relation("QuestionClass", fields: [class], references: [code], onDelete: NoAction, map: "question_ibfk_1")
-  typeCode             AllCode                @relation("QuestionType", fields: [typeOfQuestion], references: [code], onDelete: NoAction, map: "question_ibfk_2")
-  difficultyCode       AllCode?               @relation("QuestionDifficulty", fields: [difficulty], references: [code], map: "question_ibfk_3")
-  chapterCode          AllCode?               @relation("QuestionChapter", fields: [chapter], references: [code], map: "question_ibfk_4")
-  questionReports      QuestionReport[]
-  responseGPTQuestions responseGPTQuestions[]
-  statements           Statement[]
+    id                   Int                    @id @default(autoincrement())
+    class                String                 @db.VarChar(255)
+    content              String                 @db.Text
+    typeOfQuestion       String                 @db.VarChar(255)
+    correctAnswer        String?                @db.VarChar(255)
+    difficulty           String?                @db.VarChar(255)
+    chapter              String?                @db.VarChar(255)
+    description          String?                @db.Text
+    solution             String?                @db.Text
+    solutionUrl          String?                @db.Text
+    imageUrl             String?                @db.Text
+    solutionImageUrl     String?                @db.Text
+    createdAt            DateTime               @db.DateTime(0)
+    updatedAt            DateTime               @db.DateTime(0)
+    answers              Answer[]
+    examQuestions        ExamQuestion[]
+    classCode            AllCode                @relation("QuestionClass", fields: [class], references: [code], onDelete: NoAction, map: "question_ibfk_1")
+    typeCode             AllCode                @relation("QuestionType", fields: [typeOfQuestion], references: [code], onDelete: NoAction, map: "question_ibfk_2")
+    difficultyCode       AllCode?               @relation("QuestionDifficulty", fields: [difficulty], references: [code], map: "question_ibfk_3")
+    chapterCode          AllCode?               @relation("QuestionChapter", fields: [chapter], references: [code], map: "question_ibfk_4")
+    questionReports      QuestionReport[]
+    responseGPTQuestions responseGPTQuestions[]
+    statements           Statement[]
 
-  @@index([chapter], map: "chapter")
-  @@index([class], map: "class")
-  @@index([difficulty], map: "difficulty")
-  @@index([typeOfQuestion], map: "typeOfQuestion")
-  @@fulltext([content], map: "question_content_fulltext")
-  @@map("question")
+    @@index([chapter], map: "chapter")
+    @@index([class], map: "class")
+    @@index([difficulty], map: "difficulty")
+    @@index([typeOfQuestion], map: "typeOfQuestion")
+    @@fulltext([content], map: "question_content_fulltext")
+    @@map("question")
 }
 
 model QuestionReport {
-  id         Int         @id @default(autoincrement())
-  userId     Int
-  questionId Int
-  isHandled  Boolean     @default(false)
-  content    String      @db.Text
-  createdAt  DateTime    @default(now()) @db.DateTime(0)
-  user       OldUser     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "questionReport_ibfk_1")
-  question   OldQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "questionReport_ibfk_2")
+    id         Int         @id @default(autoincrement())
+    userId     Int
+    questionId Int
+    isHandled  Boolean     @default(false)
+    content    String      @db.Text
+    createdAt  DateTime    @default(now()) @db.DateTime(0)
+    user       OldUser     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "questionReport_ibfk_1")
+    question   OldQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "questionReport_ibfk_2")
 
-  @@index([questionId], map: "questionId")
-  @@index([userId], map: "userId")
-  @@map("questionReport")
+    @@index([questionId], map: "questionId")
+    @@index([userId], map: "userId")
+    @@map("questionReport")
 }
 
 model SlideImage {
-  id        Int      @id @default(autoincrement())
-  slideId   Int
-  imageUrl  String?  @db.VarChar(255)
-  createdAt DateTime @db.DateTime(0)
-  updatedAt DateTime @db.DateTime(0)
-  slide     OldSlide @relation(fields: [slideId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "slideImages_ibfk_1")
+    id        Int      @id @default(autoincrement())
+    slideId   Int
+    imageUrl  String?  @db.VarChar(255)
+    createdAt DateTime @db.DateTime(0)
+    updatedAt DateTime @db.DateTime(0)
+    slide     OldSlide @relation(fields: [slideId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "slideImages_ibfk_1")
 
-  @@index([slideId], map: "slideId")
-  @@map("slideImages")
+    @@index([slideId], map: "slideId")
+    @@map("slideImages")
 }
 
 model OldSlide {
-  id          Int          @id @default(autoincrement())
-  title       String?      @db.VarChar(255)
-  description String?      @db.Text
-  createdAt   DateTime     @db.DateTime(0)
-  updatedAt   DateTime     @db.DateTime(0)
-  classes     OldClass[]
-  images      SlideImage[]
+    id          Int          @id @default(autoincrement())
+    title       String?      @db.VarChar(255)
+    description String?      @db.Text
+    createdAt   DateTime     @db.DateTime(0)
+    updatedAt   DateTime     @db.DateTime(0)
+    classes     OldClass[]
+    images      SlideImage[]
 
-  @@map("slides")
+    @@map("slides")
 }
 
 model Statement {
-  id             Int         @id @default(autoincrement())
-  content        String      @db.Text
-  isCorrect      Boolean     @default(false)
-  questionId     Int
-  difficulty     String?     @db.VarChar(255)
-  imageUrl       String?     @db.Text
-  order          Int?
-  createdAt      DateTime    @db.DateTime(0)
-  updatedAt      DateTime    @db.DateTime(0)
-  question       OldQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "statement_ibfk_1")
-  difficultyCode AllCode?    @relation("StatementDifficulty", fields: [difficulty], references: [code], map: "statement_ibfk_2")
+    id             Int         @id @default(autoincrement())
+    content        String      @db.Text
+    isCorrect      Boolean     @default(false)
+    questionId     Int
+    difficulty     String?     @db.VarChar(255)
+    imageUrl       String?     @db.Text
+    order          Int?
+    createdAt      DateTime    @db.DateTime(0)
+    updatedAt      DateTime    @db.DateTime(0)
+    question       OldQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "statement_ibfk_1")
+    difficultyCode AllCode?    @relation("StatementDifficulty", fields: [difficulty], references: [code], map: "statement_ibfk_2")
 
-  @@index([difficulty], map: "difficulty")
-  @@index([questionId], map: "questionId")
-  @@map("statement")
+    @@index([difficulty], map: "difficulty")
+    @@index([questionId], map: "questionId")
+    @@map("statement")
 }
 
 model StudentClassStatus {
-  studentId  Int
-  classId    Int
-  status     String   @db.VarChar(255)
-  createdAt  DateTime @default(now()) @db.DateTime(0)
-  student    OldUser  @relation(fields: [studentId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "studentClassStatus_ibfk_1")
-  class      OldClass @relation(fields: [classId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "studentClassStatus_ibfk_2")
-  statusCode AllCode  @relation("StudentClassStatusType", fields: [status], references: [code], onDelete: NoAction, map: "studentClassStatus_ibfk_3")
+    studentId  Int
+    classId    Int
+    status     String   @db.VarChar(255)
+    createdAt  DateTime @default(now()) @db.DateTime(0)
+    student    OldUser  @relation(fields: [studentId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "studentClassStatus_ibfk_1")
+    class      OldClass @relation(fields: [classId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "studentClassStatus_ibfk_2")
+    statusCode AllCode  @relation("StudentClassStatusType", fields: [status], references: [code], onDelete: NoAction, map: "studentClassStatus_ibfk_3")
 
-  @@id([studentId, classId])
-  @@index([classId], map: "classId")
-  @@index([status], map: "status")
-  @@map("studentClassStatus")
+    @@id([studentId, classId])
+    @@index([classId], map: "classId")
+    @@index([status], map: "status")
+    @@map("studentClassStatus")
 }
 
 model OldStudentExamAttempt {
-  id        Int       @id @default(autoincrement())
-  studentId Int
-  examId    Int
-  startTime DateTime  @db.DateTime(0)
-  endTime   DateTime? @db.DateTime(0)
-  score     Float?    @db.Float
-  answers   Answer[]
-  cheats    Cheat[]
-  student   OldUser   @relation(fields: [studentId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "studentExamAttempt_ibfk_1")
-  exam      OldExam   @relation(fields: [examId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "studentExamAttempt_ibfk_2")
+    id        Int       @id @default(autoincrement())
+    studentId Int
+    examId    Int
+    startTime DateTime  @db.DateTime(0)
+    endTime   DateTime? @db.DateTime(0)
+    score     Float?    @db.Float
+    answers   Answer[]
+    cheats    Cheat[]
+    student   OldUser   @relation(fields: [studentId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "studentExamAttempt_ibfk_1")
+    exam      OldExam   @relation(fields: [examId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "studentExamAttempt_ibfk_2")
 
-  @@index([examId], map: "examId")
-  @@index([studentId], map: "studentId")
-  @@map("studentExamAttempt")
+    @@index([examId], map: "examId")
+    @@index([studentId], map: "studentId")
+    @@map("studentExamAttempt")
 }
 
 model StudentExamStatus {
-  id        Int      @id @default(autoincrement())
-  studentId Int
-  examId    Int
-  isDone    Boolean? @default(false)
-  isSave    Boolean? @default(false)
-  star      Decimal? @db.Decimal(3, 1)
-  student   OldUser  @relation(fields: [studentId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "studentExamStatus_ibfk_1")
-  exam      OldExam  @relation(fields: [examId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "studentExamStatus_ibfk_2")
+    id        Int      @id @default(autoincrement())
+    studentId Int
+    examId    Int
+    isDone    Boolean? @default(false)
+    isSave    Boolean? @default(false)
+    star      Decimal? @db.Decimal(3, 1)
+    student   OldUser  @relation(fields: [studentId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "studentExamStatus_ibfk_1")
+    exam      OldExam  @relation(fields: [examId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "studentExamStatus_ibfk_2")
 
-  @@index([examId], map: "examId")
-  @@index([studentId], map: "studentId")
-  @@map("studentExamStatus")
+    @@index([examId], map: "examId")
+    @@index([studentId], map: "studentId")
+    @@map("studentExamStatus")
 }
 
 model StudentStudyStatus {
-  learningItemId Int
-  studentId      Int
-  isDone         Boolean?     @default(false)
-  studyTime      DateTime?    @db.DateTime(0)
-  createdAt      DateTime     @db.DateTime(0)
-  updatedAt      DateTime     @db.DateTime(0)
-  learningItem   LearningItem @relation(fields: [learningItemId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "studentStudyStatus_ibfk_1")
-  student        OldUser      @relation(fields: [studentId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "studentStudyStatus_ibfk_2")
+    learningItemId Int
+    studentId      Int
+    isDone         Boolean?     @default(false)
+    studyTime      DateTime?    @db.DateTime(0)
+    createdAt      DateTime     @db.DateTime(0)
+    updatedAt      DateTime     @db.DateTime(0)
+    learningItem   LearningItem @relation(fields: [learningItemId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "studentStudyStatus_ibfk_1")
+    student        OldUser      @relation(fields: [studentId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "studentStudyStatus_ibfk_2")
 
-  @@id([learningItemId, studentId])
-  @@index([studentId], map: "studentId")
-  @@map("studentStudyStatus")
+    @@id([learningItemId, studentId])
+    @@index([studentId], map: "studentId")
+    @@map("studentStudyStatus")
 }
 
 model TuitionPayment {
-  id          Int       @id @default(autoincrement())
-  userId      Int?
-  month       String    @db.VarChar(255)
-  paymentDate DateTime? @db.DateTime(0)
-  dueDate     DateTime? @db.DateTime(0)
-  note        String?   @db.Text
-  createdAt   DateTime  @default(now()) @db.DateTime(0)
-  updatedAt   DateTime  @default(now()) @db.DateTime(0)
-  isPaid      Boolean   @default(false)
-  user        OldUser?  @relation(fields: [userId], references: [id], onDelete: Cascade, map: "tuitionPayment_ibfk_1")
+    id          Int       @id @default(autoincrement())
+    userId      Int?
+    month       String    @db.VarChar(255)
+    paymentDate DateTime? @db.DateTime(0)
+    dueDate     DateTime? @db.DateTime(0)
+    note        String?   @db.Text
+    createdAt   DateTime  @default(now()) @db.DateTime(0)
+    updatedAt   DateTime  @default(now()) @db.DateTime(0)
+    isPaid      Boolean   @default(false)
+    user        OldUser?  @relation(fields: [userId], references: [id], onDelete: Cascade, map: "tuitionPayment_ibfk_1")
 
-  @@unique([userId, month], map: "idx_tuition_payment_user_month")
-  @@map("tuitionPayment")
+    @@unique([userId, month], map: "idx_tuition_payment_user_month")
+    @@map("tuitionPayment")
 }
 
 model AdminActivityLog {
-  id          Int      @id @default(autoincrement())
-  adminId     Int
-  action      String   @db.VarChar(255)
-  targetId    Int?
-  description String?  @db.Text
-  createdAt   DateTime @db.DateTime(0)
-  updatedAt   DateTime @db.DateTime(0)
-  user        OldUser  @relation(fields: [adminId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "AdminActivityLog_ibfk_1")
+    id          Int      @id @default(autoincrement())
+    adminId     Int
+    action      String   @db.VarChar(255)
+    targetId    Int?
+    description String?  @db.Text
+    createdAt   DateTime @db.DateTime(0)
+    updatedAt   DateTime @db.DateTime(0)
+    user        OldUser  @relation(fields: [adminId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "AdminActivityLog_ibfk_1")
 
-  @@index([adminId], map: "adminId")
+    @@index([adminId], map: "adminId")
 }
 
 model ExamComments {
-  id                 Int            @id @default(autoincrement())
-  content            String         @db.Text
-  userId             Int?
-  examId             Int
-  createdAt          DateTime       @db.DateTime(0)
-  updatedAt          DateTime       @db.DateTime(0)
-  commentId          Int?
-  ExamComments       ExamComments?  @relation("ExamCommentsToExamComments", fields: [commentId], references: [id], map: "ExamComments_commentId_foreign_idx")
-  other_ExamComments ExamComments[] @relation("ExamCommentsToExamComments")
-  user               OldUser?       @relation(fields: [userId], references: [id], map: "ExamComments_ibfk_1")
-  exam               OldExam        @relation(fields: [examId], references: [id], onDelete: Cascade, map: "ExamComments_ibfk_2")
+    id                 Int            @id @default(autoincrement())
+    content            String         @db.Text
+    userId             Int?
+    examId             Int
+    createdAt          DateTime       @db.DateTime(0)
+    updatedAt          DateTime       @db.DateTime(0)
+    commentId          Int?
+    ExamComments       ExamComments?  @relation("ExamCommentsToExamComments", fields: [commentId], references: [id], map: "ExamComments_commentId_foreign_idx")
+    other_ExamComments ExamComments[] @relation("ExamCommentsToExamComments")
+    user               OldUser?       @relation(fields: [userId], references: [id], map: "ExamComments_ibfk_1")
+    exam               OldExam        @relation(fields: [examId], references: [id], onDelete: Cascade, map: "ExamComments_ibfk_2")
 
-  @@index([commentId], map: "ExamComments_commentId_foreign_idx")
-  @@index([examId], map: "examId")
-  @@index([userId], map: "userId")
+    @@index([commentId], map: "ExamComments_commentId_foreign_idx")
+    @@index([examId], map: "examId")
+    @@index([userId], map: "userId")
 }
 
 model SequelizeMeta {
-  name String @id @unique(map: "name") @db.VarChar(255)
+    name String @id @unique(map: "name") @db.VarChar(255)
 }
 
 model exam1 {
-  id           Int         @id @default(autoincrement())
-  name         String      @db.VarChar(255)
-  createdAt    DateTime    @db.DateTime(0)
-  updatedAt    DateTime    @db.DateTime(0)
-  markdownExam String?     @db.Text
-  typeOfExam   String?     @db.VarChar(255)
-  year         String?     @db.VarChar(255)
-  public       Boolean     @default(false)
-  class        String?     @db.VarChar(255)
-  imageUrls    String?     @db.LongText
-  question1    question1[]
+    id           Int         @id @default(autoincrement())
+    name         String      @db.VarChar(255)
+    createdAt    DateTime    @db.DateTime(0)
+    updatedAt    DateTime    @db.DateTime(0)
+    markdownExam String?     @db.Text
+    typeOfExam   String?     @db.VarChar(255)
+    year         String?     @db.VarChar(255)
+    public       Boolean     @default(false)
+    class        String?     @db.VarChar(255)
+    imageUrls    String?     @db.LongText
+    question1    question1[]
 }
 
 model question1 {
-  id               Int          @id @default(autoincrement())
-  content          String?      @db.Text
-  examId           Int
-  typeOfQuestion   String?      @db.VarChar(255)
-  correctAnswer    String?      @db.VarChar(255)
-  solution         String?      @db.Text
-  difficulty       String?      @db.VarChar(255)
-  createdAt        DateTime     @db.DateTime(0)
-  updatedAt        DateTime     @db.DateTime(0)
-  chapter          String?      @db.VarChar(255)
-  class            String?      @db.VarChar(255)
-  solutionImageUrl String?      @db.Text
-  imageUrl         String?      @db.Text
-  order            Int?
-  exam1            exam1        @relation(fields: [examId], references: [id], onDelete: Cascade, map: "question1_ibfk_1")
-  statement1       statement1[]
+    id               Int          @id @default(autoincrement())
+    content          String?      @db.Text
+    examId           Int
+    typeOfQuestion   String?      @db.VarChar(255)
+    correctAnswer    String?      @db.VarChar(255)
+    solution         String?      @db.Text
+    difficulty       String?      @db.VarChar(255)
+    createdAt        DateTime     @db.DateTime(0)
+    updatedAt        DateTime     @db.DateTime(0)
+    chapter          String?      @db.VarChar(255)
+    class            String?      @db.VarChar(255)
+    solutionImageUrl String?      @db.Text
+    imageUrl         String?      @db.Text
+    order            Int?
+    exam1            exam1        @relation(fields: [examId], references: [id], onDelete: Cascade, map: "question1_ibfk_1")
+    statement1       statement1[]
 
-  @@index([examId], map: "examId")
+    @@index([examId], map: "examId")
 }
 
 model responseGPTQuestions {
-  id         Int          @id @default(autoincrement())
-  questionId Int?
-  response   String       @db.Text
-  createdAt  DateTime     @default(now()) @db.DateTime(0)
-  updatedAt  DateTime     @default(now()) @db.DateTime(0)
-  messageId  Int
-  question   OldQuestion? @relation(fields: [questionId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "responseGPTQuestions_ibfk_1")
+    id         Int          @id @default(autoincrement())
+    questionId Int?
+    response   String       @db.Text
+    createdAt  DateTime     @default(now()) @db.DateTime(0)
+    updatedAt  DateTime     @default(now()) @db.DateTime(0)
+    messageId  Int
+    question   OldQuestion? @relation(fields: [questionId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "responseGPTQuestions_ibfk_1")
 
-  @@index([questionId], map: "questionId")
+    @@index([questionId], map: "questionId")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model sheetLinks {
-  id          Int                    @id @default(autoincrement())
-  title       String                 @db.VarChar(255)
-  description String?                @db.Text
-  sheetUrl    String                 @db.Text
-  category    String?                @db.VarChar(255)
-  type        sheetLinks_type        @default(OTHER)
-  relatedId   Int?
-  createdBy   Int
-  isActive    Boolean                @default(true)
-  accessLevel sheetLinks_accessLevel @default(CLASS_ONLY)
-  lastUpdated DateTime?              @db.DateTime(0)
-  createdAt   DateTime               @default(now()) @db.DateTime(0)
-  updatedAt   DateTime               @default(now()) @db.DateTime(0)
-  user        OldUser                @relation(fields: [createdBy], references: [id], onDelete: Cascade, map: "sheetLinks_ibfk_1")
+    id          Int                    @id @default(autoincrement())
+    title       String                 @db.VarChar(255)
+    description String?                @db.Text
+    sheetUrl    String                 @db.Text
+    category    String?                @db.VarChar(255)
+    type        sheetLinks_type        @default(OTHER)
+    relatedId   Int?
+    createdBy   Int
+    isActive    Boolean                @default(true)
+    accessLevel sheetLinks_accessLevel @default(CLASS_ONLY)
+    lastUpdated DateTime?              @db.DateTime(0)
+    createdAt   DateTime               @default(now()) @db.DateTime(0)
+    updatedAt   DateTime               @default(now()) @db.DateTime(0)
+    user        OldUser                @relation(fields: [createdBy], references: [id], onDelete: Cascade, map: "sheetLinks_ibfk_1")
 
-  @@index([category], map: "idx_sheet_links_category")
-  @@index([createdBy], map: "idx_sheet_links_created_by")
-  @@index([isActive], map: "idx_sheet_links_is_active")
-  @@index([relatedId], map: "idx_sheet_links_related_id")
+    @@index([category], map: "idx_sheet_links_category")
+    @@index([createdBy], map: "idx_sheet_links_created_by")
+    @@index([isActive], map: "idx_sheet_links_is_active")
+    @@index([relatedId], map: "idx_sheet_links_related_id")
 }
 
 model statement1 {
-  id         Int       @id @default(autoincrement())
-  content    String    @db.Text
-  questionId Int
-  isCorrect  Boolean   @default(false)
-  createdAt  DateTime  @db.DateTime(0)
-  updatedAt  DateTime  @db.DateTime(0)
-  order      Int?
-  imageUrl   String?   @db.Text
-  question1  question1 @relation(fields: [questionId], references: [id], onDelete: Cascade, map: "statement1_ibfk_1")
+    id         Int       @id @default(autoincrement())
+    content    String    @db.Text
+    questionId Int
+    isCorrect  Boolean   @default(false)
+    createdAt  DateTime  @db.DateTime(0)
+    updatedAt  DateTime  @db.DateTime(0)
+    order      Int?
+    imageUrl   String?   @db.Text
+    question1  question1 @relation(fields: [questionId], references: [id], onDelete: Cascade, map: "statement1_ibfk_1")
 
-  @@index([questionId], map: "questionId")
+    @@index([questionId], map: "questionId")
 }
 
 enum attendance_status {
-  present
-  absent
-  late
+    present
+    absent
+    late
 }
 
 enum sheetLinks_type {
-  USER_LIST
-  ATTENDANCE
-  GRADES
-  REPORTS
-  OTHER
+    USER_LIST
+    ATTENDANCE
+    GRADES
+    REPORTS
+    OTHER
 }
 
 enum sheetLinks_accessLevel {
-  PUBLIC
-  CLASS_ONLY
-  ADMIN_ONLY
+    PUBLIC
+    CLASS_ONLY
+    ADMIN_ONLY
 }

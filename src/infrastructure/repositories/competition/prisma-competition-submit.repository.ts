@@ -486,6 +486,52 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
         return submits.map((s: any) => CompetitionSubmitMapper.toDomainCompetitionSubmit(s)).filter(Boolean)
     }
 
+    async getPaginatedLeaderboard(
+        competitionId: number,
+        page: number = 1,
+        limit: number = 10,
+        txClient?: any,
+    ): Promise<{ submits: CompetitionSubmit[], total: number }> {
+        const client = txClient || this.prisma
+
+        const skip = (page - 1) * limit
+
+        const where = {
+            competitionId,
+            status: CompetitionSubmitStatus.GRADED,
+            totalPoints: {
+                not: null,
+            },
+        }
+
+        const [submits, total] = await Promise.all([
+            client.competitionSubmit.findMany({
+                where,
+                include: {
+                    student: {
+                        include: {
+                            user: true,
+                        },
+                    },
+                    competition: true,
+                },
+                orderBy: [
+                    { totalPoints: 'desc' },
+                    { timeSpentSeconds: 'asc' }, // Nếu điểm bằng nhau, ưu tiên người làm nhanh hơn
+                    { submittedAt: 'asc' },
+                ],
+                skip,
+                take: limit,
+            }),
+            client.competitionSubmit.count({ where }),
+        ])
+
+        return {
+            submits: submits.map((s: any) => CompetitionSubmitMapper.toDomainCompetitionSubmit(s)).filter(Boolean),
+            total,
+        }
+    }
+
     private buildWhereClause(filters?: CompetitionSubmitFilterOptions): any {
         const where: any = {}
 

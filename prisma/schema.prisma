@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  // output   = "../generated/prisma"
 }
 
 datasource db {
@@ -752,7 +752,7 @@ model Competition {
   enableAntiCheating          Boolean @default(false) @map("enable_anti_cheating") // bật tính năng chống gian lận (như chụp hình, chuyển tab)
   allowViewSolutionYoutubeUrl Boolean @default(false) @map("allow_view_solution_youtube_url") // có được xem video giải chi tiết trên youtube không
   allowViewExamContent        Boolean @default(false) @map("allow_view_exam_content") // có được xem nội dung đề thi trước khi thi không
-
+  
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
@@ -991,6 +991,7 @@ model CourseAssistant {
 
 model Course {
   courseId        Int         @id @default(autoincrement()) @map("course_id")
+  code            String      @unique @map("code") @db.VarChar(50) // mã khoá học dùng để đăng ký, ví dụ: "TOAN10A", "VAN11NC"
   title           String      @map("title") @db.VarChar(200) // tên khoá học
   subtitle        String?     @map("subtitle") @db.VarChar(255) // mô tả ngắn gọn
   academicYear    String?     @map("academic_year") @db.VarChar(9) // ví dụ '2024-2025'
@@ -1024,6 +1025,7 @@ model Course {
   @@index([subjectId], map: "idx_courses_subject_id")
   @@index([teacherId], map: "idx_courses_teacher_id")
   @@index([createdAt], map: "idx_courses_created_at")
+  @@unique([code], map: "unique_course_code")
   @@map("courses")
 }
 

@@ -19,6 +19,7 @@ import {
     CreateCompetitionDto,
     UpdateCompetitionDto,
     CompetitionListQueryDto,
+    StudentOwnRankingResponseDto,
 } from '../../application/dtos/competition'
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
@@ -32,6 +33,7 @@ import {
     UpdateCompetitionUseCase,
     DeleteCompetitionUseCase,
     SearchCompetitionsUseCase,
+    GetCompetitionRankingUseCase,
 } from '../../application/use-cases/competition'
 import { Visibility } from 'src/shared/enums'
 @Injectable()
@@ -44,6 +46,7 @@ export class CompetitionController {
         private readonly updateCompetitionUseCase: UpdateCompetitionUseCase,
         private readonly deleteCompetitionUseCase: DeleteCompetitionUseCase,
         private readonly searchCompetitionsUseCase: SearchCompetitionsUseCase,
+        private readonly getCompetitionRankingUseCase: GetCompetitionRankingUseCase,
     ) { }
 
     /**
@@ -116,6 +119,34 @@ export class CompetitionController {
     @HttpCode(HttpStatus.OK)
     async getAllCompetitions(@Query() query: CompetitionListQueryDto): Promise<CompetitionListResponseDto> {
         return ExceptionHandler.execute(() => this.getAllCompetitionsUseCase.execute(query))
+    }
+
+    /**
+     * Get student's own competition ranking
+     *
+     * @route GET /competitions/:id/student/ranking
+     * @param id - Competition ID
+     * @param studentId - Current student ID (auto-injected)
+     * @returns All student's attempts with their ranks and highest achievement
+     *
+     * @example
+     * GET /competitions/123/student/ranking
+     *
+     * @description
+     * This endpoint returns all attempts made by the current student for this competition:
+     * - Each attempt shows its rank compared to all other students
+     * - Includes highest score achieved and best rank
+     * - Only counts GRADED submissions for ranking
+     * - Only works if competition.allowLeaderboard is true
+     */
+    @Get(':id/student/ranking')
+    @RequirePermission() // Public endpoint for students
+    @HttpCode(HttpStatus.OK)
+    async getCompetitionRanking(
+        @Param('id', ParseIntPipe) id: number,
+        @CurrentUser('studentId') studentId: number,
+    ): Promise<StudentOwnRankingResponseDto> {
+        return ExceptionHandler.execute(() => this.getCompetitionRankingUseCase.execute(id, studentId))
     }
 
     /**

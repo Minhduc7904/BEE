@@ -2,6 +2,7 @@
 import { HomeworkContent } from '../../../domain/entities'
 import { BaseResponseDto } from '../common/base-response.dto'
 import { Visibility } from '../../../shared/enums'
+import { HomeworkProgressDto } from '../learningItem/student-learning-item.dto'
 
 /**
  * Competition basic info for homework
@@ -16,10 +17,15 @@ export class CompetitionBasicDto {
     durationMinutes?: number
     maxAttempts?: number
     examId?: number
+    allowViewScore: boolean
+    allowLeaderboard: boolean
+    allowViewSolutionYoutubeUrl: boolean
+    allowViewExamContent: boolean
     exam?: {
         examId: number
         title: string
         grade?: number
+        solutionYoutubeUrl?: string | null
     }
 }
 
@@ -36,8 +42,14 @@ export class HomeworkContentResponseDto {
     updateMaxPoints: boolean
     createdAt: Date
     updatedAt: Date
+    
+    // Submit của student cho homework content này (shortcut để dễ truy cập)
+    homeworkSubmit?: import('../learningItem/student-learning-item.dto').HomeworkSubmitDto
 
-    static fromEntity(homeworkContent: HomeworkContent): HomeworkContentResponseDto {
+    // Progress của student cho homework content này
+    progress?: HomeworkProgressDto
+
+    static fromEntity(homeworkContent: HomeworkContent, progress?: HomeworkProgressDto): HomeworkContentResponseDto {
         const dto = new HomeworkContentResponseDto()
         dto.homeworkContentId = homeworkContent.homeworkContentId
         dto.learningItemId = homeworkContent.learningItemId
@@ -50,6 +62,8 @@ export class HomeworkContentResponseDto {
         dto.updateMaxPoints = homeworkContent.updateMaxPoints
         dto.createdAt = homeworkContent.createdAt
         dto.updatedAt = homeworkContent.updatedAt
+        dto.progress = progress
+        dto.homeworkSubmit = progress?.homeworkSubmit
 
         // Map competition nếu có
         if (homeworkContent.competition) {
@@ -63,6 +77,10 @@ export class HomeworkContentResponseDto {
                 durationMinutes: homeworkContent.competition.durationMinutes ?? undefined,
                 maxAttempts: homeworkContent.competition.maxAttempts ?? undefined,
                 examId: homeworkContent.competition.examId ?? undefined,
+                allowViewScore: homeworkContent.competition.allowViewScore,
+                allowLeaderboard: homeworkContent.competition.allowLeaderboard,
+                allowViewSolutionYoutubeUrl: homeworkContent.competition.allowViewSolutionYoutubeUrl,
+                allowViewExamContent: homeworkContent.competition.allowViewExamContent,
             }
 
             // Map exam info nếu có
@@ -71,6 +89,9 @@ export class HomeworkContentResponseDto {
                     examId: homeworkContent.competition.exam.examId,
                     title: homeworkContent.competition.exam.title,
                     grade: homeworkContent.competition.exam.grade ?? undefined,
+                    solutionYoutubeUrl: homeworkContent.competition.allowViewSolutionYoutubeUrl
+                        ? (homeworkContent.competition.exam.solutionYoutubeUrl ?? null)
+                        : undefined,
                 }
             }
         }

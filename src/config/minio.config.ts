@@ -12,12 +12,6 @@ export const MinioConfig = registerAs('minio', () => ({
     audios: process.env.MINIO_BUCKET_AUDIOS || 'audios',
     documents: process.env.MINIO_BUCKET_DOCUMENTS || 'documents',
     others: process.env.MINIO_BUCKET_OTHERS || 'others',
-    // Legacy buckets for backwards compatibility
-    avatars: process.env.MINIO_BUCKET_AVATARS || 'avatars',
-    courses: process.env.MINIO_BUCKET_COURSES || 'courses',
-    exams: process.env.MINIO_BUCKET_EXAMS || 'exams',
-    questions: process.env.MINIO_BUCKET_QUESTIONS || 'questions',
-    temp: process.env.MINIO_BUCKET_TEMP || 'temp',
   },
 }))
 

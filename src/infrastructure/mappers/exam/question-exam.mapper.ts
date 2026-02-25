@@ -1,12 +1,13 @@
 // src/infrastructure/mappers/exam/question-exam.mapper.ts
 import { QuestionExam as PrismaQuestionExam } from '@prisma/client'
 import { QuestionExam } from '../../../domain/entities/exam/question-exam.entity'
+import { QuestionMapper } from './question.mapper'
 
 export class QuestionExamMapper {
   /**
    * Convert Prisma model to Domain entity
    */
-  static toDomainQuestionExam(prisma: PrismaQuestionExam | null): QuestionExam | null {
+  static toDomainQuestionExam(prisma: any | null): QuestionExam | null {
     if (!prisma) return null
 
     return new QuestionExam({
@@ -16,13 +17,15 @@ export class QuestionExamMapper {
       order: prisma.order,
       createdAt: prisma.createdAt || new Date(),
       points: prisma.points,
+      // Map nested question relation if present
+      question: prisma.question ? QuestionMapper.toDomainQuestion(prisma.question) ?? undefined : undefined,
     })
   }
 
   /**
    * Convert array of Prisma models to Domain entities
    */
-  static toDomainQuestionExams(prismaQuestionExams: PrismaQuestionExam[]): QuestionExam[] {
+  static toDomainQuestionExams(prismaQuestionExams: any[]): QuestionExam[] {
     return prismaQuestionExams.map((prisma) => this.toDomainQuestionExam(prisma)!).filter(Boolean)
   }
 }

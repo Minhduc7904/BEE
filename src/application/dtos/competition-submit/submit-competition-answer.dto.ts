@@ -1,12 +1,10 @@
 // src/application/dtos/competition-submit/submit-competition-answer.dto.ts
-import { 
-    IsRequiredIdNumber, 
-    IsOptionalString, 
+import {
     IsOptionalIntArray,
     IsOptionalInt,
-    IsRequiredBoolean,
+    IsRequiredIdNumber,
 } from '../../../shared/decorators/validate'
-import { IsArray, IsOptional, ValidateNested } from 'class-validator'
+import { IsArray, IsBoolean, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator'
 import { Type } from 'class-transformer'
 
 /**
@@ -23,12 +21,16 @@ export class TrueFalseAnswerDto {
     statementId: number
 
     /**
-     * Student's selection: true if they think the statement is true, false otherwise
-     * @required
+     * Student's selection:
+     * - true  : mệnh đề là đúng
+     * - false : mệnh đề là sai
+     * - null  : chưa trả lời (giữ nguyên trạng thái null, không được tính điểm)
+     * @optional — nếu không gửi hoặc gửi null, mệnh đề được coi là chưa trả lời
      * @example true
      */
-    @IsRequiredBoolean('Lựa chọn đúng/sai')
-    isTrue: boolean
+    @IsOptional()
+    @IsBoolean({ message: 'Lựa chọn đúng/sai phải là true hoặc false' })
+    isTrue?: boolean | null
 }
 
 /**
@@ -36,28 +38,23 @@ export class TrueFalseAnswerDto {
  * 
  * @description 
  * Used when a student answers a question during a competition attempt.
+ * The answer is identified by `answerId` in the URL — no need to pass questionId in body.
  * Depending on the question type:
  * - For SHORT_ANSWER, ESSAY: use `answer` field
  * - For SINGLE_CHOICE, MULTIPLE_CHOICE: use `selectedStatementIds` field
- * - For TRUE_FALSE: use `trueFalseAnswers` field
- * - You can provide both if needed, but typically only one is used per question type
+ * - For TRUE_FALSE: use `trueFalseAnswers` — must include ALL statements with their true/false selection
  */
 export class SubmitCompetitionAnswerDto {
     /**
-     * Question ID being answered
-     * @required
-     * @example 123
-     */
-    @IsRequiredIdNumber('ID câu hỏi')
-    questionId: number
-
-    /**
-     * Text answer for SHORT_ANSWER or ESSAY questions
+     * Text answer for SHORT_ANSWER or ESSAY questions.
+     * Empty string "" is allowed and means the student cleared their answer.
      * @optional
      * @maxLength 10000
      * @example "Paris là thủ đô của nước Pháp"
      */
-    @IsOptionalString('Câu trả lời dạng văn bản', 10000)
+    @IsOptional()
+    @IsString({ message: 'Câu trả lời dạng văn bản phải là chuỗi ký tự' })
+    @MaxLength(10000, { message: 'Câu trả lời dạng văn bản không được vượt quá 10000 ký tự' })
     answer?: string
 
     /**
@@ -69,8 +66,10 @@ export class SubmitCompetitionAnswerDto {
     selectedStatementIds?: number[]
 
     /**
-     * Array of TRUE_FALSE answers - each statement with true/false selection
-     * Only for TRUE_FALSE questions
+     * Array of TRUE_FALSE answers — must include ALL statements of the question,
+     * each with the student's true/false selection.
+     * Statements not included are treated as "not answered" (false).
+     * Only for TRUE_FALSE questions.
      * @optional
      * @example [{ statementId: 1, isTrue: true }, { statementId: 2, isTrue: false }]
      */

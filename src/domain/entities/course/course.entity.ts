@@ -11,6 +11,7 @@ import { TuitionPayment } from '../tuition-payment'
 export class Course {
     // Required properties
     courseId: number
+    code: string
     title: string
     priceVND: number
     visibility: CourseVisibility
@@ -41,6 +42,7 @@ export class Course {
 
     constructor(data: {
         courseId: number
+        code: string
         title: string
         priceVND: number
         visibility: CourseVisibility
@@ -66,6 +68,7 @@ export class Course {
         tuitionPayments?: TuitionPayment[]
     }) {
         this.courseId = data.courseId
+        this.code = data.code
         this.title = data.title
         this.priceVND = data.priceVND
         this.visibility = data.visibility
@@ -184,6 +187,7 @@ export class Course {
         return new Course({
             courseId: this.courseId,
             title: this.title,
+            code: this.code,
             priceVND: this.priceVND,
             visibility: this.visibility,
             hasTuitionFee: this.hasTuitionFee,

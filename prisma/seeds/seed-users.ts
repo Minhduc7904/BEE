@@ -31,6 +31,50 @@ export async function seedUsers(prisma: PrismaClient) {
         },
     })
 
+    const thayBee = await prisma.user.upsert({
+        where: { username: 'thaybee' },
+        update: {},
+        create: {
+            username: 'thaybee',
+            passwordHash: hashedPassword,
+            firstName: 'Thầy',
+            lastName: 'Ngọc',
+        },
+    })
+
+    const thayPhu = await prisma.user.upsert({
+        where: { username: 'thayphu' },
+        update: {},
+        create: {
+            username: 'thayphu',
+            passwordHash: hashedPassword,
+            firstName: 'Thầy',
+            lastName: 'Phú',
+        },
+    })
+
+    const coGiang = await prisma.user.upsert({
+        where: { username: 'cogiang' },
+        update: {},
+        create: {
+            username: 'cogiang',
+            passwordHash: hashedPassword,
+            firstName: 'Cô',
+            lastName: 'Giang',
+        },
+    })
+
+    const thayMinh = await prisma.user.upsert({
+        where: { username: 'thayminh' },
+        update: {},
+        create: {
+            username: 'thayminh',
+            passwordHash: hashedPassword,
+            firstName: 'Thầy',
+            lastName: 'Minh',
+        },
+    })
+
     await prisma.admin.upsert({
         where: { userId: superAdminUser.userId },
         update: {},
@@ -43,5 +87,31 @@ export async function seedUsers(prisma: PrismaClient) {
         create: { userId: adminUser.userId },
     })
 
-    return { superAdminUser, adminUser }
+    await prisma.admin.upsert({
+        where: { userId: thayBee.userId },
+        update: {},
+        create: { userId: thayBee.userId, subjectId: 1 },
+    })
+
+    await prisma.admin.upsert({
+        where: { userId: thayPhu.userId },
+        update: {},
+        create: { userId: thayPhu.userId, subjectId: 1 },
+    })
+
+    await prisma.admin.upsert({
+        where: { userId: coGiang.userId },
+        update: {},
+        create: { userId: coGiang.userId, subjectId: 1 },
+    })
+
+    await prisma.admin.upsert({
+        where: { userId: thayMinh.userId },
+        update: {},
+        create: { userId: thayMinh.userId, subjectId: 1 },
+    })
+
+
+
+    return { superAdminUser, adminUser, thayBee, thayPhu, coGiang, thayMinh }
 }

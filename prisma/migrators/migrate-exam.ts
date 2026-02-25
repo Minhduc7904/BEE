@@ -1,424 +1,487 @@
 import { oldDb, newDb } from './db-clients';
-import { MediaMigrationHelper } from './migrate-media-helper';
-import { ExamVisibility, QuestionType, Difficulty, MediaVisibility } from '@prisma/client';
-import { TypeOfExam } from 'generated/prisma';
-import { EntityType } from 'src/shared/constants/entity-type.constants';
-import { EXAM_MEDIA_FIELDS, QUESTION_MEDIA_FIELDS, STATEMENT_MEDIA_FIELDS } from 'src/shared/constants/media-field-name.constants';
+import { MediaMigrationHelper, extractMinioPath } from './migrate-media-helper';
+import {
+    ExamVisibility,
+    Difficulty,
+    QuestionType,
+    Visibility,
+} from '@prisma/client';
+import { TypeOfExam } from '../../generated/prisma';
+import { EntityType } from '../../src/shared/constants/entity-type.constants';
+import {
+    STATEMENT_MEDIA_FIELDS,
+    QUESTION_CONTENT_FIELDS,
+} from '../../src/shared/constants/media-field-name.constants';
 
-/**
- * Migrate Exams từ old_db sang new_db
- * - Tách exam cũ thành Exam mới và Competition
- * - Chỉ migrate questions có sử dụng trong exam
- * - Upload media cho exam và questions
- * - Map chapter code từ bảng chapters
- */
+/* -------------------------------------------------- */
+/* ------------------ UTIL FUNCTIONS ---------------- */
+/* -------------------------------------------------- */
+
+async function replaceMarkdownImagesWithMedia(
+    text: string,
+    mediaHelper: MediaMigrationHelper,
+    entityType: string,
+    entityId: number,
+    createdBy: number,
+    fieldName: string
+): Promise<string> {
+    if (!text) return text;
+
+    const imageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
+    let result = text;
+    const matches = [...text.matchAll(imageRegex)];
+
+    for (const match of matches) {
+        const fullMatch = match[0];
+        const imageUrl = match[2];
+
+        const relativePath = extractMinioPath(imageUrl);
+        if (!relativePath) continue;
+
+        const media = await mediaHelper.migrateMedia(
+            relativePath,
+            entityType,
+            entityId,
+            createdBy,
+            fieldName
+        );
+
+        if (media) {
+            const replacement = `![media:${media.mediaId}](media:${media.mediaId})`;
+            result = result.replace(fullMatch, replacement);
+        }
+    }
+
+    return result;
+}
+
+function mapDifficulty(old: string | null): Difficulty | null {
+    if (!old) return null;
+    const map: Record<string, Difficulty> = {
+        TH: Difficulty.TH,
+        NB: Difficulty.NB,
+        VD: Difficulty.VD,
+        VDC: Difficulty.VDC,
+    };
+    return map[old] || null;
+}
+
+function mapQuestionType(old: string | null): QuestionType {
+    const map: Record<string, QuestionType> = {
+        TN: QuestionType.SINGLE_CHOICE,
+        MULTIPLE: QuestionType.MULTIPLE_CHOICE,
+        TLN: QuestionType.SHORT_ANSWER,
+        ESSAY: QuestionType.ESSAY,
+        DS: QuestionType.TRUE_FALSE,
+    };
+    return map[old || 'TN'] || QuestionType.SINGLE_CHOICE;
+}
+
+function mapTypeOfExam(old: string | null): TypeOfExam | null {
+    if (!old) return null;
+    const map: Record<string, TypeOfExam> = {
+        CK1: TypeOfExam.CK1,
+        CK2: TypeOfExam.CK2,
+        GK1: TypeOfExam.GK1,
+        GK2: TypeOfExam.GK2,
+        TSA: TypeOfExam.TSA,
+        THPT: TypeOfExam.THPT,
+        OTTHPT: TypeOfExam.OTTHPT,
+        OT: TypeOfExam.OT,
+        HSA: TypeOfExam.HSA,
+        OTHS: TypeOfExam.OTHS,
+    };
+    return map[old] || null;
+}
+
+/* -------------------------------------------------- */
+/* ---------------- MIGRATE QUESTION ---------------- */
+/* -------------------------------------------------- */
+
+async function migrateQuestion(
+    oldQuestion: any,
+    mediaHelper: MediaMigrationHelper,
+    createdBy: number,
+    grade: number
+): Promise<number | null> {
+    const exists = await newDb.question.findUnique({
+        where: { questionId: oldQuestion.id },
+    });
+
+    if (exists) return exists.questionId;
+    const type = mapQuestionType(oldQuestion.typeOfQuestion);
+    let pointOriginal = 0;
+    if (type === QuestionType.MULTIPLE_CHOICE) {
+        pointOriginal = 0.25;
+    } else if (type === QuestionType.TRUE_FALSE) {
+        pointOriginal = 1;
+    } else if (type === QuestionType.SHORT_ANSWER) {
+        pointOriginal = 0.5;
+    }
+    return await newDb.$transaction(async (tx) => {
+        // 1️⃣ Create question trước
+        const question = await tx.question.create({
+            data: {
+                questionId: oldQuestion.id,
+                content: oldQuestion.content || '',
+                slug:
+                    'question-' + oldQuestion.id,
+                type: type,
+                pointsOrigin: pointOriginal,
+                difficulty: mapDifficulty(oldQuestion.difficulty),
+                solution: oldQuestion.solution || '',
+                solutionYoutubeUrl: oldQuestion.solutionUrl,
+                visibility: Visibility.PUBLISHED,
+                createdBy,
+                correctAnswer: oldQuestion.correctAnswer || null,
+                subjectId: 1,
+                grade,
+            },
+        });
+
+        const chapter = await tx.chapter.findFirst({
+            where: {
+                subjectId: 1,
+                code: oldQuestion.chapter,
+            },
+        });
+
+        if (chapter) {
+            await tx.questionChapter.create({
+                data: {
+                    questionId: question.questionId,
+                    chapterId: chapter.chapterId,
+                },
+            });
+        }
+
+        // 2️⃣ Replace markdown images trong content
+        let updatedContent = await replaceMarkdownImagesWithMedia(
+            question.content,
+            mediaHelper,
+            EntityType.QUESTION,
+            question.questionId,
+            createdBy,
+            QUESTION_CONTENT_FIELDS.CONTENT
+        );
+
+        // 3️⃣ Nếu có imageUrl riêng, upload và append vào cuối content
+        if (oldQuestion.imageUrl) {
+            try {
+                const relativePath = extractMinioPath(oldQuestion.imageUrl);
+                if (relativePath) {
+                    const media = await mediaHelper.migrateMedia(
+                        relativePath,
+                        EntityType.QUESTION,
+                        question.questionId,
+                        createdBy,
+                        QUESTION_CONTENT_FIELDS.CONTENT
+                    );
+                    if (media) {
+                        const mediaMarkdown = '![media:' + media.mediaId + '](media:' + media.mediaId + ')';
+                        updatedContent = updatedContent + '\n' + mediaMarkdown;
+                    }
+                }
+            } catch (err: any) {
+                console.warn('Failed to migrate question imageUrl: ' + err.message);
+            }
+        }
+
+        // 4️⃣ Replace markdown images trong solution
+        let updatedSolution = await replaceMarkdownImagesWithMedia(
+            question.solution || '',
+            mediaHelper,
+            EntityType.QUESTION,
+            question.questionId,
+            createdBy,
+            QUESTION_CONTENT_FIELDS.SOLUTION
+        );
+
+        // 5️⃣ Nếu có solutionImageUrl riêng, upload và append vào cuối solution
+        if (oldQuestion.solutionImageUrl) {
+            try {
+                const relativePath = extractMinioPath(oldQuestion.solutionImageUrl);
+                if (relativePath) {
+                    const media = await mediaHelper.migrateMedia(
+                        relativePath,
+                        EntityType.QUESTION,
+                        question.questionId,
+                        createdBy,
+                        QUESTION_CONTENT_FIELDS.SOLUTION
+                    );
+                    if (media) {
+                        const mediaMarkdown = '![media:' + media.mediaId + '](media:' + media.mediaId + ')';
+                        updatedSolution = updatedSolution + '\n' + mediaMarkdown;
+                    }
+                }
+            } catch (err: any) {
+                console.warn('Failed to migrate question solutionImageUrl: ' + err.message);
+            }
+        }
+
+        await tx.question.update({
+            where: { questionId: question.questionId },
+            data: {
+                content: updatedContent,
+                solution: updatedSolution,
+            },
+        });
+
+        // 3️⃣ Statements
+        if (oldQuestion.statements?.length) {
+            for (const oldStatement of oldQuestion.statements) {
+                // Replace markdown images trong statement content
+                let statementContent = await replaceMarkdownImagesWithMedia(
+                    oldStatement.content || '',
+                    mediaHelper,
+                    EntityType.STATEMENT,
+                    question.questionId,
+                    createdBy,
+                    STATEMENT_MEDIA_FIELDS.CONTENT
+                );
+
+                // Nếu statement có imageUrl riêng, upload và append vào cuối content
+                if (oldStatement.imageUrl) {
+                    try {
+                        const relativePath = extractMinioPath(oldStatement.imageUrl);
+                        if (relativePath) {
+                            const media = await mediaHelper.migrateMedia(
+                                relativePath,
+                                EntityType.STATEMENT,
+                                oldStatement.id,
+                                createdBy,
+                                STATEMENT_MEDIA_FIELDS.CONTENT
+                            );
+                            if (media) {
+                                const mediaMarkdown = '![media:' + media.mediaId + '](media:' + media.mediaId + ')';
+                                statementContent = statementContent + '\n' + mediaMarkdown;
+                            }
+                        }
+                    } catch (err: any) {
+                        console.warn('Failed to migrate statement imageUrl: ' + err.message);
+                    }
+                }
+
+                await tx.statement.create({
+                    data: {
+                        statementId: oldStatement.id,
+                        questionId: question.questionId,
+                        content: statementContent,
+                        isCorrect: oldStatement.isCorrect,
+                        order: oldStatement.order || 0,
+                        difficulty: mapDifficulty(oldStatement.difficulty),
+                    },
+                });
+            }
+        }
+
+        return question.questionId;
+    });
+}
+
+/* -------------------------------------------------- */
+/* ------------------- MIGRATE EXAMS ---------------- */
+/* -------------------------------------------------- */
+
 export async function migrateExams() {
     console.log('🚀 Starting Exam migration...');
 
     const mediaHelper = new MediaMigrationHelper();
     await mediaHelper.initialize();
 
-    // Map để tracking migrated questions: oldQuestionId → newQuestionId
-    const migratedQuestions = new Map<number, number>();
-
-    // Giả sử admin ID = 1 (Teacher/Admin default)
-    const DEFAULT_ADMIN_ID = 1;
-    const DEFAULT_SUBJECT_ID = 1; // Toán
-
-    try {
-        const oldExams = await oldDb.oldExam.findMany({
-            include: {
-                classCode: true,
-                typeCode: true,
-                examQuestions: {
-                    include: {
-                        question: {
-                            include: {
-                                statements: true,
-                                classCode: true,
-                                typeCode: true,
-                                difficultyCode: true,
-                                chapterCode: true,
-                            }
-                        },
-                    },
-                    orderBy: {
-                        order: 'asc',
-                    },
+    const oldExams = await oldDb.oldExam.findMany({
+        include: {
+            examQuestions: {
+                include: {
+                    question: { include: { statements: true } },
                 },
-                yearCode: true,
-                chapterCode: true,
             },
-        });
+        },
+    });
 
-        console.log(`📊 Found ${oldExams.length} exams in old database`);
+    let examCount = 0;
+    let questionCount = 0;
+    let skipCount = 0;
+    let errorCount = 0;
 
-        let successCount = 0;
-        let skipCount = 0;
-        let errorCount = 0;
+    for (const oldExam of oldExams) {
+        try {
+            const exists = await newDb.exam.findUnique({
+                where: { examId: oldExam.id },
+            });
 
-        for (const oldExam of oldExams) {
-            try {
-                console.log(`\n📝 Processing: ${oldExam.name}`);
-
-                // === 1. MAP DATA ===
-                const grade = mapGradeFromClass(oldExam.class);
-                const visibility = oldExam.public ? ExamVisibility.PUBLISHED : ExamVisibility.DRAFT;
-
-                // === 2. TẠO EXAM MỚI ===
-                const newExam = await newDb.exam.create({
-                    data: {
-                        title: oldExam.name,
-                        description: oldExam.description,
-                        grade,
-                        subjectId: DEFAULT_SUBJECT_ID,
-                        createdBy: DEFAULT_ADMIN_ID,
-                        visibility,
-                        solutionYoutubeUrl: oldExam.solutionUrl || null,
-                        typeOfExam: mapTypeOfExam(oldExam.typeOfExam),
-                        createdAt: oldExam.createdAt,
-                        updatedAt: oldExam.updatedAt,
-                    },
-                });
-
-                console.log(`✅ Created Exam: ${newExam.examId} - ${newExam.title}`);
-
-                // === 3. UPLOAD MEDIA CHO EXAM ===
-                if (oldExam.imageUrl) {
-                    try {
-                        await mediaHelper.migrateMedia(
-                            oldExam.imageUrl,
-                            'images',
-                            EntityType.EXAM,
-                            newExam.examId,
-                            DEFAULT_ADMIN_ID,
-                            EXAM_MEDIA_FIELDS.EXAM_IMAGE,
-                        );
-                        console.log(`  📸 Uploaded exam image`);
-                    } catch (error: any) {
-                        console.warn(`  ⚠️  Failed to upload exam image: ${error.message}`);
-                    }
-                }
-
-                // Upload solution PDF nếu có
-                if (oldExam.solutionPdfUrl) {
-                    try {
-                        await mediaHelper.migrateMedia(
-                            oldExam.solutionPdfUrl,
-                            'images',
-                            EntityType.EXAM,
-                            newExam.examId,
-                            DEFAULT_ADMIN_ID,
-                            EXAM_MEDIA_FIELDS.SOLUTION_FILE,
-                        );
-                        console.log(`  📄 Uploaded solution PDF`);
-                    } catch (error: any) {
-                        console.warn(`  ⚠️  Failed to upload solution PDF: ${error.message}`);
-                    }
-                }
-
-                // Upload file URL nếu có
-                if (oldExam.fileUrl) {
-                    try {
-                        await mediaHelper.migrateMedia(
-                            oldExam.fileUrl,
-                            'images',
-                            EntityType.EXAM,
-                            newExam.examId,
-                            DEFAULT_ADMIN_ID,
-                            EXAM_MEDIA_FIELDS.EXAM_FILE,
-                        );
-                        console.log(`  📎 Uploaded exam file`);
-                    } catch (error: any) {
-                        console.warn(`  ⚠️  Failed to upload exam file: ${error.message}`);
-                    }
-                }
-
-                // === 4. TẠO COMPETITION NẾU LÀ CLASSROOM EXAM ===
-                if (oldExam.isClassroomExam) {
-                    try {
-                        const competition = await newDb.competition.create({
-                            data: {
-                                title: `[Classroom] ${oldExam.name}`,
-                                description: oldExam.description,
-                                grade,
-                                subjectId: DEFAULT_SUBJECT_ID,
-                                examId: newExam.examId,
-                                createdBy: DEFAULT_ADMIN_ID,
-                                visibility,
-                                startDate: new Date(), // Default start date
-                                endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 năm sau
-                                duration: oldExam.testDuration || 60,
-                                maxAttempts: oldExam.attemptLimit || 1,
-                                enableCheatingDetection: oldExam.isCheatingCheckEnabled,
-                                showCorrectAnswers: oldExam.seeCorrectAnswer,
-                                createdAt: oldExam.createdAt,
-                                updatedAt: oldExam.updatedAt,
-                            },
-                        });
-                        console.log(`  🏆 Created Competition: ${competition.competitionId}`);
-                    } catch (error: any) {
-                        console.warn(`  ⚠️  Failed to create competition: ${error.message}`);
-                    }
-                }
-
-                // === 5. TẠO SECTION MẶC ĐỊNH ===
-                const section = await newDb.section.create({
-                    data: {
-                        examId: newExam.examId,
-                        title: 'Phần 1',
-                        description: null,
-                        order: 1,
-                    },
-                });
-                console.log(`  📋 Created Section: ${section.sectionId}`);
-
-                // === 6. MIGRATE QUESTIONS CÓ TRONG EXAM ===
-                let questionOrder = 1;
-                let questionsMigrated = 0;
-                let questionsLinked = 0;
-
-                for (const examQuestion of oldExam.examQuestions) {
-                    try {
-                        const oldQuestion = examQuestion.question;
-                        let newQuestionId: number;
-
-                        // Check nếu question đã được migrate
-                        if (migratedQuestions.has(oldQuestion.id)) {
-                            newQuestionId = migratedQuestions.get(oldQuestion.id)!;
-                            console.log(`  ♻️  Reusing question ${newQuestionId} (old ID: ${oldQuestion.id})`);
-                        } else {
-                            // Migrate question mới
-                            const questionType = mapQuestionType(oldQuestion.typeOfQuestion);
-                            const difficulty = oldQuestion.difficulty ? mapDifficulty(oldQuestion.difficulty) : null;
-                            const slug = generateSlug(oldQuestion.content, oldQuestion.id);
-
-                            const newQuestion = await newDb.question.create({
-                                data: {
-                                    content: oldQuestion.content || '',
-                                    slug,
-                                    solution: oldQuestion.solution || null,
-                                    type: questionType,
-                                    difficulty,
-                                    correctAnswer: oldQuestion.correctAnswer,
-                                    subjectId: DEFAULT_SUBJECT_ID,
-                                    createdBy: DEFAULT_ADMIN_ID,
-                                    visibility,
-                                    createdAt: oldQuestion.createdAt,
-                                    updatedAt: oldQuestion.updatedAt,
-                                },
-                            });
-
-                            newQuestionId = newQuestion.questionId;
-                            migratedQuestions.set(oldQuestion.id, newQuestionId);
-                            console.log(`  ✅ Migrated Question: ${newQuestionId} (old ID: ${oldQuestion.id})`);
-                            questionsMigrated++;
-
-                            // Upload question image nếu có
-                            if (oldQuestion.imageUrl) {
-                                try {
-                                    await mediaHelper.migrateMedia(
-                                        oldQuestion.imageUrl,
-                                        'images',
-                                        EntityType.QUESTION,
-                                        newQuestionId,
-                                        DEFAULT_ADMIN_ID,
-                                        QUESTION_MEDIA_FIELDS.CONTENT,
-                                    );
-                                    console.log(`    📸 Uploaded question image`);
-                                } catch (error: any) {
-                                    console.warn(`    ⚠️  Failed to upload question image: ${error.message}`);
-                                }
-                            }
-
-                            // Migrate statements
-                            for (let i = 0; i < oldQuestion.statements.length; i++) {
-                                const oldStatement = oldQuestion.statements[i];
-                                const newStatement = await newDb.statement.create({
-                                    data: {
-                                        questionId: newQuestionId,
-                                        content: oldStatement.content || '',
-                                        isCorrect: oldStatement.isCorrect,
-                                        order: i + 1,
-                                    },
-                                });
-
-                                // Upload statement image nếu có
-                                if (oldStatement.imageUrl) {
-                                    try {
-                                        await mediaHelper.migrateMedia(
-                                            oldStatement.imageUrl,
-                                            'images',
-                                            EntityType.STATEMENT,
-                                            newStatement.statementId,
-                                            DEFAULT_ADMIN_ID,
-                                            STATEMENT_MEDIA_FIELDS.CONTENT,
-                                        );
-                                        console.log(`    📸 Uploaded statement ${i + 1} image`);
-                                    } catch (error: any) {
-                                        console.warn(`    ⚠️  Failed to upload statement image: ${error.message}`);
-                                    }
-                                }
-                            }
-
-                            // Gắn chapter cho question nếu có
-                            if (oldQuestion.chapter) {
-                                const chapter = await findChapterByCode(oldQuestion.chapter);
-                                if (chapter) {
-                                    await newDb.questionChapter.create({
-                                        data: {
-                                            questionId: newQuestionId,
-                                            chapterId: chapter.chapterId,
-                                        },
-                                    });
-                                    console.log(`    📚 Linked to chapter: ${chapter.name}`);
-                                }
-                            }
-                        }
-
-                        // Link question với exam
-                        await newDb.questionExam.create({
-                            data: {
-                                questionId: newQuestionId,
-                                examId: newExam.examId,
-                                sectionId: section.sectionId,
-                                order: questionOrder++,
-                                points: 1, // Default 1 điểm
-                            },
-                        });
-                        questionsLinked++;
-
-                    } catch (error: any) {
-                        console.error(`  ❌ Error migrating question ${examQuestion.questionId}:`, error.message);
-                    }
-                }
-
-                console.log(`  📊 Questions: ${questionsMigrated} migrated, ${questionsLinked} linked`);
-
-                successCount++;
-                console.log(`✅ [${successCount}/${oldExams.length}] Completed: ${oldExam.name}`);
-
-            } catch (error: any) {
-                errorCount++;
-                console.error(`❌ Error migrating exam ${oldExam.id}:`, error.message);
+            if (exists) {
+                skipCount++;
+                continue;
             }
+
+            const grade = parseInt(oldExam.class || '10') || 10;
+            const createdBy = 1;
+
+            const exam = await newDb.exam.create({
+                data: {
+                    examId: oldExam.id,
+                    title: oldExam.name,
+                    description: oldExam.description,
+                    grade,
+                    subjectId: 1,
+                    createdBy,
+                    visibility: oldExam.isClassroomExam
+                        ? ExamVisibility.PRIVATE
+                        : ExamVisibility.PUBLISHED,
+                    solutionYoutubeUrl: oldExam.solutionUrl,
+                    typeOfExam: mapTypeOfExam(oldExam.typeOfExam),
+                },
+            });
+
+            examCount++;
+
+            const questionIds: number[] = [];
+
+            for (const eq of oldExam.examQuestions || []) {
+                const qId = await migrateQuestion(
+                    eq.question,
+                    mediaHelper,
+                    createdBy,
+                    grade
+                );
+                if (qId) {
+                    questionIds.push(qId);
+                    questionCount++;
+                }
+            }
+
+            const sectionTN = await newDb.section.create({
+                data: {
+                    examId: exam.examId,
+                    title: 'Phần 1: Trắc nghiệm',
+                    order: 1,
+                },
+            });
+
+            const sectionDS = await newDb.section.create({
+                data: {
+                    examId: exam.examId,
+                    title: 'Phần 2: Đúng sai',
+                    order: 2,
+                },
+            });
+
+            const sectionTLN = await newDb.section.create({
+                data: {
+                    examId: exam.examId,
+                    title: 'Phần 3: Trả lời ngắn',
+                    order: 3,
+                },
+            });
+
+
+            let order = 0;
+
+            for (const qId of questionIds) {
+                order++;
+                const question = await newDb.question.findUnique({
+                    where: { questionId: qId },
+                });
+
+                let sectionId: number | null = null;
+                let point = 0;
+                if (question?.type === QuestionType.TRUE_FALSE) {
+                    sectionId = sectionDS.sectionId;
+                    point = 1;
+                } else if (question?.type === QuestionType.SHORT_ANSWER) {
+                    sectionId = sectionTLN.sectionId;
+                    point = 0.5;
+                } else if (question?.type === QuestionType.SINGLE_CHOICE) {
+                    sectionId = sectionTN.sectionId;
+                    point = 0.25;
+                }
+
+                await newDb.questionExam.create({
+                    data: {
+                        questionId: qId,
+                        examId: exam.examId,
+                        sectionId,
+                        order,
+                        points: point,
+                    },
+                });
+            }
+
+            await newDb.competition.create({
+                data: {
+                    examId: exam.examId,
+                    title: oldExam.name,
+                    durationMinutes: oldExam.testDuration || 90,
+                    maxAttempts: oldExam.attemptLimit || 1,
+                    createdBy,
+                    startDate: null,
+                    endDate: null,
+                    visibility: Visibility.PRIVATE,
+                    enableAntiCheating:
+                        oldExam.isCheatingCheckEnabled || false,
+                    showResultDetail:
+                        oldExam.seeCorrectAnswer ?? true,
+                    allowViewAnswer:
+                        oldExam.seeCorrectAnswer ?? false,
+                },
+            });
+
+            console.log(
+                `✅ Migrated exam "${oldExam.name}" (${questionIds.length} questions)`
+            );
+        } catch (error: any) {
+            errorCount++;
+            console.error(`❌ Error migrating exam ${oldExam.name}:`, error.message);
         }
-
-        console.log('\n📈 Exam Migration Summary:');
-        console.log(`  ✅ Success: ${successCount}`);
-        console.log(`  ⏭️  Skipped: ${skipCount}`);
-        console.log(`  ❌ Errors: ${errorCount}`);
-        console.log(`  📊 Total: ${oldExams.length}`);
-        console.log(`  🔢 Unique Questions Migrated: ${migratedQuestions.size}`);
-
-        return { successCount, skipCount, errorCount, total: oldExams.length };
-
-    } catch (error) {
-        console.error('❌ Exam migration failed:', error);
-        throw error;
     }
-}
 
-// ==================== HELPER FUNCTIONS ====================
-
-/**
- * Generate slug from question content
- */
-function generateSlug(content: string, oldId: number): string {
-    // Strip HTML/markdown, lấy 50 ký tự đầu
-    const cleanContent = content
-        .replace(/<[^>]*>/g, '') // Remove HTML tags
-        .replace(/[\n\r]/g, ' ') // Replace newlines
-        .replace(/\s+/g, '-') // Replace spaces with dash
-        .replace(/[^a-zA-Z0-9-]/g, '') // Remove special chars
-        .toLowerCase()
-        .substring(0, 50);
-    
-    return `${cleanContent}-${oldId}-${Date.now()}`;
-}
-
-/**
- * Map grade từ class code (L10 → 10, L11 → 11, L12 → 12)
- */
-function mapGradeFromClass(classCode: string): number {
-    const match = classCode.match(/L?(\d+)/);
-    if (match) {
-        return parseInt(match[1]);
-    }
-    return 10; // Default grade 10
-}
-
-/**
- * Map TypeOfExam từ old type
- */
-function mapTypeOfExam(oldType: string): TypeOfExam | null {
-    const typeMap: Record<string, TypeOfExam> = {
-        'CK1': 'CK1' as TypeOfExam,
-        'CK2': 'CK2' as TypeOfExam,
-        'GK1': 'GK1' as TypeOfExam,
-        'GK2': 'GK2' as TypeOfExam,
-        'TSA': 'TSA' as TypeOfExam,
-        'THPT': 'THPT' as TypeOfExam,
-        'OTTHPT': 'OTTHPT' as TypeOfExam,
-        'OT': 'OT' as TypeOfExam,
-        'HSA': 'HSA' as TypeOfExam,
-        'OTHS': 'OTHS' as TypeOfExam,
-    };
-    return typeMap[oldType] || null;
-}
-
-/**
- * Map QuestionType từ old type
- */
-function mapQuestionType(oldType: string): QuestionType {
-    const typeMap: Record<string, QuestionType> = {
-        'TN': QuestionType.SINGLE_CHOICE,
-        'TL': QuestionType.SHORT_ANSWER,
-        'DD': QuestionType.TRUE_FALSE,
-    };
-    return typeMap[oldType] || QuestionType.SINGLE_CHOICE;
-}
-
-/**
- * Map Difficulty từ old difficulty
- */
-function mapDifficulty(oldDifficulty: string): Difficulty {
-    const difficultyMap: Record<string, Difficulty> = {
-        'TH': Difficulty.TH,
-        'NB': Difficulty.NB,
-        'VD': Difficulty.VD,
-        'VDC': Difficulty.VDC,
-    };
-    return difficultyMap[oldDifficulty] || Difficulty.NB;
-}
-
-/**
- * Tìm chapter bằng code trong bảng chapters
- */
-async function findChapterByCode(code: string): Promise<{ chapterId: number; name: string } | null> {
+    // 🔥 Reset AUTO_INCREMENT sau khi migrate tất cả
     try {
-        const chapter = await newDb.chapter.findUnique({
-            where: { code },
-            select: { chapterId: true, name: true },
-        });
-        return chapter;
-    } catch (error) {
-        return null;
+        await newDb.$executeRawUnsafe(`
+            ALTER TABLE questions
+            AUTO_INCREMENT = (SELECT COALESCE(MAX(question_id), 0)+1 FROM questions);
+        `);
+
+        await newDb.$executeRawUnsafe(`
+            ALTER TABLE exams AUTO_INCREMENT = (SELECT COALESCE(MAX(exam_id), 0)+1 FROM exams);
+        `);
+
+        await newDb.$executeRawUnsafe(`
+            ALTER TABLE statements AUTO_INCREMENT = (SELECT COALESCE(MAX(statement_id), 0)+1 FROM statements);
+        `);
+
+        await newDb.$executeRawUnsafe(`
+            ALTER TABLE sections AUTO_INCREMENT = (SELECT COALESCE(MAX(section_id), 0)+1 FROM sections);
+        `);
+    } catch (error: any) {
+        console.warn('⚠️  Failed to reset AUTO_INCREMENT:', error.message);
     }
+
+    const successCount = examCount;
+
+    console.log('\n✨ Migration completed');
+    console.log(`  ✅ Success: ${successCount}`);
+    console.log(`  ⏭️  Skipped: ${skipCount}`);
+    console.log(`  ❌ Errors: ${errorCount}`);
+    console.log(`  📊 Total: ${oldExams.length}`);
+    console.log(`  📝 Questions: ${questionCount}`);
+
+    return { successCount, skipCount, errorCount, total: oldExams.length };
 }
 
-// Run migration if executed directly
+/* -------------------------------------------------- */
+
 if (require.main === module) {
     const { connectDatabases, disconnectDatabases } = require('./db-clients');
 
     connectDatabases()
         .then(() => migrateExams())
         .then(async () => {
-            console.log('\n✨ Migration completed successfully!');
             await disconnectDatabases();
         })
-        .catch(async (error: any) => {
-            console.error('\n💥 Migration failed:', error);
+        .catch(async (err) => {
+            console.error(err);
             await disconnectDatabases();
             process.exit(1);
         });
