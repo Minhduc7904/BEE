@@ -1,5 +1,5 @@
 import { PrismaClient as OldPrismaClient } from '../../generated/prisma-old';
-import { PrismaClient as NewPrismaClient } from '../../generated/prisma';
+import { PrismaClient as NewPrismaClient } from '@prisma/client';
 
 // Client cho database cũ
 export const oldDb = new OldPrismaClient({

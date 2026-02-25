@@ -102,3 +102,7 @@ jspm_packages/
 # Docker volumes
 volumes/
 .volumes/
+.prisma/migrators
+
+# Migration scripts
+prisma/migrators/
