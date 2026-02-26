@@ -17,6 +17,8 @@ build/
 
 # Generated files
 /generated/prisma
+/generated/prisma-old
+/backup
 
 # IDE files
 .vscode/
