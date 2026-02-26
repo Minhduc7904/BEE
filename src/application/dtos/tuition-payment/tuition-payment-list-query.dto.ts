@@ -5,8 +5,6 @@ import {
   TuitionPaymentFilterOptions,
   TuitionPaymentPaginationOptions,
 } from '../../../domain/interface/tuition-payment/tuition-payment.interface'
-import { IsOptional } from 'class-validator'
-import { Type } from 'class-transformer'
 
 /**
  * DTO for querying tuition payment list
@@ -67,8 +65,7 @@ export class TuitionPaymentListQueryDto extends ListQueryDto {
    * @optional
    * @example 100000
    */
-  @IsOptional()
-  @Type(() => Number)
+  @IsOptionalInt('Số tiền tối thiểu', 0)
   minAmount?: number
 
   /**
@@ -76,8 +73,7 @@ export class TuitionPaymentListQueryDto extends ListQueryDto {
    * @optional
    * @example 500000
    */
-  @IsOptional()
-  @Type(() => Number)
+  @IsOptionalInt('Số tiền tối đa', 0)
   maxAmount?: number
 
   // ======================
