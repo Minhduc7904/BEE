@@ -11,10 +11,55 @@ import type {
 } from '../../../domain/interface'
 import { Student } from '../../../domain/entities'
 import { StudentMapper, PaginationMapper } from '../../mappers'
-import { NumberUtil } from '../../../shared/utils'
+import { NumberUtil, TextSearchUtil } from '../../../shared/utils'
 
 export class PrismaStudentRepository implements IStudentRepository {
   constructor(private readonly prisma: PrismaService | any) { } // any để hỗ trợ transaction client
+
+  /**
+   * Build SQL expression to remove Vietnamese accents from a column
+   * @param columnName - SQL column name (e.g., 'u.first_name')
+   * @returns SQL expression with nested REPLACE functions
+   */
+  private buildRemoveAccentsSQL(columnName: string): string {
+    const replacements = [
+      // lowercase
+      ['à', 'a'], ['á', 'a'], ['ạ', 'a'], ['ả', 'a'], ['ã', 'a'],
+      ['â', 'a'], ['ầ', 'a'], ['ấ', 'a'], ['ậ', 'a'], ['ẩ', 'a'], ['ẫ', 'a'],
+      ['ă', 'a'], ['ằ', 'a'], ['ắ', 'a'], ['ặ', 'a'], ['ẳ', 'a'], ['ẵ', 'a'],
+      ['è', 'e'], ['é', 'e'], ['ẹ', 'e'], ['ẻ', 'e'], ['ẽ', 'e'],
+      ['ê', 'e'], ['ề', 'e'], ['ế', 'e'], ['ệ', 'e'], ['ể', 'e'], ['ễ', 'e'],
+      ['ì', 'i'], ['í', 'i'], ['ị', 'i'], ['ỉ', 'i'], ['ĩ', 'i'],
+      ['ò', 'o'], ['ó', 'o'], ['ọ', 'o'], ['ỏ', 'o'], ['õ', 'o'],
+      ['ô', 'o'], ['ồ', 'o'], ['ố', 'o'], ['ộ', 'o'], ['ổ', 'o'], ['ỗ', 'o'],
+      ['ơ', 'o'], ['ờ', 'o'], ['ớ', 'o'], ['ợ', 'o'], ['ở', 'o'], ['ỡ', 'o'],
+      ['ù', 'u'], ['ú', 'u'], ['ụ', 'u'], ['ủ', 'u'], ['ũ', 'u'],
+      ['ư', 'u'], ['ừ', 'u'], ['ứ', 'u'], ['ự', 'u'], ['ử', 'u'], ['ữ', 'u'],
+      ['ỳ', 'y'], ['ý', 'y'], ['ỵ', 'y'], ['ỷ', 'y'], ['ỹ', 'y'],
+      ['đ', 'd'],
+      // uppercase
+      ['À', 'A'], ['Á', 'A'], ['Ạ', 'A'], ['Ả', 'A'], ['Ã', 'A'],
+      ['Â', 'A'], ['Ầ', 'A'], ['Ấ', 'A'], ['Ậ', 'A'], ['Ẩ', 'A'], ['Ẫ', 'A'],
+      ['Ă', 'A'], ['Ằ', 'A'], ['Ắ', 'A'], ['Ặ', 'A'], ['Ẳ', 'A'], ['Ẵ', 'A'],
+      ['È', 'E'], ['É', 'E'], ['Ẹ', 'E'], ['Ẻ', 'E'], ['Ẽ', 'E'],
+      ['Ê', 'E'], ['Ề', 'E'], ['Ế', 'E'], ['Ệ', 'E'], ['Ể', 'E'], ['Ễ', 'E'],
+      ['Ì', 'I'], ['Í', 'I'], ['Ị', 'I'], ['Ỉ', 'I'], ['Ĩ', 'I'],
+      ['Ò', 'O'], ['Ó', 'O'], ['Ọ', 'O'], ['Ỏ', 'O'], ['Õ', 'O'],
+      ['Ô', 'O'], ['Ồ', 'O'], ['Ố', 'O'], ['Ộ', 'O'], ['Ổ', 'O'], ['Ỗ', 'O'],
+      ['Ơ', 'O'], ['Ờ', 'O'], ['Ớ', 'O'], ['Ợ', 'O'], ['Ở', 'O'], ['Ỡ', 'O'],
+      ['Ù', 'U'], ['Ú', 'U'], ['Ụ', 'U'], ['Ủ', 'U'], ['Ũ', 'U'],
+      ['Ư', 'U'], ['Ừ', 'U'], ['Ứ', 'U'], ['Ự', 'U'], ['Ử', 'U'], ['Ữ', 'U'],
+      ['Ỳ', 'Y'], ['Ý', 'Y'], ['Ỵ', 'Y'], ['Ỷ', 'Y'], ['Ỹ', 'Y'],
+      ['Đ', 'D']
+    ]
+
+    let sql = columnName
+    for (const [accented, plain] of replacements) {
+      sql = `REPLACE(${sql}, '${accented}', '${plain}')`
+    }
+    
+    return sql
+  }
 
   private parseDate(date?: string): Date | undefined {
     if (!date) return undefined
@@ -262,15 +307,38 @@ export class PrismaStudentRepository implements IStudentRepository {
     // Search condition (case-insensitive)
     if (filters.search) {
       const searchPattern = `%${filters.search}%`
+      const normalizedSearch = `%${TextSearchUtil.removeVietnameseAccents(filters.search)}%`
+      
+      // Build SQL expressions for accent-insensitive search
+      const usernameNoAccent = this.buildRemoveAccentsSQL('u.username')
+      const emailNoAccent = this.buildRemoveAccentsSQL('u.email')
+      const firstNameNoAccent = this.buildRemoveAccentsSQL('u.first_name')
+      const lastNameNoAccent = this.buildRemoveAccentsSQL('u.last_name')
+      const schoolNoAccent = this.buildRemoveAccentsSQL('s.school')
+      const fullNameNoAccent = this.buildRemoveAccentsSQL('CONCAT(u.last_name, " ", u.first_name)')
+      const reverseFullNameNoAccent = this.buildRemoveAccentsSQL('CONCAT(u.first_name, " ", u.last_name)')
+      
       conditions.push(`(
                 LOWER(u.username) LIKE LOWER(?) OR 
                 LOWER(u.email) LIKE LOWER(?) OR 
                 LOWER(u.first_name) LIKE LOWER(?) OR 
                 LOWER(u.last_name) LIKE LOWER(?) OR 
-                LOWER(s.school) LIKE LOWER(?)
+                LOWER(s.school) LIKE LOWER(?) OR
+                LOWER(CONCAT(u.last_name, ' ', u.first_name)) LIKE LOWER(?) OR
+                LOWER(CONCAT(u.first_name, ' ', u.last_name)) LIKE LOWER(?) OR
+                LOWER(${usernameNoAccent}) LIKE LOWER(?) OR
+                LOWER(${emailNoAccent}) LIKE LOWER(?) OR
+                LOWER(${firstNameNoAccent}) LIKE LOWER(?) OR
+                LOWER(${lastNameNoAccent}) LIKE LOWER(?) OR
+                LOWER(${schoolNoAccent}) LIKE LOWER(?) OR
+                LOWER(${fullNameNoAccent}) LIKE LOWER(?) OR
+                LOWER(${reverseFullNameNoAccent}) LIKE LOWER(?)
             )`)
-      params.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern)
-      paramIndex += 5
+      // Push original search pattern for original text search (7 params)
+      params.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern, searchPattern, searchPattern)
+      // Push normalized search pattern for accent-removed search (7 params)
+      params.push(normalizedSearch, normalizedSearch, normalizedSearch, normalizedSearch, normalizedSearch, normalizedSearch, normalizedSearch)
+      paramIndex += 14
     }
 
     // Other filters
