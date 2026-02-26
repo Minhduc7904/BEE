@@ -73,7 +73,9 @@ export class UpdateDocumentContentUseCase {
                 }
             }
 
-            const documentContent = await documentContentRepository.update(id, dto)
+            // Exclude mediaIds from repository update (handled via mediaUsageRepository)
+            const { mediaIds, ...updateData } = dto
+            const documentContent = await documentContentRepository.update(id, updateData)
 
             if (adminId) {
                 await adminAuditLogRepository.create({

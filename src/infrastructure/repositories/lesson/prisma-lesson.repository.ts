@@ -11,6 +11,7 @@ import type {
 import { Lesson } from '../../../domain/entities'
 import { LessonMapper } from '../../mappers'
 import { NumberUtil } from '../../../shared/utils'
+import { Visibility } from 'src/shared/enums'
 
 export class PrismaLessonRepository implements ILessonRepository {
     constructor(private readonly prisma: PrismaService | any) { }
@@ -361,6 +362,52 @@ export class PrismaLessonRepository implements ILessonRepository {
                         chapter: true,
                     },
                 },
+            },
+        })
+
+        return LessonMapper.toDomainLessons(prismaLessons)
+    }
+
+    async findByCourseForStudent(courseId: number): Promise<Lesson[]> {
+        const numericCourseId = NumberUtil.ensureValidId(courseId, 'Course ID')
+
+        const prismaLessons = await this.prisma.lesson.findMany({
+            where: { 
+                courseId: numericCourseId,
+                visibility: { not: Visibility.DRAFT }, // Loại trừ lesson DRAFT
+            },
+            include: {
+                course: {
+                    include: {
+                        subject: true,
+                        teacher: {
+                            include: {
+                                user: true,
+                            },
+                        },
+                    },
+                },
+                teacher: {
+                    include: {
+                        user: true,
+                    },
+                },
+                learningItems: {
+                    include: {
+                        learningItem: true,
+                    },
+                    orderBy: {
+                        order: 'asc',
+                    },
+                },
+                lessonChapters: {
+                    include: {
+                        chapter: true,
+                    },
+                },
+            },
+            orderBy: {
+                orderInCourse: 'asc',
             },
         })
 

@@ -37,6 +37,8 @@ import {
   PrismaExamImportSessionRepository,
   PrismaExamRepository,
   PrismaCompetitionRepository,
+  PrismaCompetitionSubmitRepository,
+  PrismaCompetitionAnswerRepository,
   PrismaSectionRepository,
   PrismaQuestionRepository,
   PrismaStatementRepository,
@@ -46,6 +48,7 @@ import {
   PrismaVideoContentRepository,
   PrismaYoutubeContentRepository,
   PrismaHomeworkContentRepository,
+  PrismaHomeworkSubmitRepository,
 } from './repositories'
 import {
   PasswordService,
@@ -249,6 +252,16 @@ import openaiConfig from '../config/openai.config'
       inject: [PrismaService],
     },
     {
+      provide: 'ICompetitionSubmitRepository',
+      useFactory: (prisma: PrismaService) => new PrismaCompetitionSubmitRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'ICompetitionAnswerRepository',
+      useFactory: (prisma: PrismaService) => new PrismaCompetitionAnswerRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
       provide: 'ISectionRepository',
       useFactory: (prisma: PrismaService) => new PrismaSectionRepository(prisma),
       inject: [PrismaService],
@@ -296,6 +309,11 @@ import openaiConfig from '../config/openai.config'
     {
       provide: 'IHomeworkContentRepository',
       useFactory: (prisma: PrismaService) => new PrismaHomeworkContentRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IHomeworkSubmitRepository',
+      useFactory: (prisma: PrismaService) => new PrismaHomeworkSubmitRepository(prisma),
       inject: [PrismaService],
     },
     {
@@ -366,6 +384,8 @@ import openaiConfig from '../config/openai.config'
     'ITempExamRepository',
     'ITempSectionRepository',
     'ICompetitionRepository',
+    'ICompetitionSubmitRepository',
+    'ICompetitionAnswerRepository',
     'ITempQuestionRepository',
     'ITempStatementRepository',
     'ITempQuestionChapterRepository',
@@ -380,6 +400,7 @@ import openaiConfig from '../config/openai.config'
     'IVideoContentRepository',
     'IYoutubeContentRepository',
     'IHomeworkContentRepository',
+    'IHomeworkSubmitRepository',
     'PASSWORD_SERVICE',
     'JWT_TOKEN_SERVICE',
     'TOKEN_HASH_SERVICE',

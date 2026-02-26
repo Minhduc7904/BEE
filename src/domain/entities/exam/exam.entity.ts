@@ -1,8 +1,9 @@
 // src/domain/entities/exam/exam.entity.ts
 import { Subject } from '../subject/subject.entity'
 import { QuestionExam } from './question-exam.entity'
+import { Section } from './section.entity'
 import { Competition } from './competition.entity'
-import { ExamVisibility } from 'src/shared/enums'
+import { ExamVisibility, TypeOfExam } from 'src/shared/enums'
 import { Admin } from '../user'
 export class Exam {
   // Required properties
@@ -18,6 +19,7 @@ export class Exam {
   description?: string | null
   subjectId?: number | null
   solutionYoutubeUrl?: string | null
+  typeOfExam?: TypeOfExam | null
 
   // Counts
   questionCount?: number
@@ -27,6 +29,7 @@ export class Exam {
   admin?: Admin // AdminEntity
   competitions?: Competition[] // Competition[]
   questions?: QuestionExam[] // QuestionExam[]
+  sections?: Section[] // Section[]
 
   constructor(data: {
     examId: number
@@ -39,11 +42,13 @@ export class Exam {
     description?: string | null
     subjectId?: number | null
     solutionYoutubeUrl?: string | null
+    typeOfExam?: TypeOfExam | null
     questionCount?: number
     subject?: Subject | null
     admin?: any
     competitions?: Competition[]
     questions?: QuestionExam[]
+    sections?: Section[]
   }) {
     this.examId = data.examId
     this.title = data.title
@@ -55,11 +60,13 @@ export class Exam {
     this.description = data.description
     this.subjectId = data.subjectId
     this.solutionYoutubeUrl = data.solutionYoutubeUrl
+    this.typeOfExam = data.typeOfExam
     this.questionCount = data.questionCount
     this.subject = data.subject
     this.admin = data.admin
     this.competitions = data.competitions
     this.questions = data.questions
+    this.sections = data.sections
   }
 
   /**

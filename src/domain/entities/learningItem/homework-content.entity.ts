@@ -10,6 +10,9 @@ export class HomeworkContent {
     learningItemId: number
     content: string
     allowLateSubmit: boolean
+    updatePointsOnLateSubmit: boolean
+    updatePointsOnReSubmit: boolean
+    updateMaxPoints: boolean
     createdAt: Date
     updatedAt: Date
 
@@ -27,6 +30,9 @@ export class HomeworkContent {
         learningItemId: number
         content: string
         allowLateSubmit: boolean
+        updatePointsOnLateSubmit?: boolean
+        updatePointsOnReSubmit?: boolean
+        updateMaxPoints?: boolean
         createdAt?: Date
         updatedAt?: Date
         dueDate?: Date | null
@@ -39,6 +45,9 @@ export class HomeworkContent {
         this.learningItemId = data.learningItemId
         this.content = data.content
         this.allowLateSubmit = data.allowLateSubmit
+        this.updatePointsOnLateSubmit = data.updatePointsOnLateSubmit ?? false
+        this.updatePointsOnReSubmit = data.updatePointsOnReSubmit ?? false
+        this.updateMaxPoints = data.updateMaxPoints ?? false
         this.createdAt = data.createdAt || new Date()
         this.updatedAt = data.updatedAt || new Date()
 
@@ -104,6 +113,9 @@ export class HomeworkContent {
             dueDate: this.dueDate,
             competitionId: this.competitionId,
             allowLateSubmit: this.allowLateSubmit,
+            updatePointsOnLateSubmit: this.updatePointsOnLateSubmit,
+            updatePointsOnReSubmit: this.updatePointsOnReSubmit,
+            updateMaxPoints: this.updateMaxPoints,
             createdAt: this.createdAt,
             updatedAt: this.updatedAt,
         }
@@ -115,6 +127,9 @@ export class HomeworkContent {
             learningItemId: this.learningItemId,
             content: this.content,
             allowLateSubmit: this.allowLateSubmit,
+            updatePointsOnLateSubmit: this.updatePointsOnLateSubmit,
+            updatePointsOnReSubmit: this.updatePointsOnReSubmit,
+            updateMaxPoints: this.updateMaxPoints,
             createdAt: this.createdAt,
             updatedAt: this.updatedAt,
             dueDate: this.dueDate,

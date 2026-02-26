@@ -51,6 +51,7 @@ export class UpdateExamUseCase {
       if (dto.visibility !== undefined) updateData.visibility = dto.visibility
       if (dto.subjectId !== undefined) updateData.subjectId = dto.subjectId
       if (dto.solutionYoutubeUrl !== undefined) updateData.solutionYoutubeUrl = dto.solutionYoutubeUrl
+      if (dto.typeOfExam !== undefined) updateData.typeOfExam = dto.typeOfExam
 
       // Handle description with media normalization
       if (dto.description !== undefined) {

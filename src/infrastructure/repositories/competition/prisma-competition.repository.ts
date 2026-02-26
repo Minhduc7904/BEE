@@ -22,8 +22,8 @@ export class PrismaCompetitionRepository implements ICompetitionRepository {
             data: {
                 title: data.title,
                 subtitle: data.subtitle,
-                startDate: data.startDate,
-                endDate: data.endDate,
+                startDate: data.startDate ?? null,
+                endDate: data.endDate ?? null,
                 policies: data.policies,
                 visibility: data.visibility,
                 durationMinutes: data.durationMinutes,
@@ -33,6 +33,8 @@ export class PrismaCompetitionRepository implements ICompetitionRepository {
                 allowViewScore: data.allowViewScore ?? true,
                 allowViewAnswer: data.allowViewAnswer ?? false,
                 enableAntiCheating: data.enableAntiCheating ?? false,
+                allowViewSolutionYoutubeUrl: data.allowViewSolutionYoutubeUrl ?? false,
+                allowViewExamContent: data.allowViewExamContent ?? false,
                 admin: {
                     connect: { adminId: data.adminId },
                 },
@@ -85,6 +87,8 @@ export class PrismaCompetitionRepository implements ICompetitionRepository {
         if (data.allowViewScore !== undefined) updateData.allowViewScore = data.allowViewScore
         if (data.allowViewAnswer !== undefined) updateData.allowViewAnswer = data.allowViewAnswer
         if (data.enableAntiCheating !== undefined) updateData.enableAntiCheating = data.enableAntiCheating
+        if (data.allowViewSolutionYoutubeUrl !== undefined) updateData.allowViewSolutionYoutubeUrl = data.allowViewSolutionYoutubeUrl
+        if (data.allowViewExamContent !== undefined) updateData.allowViewExamContent = data.allowViewExamContent
         if (data.examId !== undefined) updateData.examId = data.examId
 
         const updated = await client.competition.update({

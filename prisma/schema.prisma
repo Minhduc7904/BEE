@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  // output   = "../generated/prisma"
 }
 
 datasource db {
@@ -215,6 +216,7 @@ model Student {
   homeworkSubmits      HomeworkSubmit[]
   studentLearningItems StudentLearningItem[]
   tuitionPayments      TuitionPayment[]
+  competitionSubmits   CompetitionSubmit[]
 
   // ✅ UNIQUE theo cặp studentPhone + parentPhone
   @@unique([studentPhone, parentPhone], map: "uq_student_studentPhone_parentPhone")
@@ -439,6 +441,19 @@ model Chapter {
   @@map("chapters")
 }
 
+enum TypeOfExam {
+  CK1
+  TSA
+  THPT
+  OTTHPT
+  OT
+  CK2
+  GK1
+  GK2
+  HSA
+  OTHS
+}
+
 model Exam {
   examId             Int            @id @default(autoincrement()) @map("exam_id") @db.Int
   title              String         @map("title") @db.VarChar(255)
@@ -450,6 +465,7 @@ model Exam {
   solutionYoutubeUrl String?        @map("solution_youtube_url") @db.VarChar(500)
   createdAt          DateTime       @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt          DateTime       @updatedAt @map("updated_at") @db.Timestamp(0)
+  typeOfExam         TypeOfExam?    @map("type_of_exam") // ví dụ: "15 phút", "1 tiết", "học kỳ", "tuyển sinh"
 
   // Relations
   subject      Subject?       @relation("ExamSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
@@ -504,12 +520,13 @@ model Question {
   updatedAt          DateTime     @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
-  subject          Subject?          @relation("QuestionSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
-  admin            Admin?            @relation("QuestionCreatedBy", fields: [createdBy], references: [adminId], onDelete: SetNull)
-  statements       Statement[]
-  examQuestions    QuestionExam[]
-  questionChapters QuestionChapter[]
-  tempQuestion     TempQuestion?     @relation("TempQuestionFinal")
+  subject            Subject?            @relation("QuestionSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
+  admin              Admin?              @relation("QuestionCreatedBy", fields: [createdBy], references: [adminId], onDelete: SetNull)
+  statements         Statement[]
+  examQuestions      QuestionExam[]
+  questionChapters   QuestionChapter[]
+  tempQuestion       TempQuestion?       @relation("TempQuestionFinal")
+  competitionAnswers CompetitionAnswer[]
 
   @@index([subjectId, grade], map: "idx_questions_subject_grade")
   @@index([subjectId], map: "idx_questions_subject_id")
@@ -720,33 +737,103 @@ model Competition {
   examId        Int?       @map("exam_id") @db.Int
   title         String     @map("title") @db.VarChar(255)
   subtitle      String?    @map("subtitle") @db.VarChar(255)
-  startDate     DateTime   @map("start_date") @db.Timestamp(0)
-  endDate       DateTime   @map("end_date") @db.Timestamp(0)
+  startDate     DateTime?  @map("start_date") @db.Timestamp(0)
+  endDate       DateTime?  @map("end_date") @db.Timestamp(0)
   policies      String?    @map("policies") @db.Text
   createdBy     Int        @map("created_by")
   visibility    Visibility @default(DRAFT) @map("visibility")
 
-  durationMinutes    Int?    @map("duration_minutes") // Thời lượng làm bài
-  maxAttempts        Int?    @map("max_attempts") // số lần được làm, null = không giới hạn
-  showResultDetail   Boolean @default(false) @map("show_result_detail") // có xem chi tiết bài làm của người dùng không
-  allowLeaderboard   Boolean @default(false) @map("allow_leaderboard") // có hiển thị bảng xếp hạng không
-  allowViewScore     Boolean @default(true) @map("allow_view_score") // có được xem điểm của mình không
-  allowViewAnswer    Boolean @default(false) @map("allow_view_answer") // thi xong có được xem đáp án không
-  enableAntiCheating Boolean @default(false) @map("enable_anti_cheating") // bật tính năng chống gian lận (như chụp hình, chuyển tab)
-
+  durationMinutes             Int?    @map("duration_minutes") // Thời lượng làm bài
+  maxAttempts                 Int?    @map("max_attempts") // số lần được làm, null = không giới hạn
+  showResultDetail            Boolean @default(false) @map("show_result_detail") // có xem chi tiết bài làm của người dùng không
+  allowLeaderboard            Boolean @default(false) @map("allow_leaderboard") // có hiển thị bảng xếp hạng không
+  allowViewScore              Boolean @default(true) @map("allow_view_score") // có được xem điểm của mình không
+  allowViewAnswer             Boolean @default(false) @map("allow_view_answer") // thi xong có được xem đáp án không
+  enableAntiCheating          Boolean @default(false) @map("enable_anti_cheating") // bật tính năng chống gian lận (như chụp hình, chuyển tab)
+  allowViewSolutionYoutubeUrl Boolean @default(false) @map("allow_view_solution_youtube_url") // có được xem video giải chi tiết trên youtube không
+  allowViewExamContent        Boolean @default(false) @map("allow_view_exam_content") // có được xem nội dung đề thi trước khi thi không
+  
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
-  exam             Exam?             @relation(fields: [examId], references: [examId], onDelete: Cascade)
-  admin            Admin             @relation("CompetitionCreatedBy", fields: [createdBy], references: [adminId], onDelete: Cascade)
-  homeworkContents HomeworkContent[]
+  exam               Exam?               @relation(fields: [examId], references: [examId], onDelete: Cascade)
+  admin              Admin               @relation("CompetitionCreatedBy", fields: [createdBy], references: [adminId], onDelete: Cascade)
+  homeworkContents   HomeworkContent[]
+  competitionSubmits CompetitionSubmit[]
 
   @@index([examId], map: "idx_competitions_exam_id")
   @@index([startDate, endDate], map: "idx_competitions_date_range")
   @@index([createdBy], map: "idx_competitions_created_by")
   @@index([createdAt], map: "idx_competitions_created_at")
   @@map("competitions")
+}
+
+enum CompetitionSubmitStatus {
+  IN_PROGRESS // Đang làm bài
+  SUBMITTED // Đã nộp bài, chờ chấm
+  GRADED // Đã chấm xong
+  ABANDONED // Bỏ dở (hết giờ mà chưa nộp)
+}
+
+model CompetitionSubmit {
+  competitionSubmitId Int                     @id @default(autoincrement()) @map("competition_submit_id")
+  competitionId       Int                     @map("competition_id")
+  studentId           Int                     @map("student_id")
+  attemptNumber       Int                     @default(1) @map("attempt_number") // lần làm thứ mấy
+  status              CompetitionSubmitStatus @default(IN_PROGRESS) @map("status")
+
+  startedAt   DateTime  @default(now()) @map("started_at") @db.Timestamp(0)
+  submittedAt DateTime? @map("submitted_at") @db.Timestamp(0)
+  gradedAt    DateTime? @map("graded_at") @db.Timestamp(0)
+
+  totalPoints      Decimal? @map("total_points") @db.Decimal(10, 2) // điểm đạt được
+  maxPoints        Decimal? @map("max_points") @db.Decimal(10, 2) // điểm tối đa
+  timeSpentSeconds Int?     @map("time_spent_seconds") // thời gian làm bài (giây)
+
+  metadata Json? @map("metadata") // lưu IP, device, anti-cheating logs, etc.
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  competition        Competition         @relation(fields: [competitionId], references: [competitionId], onDelete: Cascade)
+  student            Student             @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  competitionAnswers CompetitionAnswer[]
+
+  @@unique([competitionId, studentId, attemptNumber], map: "unique_competition_student_attempt")
+  @@index([competitionId], map: "idx_competition_submits_competition")
+  @@index([studentId], map: "idx_competition_submits_student")
+  @@index([status], map: "idx_competition_submits_status")
+  @@index([submittedAt], map: "idx_competition_submits_submitted_at")
+  @@map("competition_submits")
+}
+
+model CompetitionAnswer {
+  competitionAnswerId Int @id @default(autoincrement()) @map("competition_answer_id")
+  competitionSubmitId Int @map("competition_submit_id")
+  questionId          Int @map("question_id")
+
+  answer               String? @map("answer") @db.Text // câu trả lời dạng text (cho SHORT_ANSWER, ESSAY)
+  selectedStatementIds Json?   @map("selected_statement_ids") // array ID các câu trả lời đã chọn (cho SINGLE_CHOICE, MULTIPLE_CHOICE, TRUE_FALSE)
+
+  isCorrect        Boolean? @map("is_correct") // đúng hay sai (null nếu chưa chấm)
+  points           Decimal? @map("points") @db.Decimal(10, 2) // điểm đạt được
+  maxPoints        Decimal? @map("max_points") @db.Decimal(10, 2) // điểm tối đa của câu này
+  timeSpentSeconds Int?     @map("time_spent_seconds") // thời gian làm câu này (giây)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  competitionSubmit CompetitionSubmit @relation(fields: [competitionSubmitId], references: [competitionSubmitId], onDelete: Cascade)
+  question          Question          @relation(fields: [questionId], references: [questionId], onDelete: Cascade)
+
+  @@unique([competitionSubmitId, questionId], map: "unique_submit_question")
+  @@index([competitionSubmitId], map: "idx_competition_answers_submit")
+  @@index([questionId], map: "idx_competition_answers_question")
+  @@index([isCorrect], map: "idx_competition_answers_is_correct")
+  @@map("competition_answers")
 }
 
 enum LearningItemType {
@@ -780,14 +867,18 @@ model LearningItem {
 }
 
 model HomeworkContent {
-  homeworkContentId Int       @id @default(autoincrement()) @map("homework_content_id")
-  learningItemId    Int       @map("learning_item_id")
-  content           String    @map("content") @db.Text
-  dueDate           DateTime? @map("due_date") @db.Timestamp(0) // hạn nộp bài 
-  competitionId     Int?      @map("competition_id") // nếu bài tập là 1 cuộc thi
-  allowLateSubmit   Boolean   @default(false) @map("allow_late_submit")
-  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt         DateTime  @updatedAt @map("updated_at") @db.Timestamp(0)
+  homeworkContentId        Int       @id @default(autoincrement()) @map("homework_content_id")
+  learningItemId           Int       @map("learning_item_id")
+  content                  String    @map("content") @db.Text
+  dueDate                  DateTime? @map("due_date") @db.Timestamp(0) // hạn nộp bài 
+  competitionId            Int?      @map("competition_id") // nếu bài tập là 1 cuộc thi
+  allowLateSubmit          Boolean   @default(false) @map("allow_late_submit")
+  updatePointsOnLateSubmit Boolean   @default(false) @map("update_points_on_late_submit") // có cập nhật điểm nếu nộp muộn không
+  updatePointsOnReSubmit   Boolean   @default(false) @map("update_points_on_re_submit") // có cập nhật điểm nếu nộp lại không
+  updateMaxPoints          Boolean   @default(false) @map("update_max_points") // nếu cập nhật điểm thì có chỉ cập nhật khi điểm mới cao hơn không
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
   learningItem    LearningItem     @relation(fields: [learningItemId], references: [learningItemId], onDelete: Cascade)
@@ -900,6 +991,7 @@ model CourseAssistant {
 
 model Course {
   courseId        Int         @id @default(autoincrement()) @map("course_id")
+  code            String      @unique @map("code") @db.VarChar(50) // mã khoá học dùng để đăng ký, ví dụ: "TOAN10A", "VAN11NC"
   title           String      @map("title") @db.VarChar(200) // tên khoá học
   subtitle        String?     @map("subtitle") @db.VarChar(255) // mô tả ngắn gọn
   academicYear    String?     @map("academic_year") @db.VarChar(9) // ví dụ '2024-2025'
@@ -933,6 +1025,7 @@ model Course {
   @@index([subjectId], map: "idx_courses_subject_id")
   @@index([teacherId], map: "idx_courses_teacher_id")
   @@index([createdAt], map: "idx_courses_created_at")
+  @@unique([code], map: "unique_course_code")
   @@map("courses")
 }
 

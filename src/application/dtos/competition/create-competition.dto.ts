@@ -2,6 +2,7 @@
 import {
     IsRequiredString,
     IsRequiredDate,
+    IsOptionalDate,
     IsRequiredEnumValue,
     IsOptionalString,
     IsOptionalIdNumber,
@@ -40,18 +41,18 @@ export class CreateCompetitionDto {
     policies?: string
 
     /**
-     * Ngày bắt đầu
+     * Ngày bắt đầu (null = không giới hạn)
      * @example "2024-06-01T00:00:00Z"
      */
-    @IsRequiredDate('Ngày bắt đầu')
-    startDate: Date
+    @IsOptionalDate('Ngày bắt đầu')
+    startDate?: Date
 
     /**
-     * Ngày kết thúc
+     * Ngày kết thúc (null = không giới hạn)
      * @example "2024-06-30T23:59:59Z"
      */
-    @IsRequiredDate('Ngày kết thúc')
-    endDate: Date
+    @IsOptionalDate('Ngày kết thúc')
+    endDate?: Date
 
     /**
      * Thời lượng làm bài (phút)
@@ -108,4 +109,18 @@ export class CreateCompetitionDto {
      */
     @IsOptionalBoolean('Bật chống gian lận')
     enableAntiCheating?: boolean
+
+    /**
+     * Có cho phép xem video giải chi tiết trên YouTube không
+     * @example false
+     */
+    @IsOptionalBoolean('Cho phép xem video giải YouTube')
+    allowViewSolutionYoutubeUrl?: boolean
+
+    /**
+     * Có cho phép xem nội dung đề thi trước khi thi không
+     * @example false
+     */
+    @IsOptionalBoolean('Cho phép xem nội dung đề thi')
+    allowViewExamContent?: boolean
 }

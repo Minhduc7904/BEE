@@ -8,7 +8,8 @@ export class CorsConfig {
    * Get CORS options based on environment
    */
   static getOptions(): CorsOptions {
-    const isDevelopment = process.env.NODE_ENV === 'development'
+    // const isDevelopment = process.env.NODE_ENV === 'development'
+    const isDevelopment = true // Force development config for testing
 
     if (isDevelopment) {
       return this.getDevelopmentOptions()
@@ -70,7 +71,7 @@ export class CorsConfig {
   private static getProductionOptions(): CorsOptions {
     const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
       ? process.env.CORS_ALLOWED_ORIGINS.split(',').map((origin) => origin.trim())
-      : ['https://yourdomain.com']
+      : ['https://beeedu.vn']
 
     return {
       origin: (origin, callback) => {

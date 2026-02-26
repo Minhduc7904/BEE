@@ -38,6 +38,7 @@ import { QuestionApplicationModule } from './use-cases/question/question.applica
 import { StatementApplicationModule } from './use-cases/statement/statement.application.module'
 import { ExamApplicationModule } from './use-cases/exam/exam.application.module'
 import { CompetitionApplicationModule } from './use-cases/competition/competition.application.module'
+import { CompetitionSubmitApplicationModule } from './use-cases/competition-submit/competition-submit.application.module'
 import { SectionApplicationModule } from './use-cases/section/section.application.module'
 import { HomeworkContentApplicationModule } from './use-cases/homeworkContent/homework-content.application.module'
 import { YoutubeContentApplicationModule } from './use-cases/youtubeContent/youtube-content.application.module'
@@ -97,6 +98,7 @@ const modules = [
   StatementApplicationModule,
   ExamApplicationModule,
   CompetitionApplicationModule,
+  CompetitionSubmitApplicationModule,
   SectionApplicationModule,
 
   HomeworkContentApplicationModule,

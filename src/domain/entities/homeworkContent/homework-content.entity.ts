@@ -2,6 +2,7 @@
 
 import { LearningItem } from '../learningItem/learning-item.entity'
 import { HomeworkSubmit } from '../homeworkSubmit/homework-submit.entity'
+import { Competition } from '../exam/competition.entity'
 
 export class HomeworkContent {
   // Required properties
@@ -9,6 +10,9 @@ export class HomeworkContent {
   learningItemId: number
   content: string
   allowLateSubmit: boolean
+  updatePointsOnLateSubmit: boolean
+  updatePointsOnReSubmit: boolean
+  updateMaxPoints: boolean
   createdAt: Date
   updatedAt: Date
 
@@ -18,6 +22,7 @@ export class HomeworkContent {
 
   // Navigation properties
   learningItem?: LearningItem
+  competition?: Competition
   homeworkSubmits?: HomeworkSubmit[]
 
   constructor(data: {
@@ -25,22 +30,30 @@ export class HomeworkContent {
     learningItemId: number
     content: string
     allowLateSubmit?: boolean
+    updatePointsOnLateSubmit?: boolean
+    updatePointsOnReSubmit?: boolean
+    updateMaxPoints?: boolean
     createdAt?: Date
     updatedAt?: Date
     dueDate?: Date | null
     competitionId?: number | null
     learningItem?: LearningItem
+    competition?: Competition
     homeworkSubmits?: HomeworkSubmit[]
   }) {
     this.homeworkContentId = data.homeworkContentId
     this.learningItemId = data.learningItemId
     this.content = data.content
     this.allowLateSubmit = data.allowLateSubmit ?? false
+    this.updatePointsOnLateSubmit = data.updatePointsOnLateSubmit ?? false
+    this.updatePointsOnReSubmit = data.updatePointsOnReSubmit ?? false
+    this.updateMaxPoints = data.updateMaxPoints ?? false
     this.createdAt = data.createdAt || new Date()
     this.updatedAt = data.updatedAt || new Date()
     this.dueDate = data.dueDate
     this.competitionId = data.competitionId
     this.learningItem = data.learningItem
+    this.competition = data.competition
     this.homeworkSubmits = data.homeworkSubmits || []
   }
 

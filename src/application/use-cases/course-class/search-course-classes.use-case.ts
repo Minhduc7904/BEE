@@ -58,26 +58,26 @@ export class SearchCourseClassesUseCase {
 
         // Case 1: No user or student user - return query filters as-is
         // Note: CourseClass doesn't have visibility, so no need to filter by it
-        if (!user || user.studentId) {
-            // Students can see classes they're enrolled in (handled at a different level)
-            return filters
-        }
+        // if (!user || user.studentId) {
+        //     // Students can see classes they're enrolled in (handled at a different level)
+        //     return filters
+        // }
 
         // Case 2: Admin with GET_ALL permission - no additional filters
-        if (permissions.includes(PERMISSION_CODES.COURSE_CLASS.GET_ALL)) {
+        // if (permissions.includes(PERMISSION_CODES.COURSE_CLASS.GET_ALL)) {
             return filters
-        }
+        // }
 
         // Case 3: Admin with GET_MY_CLASSES permission - only their classes
-        if (permissions.includes(PERMISSION_CODES.COURSE_CLASS.GET_MY_CLASSES)) {
-            // Filter by both instructorId and teacherId (course level)
-            filters.instructorId = user.adminId
-            filters.teacherId = user.adminId
-            return filters
-        }
+        // if (permissions.includes(PERMISSION_CODES.COURSE_CLASS.GET_MY_CLASSES)) {
+        //     // Filter by both instructorId and teacherId (course level)
+        //     filters.instructorId = user.adminId
+        //     filters.teacherId = user.adminId
+        //     return filters
+        // }
 
         // Case 4: Default for other authenticated users - return empty filters
         // This means they won't see any classes (security default)
-        return filters
+        // return filters
     }
 }

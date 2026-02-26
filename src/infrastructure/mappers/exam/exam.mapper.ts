@@ -3,6 +3,8 @@ import { Exam as PrismaExam } from '@prisma/client'
 import { Exam } from '../../../domain/entities/exam/exam.entity'
 import { SubjectMapper } from '../subject/subject.mapper'
 import { AdminMapper } from '../user/admin.mapper'
+import { SectionMapper } from './section.mapper'
+import { QuestionExamMapper } from './question-exam.mapper'
 export class ExamMapper {
   /**
    * Convert Prisma model to Domain entity
@@ -24,11 +26,13 @@ export class ExamMapper {
       description: prisma.description,
       subjectId: prisma.subjectId,
       solutionYoutubeUrl: prisma.solutionYoutubeUrl,
+      typeOfExam: prisma.typeOfExam as any,
       questionCount: questionCount,
       subject: prisma.subject ? SubjectMapper.toDomainSubject(prisma.subject) : null,
       admin: prisma.admin ? AdminMapper.toDomainAdmin(prisma.admin) : undefined,
-      questions: prisma.questions,
+      questions: prisma.questions ? QuestionExamMapper.toDomainQuestionExams(prisma.questions) : undefined,
       competitions: prisma.competitions,
+      sections: prisma.sections ? prisma.sections.map(SectionMapper.toDomainSection) : undefined,
     })
   }
 

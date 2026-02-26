@@ -6,18 +6,13 @@ export const MinioConfig = registerAs('minio', () => ({
   useSSL: process.env.MINIO_USE_SSL === 'true',
   accessKey: process.env.MINIO_ACCESS_KEY || 'minioadmin',
   secretKey: process.env.MINIO_SECRET_KEY || 'minioadmin123',
+  publicUrl: process.env.MINIO_PUBLIC_URL, // Public URL for presigned URLs (e.g., https://beeedu.vn/minio)
   buckets: {
     images: process.env.MINIO_BUCKET_IMAGES || 'images',
     videos: process.env.MINIO_BUCKET_VIDEOS || 'videos',
     audios: process.env.MINIO_BUCKET_AUDIOS || 'audios',
     documents: process.env.MINIO_BUCKET_DOCUMENTS || 'documents',
     others: process.env.MINIO_BUCKET_OTHERS || 'others',
-    // Legacy buckets for backwards compatibility
-    avatars: process.env.MINIO_BUCKET_AVATARS || 'avatars',
-    courses: process.env.MINIO_BUCKET_COURSES || 'courses',
-    exams: process.env.MINIO_BUCKET_EXAMS || 'exams',
-    questions: process.env.MINIO_BUCKET_QUESTIONS || 'questions',
-    temp: process.env.MINIO_BUCKET_TEMP || 'temp',
   },
 }))
 

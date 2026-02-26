@@ -22,6 +22,9 @@ export class HomeworkContentMapper {
             dueDate: prismaHomeworkContent.dueDate ?? undefined,
             competitionId: prismaHomeworkContent.competitionId ?? undefined,
             allowLateSubmit: prismaHomeworkContent.allowLateSubmit,
+            updatePointsOnLateSubmit: prismaHomeworkContent.updatePointsOnLateSubmit,
+            updatePointsOnReSubmit: prismaHomeworkContent.updatePointsOnReSubmit,
+            updateMaxPoints: prismaHomeworkContent.updateMaxPoints,
             createdAt: prismaHomeworkContent.createdAt,
             updatedAt: prismaHomeworkContent.updatedAt,
 

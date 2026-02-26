@@ -17,6 +17,7 @@ export class PrismaHomeworkSubmitRepository implements IHomeworkSubmitRepository
     constructor(private readonly prisma: PrismaService | any) { }
 
     async create(data: CreateHomeworkSubmitData): Promise<HomeworkSubmit> {
+        const homeworkContent = NumberUtil.ensureValidId(data.homeworkContentId, 'HomeworkContent ID')
         const prismaHomeworkSubmit = await this.prisma.homeworkSubmit.create({
             data: {
                 homeworkContentId: data.homeworkContentId,

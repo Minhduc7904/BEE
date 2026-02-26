@@ -2,7 +2,7 @@
 import { Exam } from '../../../domain/entities/exam/exam.entity'
 import { QuestionExam } from '../../../domain/entities/exam/question-exam.entity'
 import { Competition } from '../../../domain/entities/exam/competition.entity'
-import { ExamVisibility } from '../../../shared/enums'
+import { ExamVisibility, TypeOfExam } from '../../../shared/enums'
 import { Subject } from '../../../domain/entities/subject/subject.entity'
 import { PaginationResponseDto, PaginationMetaDto } from '../pagination/pagination-response.dto'
 
@@ -36,8 +36,8 @@ export class CompetitionResponseDto {
   subtitle?: string | null
   examId?: number | null
   policies?: string | null
-  startDate: Date
-  endDate: Date
+  startDate?: Date | null
+  endDate?: Date | null
   durationMinutes?: number | null
   maxAttempts?: number | null
   visibility: string
@@ -46,6 +46,8 @@ export class CompetitionResponseDto {
   allowViewScore: boolean
   allowViewAnswer: boolean
   enableAntiCheating: boolean
+  allowViewSolutionYoutubeUrl?: boolean
+  allowViewExamContent?: boolean
   createdBy: number
   createdAt: Date
   updatedAt: Date
@@ -57,8 +59,8 @@ export class CompetitionResponseDto {
     dto.subtitle = competition.subtitle
     dto.examId = competition.examId
     dto.policies = competition.policies
-    dto.startDate = competition.startDate
-    dto.endDate = competition.endDate
+    dto.startDate = competition.startDate ?? null
+    dto.endDate = competition.endDate ?? null
     dto.durationMinutes = competition.durationMinutes
     dto.maxAttempts = competition.maxAttempts
     dto.visibility = competition.visibility
@@ -67,6 +69,8 @@ export class CompetitionResponseDto {
     dto.allowViewScore = competition.allowViewScore
     dto.allowViewAnswer = competition.allowViewAnswer
     dto.enableAntiCheating = competition.enableAntiCheating
+    dto.allowViewSolutionYoutubeUrl = competition.allowViewSolutionYoutubeUrl
+    dto.allowViewExamContent = competition.allowViewExamContent
     dto.createdBy = competition.createdBy
     dto.createdAt = competition.createdAt
     dto.updatedAt = competition.updatedAt
@@ -103,6 +107,9 @@ export class ExamResponseDto {
 
   // Media
   solutionYoutubeUrl?: string | null
+
+  // Type of exam
+  typeOfExam?: TypeOfExam | null
 
   // Relations
   subject?: Subject | null
@@ -155,6 +162,9 @@ export class ExamResponseDto {
 
     // Media
     dto.solutionYoutubeUrl = exam.solutionYoutubeUrl
+
+    // Type of exam
+    dto.typeOfExam = exam.typeOfExam
 
     // Relations
     dto.subject = exam.subject || null

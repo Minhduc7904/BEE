@@ -57,7 +57,7 @@ export const SECTION_MEDIA_FIELDS = {
  * Used for identifying fields when processing presigned URLs
  */
 export const SECTION_CONTENT_FIELDS = {
-  DESCRIPTION: 'description',
+  DESCRIPTION: 'DESCRIPTION',
 } as const
 
 /**
@@ -65,7 +65,11 @@ export const SECTION_CONTENT_FIELDS = {
  * Used for identifying fields when processing presigned URLs
  */
 export const EXAM_CONTENT_FIELDS = {
-  DESCRIPTION: 'description',
+  DESCRIPTION: 'DESCRIPTION',
+} as const
+
+export const USER_MEDIA_FIELDS = {
+  AVATAR: 'AVATAR',
 } as const
 
 /**
@@ -102,5 +106,5 @@ export const COMPETITION_MEDIA_FIELDS = {
  * Used for identifying fields when processing presigned URLs
  */
 export const COMPETITION_CONTENT_FIELDS = {
-  POLICIES: 'policies',
+  POLICIES: 'POLICIES',
 } as const

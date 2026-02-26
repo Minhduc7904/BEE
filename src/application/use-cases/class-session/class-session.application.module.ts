@@ -9,6 +9,7 @@ const CLASS_SESSION_USE_CASES = [
   classSessionUseCase.CreateClassSessionUseCase,
   classSessionUseCase.UpdateClassSessionUseCase,
   classSessionUseCase.DeleteClassSessionUseCase,
+  classSessionUseCase.GetStudentClassSessionsUseCase,
 ]
 
 @Module({

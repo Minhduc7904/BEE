@@ -96,6 +96,17 @@ jspm_packages/
 
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
+<<<<<<< HEAD
 backup/
 generated/
 volumes/
+=======
+
+# Docker volumes
+volumes/
+.volumes/
+.prisma/migrators
+
+# Migration scripts
+prisma/migrators/
+>>>>>>> 7fdb9f96b757f657320ed7e93f1ac6e795a4421d

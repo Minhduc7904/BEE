@@ -6,6 +6,7 @@ import { StudentHomeworkQueryDto, HomeworkStatus } from '../../dtos/learningItem
 import {
     StudentHomeworkResponseDto,
     StudentHomeworkListResponseDto,
+    HomeworkContentWithStatusDto,
 } from '../../dtos/learningItem/student-homework.dto'
 import { LearningItemType } from 'src/shared/enums'
 import { PrismaService } from 'src/prisma/prisma.service'
@@ -30,12 +31,42 @@ export class GetStudentHomeworksUseCase {
         const sortBy = query.sortBy || 'createdAt'
         const sortOrder = query.sortOrder || 'desc'
 
-        // Build where clause
-        const where: any = {
-            type: LearningItemType.HOMEWORK,
+        // 1. Lấy danh sách courseId mà student đã enroll
+        const enrollments = await this.prisma.courseEnrollment.findMany({
+            where: { studentId },
+            select: { courseId: true },
+        })
+        const enrolledCourseIds = enrollments.map((e) => e.courseId)
+
+        // Nếu chưa enroll khoá nào → trả về rỗng ngay
+        if (enrolledCourseIds.length === 0) {
+            return new StudentHomeworkListResponseDto([], page, limit, 0)
         }
 
-        // Search by title/description
+        // 2. Build where clause — chỉ lấy learningItem thuộc lesson trong khoá đã enroll
+        const lessonFilter: any = {
+            lesson: {
+                courseId: { in: enrolledCourseIds },
+            },
+        }
+
+        // Thu hẹp thêm nếu client truyền courseId hoặc lessonId
+        if (query.lessonId) {
+            lessonFilter.lessonId = query.lessonId
+        }
+        if (query.courseId) {
+            lessonFilter.lesson = {
+                ...lessonFilter.lesson,
+                courseId: query.courseId, // override in → exact match
+            }
+        }
+
+        const where: any = {
+            type: LearningItemType.HOMEWORK,
+            lessons: { some: lessonFilter },
+        }
+
+        // Tìm kiếm theo tiêu đề / mô tả
         if (query.search) {
             where.OR = [
                 { title: { contains: query.search } },
@@ -43,17 +74,7 @@ export class GetStudentHomeworksUseCase {
             ]
         }
 
-        // Filter by course or lesson
-        if (query.courseId || query.lessonId) {
-            where.lessons = {
-                some: {
-                    ...(query.lessonId ? { lessonId: query.lessonId } : {}),
-                    ...(query.courseId ? { lesson: { courseId: query.courseId } } : {}),
-                },
-            }
-        }
-
-        // Get all homework learning items
+        // 3. Query
         const [learningItems, total] = await Promise.all([
             this.prisma.learningItem.findMany({
                 where,
@@ -61,11 +82,18 @@ export class GetStudentHomeworksUseCase {
                 take: limit,
                 orderBy: { [sortBy]: sortOrder },
                 include: {
-                    homeworkContents: true,
+                    homeworkContents: {
+                        include: {
+                            competition: true,
+                        },
+                    },
                     studentLearningItems: {
                         where: { studentId },
                     },
                     lessons: {
+                        where: {
+                            lesson: { courseId: { in: enrolledCourseIds } },
+                        },
                         include: {
                             lesson: {
                                 select: {
@@ -81,8 +109,7 @@ export class GetStudentHomeworksUseCase {
             this.prisma.learningItem.count({ where }),
         ])
 
-        // Get homework submits for this student
-        const learningItemIds = learningItems.map((item) => item.learningItemId)
+        // 4. Lấy homeworkSubmits của student cho tất cả homeworkContent tìm được
         const homeworkContentIds = learningItems
             .flatMap((item) => item.homeworkContents)
             .map((hc) => hc.homeworkContentId)
@@ -94,25 +121,30 @@ export class GetStudentHomeworksUseCase {
             },
         })
 
-        // Map to response DTOs
+        // 5. Map sang DTO
         let homeworkDtos = learningItems.map((item) => {
-            const homeworkContent = item.homeworkContents?.[0]
             const studentLearningItem = item.studentLearningItems?.[0]
             const lesson = item.lessons?.[0]?.lesson
-            const homeworkSubmit = homeworkSubmits.find(
-                (hs) => hs.homeworkContentId === homeworkContent?.homeworkContentId,
-            )
+
+            const homeworkContentsWithStatus = item.homeworkContents.map((hwContent) => {
+                const homeworkSubmit = homeworkSubmits.find(
+                    (hs) => hs.homeworkContentId === hwContent.homeworkContentId,
+                )
+                return new HomeworkContentWithStatusDto({
+                    homeworkContent: hwContent,
+                    homeworkSubmit,
+                })
+            })
 
             return new StudentHomeworkResponseDto({
                 learningItem: item as any,
-                homeworkContent,
+                homeworkContents: homeworkContentsWithStatus,
                 studentLearningItem,
-                homeworkSubmit,
                 lesson,
             })
         })
 
-        // Filter by status
+        // 6. Filter by status
         if (query.status && query.status !== HomeworkStatus.ALL) {
             homeworkDtos = homeworkDtos.filter((hw) => {
                 switch (query.status) {
@@ -121,7 +153,7 @@ export class GetStudentHomeworksUseCase {
                     case HomeworkStatus.COMPLETED:
                         return hw.isLearned
                     case HomeworkStatus.OVERDUE:
-                        return hw.isOverdue
+                        return hw.homeworkContents.some((hc) => hc.isOverdue)
                     default:
                         return true
                 }
@@ -132,7 +164,7 @@ export class GetStudentHomeworksUseCase {
             homeworkDtos,
             page,
             limit,
-            homeworkDtos.length, // Note: This is approximate when filtering by status
+            homeworkDtos.length,
         )
     }
 }
