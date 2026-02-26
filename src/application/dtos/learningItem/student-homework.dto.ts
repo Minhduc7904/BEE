@@ -61,6 +61,7 @@ export class StudentHomeworkResponseDto {
 
     // Lesson info
     lessonId?: number
+    courseId?: number
     lessonTitle?: string
 
     constructor(data: {
@@ -87,6 +88,7 @@ export class StudentHomeworkResponseDto {
         if (data.lesson) {
             this.lessonId = data.lesson.lessonId
             this.lessonTitle = data.lesson.title
+            this.courseId = data.lesson.courseId
         }
     }
 }

@@ -5,6 +5,8 @@ import {
   AttendancePaginationOptions,
 } from '../../../domain/interface/attendance/attendance.interface'
 import { IsOptionalIdNumber, IsOptionalEnumValue } from 'src/shared/decorators/validate'
+import { IsOptional, IsInt, Min, Max } from 'class-validator'
+import { Type } from 'class-transformer'
 
 export class AttendanceListQueryDto extends ListQueryDto {
   @IsOptionalIdNumber('ID buổi học')
@@ -19,6 +21,20 @@ export class AttendanceListQueryDto extends ListQueryDto {
   @IsOptionalEnumValue(AttendanceStatus, 'Trạng thái điểm danh')
   status?: AttendanceStatus
 
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt({ message: 'Tháng phải là số nguyên' })
+  @Min(1, { message: 'Tháng phải từ 1-12' })
+  @Max(12, { message: 'Tháng phải từ 1-12' })
+  month?: number
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt({ message: 'Năm phải là số nguyên' })
+  @Min(2000, { message: 'Năm phải từ 2000 trở lên' })
+  @Max(2100, { message: 'Năm phải nhỏ hơn 2100' })
+  year?: number
+
   toAttendanceFilterOptions(): AttendanceFilterOptions {
     return {
       sessionId: this.sessionId,
@@ -28,6 +44,8 @@ export class AttendanceListQueryDto extends ListQueryDto {
       search: this.search,
       fromDate: this.fromDate,
       toDate: this.toDate,
+      month: this.month,
+      year: this.year,
     }
   }
 

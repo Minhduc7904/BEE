@@ -23,6 +23,8 @@ export interface AttendanceFilterOptions {
     fromDate?: string
     toDate?: string
     studentIds?: number[]
+    month?: number
+    year?: number
 }
 
 export interface AttendancePaginationOptions {

@@ -246,6 +246,22 @@ export class PrismaTuitionPaymentRepository implements ITuitionPaymentRepository
     return TuitionPaymentMapper.toDomainTuitionPayment(payment) || null
   }
 
+  async findByMonthYear(month: number, year: number, studentIds: number[]): Promise<TuitionPayment[]> {
+    const payments = await this.prisma.tuitionPayment.findMany({
+      where: {
+        month,
+        year,
+        studentId: { in: studentIds },
+      },
+      include: {
+        student: { include: { user: true } },
+        course: true,
+      },
+    })
+    
+    return TuitionPaymentMapper.toDomainTuitionPayments(payments)
+  }
+
   async findByStatus(status: TuitionPaymentStatus): Promise<TuitionPayment[]> {
     const payments = await this.prisma.tuitionPayment.findMany({
       where: { status },

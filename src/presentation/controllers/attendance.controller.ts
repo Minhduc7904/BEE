@@ -68,10 +68,14 @@ export class AttendanceController {
    * - studentId: filter theo học sinh
    * - classId: filter theo lớp học
    * - status: filter theo trạng thái (PRESENT, ABSENT, LATE, MAKEUP)
+   * - month: tháng để lấy thông tin học phí (1-12)
+   * - year: năm để lấy thông tin học phí (2000-2100)
    * - fromDate: filter từ ngày (ISO format: YYYY-MM-DD)
    * - toDate: filter đến ngày (ISO format: YYYY-MM-DD)
    * - sortBy: trường sắp xếp (attendanceId, markedAt, status)
    * - sortOrder: thứ tự sắp xếp (asc, desc)
+   * 
+   * Note: Nếu truyền month và year, response sẽ bao gồm thông tin học phí của học sinh trong tháng đó
    */
   @Get()
   @RequirePermission(PERMISSION_CODES.ATTENDANCE.GET_ALL)

@@ -42,6 +42,7 @@ export interface ITuitionPaymentRepository {
   findByStudent(studentId: number): Promise<TuitionPayment[]>
   findByCourse(courseId: number): Promise<TuitionPayment[]>
   findByStudentAndPeriod(studentId: number, month: number, year: number): Promise<TuitionPayment | null>
+  findByMonthYear(month: number, year: number, studentIds: number[]): Promise<TuitionPayment[]>
 
   // ===== STATUS =====
   findByStatus(status: TuitionPaymentStatus): Promise<TuitionPayment[]>

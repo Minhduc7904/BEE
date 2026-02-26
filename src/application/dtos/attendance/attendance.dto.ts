@@ -3,6 +3,7 @@ import { PaginationResponseDto } from '../pagination/pagination-response.dto'
 import { StudentResponseDto } from '../student/student.dto'
 import { AttendanceStatus } from 'src/shared/enums'
 import { ClassSessionResponseDto } from '../class-session/class-session.dto'
+import { TuitionPaymentResponseDto } from '../tuition-payment/tuition-payment.dto'
 
 export class AttendanceResponseDto {
     attendanceId: number
@@ -17,8 +18,9 @@ export class AttendanceResponseDto {
     markerName?: string
     student?: StudentResponseDto | null
     classSession?: ClassSessionResponseDto | null
+    tuitionPayment?: TuitionPaymentResponseDto | null
 
-    constructor(attendance: Attendance) {
+    constructor(attendance: Attendance, tuitionPayment?: any) {
         this.attendanceId = attendance.attendanceId
         this.sessionId = attendance.sessionId
         this.studentId = attendance.studentId
@@ -35,6 +37,10 @@ export class AttendanceResponseDto {
 
         if (attendance.student) {
             this.student = StudentResponseDto.fromStudentEntity(attendance.student)
+        }
+
+        if (tuitionPayment) {
+            this.tuitionPayment = TuitionPaymentResponseDto.fromEntity(tuitionPayment)
         }
     }
 
