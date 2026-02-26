@@ -25,11 +25,11 @@ export class TuitionPaymentItemDto {
   @IsNotEmpty({ message: 'ID học sinh không được để trống' })
   studentId: number
 
+  @IsOptional()
   @ToNumber()
   @IsInt({ message: 'Số tiền phải là số nguyên' })
-  @Min(1, { message: 'Số tiền học phí phải lớn hơn 0' })
-  @IsNotEmpty({ message: 'Số tiền học phí không được để trống' })
-  amount: number
+  @Min(0, { message: 'Số tiền học phí phải lớn hơn hoặc bằng 0' })
+  amount?: number | null // null = chưa xác định, 0 = miễn phí
 
   @ToNumber()
   @IsInt({ message: 'Tháng phải là số nguyên' })

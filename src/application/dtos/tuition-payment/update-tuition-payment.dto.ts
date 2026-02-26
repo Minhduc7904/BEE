@@ -20,9 +20,8 @@ export class UpdateTuitionPaymentDto {
    * @optional
    * @example 500000
    */
-  @ToNumber()
-  @IsOptionalInt('Số tiền học phí', 1)
-  amount?: number
+  @IsOptionalInt('Số tiền học phí', 0)
+  amount?: number | null
 
   /**
    * Tháng (1-12)

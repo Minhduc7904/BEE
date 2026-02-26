@@ -19,7 +19,7 @@ export class TuitionPaymentMapper {
     return new TuitionPayment({
       paymentId: prismaPayment.paymentId,
       studentId: prismaPayment.studentId,
-      amount: prismaPayment.amount, // 💰 NEW FIELD (BẮT BUỘC)
+      amount: prismaPayment.amount ?? null, // 💰 null = chưa xác định, 0 = miễn phí
       status: prismaPayment.status as TuitionPaymentStatus,
 
       courseId: prismaPayment.courseId ?? null,

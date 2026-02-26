@@ -10,7 +10,7 @@ export class TuitionPayment {
     // =====================
     paymentId: number
     studentId: number
-    amount: number // 💰 tiền phải đóng (snapshot)
+    amount: number | null // 💰 tiền phải đóng (VND), null = chưa xác định, 0 = miễn phí
     status: TuitionPaymentStatus
     createdAt: Date
     updatedAt: Date
@@ -33,7 +33,7 @@ export class TuitionPayment {
     constructor(data: {
         paymentId: number
         studentId: number
-        amount: number
+        amount?: number | null
         status: TuitionPaymentStatus
 
         courseId?: number | null
@@ -50,7 +50,7 @@ export class TuitionPayment {
     }) {
         this.paymentId = data.paymentId
         this.studentId = data.studentId
-        this.amount = data.amount
+        this.amount = data.amount ?? null
         this.status = data.status
 
         this.courseId = data.courseId ?? null

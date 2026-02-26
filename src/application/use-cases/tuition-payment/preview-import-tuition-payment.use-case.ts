@@ -77,7 +77,11 @@ export class PreviewImportTuitionPaymentUseCase {
       const studentPhone = row['SĐT học sinh']?.toString().trim() || ''
       const parentPhone = row['SĐT phụ huynh']?.toString().trim() || ''
 
-      const amount = Number(row['Học phí']) || 0
+      const amountRaw = row['Học phí']
+      const amount =
+        amountRaw === undefined || amountRaw === null || amountRaw === ''
+          ? null // null = chưa xác định học phí
+          : Number(amountRaw) // 0 = miễn phí, >0 = số tiền cụ thể
       const month = Number(row['Tháng']) || null
       const year = Number(row['Năm']) || null
 

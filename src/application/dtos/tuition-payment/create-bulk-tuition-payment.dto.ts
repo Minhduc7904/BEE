@@ -46,11 +46,13 @@ export class CreateBulkTuitionPaymentDto {
 
   /**
    * 💰 Số tiền học phí (áp dụng cho mỗi học sinh)
+   * null = chưa xác định, 0 = miễn phí
    */
+  @IsOptional()
   @ToNumber()
   @IsInt({ message: 'Số tiền phải là số nguyên' })
-  @Min(1, { message: 'Số tiền học phí phải lớn hơn 0' })
-  amount: number
+  @Min(0, { message: 'Số tiền học phí phải lớn hơn hoặc bằng 0' })
+  amount?: number | null
 
   /**
    * Tháng học phí

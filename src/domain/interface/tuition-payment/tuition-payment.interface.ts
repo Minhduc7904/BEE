@@ -10,7 +10,7 @@ export interface CreateTuitionPaymentData {
   month?: number
   year?: number
 
-  amount: number // 💰 NEW: tiền phải đóng (snapshot)
+  amount?: number | null // 💰 tiền phải đóng (snapshot), null/undefined = chưa xác định, 0 = miễn phí
 
   status?: TuitionPaymentStatus
   paidAt?: Date
@@ -27,7 +27,7 @@ export interface UpdateTuitionPaymentData {
   courseId?: number | null
   month?: number | null
   year?: number | null
-  amount?: number
+  amount?: number | null
 }
 
 /**

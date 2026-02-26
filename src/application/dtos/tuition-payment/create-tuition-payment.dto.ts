@@ -1,6 +1,6 @@
 import { TuitionPaymentStatus } from 'src/shared/enums'
 import { ToNumber } from 'src/shared/decorators'
-import { IsRequiredIdNumber, IsOptionalIdNumber, IsRequiredInt, IsOptionalInt, IsRequiredEnumValue, IsOptionalString } from 'src/shared/decorators/validate'
+import { IsRequiredIdNumber, IsOptionalIdNumber, IsOptionalInt, IsRequiredEnumValue, IsOptionalString } from 'src/shared/decorators/validate'
 
 /**
  * DTO tạo thanh toán học phí
@@ -27,12 +27,11 @@ export class CreateTuitionPaymentDto {
 
   /**
    * Số tiền học phí (snapshot)
-   * @required
+   * @optional - null = chưa xác định, 0 = miễn phí
    * @example 500000
    */
-  @ToNumber()
-  @IsRequiredInt('Số tiền học phí', 1)
-  amount: number
+  @IsOptionalInt('Số tiền học phí', 0)
+  amount?: number | null
 
   /**
    * Tháng (1-12)

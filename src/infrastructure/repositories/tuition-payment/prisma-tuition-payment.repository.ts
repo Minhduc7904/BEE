@@ -485,14 +485,14 @@ export class PrismaTuitionPaymentRepository implements ITuitionPaymentRepository
     payments.forEach((payment) => {
       const stats = monthlyStatsMap.get(payment.month)!
       
-      stats.totalAmount += payment.amount
+      stats.totalAmount += payment.amount ?? 0
       stats.totalCount += 1
 
       if (payment.status === TuitionPaymentStatus.PAID) {
-        stats.paidAmount += payment.amount
+        stats.paidAmount += payment.amount ?? 0
         stats.paidCount += 1
       } else {
-        stats.unpaidAmount += payment.amount
+        stats.unpaidAmount += payment.amount ?? 0
         stats.unpaidCount += 1
       }
     })

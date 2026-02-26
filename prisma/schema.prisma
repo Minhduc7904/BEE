@@ -1318,8 +1318,8 @@ model TuitionPayment {
   year     Int  @map("year") @db.SmallInt
 
   // REQUIRED
-  studentId Int @map("student_id")
-  amount    Int @map("amount") // số tiền phải đóng (VND)
+  studentId Int  @map("student_id")
+  amount    Int? @map("amount") // số tiền phải đóng (VND), null = chưa xác định, 0 = miễn phí
 
   status TuitionPaymentStatus @default(UNPAID) @map("status")
   paidAt DateTime?            @map("paid_at") @db.Timestamp(0)
