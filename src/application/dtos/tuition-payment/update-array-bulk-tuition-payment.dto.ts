@@ -34,7 +34,7 @@ export class UpdateTuitionPaymentItemDto {
   @IsOptional()
   @ToNumber()
   @IsInt({ message: 'Số tiền phải là số nguyên' })
-  @Min(1, { message: 'Số tiền học phí phải lớn hơn 0' })
+  @Min(0, { message: 'Số tiền học phí phải lớn hơn hoặc bằng 0' })
   amount?: number
 
   @IsOptional()

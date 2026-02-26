@@ -49,13 +49,13 @@ export class PreviewImportTuitionPaymentUseCase {
       expectedColumns: [
         'Họ tên',
         'Học phí',
-        'Tháng',
-        'Năm',
         'Đã đóng',
         'Ngày đóng',
-        'Ghi chú',
         'SĐT học sinh',
         'SĐT phụ huynh',
+        'Tháng',
+        'Năm',
+        'Ghi chú',
       ],
     })
 

@@ -38,32 +38,30 @@ export class ExportExcelTuitionPaymentExampleUseCase {
     /* ===================== DATA ===================== */
     private buildData(month: number, year: number) {
         return Array.from({ length: 100 }).map((_, index) => ({
-            stt: index + 1,
             fullName: '',
             amount: '',
-            month,
-            year,
             isPaid: false, // ✅ luôn FALSE
             paidAt: '',
-            notes: '',
             studentPhone: '',
             parentPhone: '',
+            month,
+            year,
+            notes: '',
         }))
     }
 
     /* ===================== COLUMNS ===================== */
     private buildColumns(): ExcelColumn[] {
         return [
-            { header: 'STT', key: 'stt', width: 6 },
             { header: 'Họ tên', key: 'fullName', width: 25 },
             { header: 'Học phí', key: 'amount', width: 15 },
-            { header: 'Tháng', key: 'month', width: 10 },
-            { header: 'Năm', key: 'year', width: 10 },
             { header: 'Đã đóng', key: 'isPaid', width: 12 },
             { header: 'Ngày đóng', key: 'paidAt', width: 15 },
-            { header: 'Ghi chú', key: 'notes', width: 30 },
             { header: 'SĐT học sinh', key: 'studentPhone', width: 18 },
             { header: 'SĐT phụ huynh', key: 'parentPhone', width: 18 },
+            { header: 'Tháng', key: 'month', width: 10 },
+            { header: 'Năm', key: 'year', width: 10 },
+            { header: 'Ghi chú', key: 'notes', width: 30 },
         ]
     }
 }
