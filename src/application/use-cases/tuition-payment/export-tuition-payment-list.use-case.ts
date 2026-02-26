@@ -2,7 +2,6 @@ import { Injectable, Inject } from '@nestjs/common'
 import type { ITuitionPaymentRepository } from '../../../domain/repositories/tuition-payment.repository'
 import { ExcelService, ExcelColumn } from '../../../infrastructure/services/excel.service'
 import { ExportTuitionPaymentListOptionDto } from '../../dtos/tuition-payment/export-tuition-payment-list-option.dto'
-import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 import { TuitionPaymentStatus } from '@prisma/client'
 import { SortOrder } from 'src/shared/enums/sort-order.enum'
 
@@ -20,13 +19,7 @@ export class ExportTuitionPaymentListUseCase {
         buffer: Buffer
         filename: string
     }> {
-        const filters = {
-            studentId: options.studentId,
-            courseId: options.courseId,
-            status: options.status,
-            year: options.year,
-            month: options.month,
-        }
+        const filters = options.toTuitionPaymentFilterOptions()
 
         const pagination = {
             page: options.page || 1,
@@ -36,10 +29,6 @@ export class ExportTuitionPaymentListUseCase {
         }
 
         const result = await this.tuitionPaymentRepository.findAllWithPagination(pagination, filters)
-
-        if (result.total === 0) {
-            throw new NotFoundException('Không tìm thấy dữ liệu học phí để xuất file')
-        }
 
         // Build data for Excel
         const excelData = result.data.map((payment, index) => {
