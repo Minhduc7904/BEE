@@ -14,7 +14,7 @@ import type {
 } from '../../../domain/interface'
 import { TuitionPayment } from '../../../domain/entities'
 import { TuitionPaymentStatus } from '../../../shared/enums'
-import { NumberUtil } from '../../../shared/utils'
+import { NumberUtil, TextSearchUtil } from '../../../shared/utils'
 import { TuitionPaymentMapper } from 'src/infrastructure/mappers/tuition-payment/tuition-payment.mapper'
 
 export class PrismaTuitionPaymentRepository implements ITuitionPaymentRepository {
@@ -112,6 +112,10 @@ export class PrismaTuitionPaymentRepository implements ITuitionPaymentRepository
     const skip = (page - 1) * limit
     const sortBy = pagination.sortBy || 'createdAt'
     const sortOrder = pagination.sortOrder || 'desc'
+
+    if (filters?.search || filters?.grade !== undefined || filters?.minAmount !== undefined || filters?.maxAmount !== undefined) {
+      return this.findWithRawQuery(pagination, filters)
+    }
 
     const where: any = {}
 
@@ -499,5 +503,187 @@ export class PrismaTuitionPaymentRepository implements ITuitionPaymentRepository
 
     // Convert to array
     return Array.from(monthlyStatsMap.values())
+  }
+
+  private buildRemoveAccentsSQL(columnName: string): string {
+    const replacements = [
+      ['à', 'a'], ['á', 'a'], ['ạ', 'a'], ['ả', 'a'], ['ã', 'a'],
+      ['â', 'a'], ['ầ', 'a'], ['ấ', 'a'], ['ậ', 'a'], ['ẩ', 'a'], ['ẫ', 'a'],
+      ['ă', 'a'], ['ằ', 'a'], ['ắ', 'a'], ['ặ', 'a'], ['ẳ', 'a'], ['ẵ', 'a'],
+      ['è', 'e'], ['é', 'e'], ['ẹ', 'e'], ['ẻ', 'e'], ['ẽ', 'e'],
+      ['ê', 'e'], ['ề', 'e'], ['ế', 'e'], ['ệ', 'e'], ['ể', 'e'], ['ễ', 'e'],
+      ['ì', 'i'], ['í', 'i'], ['ị', 'i'], ['ỉ', 'i'], ['ĩ', 'i'],
+      ['ò', 'o'], ['ó', 'o'], ['ọ', 'o'], ['ỏ', 'o'], ['õ', 'o'],
+      ['ô', 'o'], ['ồ', 'o'], ['ố', 'o'], ['ộ', 'o'], ['ổ', 'o'], ['ỗ', 'o'],
+      ['ơ', 'o'], ['ờ', 'o'], ['ớ', 'o'], ['ợ', 'o'], ['ở', 'o'], ['ỡ', 'o'],
+      ['ù', 'u'], ['ú', 'u'], ['ụ', 'u'], ['ủ', 'u'], ['ũ', 'u'],
+      ['ư', 'u'], ['ừ', 'u'], ['ứ', 'u'], ['ự', 'u'], ['ử', 'u'], ['ữ', 'u'],
+      ['ỳ', 'y'], ['ý', 'y'], ['ỵ', 'y'], ['ỷ', 'y'], ['ỹ', 'y'],
+      ['đ', 'd'],
+      ['À', 'A'], ['Á', 'A'], ['Ạ', 'A'], ['Ả', 'A'], ['Ã', 'A'],
+      ['Â', 'A'], ['Ầ', 'A'], ['Ấ', 'A'], ['Ậ', 'A'], ['Ẩ', 'A'], ['Ẫ', 'A'],
+      ['Ă', 'A'], ['Ằ', 'A'], ['Ắ', 'A'], ['Ặ', 'A'], ['Ẳ', 'A'], ['Ẵ', 'A'],
+      ['È', 'E'], ['É', 'E'], ['Ẹ', 'E'], ['Ẻ', 'E'], ['Ẽ', 'E'],
+      ['Ê', 'E'], ['Ề', 'E'], ['Ế', 'E'], ['Ệ', 'E'], ['Ể', 'E'], ['Ễ', 'E'],
+      ['Ì', 'I'], ['Í', 'I'], ['Ị', 'I'], ['Ỉ', 'I'], ['Ĩ', 'I'],
+      ['Ò', 'O'], ['Ó', 'O'], ['Ọ', 'O'], ['Ỏ', 'O'], ['Õ', 'O'],
+      ['Ô', 'O'], ['Ồ', 'O'], ['Ố', 'O'], ['Ộ', 'O'], ['Ổ', 'O'], ['Ỗ', 'O'],
+      ['Ơ', 'O'], ['Ờ', 'O'], ['Ớ', 'O'], ['Ợ', 'O'], ['Ở', 'O'], ['Ỡ', 'O'],
+      ['Ù', 'U'], ['Ú', 'U'], ['Ụ', 'U'], ['Ủ', 'U'], ['Ũ', 'U'],
+      ['Ư', 'U'], ['Ừ', 'U'], ['Ứ', 'U'], ['Ự', 'U'], ['Ử', 'U'], ['Ữ', 'U'],
+      ['Ỳ', 'Y'], ['Ý', 'Y'], ['Ỵ', 'Y'], ['Ỷ', 'Y'], ['Ỹ', 'Y'],
+      ['Đ', 'D'],
+    ]
+    let sql = columnName
+    for (const [accented, plain] of replacements) {
+      sql = `REPLACE(${sql}, '${accented}', '${plain}')`
+    }
+    return sql
+  }
+
+  private async findWithRawQuery(
+    pagination: TuitionPaymentPaginationOptions,
+    filters: TuitionPaymentFilterOptions,
+  ): Promise<TuitionPaymentListResult> {
+    const page = pagination.page || 1
+    const limit = pagination.limit || 10
+    const sortBy = pagination.sortBy || 'createdAt'
+    const sortOrder = pagination.sortOrder || 'desc'
+    const skip = (page - 1) * limit
+
+    const conditions: string[] = []
+    const params: any[] = []
+
+    if (filters.studentId) {
+      conditions.push('tp.student_id = ?')
+      params.push(filters.studentId)
+    }
+
+    if (filters.studentIds?.length) {
+      const placeholders = filters.studentIds.map(() => '?').join(', ')
+      conditions.push(`tp.student_id IN (${placeholders})`)
+      params.push(...filters.studentIds)
+    }
+
+    if (filters.courseId) {
+      conditions.push('tp.course_id = ?')
+      params.push(filters.courseId)
+    }
+
+    if (filters.status) {
+      conditions.push('tp.status = ?')
+      params.push(filters.status)
+    }
+
+    if (filters.year) {
+      conditions.push('tp.year = ?')
+      params.push(filters.year)
+    }
+
+    if (filters.month) {
+      conditions.push('tp.month = ?')
+      params.push(filters.month)
+    }
+
+    if (filters.fromPaidAt) {
+      conditions.push('tp.paid_at >= ?')
+      params.push(filters.fromPaidAt)
+    }
+
+    if (filters.toPaidAt) {
+      conditions.push('tp.paid_at <= ?')
+      params.push(filters.toPaidAt)
+    }
+
+    if (filters.grade !== undefined) {
+      conditions.push('s.grade = ?')
+      params.push(filters.grade)
+    }
+
+    if (filters.minAmount !== undefined) {
+      conditions.push('tp.amount >= ?')
+      params.push(filters.minAmount)
+    }
+
+    if (filters.maxAmount !== undefined) {
+      conditions.push('tp.amount <= ?')
+      params.push(filters.maxAmount)
+    }
+
+    if (filters.search) {
+      const searchPattern = `%${filters.search}%`
+      const normalizedSearch = `%${TextSearchUtil.removeVietnameseAccents(filters.search)}%`
+
+      const firstNameNoAccent = this.buildRemoveAccentsSQL('u.first_name')
+      const lastNameNoAccent = this.buildRemoveAccentsSQL('u.last_name')
+      const fullNameNoAccent = this.buildRemoveAccentsSQL(`CONCAT(u.last_name, ' ', u.first_name)`)
+      const reverseFullNameNoAccent = this.buildRemoveAccentsSQL(`CONCAT(u.first_name, ' ', u.last_name)`)
+
+      conditions.push(`(
+        LOWER(u.first_name) LIKE LOWER(?) OR
+        LOWER(u.last_name) LIKE LOWER(?) OR
+        LOWER(CONCAT(u.last_name, ' ', u.first_name)) LIKE LOWER(?) OR
+        LOWER(CONCAT(u.first_name, ' ', u.last_name)) LIKE LOWER(?) OR
+        LOWER(${firstNameNoAccent}) LIKE LOWER(?) OR
+        LOWER(${lastNameNoAccent}) LIKE LOWER(?) OR
+        LOWER(${fullNameNoAccent}) LIKE LOWER(?) OR
+        LOWER(${reverseFullNameNoAccent}) LIKE LOWER(?)
+      )`)
+      params.push(searchPattern, searchPattern, searchPattern, searchPattern)
+      params.push(normalizedSearch, normalizedSearch, normalizedSearch, normalizedSearch)
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+
+    const columnMap: Record<string, string> = {
+      createdAt: 'tp.created_at',
+      updatedAt: 'tp.updated_at',
+      paidAt: 'tp.paid_at',
+      amount: 'tp.amount',
+      year: 'tp.year',
+      month: 'tp.month',
+      status: 'tp.status',
+    }
+    const orderColumn = columnMap[sortBy] || 'tp.created_at'
+    const orderByClause = `ORDER BY ${orderColumn} ${sortOrder}`
+
+    const baseFrom = `
+      FROM tuition_payments tp
+      INNER JOIN students s ON tp.student_id = s.student_id
+      INNER JOIN users u ON s.user_id = u.user_id
+      ${whereClause}
+    `
+
+    const countQuery = `SELECT COUNT(*) as total ${baseFrom}`
+    const idsQuery = `SELECT tp.payment_id ${baseFrom} ${orderByClause} LIMIT ? OFFSET ?`
+
+    const [countResult, idsResult] = await Promise.all([
+      this.prisma.$queryRawUnsafe(countQuery, ...params) as Promise<[{ total: bigint }]>,
+      this.prisma.$queryRawUnsafe(idsQuery, ...params, limit, skip) as Promise<{ payment_id: number }[]>,
+    ])
+
+    const total = Number(countResult[0].total)
+    const ids = idsResult.map((r: any) => r.payment_id)
+
+    const payments = ids.length === 0
+      ? []
+      : await this.prisma.tuitionPayment.findMany({
+          where: { paymentId: { in: ids } },
+          include: {
+            student: { include: { user: true } },
+            course: true,
+          },
+        })
+
+    const idOrder = new Map(ids.map((id: number, i: number) => [id, i]))
+    payments.sort((a: any, b: any) => (idOrder.get(a.paymentId) ?? 0) - (idOrder.get(b.paymentId) ?? 0))
+
+    return {
+      data: TuitionPaymentMapper.toDomainTuitionPayments(payments),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    }
   }
 }

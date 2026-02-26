@@ -42,6 +42,10 @@ export interface TuitionPaymentFilterOptions {
   fromPaidAt?: Date
   toPaidAt?: Date
   studentIds?: number[]
+  search?: string
+  grade?: number
+  minAmount?: number
+  maxAmount?: number
 }
 
 /**

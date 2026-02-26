@@ -5,6 +5,8 @@ import {
   TuitionPaymentFilterOptions,
   TuitionPaymentPaginationOptions,
 } from '../../../domain/interface/tuition-payment/tuition-payment.interface'
+import { IsOptional } from 'class-validator'
+import { Type } from 'class-transformer'
 
 /**
  * DTO for querying tuition payment list
@@ -52,6 +54,32 @@ export class TuitionPaymentListQueryDto extends ListQueryDto {
   @IsOptionalEnumValue(TuitionPaymentStatus, 'Trạng thái học phí')
   status?: TuitionPaymentStatus
 
+  /**
+   * Filter by student grade (khối)
+   * @optional
+   * @example 10
+   */
+  @IsOptionalInt('Khối', 1, 12)
+  grade?: number
+
+  /**
+   * Filter by minimum amount
+   * @optional
+   * @example 100000
+   */
+  @IsOptional()
+  @Type(() => Number)
+  minAmount?: number
+
+  /**
+   * Filter by maximum amount
+   * @optional
+   * @example 500000
+   */
+  @IsOptional()
+  @Type(() => Number)
+  maxAmount?: number
+
   // ======================
   // MAP → DOMAIN FILTER
   // ======================
@@ -63,6 +91,10 @@ export class TuitionPaymentListQueryDto extends ListQueryDto {
       month: this.month,
       year: this.year,
       status: this.status,
+      grade: this.grade,
+      minAmount: this.minAmount,
+      maxAmount: this.maxAmount,
+      search: this.search,
 
       fromPaidAt: this.fromDate ? new Date(this.fromDate) : undefined,
       toPaidAt: this.toDate ? new Date(this.toDate) : undefined,
