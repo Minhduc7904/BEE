@@ -23,7 +23,7 @@ export class ExportTuitionPaymentListUseCase {
 
         const pagination = {
             page: 1,
-            limit: 100_000, // Export luôn lấy toàn bộ dữ liệu
+            limit: 100000, // Export luôn lấy toàn bộ dữ liệu
             sortBy: options.sortBy || 'createdAt',
             sortOrder: options.sortOrder || SortOrder.DESC,
         }
