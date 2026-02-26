@@ -22,8 +22,8 @@ export class ExportTuitionPaymentListUseCase {
         const filters = options.toTuitionPaymentFilterOptions()
 
         const pagination = {
-            page: options.page || 1,
-            limit: options.limit || 1000, // Default limit cao hơn cho export
+            page: 1,
+            limit: 100_000, // Export luôn lấy toàn bộ dữ liệu
             sortBy: options.sortBy || 'createdAt',
             sortOrder: options.sortOrder || SortOrder.DESC,
         }
