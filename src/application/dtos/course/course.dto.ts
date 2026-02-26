@@ -1,6 +1,8 @@
 // src/application/dtos/course/course.dto.ts
 import { Course } from '../../../domain/entities'
 import { PaginationResponseDto } from '../pagination/pagination-response.dto'
+import { AdminResponseDto } from '../admin'
+import { SubjectResponseDto } from '../subject/subject.dto'
 
 export class CourseResponseDto {
   // ===== Identity =====
@@ -21,6 +23,10 @@ export class CourseResponseDto {
   // ===== Teacher =====
   teacherId?: number
   teacherName?: string
+  teacher?: AdminResponseDto
+  
+  // ===== Subject =====
+  subject?: SubjectResponseDto
 
   // ===== Pricing =====
   priceVND: number
@@ -65,6 +71,10 @@ export class CourseResponseDto {
       teacherName: course.teacher
         ? `${course.teacher.user?.firstName ?? ''} ${course.teacher.user?.lastName ?? ''}`.trim()
         : undefined,
+      teacher: course.teacher ? AdminResponseDto.fromUserWithAdmin(course.teacher.user, course.teacher) : undefined,
+
+      // Subject
+      subject: course.subject ? SubjectResponseDto.fromSubject(course.subject) : undefined,
 
       // Pricing
       priceVND: course.priceVND,

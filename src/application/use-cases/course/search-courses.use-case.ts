@@ -29,7 +29,6 @@ export class SearchCoursesUseCase {
         const pagination = query.toCoursePaginationOptions()
 
         const result = await this.courseRepository.findAllWithPagination(pagination, filters)
-
         // Filter out DRAFT courses (extra safety layer)
         const nonDraftCourses = result.courses.filter(
             course => course.visibility !== CourseVisibility.DRAFT
@@ -67,7 +66,7 @@ export class SearchCoursesUseCase {
                 ...baseFilters,
                 visibility: undefined,
                 teacherId: undefined,
-                excludeVisibility: CourseVisibility.DRAFT,
+                // excludeVisibility: CourseVisibility.DRAFT,
             }
         // }
 
