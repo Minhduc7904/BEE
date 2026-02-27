@@ -60,6 +60,10 @@ RUN apt-get update && apt-get install -y \
     xdg-utils \
     && rm -rf /var/lib/apt/lists/*
 
+# Đặt PLAYWRIGHT_BROWSERS_PATH vào trong /app để chown bao phủ được
+# Tránh trường hợp install với root nhưng chạy với nestjs không tìm thấy browser
+ENV PLAYWRIGHT_BROWSERS_PATH=/app/.playwright-browsers
+
 # Copy package files
 COPY package*.json ./
 COPY prisma ./prisma/
@@ -68,15 +72,15 @@ COPY prisma ./prisma/
 RUN npm ci --omit=dev && \
     npx prisma generate
 
-# Install Playwright browser (QUAN TRỌNG)
-RUN npx playwright install chromium
+# Install Playwright browser vào /app/.playwright-browsers
+RUN npx playwright install chromium --with-deps
 
 # Copy build từ builder
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
-# Tạo user an toàn
-RUN groupadd -r nodejs && useradd -r -g nodejs nestjs
+# Tạo user an toàn và chown toàn bộ /app (bao gồm .playwright-browsers)
+RUN groupadd -r nodejs && useradd -r -g nodejs -m nestjs
 RUN chown -R nestjs:nodejs /app
 
 USER nestjs
