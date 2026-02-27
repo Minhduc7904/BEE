@@ -66,6 +66,7 @@ import { ImageExportService } from './services/image-export.service'
 import { MistralService } from './services/mistral.service'
 import { OpenAIService } from './services/openai.service'
 import { ExamSplitService } from './services/exam-split.service'
+import { MarkdownFixService } from './services/markdown-fix.service'
 import { QuestionChapterClassificationService } from './services/question-chapter-classification.service'
 import { FileConverterService } from './services/file-converter.service'
 import { GoogleAdminStrategy } from './strategies/google-admin.strategy'
@@ -350,6 +351,7 @@ import openaiConfig from '../config/openai.config'
     MistralService,
     OpenAIService,
     ExamSplitService,
+    MarkdownFixService,
     QuestionChapterClassificationService,
     FileConverterService,
     GoogleAdminStrategy,
@@ -414,6 +416,7 @@ import openaiConfig from '../config/openai.config'
     MistralService,
     OpenAIService,
     ExamSplitService,
+    MarkdownFixService,
     QuestionChapterClassificationService,
     FileConverterService,
     ImageExportService,

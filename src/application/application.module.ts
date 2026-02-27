@@ -44,6 +44,7 @@ import { HomeworkContentApplicationModule } from './use-cases/homeworkContent/ho
 import { YoutubeContentApplicationModule } from './use-cases/youtubeContent/youtube-content.application.module'
 import { VideoContentApplicationModule } from './use-cases/videoContent/video-content.application.module'
 import { DocumentContentApplicationModule } from './use-cases/documentContent/document-content.application.module'
+import { MarkdownFixApplicationModule } from './use-cases/markdown-fix/markdown-fix.application.module'
 
 const modules = [
   // Auth & Account
@@ -105,6 +106,7 @@ const modules = [
   YoutubeContentApplicationModule,
   VideoContentApplicationModule,
   DocumentContentApplicationModule,
+  MarkdownFixApplicationModule,
 ]
 
 @Module({

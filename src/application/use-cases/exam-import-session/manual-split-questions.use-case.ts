@@ -308,7 +308,7 @@ export class ManualSplitQuestionsUseCase {
             { pattern: /^#{1,6}(\s|$)/, label: 'heading markdown (#)' },
             { pattern: /\*\*/, label: 'in đậm markdown (**)' },
             { pattern: /^-{3,}\s*$/, label: 'đường kẻ ngang markdown (---)' },
-            { pattern: /\|/, label: 'bảng markdown (|)' },
+            
         ]
 
         for (let i = 0; i < allLines.length; i++) {
@@ -352,13 +352,16 @@ export class ManualSplitQuestionsUseCase {
             const blockEnd = qi + 1 < questionStarts.length ? questionStarts[qi + 1] : allLines.length
             const blockLines = allLines.slice(blockStart, blockEnd)
 
+            // Mở rộng các đáp án nằm cùng 1 dòng thành từng dòng riêng
+            const expandedBlockLines = this.expandInlineStatements(blockLines)
+
             // lineIndex 1-based trong toàn bộ rawContent
             const lineAt = (localIdx: number) => blockStart + localIdx + 1
 
             // ─── Tìm dòng đáp án đầu tiên ─────────────────────────────────────────
             let stmtStartLocal = -1
-            for (let li = 0; li < blockLines.length; li++) {
-                if (STATEMENT.test(blockLines[li].trim())) {
+            for (let li = 0; li < expandedBlockLines.length; li++) {
+                if (STATEMENT.test(expandedBlockLines[li].trim())) {
                     stmtStartLocal = li
                     break
                 }
@@ -374,7 +377,7 @@ export class ManualSplitQuestionsUseCase {
             }
 
             // ─── Nội dung câu hỏi ────────────────────────────────────────────────
-            const contentLines = blockLines.slice(0, stmtStartLocal)
+            const contentLines = expandedBlockLines.slice(0, stmtStartLocal)
             contentLines[0] = (contentLines[0] ?? '').replace(STRIP_PREFIX, '').trim()
 
             const content = contentLines
@@ -394,19 +397,19 @@ export class ManualSplitQuestionsUseCase {
 
             // ─── Tìm "Lời giải" ───────────────────────────────────────────────────
             let solutionMarkerLocal = -1
-            for (let li = stmtStartLocal; li < blockLines.length; li++) {
-                if (SOLUTION_MARKER.test(blockLines[li].trim())) {
+            for (let li = stmtStartLocal; li < expandedBlockLines.length; li++) {
+                if (SOLUTION_MARKER.test(expandedBlockLines[li].trim())) {
                     solutionMarkerLocal = li
                     break
                 }
             }
 
             // ─── Parse đáp án A-D (chuẩn hoá về chữ hoa) ────────────────────────
-            const stmtEndLocal = solutionMarkerLocal !== -1 ? solutionMarkerLocal : blockLines.length
+            const stmtEndLocal = solutionMarkerLocal !== -1 ? solutionMarkerLocal : expandedBlockLines.length
             const statementsMap = new Map<string, string>()
 
             for (let li = stmtStartLocal; li < stmtEndLocal; li++) {
-                const match = STATEMENT.exec(blockLines[li].trim())
+                const match = STATEMENT.exec(expandedBlockLines[li].trim())
                 if (match) {
                     const letter = match[1].toUpperCase()
                     // Chỉ ghi nhận lần đầu xuất hiện của mỗi letter
@@ -425,7 +428,7 @@ export class ManualSplitQuestionsUseCase {
             if (missingOptions.length > 0) {
                 errors.push({
                     lineIndex: lineAt(stmtStartLocal),
-                    line: blockLines[stmtStartLocal] ?? '',
+                    line: blockLines[0] ?? '',
                     message: `Câu ${qi + 1}: Thiếu đáp án bắt buộc ${missingOptions.join(', ')}`,
                 })
                 continue
@@ -435,7 +438,7 @@ export class ManualSplitQuestionsUseCase {
             let solutionText: string | undefined
 
             if (solutionMarkerLocal !== -1) {
-                solutionText = blockLines
+                solutionText = expandedBlockLines
                     .slice(solutionMarkerLocal + 1)
                     .map(l => l.trim())
                     .join('\n')
@@ -541,7 +544,7 @@ export class ManualSplitQuestionsUseCase {
             { pattern: /^#{1,6}(\s|$)/, label: 'heading markdown (#)' },
             { pattern: /\*\*/, label: 'in đậm markdown (**)' },
             { pattern: /^-{3,}\s*$/, label: 'đường kẻ ngang markdown (---)' },
-            { pattern: /\|/, label: 'bảng markdown (|)' },
+            
         ]
 
         for (let i = 0; i < allLines.length; i++) {
@@ -571,12 +574,16 @@ export class ManualSplitQuestionsUseCase {
             const blockStart = questionStarts[qi]
             const blockEnd = qi + 1 < questionStarts.length ? questionStarts[qi + 1] : allLines.length
             const blockLines = allLines.slice(blockStart, blockEnd)
+
+            // Mở rộng các mệnh đề nằm cùng 1 dòng thành từng dòng riêng
+            const expandedBlockLines = this.expandInlineStatements(blockLines)
+
             const lineAt = (li: number) => blockStart + li + 1
 
             // ─── Tìm mệnh đề đầu tiên (a.) ───────────────────────────────────
             let subStartLocal = -1
-            for (let li = 0; li < blockLines.length; li++) {
-                if (SUB_QUESTION.test(blockLines[li].trim())) { subStartLocal = li; break }
+            for (let li = 0; li < expandedBlockLines.length; li++) {
+                if (SUB_QUESTION.test(expandedBlockLines[li].trim())) { subStartLocal = li; break }
             }
 
             if (subStartLocal === -1) {
@@ -585,7 +592,7 @@ export class ManualSplitQuestionsUseCase {
             }
 
             // ─── Nội dung câu hỏi (trước mệnh đề đầu tiên) ──────────────────
-            const contentLines = blockLines.slice(0, subStartLocal)
+            const contentLines = expandedBlockLines.slice(0, subStartLocal)
             contentLines[0] = (contentLines[0] ?? '').replace(STRIP_PREFIX, '').trim()
             const content = contentLines.map(l => l.trim()).join('\n').replace(/\n{3,}/g, '\n\n').trim()
 
@@ -596,17 +603,17 @@ export class ManualSplitQuestionsUseCase {
 
             // ─── Tìm "Lời giải" ──────────────────────────────────────────────
             let solutionMarkerLocal = -1
-            for (let li = subStartLocal; li < blockLines.length; li++) {
-                if (SOLUTION_MARKER.test(blockLines[li].trim())) { solutionMarkerLocal = li; break }
+            for (let li = subStartLocal; li < expandedBlockLines.length; li++) {
+                if (SOLUTION_MARKER.test(expandedBlockLines[li].trim())) { solutionMarkerLocal = li; break }
             }
 
             // ─── Parse mệnh đề a-d (và E, F nếu có), chuẩn hoá về chữ hoa ─
-            const subEndLocal = solutionMarkerLocal !== -1 ? solutionMarkerLocal : blockLines.length
+            const subEndLocal = solutionMarkerLocal !== -1 ? solutionMarkerLocal : expandedBlockLines.length
             const subMap = new Map<string, string[]>() // letter → [dòng nội dung]
             let currentLetter = ''
 
             for (let li = subStartLocal; li < subEndLocal; li++) {
-                const trimmed = blockLines[li].trim()
+                const trimmed = expandedBlockLines[li].trim()
                 const match = SUB_QUESTION.exec(trimmed)
                 if (match) {
                     currentLetter = match[1].toUpperCase()
@@ -623,7 +630,7 @@ export class ManualSplitQuestionsUseCase {
             if (missingSubs.length > 0) {
                 errors.push({
                     lineIndex: lineAt(subStartLocal) - 1,
-                    line: blockLines[subStartLocal] ?? '',
+                    line: blockLines[0] ?? '',
                     message: `Câu ${qi + 1}: Thiếu mệnh đề bắt buộc ${missingSubs.join(', ')}`,
                 })
                 continue
@@ -634,7 +641,7 @@ export class ManualSplitQuestionsUseCase {
             // ─── Lời giải ────────────────────────────────────────────────────
             let solutionText: string | undefined
             if (solutionMarkerLocal !== -1) {
-                solutionText = blockLines.slice(solutionMarkerLocal + 1).map(l => l.trim()).join('\n').trim() || undefined
+                solutionText = expandedBlockLines.slice(solutionMarkerLocal + 1).map(l => l.trim()).join('\n').trim() || undefined
             }
 
             // ─── Đáp án từ parsedAnswers ─────────────────────────────────────
@@ -694,9 +701,16 @@ export class ManualSplitQuestionsUseCase {
 
         const allLines = rawContent.split('\n')
 
-        // Parse đáp án từ DTO (chuẩn hoá , → .)
+        // Parse đáp án từ DTO
+        // Chuẩn hoá: dấu trừ Unicode (−, –) → dấu trừ chuẩn (-); dấu phẩy thập phân (,) → dấu chấm (.)
         const parsedAnswers: string[] = answersRaw
-            ? answersRaw.trim().split(/\s+/).map(t => t.replace(/,/g, '.'))
+            ? answersRaw.trim().split(/\s+/).map(t =>
+                t
+                    .replace(/\u2212/g, '-')  // Unicode minus U+2212 (−)
+                    .replace(/\u2013/g, '-')  // en dash U+2013 (–)
+                    .replace(/\u2014/g, '-')  // em dash U+2014 (—)
+                    .replace(/,/g, '.')        // dấu phẩy thập phân → dấu chấm
+            )
             : []
 
         const QUESTION_START = /^c[âa]?u\s*\d+[.:)]/i
@@ -708,7 +722,7 @@ export class ManualSplitQuestionsUseCase {
             { pattern: /^#{1,6}(\s|$)/, label: 'heading markdown (#)' },
             { pattern: /\*\*/, label: 'in đậm markdown (**)' },
             { pattern: /^-{3,}\s*$/, label: 'đường kẻ ngang markdown (---)' },
-            { pattern: /\|/, label: 'bảng markdown (|)' },
+            
         ]
         for (let i = 0; i < allLines.length; i++) {
             const trimmed = allLines[i].trim()
@@ -799,5 +813,42 @@ export class ManualSplitQuestionsUseCase {
      */
     private splitEssayQuestions(_rawContent: string): SplitResult {
         return { questions: [], displayQuestions: [], errors: [] }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  HELPERS
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Xử lý trường hợp các đáp án / mệnh đề nằm trên một dòng duy nhất.
+     *
+     * Ví dụ (SINGLE_CHOICE / TRUE_FALSE):
+     *   "A. $(SAB)$. B. $(SBC)$. C. $(SCD)$. D. $(SBD)$."
+     *   → ["A. $(SAB)$.", "B. $(SBC)$.", "C. $(SCD)$.", "D. $(SBD)$."]
+     *
+     * Quy tắc tách: tìm khoảng trắng ngay trước ký tự marker (chữ A-F theo sau
+     * là .  )  :  rồi đến khoảng trắng hoặc cuối chuỗi).
+     * Chỉ tách khi dòng chứa ít nhất 2 marker, để tránh tách nhầm nội dung có
+     * cụm "A." đơn lẻ (ví dụ: chú thích "xem hình A.").
+     */
+    private expandInlineStatements(lines: string[]): string[] {
+        // Pattern đếm: (đầu chuỗi | khoảng trắng) + chữ A-F + dấu .:) + (khoảng trắng | cuối)
+        const COUNT_MARKERS = /(?:^|\s)[A-Fa-f][.:)](?:\s|$)/g
+        const result: string[] = []
+
+        for (const line of lines) {
+            const trimmed = line.trim()
+            if (!trimmed) { result.push(line); continue }
+
+            const markerCount = (trimmed.match(COUNT_MARKERS) ?? []).length
+            if (markerCount > 1) {
+                // Tách tại vị trí khoảng trắng đứng ngay trước một option marker
+                const parts = trimmed.split(/\s+(?=[A-Fa-f][.:)](?:\s|$))/)
+                result.push(...parts.map(p => p.trim()).filter(p => p.length > 0))
+            } else {
+                result.push(line)
+            }
+        }
+        return result
     }
 }

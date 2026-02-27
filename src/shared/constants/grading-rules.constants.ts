@@ -72,13 +72,21 @@ export function calcTrueFalsePoints(
 
 /**
  * Chuẩn hóa chuỗi số để so sánh (SHORT_ANSWER chỉ chấp nhận đáp án là số).
- * Chấp nhận cả dấu ',' và '.' làm dấu thập phân, xử lý số âm.
+ *
+ * Các ký tự được chuẩn hóa trước khi parse:
+ * - Unicode minus  U+2212 (−), en dash U+2013 (–), em dash U+2014 (—),
+ *   figure dash U+2012 (‒), horizontal bar U+2015 (―) → dấu trừ chuẩn (-)
+ * - Dấu phẩy thập phân (,) → dấu chấm (.)
+ * - Khoảng trắng thừa đầu/cuối
  *
  * @returns Giá trị số nếu hợp lệ, null nếu không phải số
  */
 export function parseNumericAnswer(raw: string): number | null {
-    const normalized = raw.trim().replace(',', '.')
-    // Chấp nhận: số nguyên, số thập phân, số âm (ví dụ: -3, 3.14, -3,14)
+    const normalized = raw
+        .trim()
+        .replace(/[\u2212\u2013\u2014\u2012\u2015]/g, '-')  // Unicode minus/dash → chuẩn
+        .replace(/,/g, '.')                                   // phẩy thập phân → chấm
+    // Chấp nhận: số nguyên, số thập phân, số âm (ví dụ: -3, 3.14, -3.14)
     if (!/^-?\d+(\.\d+)?$/.test(normalized)) return null
     return parseFloat(normalized)
 }

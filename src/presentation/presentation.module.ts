@@ -55,6 +55,7 @@ import { YoutubeContentController } from './controllers/youtube-content.controll
 import { VideoContentController } from './controllers/video-content.controller'
 import { DocumentContentController } from './controllers/document-content.controller'
 import { HealthController } from './controllers/health.controller'
+import { MarkdownFixController } from './controllers/markdown-fix.controller'
 
 @Module({
   imports: [
@@ -109,6 +110,7 @@ import { HealthController } from './controllers/health.controller'
     VideoContentController,
     DocumentContentController,
     HealthController,
+    MarkdownFixController,
   ],
   providers: [
     // WebSocket Gateways
