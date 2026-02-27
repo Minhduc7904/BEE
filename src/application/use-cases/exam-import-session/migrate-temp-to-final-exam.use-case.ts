@@ -26,6 +26,7 @@ import { ACTION_KEYS } from 'src/shared/constants/action-key.constants'
 import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
 import { TEMP_EXAM_TO_EXAM_FIELD_MAP } from 'src/shared/constants/media-field-name.constants'
 import { TextSearchUtil } from 'src/shared/utils/text-search.util'
+import { DEFAULT_QUESTION_POINTS } from 'src/shared/constants/grading-rules.constants'
 
 interface MigrateTempToFinalExamParams {
     sessionId: number
@@ -381,6 +382,11 @@ export class MigrateTempToFinalExamUseCase {
                 slug = TextSearchUtil.generateUniqueSlug(baseSlug)
             }
 
+            // Nếu không có pointsOrigin, tự động lấy từ DEFAULT_QUESTION_POINTS theo loại câu hỏi
+            const pointsOrigin = tempQuestion.pointsOrigin
+                ?? DEFAULT_QUESTION_POINTS[tempQuestion.type]
+                ?? null
+
             // Create Question using repository
             const question = await repos.questionRepository.create({
                 content,
@@ -393,7 +399,7 @@ export class MigrateTempToFinalExamUseCase {
                 solutionYoutubeUrl: tempQuestion.solutionYoutubeUrl,
                 grade: tempQuestion.grade || tempQuestion.tempExam?.grade || null,
                 subjectId: tempQuestion.subjectId,
-                pointsOrigin: tempQuestion.pointsOrigin,
+                pointsOrigin: pointsOrigin,
                 visibility: Visibility.PUBLISHED,
                 createdBy: adminId,
             }, txClient)
@@ -414,7 +420,7 @@ export class MigrateTempToFinalExamUseCase {
                 examId,
                 sectionId,
                 order: tempQuestion.order,
-                points: tempQuestion.pointsOrigin,
+                points: pointsOrigin,
             })
 
             // Prepare Statements for bulk insert

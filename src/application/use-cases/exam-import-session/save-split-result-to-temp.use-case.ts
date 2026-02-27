@@ -12,6 +12,7 @@ import { SplitQuestion } from '../../../infrastructure/services/exam-split.servi
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 import { extractAllMediaIds } from '../../../shared/utils'
 import { EntityType } from '../../../shared/constants/entity-type.constants'
+import { DEFAULT_QUESTION_POINTS } from '../../../shared/constants/grading-rules.constants'
 
 @Injectable()
 export class SaveSplitResultToTempUseCase {
@@ -29,6 +30,7 @@ export class SaveSplitResultToTempUseCase {
         adminId: number,
         userId: number,
         defaultSubjectId?: number | null,
+        tempSectionId?: number | null,
     ): Promise<
         BaseResponseDto<{
             savedQuestions: number
@@ -68,15 +70,21 @@ export class SaveSplitResultToTempUseCase {
                 // Nếu question chưa có subjectId, dùng subjectId của exam (nếu có)
                 const questionSubjectId = question.subjectId || defaultSubjectId || undefined
 
+                // Nếu không có pointsOrigin, tự động lấy từ DEFAULT_QUESTION_POINTS theo loại câu hỏi
+                const pointsOrigin = question.pointsOrigin
+                    ?? DEFAULT_QUESTION_POINTS[question.type]
+                    ?? undefined
+
                 const tempQuestion = await tempQuestionRepository.create({
                     sessionId,
+                    tempSectionId: tempSectionId ?? undefined,
                     content: question.content,
                     type: question.type,
                     subjectId: questionSubjectId,
                     correctAnswer: question.correctAnswer || undefined,
                     solution: question.solution || undefined,
                     difficulty: question.difficulty || undefined,
-                    pointsOrigin: question.pointsOrigin || undefined,
+                    pointsOrigin: pointsOrigin,
                     order,
                     metadata: {
                         part: question.part,

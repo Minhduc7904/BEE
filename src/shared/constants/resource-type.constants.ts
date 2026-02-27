@@ -32,6 +32,7 @@ export const RESOURCE_TYPES = {
   SECTION: 'SECTION',
   EXAM: 'EXAM',
   COMPETITION: 'COMPETITION',
+  COMPETITION_SUBMIT: 'COMPETITION_SUBMIT',
 } as const
 
 export const RESOURCE_TYPE_TABLE = {
@@ -220,6 +221,12 @@ export const RESOURCE_TYPE_TABLE = {
     tableName: 'competitions',
     primaryKey: 'competitionId',
     repositoryName: 'competitionRepository',
+  },
+  [RESOURCE_TYPES.COMPETITION_SUBMIT]: {
+    displayName: 'Competition Submit',
+    tableName: 'competition_submits',
+    primaryKey: 'competitionSubmitId',
+    repositoryName: 'competitionSubmitRepository',
   },
 } as const
 

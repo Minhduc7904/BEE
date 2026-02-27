@@ -17,6 +17,11 @@ export const PERMISSION_CODES = {
     UPDATE: 'competition:update',
     DELETE: 'competition:delete',
   },
+  COMPETITION_SUBMIT: {
+    GET_ALL: 'competition-submit:get-all',
+    GET_BY_ID: 'competition-submit:get-by-id',
+    DELETE: 'competition-submit:delete',
+  },
   QUESTION: {
     GET_MY_QUESTIONS: 'question:get-my-questions',
     SEARCH: 'question:search',

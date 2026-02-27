@@ -47,6 +47,7 @@ import { QuestionController } from './controllers/question.controller'
 import { StatementController } from './controllers/statement.controller'
 import { ExamController } from './controllers/exam.controller'
 import { CompetitionController } from './controllers/competition.controller'
+import { CompetitionSubmitController } from './controllers/competition-submit.controller'
 import { DoCompetitionController } from './controllers/do-competition.controller'
 import { SectionController } from './controllers/section.controller'
 import { HomeworkContentController } from './controllers/homework-content.controller'
@@ -100,6 +101,7 @@ import { HealthController } from './controllers/health.controller'
     StatementController,
     ExamController,
     CompetitionController,
+    CompetitionSubmitController,
     DoCompetitionController,
     SectionController,
     HomeworkContentController,

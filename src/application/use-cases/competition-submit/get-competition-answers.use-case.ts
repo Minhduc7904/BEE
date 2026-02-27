@@ -100,18 +100,33 @@ export class GetCompetitionAnswersUseCase {
         // 6. Tìm những câu hỏi chưa có answer → tạo hàng loạt vào DB
         const missingQuestions = allQuestions.filter(q => !answerMap.has(q.questionId))
 
+
+
         if (missingQuestions.length > 0) {
             const newAnswers = await this.competitionAnswerRepository.createMany(
-                missingQuestions.map(q => ({
-                    competitionSubmitId: submitId,
-                    questionId: q.questionId,
-                    answer: null,
-                    // null = chưa trả lời (khác với [] = đã trả lời nhưng không chọn gì / đánh dấu tất cả là sai)
-                    selectedStatementIds: null,
-                    // Ưu tiên: điểm trong QuestionExam → pointsOrigin → điểm mặc định theo loại
-                    maxPoints: q.examPoints ?? q.pointsOrigin ?? (DEFAULT_QUESTION_POINTS[q.type] ?? null),
-                })),
-            )
+                missingQuestions.map(q => {
+                    const examPoints =
+                        q.examPoints != null && q.examPoints > 0
+                            ? q.examPoints
+                            : null;
+
+                    const originPoints =
+                        q.pointsOrigin != null && q.pointsOrigin > 0
+                            ? q.pointsOrigin
+                            : null;
+
+                    return {
+                        competitionSubmitId: submitId,
+                        questionId: q.questionId,
+                        answer: null,
+                        selectedStatementIds: null,
+                        maxPoints:
+                            examPoints ??
+                            originPoints ??
+                            (DEFAULT_QUESTION_POINTS[q.type] ?? null),
+                    };
+                }),
+            );
             // Thêm vào map
             newAnswers.forEach(a => answerMap.set(a.questionId, a))
         }

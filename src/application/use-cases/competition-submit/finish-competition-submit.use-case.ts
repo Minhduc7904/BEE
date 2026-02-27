@@ -70,7 +70,10 @@ export class FinishCompetitionSubmitUseCase {
 
         // 2. Lấy toàn bộ câu trả lời của lần làm bài này
         const answers = await this.competitionAnswerRepository.findByCompetitionSubmit(submitId)
-
+        // console.log(`Found ${answers.length} answers for submit ID ${submitId}`)
+        // for (const a of answers) {
+        //     console.log(`Answer ${a.competitionAnswerId}: questionId=${a.questionId}, points=${a.points}, maxPoints=${a.maxPoints}`)
+        // }
         // 3. Tải đề thi để lấy câu hỏi + statements cho việc chấm điểm
         const competition = await this.competitionRepository.findById(submit.competitionId)
         if (!competition) {
@@ -134,7 +137,7 @@ export class FinishCompetitionSubmitUseCase {
 
         for (const answer of answers) {
             // Đã được chấm rồi → bỏ qua
-            if (answer.points !== null && answer.points !== undefined) continue
+            // if (answer.points !== null && answer.points !== undefined) continue
 
             const qInfo = questionMap.get(answer.questionId)
             if (!qInfo) continue
@@ -142,25 +145,32 @@ export class FinishCompetitionSubmitUseCase {
             // ESSAY không tự chấm được
             if (qInfo.type === QuestionType.ESSAY) continue
 
-            // Xác định effectiveMaxPoints
+            // Xác định effectiveMaxPoints (bỏ qua giá trị 0 để fallback về DEFAULT_QUESTION_POINTS)
+            const _answerMaxPoints = answer.maxPoints != null ? Number(answer.maxPoints) : null
+            const _questionOrigin = qInfo.pointsOrigin != null ? Number(qInfo.pointsOrigin) : null
             const effectiveMaxPoints: number | null =
-                answer.maxPoints != null
-                    ? Number(answer.maxPoints)
-                    : qInfo.pointsOrigin != null
-                        ? qInfo.pointsOrigin
+                (_answerMaxPoints != null && _answerMaxPoints > 0)
+                    ? _answerMaxPoints
+                    : (_questionOrigin != null && _questionOrigin > 0)
+                        ? _questionOrigin
                         : (DEFAULT_QUESTION_POINTS[qInfo.type] ?? null)
 
             // Parse answeredStatementIds từ JSON nếu là TRUE_FALSE
             let answeredStatementIds: number[] | null = null
-            if (qInfo.type === QuestionType.TRUE_FALSE && answer.answer) {
-                try {
-                    const parsed = JSON.parse(answer.answer) as Record<string, boolean | null>
-                    answeredStatementIds = Object.entries(parsed)
-                        .filter(([, v]) => v !== null)
-                        .map(([k]) => parseInt(k, 10))
-                } catch {
-                    // fallback — treat selectedStatementIds as answered
-                    answeredStatementIds = answer.selectedStatementIds ?? []
+            if (qInfo.type === QuestionType.TRUE_FALSE) {
+                if (answer.answer) {
+                    try {
+                        const parsed = JSON.parse(answer.answer) as Record<string, boolean | null>
+                        answeredStatementIds = Object.entries(parsed)
+                            .filter(([, v]) => v !== null)
+                            .map(([k]) => parseInt(k, 10))
+                    } catch {
+                        // fallback — treat selectedStatementIds as answered
+                        answeredStatementIds = answer.selectedStatementIds ?? []
+                    }
+                } else {
+                    // Chưa trả lời → không chấm điểm mệnh đề nào
+                    answeredStatementIds = []
                 }
             }
 
@@ -182,6 +192,7 @@ export class FinishCompetitionSubmitUseCase {
                     data: { isCorrect: grade.isCorrect, points: grade.points },
                 })
             }
+            // console.log(`Grading answer ID ${answer.competitionAnswerId}: isCorrect=${grade.isCorrect}, points=${grade.points}, effectiveMaxPoints=${effectiveMaxPoints}, answer=${JSON.stringify(answer.answer)}, selectedStatementIds=${JSON.stringify(answer.selectedStatementIds)}, answeredStatementIds=${JSON.stringify(answeredStatementIds)})`)
         }
 
         // 6. Ghi kết quả chấm vào DB (batch update)
@@ -192,7 +203,6 @@ export class FinishCompetitionSubmitUseCase {
         // 7. Tính tổng điểm và điểm tối đa
         const totalPoints = answers.reduce((sum, a) => sum + Number(a.points ?? 0), 0)
         const maxPoints = answers.reduce((sum, a) => sum + Number(a.maxPoints ?? 0), 0)
-
         // 8. Tính thời gian làm bài
         const now = new Date()
         const timeSpentSeconds = Math.floor((now.getTime() - new Date(submit.startedAt).getTime()) / 1000)
@@ -228,7 +238,7 @@ export class FinishCompetitionSubmitUseCase {
                 parsedHomeworkContentId,
                 studentId,
             )
-            console.log('Existing homework submit:', existingSubmit)
+            // console.log('Existing homework submit:', existingSubmit)
 
             const newPoints = totalPoints
             const shouldUpdatePoints = (existingPoints: number | null | undefined): boolean => {

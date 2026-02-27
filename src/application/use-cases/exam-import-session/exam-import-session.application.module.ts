@@ -14,6 +14,7 @@ const EXAM_IMPORT_SESSION_USE_CASES = [
   examImportSessionUseCase.SaveSplitResultToTempUseCase,
   examImportSessionUseCase.ClassifyQuestionChaptersUseCase,
   examImportSessionUseCase.MigrateTempToFinalExamUseCase,
+  examImportSessionUseCase.ManualSplitQuestionsUseCase,
 ]
 
 @Module({

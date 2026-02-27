@@ -8,6 +8,9 @@ import {
     GetCompetitionAnswersUseCase,
     SubmitCompetitionAnswerUseCase,
     FinishCompetitionSubmitUseCase,
+    GetAllCompetitionSubmitsUseCase,
+    GetCompetitionSubmitByIdUseCase,
+    DeleteCompetitionSubmitUseCase,
 } from './index'
 import { ProcessContentWithPresignedUrlsUseCase } from '../media/process-content-with-presigned-urls.use-case'
 
@@ -22,6 +25,9 @@ import { ProcessContentWithPresignedUrlsUseCase } from '../media/process-content
         GetCompetitionAnswersUseCase,
         SubmitCompetitionAnswerUseCase,
         FinishCompetitionSubmitUseCase,
+        GetAllCompetitionSubmitsUseCase,
+        GetCompetitionSubmitByIdUseCase,
+        DeleteCompetitionSubmitUseCase,
         ProcessContentWithPresignedUrlsUseCase,
     ],
     exports: [
@@ -31,6 +37,10 @@ import { ProcessContentWithPresignedUrlsUseCase } from '../media/process-content
         GetCompetitionAnswersUseCase,
         SubmitCompetitionAnswerUseCase,
         FinishCompetitionSubmitUseCase,
+        GetAllCompetitionSubmitsUseCase,
+        GetCompetitionSubmitByIdUseCase,
+        DeleteCompetitionSubmitUseCase,
     ],
 })
 export class CompetitionSubmitApplicationModule { }
+
