@@ -294,7 +294,7 @@ export const PERMISSION_CODES = {
     DELETE: 'lesson-learning-item:delete',
   },
 
-  
+
   // ===================================
   // ADMIN PAGE PERMISSIONS
   // ===================================
@@ -326,5 +326,7 @@ export const PERMISSION_CODES = {
     MY_QUESTIONS: 'admin:page:my-questions',
     EXAMS: 'admin:page:exams',
     MY_EXAMS: 'admin:page:my-exams',
-    },
+    COMPETITIONS: 'admin:page:competitions',
+    MY_COMPETITIONS: 'admin:page:my-competitions',
+  },
 }
