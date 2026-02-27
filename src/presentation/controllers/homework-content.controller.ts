@@ -11,6 +11,7 @@ import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.
 import {
     GetAllHomeworkContentUseCase,
     GetHomeworkContentByIdUseCase,
+    GetHomeworkContentsByCourseUseCase,
     CreateHomeworkContentUseCase,
     UpdateHomeworkContentUseCase,
     DeleteHomeworkContentUseCase,
@@ -24,6 +25,7 @@ export class HomeworkContentController {
     constructor(
         private readonly getAllHomeworkContentUseCase: GetAllHomeworkContentUseCase,
         private readonly getHomeworkContentByIdUseCase: GetHomeworkContentByIdUseCase,
+        private readonly getHomeworkContentsByCourseUseCase: GetHomeworkContentsByCourseUseCase,
         private readonly createHomeworkContentUseCase: CreateHomeworkContentUseCase,
         private readonly updateHomeworkContentUseCase: UpdateHomeworkContentUseCase,
         private readonly deleteHomeworkContentUseCase: DeleteHomeworkContentUseCase,
@@ -34,6 +36,20 @@ export class HomeworkContentController {
     @HttpCode(HttpStatus.OK)
     async getAllHomeworkContents(@Query() query: HomeworkContentListQueryDto): Promise<HomeworkContentListResponseDto> {
         return ExceptionHandler.execute(() => this.getAllHomeworkContentUseCase.execute(query))
+    }
+
+    /**
+     * GET /homework-contents/by-course/:courseId
+     * Lấy tất cả HomeworkContent thuộc khoá học:
+     *   Course → Lessons → LearningItems (type=HOMEWORK) → HomeworkContents
+     */
+    @Get('by-course/:courseId')
+    @RequirePermission(PERMISSION_CODES.HOMEWORK_CONTENT.GET_ALL)
+    @HttpCode(HttpStatus.OK)
+    async getHomeworkContentsByCourse(
+        @Param('courseId', ParseIntPipe) courseId: number,
+    ): Promise<BaseResponseDto<{ homeworkContents: HomeworkContentResponseDto[]; total: number }>> {
+        return ExceptionHandler.execute(() => this.getHomeworkContentsByCourseUseCase.execute(courseId))
     }
 
     @Get(':id')

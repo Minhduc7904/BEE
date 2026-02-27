@@ -31,6 +31,7 @@ export interface IHomeworkSubmitRepository {
     findByStudent(studentId: number): Promise<HomeworkSubmit[]>
     findByGrader(graderId: number): Promise<HomeworkSubmit[]>
     findByHomeworkAndStudent(homeworkContentId: number, studentId: number): Promise<HomeworkSubmit | null>
+    findManyByContentAndStudents(homeworkContentId: number, studentIds: number[]): Promise<HomeworkSubmit[]>
 
     // Grade method
     grade(id: number, data: GradeHomeworkSubmitData): Promise<HomeworkSubmit>

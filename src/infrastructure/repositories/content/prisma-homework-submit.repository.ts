@@ -316,6 +316,47 @@ export class PrismaHomeworkSubmitRepository implements IHomeworkSubmitRepository
         return HomeworkSubmitMapper.toDomainHomeworkSubmits(prismaHomeworkSubmits)
     }
 
+    async findManyByContentAndStudents(homeworkContentId: number, studentIds: number[]): Promise<HomeworkSubmit[]> {
+        const numericId = NumberUtil.ensureValidId(homeworkContentId, 'HomeworkContent ID')
+        if (studentIds.length === 0) return []
+
+        const prismaHomeworkSubmits = await this.prisma.homeworkSubmit.findMany({
+            where: {
+                homeworkContentId: numericId,
+                studentId: { in: studentIds },
+            },
+            include: {
+                homeworkContent: {
+                    include: {
+                        learningItem: {
+                            include: {
+                                admin: {
+                                    include: {
+                                        user: true,
+                                    },
+                                },
+                            },
+                        },
+                        competition: true,
+                    },
+                },
+                student: {
+                    include: {
+                        user: true,
+                    },
+                },
+                grader: {
+                    include: {
+                        user: true,
+                    },
+                },
+            },
+            orderBy: { submitAt: 'desc' },
+        })
+
+        return HomeworkSubmitMapper.toDomainHomeworkSubmits(prismaHomeworkSubmits)
+    }
+
     async findByStudent(studentId: number): Promise<HomeworkSubmit[]> {
         const numericId = NumberUtil.ensureValidId(studentId, 'Student ID')
 

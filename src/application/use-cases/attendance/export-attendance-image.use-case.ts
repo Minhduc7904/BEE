@@ -1,8 +1,12 @@
 // src/application/use-cases/attendance/export-attendance-image.use-case.ts
-import { Inject, Injectable, NotFoundException } from '@nestjs/common'
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common'
 import type { IAttendanceRepository } from '../../../domain/repositories/attendance.repository'
+import type { ITuitionPaymentRepository } from '../../../domain/repositories/tuition-payment.repository'
+import type { IHomeworkSubmitRepository } from '../../../domain/repositories/homework-submit.repository'
 import { ImageExportService } from '../../../infrastructure/services/image-export.service'
 import { ExportAttendanceImageOptionsDto } from '../../dtos/attendance/export-attendance-image-options.dto'
+import type { TuitionPayment } from '../../../domain/entities/tuition-payment/tuition-payment.entity'
+import type { HomeworkSubmit } from '../../../domain/entities'
 
 interface ExportImageResult {
   buffer: Buffer
@@ -11,13 +15,13 @@ interface ExportImageResult {
 
 /**
  * Export attendance as image use case
- * 
+ *
  * FEATURES:
  * - Generate HTML from attendance data
  * - Export to PNG/JPEG/WebP
  * - Customizable display options
  * - Beautiful, print-ready design
- * 
+ *
  * BUSINESS LOGIC:
  * - Fetch attendance with all relations
  * - Generate styled HTML card
@@ -29,31 +33,61 @@ export class ExportAttendanceImageUseCase {
   constructor(
     @Inject('IAttendanceRepository')
     private readonly attendanceRepository: IAttendanceRepository,
+    @Inject('ITuitionPaymentRepository')
+    private readonly tuitionPaymentRepository: ITuitionPaymentRepository,
+    @Inject('IHomeworkSubmitRepository')
+    private readonly homeworkSubmitRepository: IHomeworkSubmitRepository,
     private readonly imageExportService: ImageExportService,
-  ) { }
+  ) {}
 
   /**
    * Execute export attendance to image
-   * 
+   *
    * @param attendanceId - Attendance ID to export
    * @param options - Export options
    * @returns Image buffer and filename
    */
-  async execute(
-    attendanceId: number,
-    options: ExportAttendanceImageOptionsDto,
-  ): Promise<ExportImageResult> {
-    // 1. Fetch attendance with full details
+  async execute(attendanceId: number, options: ExportAttendanceImageOptionsDto): Promise<ExportImageResult> {
+    // 1. Validate: includeTuition requires month & year
+    if (options.includeTuition !== false && (!options.tuitionMonth || !options.tuitionYear)) {
+      throw new BadRequestException(
+        'Cần truyền tuitionMonth và tuitionYear để lấy thông tin học phí. Hoặc truyền includeTuition=false để bỏ qua phần học phí.',
+      )
+    }
+
+    // 2. Fetch attendance with full details
     const attendance = await this.attendanceRepository.findById(attendanceId)
-    // console.log('Fetched attendance for export:', attendanceId, attendance?.classSession?.courseClass?.instructor)
     if (!attendance) {
       throw new NotFoundException(`Attendance with ID ${attendanceId} not found`)
     }
 
-    // 2. Generate HTML content
-    const html = this.generateAttendanceHTML(attendance, options)
+    // 3. Fetch tuition if needed
+    let tuition: TuitionPayment | null = null
+    if (options.includeTuition !== false && options.tuitionMonth && options.tuitionYear) {
+      const studentId = attendance.studentId ?? attendance.student?.studentId
+      if (studentId) {
+        tuition = await this.tuitionPaymentRepository.findByStudentAndPeriod(
+          studentId,
+          options.tuitionMonth,
+          options.tuitionYear,
+        )
+      }
+    }
 
-    // 3. Export to image
+    // 4. Fetch homework submit if needed
+    let homeworkSubmit: HomeworkSubmit | null = null
+    const studentId = attendance.studentId ?? attendance.student?.studentId
+    if (options.includeHomework === true && options.homeworkContentId && studentId) {
+      homeworkSubmit = await this.homeworkSubmitRepository.findByHomeworkAndStudent(
+        options.homeworkContentId,
+        studentId,
+      )
+    }
+
+    // 5. Generate HTML content
+    const html = this.generateAttendanceHTML(attendance, options, tuition, homeworkSubmit)
+
+    // 6. Export to image
     const result = await this.imageExportService.exportToImage({
       html,
       format: options.format || 'png',
@@ -65,7 +99,7 @@ export class ExportAttendanceImageUseCase {
       deviceScaleFactor: 2,
     })
 
-    // 4. Generate custom filename
+    // 6. Generate custom filename
     const studentName = attendance.student?.getFullName() || 'Unknown'
     const sessionDate = attendance.classSession?.sessionDate
       ? new Date(attendance.classSession.sessionDate).toISOString().split('T')[0]
@@ -82,7 +116,12 @@ export class ExportAttendanceImageUseCase {
    * Generate beautiful HTML for attendance card
    * @private
    */
-  private generateAttendanceHTML(attendance: any, options: ExportAttendanceImageOptionsDto): string {
+  private generateAttendanceHTML(
+    attendance: any,
+    options: ExportAttendanceImageOptionsDto,
+    tuition: TuitionPayment | null = null,
+    homeworkSubmit: HomeworkSubmit | null = null,
+  ): string {
     const student = attendance.student || {}
     const user = student.user || {}
     const session = attendance.classSession || {}
@@ -90,21 +129,36 @@ export class ExportAttendanceImageUseCase {
     const course = classInfo.course || {}
     const teacherUser = classInfo.instructor?.user || {}
     const markerUser = attendance.marker?.user || {}
-    const sessionDate = session.sessionDate
-      ? new Date(session.sessionDate).toLocaleDateString('vi-VN')
-      : 'N/A'
+    const sessionDate = session.sessionDate ? new Date(session.sessionDate).toLocaleDateString('vi-VN') : 'N/A'
 
-    const markedAt = attendance.markedAt
-      ? new Date(attendance.markedAt).toLocaleString('vi-VN')
-      : 'N/A'
-
-    const startTime = session.startTime
-      ? new Date(`1970-01-01T${session.startTime}`).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
-      : 'N/A'
-
-    const endTime = session.endTime
-      ? new Date(`1970-01-01T${session.endTime}`).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
-      : 'N/A'
+    const markedAt = attendance.markedAt ? new Date(attendance.markedAt).toLocaleString('vi-VN') : 'N/A'
+    const formatVietnamTime = (time: string | Date | any): string => {
+      if (!time) return 'N/A'
+      try {
+        let date: Date
+        if (time instanceof Date) {
+          date = time
+        } else if (typeof time === 'string' && /^\d{2}:\d{2}/.test(time)) {
+          // "HH:mm" or "HH:mm:ss" string — treat as-is, no timezone shift needed
+          const [hour, minute] = time.split(':').map(Number)
+          const h = String(hour).padStart(2, '0')
+          const m = String(minute).padStart(2, '0')
+          return `${h}:${m}`
+        } else {
+          date = new Date(time)
+        }
+        // Apply +7h offset manually
+        const utcMs = date.getTime()
+        const vn = new Date(utcMs + 7 * 60 * 60 * 1000)
+        const h = String(vn.getUTCHours()).padStart(2, '0')
+        const m = String(vn.getUTCMinutes()).padStart(2, '0')
+        return `${h}:${m}`
+      } catch {
+        return String(time)
+      }
+    }
+    const startTime = session.startTime ? formatVietnamTime(session.startTime) : 'N/A'
+    const endTime = session.endTime ? formatVietnamTime(session.endTime) : 'N/A'
 
     const STATUS_MAP = {
       PRESENT: { text: 'CÓ MẶT', class: 'status-present' },
@@ -335,7 +389,7 @@ export class ExportAttendanceImageUseCase {
     <!-- HEADER -->
     <div class="header">
         <div class="logo-circle">
-            <img src="https://toanthaybee.edu.vn/logo1.png"
+            <img src="https://beeedu.vn/student/images/logo/logo1.svg"
                  onerror="this.parentElement.innerHTML='<span class=\\'logo-text\\'>TB</span>'"/>
         </div>
         <h1>TOÁN THẦY BEE</h1>
@@ -354,24 +408,36 @@ export class ExportAttendanceImageUseCase {
                 <div class="info-item">Họ tên: <strong>${user.lastName || ''} ${user.firstName || ''}</strong></div>
                 ${options.includeClassName !== false ? `<div class="info-item">Lớp: <strong>${classInfo.className || 'N/A'}</strong></div>` : ''}
             </div>
-            ${options.includeStudentId !== false || options.includeEmail !== false ? `
+            ${
+              options.includeStudentId !== false || options.includeEmail !== false
+                ? `
             <div class="info-row">
                 ${options.includeStudentId !== false ? `<div class="info-item">Mã học sinh: <strong>${student.studentId || 'N/A'}</strong></div>` : ''}
-                ${options.includeEmail !== false ? `<div class="info-item">Email: <strong>${user.email || 'N/A'}</strong></div>` : ''}
+                ${options.includeEmail !== false && user.email ? `<div class="info-item">Email: <strong>${user.email}</strong></div>` : ''}
             </div>
-            ` : ''}
-            ${options.includeParentPhone !== false || options.includeStudentPhone !== false ? `
+            `
+                : ''
+            }
+            ${
+              options.includeParentPhone !== false || options.includeStudentPhone !== false
+                ? `
             <div class="info-row">
                 ${options.includeParentPhone !== false ? `<div class="info-item">ĐT PH: <strong>${student.parentPhone || 'N/A'}</strong></div>` : ''}
                 ${options.includeStudentPhone !== false ? `<div class="info-item">ĐT HS: <strong>${student.studentPhone || 'Không có'}</strong></div>` : ''}
             </div>
-            ` : ''}
-            ${options.includeGradeSchool !== false && (student.grade || student.school) ? `
+            `
+                : ''
+            }
+            ${
+              options.includeGradeSchool !== false && (student.grade || student.school)
+                ? `
             <div class="info-row">
                 ${student.grade ? `<div class="info-item">Khối: <strong>${student.grade}</strong></div>` : ''}
                 ${student.school ? `<div class="info-item">Trường: <strong>${student.school}</strong></div>` : ''}
             </div>
-            ` : ''}
+            `
+                : ''
+            }
         </div>
 
         <!-- ATTENDANCE INFO -->
@@ -383,66 +449,155 @@ export class ExportAttendanceImageUseCase {
                     <span class="${status.class}">${status.text}</span>
                 </div>
             </div>
-            ${options.includeMarkedAt !== false ? `
+            ${
+              options.includeMarkedAt !== false
+                ? `
             <div class="info-row">
                 <div class="info-item full-width">
                     Thời gian đến lớp:
                     <strong style="color:#F44336;">${markedAt}</strong>
                 </div>
             </div>
-            ` : ''}
+            `
+                : ''
+            }
         </div>
 
-        <!-- TUITION INFO (placeholder – future) -->
-        ${options.includeTuition !== false ? `
+        <!-- TUITION INFO -->
+        ${
+          options.includeTuition !== false
+            ? `
         <div class="section">
             <div class="section-title">HỌC PHÍ</div>
             <div class="info-row">
-                <div class="info-item">Tháng: <strong>${new Date().toLocaleDateString('vi-VN', { month: '2-digit', year: 'numeric' })}</strong></div>
+                <div class="info-item">Tháng: <strong>${options.tuitionMonth}/${options.tuitionYear}</strong></div>
+            </div>
+            ${
+              tuition
+                ? `
+            <div class="info-row">
+                <div class="info-item">
+                    Số tiền: <strong>${tuition.amount !== null && tuition.amount !== undefined ? tuition.amount.toLocaleString('vi-VN') + ' ₫' : 'Chưa xác định'}</strong>
+                </div>
             </div>
             <div class="info-row">
                 <div class="info-item">
                     Trạng thái:
-                    <span class="status-present">ĐÃ ĐÓNG</span>
+                    <span class="${tuition.status === 'PAID' ? 'status-present' : 'status-absent'}">${tuition.status === 'PAID' ? 'ĐÃ ĐÓNG' : 'CHƯA ĐÓNG'}</span>
                 </div>
             </div>
+            ${
+              tuition.paidAt
+                ? `
+            <div class="info-row">
+                <div class="info-item">Ngày đóng: <strong>${new Date(tuition.paidAt).toLocaleDateString('vi-VN')}</strong></div>
+            </div>
+            `
+                : ''
+            }
+            `
+                : `
+            <div class="info-row">
+                <div class="info-item" style="color:#6b7280;">Không tìm thấy thông tin học phí cho tháng ${options.tuitionMonth}/${options.tuitionYear}</div>
+            </div>
+            `
+            }
         </div>
-        ` : ''}
+        `
+            : ''
+        }
 
         <!-- COMMENTS -->
-        ${options.includeNotes !== false ? `
+        ${
+          options.includeNotes !== false
+            ? `
         <div class="comment-section">
             <div class="comment-header">NHẬN XÉT VÀ ĐÁNH GIÁ</div>
             <div class="comment-content">
 
                 <div class="comment-subsection">
                     <div class="comment-subsection-title">1. Thông tin bài tập về nhà (BTVN):</div>
-                    <div class="no-comment">Chưa có bài tập về nhà được giao</div>
+                    ${
+                      options.includeHomework === true
+                        ? homeworkSubmit
+                          ? `
+                    <div class="info-row">
+                        <div class="info-item">Thời gian nộp: <strong>${new Date(homeworkSubmit.submitAt).toLocaleString('vi-VN')}</strong></div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-item">Nội dung: <span style="white-space:pre-wrap;word-break:break-word;">${homeworkSubmit.content ?? ''}</span></div>
+                    </div>
+                    ${
+                      homeworkSubmit.points !== null && homeworkSubmit.points !== undefined
+                        ? `
+                    <div class="info-row">
+                        <div class="info-item">Điểm: <strong style="color:#16a34a;">${homeworkSubmit.points}</strong></div>
+                    </div>`
+                        : ''
+                    }
+                    ${
+                      homeworkSubmit.gradedAt
+                        ? `
+                    <div class="info-row">
+                        <div class="info-item">Ngày chấm: <strong>${new Date(homeworkSubmit.gradedAt).toLocaleDateString('vi-VN')}</strong></div>
+                    </div>`
+                        : ''
+                    }
+                    ${
+                      homeworkSubmit.feedback
+                        ? `
+                    <div class="info-row">
+                        <div class="info-item">Nhận xét GV: <em>${homeworkSubmit.feedback}</em></div>
+                    </div>`
+                        : ''
+                    }
+                    `
+                          : '<div class="no-comment">Học sinh chưa nộp bài tập</div>'
+                        : '<div class="no-comment">Chưa có bài tập về nhà được giao</div>'
+                    }
                 </div>
 
+                ${
+                  session.makeupNote && attendance.status === 'ABSENT'
+                    ? `
                 <div class="comment-subsection">
-                    <div class="comment-subsection-title">2. Nhận xét bài tập trên lớp:</div>
+                    <div class="comment-subsection-title">2. Thông tin buổi học bù:</div>
+                    <div class="comment-text" style="color:#dc2626;font-weight:500;">${session.makeupNote}</div>
+                </div>
+                `
+                    : ''
+                }
+
+                <div class="comment-subsection">
+                    <div class="comment-subsection-title">${session.makeupNote && attendance.status === 'ABSENT' ? '3' : '2'}. Nhận xét bài tập trên lớp:</div>
                     <div class="no-comment">Chưa có nhận xét về bài tập trên lớp</div>
                 </div>
 
                 <div class="comment-subsection">
-                    <div class="comment-subsection-title">3. Nhận xét chung:</div>
-                    ${attendance.notes
-          ? `<div class="comment-text">${attendance.notes}</div>`
-          : `<div class="no-comment">Không có nhận xét</div>`
-        }
+                    <div class="comment-subsection-title">${session.makeupNote && attendance.status === 'ABSENT' ? '4' : '3'}. Nhận xét chung:</div>
+                    ${
+                      attendance.notes
+                        ? `<div class="comment-text">${attendance.notes}</div>`
+                        : `<div class="no-comment">Không có nhận xét</div>`
+                    }
                 </div>
 
             </div>
         </div>
-        ` : ''}
+        `
+            : ''
+        }
 
     </div>
 
     <!-- FOOTER -->
-    ${options.includeTeacherName !== false || options.includeMarkerName !== false ? `
+    ${
+      options.includeTeacherName !== false || options.includeMarkerName !== false
+        ? `
     <div class="footer">
-        ${options.includeTeacherName !== false ? `
+        ${
+          options.includeTeacherName !== false
+            ? `
         <div class="signature-area">
             <div class="signature-label">Giáo viên giảng dạy</div>
             <div class="signature-name">
@@ -450,8 +605,12 @@ export class ExportAttendanceImageUseCase {
             </div>
             <div class="signature-line"></div>
         </div>
-        ` : ''}
-        ${options.includeMarkerName !== false ? `
+        `
+            : ''
+        }
+        ${
+          options.includeMarkerName !== false
+            ? `
         <div class="signature-area">
             <div class="signature-label">Người điểm danh</div>
             <div class="signature-name">
@@ -459,14 +618,17 @@ export class ExportAttendanceImageUseCase {
             </div>
             <div class="signature-line"></div>
         </div>
-        ` : ''}
+        `
+            : ''
+        }
     </div>
-    ` : ''}
+    `
+        : ''
+    }
 
 </div>
 </body>
 </html>
 `
   }
-
 }

@@ -5,6 +5,7 @@ import { InfrastructureModule } from '../../../infrastructure/infrastructure.mod
 import {
     GetAllHomeworkContentUseCase,
     GetHomeworkContentByIdUseCase,
+    GetHomeworkContentsByCourseUseCase,
     CreateHomeworkContentUseCase,
     UpdateHomeworkContentUseCase,
     DeleteHomeworkContentUseCase,
@@ -15,6 +16,7 @@ import {
     providers: [
         GetAllHomeworkContentUseCase,
         GetHomeworkContentByIdUseCase,
+        GetHomeworkContentsByCourseUseCase,
         CreateHomeworkContentUseCase,
         UpdateHomeworkContentUseCase,
         DeleteHomeworkContentUseCase,
@@ -22,6 +24,7 @@ import {
     exports: [
         GetAllHomeworkContentUseCase,
         GetHomeworkContentByIdUseCase,
+        GetHomeworkContentsByCourseUseCase,
         CreateHomeworkContentUseCase,
         UpdateHomeworkContentUseCase,
         DeleteHomeworkContentUseCase,

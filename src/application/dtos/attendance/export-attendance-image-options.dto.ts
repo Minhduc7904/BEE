@@ -132,4 +132,29 @@ export class ExportAttendanceImageOptionsDto {
   /** Include tuition section (default: true) */
   @IsOptionalBoolean('Bao gồm phần học phí')
   includeTuition?: boolean = true
+
+  /**
+   * Tháng để lấy học phí (1-12)
+   * Bắt buộc khi includeTuition = true
+   */
+  @IsOptionalInt('Tháng học phí', 1, 12)
+  tuitionMonth?: number
+
+  /**
+   * Năm để lấy học phí (2000-2100)
+   * Bắt buộc khi includeTuition = true
+   */
+  @IsOptionalInt('Năm học phí', 2000, 2100)
+  tuitionYear?: number
+
+  /** Include homework submit section (default: false) */
+  @IsOptionalBoolean('Bao gồm phần bài tập về nhà')
+  includeHomework?: boolean = false
+
+  /**
+   * ID của HomeworkContent cần lấy bài nộp
+   * Bắt buộc khi includeHomework = true
+   */
+  @IsOptionalInt('ID bài tập về nhà', 1)
+  homeworkContentId?: number
 }

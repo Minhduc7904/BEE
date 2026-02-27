@@ -260,6 +260,11 @@ export class AttendanceController {
    * - includeNotes: boolean (default: true)
    * - includeQRCode: boolean (default: false)
    * - includeMarkerName: boolean (default: true)
+   * - includeTuition: boolean (default: true) — nếu true thì BẮT BUỘC truyền tuitionMonth và tuitionYear
+   * - tuitionMonth: number (1-12) — tháng để lấy thông tin học phí (bắt buộc khi includeTuition=true)
+   * - tuitionYear: number (2000-2100) — năm để lấy thông tin học phí (bắt buộc khi includeTuition=true)
+   * - includeHomework: boolean (default: false) — nếu true thì BẮT BUỘC truyền homeworkContentId
+   * - homeworkContentId: number — ID bài tập cần hiển thị bài nộp (bắt buộc khi includeHomework=true)
    *
    * Mode:
    * - download: Tải về file (Content-Disposition: attachment)

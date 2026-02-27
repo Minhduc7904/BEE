@@ -4,6 +4,7 @@ import { StudentResponseDto } from '../student/student.dto'
 import { AttendanceStatus } from 'src/shared/enums'
 import { ClassSessionResponseDto } from '../class-session/class-session.dto'
 import { TuitionPaymentResponseDto } from '../tuition-payment/tuition-payment.dto'
+import { HomeworkSubmitResponseDto } from '../homeworkSubmit/homework-submit.dto'
 
 export class AttendanceResponseDto {
     attendanceId: number
@@ -19,8 +20,9 @@ export class AttendanceResponseDto {
     student?: StudentResponseDto | null
     classSession?: ClassSessionResponseDto | null
     tuitionPayment?: TuitionPaymentResponseDto | null
+    homeworkSubmit?: HomeworkSubmitResponseDto | null
 
-    constructor(attendance: Attendance, tuitionPayment?: any) {
+    constructor(attendance: Attendance, tuitionPayment?: any, homeworkSubmit?: any) {
         this.attendanceId = attendance.attendanceId
         this.sessionId = attendance.sessionId
         this.studentId = attendance.studentId
@@ -41,6 +43,10 @@ export class AttendanceResponseDto {
 
         if (tuitionPayment) {
             this.tuitionPayment = TuitionPaymentResponseDto.fromEntity(tuitionPayment)
+        }
+
+        if (homeworkSubmit) {
+            this.homeworkSubmit = HomeworkSubmitResponseDto.fromEntity(homeworkSubmit)
         }
     }
 
