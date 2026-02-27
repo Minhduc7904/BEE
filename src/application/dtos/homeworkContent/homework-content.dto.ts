@@ -3,6 +3,7 @@ import { HomeworkContent } from '../../../domain/entities'
 import { BaseResponseDto } from '../common/base-response.dto'
 import { Visibility } from '../../../shared/enums'
 import { HomeworkProgressDto } from '../learningItem/student-learning-item.dto'
+import { LearningItemResponseDto } from '../learningItem/learning-item.dto'
 
 /**
  * Competition basic info for homework
@@ -49,6 +50,9 @@ export class HomeworkContentResponseDto {
     // Progress của student cho homework content này
     progress?: HomeworkProgressDto
 
+    // Learning item details
+    learningItem?: LearningItemResponseDto
+
     static fromEntity(homeworkContent: HomeworkContent, progress?: HomeworkProgressDto): HomeworkContentResponseDto {
         const dto = new HomeworkContentResponseDto()
         dto.homeworkContentId = homeworkContent.homeworkContentId
@@ -64,6 +68,11 @@ export class HomeworkContentResponseDto {
         dto.updatedAt = homeworkContent.updatedAt
         dto.progress = progress
         dto.homeworkSubmit = progress?.homeworkSubmit
+
+        // Map learningItem nếu có
+        if (homeworkContent.learningItem) {
+            dto.learningItem = LearningItemResponseDto.fromEntity(homeworkContent.learningItem)
+        }
 
         // Map competition nếu có
         if (homeworkContent.competition) {
