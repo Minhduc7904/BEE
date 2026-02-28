@@ -16,13 +16,35 @@ import { TextSearchUtil } from '../../../shared/utils/text-search.util'
 export class PrismaQuestionRepository implements IQuestionRepository {
     constructor(private readonly prisma: PrismaService | any) { }
 
+    private async generateUniqueSlug(content: string, client: any, reservedSlugs: Set<string> = new Set()): Promise<string> {
+        const contentPreview = TextSearchUtil.stripMarkdownForSearch(content).substring(0, 100)
+        const baseSlug = TextSearchUtil.generateSlug(contentPreview)
+
+        // Count all slugs in DB that start with baseSlug
+        const dbCount = await client.question.count({
+            where: { slug: { startsWith: baseSlug } },
+        })
+
+        let offset = dbCount
+        let candidate = offset === 0 ? baseSlug : `${baseSlug}-${offset + 1}`
+
+        // Keep incrementing until we find a slug not reserved in the current batch
+        while (reservedSlugs.has(candidate)) {
+            offset++
+            candidate = `${baseSlug}-${offset + 1}`
+        }
+
+        return candidate
+    }
+
     async create(data: CreateQuestionData, txClient?: any): Promise<Question> {
         const client = txClient || this.prisma
 
+        const slug = await this.generateUniqueSlug(data.content, client)
         const created = await client.question.create({
             data: {
                 content: data.content,
-                slug: data.slug,
+                slug,
                 searchableContent: data.searchableContent || TextSearchUtil.stripMarkdownForSearch(data.content),
                 type: data.type,
                 correctAnswer: data.correctAnswer,
@@ -43,10 +65,16 @@ export class PrismaQuestionRepository implements IQuestionRepository {
     async createMany(dataArray: CreateQuestionData[], txClient?: any): Promise<number> {
         const client = txClient || this.prisma
 
-        const result = await client.question.createMany({
-            data: dataArray.map(data => ({
+        // Generate unique slugs sequentially, tracking reserved slugs within the batch
+        const reservedSlugs = new Set<string>()
+        const dataWithSlugs: any[] = []
+
+        for (const data of dataArray) {
+            const slug = await this.generateUniqueSlug(data.content, client, reservedSlugs)
+            reservedSlugs.add(slug)
+            dataWithSlugs.push({
                 content: data.content,
-                slug: data.slug,
+                slug,
                 searchableContent: data.searchableContent || TextSearchUtil.stripMarkdownForSearch(data.content),
                 type: data.type,
                 correctAnswer: data.correctAnswer,
@@ -58,7 +86,11 @@ export class PrismaQuestionRepository implements IQuestionRepository {
                 pointsOrigin: data.pointsOrigin,
                 visibility: data.visibility,
                 createdBy: data.createdBy,
-            })),
+            })
+        }
+
+        const result = await client.question.createMany({
+            data: dataWithSlugs,
             skipDuplicates: true,
         })
 
@@ -144,10 +176,10 @@ export class PrismaQuestionRepository implements IQuestionRepository {
         
         if (data.content !== undefined) {
             updateData.content = data.content
-            // Auto-update searchableContent when content changes
+            // Auto-update searchableContent and slug when content changes
             updateData.searchableContent = TextSearchUtil.stripMarkdownForSearch(data.content)
+            updateData.slug = await this.generateUniqueSlug(data.content, client)
         }
-        if (data.slug !== undefined) updateData.slug = data.slug
         if (data.searchableContent !== undefined) updateData.searchableContent = data.searchableContent
         if (data.type !== undefined) updateData.type = data.type
         if (data.correctAnswer !== undefined) updateData.correctAnswer = data.correctAnswer

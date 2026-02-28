@@ -60,38 +60,38 @@ export class SearchCompetitionsUseCase {
             endDateTo: query.endDateTo,
         }
 
-        const user = context?.user
-        const permissions = user?.permissions ?? []
+        // const user = context?.user
+        // const permissions = user?.permissions ?? []
 
-        // Case 1: No user or student user - only PUBLISHED competitions
-        if (!user || user.studentId) {
-            filters.visibility = Visibility.PUBLISHED
-            filters.createdBy = undefined
-            return filters
-        }
+        // // Case 1: No user or student user - only PUBLISHED competitions
+        // if (!user || user.studentId) {
+        //     filters.visibility = Visibility.PUBLISHED
+        //     filters.createdBy = undefined
+        //     return filters
+        // }
 
         // Case 2: Admin with GET_ALL permission - PUBLISHED and PRIVATE (exclude DRAFT)
-        if (permissions.includes(PERMISSION_CODES.COMPETITION.GET_ALL)) {
+        // if (permissions.includes(PERMISSION_CODES.COMPETITION.GET_ALL)) {
             // No visibility filter here - we'll get all and filter out DRAFT after
             // But we can exclude DRAFT in the query for efficiency
             filters.visibility = undefined
             filters.createdBy = undefined
-            filters.excludeVisibility = Visibility.DRAFT
+            // filters.excludeVisibility = Visibility.DRAFT
             return filters
-        }
+        // }
 
         // Case 3: Admin with GET_MY_COMPETITIONS permission - only their PUBLISHED and PRIVATE competitions
-        if (permissions.includes(PERMISSION_CODES.COMPETITION.GET_MY_COMPETITIONS)) {
-            filters.visibility = undefined
-            filters.createdBy = user.adminId
-            filters.excludeVisibility = Visibility.DRAFT
-            return filters
-        }
+        // if (permissions.includes(PERMISSION_CODES.COMPETITION.GET_MY_COMPETITIONS)) {
+        //     filters.visibility = undefined
+        //     filters.createdBy = user.adminId
+        //     filters.excludeVisibility = Visibility.DRAFT
+        //     return filters
+        // }
 
-        // Case 4: Default for other authenticated users - only PUBLISHED
-        filters.visibility = Visibility.PUBLISHED
-        filters.createdBy = undefined
+        // // Case 4: Default for other authenticated users - only PUBLISHED
+        // filters.visibility = Visibility.PUBLISHED
+        // filters.createdBy = undefined
 
-        return filters
+        // return filters
     }
 }
