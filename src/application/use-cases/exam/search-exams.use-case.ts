@@ -63,34 +63,34 @@ export class SearchExamsUseCase {
         const permissions = user?.permissions ?? []
 
         // Case 1: No user or student user - only PUBLISHED exams
-        if (!user || user.studentId) {
-            filters.visibility = ExamVisibility.PUBLISHED
-            filters.createdBy = undefined
-            return filters
-        }
+        // if (!user || user.studentId) {
+        //     filters.visibility = ExamVisibility.PUBLISHED
+        //     filters.createdBy = undefined
+        //     return filters
+        // }
 
         // Case 2: Admin with GET_ALL permission - PUBLISHED and PRIVATE (exclude DRAFT)
-        if (permissions.includes(PERMISSION_CODES.EXAM.GET_ALL)) {
+        // if (permissions.includes(PERMISSION_CODES.EXAM.GET_ALL)) {
             // No visibility filter here - we'll get all and filter out DRAFT after
             // But we can exclude DRAFT in the query for efficiency
             filters.visibility = undefined
             filters.createdBy = undefined
-            filters.excludeVisibility = ExamVisibility.DRAFT
+            // filters.excludeVisibility = ExamVisibility.DRAFT
             return filters
-        }
+        // }
 
         // Case 3: Admin with GET_MY_EXAMS permission - only their PUBLISHED and PRIVATE exams
-        if (permissions.includes(PERMISSION_CODES.EXAM.GET_MY_EXAMS)) {
-            filters.visibility = undefined
-            filters.createdBy = user.adminId
-            filters.excludeVisibility = ExamVisibility.DRAFT
-            return filters
-        }
+        // if (permissions.includes(PERMISSION_CODES.EXAM.GET_MY_EXAMS)) {
+        //     filters.visibility = undefined
+        //     filters.createdBy = user.adminId
+        //     filters.excludeVisibility = ExamVisibility.DRAFT
+        //     return filters
+        // }
 
         // Case 4: Default for other authenticated users - only PUBLISHED
-        filters.visibility = ExamVisibility.PUBLISHED
-        filters.createdBy = undefined
+        // filters.visibility = ExamVisibility.PUBLISHED
+        // filters.createdBy = undefined
 
-        return filters
+        // return filters
     }
 }
