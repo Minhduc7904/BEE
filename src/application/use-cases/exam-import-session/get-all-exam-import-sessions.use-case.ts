@@ -15,7 +15,7 @@ export class GetAllExamImportSessionsUseCase {
     private readonly sessionRepository: IExamImportSessionRepository,
   ) {}
 
-  async execute(query: ExamImportSessionListQueryDto): Promise<ExamImportSessionListResponseDto> {
+  async execute(query: ExamImportSessionListQueryDto, adminId: number): Promise<ExamImportSessionListResponseDto> {
     const filters = query.toFilterOptions()
     const pagination = query.toPaginationOptions()
 
@@ -23,6 +23,7 @@ export class GetAllExamImportSessionsUseCase {
     const findOptions = {
       ...filters,
       ...pagination,
+      createdBy: adminId, // Lọc theo adminId người tạo session
       fromDate: filters.fromDate ? new Date(filters.fromDate) : undefined,
       toDate: filters.toDate ? new Date(filters.toDate) : undefined,
     }

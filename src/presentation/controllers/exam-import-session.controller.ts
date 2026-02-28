@@ -62,8 +62,9 @@ export class ExamImportSessionController {
   @HttpCode(HttpStatus.OK)
   async getAllSessions(
     @Query() query: ExamImportSessionListQueryDto,
+    @CurrentUser('adminId') adminId: number,
   ): Promise<ExamImportSessionListResponseDto> {
-    return ExceptionHandler.execute(() => this.getAllExamImportSessionsUseCase.execute(query))
+    return ExceptionHandler.execute(() => this.getAllExamImportSessionsUseCase.execute(query, adminId))
   }
 
   @Post()
