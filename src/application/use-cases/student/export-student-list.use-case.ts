@@ -122,6 +122,14 @@ export class ExportStudentListUseCase {
             { header: 'Họ và tên', key: 'fullName', width: 30 },
         ]
 
+        if (options.includeStudentPhone === true) {
+            columns.push({ header: 'SĐT học sinh', key: 'studentPhone', width: 15 })
+        }
+
+        if (options.includeParentPhone !== false) {
+            columns.push({ header: 'SĐT phụ huynh', key: 'parentPhone', width: 15 })
+        }
+
         if (options.includeSchool !== false) {
             columns.push({ header: 'Trường', key: 'school', width: 25 })
         }
@@ -136,14 +144,6 @@ export class ExportStudentListUseCase {
 
         if (options.includeUsername !== false) {
             columns.push({ header: 'Tên đăng nhập', key: 'username', width: 20 })
-        }
-
-        if (options.includeParentPhone !== false) {
-            columns.push({ header: 'SĐT phụ huynh', key: 'parentPhone', width: 15 })
-        }
-
-        if (options.includeStudentPhone === true) {
-            columns.push({ header: 'SĐT học sinh', key: 'studentPhone', width: 15 })
         }
 
         if (options.includeGrade !== false) {
