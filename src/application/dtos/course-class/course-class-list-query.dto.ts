@@ -39,6 +39,12 @@ export class CourseClassListQueryDto extends ListQueryDto {
     @IsBoolean({ message: 'isCompleted phải là boolean' })
     isCompleted?: boolean;
 
+    /** Lọc theo khối lớp của khóa học (ví dụ: 10, 11, 12) */
+    @IsOptional()
+    @ToNumber()
+    @IsInt({ message: 'grade phải là số nguyên' })
+    grade?: number;
+
     toCourseClassFilterOptions(): CourseClassFilterOptions {
         return {
             courseId: this.courseId,
@@ -48,6 +54,7 @@ export class CourseClassListQueryDto extends ListQueryDto {
             isUpcoming: this.isUpcoming,
             isCompleted: this.isCompleted,
             search: this.search,
+            grade: this.grade,
         };
     }
 

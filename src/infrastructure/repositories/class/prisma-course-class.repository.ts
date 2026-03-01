@@ -200,6 +200,16 @@ export class PrismaCourseClassRepository implements ICourseClassRepository {
             })
         }
 
+        /* ===================== GRADE FILTER ===================== */
+
+        if (filters?.grade !== undefined) {
+            andConditions.push({
+                course: {
+                    grade: filters.grade,
+                },
+            })
+        }
+
         /* ===================== STATUS FILTER ===================== */
 
         const now = new Date()

@@ -532,6 +532,64 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
         }
     }
 
+    async findStudentHistory(
+        competitionId: number,
+        studentId: number,
+        pagination: CompetitionSubmitPaginationOptions,
+        txClient?: any,
+    ): Promise<CompetitionSubmitListResult> {
+        const client = txClient || this.prisma
+
+        const page = pagination.page || 1
+        const limit = pagination.limit || 10
+        const sortBy = pagination.sortBy || 'submittedAt'
+        const sortOrder = pagination.sortOrder || 'desc'
+        const skip = (page - 1) * limit
+
+        const where: any = {
+            competitionId,
+            studentId,
+            status: {
+                notIn: [
+                    CompetitionSubmitStatus.IN_PROGRESS,
+                    CompetitionSubmitStatus.ABANDONED,
+                ],
+            },
+        }
+
+        const orderBy: any = {}
+        orderBy[sortBy] = sortOrder
+
+        const [prismaSubmits, total] = await Promise.all([
+            client.competitionSubmit.findMany({
+                where,
+                skip,
+                take: limit,
+                orderBy,
+                include: {
+                    competition: true,
+                    student: {
+                        include: { user: true },
+                    },
+                },
+            }),
+            client.competitionSubmit.count({ where }),
+        ])
+
+        const competitionSubmits = prismaSubmits
+            .map((s: any) => CompetitionSubmitMapper.toDomainCompetitionSubmit(s))
+            .filter(Boolean)
+        const totalPages = Math.ceil(total / limit)
+
+        return {
+            competitionSubmits,
+            total,
+            page,
+            limit,
+            totalPages,
+        }
+    }
+
     private buildWhereClause(filters?: CompetitionSubmitFilterOptions): any {
         const where: any = {}
 

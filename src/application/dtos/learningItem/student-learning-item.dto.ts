@@ -11,6 +11,7 @@ import { VideoContentResponseDto } from '../videoContent/video-content.dto'
  */
 export enum HomeworkStatus {
     DO_NOW = 'DO_NOW',              // Làm ngay (còn hạn, chưa làm hoặc có thể làm lại)
+    RESUME = 'RESUME',              // Làm tiếp (đang có lần thi còn dở, chưa nộp)
     REDO = 'REDO',                  // Làm lại (còn hạn, đã làm nhưng chưa đạt max attempts)
     LATE_SUBMIT = 'LATE_SUBMIT',    // Làm muộn (quá dueDate nhưng còn endDate và cho phép nộp muộn)
     OVERDUE = 'OVERDUE',            // Quá hạn (không thể làm nữa)
@@ -124,8 +125,11 @@ export class HomeworkProgressDto {
             }
             return submitDto
         })
-        dto.attemptCount = params.competitionSubmits.length
+        // Chỉ đếm các lần thi đã hoàn thành (SUBMITTED / GRADED), không đếm IN_PROGRESS
+        const completedSubmits = params.competitionSubmits.filter(s => s.status !== 'IN_PROGRESS')
+        dto.attemptCount = completedSubmits.length
         dto.maxAttempts = params.maxAttempts
+        const hasInProgressSubmit = params.competitionSubmits.some(s => s.status === 'IN_PROGRESS')
 
         // Question count
         dto.questionCount = params.questionCount
@@ -153,6 +157,7 @@ export class HomeworkProgressDto {
             maxAttempts: params.maxAttempts,
             allowLateSubmit: params.allowLateSubmit,
             isDone: dto.isDone,
+            hasInProgressSubmit,
         })
 
         return dto
@@ -166,10 +171,16 @@ export class HomeworkProgressDto {
         maxAttempts?: number
         allowLateSubmit: boolean
         isDone: boolean
+        hasInProgressSubmit: boolean
     }): HomeworkStatus {
-        const { now, dueDate, endDate, attemptCount, maxAttempts, allowLateSubmit, isDone } = params
+        const { now, dueDate, endDate, attemptCount, maxAttempts, allowLateSubmit, isDone, hasInProgressSubmit } = params
 
-        // Nếu đã đạt max attempts
+        // Nếu đang có lần thi IN_PROGRESS → ưu tiên cho làm tiếp trước mọi kiểm tra khác
+        if (hasInProgressSubmit) {
+            return HomeworkStatus.RESUME
+        }
+
+        // Nếu đã đạt max attempts (chỉ tính các lần đã hoàn thành)
         if (maxAttempts && attemptCount >= maxAttempts) {
             return HomeworkStatus.COMPLETED
         }

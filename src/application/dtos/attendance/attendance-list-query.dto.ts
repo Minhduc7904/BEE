@@ -5,8 +5,20 @@ import {
   AttendancePaginationOptions,
 } from '../../../domain/interface/attendance/attendance.interface'
 import { IsOptionalIdNumber, IsOptionalEnumValue } from 'src/shared/decorators/validate'
-import { IsOptional, IsInt, Min, Max } from 'class-validator'
+import { IsOptional, IsInt, Min, Max, IsEnum } from 'class-validator'
 import { Type } from 'class-transformer'
+
+/**
+ * Trạng thái lọc học phí dùng cho query attendance
+ * - PAID: đã nộp học phí trong tháng/năm chỉ định
+ * - UNPAID: chưa nộp học phí (có record nhưng status = UNPAID)
+ * - NO_TUITION: không có bản ghi học phí nào cho tháng/năm đó
+ */
+export enum TuitionFilterStatus {
+  PAID = 'PAID',
+  UNPAID = 'UNPAID',
+  NO_TUITION = 'NO_TUITION',
+}
 
 export class AttendanceListQueryDto extends ListQueryDto {
   @IsOptionalIdNumber('ID buổi học')
@@ -37,6 +49,11 @@ export class AttendanceListQueryDto extends ListQueryDto {
   @Min(2000, { message: 'Năm phải từ 2000 trở lên' })
   @Max(2100, { message: 'Năm phải nhỏ hơn 2100' })
   year?: number
+
+  /** Lọc theo trạng thái học phí: PAID | UNPAID | NO_TUITION (bắt buộc kèm month và year) */
+  @IsOptional()
+  @IsEnum(TuitionFilterStatus, { message: 'tuitionStatus phải là PAID, UNPAID hoặc NO_TUITION' })
+  tuitionStatus?: TuitionFilterStatus
 
   toAttendanceFilterOptions(): AttendanceFilterOptions {
     return {

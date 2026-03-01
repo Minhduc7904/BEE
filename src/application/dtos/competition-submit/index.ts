@@ -8,6 +8,8 @@ export * from './update-competition-answer.dto'
 export * from './submit-competition.dto'
 export * from './competition-submit-remaining-time.dto'
 export * from './competition-exam.dto'
+export * from './student-competition-history-query.dto'
+export * from './student-competition-history.dto'
 
 export * from './competition-answer.dto'
 export * from './start-competition.dto'

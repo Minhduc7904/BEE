@@ -96,9 +96,9 @@ export class SubmitCompetitionAnswerUseCase {
         } else if (body.selectedStatementIds !== undefined) {
             selectedStatementIds = body.selectedStatementIds
         }
-        console.log(`Selected statement IDs: ${selectedStatementIds}`)
-        console.log(`Answered statement IDs: ${answeredStatementIds}`)
-        console.log(`TRUE_FALSE JSON to save: ${trueFalseAnswerJson}`)
+        // console.log(`Selected statement IDs: ${selectedStatementIds}`)
+        // console.log(`Answered statement IDs: ${answeredStatementIds}`)
+        // console.log(`TRUE_FALSE JSON to save: ${trueFalseAnswerJson}`)
         // 5. Lưu điểm cũ để tính delta
         const oldPoints = Number(existingAnswer.points ?? 0)
 
@@ -118,7 +118,7 @@ export class SubmitCompetitionAnswerUseCase {
 
         // 7. Chấm điểm tự động
         const gradeResult = this.gradeAnswer(question.type, selectedStatementIds, body.answer, question, effectiveMaxPoints, answeredStatementIds)
-        console.log(`Grade result: isCorrect=${gradeResult.isCorrect}, points=${gradeResult.points}, effectiveMaxPoints=${effectiveMaxPoints}`)
+        // console.log(`Grade result: isCorrect=${gradeResult.isCorrect}, points=${gradeResult.points}, effectiveMaxPoints=${effectiveMaxPoints}`)
         // 8. Cập nhật answer
         // Dùng 'answer' in body để phân biệt "không gửi field" với "gửi empty string"
         // Nếu gửi answer: "" thì vẫn lưu empty string vào DB (isAnswered = false)
@@ -133,13 +133,13 @@ export class SubmitCompetitionAnswerUseCase {
             maxPoints: effectiveMaxPoints,
             timeSpentSeconds: body.timeSpentSeconds ?? existingAnswer.timeSpentSeconds,
         })
-        console.log(`Updated answer: ${JSON.stringify(updatedAnswer)}`)
+        // console.log(`Updated answer: ${JSON.stringify(updatedAnswer)}`)
 
         // 9. Tính delta điểm và cập nhật CompetitionSubmit
         const newPoints = Number(updatedAnswer.points ?? 0)
         const delta = newPoints - oldPoints
 
-        console.log(`Điểm cũ: ${oldPoints}, điểm mới: ${newPoints}, delta: ${delta}`)
+        // console.log(`Điểm cũ: ${oldPoints}, điểm mới: ${newPoints}, delta: ${delta}`)
 
         if (delta !== 0) {
             const currentTotal = Number(submit.totalPoints ?? 0)

@@ -28,6 +28,8 @@ export interface CourseClassFilterOptions {
   startDateTo?: Date;
   endDateFrom?: Date;
   endDateTo?: Date;
+  /** Lọc theo khối lớp của khóa học */
+  grade?: number;
 }
 
 export interface CourseClassPaginationOptions {

@@ -113,6 +113,14 @@ export interface ICompetitionSubmitRepository {
     countGradedSubmits(competitionId?: number, txClient?: any): Promise<number>
     countUngradedSubmits(competitionId?: number, txClient?: any): Promise<number>
 
+    // Student history (excludes IN_PROGRESS & ABANDONED)
+    findStudentHistory(
+        competitionId: number,
+        studentId: number,
+        pagination: CompetitionSubmitPaginationOptions,
+        txClient?: any,
+    ): Promise<CompetitionSubmitListResult>
+
     // Leaderboard
     getLeaderboard(
         competitionId: number,

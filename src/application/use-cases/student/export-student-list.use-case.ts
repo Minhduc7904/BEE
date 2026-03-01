@@ -21,6 +21,7 @@ export class ExportStudentListUseCase {
     }> {
         const filters = options.toStudentFilterOptions()
         const pagination = options.toStudentPaginationOptions()
+        pagination.limit = 10000 // override limit để xuất tối đa 1000 học sinh, tránh tình trạng quá tải khi export với limit nhỏ
         const result = await this.studentRepository.findByFilters(filters, pagination)
 
         if (result.total === 0) {

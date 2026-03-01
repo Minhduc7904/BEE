@@ -217,6 +217,8 @@ export class FinishCompetitionSubmitUseCase {
             timeSpentSeconds,
         })
 
+        console.log(`Submit ID ${submitId} updated: totalPoints=${totalPoints}, maxPoints=${maxPoints}, timeSpentSeconds=${timeSpentSeconds}`)
+
         // 10. Xử lý HomeworkSubmit nếu có homeworkContentId
         let homeworkSubmitResult: {
             action: 'created' | 'updated' | 'skipped'
@@ -268,6 +270,7 @@ export class FinishCompetitionSubmitUseCase {
                     const updated = await this.homeworkSubmitRepository.update(created.homeworkSubmitId, {
                         points: newPoints,
                     })
+                    console.log('Created new homework submit:', newPoints, updated)
                     homeworkSubmitResult = {
                         action: 'created',
                         homeworkSubmitId: updated.homeworkSubmitId,
