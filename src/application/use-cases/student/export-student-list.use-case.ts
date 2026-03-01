@@ -53,8 +53,7 @@ export class ExportStudentListUseCase {
             return {
                 stt: index + 1,
                 studentCode: student.studentId || '',
-                lastName: student.user.lastName || '',
-                firstName: student.user.firstName || '',
+                fullName: `${student.user.lastName || ''} ${student.user.firstName || ''}`.trim(),
                 school: student.school || '',
                 gender:
                     student.user.gender === Gender.MALE
@@ -120,8 +119,7 @@ export class ExportStudentListUseCase {
         const columns: ExcelColumn[] = [
             { header: 'STT', key: 'stt', width: 8 },
             { header: 'Mã học sinh', key: 'studentCode', width: 15 },
-            { header: 'Họ', key: 'lastName', width: 20 },
-            { header: 'Tên', key: 'firstName', width: 15 },
+            { header: 'Họ và tên', key: 'fullName', width: 30 },
         ]
 
         if (options.includeSchool !== false) {
