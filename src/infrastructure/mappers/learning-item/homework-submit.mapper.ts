@@ -3,6 +3,7 @@ import { HomeworkSubmit } from '../../../domain/entities'
 import { HomeworkContentMapper } from './homework-content.mapper'
 import { StudentMapper } from '../user/student.mapper'
 import { AdminMapper } from '../user/admin.mapper'
+import { CompetitionSubmitMapper } from '../competition/competition-submit.mapper'
 
 /**
  * Mapper class để convert từ Prisma HomeworkSubmit model
@@ -19,6 +20,7 @@ export class HomeworkSubmitMapper {
             homeworkSubmitId: prismaHomeworkSubmit.homeworkSubmitId,
             homeworkContentId: prismaHomeworkSubmit.homeworkContentId,
             studentId: prismaHomeworkSubmit.studentId,
+            competitionSubmitId: prismaHomeworkSubmit.competitionSubmitId ?? undefined,
             submitAt: prismaHomeworkSubmit.submitAt,
             content: prismaHomeworkSubmit.content,
             points: prismaHomeworkSubmit.points ?? undefined,
@@ -41,6 +43,10 @@ export class HomeworkSubmitMapper {
 
             grader: prismaHomeworkSubmit.grader
                 ? AdminMapper.toDomainAdmin(prismaHomeworkSubmit.grader)
+                : undefined,
+
+            competitionSubmit: prismaHomeworkSubmit.competitionSubmit
+                ? CompetitionSubmitMapper.toDomainCompetitionSubmit(prismaHomeworkSubmit.competitionSubmit)
                 : undefined,
         })
     }

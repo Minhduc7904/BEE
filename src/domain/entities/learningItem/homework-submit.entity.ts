@@ -3,6 +3,7 @@
 import { HomeworkContent } from './homework-content.entity'
 import { Student } from '../user/student.entity'
 import { Admin } from '../user/admin.entity'
+import { CompetitionSubmit } from '../exam/competition-submit.entity'
 
 export class HomeworkSubmit {
     // Required properties
@@ -15,6 +16,7 @@ export class HomeworkSubmit {
     updatedAt: Date
 
     // Optional properties
+    competitionSubmitId?: number | null
     points?: number | null
     gradedAt?: Date | null
     graderId?: number | null
@@ -24,6 +26,7 @@ export class HomeworkSubmit {
     homeworkContent?: HomeworkContent
     student?: Student
     grader?: Admin | null
+    competitionSubmit?: CompetitionSubmit | null
 
     constructor(data: {
         homeworkSubmitId: number
@@ -33,6 +36,7 @@ export class HomeworkSubmit {
         submitAt?: Date
         createdAt?: Date
         updatedAt?: Date
+        competitionSubmitId?: number | null
         points?: number | null
         gradedAt?: Date | null
         graderId?: number | null
@@ -40,6 +44,7 @@ export class HomeworkSubmit {
         homeworkContent?: HomeworkContent
         student?: Student
         grader?: Admin | null
+        competitionSubmit?: CompetitionSubmit | null
     }) {
         this.homeworkSubmitId = data.homeworkSubmitId
         this.homeworkContentId = data.homeworkContentId
@@ -49,6 +54,7 @@ export class HomeworkSubmit {
         this.createdAt = data.createdAt || new Date()
         this.updatedAt = data.updatedAt || new Date()
 
+        this.competitionSubmitId = data.competitionSubmitId
         this.points = data.points
         this.gradedAt = data.gradedAt
         this.graderId = data.graderId
@@ -57,6 +63,7 @@ export class HomeworkSubmit {
         this.homeworkContent = data.homeworkContent
         this.student = data.student
         this.grader = data.grader
+        this.competitionSubmit = data.competitionSubmit
     }
 
     /* ===================== BUSINESS METHODS ===================== */
@@ -134,6 +141,7 @@ export class HomeworkSubmit {
             homeworkSubmitId: this.homeworkSubmitId,
             homeworkContentId: this.homeworkContentId,
             studentId: this.studentId,
+            competitionSubmitId: this.competitionSubmitId,
             submitAt: this.submitAt,
             content: this.content,
             points: this.points,
@@ -154,6 +162,7 @@ export class HomeworkSubmit {
             submitAt: this.submitAt,
             createdAt: this.createdAt,
             updatedAt: this.updatedAt,
+            competitionSubmitId: this.competitionSubmitId,
             points: this.points,
             gradedAt: this.gradedAt,
             graderId: this.graderId,
@@ -161,6 +170,7 @@ export class HomeworkSubmit {
             homeworkContent: this.homeworkContent,
             student: this.student,
             grader: this.grader,
+            competitionSubmit: this.competitionSubmit,
         })
     }
 }

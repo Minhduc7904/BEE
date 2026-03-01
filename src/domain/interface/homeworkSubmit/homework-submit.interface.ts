@@ -5,6 +5,7 @@ export interface CreateHomeworkSubmitData {
   homeworkContentId: number
   studentId: number
   content: string
+  competitionSubmitId?: number
 }
 
 export interface UpdateHomeworkSubmitData {
@@ -12,6 +13,7 @@ export interface UpdateHomeworkSubmitData {
   points?: number
   graderId?: number
   feedback?: string
+  competitionSubmitId?: number
 }
 
 export interface GradeHomeworkSubmitData {

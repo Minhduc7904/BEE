@@ -3,6 +3,7 @@
 import { HomeworkContent } from '../homeworkContent/homework-content.entity'
 import { Student } from '../user/student.entity'
 import { Admin } from '../user/admin.entity'
+import { CompetitionSubmit } from '../exam/competition-submit.entity'
 
 export class HomeworkSubmit {
   // Required properties
@@ -15,6 +16,7 @@ export class HomeworkSubmit {
   updatedAt: Date
 
   // Optional properties
+  competitionSubmitId?: number | null
   points?: number | null
   gradedAt?: Date | null
   graderId?: number | null
@@ -24,6 +26,7 @@ export class HomeworkSubmit {
   homeworkContent?: HomeworkContent
   student?: Student
   grader?: Admin | null
+  competitionSubmit?: CompetitionSubmit | null
 
   constructor(data: {
     homeworkSubmitId: number
@@ -33,6 +36,7 @@ export class HomeworkSubmit {
     content: string
     createdAt?: Date
     updatedAt?: Date
+    competitionSubmitId?: number | null
     points?: number | null
     gradedAt?: Date | null
     graderId?: number | null
@@ -40,6 +44,7 @@ export class HomeworkSubmit {
     homeworkContent?: HomeworkContent
     student?: Student
     grader?: Admin | null
+    competitionSubmit?: CompetitionSubmit | null
   }) {
     this.homeworkSubmitId = data.homeworkSubmitId
     this.homeworkContentId = data.homeworkContentId
@@ -48,6 +53,7 @@ export class HomeworkSubmit {
     this.content = data.content
     this.createdAt = data.createdAt || new Date()
     this.updatedAt = data.updatedAt || new Date()
+    this.competitionSubmitId = data.competitionSubmitId
     this.points = data.points
     this.gradedAt = data.gradedAt
     this.graderId = data.graderId
@@ -55,6 +61,7 @@ export class HomeworkSubmit {
     this.homeworkContent = data.homeworkContent
     this.student = data.student
     this.grader = data.grader
+    this.competitionSubmit = data.competitionSubmit
   }
 
   // Business logic methods

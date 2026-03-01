@@ -800,6 +800,7 @@ model CompetitionSubmit {
   competition        Competition         @relation(fields: [competitionId], references: [competitionId], onDelete: Cascade)
   student            Student             @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
   competitionAnswers CompetitionAnswer[]
+  homeworkSubmit     HomeworkSubmit?
 
   @@unique([competitionId, studentId, attemptNumber], map: "unique_competition_student_attempt")
   @@index([competitionId], map: "idx_competition_submits_competition")
@@ -890,24 +891,27 @@ model HomeworkContent {
 }
 
 model HomeworkSubmit {
-  homeworkSubmitId  Int             @id @default(autoincrement()) @map("homework_submit_id")
-  homeworkContentId Int             @map("homework_content_id")
-  studentId         Int             @map("student_id")
-  submitAt          DateTime        @default(now()) @map("submit_at") @db.Timestamp(0)
-  content           String          @map("content") @db.Text // nội dung bài làm
-  points            Int?            @map("points") // điểm số bài làm
-  gradedAt          DateTime?       @map("graded_at") @db.Timestamp(0) // thời điểm chấm điểm
-  graderId          Int?            @map("grader_id") // admin/giáo viên chấm bài
-  feedback          String?         @map("feedback") @db.Text // nhận xét của giáo viên
-  createdAt         DateTime        @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt         DateTime        @updatedAt @map("updated_at") @db.Timestamp(0)
+  homeworkSubmitId     Int             @id @default(autoincrement()) @map("homework_submit_id")
+  homeworkContentId    Int             @map("homework_content_id")
+  studentId            Int             @map("student_id")
+  competitionSubmitId  Int?            @unique @map("competition_submit_id") // liên kết bài nộp với lần thi cụ thể
+  submitAt             DateTime        @default(now()) @map("submit_at") @db.Timestamp(0)
+  content              String          @map("content") @db.Text // nội dung bài làm
+  points               Int?            @map("points") // điểm số bài làm
+  gradedAt             DateTime?       @map("graded_at") @db.Timestamp(0) // thời điểm chấm điểm
+  graderId             Int?            @map("grader_id") // admin/giáo viên chấm bài
+  feedback             String?         @map("feedback") @db.Text // nhận xét của giáo viên
+  createdAt            DateTime        @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt            DateTime        @updatedAt @map("updated_at") @db.Timestamp(0)
   // Relations
-  homeworkContent   HomeworkContent @relation(fields: [homeworkContentId], references: [homeworkContentId], onDelete: Cascade)
-  student           Student         @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
-  grader            Admin?          @relation(fields: [graderId], references: [adminId], onDelete: SetNull)
+  homeworkContent      HomeworkContent @relation(fields: [homeworkContentId], references: [homeworkContentId], onDelete: Cascade)
+  student              Student         @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  grader               Admin?          @relation(fields: [graderId], references: [adminId], onDelete: SetNull)
+  competitionSubmit    CompetitionSubmit? @relation(fields: [competitionSubmitId], references: [competitionSubmitId], onDelete: SetNull)
 
   @@unique([homeworkContentId, studentId], map: "unique_homework_submit")
   @@index([studentId], map: "idx_homework_submits_student_id")
+  @@index([competitionSubmitId], map: "idx_homework_submits_competition_submit_id")
   @@map("homework_submits")
 }
 

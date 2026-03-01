@@ -265,6 +265,7 @@ export class FinishCompetitionSubmitUseCase {
                         homeworkContentId: parsedHomeworkContentId,
                         studentId,
                         content: `Nộp bài qua cuộc thi #${competition.competitionId} (submit #${submitId})`,
+                        competitionSubmitId: submitId,
                     })
                     // Cập nhật điểm ngay sau khi tạo
                     const updated = await this.homeworkSubmitRepository.update(created.homeworkSubmitId, {
@@ -299,6 +300,7 @@ export class FinishCompetitionSubmitUseCase {
                 if (canUpdate && shouldUpdatePoints(existingSubmit.points)) {
                     await this.homeworkSubmitRepository.update(existingSubmit.homeworkSubmitId, {
                         points: newPoints,
+                        competitionSubmitId: submitId,
                     })
                     homeworkSubmitResult = {
                         action: 'updated',

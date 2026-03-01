@@ -23,6 +23,7 @@ export class PrismaHomeworkSubmitRepository implements IHomeworkSubmitRepository
                 homeworkContentId: data.homeworkContentId,
                 studentId: data.studentId,
                 content: data.content,
+                competitionSubmitId: data.competitionSubmitId ?? null,
             },
             include: {
                 homeworkContent: {

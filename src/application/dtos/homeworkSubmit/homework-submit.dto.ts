@@ -8,6 +8,7 @@ export class HomeworkSubmitResponseDto {
     homeworkSubmitId: number
     homeworkContentId: number
     studentId: number
+    competitionSubmitId?: number
     submitAt: Date
     content: string
     points?: number
@@ -24,6 +25,7 @@ export class HomeworkSubmitResponseDto {
         dto.homeworkSubmitId = homeworkSubmit.homeworkSubmitId
         dto.homeworkContentId = homeworkSubmit.homeworkContentId
         dto.studentId = homeworkSubmit.studentId
+        dto.competitionSubmitId = homeworkSubmit.competitionSubmitId ?? undefined
         dto.submitAt = homeworkSubmit.submitAt
         dto.content = homeworkSubmit.content
         dto.points = homeworkSubmit.points ?? undefined
