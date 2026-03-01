@@ -315,16 +315,22 @@ export class DoCompetitionController {
     }
 
     /**
-     * Get attempt history for a competition
-     * Xem lịch sử các lần làm bài
+     * Lấy lịch sử làm bài của học sinh theo competitionId (có phân trang)
+     * Chỉ bao gồm các lần thi đã nộp bài (SUBMITTED / GRADED), không hiển thị IN_PROGRESS và ABANDONED.
      *
      * @route GET /do-competition/:competitionId/history
-     * @param competitionId - Competition ID
-     * @param studentId - Current student ID (auto-injected)
-     * @returns List of all attempts for this competition
      *
-     * @example
-     * GET /do-competition/1/history
+     * ─── ĐẦU VÀO ─────────────────────────────────────────────────────────────
+     * @param competitionId  ID của cuộc thi
+     * @query page           Trang hiện tại (mặc định 1)
+     * @query limit          Kích thước trang, tối đa 100 (mặc định 10)
+     * @query sortBy         Trường sắp xếp (mặc định submittedAt)
+     * @query sortOrder      Chiều sắp xếp: asc | desc (mặc định desc)
+     *
+     * ─── ĐẦU RA ─────────────────────────────────────────────────────────────
+     * @returns StudentCompetitionHistoryListResponseDto
+     *   data.history[]     - danh sách lần thi (attemptNumber, status, điểm, thời gian)
+     *   data.pagination    - { total, page, limit, totalPages }
      */
     @Get(':competitionId/history')
     @RequirePermission()
@@ -332,12 +338,11 @@ export class DoCompetitionController {
     async getAttemptHistory(
         @Param('competitionId', ParseIntPipe) competitionId: number,
         @CurrentUser('studentId') studentId: number,
-    ): Promise<BaseResponseDto<any[]>> {
-        // TODO: Implement with use case
-        // return ExceptionHandler.execute(() =>
-        //     this.getAttemptHistoryUseCase.execute(competitionId, studentId),
-        // )
-        throw new Error('Not implemented yet')
+        @Query() query: StudentCompetitionHistoryQueryDto,
+    ): Promise<StudentCompetitionHistoryListResponseDto> {
+        return ExceptionHandler.execute(() =>
+            this.getStudentCompetitionHistoryUseCase.execute(competitionId, studentId, query),
+        )
     }
 
     /**
@@ -467,37 +472,6 @@ export class DoCompetitionController {
         //     this.getLeaderboardUseCase.execute(competitionId, limit),
         // )
         throw new Error('Not implemented yet')
-    }
-
-    /**
-     * Lấy lịch sử làm bài của học sinh theo competitionId (có phân trang)
-     * Chỉ bao gồm các lần thi đã nộp bài (SUBMITTED / GRADED), không hiển thị IN_PROGRESS và ABANDONED.
-     *
-     * @route GET /do-competition/:competitionId/history
-     *
-     * ─── ĐẦU VÀO ─────────────────────────────────────────────────────────────
-     * @param competitionId  ID của cuộc thi
-     * @query page           Trang hiện tại (mặc định 1)
-     * @query limit          Kích thước trang, tối đa 100 (mặc định 10)
-     * @query sortBy         Trường sắp xếp (mặc định submittedAt)
-     * @query sortOrder      Chiều sắp xếp: asc | desc (mặc định desc)
-     *
-     * ─── ĐẦU RA ─────────────────────────────────────────────────────────────
-     * @returns StudentCompetitionHistoryListResponseDto
-     *   data.history[]     - danh sách lần thi (attemptNumber, status, điểm, thời gian)
-     *   data.pagination    - { total, page, limit, totalPages }
-     */
-    @Get(':competitionId/history')
-    @RequirePermission(PERMISSION_CODES.COMPETITION_SUBMIT.GET_MY_HISTORY)
-    @HttpCode(HttpStatus.OK)
-    async getMyHistory(
-        @Param('competitionId', ParseIntPipe) competitionId: number,
-        @CurrentUser('studentId') studentId: number,
-        @Query() query: StudentCompetitionHistoryQueryDto,
-    ): Promise<StudentCompetitionHistoryListResponseDto> {
-        return ExceptionHandler.execute(() =>
-            this.getStudentCompetitionHistoryUseCase.execute(competitionId, studentId, query),
-        )
     }
 
     /**

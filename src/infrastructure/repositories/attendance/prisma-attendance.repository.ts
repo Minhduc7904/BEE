@@ -262,7 +262,7 @@ export class PrismaAttendanceRepository implements IAttendanceRepository {
       }
     }
 
-    return this.prisma.attendance.findMany({
+    const prismaAttendances = await this.prisma.attendance.findMany({
       where,
       include: {
         classSession: {
@@ -281,6 +281,8 @@ export class PrismaAttendanceRepository implements IAttendanceRepository {
         markedAt: 'desc',
       },
     })
+
+    return AttendanceMapper.toDomainAttendances(prismaAttendances)
   }
 
   async findBySession(sessionId: number): Promise<Attendance[]> {
