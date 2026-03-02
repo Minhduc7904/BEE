@@ -520,7 +520,7 @@ export class ExportAttendanceImageUseCase {
                             if (homeworkSubmit.feedback) return homeworkSubmit.feedback
                             const pts = homeworkSubmit.competitionSubmit?.totalPoints ?? homeworkSubmit.points
                             const maxPts = homeworkSubmit.competitionSubmit?.maxPoints
-                            console.log('Calculating feedback for points:', pts, 'out of', maxPts)
+                            // console.log('Calculating feedback for points:', pts, 'out of', maxPts)
                             if (pts != null && maxPts != null && maxPts > 0) {
                                 const pct = (pts / maxPts) * 100
                                 if (pct < 50)

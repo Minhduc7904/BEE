@@ -86,6 +86,7 @@ export class PrismaHomeworkSubmitRepository implements IHomeworkSubmitRepository
                         user: true,
                     },
                 },
+                competitionSubmit: true,
             },
         })
 
@@ -471,6 +472,7 @@ export class PrismaHomeworkSubmitRepository implements IHomeworkSubmitRepository
                         user: true,
                     },
                 },
+                competitionSubmit: true,
             },
         })
 
