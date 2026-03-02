@@ -6,6 +6,8 @@ import { InfrastructureModule } from 'src/infrastructure/infrastructure.module'
 const STUDENT_PROFILE_USE_CASES = [
   studentProfileUseCase.GetStudentProfileUseCase,
   studentProfileUseCase.UpdateStudentProfileUseCase,
+  studentProfileUseCase.UploadStudentAvatarUseCase,
+  studentProfileUseCase.ChangeStudentPasswordUseCase,
 ]
 
 @Module({

@@ -31,7 +31,7 @@ export class CreateHomeworkContentUseCase {
             const homeworkContent = await homeworkContentRepository.create({
                 learningItemId: dto.learningItemId,
                 content: dto.content,
-                dueDate: dto.dueDate,
+                dueDate: dto.dueDate ? new Date(dto.dueDate) : undefined,
                 competitionId: dto.competitionId,
                 allowLateSubmit: dto.allowLateSubmit,
                 updatePointsOnLateSubmit: dto.updatePointsOnLateSubmit,
@@ -97,9 +97,10 @@ export class CreateHomeworkContentUseCase {
 
         // Check if homework dueDate is before or equal to competition endDate (if both exist)
         if (dueDate && competition.endDate) {
-            if (dueDate > competition.endDate) {
+            const dueDateObj = new Date(dueDate)
+            if (dueDateObj > competition.endDate) {
                 throw new ConflictException(
-                    `Ngày hết hạn nộp bài (${dueDate.toISOString()}) phải trước hoặc bằng ngày kết thúc cuộc thi (${competition.endDate.toISOString()})`
+                    `Ngày hết hạn nộp bài (${dueDateObj.toISOString()}) phải trước hoặc bằng ngày kết thúc cuộc thi (${competition.endDate.toISOString()})`
                 )
             }
         }

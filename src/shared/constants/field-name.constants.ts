@@ -9,6 +9,9 @@ export const FIELD_NAMES = {
   // Document & Video
   DOCUMENT_FILE: 'DOCUMENT_FILE',
   VIDEO_FILE: 'VIDEO_FILE',
+
+  // User
+  AVATAR: 'avatar',
   
 } as const
 

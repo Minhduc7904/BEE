@@ -37,9 +37,9 @@ export class UpdateHomeworkContentUseCase {
             
             if (dto.dueDate !== undefined) {
                 const existingDueDate = existingHomeworkContent.dueDate ? existingHomeworkContent.dueDate.toISOString() : null
-                const newDueDate = dto.dueDate ? dto.dueDate.toISOString() : null
+                const newDueDate = dto.dueDate ? new Date(dto.dueDate).toISOString() : null
                 if (existingDueDate !== newDueDate) {
-                    updateData.dueDate = dto.dueDate
+                    updateData.dueDate = dto.dueDate ? new Date(dto.dueDate) : null
                 }
             }
             
@@ -151,9 +151,10 @@ export class UpdateHomeworkContentUseCase {
 
         // Check if homework dueDate is before or equal to competition endDate (if both exist)
         if (dueDate && competition.endDate) {
-            if (dueDate > competition.endDate) {
+            const dueDateObj = new Date(dueDate)
+            if (dueDateObj > competition.endDate) {
                 throw new ConflictException(
-                    `Ngày hết hạn nộp bài (${dueDate.toISOString()}) phải trước hoặc bằng ngày kết thúc cuộc thi (${competition.endDate.toISOString()})`
+                    `Ngày hết hạn nộp bài (${dueDateObj.toISOString()}) phải trước hoặc bằng ngày kết thúc cuộc thi (${competition.endDate.toISOString()})`
                 )
             }
         }
