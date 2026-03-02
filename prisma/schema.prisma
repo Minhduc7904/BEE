@@ -897,7 +897,7 @@ model HomeworkSubmit {
   competitionSubmitId  Int?            @unique @map("competition_submit_id") // liên kết bài nộp với lần thi cụ thể
   submitAt             DateTime        @default(now()) @map("submit_at") @db.Timestamp(0)
   content              String          @map("content") @db.Text // nội dung bài làm
-  points               Int?            @map("points") // điểm số bài làm
+  points               Float?          @map("points") // điểm số bài làm
   gradedAt             DateTime?       @map("graded_at") @db.Timestamp(0) // thời điểm chấm điểm
   graderId             Int?            @map("grader_id") // admin/giáo viên chấm bài
   feedback             String?         @map("feedback") @db.Text // nhận xét của giáo viên
