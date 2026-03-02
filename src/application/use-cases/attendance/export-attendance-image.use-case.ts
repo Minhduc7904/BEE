@@ -518,8 +518,9 @@ export class ExportAttendanceImageUseCase {
                     <div class="info-row">
                         <div class="info-item">Nhận xét: <span style="white-space:pre-wrap;word-break:break-word;">${(() => {
                             if (homeworkSubmit.feedback) return homeworkSubmit.feedback
-                            const pts = homeworkSubmit.points
+                            const pts = homeworkSubmit.competitionSubmit?.totalPoints ?? homeworkSubmit.points
                             const maxPts = homeworkSubmit.competitionSubmit?.maxPoints
+                            console.log('Calculating feedback for points:', pts, 'out of', maxPts)
                             if (pts != null && maxPts != null && maxPts > 0) {
                                 const pct = (pts / maxPts) * 100
                                 if (pct < 50)
@@ -536,13 +537,19 @@ export class ExportAttendanceImageUseCase {
                             return 'Chưa có nhận xét'
                         })()}</span></div>
                     </div>
-                    ${homeworkSubmit.points !== null && homeworkSubmit.points !== undefined
+                    ${(homeworkSubmit.competitionSubmit?.totalPoints ?? homeworkSubmit.points) !== null && (homeworkSubmit.competitionSubmit?.totalPoints ?? homeworkSubmit.points) !== undefined
                             ? `
                     <div class="info-row">
-                        <div class="info-item">Điểm: <strong style="color:#16a34a;">${homeworkSubmit.competitionSubmitId && homeworkSubmit.competitionSubmit?.maxPoints != null
-                                ? `${homeworkSubmit.points} / ${homeworkSubmit.competitionSubmit.maxPoints}`
-                                : homeworkSubmit.points
-                            }</strong></div>
+                        <div class="info-item">
+                            Điểm: 
+                            <strong style="color:#16a34a;">
+                            ${homeworkSubmit.competitionSubmitId && homeworkSubmit.competitionSubmit?.maxPoints != null
+                                ? `${homeworkSubmit.competitionSubmit?.totalPoints ?? homeworkSubmit.points ?? 0} / ${homeworkSubmit.competitionSubmit.maxPoints}`
+                                : (homeworkSubmit.competitionSubmit?.totalPoints ?? homeworkSubmit.points ?? 0)
+                            }
+                            </strong>
+                        </div>
+                    </div>
                     </div>`
                             : ''
                         }
