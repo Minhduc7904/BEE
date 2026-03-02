@@ -128,6 +128,11 @@ export class PrismaClassSessionRepository implements IClassSessionRepository {
             andConditions.push({
                 OR: [
                     {
+                        name: {
+                            contains: filters.search,
+                        },
+                    },
+                    {
                         courseClass: {
                             className: {
                                 contains: filters.search,
