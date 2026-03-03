@@ -68,6 +68,7 @@ export class GetStudentLearningItemByIdUseCase {
                 // Khởi tạo các biến
                 let competitionSubmits: any[] = []
                 let questionCount: number | undefined
+                let startDate: Date | undefined
                 let endDate: Date | undefined
                 let maxAttempts: number | undefined
 
@@ -81,6 +82,7 @@ export class GetStudentLearningItemByIdUseCase {
 
                     // Lấy thông tin competition và đếm số câu hỏi
                     if (homeworkContent.competition) {
+                        startDate = homeworkContent.competition.startDate ?? undefined
                         endDate = homeworkContent.competition.endDate ?? undefined
                         maxAttempts = homeworkContent.competition.maxAttempts ?? undefined
 
@@ -100,6 +102,7 @@ export class GetStudentLearningItemByIdUseCase {
                     competitionSubmits,
                     questionCount,
                     dueDate: homeworkContent.dueDate ?? undefined,
+                    startDate,
                     endDate,
                     maxAttempts,
                     allowLateSubmit: homeworkContent.allowLateSubmit,

@@ -14,6 +14,7 @@ import {
     GetStudentCompetitionHistoryUseCase,
     GetAdminCompetitionSubmitDetailUseCase,
     RegradeCompetitionSubmitUseCase,
+    GetStudentCompetitionResultUseCase,
 } from './index'
 import { ProcessContentWithPresignedUrlsUseCase } from '../media/process-content-with-presigned-urls.use-case'
 
@@ -34,6 +35,7 @@ import { ProcessContentWithPresignedUrlsUseCase } from '../media/process-content
         GetStudentCompetitionHistoryUseCase,
         GetAdminCompetitionSubmitDetailUseCase,
         RegradeCompetitionSubmitUseCase,
+        GetStudentCompetitionResultUseCase,
         ProcessContentWithPresignedUrlsUseCase,
     ],
     exports: [
@@ -49,6 +51,7 @@ import { ProcessContentWithPresignedUrlsUseCase } from '../media/process-content
         GetStudentCompetitionHistoryUseCase,
         GetAdminCompetitionSubmitDetailUseCase,
         RegradeCompetitionSubmitUseCase,
+        GetStudentCompetitionResultUseCase,
     ],
 })
 export class CompetitionSubmitApplicationModule { }

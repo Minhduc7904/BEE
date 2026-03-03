@@ -26,6 +26,7 @@ import {
     SubmitCompetitionAnswerUseCase,
     FinishCompetitionSubmitUseCase,
     GetStudentCompetitionHistoryUseCase,
+    GetStudentCompetitionResultUseCase,
 } from '../../application/use-cases/competition-submit'
 import {
     SubmitCompetitionAnswerDto,
@@ -34,6 +35,7 @@ import {
     CompetitionAnswersResponseDto,
     StudentCompetitionHistoryQueryDto,
     StudentCompetitionHistoryListResponseDto,
+    StudentCompetitionResultDto,
 } from '../../application/dtos/competition-submit'
 
 /**
@@ -52,6 +54,7 @@ export class DoCompetitionController {
         private readonly submitCompetitionAnswerUseCase: SubmitCompetitionAnswerUseCase,
         private readonly finishCompetitionSubmitUseCase: FinishCompetitionSubmitUseCase,
         private readonly getStudentCompetitionHistoryUseCase: GetStudentCompetitionHistoryUseCase,
+        private readonly getStudentCompetitionResultUseCase: GetStudentCompetitionResultUseCase,
     ) { }
 
     /**
@@ -497,5 +500,36 @@ export class DoCompetitionController {
         //     this.abandonAttemptUseCase.execute(submitId, studentId),
         // )
         throw new Error('Not implemented yet')
+    }
+
+    /**
+     * Lấy kết quả bài nộp theo 3 rule của cuộc thi
+     *
+     * @route GET /do-competition/submit/:submitId/result
+     * @param submitId - ID bài nộp (CompetitionSubmit.competitionSubmitId)
+     * @param studentId - ID học sinh hiện tại (auto-inject)
+     *
+     * @returns StudentCompetitionResultDto
+     *
+     * Rules áp dụng từ cấu hình competition:
+     *   Rule 1 – allowViewScore  : trả totalPoints, maxPoints, scorePercentage;
+     *                               nếu kết hợp với Rule 2 thì thêm điểm/isCorrect từng câu.
+     *   Rule 2 – showResultDetail: trả nội dung câu hỏi, statements, câu trả lời đã chọn.
+     *   Rule 3 – allowViewAnswer : trả thêm correctAnswer, solution của từng câu,
+     *                               isCorrect của từng statement.
+     *
+     * @example
+     * GET /do-competition/submit/42/result
+     */
+    @Get('submit/:submitId/result')
+    @RequirePermission()
+    @HttpCode(HttpStatus.OK)
+    async getStudentCompetitionResult(
+        @Param('submitId', ParseIntPipe) submitId: number,
+        @CurrentUser('studentId') studentId: number,
+    ): Promise<BaseResponseDto<StudentCompetitionResultDto>> {
+        return ExceptionHandler.execute(() =>
+            this.getStudentCompetitionResultUseCase.execute(submitId, studentId),
+        )
     }
 }

@@ -11,6 +11,7 @@ export * from './competition-exam.dto'
 export * from './student-competition-history-query.dto'
 export * from './student-competition-history.dto'
 export * from './admin-competition-submit-detail.dto'
+export * from './student-competition-result.dto'
 
 export * from './competition-answer.dto'
 export * from './start-competition.dto'

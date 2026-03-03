@@ -2,8 +2,10 @@
 import { Inject, Injectable } from '@nestjs/common'
 import type { ICompetitionRepository } from '../../../domain/repositories'
 import type { ICompetitionSubmitRepository } from '../../../domain/repositories/competition-submit.repository'
+import type { IHomeworkContentRepository } from '../../../domain/repositories/homework-content.repository'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 import { CompetitionResponseDto } from '../../dtos/competition/competition.dto'
+import { HomeworkContentResponseDto } from '../../dtos/homeworkContent/homework-content.dto'
 import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 import { ProcessContentWithPresignedUrlsUseCase, type ContentField } from '../media/process-content-with-presigned-urls.use-case'
 import { COMPETITION_CONTENT_FIELDS } from '../../../shared/constants/media-field-name.constants'
@@ -15,6 +17,8 @@ export class GetCompetitionByIdUseCase {
     private readonly competitionRepository: ICompetitionRepository,
     @Inject('ICompetitionSubmitRepository')
     private readonly competitionSubmitRepository: ICompetitionSubmitRepository,
+    @Inject('IHomeworkContentRepository')
+    private readonly homeworkContentRepository: IHomeworkContentRepository,
     private readonly processContentUseCase: ProcessContentWithPresignedUrlsUseCase,
   ) {}
 
@@ -29,6 +33,12 @@ export class GetCompetitionByIdUseCase {
 
     // Đếm tổng số lượt làm bài
     response.totalSubmissions = await this.competitionSubmitRepository.countByCompetition(competition.competitionId)
+
+    // Lấy homeworkContents liên kết
+    const homeworkContents = await this.homeworkContentRepository.findByCompetition(competition.competitionId)
+    if (homeworkContents.length > 0) {
+      response.homeworkContents = homeworkContents.map((hc) => HomeworkContentResponseDto.fromEntity(hc))
+    }
 
     // Process policies with presigned URLs if it exists
     if (response.policies) {

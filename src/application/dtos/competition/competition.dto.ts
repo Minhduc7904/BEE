@@ -4,6 +4,7 @@ import { Exam } from '../../../domain/entities/exam/exam.entity'
 import { Visibility } from '../../../shared/enums'
 import { PaginationResponseDto } from '../pagination/pagination-response.dto'
 import { UserResponseDto } from '../user/user.dto'
+import { HomeworkContentResponseDto } from '../homeworkContent/homework-content.dto'
 
 export class CompetitionResponseDto {
     // Identity
@@ -67,6 +68,9 @@ export class CompetitionResponseDto {
 
     // Statistics
     totalSubmissions?: number
+
+    // Homework contents liên kết
+    homeworkContents?: HomeworkContentResponseDto[]
 
     // Processed content with presigned URLs
     processedPolicies?: string | null

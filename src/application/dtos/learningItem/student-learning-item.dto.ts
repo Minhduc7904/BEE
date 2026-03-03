@@ -15,7 +15,8 @@ export enum HomeworkStatus {
     REDO = 'REDO',                  // Làm lại (còn hạn, đã làm nhưng chưa đạt max attempts)
     LATE_SUBMIT = 'LATE_SUBMIT',    // Làm muộn (quá dueDate nhưng còn endDate và cho phép nộp muộn)
     OVERDUE = 'OVERDUE',            // Quá hạn (không thể làm nữa)
-    COMPLETED = 'COMPLETED'         // Đã hoàn thành (đạt max attempts hoặc đã nộp)
+    COMPLETED = 'COMPLETED',        // Đã hoàn thành (đạt max attempts hoặc đã nộp)
+    NOT_STARTED = 'NOT_STARTED',    // Chưa đến thời gian bắt đầu
 }
 
 /**
@@ -28,6 +29,7 @@ export class HomeworkSubmitDto {
     points?: number
     gradedAt?: Date
     feedback?: string
+    competitionSubmitId?: number
 
     static fromEntity(homeworkSubmit: HomeworkSubmit | null): HomeworkSubmitDto | undefined {
         if (!homeworkSubmit) return undefined
@@ -39,6 +41,7 @@ export class HomeworkSubmitDto {
         dto.points = homeworkSubmit.points ?? undefined
         dto.gradedAt = homeworkSubmit.gradedAt ?? undefined
         dto.feedback = homeworkSubmit.feedback ?? undefined
+        dto.competitionSubmitId = homeworkSubmit.competitionSubmitId ?? undefined
         return dto
     }
 }
@@ -96,6 +99,7 @@ export class HomeworkProgressDto {
         competitionSubmits: CompetitionSubmit[]
         questionCount?: number
         dueDate?: Date
+        startDate?: Date
         endDate?: Date
         maxAttempts?: number
         allowLateSubmit: boolean
@@ -104,7 +108,7 @@ export class HomeworkProgressDto {
     }): HomeworkProgressDto {
         const dto = new HomeworkProgressDto()
         const canViewScore = params.allowViewScore !== false // default true
-        
+
         // StudentLearningItem progress
         dto.isLearned = params.studentLearningItem?.isLearned ?? false
         dto.learnedAt = params.studentLearningItem?.learnedAt ?? undefined
@@ -137,7 +141,6 @@ export class HomeworkProgressDto {
         // Deadline calculation
         dto.dueDate = params.dueDate
         const now = new Date()
-        
         // Xác định deadline cuối cùng (ưu tiên endDate nếu có, không thì dùng dueDate)
         const finalDeadline = params.endDate ?? params.dueDate
         dto.deadline = finalDeadline
@@ -152,6 +155,7 @@ export class HomeworkProgressDto {
         dto.status = HomeworkProgressDto.determineStatus({
             now,
             dueDate: params.dueDate,
+            startDate: params.startDate,
             endDate: params.endDate,
             attemptCount: dto.attemptCount,
             maxAttempts: params.maxAttempts,
@@ -166,6 +170,7 @@ export class HomeworkProgressDto {
     private static determineStatus(params: {
         now: Date
         dueDate?: Date
+        startDate?: Date
         endDate?: Date
         attemptCount: number
         maxAttempts?: number
@@ -173,7 +178,7 @@ export class HomeworkProgressDto {
         isDone: boolean
         hasInProgressSubmit: boolean
     }): HomeworkStatus {
-        const { now, dueDate, endDate, attemptCount, maxAttempts, allowLateSubmit, isDone, hasInProgressSubmit } = params
+        const { now, dueDate, startDate, endDate, attemptCount, maxAttempts, allowLateSubmit, isDone, hasInProgressSubmit } = params
 
         // Nếu đang có lần thi IN_PROGRESS → ưu tiên cho làm tiếp trước mọi kiểm tra khác
         if (hasInProgressSubmit) {
@@ -185,29 +190,31 @@ export class HomeworkProgressDto {
             return HomeworkStatus.COMPLETED
         }
 
-        // Nếu có endDate và đã quá endDate
+        // Nếu có endDate và đã quá endDate → quá hạn (kể cả khi chưa đến startDate)
         if (endDate && now > endDate) {
             return HomeworkStatus.OVERDUE
         }
 
-        // Nếu có dueDate và đã quá dueDate
+        // Nếu có dueDate và đã quá dueDate → kiểm tra nộp muộn (kể cả khi chưa đến startDate)
         if (dueDate && now > dueDate) {
-            // Kiểm tra có cho phép nộp muộn không
             if (allowLateSubmit && endDate && now <= endDate) {
                 return HomeworkStatus.LATE_SUBMIT
             }
-            // Nếu không có endDate hoặc không cho phép nộp muộn
+            // Không có endDate hoặc không cho phép nộp muộn
             if (!endDate) {
                 return HomeworkStatus.OVERDUE
             }
         }
 
+        // Chưa đến thời gian bắt đầu (và deadline chưa qua)
+        if (startDate && now < startDate) {
+            return HomeworkStatus.NOT_STARTED
+        }
+
         // Còn trong thời hạn
         if (attemptCount > 0) {
-            // Đã làm ít nhất 1 lần, có thể làm lại
             return HomeworkStatus.REDO
         } else {
-            // Chưa làm lần nào
             return HomeworkStatus.DO_NOW
         }
     }
@@ -257,7 +264,7 @@ export class StudentLearningItemResponseDto {
         homeworkProgressMap?: Map<number, HomeworkProgressDto>,
     ): StudentLearningItemResponseDto {
         const dto = new StudentLearningItemResponseDto()
-        
+
         // Basic info
         dto.learningItemId = learningItem.learningItemId
         dto.type = learningItem.type
@@ -288,7 +295,7 @@ export class StudentLearningItemResponseDto {
         }
 
         if (learningItem.type === LearningItemType.YOUTUBE && learningItem.youtubeContents) {
-            dto.youtubeContents = learningItem.youtubeContents.map(yc => 
+            dto.youtubeContents = learningItem.youtubeContents.map(yc =>
                 YoutubeContentResponseDto.fromEntity(yc)
             )
         }
