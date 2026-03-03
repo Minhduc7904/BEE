@@ -96,4 +96,14 @@ export interface ICompetitionAnswerRepository {
 
     // Statistics
     calculateTotalPoints(competitionSubmitId: number, txClient?: any): Promise<{ totalPoints: number; maxPoints: number }>
+
+    /**
+     * Đếm số câu trả lời ĐÚNG (isCorrect = true) theo từng questionId
+     * trên tất cả bài nộp GRADED của một cuộc thi.
+     * Dùng để thống kê câu hỏi dễ/khó.
+     */
+    getCorrectCountsByCompetition(
+        competitionId: number,
+        txClient?: any,
+    ): Promise<{ questionId: number; correctCount: number }[]>
 }

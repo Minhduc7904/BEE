@@ -52,6 +52,16 @@ export class PrismaExamRepository implements IExamRepository {
             user: true,
           },
         },
+        competitions: {
+          orderBy: { createdAt: 'desc' },
+          include: {
+            admin: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        },
         _count: {
           select: {
             questions: true,
@@ -198,6 +208,16 @@ export class PrismaExamRepository implements IExamRepository {
           admin: {
             include: {
               user: true,
+            },
+          },
+          competitions: {
+            orderBy: { createdAt: 'desc' },
+            include: {
+              admin: {
+                include: {
+                  user: true,
+                },
+              },
             },
           },
           _count: {

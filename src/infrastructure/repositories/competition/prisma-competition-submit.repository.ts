@@ -416,6 +416,23 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
         })
     }
 
+    async countByCompetitions(competitionIds: number[], txClient?: any): Promise<Map<number, number>> {
+        if (competitionIds.length === 0) return new Map()
+        const client = txClient || this.prisma
+
+        const grouped = await client.competitionSubmit.groupBy({
+            by: ['competitionId'],
+            where: { competitionId: { in: competitionIds } },
+            _count: { competitionId: true },
+        })
+
+        const result = new Map<number, number>()
+        for (const row of grouped) {
+            result.set(row.competitionId, row._count.competitionId)
+        }
+        return result
+    }
+
     async countByStudent(studentId: number, txClient?: any): Promise<number> {
         const client = txClient || this.prisma
         return client.competitionSubmit.count({
@@ -530,6 +547,52 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
             submits: submits.map((s: any) => CompetitionSubmitMapper.toDomainCompetitionSubmit(s)).filter(Boolean),
             total,
         }
+    }
+
+    /**
+     * Lấy chi tiết đầy đủ bài nộp cho admin:
+     * bao gồm competition, student, và mỗi answer kèm đầy đủ
+     * question + tất cả statements (có isCorrect).
+     */
+    async findByIdWithFullDetails(id: number, txClient?: any): Promise<CompetitionSubmit | null> {
+        const client = txClient || this.prisma
+
+        const submit = await client.competitionSubmit.findUnique({
+            where: { competitionSubmitId: id },
+            include: {
+                competition: {
+                    include: {
+                        exam: true,
+                        admin: {
+                            include: {
+                                user: true,
+                            },
+                        },
+                    },
+                },
+                student: {
+                    include: {
+                        user: true,
+                    },
+                },
+                competitionAnswers: {
+                    orderBy: { questionId: 'asc' },
+                    include: {
+                        question: {
+                            include: {
+                                statements: {
+                                    orderBy: { order: 'asc' },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        })
+
+        if (!submit) return null
+
+        return CompetitionSubmitMapper.toDomainCompetitionSubmit(submit)
     }
 
     async findStudentHistory(

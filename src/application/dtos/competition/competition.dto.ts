@@ -65,6 +65,9 @@ export class CompetitionResponseDto {
     isUpcoming: boolean
     isEnded: boolean
 
+    // Statistics
+    totalSubmissions?: number
+
     // Processed content with presigned URLs
     processedPolicies?: string | null
 

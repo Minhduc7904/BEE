@@ -15,7 +15,7 @@ import { CompetitionAnswerMapper } from '../../mappers/competition/competition-a
 
 @Injectable()
 export class PrismaCompetitionAnswerRepository implements ICompetitionAnswerRepository {
-    constructor(private readonly prisma: PrismaService | any) {}
+    constructor(private readonly prisma: PrismaService | any) { }
 
     async create(data: CreateCompetitionAnswerData, txClient?: any): Promise<CompetitionAnswer> {
         const client = txClient || this.prisma
@@ -411,6 +411,32 @@ export class PrismaCompetitionAnswerRepository implements ICompetitionAnswerRepo
             totalPoints: result._sum.points || 0,
             maxPoints: result._sum.maxPoints || 0,
         }
+    }
+
+    async getCorrectCountsByCompetition(
+        competitionId: number,
+        txClient?: any,
+    ): Promise<{ questionId: number; correctCount: number }[]> {
+        const client = txClient || this.prisma
+
+        const grouped = await client.competitionAnswer.groupBy({
+            by: ['questionId'],
+            where: {
+                isCorrect: true,
+                competitionSubmit: {
+                    competitionId,
+                    status: 'SUBMITTED',
+                },
+            },
+            _count: {
+                questionId: true,
+            },
+        })
+
+        return grouped.map((row: any) => ({
+            questionId: row.questionId,
+            correctCount: row._count.questionId,
+        }))
     }
 
     private buildWhereClause(filters?: CompetitionAnswerFilterOptions): any {

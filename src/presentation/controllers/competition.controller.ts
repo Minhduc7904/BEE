@@ -20,6 +20,8 @@ import {
     UpdateCompetitionDto,
     CompetitionListQueryDto,
     StudentOwnRankingResponseDto,
+    CompetitionQuestionStatsDto,
+    CompetitionQuestionStatsResponseDto,
 } from '../../application/dtos/competition'
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
@@ -34,6 +36,7 @@ import {
     DeleteCompetitionUseCase,
     SearchCompetitionsUseCase,
     GetCompetitionRankingUseCase,
+    GetCompetitionQuestionStatsUseCase,
 } from '../../application/use-cases/competition'
 import { Visibility } from 'src/shared/enums'
 @Injectable()
@@ -47,6 +50,7 @@ export class CompetitionController {
         private readonly deleteCompetitionUseCase: DeleteCompetitionUseCase,
         private readonly searchCompetitionsUseCase: SearchCompetitionsUseCase,
         private readonly getCompetitionRankingUseCase: GetCompetitionRankingUseCase,
+        private readonly getCompetitionQuestionStatsUseCase: GetCompetitionQuestionStatsUseCase,
     ) { }
 
     /**
@@ -147,6 +151,32 @@ export class CompetitionController {
         @CurrentUser('studentId') studentId: number,
     ): Promise<StudentOwnRankingResponseDto> {
         return ExceptionHandler.execute(() => this.getCompetitionRankingUseCase.execute(id, studentId))
+    }
+
+    /**
+     * [Admin] Thống kê đúng/sai theo từng câu hỏi của cuộc thi.
+     *
+     * @route GET /competitions/:id/question-stats
+     * @param id - Competition ID
+     * @returns Danh sách câu hỏi kèm số lần đúng / sai+bỏ trống
+     *
+     * @example
+     * GET /competitions/123/question-stats
+     *
+     * @description
+     * Chỉ tính trên các bài nộp có status = GRADED.
+     * - correctCount  = số bài GRADED có isCorrect = true cho câu đó.
+     * - wrongCount    = totalGradedSubmissions - correctCount
+     *   (bao gồm cả trả lời sai lẫn bỏ trống).
+     * - correctRate / wrongRate tính theo % làm tròn.
+     */
+    @Get(':id/question-stats')
+    @RequirePermission(PERMISSION_CODES.COMPETITION.GET_BY_ID)
+    @HttpCode(HttpStatus.OK)
+    async getCompetitionQuestionStats(
+        @Param('id', ParseIntPipe) id: number,
+    ): Promise<BaseResponseDto<CompetitionQuestionStatsDto>> {
+        return ExceptionHandler.execute(() => this.getCompetitionQuestionStatsUseCase.execute(id))
     }
 
     /**

@@ -102,12 +102,17 @@ export interface ICompetitionSubmitRepository {
         txClient?: any,
     ): Promise<CompetitionSubmit | null>
 
+    // Admin detail — includes question + statements inside each answer
+    findByIdWithFullDetails(id: number, txClient?: any): Promise<CompetitionSubmit | null>
+
     // Grade method
     grade(id: number, data: GradeCompetitionSubmitData, txClient?: any): Promise<CompetitionSubmit>
 
     // Count methods
     count(filters?: CompetitionSubmitFilterOptions, txClient?: any): Promise<number>
     countByCompetition(competitionId: number, txClient?: any): Promise<number>
+    /** Đếm số lượt làm bài theo nhiều competitionId cùng lúc. */
+    countByCompetitions(competitionIds: number[], txClient?: any): Promise<Map<number, number>>
     countByStudent(studentId: number, txClient?: any): Promise<number>
     countByStatus(status: CompetitionSubmitStatus, competitionId?: number, txClient?: any): Promise<number>
     countGradedSubmits(competitionId?: number, txClient?: any): Promise<number>

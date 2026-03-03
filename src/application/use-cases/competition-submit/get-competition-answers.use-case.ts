@@ -100,8 +100,6 @@ export class GetCompetitionAnswersUseCase {
         // 6. Tìm những câu hỏi chưa có answer → tạo hàng loạt vào DB
         const missingQuestions = allQuestions.filter(q => !answerMap.has(q.questionId))
 
-
-
         if (missingQuestions.length > 0) {
             const newAnswers = await this.competitionAnswerRepository.createMany(
                 missingQuestions.map(q => {

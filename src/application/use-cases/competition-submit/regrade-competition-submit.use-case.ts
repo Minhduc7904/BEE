@@ -1,11 +1,10 @@
-// src/application/use-cases/competition-submit/finish-competition-submit.use-case.ts
+// src/application/use-cases/competition-submit/regrade-competition-submit.use-case.ts
 import { Inject, Injectable } from '@nestjs/common'
 import type { ICompetitionRepository, IExamRepository } from '../../../domain/repositories'
 import type { ICompetitionSubmitRepository } from '../../../domain/repositories/competition-submit.repository'
 import type { ICompetitionAnswerRepository } from '../../../domain/repositories/competition-answer.repository'
-import type { IHomeworkContentRepository } from '../../../domain/repositories/homework-content.repository'
 import type { IHomeworkSubmitRepository } from '../../../domain/repositories/homework-submit.repository'
-import { NotFoundException, ForbiddenException } from '../../../shared/exceptions/custom-exceptions'
+import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 import { QuestionType } from '../../../shared/enums'
 import { CompetitionSubmitStatus } from '../../../shared/enums/competition-submit-status.enum'
@@ -26,14 +25,12 @@ interface QuestionGradeInfo {
     /** Điểm override per-exam từ QuestionExam.points — ưu tiên cao nhất, giống get-competition-answers */
     examPoints: number | null
     pointsOrigin: number | null
-    /** Tất cả statements với isCorrect để chấm điểm */
     statements: { statementId: number; isCorrect: boolean | null }[]
-    /** correctAnswer dùng cho SHORT_ANSWER */
     correctAnswer: string | null
 }
 
 @Injectable()
-export class FinishCompetitionSubmitUseCase {
+export class RegradeCompetitionSubmitUseCase {
     constructor(
         @Inject('ICompetitionSubmitRepository')
         private readonly competitionSubmitRepository: ICompetitionSubmitRepository,
@@ -43,40 +40,21 @@ export class FinishCompetitionSubmitUseCase {
         private readonly competitionRepository: ICompetitionRepository,
         @Inject('IExamRepository')
         private readonly examRepository: IExamRepository,
-        @Inject('IHomeworkContentRepository')
-        private readonly homeworkContentRepository: IHomeworkContentRepository,
         @Inject('IHomeworkSubmitRepository')
         private readonly homeworkSubmitRepository: IHomeworkSubmitRepository,
     ) { }
 
-    async execute(
-        submitId: number,
-        studentId: number,
-        homeworkContentId?: number | string,
-    ): Promise<BaseResponseDto<any>> {
-        // 1. Tìm submit và kiểm tra quyền
+    async execute(submitId: number): Promise<BaseResponseDto<any>> {
+        // 1. Tìm submit — không kiểm tra student hay trạng thái (admin hành động)
         const submit = await this.competitionSubmitRepository.findById(submitId)
         if (!submit) {
             throw new NotFoundException(`Lần làm bài với ID ${submitId} không tồn tại`)
         }
-        if (submit.studentId !== studentId) {
-            throw new ForbiddenException('Bạn không có quyền nộp bài làm này')
-        }
-        if (submit.status !== CompetitionSubmitStatus.IN_PROGRESS) {
-            return {
-                success: false,
-                message: 'Bài thi này đã được nộp hoặc đã kết thúc',
-                data: null as any,
-            }
-        }
 
         // 2. Lấy toàn bộ câu trả lời của lần làm bài này
         const answers = await this.competitionAnswerRepository.findByCompetitionSubmit(submitId)
-        // console.log(`Found ${answers.length} answers for submit ID ${submitId}`)
-        // for (const a of answers) {
-        //     console.log(`Answer ${a.competitionAnswerId}: questionId=${a.questionId}, points=${a.points}, maxPoints=${a.maxPoints}`)
-        // }
-        // 3. Tải đề thi để lấy câu hỏi + statements cho việc chấm điểm
+
+        // 3. Tải cuộc thi và đề thi
         const competition = await this.competitionRepository.findById(submit.competitionId)
         if (!competition) {
             throw new NotFoundException('Cuộc thi không tồn tại')
@@ -135,9 +113,8 @@ export class FinishCompetitionSubmitUseCase {
             }
         }
 
-        // 5. Chấm những câu trả lời chưa được chấm (points === null)
-        //    Bỏ qua ESSAY vì phải chấm thủ công
-        //    Đồng thời kiểm tra và sửa lại maxPoints nếu lệch với logic đề thi
+        // 5. Chấm lại TẤT CẢ câu trả lời (trừ ESSAY)
+        //    Đồng thời kiểm tra và cập nhật lại maxPoints nếu lệch với logic đề thi
         const gradingUpdates: { id: number; data: { isCorrect?: boolean | null; points?: number | null; maxPoints?: number | null } }[] = []
 
         for (const answer of answers) {
@@ -147,14 +124,14 @@ export class FinishCompetitionSubmitUseCase {
             // ESSAY không tự chấm được
             if (qInfo.type === QuestionType.ESSAY) continue
 
-            // Xác định effectiveMaxPoints — logic giống get-competition-answers:
-            // ưu tiên qe.points (examPoints) → pointsOrigin → DEFAULT
+            // Xác định effectiveMaxPoints — giống logic get-competition-answers và finish:
+            // ưu tiên examPoints (qe.points per-exam override) → pointsOrigin → DEFAULT
             const _examPoints = qInfo.examPoints != null && qInfo.examPoints > 0 ? qInfo.examPoints : null
             const _questionOrigin = qInfo.pointsOrigin != null && qInfo.pointsOrigin > 0 ? qInfo.pointsOrigin : null
             const effectiveMaxPoints: number | null =
                 _examPoints ?? _questionOrigin ?? (DEFAULT_QUESTION_POINTS[qInfo.type] ?? null)
 
-            // Kiểm tra maxPoints hiện tại có khớp không
+            // Kiểm tra xem maxPoints hiện tại của answer có khớp không
             const currentMaxPoints = answer.maxPoints != null ? Number(answer.maxPoints) : null
             const maxPointsMismatch = currentMaxPoints !== effectiveMaxPoints
 
@@ -168,11 +145,9 @@ export class FinishCompetitionSubmitUseCase {
                             .filter(([, v]) => v !== null)
                             .map(([k]) => parseInt(k, 10))
                     } catch {
-                        // fallback — treat selectedStatementIds as answered
                         answeredStatementIds = answer.selectedStatementIds ?? []
                     }
                 } else {
-                    // Chưa trả lời → không chấm điểm mệnh đề nào
                     answeredStatementIds = []
                 }
             }
@@ -192,7 +167,7 @@ export class FinishCompetitionSubmitUseCase {
                 answer.isCorrect = grade.isCorrect
             }
             if (maxPointsMismatch) {
-                answer.maxPoints = effectiveMaxPoints  // đồng bộ maxPoints in-memory về giá trị đúng
+                answer.maxPoints = effectiveMaxPoints
             }
 
             // Ghi vào DB nếu có thay đổi (điểm chấm hoặc maxPoints lệch)
@@ -205,7 +180,6 @@ export class FinishCompetitionSubmitUseCase {
                     },
                 })
             }
-            // console.log(`Grading answer ID ${answer.competitionAnswerId}: isCorrect=${grade.isCorrect}, points=${grade.points}, effectiveMaxPoints=${effectiveMaxPoints}, answer=${JSON.stringify(answer.answer)}, selectedStatementIds=${JSON.stringify(answer.selectedStatementIds)}, answeredStatementIds=${JSON.stringify(answeredStatementIds)})`)
         }
 
         // 6. Ghi kết quả chấm vào DB (batch update)
@@ -216,150 +190,52 @@ export class FinishCompetitionSubmitUseCase {
         // 7. Tính tổng điểm và điểm tối đa
         const totalPoints = answers.reduce((sum, a) => sum + Number(a.points ?? 0), 0)
         const maxPoints = answers.reduce((sum, a) => sum + Number(a.maxPoints ?? 0), 0)
-        // 8. Tính thời gian làm bài
         const now = new Date()
-        const timeSpentSeconds = Math.floor((now.getTime() - new Date(submit.startedAt).getTime()) / 1000)
 
-        // 9. Cập nhật submit: SUBMITTED + tổng điểm + thời gian
+        // 8. Cập nhật submit: SUBMITTED + tổng điểm mới
         const updatedSubmit = await this.competitionSubmitRepository.update(submitId, {
             status: CompetitionSubmitStatus.SUBMITTED,
-            submittedAt: now,
             gradedAt: now,
             totalPoints,
             maxPoints,
-            timeSpentSeconds,
         })
 
-        console.log(`Submit ID ${submitId} updated: totalPoints=${totalPoints}, maxPoints=${maxPoints}, timeSpentSeconds=${timeSpentSeconds}`)
+        // 9. Trả về kết quả
+        const scorePercentage = maxPoints > 0
+            ? Math.round((totalPoints / maxPoints) * 10000) / 100
+            : 0
 
-        // 10. Xử lý HomeworkSubmit nếu có homeworkContentId
-        let homeworkSubmitResult: {
-            action: 'created' | 'updated' | 'skipped'
-            reason?: string
-            homeworkSubmitId?: number
-            points?: number
-        } | null = null
-
-        if (homeworkContentId) {
-            const parsedHomeworkContentId = Number(homeworkContentId)
-            const homeworkContent = await this.homeworkContentRepository.findById(parsedHomeworkContentId)
-            if (!homeworkContent) {
-                throw new NotFoundException(`HomeworkContent với ID ${parsedHomeworkContentId} không tồn tại`)
-            }
-
-            const now2 = new Date()
-            const isPastDue = homeworkContent.isOverdue(now2)
-            const existingSubmit = await this.homeworkSubmitRepository.findByHomeworkAndStudent(
-                parsedHomeworkContentId,
-                studentId,
-            )
-            // console.log('Existing homework submit:', existingSubmit)
-
-            const newPoints = totalPoints
-            const shouldUpdatePoints = (existingPoints: number | null | undefined): boolean => {
-                // updateMaxPoints = true  → chỉ cập nhật khi điểm mới CAO HƠN (giữ điểm cao nhất)
-                // updateMaxPoints = false → luôn cập nhật bằng điểm mới nhất
-                if (homeworkContent.updateMaxPoints) {
-                    return newPoints > (existingPoints ?? 0)
-                }
-                return true
-            }
-
-
-            if (!existingSubmit) {
-                // Chưa có submit → tạo mới nếu được phép
-                if (isPastDue && !homeworkContent.allowLateSubmit) {
-                    homeworkSubmitResult = {
-                        action: 'skipped',
-                        reason: 'Đã quá hạn nộp bài và không cho phép nộp muộn',
-                    }
-                } else {
-                    const created = await this.homeworkSubmitRepository.create({
-                        homeworkContentId: parsedHomeworkContentId,
-                        studentId,
-                        content: `Nộp bài qua cuộc thi #${competition.competitionId} (submit #${submitId})`,
-                        competitionSubmitId: submitId,
-                    })
-                    // Cập nhật điểm ngay sau khi tạo
-                    const updated = await this.homeworkSubmitRepository.update(created.homeworkSubmitId, {
-                        points: newPoints,
-                    })
-                    console.log('Created new homework submit:', newPoints, updated)
-                    homeworkSubmitResult = {
-                        action: 'created',
-                        homeworkSubmitId: updated.homeworkSubmitId,
-                        points: newPoints,
-                    }
-                }
-            } else {
-                // Đã có submit → kiểm tra có được cập nhật điểm không
-                let canUpdate = false
-                let skipReason = ''
-
-                if (isPastDue) {
-                    if (homeworkContent.allowLateSubmit && homeworkContent.updatePointsOnLateSubmit) {
-                        canUpdate = true
-                    } else {
-                        skipReason = 'Đã quá hạn, không đủ điều kiện cập nhật điểm (allowLateSubmit hoặc updatePointsOnLateSubmit = false)'
-                    }
-                } else {
-                    if (homeworkContent.updatePointsOnReSubmit) {
-                        canUpdate = true
-                    } else {
-                        skipReason = 'Không cho phép cập nhật điểm khi nộp lại'
-                    }
-                }
-
-                if (canUpdate && shouldUpdatePoints(existingSubmit.points)) {
-                    await this.homeworkSubmitRepository.update(existingSubmit.homeworkSubmitId, {
-                        points: newPoints,
-                        competitionSubmitId: submitId,
-                    })
-                    homeworkSubmitResult = {
-                        action: 'updated',
-                        homeworkSubmitId: existingSubmit.homeworkSubmitId,
-                        points: newPoints,
-                    }
-                } else {
-                    homeworkSubmitResult = {
-                        action: 'skipped',
-                        reason: !canUpdate
-                            ? skipReason
-                            : `Điểm mới (${newPoints}) không cao hơn điểm hiện tại (${existingSubmit.points ?? 0}) và updateMaxPoints = true`,
-                    }
-                }
+        // 10. Cập nhật điểm HomeworkSubmit liên kết (nếu có)
+        let homeworkSubmitUpdated: { homeworkSubmitId: number; points: number } | null = null
+        const linkedHomeworkSubmit = await this.homeworkSubmitRepository.findByCompetitionSubmitId(submitId)
+        if (linkedHomeworkSubmit) {
+            await this.homeworkSubmitRepository.update(linkedHomeworkSubmit.homeworkSubmitId, {
+                points: totalPoints,
+            })
+            homeworkSubmitUpdated = {
+                homeworkSubmitId: linkedHomeworkSubmit.homeworkSubmitId,
+                points: totalPoints,
             }
         }
 
-        // 11. Trả về kết quả
-        const allowViewScore = competition.allowViewScore
-
-        const scorePercentage = maxPoints > 0
-            ? Math.round((totalPoints / maxPoints) * 10000) / 100  // round 2 decimal
-            : 0
-
-        const allowViewSolutionYoutubeUrl = competition.allowViewSolutionYoutubeUrl
-
-        return BaseResponseDto.success('Nộp bài thành công', {
+        return BaseResponseDto.success('Chấm điểm lại thành công', {
             competitionSubmitId: submitId,
             competitionId: submit.competitionId,
+            studentId: submit.studentId,
             attemptNumber: submit.attemptNumber,
             status: updatedSubmit.status,
-            startedAt: submit.startedAt,
-            submittedAt: updatedSubmit.submittedAt,
-            timeSpentSeconds,
-            allowViewScore,
-            totalPoints: allowViewScore ? totalPoints : null,
-            maxPoints: allowViewScore ? maxPoints : null,
-            scorePercentage: allowViewScore ? scorePercentage : null,
-            solutionYoutubeUrl: allowViewSolutionYoutubeUrl ? (exam.solutionYoutubeUrl ?? null) : null,
-            answersGradedOnFinish: gradingUpdates.length,
-            homeworkSubmit: homeworkSubmitResult,
+            gradedAt: updatedSubmit.gradedAt,
+            totalPoints,
+            maxPoints,
+            scorePercentage,
+            answersRegraded: gradingUpdates.length,
+            totalAnswers: answers.length,
+            homeworkSubmitUpdated,
         })
     }
 
     /**
-     * Chấm điểm cho một câu trả lời — logic giống submit-competition-answer.use-case.ts
+     * Chấm điểm cho một câu trả lời — logic giống finish-competition-submit.use-case.ts
      */
     private gradeAnswer(
         type: QuestionType,
@@ -367,8 +243,6 @@ export class FinishCompetitionSubmitUseCase {
         textAnswer: string | undefined,
         question: QuestionGradeInfo,
         effectiveMaxPoints: number | null,
-        /** IDs đã có câu trả lời (không null) — chỉ dùng cho TRUE_FALSE;
-         *  null = grade tất cả statements */
         answeredStatementIds: number[] | null = null,
     ): GradeResult {
         const pts = (correct: boolean): number | null =>
@@ -405,7 +279,7 @@ export class FinishCompetitionSubmitUseCase {
             }
 
             // ─────────────────────────────────────────────────────────────────
-            // Đúng/Sai — chấm theo phần (partial scoring), bỏ qua mệnh đề null
+            // Đúng/Sai — chấm theo phần (partial scoring)
             // ─────────────────────────────────────────────────────────────────
             case QuestionType.TRUE_FALSE: {
                 const statements = question.statements
@@ -434,7 +308,7 @@ export class FinishCompetitionSubmitUseCase {
             }
 
             // ─────────────────────────────────────────────────────────────────
-            // Trả lời ngắn — chỉ chấp nhận số
+            // Trả lời ngắn
             // ─────────────────────────────────────────────────────────────────
             case QuestionType.SHORT_ANSWER: {
                 if (!question.correctAnswer) return { isCorrect: null, points: null }
@@ -451,7 +325,7 @@ export class FinishCompetitionSubmitUseCase {
             }
 
             // ─────────────────────────────────────────────────────────────────
-            // Tự luận và các loại khác — chấm thủ công
+            // Tự luận và các loại khác
             // ─────────────────────────────────────────────────────────────────
             case QuestionType.ESSAY:
             default:

@@ -1,6 +1,7 @@
 // src/application/use-cases/competition/get-competition-by-id.use-case.ts
 import { Inject, Injectable } from '@nestjs/common'
 import type { ICompetitionRepository } from '../../../domain/repositories'
+import type { ICompetitionSubmitRepository } from '../../../domain/repositories/competition-submit.repository'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 import { CompetitionResponseDto } from '../../dtos/competition/competition.dto'
 import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
@@ -12,6 +13,8 @@ export class GetCompetitionByIdUseCase {
   constructor(
     @Inject('ICompetitionRepository')
     private readonly competitionRepository: ICompetitionRepository,
+    @Inject('ICompetitionSubmitRepository')
+    private readonly competitionSubmitRepository: ICompetitionSubmitRepository,
     private readonly processContentUseCase: ProcessContentWithPresignedUrlsUseCase,
   ) {}
 
@@ -23,6 +26,9 @@ export class GetCompetitionByIdUseCase {
     }
 
     const response = CompetitionResponseDto.fromEntity(competition)
+
+    // Đếm tổng số lượt làm bài
+    response.totalSubmissions = await this.competitionSubmitRepository.countByCompetition(competition.competitionId)
 
     // Process policies with presigned URLs if it exists
     if (response.policies) {

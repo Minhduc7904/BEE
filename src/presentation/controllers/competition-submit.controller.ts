@@ -2,6 +2,7 @@
 import {
     Controller,
     Get,
+    Post,
     Delete,
     Query,
     Param,
@@ -19,11 +20,15 @@ import {
     GetAllCompetitionSubmitsUseCase,
     GetCompetitionSubmitByIdUseCase,
     DeleteCompetitionSubmitUseCase,
+    GetAdminCompetitionSubmitDetailUseCase,
+    RegradeCompetitionSubmitUseCase,
 } from '../../application/use-cases/competition-submit'
 import {
     CompetitionSubmitListQueryDto,
     CompetitionSubmitResponseDto,
     CompetitionSubmitListResponseDto,
+    AdminCompetitionSubmitDetailDto,
+    AdminCompetitionSubmitDetailResponseDto,
 } from '../../application/dtos/competition-submit'
 
 /**
@@ -50,6 +55,8 @@ export class CompetitionSubmitController {
         private readonly getAllCompetitionSubmitsUseCase: GetAllCompetitionSubmitsUseCase,
         private readonly getCompetitionSubmitByIdUseCase: GetCompetitionSubmitByIdUseCase,
         private readonly deleteCompetitionSubmitUseCase: DeleteCompetitionSubmitUseCase,
+        private readonly getAdminCompetitionSubmitDetailUseCase: GetAdminCompetitionSubmitDetailUseCase,
+        private readonly regradeCompetitionSubmitUseCase: RegradeCompetitionSubmitUseCase,
     ) { }
 
     /**
@@ -110,6 +117,60 @@ export class CompetitionSubmitController {
         @Param('id', ParseIntPipe) id: number,
     ): Promise<BaseResponseDto<CompetitionSubmitResponseDto>> {
         return ExceptionHandler.execute(() => this.getCompetitionSubmitByIdUseCase.execute(id))
+    }
+
+    /**
+     * [Admin] Lấy chi tiết đầy đủ bài nộp cuộc thi.
+     *
+     * @route GET /competition-submits/:id/detail
+     *
+     * ─── ĐẦU VÀO ─────────────────────────────────────────────────────────────
+     * @param id  ID của bài nộp (CompetitionSubmit.competitionSubmitId)
+     *
+     * ─── ĐẦU RA ─────────────────────────────────────────────────────────────
+     * @returns AdminCompetitionSubmitDetailResponseDto
+     *   - Thông tin bài nộp (status, điểm, thời gian…)
+     *   - student: thông tin học sinh
+     *   - competition: thông tin cuộc thi
+     *   - answers[]: danh sách câu trả lời, mỗi câu kèm:
+     *       + question: nội dung câu hỏi, đáp án đúng, lời giải
+     *       + question.statements[]: tất cả mệnh đề có isCorrect
+     *       + isCorrect, points: kết quả chấm điểm
+     *   - totalAnswers, correctAnswers, incorrectAnswers, unansweredQuestions
+     */
+    @Get(':id/detail')
+    @RequirePermission(PERMISSION_CODES.COMPETITION_SUBMIT.GET_BY_ID)
+    @HttpCode(HttpStatus.OK)
+    async getAdminCompetitionSubmitDetail(
+        @Param('id', ParseIntPipe) id: number,
+    ): Promise<BaseResponseDto<AdminCompetitionSubmitDetailDto>> {
+        return ExceptionHandler.execute(() => this.getAdminCompetitionSubmitDetailUseCase.execute(id))
+    }
+
+    /**
+     * [Admin] Chấm điểm lại bài nộp cuộc thi.
+     *
+     * @route POST /competition-submits/:id/regrade
+     *
+     * ─── ĐẦU VÀO ─────────────────────────────────────────────────────────────
+     * @param id  ID của bài nộp cần chấm lại (CompetitionSubmit.competitionSubmitId)
+     *
+     * ─── ĐẦU RA ─────────────────────────────────────────────────────────────
+     * @returns BaseResponseDto<any>
+     *   - competitionSubmitId, competitionId, studentId, attemptNumber
+     *   - status: GRADED
+     *   - gradedAt: thời điểm chấm lại
+     *   - totalPoints, maxPoints, scorePercentage: điểm sau khi chấm lại
+     *   - answersRegraded: số câu được chấm lại
+     *   - totalAnswers: tổng số câu trả lời
+     */
+    @Post(':id/regrade')
+    @RequirePermission(PERMISSION_CODES.COMPETITION_SUBMIT.REGRADE)
+    @HttpCode(HttpStatus.OK)
+    async regradeCompetitionSubmit(
+        @Param('id', ParseIntPipe) id: number,
+    ): Promise<BaseResponseDto<any>> {
+        return ExceptionHandler.execute(() => this.regradeCompetitionSubmitUseCase.execute(id))
     }
 
     /**
