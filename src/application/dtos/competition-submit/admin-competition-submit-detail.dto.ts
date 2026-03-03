@@ -10,6 +10,7 @@ import { CompetitionResponseDto } from '../competition/competition.dto'
 export class AdminStatementDetailDto {
     statementId: number
     content: string
+    processedContent?: string | null
     isCorrect: boolean
     order?: number | null
     difficulty?: Difficulty | null
@@ -22,9 +23,11 @@ export class AdminStatementDetailDto {
 export class AdminQuestionDetailDto {
     questionId: number
     content: string
+    processedContent?: string | null
     type: QuestionType
     correctAnswer?: string | null
     solution?: string | null
+    processedSolution?: string | null
     solutionYoutubeUrl?: string | null
     difficulty?: Difficulty | null
     grade?: number | null
