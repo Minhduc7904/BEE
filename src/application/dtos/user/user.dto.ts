@@ -127,4 +127,12 @@ export class UpdateUserDto {
    */
   @IsOptionalBoolean('Trạng thái xác thực email')
   isEmailVerified?: boolean
+
+  /**
+   * Mật khẩu mới (chỉ admin mới được phép đặt trực tiếp)
+   * @optional
+   * @example "NewPassword123"
+   */
+  @IsOptionalString('Mật khẩu', 100, 6)
+  password?: string
 }

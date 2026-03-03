@@ -1,18 +1,22 @@
 // src/application/use-cases/student/update-student.use-case.ts
 import { Injectable, Inject } from '@nestjs/common'
 import type { IUnitOfWork } from '../../../domain/repositories/unit-of-work.repository'
+import { UpdateUserData } from '../../../domain/repositories/user.repository'
 import { StudentResponseDto, UpdateStudentDto } from '../../dtos/student/student.dto'
-import { UpdateUserDto } from '../../dtos/user/user.dto'
 import {
   NotFoundException,
   ConflictException,
   BusinessLogicException,
 } from '../../../shared/exceptions/custom-exceptions'
 import { BaseResponseDto } from 'src/application/dtos'
+import { PasswordService } from '../../../infrastructure/services'
 
 @Injectable()
 export class UpdateStudentUseCase {
-  constructor(@Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork) { }
+  constructor(
+    @Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork,
+    @Inject('PASSWORD_SERVICE') private readonly passwordService: PasswordService,
+  ) { }
 
   async execute(studentId: number, dto: UpdateStudentDto): Promise<BaseResponseDto<StudentResponseDto>> {
     const result = await this.unitOfWork.executeInTransaction(async (repos) => {
@@ -30,7 +34,7 @@ export class UpdateStudentUseCase {
       await this.validateUniqueConstraints(repos, student.user.userId, dto)
 
       // 3. Tách data cho User và Student
-      const userUpdateData: UpdateUserDto = {}
+      const userUpdateData: UpdateUserData = {}
       const studentUpdateData: Partial<UpdateStudentDto> = {}
 
       // Tách các trường của User
@@ -40,6 +44,11 @@ export class UpdateStudentUseCase {
       if (dto.lastName !== undefined) userUpdateData.lastName = dto.lastName
       if (dto.gender !== undefined) userUpdateData.gender = dto.gender       // 👈 NEW
       if (dto.dateOfBirth !== undefined) userUpdateData.dateOfBirth = dto.dateOfBirth // 👈 NEW
+
+      // Đặt password trực tiếp (chỉ admin mới gửi trường này)
+      if (dto.password !== undefined) {
+        userUpdateData.passwordHash = await this.passwordService.hashPassword(dto.password)
+      }
 
       // Tách các trường của Student
       if (dto.studentPhone !== undefined) studentUpdateData.studentPhone = dto.studentPhone
