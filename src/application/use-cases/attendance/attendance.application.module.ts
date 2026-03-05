@@ -13,6 +13,7 @@ const ATTENDANCE_USE_CASES = [
   attendanceUseCases.GetAllAttendanceUseCase,
   attendanceUseCases.GetAttendanceStatisticsBySessionUseCase,
   attendanceUseCases.UpdateAttendanceUseCase,
+  attendanceUseCases.ToggleParentNotifiedUseCase,
 ]
 
 @Module({

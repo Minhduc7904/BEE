@@ -47,6 +47,9 @@ export interface StudentFilterOptions extends BaseFilterOptions {
 
   fromDate?: string
   toDate?: string
+
+  // Filter by class membership
+  classIds?: number[]
 }
 
 export interface StudentStatusStats {

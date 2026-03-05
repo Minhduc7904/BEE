@@ -434,6 +434,12 @@ export class PrismaStudentRepository implements IStudentRepository {
       params.push(toDate)
     }
 
+    if (filters.classIds && filters.classIds.length > 0) {
+      const placeholders = filters.classIds.map(() => '?').join(', ')
+      conditions.push(`s.student_id IN (SELECT cs.student_id FROM classes_students cs WHERE cs.class_id IN (${placeholders}))`)
+      params.push(...filters.classIds)
+    }
+
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
 
     // Build ORDER BY clause
@@ -648,6 +654,15 @@ export class PrismaStudentRepository implements IStudentRepository {
     // ===== attach user =====
     if (Object.keys(userFilters).length > 0) {
       where.user = userFilters
+    }
+
+    // ===== class filter =====
+    if (filters.classIds && filters.classIds.length > 0) {
+      where.classStudents = {
+        some: {
+          classId: { in: filters.classIds },
+        },
+      }
     }
 
     return where

@@ -6,12 +6,14 @@ export interface CreateAttendanceData {
     status: AttendanceStatus
     notes?: string
     markerId?: number
+    parentNotified?: boolean
 }
 
 export interface UpdateAttendanceData {
     status?: AttendanceStatus
     notes?: string
     markerId?: number
+    parentNotified?: boolean
 }
 
 export interface AttendanceFilterOptions {

@@ -1125,10 +1125,11 @@ model Attendance {
   sessionId    Int              @map("session_id")
   studentId    Int              @map("student_id")
   status       AttendanceStatus @map("status") // present, absent, late
-  markedAt     DateTime         @map("marked_at") @db.Timestamp(0)
-  notes        String?          @map("notes") @db.Text
-  updatedAt    DateTime         @updatedAt @map("updated_at") @db.Timestamp(0)
-  markerId     Int?             @map("marker") // admin/teacher who marked attendance
+  markedAt        DateTime         @map("marked_at") @db.Timestamp(0)
+  notes           String?          @map("notes") @db.Text
+  updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamp(0)
+  markerId        Int?             @map("marker") // admin/teacher who marked attendance
+  parentNotified  Boolean          @default(false) @map("parent_notified") // đã gửi phiếu cho phụ huynh hay chưa
   // Relations
   classSession ClassSession     @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
   student      Student          @relation(fields: [studentId], references: [studentId], onDelete: Cascade)

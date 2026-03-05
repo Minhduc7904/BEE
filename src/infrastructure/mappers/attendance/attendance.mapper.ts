@@ -25,6 +25,7 @@ export class AttendanceMapper {
             updatedAt: prismaAttendance.updatedAt ?? undefined,
             notes: prismaAttendance.notes ?? null,
             markerId: prismaAttendance.markerId ?? null,
+            parentNotified: prismaAttendance.parentNotified ?? false,
             classSession: prismaAttendance.classSession
                 ? ClassSessionMapper.toDomainClassSession(prismaAttendance.classSession)
                 : undefined,

@@ -39,6 +39,7 @@ import {
   GetAttendanceStatisticsBySessionUseCase,
   ExportAttendanceBySessionUseCase,
   ExportAttendanceImageUseCase,
+  ToggleParentNotifiedUseCase,
 } from '../../application/use-cases/attendance'
 import { Injectable } from '@nestjs/common'
 
@@ -55,6 +56,7 @@ export class AttendanceController {
     private readonly getAttendanceStatisticsBySessionUseCase: GetAttendanceStatisticsBySessionUseCase,
     private readonly exportAttendanceBySessionUseCase: ExportAttendanceBySessionUseCase,
     private readonly exportAttendanceImageUseCase: ExportAttendanceImageUseCase,
+    private readonly toggleParentNotifiedUseCase: ToggleParentNotifiedUseCase,
   ) { }
 
   /**
@@ -188,6 +190,21 @@ export class AttendanceController {
     @CurrentUser('adminId') adminId?: number,
   ): Promise<BaseResponseDto<{ deleted: boolean }>> {
     return ExceptionHandler.execute(() => this.deleteAttendanceUseCase.execute(id, adminId))
+  }
+
+  /**
+   * Toggle parentNotified cho attendance
+   * PATCH /attendances/:id/toggle-parent-notified
+   * Toggle trạng thái đã gửi phiếu cho phụ huynh (true <-> false)
+   */
+  @Put(':id/toggle-parent-notified')
+  @RequirePermission(PERMISSION_CODES.ATTENDANCE.UPDATE)
+  @HttpCode(HttpStatus.OK)
+  async toggleParentNotified(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('adminId') adminId?: number,
+  ): Promise<BaseResponseDto<AttendanceResponseDto>> {
+    return ExceptionHandler.execute(() => this.toggleParentNotifiedUseCase.execute(id, adminId))
   }
 
   /**

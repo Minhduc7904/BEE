@@ -17,6 +17,7 @@ export class AttendanceResponseDto {
     updatedAt?: Date
     markerId?: number | null
     markerName?: string
+    parentNotified: boolean
     student?: StudentResponseDto | null
     classSession?: ClassSessionResponseDto | null
     tuitionPayment?: TuitionPaymentResponseDto | null
@@ -33,6 +34,7 @@ export class AttendanceResponseDto {
         this.updatedAt = attendance.updatedAt
         this.markerId = attendance.markerId
         this.markerName = attendance.getMarkerName()
+        this.parentNotified = attendance.parentNotified
         if (attendance.classSession) {
             this.classSession = ClassSessionResponseDto.fromEntity(attendance.classSession)
         }

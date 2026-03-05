@@ -5,6 +5,8 @@ import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { ToNumber } from 'src/shared/decorators'
 import { IsOptionalBoolean, IsOptionalInt } from 'src/shared/decorators/validate'
 import { SortOrder } from 'src/shared/enums/sort-order.enum'
+import { Transform } from 'class-transformer'
+import { IsArray, IsInt, IsOptional } from 'class-validator'
 /**
  * DTO truy vấn danh sách học sinh
  * @description Chứa các tham số lọc và phân trang cho danh sách học sinh
@@ -29,6 +31,22 @@ export class StudentListQueryDto extends ListQueryDto {
   isActive?: boolean
 
   /**
+   * Danh sách ID lớp học cần lọc
+   * @optional
+   * @example [1, 2, 3]
+   */
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === undefined || value === null || value === '') return undefined
+    const arr = Array.isArray(value) ? value : String(value).split(',')
+    const parsed = arr.map((v: string) => parseInt(String(v).trim(), 10)).filter((n: number) => !isNaN(n))
+    return parsed.length > 0 ? parsed : undefined
+  })
+  @IsArray({ message: 'classIds phải là mảng' })
+  @IsInt({ each: true, message: 'Mỗi classId phải là số nguyên' })
+  classIds?: number[]
+
+  /**
    * Chuyển đổi DTO thành filter options cho repository
    */
   toStudentFilterOptions() {
@@ -38,6 +56,7 @@ export class StudentListQueryDto extends ListQueryDto {
       search: this.search, // Sử dụng flat property từ ListQueryDto
       fromDate: this.fromDate, // Sử dụng flat property từ ListQueryDto
       toDate: this.toDate, // Sử dụng flat property từ ListQueryDto
+      classIds: this.classIds,
     }
   }
 

@@ -25,6 +25,7 @@ export class PrismaAttendanceRepository implements IAttendanceRepository {
         notes: data.notes,
         markerId: data.markerId,
         markedAt: new Date(),
+        parentNotified: data.parentNotified ?? false,
       },
       include: {
         classSession: {
@@ -383,6 +384,7 @@ export class PrismaAttendanceRepository implements IAttendanceRepository {
         notes: item.notes,
         markerId: item.markerId,
         markedAt: new Date(),
+        parentNotified: item.parentNotified ?? false,
       })),
       skipDuplicates: true,
     })

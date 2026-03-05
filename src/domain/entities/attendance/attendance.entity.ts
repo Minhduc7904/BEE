@@ -18,6 +18,7 @@ export class Attendance {
     // Optional properties
     notes?: string | null
     markerId?: number | null
+    parentNotified: boolean
 
     // Navigation properties
     classSession?: ClassSession
@@ -34,6 +35,7 @@ export class Attendance {
         updatedAt?: Date
         notes?: string | null
         markerId?: number | null
+        parentNotified?: boolean
         classSession?: ClassSession
         student?: Student
         marker?: Admin | null
@@ -48,6 +50,7 @@ export class Attendance {
 
         this.notes = data.notes
         this.markerId = data.markerId
+        this.parentNotified = data.parentNotified ?? false
         this.classSession = data.classSession
         this.student = data.student
         this.marker = data.marker
