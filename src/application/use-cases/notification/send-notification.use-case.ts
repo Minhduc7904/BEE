@@ -8,14 +8,16 @@ import { ACTION_KEYS } from '../../../shared/constants/action-key.constants'
 import { AuditStatus } from '../../../shared/enums/audit-status.enum'
 import { RESOURCE_TYPES } from '../../../shared/constants/resource-type.constants'
 import { NotificationLevel, NotificationType } from 'src/shared/enums'
-import { NotificationRealtimeService } from 'src/infrastructure/services/notification/notification-realtime.service'
+import { CreateAndNotifyOneUseCase } from './create-and-notify-one.use-case'
+import { CreateAndNotifyManyUseCase } from './create-and-notify-many.use-case'
 
 @Injectable()
 export class SendNotificationUseCase {
     constructor(
         @Inject('UNIT_OF_WORK')
         private readonly unitOfWork: IUnitOfWork,
-        private readonly notificationRealtimeService: NotificationRealtimeService,
+        private readonly createAndNotifyOne: CreateAndNotifyOneUseCase,
+        private readonly createAndNotifyMany: CreateAndNotifyManyUseCase,
     ) { }
 
     async execute(
@@ -101,7 +103,7 @@ export class SendNotificationUseCase {
                     )
                 }
 
-                // Tạo notification cho tất cả user mục tiêu
+                // Tạo notification + gửi realtime cho tất cả user mục tiêu
                 const notificationDataList = targetUserIds.map((userId) => ({
                     userId,
                     title: dto.title,
@@ -111,23 +113,7 @@ export class SendNotificationUseCase {
                     data: dto.data,
                 }))
 
-                const createdNotifications =
-                    await notificationRepository.createMany(notificationDataList)
-
-                // Gửi realtime notification cho từng user
-                for (let i = 0; i < targetUserIds.length; i++) {
-                    const userId = targetUserIds[i]
-                    const notification = createdNotifications[i]
-
-                    this.notificationRealtimeService.notifyUser(userId, notification)
-
-                    const stats = await notificationRepository.getStatsByUserId(userId)
-                    this.notificationRealtimeService.notifyStatsUpdated(userId, {
-                        total: stats.total,
-                        unread: stats.unread,
-                        read: stats.read,
-                    })
-                }
+                await this.createAndNotifyMany.execute(notificationDataList)
 
                 // Ghi log gửi thành công
                 if (adminId) {
@@ -148,22 +134,12 @@ export class SendNotificationUseCase {
                     const reportTitle = 'Báo cáo gửi thông báo'
                     const reportMessage = `Đã gửi thành công ${targetUserIds.length} thông báo đến ${targetingMethod}.`
 
-                    const reportNotification = await notificationRepository.create({
+                    await this.createAndNotifyOne.execute({
                         userId: adminId,
                         title: reportTitle,
                         message: reportMessage,
                         type: NotificationType.SYSTEM,
                         level: NotificationLevel.INFO,
-                    })
-
-                    this.notificationRealtimeService.notifyUser(adminId, reportNotification)
-
-                    const adminStats =
-                        await notificationRepository.getStatsByUserId(adminId)
-                    this.notificationRealtimeService.notifyStatsUpdated(adminId, {
-                        total: adminStats.total,
-                        unread: adminStats.unread,
-                        read: adminStats.read,
                     })
                 }
 

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 
 import * as tuitionPaymentUseCase from './'
 import { InfrastructureModule } from 'src/infrastructure/infrastructure.module'
+import { NotificationApplicationModule } from '../notification/notification.application.module'
 
 const TUITION_PAYMENT_USE_CASES = [
   tuitionPaymentUseCase.CreateTuitionPaymentUseCase,
@@ -28,6 +29,7 @@ const TUITION_PAYMENT_USE_CASES = [
 @Module({
   imports: [
     InfrastructureModule, // 🔥 BẮT BUỘC
+    NotificationApplicationModule, // 🔔 For tuition payment notifications
   ],
   providers: TUITION_PAYMENT_USE_CASES,
   exports: TUITION_PAYMENT_USE_CASES,

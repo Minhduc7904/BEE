@@ -5,12 +5,15 @@ import { NotFoundException } from 'src/shared/exceptions/custom-exceptions'
 import { ACTION_KEYS } from 'src/shared/constants/action-key.constants'
 import { AuditStatus } from 'src/shared/enums/audit-status.enum'
 import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
+import { CreateAndNotifyOneUseCase } from '../notification/create-and-notify-one.use-case'
+import { NotificationType, NotificationLevel } from 'src/shared/enums'
 
 @Injectable()
 export class DeleteAttendanceUseCase {
   constructor(
     @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
+    private readonly createAndNotifyOne: CreateAndNotifyOneUseCase,
   ) {}
 
   async execute(
@@ -48,6 +51,19 @@ export class DeleteAttendanceUseCase {
           resourceId: attendanceId.toString(),
           beforeData: existing,
         })
+      }
+
+      // Gửi thông báo cho học sinh
+      const student = await repos.studentRepository.findById(existing.studentId)
+      if (student) {
+        this.createAndNotifyOne.execute({
+          userId: student.userId,
+          title: 'Xóa điểm danh',
+          message: 'Điểm danh của bạn đã bị xóa',
+          type: NotificationType.ATTENDANCE,
+          level: NotificationLevel.WARNING,
+          data: { sessionId: existing.sessionId },
+        }).catch(() => { /* ignore notification error */ })
       }
 
       return { deleted }

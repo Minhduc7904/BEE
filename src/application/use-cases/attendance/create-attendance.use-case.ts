@@ -8,12 +8,15 @@ import { ConflictException } from 'src/shared/exceptions/custom-exceptions'
 import { ACTION_KEYS } from 'src/shared/constants/action-key.constants'
 import { AuditStatus } from 'src/shared/enums/audit-status.enum'
 import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
+import { CreateAndNotifyOneUseCase } from '../notification/create-and-notify-one.use-case'
+import { NotificationType, NotificationLevel, AttendanceStatusLabels } from 'src/shared/enums'
 
 @Injectable()
 export class CreateAttendanceUseCase {
     constructor(
         @Inject('UNIT_OF_WORK')
         private readonly unitOfWork: IUnitOfWork,
+        private readonly createAndNotifyOne: CreateAndNotifyOneUseCase,
     ) { }
 
     async execute(
@@ -69,6 +72,20 @@ export class CreateAttendanceUseCase {
                         status: attendance.status,
                     },
                 })
+            }
+
+            // Gửi thông báo cho học sinh
+            const student = await repos.studentRepository.findById(dto.studentId)
+            if (student) {
+                const statusLabel = AttendanceStatusLabels[attendance.status] || attendance.status
+                this.createAndNotifyOne.execute({
+                    userId: student.userId,
+                    title: 'Điểm danh mới',
+                    message: `Bạn đã được điểm danh với trạng thái: ${statusLabel}`,
+                    type: NotificationType.ATTENDANCE,
+                    level: NotificationLevel.INFO,
+                    data: { attendanceId: attendance.attendanceId, sessionId: attendance.sessionId, status: attendance.status },
+                }).catch(() => { /* ignore notification error */ })
             }
 
             return new AttendanceResponseDto(attendance)

@@ -67,9 +67,9 @@ export class SubmitCompetitionAnswerUseCase {
         if (!question) {
             throw new NotFoundException(`Câu hỏi với ID ${existingAnswer.questionId} không tồn tại`)
         }
-        if (question.correctAnswer) console.log(`Question has correct answer: ${question.correctAnswer}`)
+        // if (question.correctAnswer) console.log(`Question has correct answer: ${question.correctAnswer}`)
         for (const s of question.statements ?? []) {
-            console.log(`Statement ${s.statementId}: isCorrect=${s.isCorrect}`)
+            // console.log(`Statement ${s.statementId}: isCorrect=${s.isCorrect}`)
         }
         // 4. Xác định selectedStatementIds và trueFalseAnswerJson dựa theo question type
         let selectedStatementIds: number[] = existingAnswer.selectedStatementIds ?? []

@@ -181,7 +181,7 @@ export class MigrateTempToFinalExamUseCase {
                     q => !sectionQuestionIds.has(q.tempQuestionId)
                 )
                 if (questionsWithoutSection.length > 0) {
-                    console.log(`Found ${questionsWithoutSection.length} orphan questions (not in any section) in sessionId=${sessionId}`)
+                    // console.log(`Found ${questionsWithoutSection.length} orphan questions (not in any section) in sessionId=${sessionId}`)
                 }
 
                 // Check if already migrated
@@ -243,7 +243,7 @@ export class MigrateTempToFinalExamUseCase {
                 // 4.3.1. Migrate orphan questions (questions without section)
                 // These questions will be linked to Exam with sectionId=null
                 if (questionsWithoutSection.length > 0) {
-                    console.log(`Migrating ${questionsWithoutSection.length} orphan questions without section...`)
+                    // console.log(`Migrating ${questionsWithoutSection.length} orphan questions without section...`)
                     const { questions, statements, chapters } = await this.migrateQuestionsForSection(
                         repos,
                         txClient,

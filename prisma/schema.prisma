@@ -130,6 +130,7 @@ enum NotificationType {
   COURSE
   LESSON
   ATTENDANCE
+  TUITION
   MESSAGE
   OTHER
 }

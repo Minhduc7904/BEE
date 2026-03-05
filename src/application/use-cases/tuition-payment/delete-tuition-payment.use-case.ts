@@ -5,11 +5,15 @@ import { ACTION_KEYS } from "src/shared/constants/action-key.constants";
 import { RESOURCE_TYPES } from "src/shared/constants/resource-type.constants";
 import { AuditStatus } from "src/shared/enums/audit-status.enum";
 import { NotFoundException,  } from "src/shared/exceptions/custom-exceptions";
+import { CreateAndNotifyOneUseCase } from '../notification/create-and-notify-one.use-case'
+import { NotificationType, NotificationLevel } from 'src/shared/enums'
+
 @Injectable()
 export class DeleteTuitionPaymentUseCase {
     constructor(
         @Inject('UNIT_OF_WORK')
         private readonly unitOfWork: IUnitOfWork,
+        private readonly createAndNotifyOne: CreateAndNotifyOneUseCase,
     ) {}
 
     async execute(
@@ -47,6 +51,19 @@ export class DeleteTuitionPaymentUseCase {
                     beforeData: existing,
                 })
             }
+            // Gửi thông báo cho học sinh
+            const student = await repos.studentRepository.findById(existing.studentId)
+            if (student) {
+                this.createAndNotifyOne.execute({
+                    userId: student.userId,
+                    title: 'Xóa học phí',
+                    message: `Học phí tháng ${existing.month}/${existing.year} đã bị xóa`,
+                    type: NotificationType.TUITION,
+                    level: NotificationLevel.WARNING,
+                    data: { month: existing.month, year: existing.year },
+                }).catch(() => { /* ignore notification error */ })
+            }
+
             return { deleted }
         })
 

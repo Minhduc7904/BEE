@@ -4,7 +4,7 @@ import type { IUnitOfWork } from '../../../domain/repositories'
 import { CreateBulkAttendanceBySessionDto } from '../../dtos/attendance/create-bulk-attendance-by-session.dto'
 import { AttendanceResponseDto } from '../../dtos/attendance/attendance.dto'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
-import { AttendanceStatus } from 'src/shared/enums'
+import { AttendanceStatus, NotificationType, NotificationLevel, AttendanceStatusLabels } from 'src/shared/enums'
 import type { CreateAttendanceData } from '../../../domain/interface/attendance/attendance.interface'
 import {
   ValidationException,
@@ -13,12 +13,14 @@ import {
 import { ACTION_KEYS } from '../../../shared/constants/action-key.constants'
 import { AuditStatus } from '../../../shared/enums/audit-status.enum'
 import { RESOURCE_TYPES } from '../../../shared/constants/resource-type.constants'
+import { CreateAndNotifyManyUseCase } from '../notification/create-and-notify-many.use-case'
 
 @Injectable()
 export class CreateBulkAttendanceBySessionUseCase {
   constructor(
     @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
+    private readonly createAndNotifyMany: CreateAndNotifyManyUseCase,
   ) { }
 
   async execute(
@@ -126,6 +128,32 @@ export class CreateBulkAttendanceBySessionUseCase {
               skippedStudentIds: Array.from(existingStudentIds),
             },
           })
+        }
+
+        /**
+         * =========================
+         * Gửi thông báo cho học sinh
+         * =========================
+         */
+        const createdStudentIds = createdAttendances.map((a) => a.studentId)
+        const studentsToNotify = classStudents.filter(
+          (s) => createdStudentIds.includes(s.studentId) && s.student?.userId,
+        )
+
+        if (studentsToNotify.length > 0) {
+          const defaultStatus = dto.status || AttendanceStatus.PRESENT
+          const statusLabel = AttendanceStatusLabels[defaultStatus] || defaultStatus
+
+          const notificationDataList = studentsToNotify.map((cs) => ({
+            userId: cs.student!.userId,
+            title: 'Điểm danh mới',
+            message: `Bạn đã được điểm danh với trạng thái: ${statusLabel}`,
+            type: NotificationType.ATTENDANCE,
+            level: NotificationLevel.INFO,
+            data: { sessionId: dto.sessionId, status: defaultStatus },
+          }))
+
+          this.createAndNotifyMany.execute(notificationDataList).catch(() => { /* ignore notification error */ })
         }
 
         return createdAttendances.map((attendance) =>

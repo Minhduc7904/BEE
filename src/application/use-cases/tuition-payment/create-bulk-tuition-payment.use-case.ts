@@ -3,16 +3,18 @@ import { BaseResponseDto, TuitionPaymentResponseDto } from 'src/application/dtos
 import { CreateBulkTuitionPaymentDto } from 'src/application/dtos/tuition-payment/create-bulk-tuition-payment.dto'
 import type { IUnitOfWork } from 'src/domain/repositories'
 import { ValidationException, NotFoundException } from 'src/shared/exceptions/custom-exceptions'
-import { AuditStatus } from 'src/shared/enums'
+import { AuditStatus, NotificationType, NotificationLevel, TuitionPaymentStatusLabels } from 'src/shared/enums'
 import { RESOURCE_TYPES, ACTION_KEYS } from 'src/shared/constants'
 import { CreateTuitionPaymentData } from 'src/domain/interface'
 import { TuitionPayment } from 'src/domain/entities/tuition-payment/tuition-payment.entity'
+import { CreateAndNotifyManyUseCase } from '../notification/create-and-notify-many.use-case'
 
 @Injectable()
 export class CreateBulkTuitionPaymentUseCase {
   constructor(
     @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
+    private readonly createAndNotifyMany: CreateAndNotifyManyUseCase,
   ) {}
 
   async execute(
@@ -116,6 +118,32 @@ export class CreateBulkTuitionPaymentUseCase {
               existingStudentIds: Array.from(existingStudentIds),
             },
           })
+        }
+
+        // Gửi thông báo cho học sinh
+        if (createdPayments.length > 0) {
+          const createdStudentIds = createdPayments.map((p) => p.studentId)
+          const students: { studentId: number; userId: number }[] = []
+          for (const sid of createdStudentIds) {
+            const student = await studentRepository.findById(sid)
+            if (student) students.push({ studentId: student.studentId, userId: student.userId })
+          }
+
+          if (students.length > 0) {
+            const statusLabel = dto.status ? (TuitionPaymentStatusLabels[dto.status] || dto.status) : 'Chưa nộp'
+            const notificationDataList = students.map((s) => {
+              const payment = createdPayments.find((p) => p.studentId === s.studentId)
+              return {
+                userId: s.userId,
+                title: 'Học phí mới',
+                message: `Học phí tháng ${dto.month}/${dto.year} đã được tạo - Số tiền: ${payment?.amount?.toLocaleString('vi-VN')}đ - Trạng thái: ${statusLabel}`,
+                type: NotificationType.TUITION,
+                level: NotificationLevel.INFO,
+                data: { paymentId: payment?.paymentId, amount: payment?.amount, month: dto.month, year: dto.year, status: dto.status },
+              }
+            })
+            this.createAndNotifyMany.execute(notificationDataList).catch(() => { /* ignore notification error */ })
+          }
         }
 
         return createdPayments.map((p) => TuitionPaymentResponseDto.fromEntity(p))

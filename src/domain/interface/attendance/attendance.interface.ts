@@ -14,6 +14,7 @@ export interface UpdateAttendanceData {
     notes?: string
     markerId?: number
     parentNotified?: boolean
+    markedAt?: Date
 }
 
 export interface AttendanceFilterOptions {

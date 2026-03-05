@@ -3,15 +3,17 @@ import { BaseResponseDto, TuitionPaymentResponseDto } from 'src/application/dtos
 import { CreateTuitionPaymentDto } from 'src/application/dtos/tuition-payment/create-tuition-payment.dto'
 import type { IUnitOfWork } from 'src/domain/repositories'
 import { ConflictException } from 'src/shared/exceptions/custom-exceptions'
-import { AuditStatus } from 'src/shared/enums'
+import { AuditStatus, NotificationType, NotificationLevel, TuitionPaymentStatusLabels } from 'src/shared/enums'
 import { RESOURCE_TYPES, ACTION_KEYS } from 'src/shared/constants'
 import { CreateTuitionPaymentData } from 'src/domain/interface'
+import { CreateAndNotifyOneUseCase } from '../notification/create-and-notify-one.use-case'
 
 @Injectable()
 export class CreateTuitionPaymentUseCase {
   constructor(
     @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
+    private readonly createAndNotifyOne: CreateAndNotifyOneUseCase,
   ) {}
 
   async execute(dto: CreateTuitionPaymentDto, adminId?: number): Promise<BaseResponseDto<TuitionPaymentResponseDto>> {
@@ -58,6 +60,20 @@ export class CreateTuitionPaymentUseCase {
           resourceType: RESOURCE_TYPES.TUITION_PAYMENT,
           resourceId: payment.paymentId.toString(),
         })
+      }
+
+      // Gửi thông báo cho học sinh
+      const student = await repos.studentRepository.findById(dto.studentId)
+      if (student) {
+        const statusLabel = TuitionPaymentStatusLabels[payment.status] || payment.status
+        this.createAndNotifyOne.execute({
+          userId: student.userId,
+          title: 'Học phí mới',
+          message: `Học phí tháng ${payment.month}/${payment.year} đã được tạo - Số tiền: ${payment.amount?.toLocaleString('vi-VN')}đ - Trạng thái: ${statusLabel}`,
+          type: NotificationType.TUITION,
+          level: NotificationLevel.INFO,
+          data: { paymentId: payment.paymentId, amount: payment.amount, month: payment.month, year: payment.year, status: payment.status },
+        }).catch(() => { /* ignore notification error */ })
       }
 
       return new TuitionPaymentResponseDto(payment)

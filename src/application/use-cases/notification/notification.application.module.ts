@@ -13,6 +13,8 @@ const NOTIFICATION_USE_CASES = [
     notification.MarkAllNotificationsReadUseCase,
     notification.MarkNotificationReadUseCase,
     notification.SendNotificationUseCase,
+    notification.CreateAndNotifyOneUseCase,
+    notification.CreateAndNotifyManyUseCase,
 ]
 
 @Module({

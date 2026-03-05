@@ -103,7 +103,7 @@ export class SplitExamFromRawContentUseCase {
                 defaultSubjectId // Truyền exam subjectId làm default cho questions
             )
 
-            console.log('SplitExamFromRawContentUseCase - Saved split result:', saveResult)
+            // console.log('SplitExamFromRawContentUseCase - Saved split result:', saveResult)
 
             const processingTimeMs = Date.now() - startTime
 

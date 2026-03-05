@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common'
 import * as attendanceUseCases from './'
 import { InfrastructureModule } from 'src/infrastructure/infrastructure.module'
+import { NotificationApplicationModule } from '../notification/notification.application.module'
 
 const ATTENDANCE_USE_CASES = [
   attendanceUseCases.CreateAttendanceUseCase,
@@ -19,6 +20,7 @@ const ATTENDANCE_USE_CASES = [
 @Module({
   imports: [
     InfrastructureModule, // 🔥 BẮT BUỘC
+    NotificationApplicationModule, // 🔔 For attendance notifications
   ],
   providers: ATTENDANCE_USE_CASES,
   exports: ATTENDANCE_USE_CASES,

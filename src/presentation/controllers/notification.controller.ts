@@ -43,7 +43,7 @@ export class NotificationController {
      * GET /notifications/my?page=1&limit=20&isRead=false
      */
     @Get('my')
-    @RequirePermission(PERMISSION_CODES.NOTIFICATION.GET_MY)
+    @RequirePermission()
     @HttpCode(HttpStatus.OK)
     async getMyNotifications(
         @Query() query: NotificationListQueryDto,
@@ -63,7 +63,7 @@ export class NotificationController {
      * GET /notifications/my/stats
      */
     @Get('my/stats')
-    @RequirePermission(PERMISSION_CODES.NOTIFICATION.GET_MY)
+    @RequirePermission()
     @HttpCode(HttpStatus.OK)
     async getMyNotificationStats(
         @CurrentUser('userId') userId: number,
@@ -82,7 +82,7 @@ export class NotificationController {
      * PUT /notifications/my/mark-all-read
      */
     @Put('my/mark-all-read')
-    @RequirePermission(PERMISSION_CODES.NOTIFICATION.MARK_READ)
+    @RequirePermission()
     @HttpCode(HttpStatus.OK)
     async markAllNotificationsRead(
         @CurrentUser('userId') userId: number,
@@ -123,7 +123,7 @@ export class NotificationController {
      * PUT /notifications/123/mark-read
      */
     @Put(':id/mark-read')
-    @RequirePermission(PERMISSION_CODES.NOTIFICATION.MARK_READ)
+    @RequirePermission()
     @HttpCode(HttpStatus.OK)
     async markNotificationRead(
         @Param('id', ParseIntPipe) id: number,
@@ -144,7 +144,7 @@ export class NotificationController {
      * DELETE /notifications/123
      */
     @Delete(':id')
-    @RequirePermission(PERMISSION_CODES.NOTIFICATION.DELETE)
+    @RequirePermission()
     @HttpCode(HttpStatus.OK)
     async deleteNotification(
         @Param('id', ParseIntPipe) id: number,

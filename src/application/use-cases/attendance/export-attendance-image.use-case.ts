@@ -8,6 +8,7 @@ import { ExportAttendanceImageOptionsDto } from '../../dtos/attendance/export-at
 import type { TuitionPayment } from '../../../domain/entities/tuition-payment/tuition-payment.entity'
 import type { HomeworkSubmit } from '../../../domain/entities'
 import { AttendanceImageTemplate, type AttendanceImageTemplateData } from '../../../infrastructure/templates/attendance-image.template'
+import { formatVnDate, formatVnDateISO, formatVnTime, formatVnDateTime } from '../../../shared/utils/vietnam-date.util'
 
 interface ExportImageResult {
     buffer: Buffer
@@ -104,7 +105,7 @@ export class ExportAttendanceImageUseCase {
         // 7. Generate custom filename
         const studentName = attendance.student?.getFullName() || 'Unknown'
         const sessionDate = attendance.classSession?.sessionDate
-            ? new Date(attendance.classSession.sessionDate).toISOString().split('T')[0]
+            ? formatVnDateISO(attendance.classSession.sessionDate)
             : 'unknown-date'
         const filename = `attendance-${studentName.replace(/\s+/g, '-')}-${sessionDate}.${result.format}`
 
@@ -148,16 +149,16 @@ export class ExportAttendanceImageUseCase {
             },
             session: {
                 sessionDate: session.sessionDate
-                    ? new Date(session.sessionDate).toLocaleDateString('vi-VN')
+                    ? formatVnDate(session.sessionDate)
                     : 'N/A',
-                startTime: session.startTime ? this.formatVietnamTime(session.startTime) : 'N/A',
-                endTime: session.endTime ? this.formatVietnamTime(session.endTime) : 'N/A',
+                startTime: session.startTime ? formatVnTime(session.startTime) : 'N/A',
+                endTime: session.endTime ? formatVnTime(session.endTime) : 'N/A',
                 makeupNote: session.makeupNote || '',
             },
             attendance: {
                 status: attendance.status || 'PRESENT',
                 markedAt: options.includeMarkedAt !== false && attendance.markedAt
-                    ? new Date(attendance.markedAt).toLocaleString('vi-VN')
+                    ? formatVnDateTime(attendance.markedAt)
                     : '',
                 notes: attendance.notes || '',
             },
@@ -201,7 +202,7 @@ export class ExportAttendanceImageUseCase {
                 : 'Chưa xác định',
             status: tuition.status === 'PAID' ? 'ĐÃ ĐÓNG' : 'CHƯA ĐÓNG',
             statusClass: tuition.status === 'PAID' ? 'paid-yes' : 'paid-no',
-            paidAt: tuition.paidAt ? new Date(tuition.paidAt).toLocaleDateString('vi-VN') : '',
+            paidAt: tuition.paidAt ? formatVnDate(tuition.paidAt) : '',
         }
     }
 
@@ -233,10 +234,10 @@ export class ExportAttendanceImageUseCase {
         }
 
         return {
-            submitAt: new Date(homeworkSubmit.submitAt).toLocaleString('vi-VN'),
+            submitAt: formatVnDateTime(homeworkSubmit.submitAt),
             points: pointsStr,
             gradedAt: homeworkSubmit.gradedAt
-                ? new Date(homeworkSubmit.gradedAt).toLocaleDateString('vi-VN')
+                ? formatVnDate(homeworkSubmit.gradedAt)
                 : '',
             feedback,
         }
@@ -258,28 +259,5 @@ export class ExportAttendanceImageUseCase {
             return '<span style="color:var(--blue-700);font-weight:600;">Kết quả khá.</span> Con đã nắm được phần lớn kiến thức và hoàn thành bài tương đối tốt. Tiếp tục cố gắng, cẩn thận hơn ở những chi tiết nhỏ để đạt kết quả cao hơn.'
         }
         return '<span style="color:var(--green-600);font-weight:600;">Kết quả tốt.</span> Con đã hoàn thành bài tập rất tốt. Thầy/cô ghi nhận sự nỗ lực của con và mong con tiếp tục phát huy trong những bài học tiếp theo.'
-    }
-
-    /**
-     * Format time to Vietnam timezone (UTC+7)
-     */
-    private formatVietnamTime(time: string | Date | any): string {
-        if (!time) return 'N/A'
-        try {
-            let date: Date
-            if (time instanceof Date) {
-                date = time
-            } else if (typeof time === 'string' && /^\d{2}:\d{2}/.test(time)) {
-                const [hour, minute] = time.split(':').map(Number)
-                return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
-            } else {
-                date = new Date(time)
-            }
-            const utcMs = date.getTime()
-            const vn = new Date(utcMs + 7 * 60 * 60 * 1000)
-            return `${String(vn.getUTCHours()).padStart(2, '0')}:${String(vn.getUTCMinutes()).padStart(2, '0')}`
-        } catch {
-            return String(time)
-        }
     }
 }

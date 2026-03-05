@@ -7,16 +7,18 @@ import {
     InvalidStateException,
     UnauthorizedException,
 } from 'src/shared/exceptions/custom-exceptions'
-import { AuditStatus, TuitionPaymentStatus } from 'src/shared/enums'
+import { AuditStatus, TuitionPaymentStatus, NotificationType, NotificationLevel, TuitionPaymentStatusLabels } from 'src/shared/enums'
 import { RESOURCE_TYPES, ACTION_KEYS } from 'src/shared/constants'
 import { UpdateTuitionPaymentData } from 'src/domain/interface'
 import { TuitionPayment } from 'src/domain/entities/tuition-payment/tuition-payment.entity'
+import { CreateAndNotifyManyUseCase } from '../notification/create-and-notify-many.use-case'
 
 @Injectable()
 export class UpdateArrayBulkTuitionPaymentUseCase {
     constructor(
         @Inject('UNIT_OF_WORK')
         private readonly unitOfWork: IUnitOfWork,
+        private readonly createAndNotifyMany: CreateAndNotifyManyUseCase,
     ) { }
 
     /**
@@ -138,6 +140,31 @@ export class UpdateArrayBulkTuitionPaymentUseCase {
                             requestedCount: dto.payments.length,
                         },
                     })
+                }
+
+                // Gửi thông báo cho học sinh
+                if (results.updated.length > 0) {
+                    const { studentRepository } = repos
+                    const notificationDataList: { userId: number; title: string; message: string; type: NotificationType; level: NotificationLevel; data: any }[] = []
+
+                    for (const payment of results.updated) {
+                        const student = await studentRepository.findById(payment.studentId)
+                        if (student) {
+                            const statusLabel = TuitionPaymentStatusLabels[payment.status] || payment.status
+                            notificationDataList.push({
+                                userId: student.userId,
+                                title: 'Cập nhật học phí',
+                                message: `Học phí tháng ${payment.month}/${payment.year} đã được cập nhật - Số tiền: ${payment.amount?.toLocaleString('vi-VN')}đ - Trạng thái: ${statusLabel}`,
+                                type: NotificationType.TUITION,
+                                level: NotificationLevel.INFO,
+                                data: { paymentId: payment.paymentId, amount: payment.amount, month: payment.month, year: payment.year, status: payment.status },
+                            })
+                        }
+                    }
+
+                    if (notificationDataList.length > 0) {
+                        this.createAndNotifyMany.execute(notificationDataList).catch(() => { /* ignore notification error */ })
+                    }
                 }
 
                 return results.updated.map((p) => TuitionPaymentResponseDto.fromEntity(p))

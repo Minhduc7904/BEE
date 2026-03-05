@@ -101,7 +101,7 @@ export class LoginStudentUseCase {
         ipAddress: loginDto.ipAddress,
         deviceFingerprint: loginDto.deviceFingerprint,
       }
-      console.log('refreshTokenData', refreshTokenData)
+      // console.log('refreshTokenData', refreshTokenData)
       await repos.userRefreshTokenRepository.create(refreshTokenData)
 
       // 6. Tạo response theo format mới

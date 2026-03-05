@@ -22,6 +22,7 @@ import {
     GetCompetitionRemainingTimeUseCase,
     StartCompetitionAttemptUseCase,
     GetCompetitionExamUseCase,
+    PreviewCompetitionExamUseCase,
     GetCompetitionAnswersUseCase,
     SubmitCompetitionAnswerUseCase,
     FinishCompetitionSubmitUseCase,
@@ -50,6 +51,7 @@ export class DoCompetitionController {
         private readonly getCompetitionRemainingTimeUseCase: GetCompetitionRemainingTimeUseCase,
         private readonly startCompetitionAttemptUseCase: StartCompetitionAttemptUseCase,
         private readonly getCompetitionExamUseCase: GetCompetitionExamUseCase,
+        private readonly previewCompetitionExamUseCase: PreviewCompetitionExamUseCase,
         private readonly getCompetitionAnswersUseCase: GetCompetitionAnswersUseCase,
         private readonly submitCompetitionAnswerUseCase: SubmitCompetitionAnswerUseCase,
         private readonly finishCompetitionSubmitUseCase: FinishCompetitionSubmitUseCase,
@@ -156,6 +158,33 @@ export class DoCompetitionController {
     ): Promise<CompetitionExamResponseDto> {
         return ExceptionHandler.execute(() =>
             this.getCompetitionExamUseCase.execute(competitionId),
+        )
+    }
+
+    /**
+     * Xem trước đề thi của cuộc thi (nếu cho phép)
+     * Trả về sections, questions, statements KHÔNG có đáp án
+     *
+     * @route GET /do-competition/:competitionId/preview-exam
+     * @param competitionId - Competition ID
+     * @returns Exam with sections, questions, statements (without answers)
+     *
+     * Business Logic:
+     * 1. Kiểm tra competition có tồn tại không
+     * 2. Kiểm tra competition có cho phép xem trước đề thi (allowViewExamContent)
+     * 3. Trả về đề thi đầy đủ nhưng KHÔNG bao gồm đáp án
+     *
+     * @example
+     * GET /do-competition/1/preview-exam
+     */
+    @Get(':competitionId/preview-exam')
+    @RequirePermission()
+    @HttpCode(HttpStatus.OK)
+    async previewCompetitionExam(
+        @Param('competitionId', ParseIntPipe) competitionId: number,
+    ): Promise<CompetitionExamResponseDto> {
+        return ExceptionHandler.execute(() =>
+            this.previewCompetitionExamUseCase.execute(competitionId),
         )
     }
 

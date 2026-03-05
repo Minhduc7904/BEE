@@ -3,16 +3,18 @@ import { BaseResponseDto, TuitionPaymentResponseDto } from 'src/application/dtos
 import { CreateArrayBulkTuitionPaymentDto } from 'src/application/dtos/tuition-payment/create-array-bulk-tuition-payment.dto'
 import type { IUnitOfWork } from 'src/domain/repositories'
 import { ValidationException, NotFoundException } from 'src/shared/exceptions/custom-exceptions'
-import { AuditStatus } from 'src/shared/enums'
+import { AuditStatus, NotificationType, NotificationLevel, TuitionPaymentStatusLabels } from 'src/shared/enums'
 import { RESOURCE_TYPES, ACTION_KEYS } from 'src/shared/constants'
 import { CreateTuitionPaymentData } from 'src/domain/interface'
 import { TuitionPayment } from 'src/domain/entities/tuition-payment/tuition-payment.entity'
+import { CreateAndNotifyManyUseCase } from '../notification/create-and-notify-many.use-case'
 
 @Injectable()
 export class CreateArrayBulkTuitionPaymentUseCase {
   constructor(
     @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
+    private readonly createAndNotifyMany: CreateAndNotifyManyUseCase,
   ) {}
 
   /**
@@ -141,6 +143,36 @@ export class CreateArrayBulkTuitionPaymentUseCase {
               requestedCount: dto.payments.length,
             },
           })
+        }
+
+        // Gửi thông báo cho học sinh
+        if (results.created.length > 0) {
+          const notificationDataList = results.created.map((payment) => {
+            const student = uniqueStudentIds.find((sid) => sid === payment.studentId)
+            const statusLabel = TuitionPaymentStatusLabels[payment.status] || payment.status
+            return {
+              userId: 0, // placeholder, will be resolved below
+              title: 'Học phí mới',
+              message: `Học phí tháng ${payment.month}/${payment.year} đã được tạo - Số tiền: ${payment.amount?.toLocaleString('vi-VN')}đ - Trạng thái: ${statusLabel}`,
+              type: NotificationType.TUITION,
+              level: NotificationLevel.INFO,
+              data: { paymentId: payment.paymentId, amount: payment.amount, month: payment.month, year: payment.year, status: payment.status },
+            }
+          })
+
+          // Resolve userId from studentId
+          const resolvedNotifications: typeof notificationDataList = []
+          for (const [i, payment] of results.created.entries()) {
+            const student = await studentRepository.findById(payment.studentId)
+            if (student) {
+              notificationDataList[i].userId = student.userId
+              resolvedNotifications.push(notificationDataList[i])
+            }
+          }
+
+          if (resolvedNotifications.length > 0) {
+            this.createAndNotifyMany.execute(resolvedNotifications).catch(() => { /* ignore notification error */ })
+          }
         }
 
         return results.created.map((p) => TuitionPaymentResponseDto.fromEntity(p))

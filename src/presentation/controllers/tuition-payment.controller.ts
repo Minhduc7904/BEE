@@ -113,7 +113,7 @@ export class TuitionPaymentController {
    * STUDENT: thống kê học phí của chính mình
    */
   @Get('my/stats/status')
-  @RequirePermission(PERMISSION_CODES.MY_TUITION_PAYMENT_STATS)
+  @RequirePermission()
   @HttpCode(HttpStatus.OK)
   async statsByStatusMy(
     @Query() query: MyTuitionPaymentStatsQueryDto,
@@ -132,7 +132,7 @@ export class TuitionPaymentController {
   }
 
   @Get('my/stats/money')
-  @RequirePermission(PERMISSION_CODES.MY_TUITION_PAYMENT_STATS)
+  @RequirePermission()
   @HttpCode(HttpStatus.OK)
   async statsByMoneyMy(
     @Query() query: MyTuitionPaymentStatsQueryDto,

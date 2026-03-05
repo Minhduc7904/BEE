@@ -6,3 +6,5 @@ export { MarkAllNotificationsReadUseCase } from './mark-all-notifications-read.u
 export { GetNotificationStatsUseCase } from './get-notification-stats.use-case'
 export { DeleteNotificationUseCase } from './delete-notification.use-case'
 export { SendNotificationUseCase } from './send-notification.use-case'
+export { CreateAndNotifyOneUseCase } from './create-and-notify-one.use-case'
+export { CreateAndNotifyManyUseCase } from './create-and-notify-many.use-case'

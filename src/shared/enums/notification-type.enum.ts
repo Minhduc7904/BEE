@@ -9,6 +9,7 @@ export enum NotificationType {
     COURSE = 'COURSE',
     LESSON = 'LESSON',
     ATTENDANCE = 'ATTENDANCE',
+    TUITION = 'TUITION',
     MESSAGE = 'MESSAGE',
     OTHER = 'OTHER',
 }
@@ -21,6 +22,7 @@ export const NotificationTypeLabels: Record<NotificationType, string> = {
     [NotificationType.COURSE]: 'Khoá học',
     [NotificationType.LESSON]: 'Bài học',
     [NotificationType.ATTENDANCE]: 'Điểm danh',
+    [NotificationType.TUITION]: 'Học phí',
     [NotificationType.MESSAGE]: 'Tin nhắn',
     [NotificationType.OTHER]: 'Khác',
 }
@@ -33,6 +35,7 @@ export const NotificationTypeDescriptions: Record<NotificationType, string> = {
     [NotificationType.COURSE]: 'Thông báo liên quan đến khoá học',
     [NotificationType.LESSON]: 'Thông báo liên quan đến bài học',
     [NotificationType.ATTENDANCE]: 'Thông báo liên quan đến điểm danh',
+    [NotificationType.TUITION]: 'Thông báo liên quan đến học phí',
     [NotificationType.MESSAGE]: 'Thông báo tin nhắn cá nhân',
     [NotificationType.OTHER]: 'Thông báo khác',
 }
@@ -45,6 +48,7 @@ export const NotificationTypeColors: Record<NotificationType, string> = {
     [NotificationType.COURSE]: 'blue',
     [NotificationType.LESSON]: 'indigo',
     [NotificationType.ATTENDANCE]: 'teal',
+    [NotificationType.TUITION]: 'orange',
     [NotificationType.MESSAGE]: 'purple',
     [NotificationType.OTHER]: 'gray',
 }
@@ -57,6 +61,7 @@ export const NotificationTypeIcons: Record<NotificationType, string> = {
     [NotificationType.COURSE]: '📚',
     [NotificationType.LESSON]: '📖',
     [NotificationType.ATTENDANCE]: '📝',
+    [NotificationType.TUITION]: '💰',
     [NotificationType.MESSAGE]: '💬',
     [NotificationType.OTHER]: '🔔',
 }

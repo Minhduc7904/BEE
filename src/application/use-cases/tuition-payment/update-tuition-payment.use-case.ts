@@ -10,13 +10,15 @@ import { ACTION_KEYS } from 'src/shared/constants/action-key.constants'
 import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
 import { AuditStatus } from 'src/shared/enums/audit-status.enum'
 import { UpdateTuitionPaymentData } from 'src/domain/interface/tuition-payment/tuition-payment.interface'
-import { TuitionPaymentStatus } from 'src/shared/enums'
+import { TuitionPaymentStatus, NotificationType, NotificationLevel, TuitionPaymentStatusLabels } from 'src/shared/enums'
+import { CreateAndNotifyOneUseCase } from '../notification/create-and-notify-one.use-case'
 
 @Injectable()
 export class UpdateTuitionPaymentUseCase {
   constructor(
     @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
+    private readonly createAndNotifyOne: CreateAndNotifyOneUseCase,
   ) {}
 
   /**
@@ -134,6 +136,20 @@ export class UpdateTuitionPaymentUseCase {
         beforeData,
         afterData: updatedTuitionPayment,
       })
+
+      // Gửi thông báo cho học sinh
+      const student = await repos.studentRepository.findById(updatedTuitionPayment.studentId)
+      if (student) {
+        const statusLabel = TuitionPaymentStatusLabels[updatedTuitionPayment.status] || updatedTuitionPayment.status
+        this.createAndNotifyOne.execute({
+          userId: student.userId,
+          title: 'Cập nhật học phí',
+          message: `Học phí tháng ${updatedTuitionPayment.month}/${updatedTuitionPayment.year} đã được cập nhật - Số tiền: ${updatedTuitionPayment.amount?.toLocaleString('vi-VN')}đ - Trạng thái: ${statusLabel}`,
+          type: NotificationType.TUITION,
+          level: NotificationLevel.INFO,
+          data: { paymentId: updatedTuitionPayment.paymentId, amount: updatedTuitionPayment.amount, month: updatedTuitionPayment.month, year: updatedTuitionPayment.year, status: updatedTuitionPayment.status },
+        }).catch(() => { /* ignore notification error */ })
+      }
 
       return new TuitionPaymentResponseDto(updatedTuitionPayment)
     })

@@ -2,6 +2,7 @@
 export * from './get-competition-remaining-time.use-case'
 export * from './start-competition-attempt.use-case'
 export * from './get-competition-exam.use-case'
+export * from './preview-competition-exam.use-case'
 export * from './get-competition-answers.use-case'
 export * from './submit-competition-answer.use-case'
 export * from './finish-competition-submit.use-case'
