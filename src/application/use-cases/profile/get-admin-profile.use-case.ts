@@ -12,6 +12,7 @@ export class GetAdminProfileUseCase {
 
   async execute(userId: number): Promise<BaseResponseDto<AdminResponseDto>> {
     // Tìm admin theo userId với đầy đủ thông tin user, roles và permissions
+    console.log('Finding admin with userId:', userId)
     const admin = await this.adminRepository.findByUserId(userId)
 
     if (!admin) {

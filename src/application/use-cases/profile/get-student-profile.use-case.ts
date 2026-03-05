@@ -18,6 +18,7 @@ export class GetStudentProfileUseCase {
 
   async execute(userId: number): Promise<BaseResponseDto<StudentResponseDto>> {
     // Tìm student theo userId với đầy đủ thông tin user, roles và permissions
+    console.log('Finding student with userId:', userId)
     const student = await this.studentRepository.findByUserId(userId)
     
     if (!student) {
