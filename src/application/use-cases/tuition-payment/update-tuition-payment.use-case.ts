@@ -5,6 +5,7 @@ import {
   NotFoundException,
   InvalidStateException,
   UnauthorizedException,
+  ForbiddenException,
 } from 'src/shared/exceptions/custom-exceptions'
 import { ACTION_KEYS } from 'src/shared/constants/action-key.constants'
 import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
@@ -60,6 +61,12 @@ export class UpdateTuitionPaymentUseCase {
           errorMessage: `Học phí với ID ${tuitionPaymentId} không tồn tại`,
         })
         throw new NotFoundException(`Học phí với ID ${tuitionPaymentId} không tồn tại`)
+      }
+
+      // Kiểm tra student active
+      const paymentStudent = await repos.studentRepository.findById(tuitionPayment.studentId)
+      if (paymentStudent && !paymentStudent.user?.isActive) {
+        throw new ForbiddenException('Học sinh đã bị vô hiệu hóa, không thể cập nhật học phí')
       }
 
       // Clone trước khi update để audit

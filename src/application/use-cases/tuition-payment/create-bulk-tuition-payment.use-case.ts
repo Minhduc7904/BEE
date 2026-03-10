@@ -53,6 +53,14 @@ export class CreateBulkTuitionPaymentUseCase {
           studentIds = dto.studentIds
         }
 
+        // Lọc chỉ lấy học sinh active
+        const activeStudentIds: number[] = []
+        for (const sid of studentIds) {
+          const s = await studentRepository.findById(sid)
+          if (s?.user?.isActive) activeStudentIds.push(sid)
+        }
+        studentIds = activeStudentIds
+
         if (studentIds.length === 0) {
           throw new ValidationException('Không có học sinh nào để tạo học phí')
         }

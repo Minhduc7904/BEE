@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common'
 import { BaseResponseDto, TuitionPaymentResponseDto } from 'src/application/dtos'
 import { CreateTuitionPaymentDto } from 'src/application/dtos/tuition-payment/create-tuition-payment.dto'
 import type { IUnitOfWork } from 'src/domain/repositories'
-import { ConflictException } from 'src/shared/exceptions/custom-exceptions'
+import { ConflictException, NotFoundException, ForbiddenException } from 'src/shared/exceptions/custom-exceptions'
 import { AuditStatus, NotificationType, NotificationLevel, TuitionPaymentStatusLabels } from 'src/shared/enums'
 import { RESOURCE_TYPES, ACTION_KEYS } from 'src/shared/constants'
 import { CreateTuitionPaymentData } from 'src/domain/interface'
@@ -38,6 +38,15 @@ export class CreateTuitionPaymentUseCase {
           })
         }
         throw new ConflictException('Học phí cho học sinh này trong khóa học và tháng/năm đã tồn tại')
+      }
+
+      // Kiểm tra student active
+      const studentToCheck = await repos.studentRepository.findById(dto.studentId)
+      if (!studentToCheck) {
+        throw new NotFoundException(`Học sinh với ID ${dto.studentId} không tồn tại`)
+      }
+      if (!studentToCheck.user?.isActive) {
+        throw new ForbiddenException('Học sinh đã bị vô hiệu hóa, không thể tạo học phí')
       }
 
       const data: CreateTuitionPaymentData = {

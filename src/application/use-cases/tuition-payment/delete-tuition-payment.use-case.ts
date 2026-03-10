@@ -4,7 +4,7 @@ import type { IUnitOfWork } from "src/domain/repositories/unit-of-work.repositor
 import { ACTION_KEYS } from "src/shared/constants/action-key.constants";
 import { RESOURCE_TYPES } from "src/shared/constants/resource-type.constants";
 import { AuditStatus } from "src/shared/enums/audit-status.enum";
-import { NotFoundException,  } from "src/shared/exceptions/custom-exceptions";
+import { NotFoundException, ForbiddenException } from "src/shared/exceptions/custom-exceptions";
 import { CreateAndNotifyOneUseCase } from '../notification/create-and-notify-one.use-case'
 import { NotificationType, NotificationLevel } from 'src/shared/enums'
 
@@ -39,6 +39,13 @@ export class DeleteTuitionPaymentUseCase {
                 }
                 throw new NotFoundException(`Học phí với ID ${paymentId} không tồn tại`)
             }
+
+            // Kiểm tra student active
+            const paymentStudent = await repos.studentRepository.findById(existing.studentId)
+            if (paymentStudent && !paymentStudent.user?.isActive) {
+                throw new ForbiddenException('Học sinh đã bị vô hiệu hóa, không thể xóa học phí')
+            }
+
             const deleted = await tuitionPaymentRepository.delete(paymentId)
 
             if (adminId) {

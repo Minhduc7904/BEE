@@ -46,11 +46,15 @@ export class CreateArrayBulkTuitionPaymentUseCase {
          */
         const studentIds = dto.payments.map((p) => p.studentId)
         const uniqueStudentIds = [...new Set(studentIds)]
+        const inactiveStudentIds = new Set<number>()
         
         for (const studentId of uniqueStudentIds) {
           const student = await studentRepository.findById(studentId)
           if (!student) {
             throw new NotFoundException(`Học sinh với ID ${studentId} không tồn tại`)
+          }
+          if (!student.user?.isActive) {
+            inactiveStudentIds.add(studentId)
           }
         }
 
@@ -102,6 +106,16 @@ export class CreateArrayBulkTuitionPaymentUseCase {
               month: paymentData.month,
               year: paymentData.year,
               reason: 'Học phí đã tồn tại',
+            })
+            continue
+          }
+
+          if (inactiveStudentIds.has(paymentData.studentId)) {
+            results.skipped.push({
+              studentId: paymentData.studentId,
+              month: paymentData.month,
+              year: paymentData.year,
+              reason: 'Học sinh đã bị vô hiệu hóa',
             })
             continue
           }

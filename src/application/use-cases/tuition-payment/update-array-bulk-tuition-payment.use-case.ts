@@ -69,6 +69,12 @@ export class UpdateArrayBulkTuitionPaymentUseCase {
                             continue
                         }
 
+                        // Kiểm tra student active
+                        const paymentStudent = await repos.studentRepository.findById(tuitionPayment.studentId)
+                        if (paymentStudent && !paymentStudent.user?.isActive) {
+                            continue
+                        }
+
                         /**
                          * =========================
                          * Build update data
