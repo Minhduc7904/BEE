@@ -1,6 +1,7 @@
 // src/application/use-cases/profile/upload-student-avatar.use-case.ts
 import { Injectable, Inject, BadRequestException } from '@nestjs/common'
-import type { IMediaRepository, IMediaUsageRepository } from '../../../domain/repositories'
+import type { IMediaRepository, IMediaUsageRepository, IUserRepository } from '../../../domain/repositories'
+import { ForbiddenException } from '../../../shared/exceptions/custom-exceptions'
 import { MinioService } from '../../../infrastructure/services/minio.service'
 import { MediaProcessingService } from '../../../infrastructure/services/media-processing.service'
 import { MediaType, MediaStatus, MediaVisibility } from '../../../shared/enums'
@@ -25,6 +26,8 @@ import { Readable } from 'stream'
 @Injectable()
 export class UploadStudentAvatarUseCase {
     constructor(
+        @Inject('IUserRepository')
+        private readonly userRepository: IUserRepository,
         @Inject('IMediaRepository')
         private readonly mediaRepository: IMediaRepository,
         @Inject('IMediaUsageRepository')
@@ -37,6 +40,12 @@ export class UploadStudentAvatarUseCase {
         file: Express.Multer.File,
         userId: number,
     ): Promise<BaseResponseDto<MediaResponseDto>> {
+        // Step 0: Kiểm tra user active
+        const user = await this.userRepository.findById(userId)
+        if (!user || !user.isActive) {
+            throw new ForbiddenException('Tài khoản đã bị vô hiệu hóa')
+        }
+
         // Step 1: Validate file input
         if (!file || !file.buffer) {
             throw new BadRequestException('No file provided')

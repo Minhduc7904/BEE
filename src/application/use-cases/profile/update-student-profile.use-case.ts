@@ -6,6 +6,7 @@ import {
     NotFoundException,
     ConflictException,
     BusinessLogicException,
+    ForbiddenException,
 } from '../../../shared/exceptions/custom-exceptions'
 
 @Injectable()
@@ -25,6 +26,10 @@ export class UpdateStudentProfileUseCase {
 
             if (!student.user) {
                 throw new BusinessLogicException('Student user information not found')
+            }
+
+            if (!student.user.isActive) {
+                throw new ForbiddenException('Tài khoản đã bị vô hiệu hóa')
             }
 
             // 2. Kiểm tra unique constraints trước khi cập nhật

@@ -8,6 +8,7 @@ import {
     NotFoundException,
     UnauthorizedException,
     ValidationException,
+    ForbiddenException,
 } from '../../../shared/exceptions/custom-exceptions'
 
 @Injectable()
@@ -22,6 +23,10 @@ export class ChangeStudentPasswordUseCase {
         const user = await this.userRepository.findById(userId)
         if (!user) {
             throw new NotFoundException('User not found')
+        }
+
+        if (!user.isActive) {
+            throw new ForbiddenException('Tài khoản đã bị vô hiệu hóa')
         }
 
         // 2. Kiểm tra mật khẩu cũ

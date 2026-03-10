@@ -2,7 +2,7 @@
 import { Injectable, Inject } from '@nestjs/common'
 import type { IAdminRepository } from '../../../domain/repositories'
 import { AdminResponseDto, BaseResponseDto } from '../../dtos'
-import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
+import { NotFoundException, ForbiddenException } from '../../../shared/exceptions/custom-exceptions'
 
 @Injectable()
 export class GetAdminProfileUseCase {
@@ -17,6 +17,10 @@ export class GetAdminProfileUseCase {
 
     if (!admin) {
       throw new NotFoundException('Admin profile not found')
+    }
+
+    if (!admin.user?.isActive) {
+      throw new ForbiddenException('Tài khoản đã bị vô hiệu hóa')
     }
     // console.log('Admin found:', admin)
     // Mapper sẽ tự động xử lý việc lọc roles active và chưa expire

@@ -177,4 +177,16 @@ export class PrismaUserRepository implements IUserRepository {
 
     return users.map(u => u.userId)
   }
+
+  async filterActiveUserIds(userIds: number[]): Promise<number[]> {
+    if (!userIds.length) return []
+    const users = await this.prisma.user.findMany({
+      where: {
+        userId: { in: userIds },
+        isActive: true,
+      },
+      select: { userId: true },
+    })
+    return users.map((u: any) => u.userId)
+  }
 }

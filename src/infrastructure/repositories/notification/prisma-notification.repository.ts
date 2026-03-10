@@ -104,6 +104,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
 
     async findAll(): Promise<Notification[]> {
         const prismaNotifications = await this.prisma.notification.findMany({
+            where: { user: { isActive: true } },
             orderBy: { createdAt: 'desc' },
         })
 
@@ -155,6 +156,9 @@ export class PrismaNotificationRepository implements INotificationRepository {
             }
         }
 
+        // Chỉ xử lý thông báo của người dùng active
+        where.user = { isActive: true }
+
         const orderBy: any = {}
         orderBy[sortBy] = sortOrder
 
@@ -182,7 +186,7 @@ export class PrismaNotificationRepository implements INotificationRepository {
 
     async findByUserId(userId: number): Promise<Notification[]> {
         const prismaNotifications = await this.prisma.notification.findMany({
-            where: { userId },
+            where: { userId, user: { isActive: true } },
             orderBy: { createdAt: 'desc' },
         })
 
@@ -273,6 +277,9 @@ export class PrismaNotificationRepository implements INotificationRepository {
             }
         }
 
+        // Chỉ đếm thông báo của người dùng active
+        where.user = { isActive: true }
+
         return this.prisma.notification.count({ where })
     }
 
@@ -285,14 +292,15 @@ export class PrismaNotificationRepository implements INotificationRepository {
             where: {
                 userId,
                 isRead: false,
+                user: { isActive: true },
             },
         })
     }
 
     async getStatsByUserId(userId: number): Promise<NotificationStats> {
         const [total, unread] = await Promise.all([
-            this.prisma.notification.count({ where: { userId } }),
-            this.prisma.notification.count({ where: { userId, isRead: false } }),
+            this.prisma.notification.count({ where: { userId, user: { isActive: true } } }),
+            this.prisma.notification.count({ where: { userId, isRead: false, user: { isActive: true } } }),
         ])
 
         return {

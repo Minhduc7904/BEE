@@ -108,6 +108,7 @@ export class PrismaClassStudentRepository implements IClassStudentRepository {
 
     async findAll(): Promise<ClassStudent[]> {
         const prismaClassStudents = await this.prisma.classStudent.findMany({
+            where: { student: { user: { isActive: true } } },
             include: {
                 courseClass: true,
                 student: {
@@ -142,6 +143,9 @@ export class PrismaClassStudentRepository implements IClassStudentRepository {
         if (filters?.studentId !== undefined) {
             where.studentId = filters.studentId
         }
+
+        // Chỉ lấy học sinh có user active
+        where.student = { user: { isActive: true } }
 
         const orderBy: any = {}
         orderBy[sortBy] = sortOrder
@@ -183,13 +187,11 @@ export class PrismaClassStudentRepository implements IClassStudentRepository {
         const prismaClassStudents = await this.prisma.classStudent.findMany({
             where: {
                 classId: id,
-                ...(isActive !== undefined && {
-                    student: {
-                        user: {
-                            isActive,
-                        },
+                student: {
+                    user: {
+                        isActive: isActive ?? true,
                     },
-                }),
+                },
             },
             include: {
                 courseClass: true,
@@ -209,7 +211,7 @@ export class PrismaClassStudentRepository implements IClassStudentRepository {
         const id = NumberUtil.ensureValidId(studentId, 'Student ID')
 
         const prismaClassStudents = await this.prisma.classStudent.findMany({
-            where: { studentId: id },
+            where: { studentId: id, student: { user: { isActive: true } } },
             include: {
                 courseClass: true,
                 student: {
@@ -238,17 +240,20 @@ export class PrismaClassStudentRepository implements IClassStudentRepository {
         if (filters?.classId !== undefined) where.classId = filters.classId
         if (filters?.studentId !== undefined) where.studentId = filters.studentId
 
+        // Chỉ đếm học sinh có user active
+        where.student = { user: { isActive: true } }
+
         return this.prisma.classStudent.count({ where })
     }
 
     async countByClass(classId: number): Promise<number> {
         const id = NumberUtil.ensureValidId(classId, 'Class ID')
-        return this.prisma.classStudent.count({ where: { classId: id } })
+        return this.prisma.classStudent.count({ where: { classId: id, student: { user: { isActive: true } } } })
     }
 
     async countByStudent(studentId: number): Promise<number> {
         const id = NumberUtil.ensureValidId(studentId, 'Student ID')
-        return this.prisma.classStudent.count({ where: { studentId: id } })
+        return this.prisma.classStudent.count({ where: { studentId: id, student: { user: { isActive: true } } } })
     }
 
     private buildRemoveAccentsSQL(columnName: string): string {
@@ -335,6 +340,9 @@ export class PrismaClassStudentRepository implements IClassStudentRepository {
             params.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern)
             params.push(normalizedSearch, normalizedSearch, normalizedSearch, normalizedSearch, normalizedSearch)
         }
+
+        // Chỉ lấy học sinh có user active
+        conditions.push('u.is_active = 1')
 
         const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
 

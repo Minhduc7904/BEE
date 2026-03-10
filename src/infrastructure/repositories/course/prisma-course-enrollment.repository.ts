@@ -118,6 +118,7 @@ export class PrismaCourseEnrollmentRepository implements ICourseEnrollmentReposi
 
     async findAll(): Promise<CourseEnrollment[]> {
         const prismaEnrollments = await this.prisma.courseEnrollment.findMany({
+            where: { student: { user: { isActive: true } } },
             include: {
                 course: true,
                 student: {
@@ -184,6 +185,9 @@ export class PrismaCourseEnrollmentRepository implements ICourseEnrollmentReposi
             }
         }
 
+        // Chỉ lấy enrollment của học sinh có user active
+        where.student = { user: { isActive: true } }
+
         const orderBy: any = {}
         orderBy[sortBy] = sortOrder
 
@@ -233,7 +237,7 @@ export class PrismaCourseEnrollmentRepository implements ICourseEnrollmentReposi
         const id = NumberUtil.ensureValidId(courseId, 'Course ID')
 
         const prismaEnrollments = await this.prisma.courseEnrollment.findMany({
-            where: { courseId: id },
+            where: { courseId: id, student: { user: { isActive: true } } },
             include: {
                 course: true,
                 student: {
@@ -250,7 +254,7 @@ export class PrismaCourseEnrollmentRepository implements ICourseEnrollmentReposi
         const id = NumberUtil.ensureValidId(studentId, 'Student ID')
 
         const prismaEnrollments = await this.prisma.courseEnrollment.findMany({
-            where: { studentId: id },
+            where: { studentId: id, student: { user: { isActive: true } } },
             include: {
                 course: true,
                 student: {
@@ -268,7 +272,7 @@ export class PrismaCourseEnrollmentRepository implements ICourseEnrollmentReposi
         const sId = NumberUtil.ensureValidId(studentId, 'Student ID')
 
         const prismaEnrollment = await this.prisma.courseEnrollment.findFirst({
-            where: { courseId: cId, studentId: sId },
+            where: { courseId: cId, studentId: sId, student: { user: { isActive: true } } },
             include: {
                 course: true,
                 student: {
@@ -293,7 +297,7 @@ export class PrismaCourseEnrollmentRepository implements ICourseEnrollmentReposi
     }
 
     async count(filters?: CourseEnrollmentFilterOptions): Promise<number> {
-        const where: any = {}
+        const where: any = { student: { user: { isActive: true } } }
 
         if (filters?.courseId !== undefined) {
             where.courseId = filters.courseId
@@ -312,16 +316,16 @@ export class PrismaCourseEnrollmentRepository implements ICourseEnrollmentReposi
 
     async countByCourse(courseId: number): Promise<number> {
         const id = NumberUtil.ensureValidId(courseId, 'Course ID')
-        return this.prisma.courseEnrollment.count({ where: { courseId: id } })
+        return this.prisma.courseEnrollment.count({ where: { courseId: id, student: { user: { isActive: true } } } })
     }
 
     async countByStudent(studentId: number): Promise<number> {
         const id = NumberUtil.ensureValidId(studentId, 'Student ID')
-        return this.prisma.courseEnrollment.count({ where: { studentId: id } })
+        return this.prisma.courseEnrollment.count({ where: { studentId: id, student: { user: { isActive: true } } } })
     }
 
     async countByStatus(status: string): Promise<number> {
-        return this.prisma.courseEnrollment.count({ where: { status } })
+        return this.prisma.courseEnrollment.count({ where: { status, student: { user: { isActive: true } } } })
     }
 
     private buildRemoveAccentsSQL(columnName: string): string {
@@ -433,6 +437,9 @@ export class PrismaCourseEnrollmentRepository implements ICourseEnrollmentReposi
             params.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern)
             params.push(normalizedSearch, normalizedSearch, normalizedSearch, normalizedSearch, normalizedSearch)
         }
+
+        // Chỉ lấy enrollment của học sinh có user active
+        conditions.push('u.is_active = 1')
 
         const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
 

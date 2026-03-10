@@ -2,7 +2,7 @@
 import { Injectable, Inject } from '@nestjs/common'
 import type { IStudentRepository, IMediaUsageRepository } from '../../../domain/repositories'
 import { StudentResponseDto, BaseResponseDto } from '../../dtos'
-import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
+import { NotFoundException, ForbiddenException } from '../../../shared/exceptions/custom-exceptions'
 import { MinioService } from '../../../infrastructure/services/minio.service'
 import { EntityType } from '../../../shared/constants/entity-type.constants'
 import { FIELD_NAMES } from '../../../shared/constants'
@@ -23,6 +23,10 @@ export class GetStudentProfileUseCase {
     
     if (!student) {
       throw new NotFoundException('Student profile not found')
+    }
+
+    if (!student.user?.isActive) {
+      throw new ForbiddenException('Tài khoản đã bị vô hiệu hóa')
     }
 
     // Mapper sẽ tự động xử lý việc lọc roles active và chưa expire

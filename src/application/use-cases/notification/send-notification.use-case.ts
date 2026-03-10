@@ -54,8 +54,9 @@ export class SendNotificationUseCase {
 
                 // Ưu tiên 1: gửi theo danh sách userIds
                 if (dto.userIds && dto.userIds.length > 0) {
-                    targetUserIds = dto.userIds
-                    targetingMethod = `người dùng cụ thể (${dto.userIds.length})`
+                    // Chỉ gửi cho user active
+                    targetUserIds = await userRepository.filterActiveUserIds(dto.userIds)
+                    targetingMethod = `người dùng cụ thể (${targetUserIds.length}/${dto.userIds.length})`
                 }
                 // Ưu tiên 2: gửi theo role
                 else if (dto.role) {

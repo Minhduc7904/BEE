@@ -53,6 +53,20 @@ export class SubmitCompetitionAnswerUseCase {
             }
         }
 
+        // 1b. Kiểm tra thời gian làm bài (nếu competition có durationMinutes)
+        const durationMinutes = submit.competition?.durationMinutes ?? null
+        if (durationMinutes && submit.startedAt) {
+            const elapsedMs = Date.now() - new Date(submit.startedAt).getTime()
+            const elapsedMinutes = elapsedMs / 60000
+            if (elapsedMinutes > durationMinutes) {
+                return {
+                    success: false,
+                    message: `Đã hết thời gian làm bài (${durationMinutes} phút). Vui lòng nộp bài.`,
+                    data: null as any,
+                }
+            }
+        }
+
         // 2. Tìm answer và kiểm tra thuộc về submit này
         const existingAnswer = await this.competitionAnswerRepository.findById(answerId)
         if (!existingAnswer) {

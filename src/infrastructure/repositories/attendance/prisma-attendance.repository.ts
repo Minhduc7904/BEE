@@ -549,7 +549,6 @@ export class PrismaAttendanceRepository implements IAttendanceRepository {
       params.push(normalizedSearch, normalizedSearch, normalizedSearch, normalizedSearch, normalizedSearch)
     }
 
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
     const classJoin = needClassJoin
       ? 'INNER JOIN class_sessions cs ON a.session_id = cs.session_id'
       : ''
@@ -562,6 +561,8 @@ export class PrismaAttendanceRepository implements IAttendanceRepository {
     }
     const orderColumn = columnMap[sortBy] || 'a.marked_at'
     const orderByClause = `ORDER BY ${orderColumn} ${sortOrder}`
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
 
     const baseFrom = `
       FROM attendances a

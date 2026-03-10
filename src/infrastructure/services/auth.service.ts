@@ -1,6 +1,7 @@
 import { Injectable, Inject, UnauthorizedException } from '@nestjs/common'
 import { JwtTokenService } from './jwt.service'
 import type { IRoleRepository } from '../../domain/repositories/role.repository'
+import type { IUserRepository } from '../../domain/repositories/user.repository'
 import { TokenExpiredError, JsonWebTokenError } from 'jsonwebtoken'
 
 export interface AuthenticatedUser {
@@ -27,12 +28,22 @@ export class AuthService {
   constructor(
     @Inject('JWT_TOKEN_SERVICE') private readonly jwtTokenService: JwtTokenService,
     @Inject('IRoleRepository') private readonly roleRepository: IRoleRepository,
+    @Inject('IUserRepository') private readonly userRepository: IUserRepository,
   ) { }
 
   async verifyTokenAndGetUser(token: string): Promise<AuthenticatedUser> {
     try {
       // Verify JWT token
       const payload = await this.jwtTokenService.verifyAccessToken(token)
+
+      // Kiểm tra user có tồn tại và đang active
+      const user = await this.userRepository.findById(payload.sub)
+      if (!user) {
+        throw new UnauthorizedException('Tài khoản không tồn tại')
+      }
+      if (!user.isActive) {
+        throw new UnauthorizedException('Tài khoản đã bị vô hiệu hóa')
+      }
 
       // Get user roles from database
       const userRoles = await this.roleRepository.getUserRoles(payload.sub)

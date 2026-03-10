@@ -151,6 +151,7 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
         const client = txClient || this.prisma
 
         const submits = await client.competitionSubmit.findMany({
+            where: { student: { user: { isActive: true } } },
             include: {
                 competition: true,
                 student: {
@@ -225,7 +226,7 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
         const client = txClient || this.prisma
 
         const submits = await client.competitionSubmit.findMany({
-            where: { competitionId },
+            where: { competitionId, student: { user: { isActive: true } } },
             include: {
                 student: {
                     include: {
@@ -244,7 +245,7 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
         const client = txClient || this.prisma
 
         const submits = await client.competitionSubmit.findMany({
-            where: { studentId },
+            where: { studentId, student: { user: { isActive: true } } },
             include: {
                 competition: true,
                 competitionAnswers: true,
@@ -266,6 +267,7 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
             where: {
                 competitionId,
                 studentId,
+                student: { user: { isActive: true } },
             },
             include: {
                 competition: true,
@@ -297,6 +299,7 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
             where: {
                 competitionId,
                 studentId,
+                student: { user: { isActive: true } },
             },
             include: {
                 competition: true,
@@ -412,7 +415,7 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
     async countByCompetition(competitionId: number, txClient?: any): Promise<number> {
         const client = txClient || this.prisma
         return client.competitionSubmit.count({
-            where: { competitionId },
+            where: { competitionId, student: { user: { isActive: true } } },
         })
     }
 
@@ -422,7 +425,7 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
 
         const grouped = await client.competitionSubmit.groupBy({
             by: ['competitionId'],
-            where: { competitionId: { in: competitionIds } },
+            where: { competitionId: { in: competitionIds }, student: { user: { isActive: true } } },
             _count: { competitionId: true },
         })
 
@@ -436,7 +439,7 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
     async countByStudent(studentId: number, txClient?: any): Promise<number> {
         const client = txClient || this.prisma
         return client.competitionSubmit.count({
-            where: { studentId },
+            where: { studentId, student: { user: { isActive: true } } },
         })
     }
 
@@ -446,7 +449,7 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
         txClient?: any,
     ): Promise<number> {
         const client = txClient || this.prisma
-        const where: any = { status }
+        const where: any = { status, student: { user: { isActive: true } } }
         if (competitionId !== undefined) {
             where.competitionId = competitionId
         }
@@ -457,6 +460,7 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
         const client = txClient || this.prisma
         const where: any = {
             status: CompetitionSubmitStatus.GRADED,
+            student: { user: { isActive: true } },
         }
         if (competitionId !== undefined) {
             where.competitionId = competitionId
@@ -470,6 +474,7 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
             status: {
                 in: [CompetitionSubmitStatus.SUBMITTED, CompetitionSubmitStatus.IN_PROGRESS],
             },
+            student: { user: { isActive: true } },
         }
         if (competitionId !== undefined) {
             where.competitionId = competitionId
@@ -484,9 +489,8 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
             where: {
                 competitionId,
                 status: CompetitionSubmitStatus.GRADED,
-                totalPoints: {
-                    not: null,
-                },
+                totalPoints: { not: null },
+                student: { user: { isActive: true } },
             },
             include: {
                 student: {
@@ -516,9 +520,8 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
         const where = {
             competitionId,
             status: CompetitionSubmitStatus.GRADED,
-            totalPoints: {
-                not: null,
-            },
+            totalPoints: { not: null },
+            student: { user: { isActive: true } },
         }
 
         const [submits, total] = await Promise.all([
@@ -654,7 +657,7 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
     }
 
     private buildWhereClause(filters?: CompetitionSubmitFilterOptions): any {
-        const where: any = {}
+        const where: any = { student: { user: { isActive: true } } }
 
         if (!filters) return where
 
