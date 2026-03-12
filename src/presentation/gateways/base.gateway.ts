@@ -97,7 +97,7 @@ export abstract class BaseGateway
             })
 
         } catch (error) {
-            this.logger.error(`Connection authentication failed: ${error.message}`)
+            // this.logger.error(`Connection authentication failed: ${error.message}`)
             client.emit('error', { message: 'Authentication failed' })
             client.disconnect()
         }
@@ -116,18 +116,16 @@ export abstract class BaseGateway
 
             if (!stillOnline) {
                 // Last connection closed - user is now offline
-                this.logger.log(`Client disconnected | user=${user.userId} | socket=${client.id} | status=OFFLINE`)
-
                 // Broadcast online stats update (use setImmediate to ensure socket is fully removed)
                 setImmediate(() => {
                     this.broadcastOnlineStats()
                 })
             } else {
                 // User still has other connections
-                this.logger.debug(`Client disconnected | user=${user.userId} | socket=${client.id} | status=STILL_ONLINE`)
+                // this.logger.debug(`Client disconnected | user=${user.userId} | socket=${client.id} | status=STILL_ONLINE`)
             }
         } else {
-            this.logger.debug(`Client disconnected | socket=${client.id} | status=UNAUTHENTICATED`)
+            // this.logger.debug(`Client disconnected | socket=${client.id} | status=UNAUTHENTICATED`)
         }
     }
 

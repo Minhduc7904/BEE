@@ -356,6 +356,7 @@ model UserRefreshToken {
   createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
   lastUsedAt        DateTime? @map("last_used_at") @db.Timestamp(0)
   revokedAt         DateTime? @map("revoked_at") @db.Timestamp(0)
+  
   replacedByTokenId Int?      @map("replaced_by_token")
   userAgent         String?   @map("user_agent") @db.VarChar(255)
   ipAddress         String?   @map("ip_address") @db.VarChar(45)

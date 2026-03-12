@@ -5,7 +5,7 @@ export class BaseResponseDto<TData = any> {
 
     message: string
 
-  data?: TData
+    data?: TData
 
   constructor(success: boolean, message: string, data?: TData) {
     this.success = success

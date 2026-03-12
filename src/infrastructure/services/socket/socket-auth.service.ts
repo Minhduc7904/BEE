@@ -40,7 +40,7 @@ export class SocketAuthService {
                 permissions: [], // Will be populated by full auth flow if needed
             }
         } catch (error) {
-            console.error('❌ Socket authentication failed:', error.message)
+            // console.error('❌ Socket authentication failed:', error.message)
             throw new UnauthorizedException('Invalid or expired socket token')
         }
     }
