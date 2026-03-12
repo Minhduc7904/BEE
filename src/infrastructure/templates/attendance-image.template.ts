@@ -297,7 +297,7 @@ ${this.getStyles()}
             options.includeHomework === true
                 ? homework
                     ? this.renderHomeworkContent(homework)
-                    : '<span class="muted">Học sinh chưa nộp bài tập</span>'
+                    : '<span class="hw-missing">&#10008;&ensp;Học sinh chưa nộp bài tập</span>'
                 : '<span class="muted">Chưa có bài tập về nhà được giao</span>',
         ))
 
@@ -772,6 +772,14 @@ body {
 .muted {
   color: var(--gray-400);
   font-style: italic;
+}
+
+.hw-missing {
+  display: inline-block;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--red);
+  letter-spacing: 0.3px;
 }
 
 /* Homework meta */
