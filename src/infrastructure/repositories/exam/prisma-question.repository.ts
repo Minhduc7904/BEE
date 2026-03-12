@@ -20,21 +20,23 @@ export class PrismaQuestionRepository implements IQuestionRepository {
         const contentPreview = TextSearchUtil.stripMarkdownForSearch(content).substring(0, 100)
         const baseSlug = TextSearchUtil.generateSlug(contentPreview)
 
-        // Count all slugs in DB that start with baseSlug
-        const dbCount = await client.question.count({
-            where: { slug: { startsWith: baseSlug } },
-        })
+        // Iterate through candidates (baseSlug, baseSlug-2, baseSlug-3, …)
+        // and check each one individually against both the DB and the in-batch
+        // reserved set. This avoids the count+offset bug where gaps in the slug
+        // sequence could produce a candidate that already exists.
+        let candidate = baseSlug
+        let counter = 2
 
-        let offset = dbCount
-        let candidate = offset === 0 ? baseSlug : `${baseSlug}-${offset + 1}`
-
-        // Keep incrementing until we find a slug not reserved in the current batch
-        while (reservedSlugs.has(candidate)) {
-            offset++
-            candidate = `${baseSlug}-${offset + 1}`
+        while (true) {
+            if (!reservedSlugs.has(candidate)) {
+                const exists = await client.question.findFirst({
+                    where: { slug: candidate },
+                    select: { questionId: true },
+                })
+                if (!exists) return candidate
+            }
+            candidate = `${baseSlug}-${counter++}`
         }
-
-        return candidate
     }
 
     async create(data: CreateQuestionData, txClient?: any): Promise<Question> {
