@@ -38,6 +38,7 @@ import { IQuestionRepository } from './question.repository'
 import { IStatementRepository } from './statement.repository'
 import { IQuestionExamRepository } from './question-exam.repository'
 import { IQuestionChapterRepository } from './question-chapter.repository'
+import { IZaloTokenRepository } from './zalo-token.repository'
 // src/domain/repositories/unit-of-work.repository.ts
 export interface UnitOfWorkRepos {
   userRepository: IUserRepository
@@ -79,6 +80,7 @@ export interface UnitOfWorkRepos {
   statementRepository: IStatementRepository
   questionExamRepository: IQuestionExamRepository
   questionChapterRepository: IQuestionChapterRepository
+  zaloTokenRepository: IZaloTokenRepository
 }
 
 export interface IUnitOfWork {

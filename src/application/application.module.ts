@@ -45,6 +45,7 @@ import { YoutubeContentApplicationModule } from './use-cases/youtubeContent/yout
 import { VideoContentApplicationModule } from './use-cases/videoContent/video-content.application.module'
 import { DocumentContentApplicationModule } from './use-cases/documentContent/document-content.application.module'
 import { MarkdownFixApplicationModule } from './use-cases/markdown-fix/markdown-fix.application.module'
+import { ZaloApplicationModule } from './use-cases/zalo/zalo.application.module'
 
 const modules = [
   // Auth & Account
@@ -107,6 +108,7 @@ const modules = [
   VideoContentApplicationModule,
   DocumentContentApplicationModule,
   MarkdownFixApplicationModule,
+  ZaloApplicationModule,
 ]
 
 @Module({

@@ -377,6 +377,25 @@ model UserRefreshToken {
   @@map("user_refresh_tokens")
 }
 
+model ZaloToken {
+  zaloTokenId  Int       @id @default(autoincrement()) @map("zalo_token_id")
+  oaId         String    @map("oa_id") @db.VarChar(32)
+  appId        String    @map("app_id") @db.VarChar(32)
+  accessToken  String    @map("access_token") @db.Text
+  refreshToken String    @map("refresh_token") @db.Text
+  expiresIn    Int       @map("expires_in")
+  expiresAt    DateTime? @map("expires_at") @db.Timestamp(0)
+  tokenType    String?   @map("token_type") @db.VarChar(50)
+  scope        String?   @map("scope") @db.VarChar(255)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@unique([oaId, appId], map: "uq_zalo_tokens_oa_app")
+  @@index([expiresAt], map: "idx_zalo_tokens_expires_at")
+  @@map("zalo_tokens")
+}
+
 model AdminAuditLog {
   logId        Int         @id @default(autoincrement()) @map("log_id")
   adminId      Int         @map("admin_id")

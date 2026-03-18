@@ -13,6 +13,7 @@ import {
   PrismaEmailVerificationTokenRepository,
   PrismaAdminRepository,
   PrismaResetPasswordTokenRepository,
+  PrismaZaloTokenRepository,
   PrismaMediaRepository,
   PrismaAdminLogRepository,
   PrismaMediaFolderRepository,
@@ -131,6 +132,11 @@ import openaiConfig from '../config/openai.config'
       provide: 'IPasswordResetTokenRepository',
       useFactory: (prisma: PrismaService) => new PrismaResetPasswordTokenRepository(prisma),
       inject: [PrismaService]
+    },
+    {
+      provide: 'IZaloTokenRepository',
+      useFactory: (prisma: PrismaService) => new PrismaZaloTokenRepository(prisma),
+      inject: [PrismaService],
     },
     {
       provide: 'IMediaRepository',
@@ -372,6 +378,7 @@ import openaiConfig from '../config/openai.config'
     'IStudentRepository',
     'IEmailVerificationTokenRepository',
     'IPasswordResetTokenRepository',
+    'IZaloTokenRepository',
     'IMediaRepository',
     'IMediaFolderRepository',
     'IMediaUsageRepository',

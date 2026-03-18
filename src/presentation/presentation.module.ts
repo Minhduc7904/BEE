@@ -56,6 +56,7 @@ import { VideoContentController } from './controllers/video-content.controller'
 import { DocumentContentController } from './controllers/document-content.controller'
 import { HealthController } from './controllers/health.controller'
 import { MarkdownFixController } from './controllers/markdown-fix.controller'
+import { ZaloController } from './controllers/zalo.controller'
 
 @Module({
   imports: [
@@ -111,6 +112,7 @@ import { MarkdownFixController } from './controllers/markdown-fix.controller'
     DocumentContentController,
     HealthController,
     MarkdownFixController,
+    ZaloController,
   ],
   providers: [
     // WebSocket Gateways
