@@ -218,6 +218,9 @@ model Student {
   studentLearningItems StudentLearningItem[]
   tuitionPayments      TuitionPayment[]
   competitionSubmits   CompetitionSubmit[]
+  studentExams         StudentExam[]
+  studentExamSubmits   StudentExamSubmit[]
+  studentQuestionAnswers StudentQuestionAnswer[]
 
   // ✅ UNIQUE theo cặp studentPhone + parentPhone
   @@unique([studentPhone, parentPhone], map: "uq_student_studentPhone_parentPhone")
@@ -348,19 +351,19 @@ model UserRole {
 }
 
 model UserRefreshToken {
-  tokenId           Int       @id @default(autoincrement()) @map("token_id")
-  userId            Int       @map("user_id")
-  familyId          String    @map("family_id") @db.VarChar(36) // UUID text
-  tokenHash         String    @unique @map("token_hash") @db.Char(60) // bcrypt/argon2 hash
-  expiresAt         DateTime  @map("expires_at") @db.Timestamp(0)
-  createdAt         DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
-  lastUsedAt        DateTime? @map("last_used_at") @db.Timestamp(0)
-  revokedAt         DateTime? @map("revoked_at") @db.Timestamp(0)
-  
-  replacedByTokenId Int?      @map("replaced_by_token")
-  userAgent         String?   @map("user_agent") @db.VarChar(255)
-  ipAddress         String?   @map("ip_address") @db.VarChar(45)
-  deviceFingerprint String?   @map("device_fingerprint") @db.VarChar(128)
+  tokenId    Int       @id @default(autoincrement()) @map("token_id")
+  userId     Int       @map("user_id")
+  familyId   String    @map("family_id") @db.VarChar(36) // UUID text
+  tokenHash  String    @unique @map("token_hash") @db.Char(60) // bcrypt/argon2 hash
+  expiresAt  DateTime  @map("expires_at") @db.Timestamp(0)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  lastUsedAt DateTime? @map("last_used_at") @db.Timestamp(0)
+  revokedAt  DateTime? @map("revoked_at") @db.Timestamp(0)
+
+  replacedByTokenId Int?    @map("replaced_by_token")
+  userAgent         String? @map("user_agent") @db.VarChar(255)
+  ipAddress         String? @map("ip_address") @db.VarChar(45)
+  deviceFingerprint String? @map("device_fingerprint") @db.VarChar(128)
 
   // Quan hệ
   user            User               @relation(fields: [userId], references: [userId], onDelete: Cascade)
@@ -476,6 +479,7 @@ model Exam {
   sections     Section[]      @relation("ExamSections")
   questions    QuestionExam[]
   tempExam     TempExam?      @relation("TempExamFinal")
+  studentExams StudentExam[]
 
   @@index([grade, subjectId], map: "idx_exams_grade_subject")
   @@index([subjectId], map: "idx_exams_subject_id")
@@ -529,6 +533,8 @@ model Question {
   questionChapters   QuestionChapter[]
   tempQuestion       TempQuestion?       @relation("TempQuestionFinal")
   competitionAnswers CompetitionAnswer[]
+  studentQuestionAnswers StudentQuestionAnswer[]
+  studentExamQuestions   StudentExamQuestion[]
 
   @@index([subjectId, grade], map: "idx_questions_subject_grade")
   @@index([subjectId], map: "idx_questions_subject_id")
@@ -754,7 +760,7 @@ model Competition {
   enableAntiCheating          Boolean @default(false) @map("enable_anti_cheating") // bật tính năng chống gian lận (như chụp hình, chuyển tab)
   allowViewSolutionYoutubeUrl Boolean @default(false) @map("allow_view_solution_youtube_url") // có được xem video giải chi tiết trên youtube không
   allowViewExamContent        Boolean @default(false) @map("allow_view_exam_content") // có được xem nội dung đề thi trước khi thi không
-  
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
@@ -776,6 +782,13 @@ enum CompetitionSubmitStatus {
   SUBMITTED // Đã nộp bài, chờ chấm
   GRADED // Đã chấm xong
   ABANDONED // Bỏ dở (hết giờ mà chưa nộp)
+}
+
+enum StudentExamSubmitStatus {
+  IN_PROGRESS // Đang làm bài
+  SUBMITTED // Đã nộp bài
+  GRADED // Đã chấm xong
+  ABANDONED // Bỏ dở
 }
 
 model CompetitionSubmit {
@@ -839,6 +852,107 @@ model CompetitionAnswer {
   @@map("competition_answers")
 }
 
+model StudentQuestionAnswer {
+  studentQuestionAnswerId Int  @id @default(autoincrement()) @map("student_question_answer_id")
+  studentId               Int  @map("student_id")
+  questionId              Int  @map("question_id")
+  studentExamSubmitId     Int  @map("student_exam_submit_id")
+
+  answer               String?  @map("answer") @db.Text // câu trả lời dạng text (cho SHORT_ANSWER, ESSAY)
+  selectedStatementIds Json?    @map("selected_statement_ids") // array ID các câu trả lời đã chọn (cho SINGLE_CHOICE, MULTIPLE_CHOICE, TRUE_FALSE)
+  isCorrect            Boolean? @map("is_correct") // đúng hay sai (null nếu chưa chấm)
+
+  points           Decimal? @map("points") @db.Decimal(10, 2) // điểm đạt được
+  maxPoints        Decimal? @map("max_points") @db.Decimal(10, 2) // điểm tối đa của câu này
+  timeSpentSeconds Int?     @map("time_spent_seconds") // thời gian làm câu này (giây)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  student          Student          @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  question         Question         @relation(fields: [questionId], references: [questionId], onDelete: Cascade)
+  studentExamSubmit StudentExamSubmit @relation(fields: [studentExamSubmitId], references: [studentExamSubmitId], onDelete: Cascade)
+
+  @@unique([studentExamSubmitId, questionId], map: "unique_student_exam_submit_question")
+  @@index([studentExamSubmitId], map: "idx_student_answers_submit")
+  @@index([studentId], map: "idx_student_answers_student")
+  @@index([questionId], map: "idx_student_answers_question")
+  @@map("student_question_answers")
+}
+
+model StudentExam {
+  studentExamId Int      @id @default(autoincrement()) @map("student_exam_id")
+  studentId     Int      @map("student_id")
+  examId        Int?     @map("exam_id")
+  title         String   @map("title") @db.VarChar(255) // lưu lại tiêu đề đề thi tại thời điểm làm bài
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  student   Student             @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  exam      Exam?               @relation(fields: [examId], references: [examId], onDelete: SetNull)
+  questions StudentExamQuestion[]
+  submits   StudentExamSubmit[]
+
+  @@index([studentId], map: "idx_student_exams_student")
+  @@index([examId], map: "idx_student_exams_exam")
+  @@index([createdAt], map: "idx_student_exams_created_at")
+  @@map("student_exams")
+}
+
+model StudentExamQuestion {
+  studentExamId Int  @map("student_exam_id")
+  questionId    Int  @map("question_id")
+  sectionId     Int? @map("section_id") // snapshot theo section (nullable)
+  order         Int  @map("order")
+  points        Int? @map("points")
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+
+  // Relations
+  studentExam StudentExam @relation(fields: [studentExamId], references: [studentExamId], onDelete: Cascade)
+  question    Question    @relation(fields: [questionId], references: [questionId], onDelete: Cascade)
+
+  @@id([studentExamId, questionId])
+  @@unique([studentExamId, order], map: "unique_student_exam_question_order")
+  @@index([questionId], map: "idx_student_exam_questions_question")
+  @@index([studentExamId], map: "idx_student_exam_questions_exam")
+  @@index([sectionId], map: "idx_student_exam_questions_section")
+  @@map("student_exam_questions")
+}
+
+model StudentExamSubmit {
+  studentExamSubmitId Int @id @default(autoincrement()) @map("student_exam_submit_id")
+  studentExamId       Int @map("student_exam_id")
+  studentId           Int @map("student_id")
+  attemptNumber       Int @default(1) @map("attempt_number")
+  status              StudentExamSubmitStatus @default(IN_PROGRESS) @map("status")
+
+  startedAt   DateTime  @default(now()) @map("started_at") @db.Timestamp(0)
+  submittedAt DateTime? @map("submitted_at") @db.Timestamp(0)
+  gradedAt    DateTime? @map("graded_at") @db.Timestamp(0)
+
+  totalPoints      Decimal? @map("total_points") @db.Decimal(10, 2)
+  maxPoints        Decimal? @map("max_points") @db.Decimal(10, 2)
+  timeSpentSeconds Int?     @map("time_spent_seconds")
+  metadata         Json?    @map("metadata")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  studentExam StudentExam            @relation(fields: [studentExamId], references: [studentExamId], onDelete: Cascade)
+  student     Student                @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  answers     StudentQuestionAnswer[]
+
+  @@unique([studentExamId, attemptNumber], map: "unique_student_exam_attempt")
+  @@index([studentExamId], map: "idx_student_exam_submits_exam")
+  @@index([studentId], map: "idx_student_exam_submits_student")
+  @@index([status], map: "idx_student_exam_submits_status")
+  @@index([submittedAt], map: "idx_student_exam_submits_submitted_at")
+  @@map("student_exam_submits")
+}
+
 enum LearningItemType {
   HOMEWORK
   DOCUMENT
@@ -893,23 +1007,23 @@ model HomeworkContent {
 }
 
 model HomeworkSubmit {
-  homeworkSubmitId     Int             @id @default(autoincrement()) @map("homework_submit_id")
-  homeworkContentId    Int             @map("homework_content_id")
-  studentId            Int             @map("student_id")
-  competitionSubmitId  Int?            @unique @map("competition_submit_id") // liên kết bài nộp với lần thi cụ thể
-  submitAt             DateTime        @default(now()) @map("submit_at") @db.Timestamp(0)
-  content              String          @map("content") @db.Text // nội dung bài làm
-  points               Float?          @map("points") // điểm số bài làm
-  gradedAt             DateTime?       @map("graded_at") @db.Timestamp(0) // thời điểm chấm điểm
-  graderId             Int?            @map("grader_id") // admin/giáo viên chấm bài
-  feedback             String?         @map("feedback") @db.Text // nhận xét của giáo viên
-  createdAt            DateTime        @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt            DateTime        @updatedAt @map("updated_at") @db.Timestamp(0)
+  homeworkSubmitId    Int                @id @default(autoincrement()) @map("homework_submit_id")
+  homeworkContentId   Int                @map("homework_content_id")
+  studentId           Int                @map("student_id")
+  competitionSubmitId Int?               @unique @map("competition_submit_id") // liên kết bài nộp với lần thi cụ thể
+  submitAt            DateTime           @default(now()) @map("submit_at") @db.Timestamp(0)
+  content             String             @map("content") @db.Text // nội dung bài làm
+  points              Float?             @map("points") // điểm số bài làm
+  gradedAt            DateTime?          @map("graded_at") @db.Timestamp(0) // thời điểm chấm điểm
+  graderId            Int?               @map("grader_id") // admin/giáo viên chấm bài
+  feedback            String?            @map("feedback") @db.Text // nhận xét của giáo viên
+  createdAt           DateTime           @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt           DateTime           @updatedAt @map("updated_at") @db.Timestamp(0)
   // Relations
-  homeworkContent      HomeworkContent @relation(fields: [homeworkContentId], references: [homeworkContentId], onDelete: Cascade)
-  student              Student         @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
-  grader               Admin?          @relation(fields: [graderId], references: [adminId], onDelete: SetNull)
-  competitionSubmit    CompetitionSubmit? @relation(fields: [competitionSubmitId], references: [competitionSubmitId], onDelete: SetNull)
+  homeworkContent     HomeworkContent    @relation(fields: [homeworkContentId], references: [homeworkContentId], onDelete: Cascade)
+  student             Student            @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  grader              Admin?             @relation(fields: [graderId], references: [adminId], onDelete: SetNull)
+  competitionSubmit   CompetitionSubmit? @relation(fields: [competitionSubmitId], references: [competitionSubmitId], onDelete: SetNull)
 
   @@unique([homeworkContentId, studentId], map: "unique_homework_submit")
   @@index([studentId], map: "idx_homework_submits_student_id")
@@ -1026,12 +1140,12 @@ model Course {
   tuitionPayments   TuitionPayment[]
   courseAssistants  CourseAssistant[]
 
+  @@unique([code], map: "unique_course_code")
   @@index([visibility], map: "idx_courses_visibility")
   @@index([grade, subjectId], map: "idx_courses_grade_subject")
   @@index([subjectId], map: "idx_courses_subject_id")
   @@index([teacherId], map: "idx_courses_teacher_id")
   @@index([createdAt], map: "idx_courses_created_at")
-  @@unique([code], map: "unique_course_code")
   @@map("courses")
 }
 
@@ -1123,19 +1237,19 @@ enum AttendanceStatus {
 }
 
 model Attendance {
-  attendanceId Int              @id @default(autoincrement()) @map("attendance_id")
-  sessionId    Int              @map("session_id")
-  studentId    Int              @map("student_id")
-  status       AttendanceStatus @map("status") // present, absent, late
-  markedAt        DateTime         @map("marked_at") @db.Timestamp(0)
-  notes           String?          @map("notes") @db.Text
-  updatedAt       DateTime         @updatedAt @map("updated_at") @db.Timestamp(0)
-  markerId        Int?             @map("marker") // admin/teacher who marked attendance
-  parentNotified  Boolean          @default(false) @map("parent_notified") // đã gửi phiếu cho phụ huynh hay chưa
+  attendanceId   Int              @id @default(autoincrement()) @map("attendance_id")
+  sessionId      Int              @map("session_id")
+  studentId      Int              @map("student_id")
+  status         AttendanceStatus @map("status") // present, absent, late
+  markedAt       DateTime         @map("marked_at") @db.Timestamp(0)
+  notes          String?          @map("notes") @db.Text
+  updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamp(0)
+  markerId       Int?             @map("marker") // admin/teacher who marked attendance
+  parentNotified Boolean          @default(false) @map("parent_notified") // đã gửi phiếu cho phụ huynh hay chưa
   // Relations
-  classSession ClassSession     @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
-  student      Student          @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
-  marker       Admin?           @relation(fields: [markerId], references: [adminId], onDelete: SetNull)
+  classSession   ClassSession     @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
+  student        Student          @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  marker         Admin?           @relation(fields: [markerId], references: [adminId], onDelete: SetNull)
 
   @@unique([sessionId, studentId], map: "unique_attendance_record")
   @@index([studentId], map: "idx_attendances_student_id")
