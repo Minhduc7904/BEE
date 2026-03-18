@@ -1,5 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import axios from 'axios'
+import type { AttendanceImageTemplateData } from '../templates/attendance-image.template'
 
 export interface ZaloSendResponse {
     error?: number
@@ -14,6 +15,7 @@ export interface ZaloSendResponse {
 export class ZaloService {
     static readonly UNREGISTER_PAYLOAD = '#GO_DANG_KY_SDT'
     static readonly REGISTER_PARENT_PAYLOAD = '#DANG_KY_PHU_HUYNH'
+    static readonly LATEST_ATTENDANCE_PAYLOAD = '#XEM_DIEM_DANH_GAN_NHAT'
 
     isRegisterParentIntent(input: string): boolean {
         const normalized = input.trim().toLowerCase()
@@ -29,9 +31,42 @@ export class ZaloService {
         return (
             normalized === ZaloService.UNREGISTER_PAYLOAD.toLowerCase() ||
             normalized.includes('gỡ đăng kí số điện thoại') ||
-            normalized.includes('go dang ky so dien thoai') ||
-            normalized === '.'
+            normalized.includes('go dang ky so dien thoai')
         )
+    }
+
+    isLatestAttendanceIntent(input: string): boolean {
+        const normalized = input.trim().toLowerCase()
+        return (
+            normalized === ZaloService.LATEST_ATTENDANCE_PAYLOAD.toLowerCase() ||
+            normalized.includes('xem điểm danh gần nhất') ||
+            normalized.includes('xem diem danh gan nhat')
+        )
+    }
+
+    formatLatestAttendanceSummary(data: AttendanceImageTemplateData): string {
+        const attendanceStatusMap: Record<string, string> = {
+            PRESENT: 'Có mặt',
+            LATE: 'Đi muộn',
+            ABSENT: 'Vắng mặt',
+        }
+
+        const status = attendanceStatusMap[data.attendance.status] || data.attendance.status
+        const homeworkText = data.homework
+            ? `BTVN: Đã nộp lúc ${data.homework.submitAt}${data.homework.points ? ` | Điểm: ${data.homework.points}` : ''}`
+            : 'BTVN: Chưa có bài nộp gần nhất'
+
+        return [
+            'Thông tin điểm danh gần nhất:',
+            `Học sinh: ${data.student.fullName || data.student.studentId}`,
+            `Lớp: ${data.classInfo.className}`,
+            `Khóa học: ${data.classInfo.courseName}`,
+            `Buổi học: ${data.session.sessionDate} (${data.session.startTime} - ${data.session.endTime})`,
+            `Trạng thái: ${status}`,
+            data.attendance.markedAt ? `Thời gian điểm danh: ${data.attendance.markedAt}` : '',
+            data.attendance.notes ? `Ghi chú: ${data.attendance.notes}` : '',
+            homeworkText,
+        ].filter(Boolean).join('\n')
     }
 
     async sendMessage(accessToken: string, body: any): Promise<ZaloSendResponse> {
@@ -90,7 +125,7 @@ export class ZaloService {
                                 title: 'Liên hệ hỗ trợ',
                                 type: 'oa.open.url',
                                 payload: {
-                                    url: process.env.ZALO_MENU_SUPPORT_URL || 'https://bee.edu.vn/contact',
+                                    url: process.env.ZALO_MENU_SUPPORT_URL || 'https://zalo.me/0333726202',
                                 },
                             },
                         ],
@@ -129,7 +164,7 @@ export class ZaloService {
                                 title: 'Liên hệ tư vấn',
                                 type: 'oa.open.url',
                                 payload: {
-                                    url: process.env.ZALO_MENU_SUPPORT_URL || 'https://bee.edu.vn/contact',
+                                    url: process.env.ZALO_MENU_SUPPORT_URL || 'https://zalo.me/0333726202',
                                 },
                             },
                         ],
@@ -158,11 +193,9 @@ export class ZaloService {
                                 },
                             },
                             {
-                                title: 'Xem điểm danh',
-                                type: 'oa.open.url',
-                                payload: {
-                                    url: process.env.ZALO_MENU_ATTENDANCE_URL || 'https://bee.edu.vn/attendance',
-                                },
+                                title: 'Xem điểm danh gần nhất',
+                                type: 'oa.query.show',
+                                payload: ZaloService.LATEST_ATTENDANCE_PAYLOAD,
                             },
                             {
                                 title: 'Gỡ đăng kí số điện thoại',

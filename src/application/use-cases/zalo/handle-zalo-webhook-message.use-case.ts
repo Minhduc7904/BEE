@@ -1,5 +1,7 @@
 import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common'
 import type { IUnitOfWork } from 'src/domain/repositories'
+import { ExportAttendanceImageOptionsDto } from 'src/application/dtos/attendance/export-attendance-image-options.dto'
+import { GetAttendanceImageDataUseCase } from 'src/application/use-cases/attendance'
 import { ZaloService } from 'src/infrastructure/services'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 
@@ -27,6 +29,7 @@ export class HandleZaloWebhookMessageUseCase {
         @Inject('UNIT_OF_WORK')
         private readonly unitOfWork: IUnitOfWork,
         private readonly zaloService: ZaloService,
+        private readonly getAttendanceImageDataUseCase: GetAttendanceImageDataUseCase,
     ) { }
 
     private normalizePhone(input: string): string {
@@ -101,6 +104,58 @@ export class HandleZaloWebhookMessageUseCase {
             if (linkedParentStudent) {
                 const studentName = `${linkedParentStudent.user?.lastName || ''} ${linkedParentStudent.user?.firstName || ''}`.trim() || `#${linkedParentStudent.studentId}`
 
+                if (this.zaloService.isLatestAttendanceIntent(incomingText)) {
+                    console.log(`[Zalo Webhook] B3.1 - Phụ huynh yêu cầu xem điểm danh gần nhất cho học sinh #${linkedParentStudent.studentId}`)
+
+                    const latestData = await this.unitOfWork.executeInTransaction(async (repos) => {
+                        const latestAttendance = (await repos.attendanceRepository.findByStudent(linkedParentStudent.studentId))[0] || null
+                        const latestHomeworkSubmit = (await repos.homeworkSubmitRepository.findByStudent(linkedParentStudent.studentId))[0] || null
+                        return { latestAttendance, latestHomeworkSubmit }
+                    })
+
+                    if (!latestData.latestAttendance) {
+                        await this.zaloService.sendMessage(tokenRecord.accessToken, {
+                            recipient: { user_id: userId },
+                            message: {
+                                text: 'Chưa có dữ liệu điểm danh cho học sinh này.',
+                            },
+                        })
+
+                        await this.zaloService.sendParentMenu(tokenRecord.accessToken, userId, studentName)
+
+                        return BaseResponseDto.success('Chưa có dữ liệu điểm danh', {
+                            handled: true,
+                            event_name: eventName,
+                        })
+                    }
+
+                    const options = new ExportAttendanceImageOptionsDto()
+                    options.includeTuition = false
+                    options.includeHomework = !!latestData.latestHomeworkSubmit
+                    options.homeworkContentId = latestData.latestHomeworkSubmit?.homeworkContentId
+
+                    const attendanceImageData = await this.getAttendanceImageDataUseCase.execute(
+                        latestData.latestAttendance.attendanceId,
+                        options,
+                    )
+
+                    const summaryText = this.zaloService.formatLatestAttendanceSummary(attendanceImageData.templateData)
+
+                    await this.zaloService.sendMessage(tokenRecord.accessToken, {
+                        recipient: { user_id: userId },
+                        message: {
+                            text: summaryText,
+                        },
+                    })
+
+                    await this.zaloService.sendParentMenu(tokenRecord.accessToken, userId, studentName)
+
+                    return BaseResponseDto.success('Đã gửi thông tin điểm danh gần nhất', {
+                        handled: true,
+                        event_name: eventName,
+                    })
+                }
+
                 if (this.zaloService.isUnregisterIntent(incomingText)) {
                     console.log(`[Zalo Webhook] B3.1a - Phụ huynh yêu cầu gỡ đăng kí số điện thoại cho học sinh #${linkedParentStudent.studentId}`)
 
@@ -147,13 +202,30 @@ export class HandleZaloWebhookMessageUseCase {
                     await this.zaloService.sendMessage(tokenRecord.accessToken, {
                         recipient: { user_id: userId },
                         message: {
-                            text: 'Không tìm thấy học sinh theo số điện thoại này. Vui lòng kiểm tra lại hoặc liên hệ trung tâm để được hỗ trợ.',
+                            text: `Không tìm thấy học sinh với số điện thoại ${phone}. Vui lòng liên hệ 0333726202 để được hỗ trợ.`,
                         },
                     })
 
                     await this.zaloService.sendUnregisteredParentMenu(tokenRecord.accessToken, userId)
 
                     return BaseResponseDto.success('Không tìm thấy học sinh theo số điện thoại', {
+                        handled: true,
+                        event_name: eventName,
+                    })
+                }
+
+                if (matchedStudent.parentZaloId) {
+                    console.log(`[Zalo Webhook] B4.1b - Học sinh #${matchedStudent.studentId} đã có phụ huynh đăng ký trước đó`)
+                    await this.zaloService.sendMessage(tokenRecord.accessToken, {
+                        recipient: { user_id: userId },
+                        message: {
+                            text: 'Học sinh này đã được đăng kí phụ huynh rồi, vui lòng chọn lựa chọn khác.',
+                        },
+                    })
+
+                    await this.zaloService.sendUnregisteredParentMenu(tokenRecord.accessToken, userId)
+
+                    return BaseResponseDto.success('Học sinh đã được đăng kí phụ huynh trước đó', {
                         handled: true,
                         event_name: eventName,
                     })

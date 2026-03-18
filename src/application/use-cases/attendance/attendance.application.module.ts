@@ -10,6 +10,7 @@ const ATTENDANCE_USE_CASES = [
   attendanceUseCases.DeleteAttendanceUseCase,
   attendanceUseCases.CreateBulkAttendanceBySessionUseCase,
   attendanceUseCases.ExportAttendanceBySessionUseCase,
+  attendanceUseCases.GetAttendanceImageDataUseCase,
   attendanceUseCases.ExportAttendanceImageUseCase,
   attendanceUseCases.GetAllAttendanceUseCase,
   attendanceUseCases.GetAttendanceStatisticsBySessionUseCase,

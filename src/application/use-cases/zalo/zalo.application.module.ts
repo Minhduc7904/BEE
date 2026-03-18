@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common'
 import { InfrastructureModule } from 'src/infrastructure/infrastructure.module'
+import { AttendanceApplicationModule } from '../attendance/attendance.application.module'
 import { GetZaloWebhookTokenUseCase, HandleZaloWebhookMessageUseCase } from './'
 
 const ZALO_USE_CASES = [GetZaloWebhookTokenUseCase, HandleZaloWebhookMessageUseCase]
 
 @Module({
-  imports: [InfrastructureModule],
+  imports: [InfrastructureModule, AttendanceApplicationModule],
   providers: ZALO_USE_CASES,
   exports: ZALO_USE_CASES,
 })
