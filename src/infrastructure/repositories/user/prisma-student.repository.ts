@@ -247,6 +247,34 @@ export class PrismaStudentRepository implements IStudentRepository {
     return StudentMapper.toDomainStudent(prismaStudent)!
   }
 
+  async unlinkParentZaloId(studentId: number): Promise<Student> {
+    const numericId = NumberUtil.ensureValidId(studentId, 'Student ID')
+
+    const prismaStudent = await this.prisma.student.update({
+      where: { studentId: numericId },
+      data: {
+        parentZaloId: null,
+      },
+      include: {
+        user: {
+          select: {
+            userId: true,
+            username: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            isActive: true,
+            createdAt: true,
+            updatedAt: true,
+            lastLoginAt: true,
+          },
+        },
+      },
+    })
+
+    return StudentMapper.toDomainStudent(prismaStudent)!
+  }
+
   async update(id: number, data: Partial<Student>): Promise<Student> {
     const numericId = NumberUtil.ensureValidId(id, 'Student ID')
 

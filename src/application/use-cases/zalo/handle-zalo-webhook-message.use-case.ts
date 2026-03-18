@@ -32,8 +32,7 @@ interface ZaloSendResponse {
 
 @Injectable()
 export class HandleZaloWebhookMessageUseCase {
-    private static readonly REGISTER_BUTTON_LABEL = 'Đăng ký nhận thông tin cho phụ huynh'
-    private static readonly REGISTER_PAYLOAD = '#DANG_KY_PHU_HUYNH'
+    private static readonly UNREGISTER_PAYLOAD = '#GO_DANG_KY_SDT'
 
     constructor(
         @Inject('UNIT_OF_WORK')
@@ -49,13 +48,13 @@ export class HandleZaloWebhookMessageUseCase {
         return /^0\d{9,10}$/.test(normalized)
     }
 
-    private isRegisterIntent(input: string): boolean {
+    private isUnregisterIntent(input: string): boolean {
         const normalized = input.trim().toLowerCase()
         return (
-            normalized === '.' ||
-            normalized === HandleZaloWebhookMessageUseCase.REGISTER_PAYLOAD.toLowerCase() ||
-            normalized.includes('đăng ký nhận thông tin cho phụ huynh') ||
-            normalized.includes('dang ky nhan thong tin cho phu huynh')
+            normalized === HandleZaloWebhookMessageUseCase.UNREGISTER_PAYLOAD.toLowerCase() ||
+            normalized.includes('gỡ đăng kí số điện thoại') ||
+            normalized.includes('go dang ky so dien thoai') ||
+            normalized === '.'
         )
     }
 
@@ -84,29 +83,6 @@ export class HandleZaloWebhookMessageUseCase {
         }
 
         return zaloResult
-    }
-
-    private async sendRegistrationButton(accessToken: string, userId: string): Promise<void> {
-        await this.sendMessage(accessToken, {
-            recipient: { user_id: userId },
-            message: {
-                text: 'Bạn chưa đăng ký nhận thông tin phụ huynh. Vui lòng bấm nút bên dưới để bắt đầu.',
-            },
-            attachment: {
-                type: 'template',
-                payload: {
-                    template_type: 'button',
-                    text: 'Bắt đầu đăng ký nhận thông tin',
-                    buttons: [
-                        {
-                            title: HandleZaloWebhookMessageUseCase.REGISTER_BUTTON_LABEL,
-                            type: 'oa.query.show',
-                            payload: HandleZaloWebhookMessageUseCase.REGISTER_PAYLOAD,
-                        },
-                    ],
-                },
-            },
-        })
     }
 
     private async sendRegistrationPrompt(accessToken: string, userId: string): Promise<void> {
@@ -152,6 +128,45 @@ export class HandleZaloWebhookMessageUseCase {
                             payload: {
                                 url: process.env.ZALO_MENU_SUPPORT_URL || 'https://bee.edu.vn/contact',
                             },
+                        },
+                    ],
+                },
+            },
+        })
+    }
+
+    private async sendParentMenu(accessToken: string, userId: string, studentName: string): Promise<void> {
+        await this.sendMessage(accessToken, {
+            recipient: {
+                user_id: userId,
+            },
+            message: {
+                text: `Chào mừng phụ huynh học sinh em ${studentName}`,
+            },
+            attachment: {
+                type: 'template',
+                payload: {
+                    template_type: 'button',
+                    text: 'Vui lòng chọn một tùy chọn bên dưới:',
+                    buttons: [
+                        {
+                            title: 'Xem học phí',
+                            type: 'oa.open.url',
+                            payload: {
+                                url: process.env.ZALO_MENU_TUITION_URL || 'https://bee.edu.vn/tuition',
+                            },
+                        },
+                        {
+                            title: 'Xem điểm danh',
+                            type: 'oa.open.url',
+                            payload: {
+                                url: process.env.ZALO_MENU_ATTENDANCE_URL || 'https://bee.edu.vn/attendance',
+                            },
+                        },
+                        {
+                            title: 'Gỡ đăng kí số điện thoại',
+                            type: 'oa.query.show',
+                            payload: HandleZaloWebhookMessageUseCase.UNREGISTER_PAYLOAD,
                         },
                     ],
                 },
@@ -215,34 +230,16 @@ export class HandleZaloWebhookMessageUseCase {
 
         try {
             console.log('[Zalo Webhook] B3 - Kiểm tra user đã liên kết parentZaloId/studentZaloId chưa')
-            const linkedStudent = await this.unitOfWork.executeInTransaction(async (repos) => {
+            const linkage = await this.unitOfWork.executeInTransaction(async (repos) => {
                 const byParent = await repos.studentRepository.findByParentZaloId(userId)
-                if (byParent) return byParent
-                return repos.studentRepository.findByStudentZaloId(userId)
+                const byStudent = byParent ? null : await repos.studentRepository.findByStudentZaloId(userId)
+                return { byParent, byStudent }
             })
+
+            const linkedStudent = linkage.byParent || linkage.byStudent
 
             if (!linkedStudent) {
                 console.log('[Zalo Webhook] B3.1 - User chưa liên kết với học sinh nào')
-                if (!incomingText) {
-                    console.log('[Zalo Webhook] B4 - Không có nội dung text, gửi nút đăng ký cho phụ huynh')
-                    await this.sendRegistrationButton(tokenRecord.accessToken, userId)
-                    return BaseResponseDto.success('Đã gửi nút đăng ký', {
-                        handled: true,
-                        event_name: eventName,
-                    })
-                }
-
-                if (this.isRegisterIntent(incomingText)) {
-                    console.log('[Zalo Webhook] B4.1 - User bấm/nhắn đăng ký, yêu cầu nhập số điện thoại để xác thực')
-                    if (incomingText.trim() === '.') {
-                        console.log('[Zalo Webhook] B4.1 - Nhận tín hiệu bấm nút dạng "." từ Zalo, chuyển sang bước yêu cầu nhập số điện thoại')
-                    }
-                    await this.sendRegistrationPrompt(tokenRecord.accessToken, userId)
-                    return BaseResponseDto.success('Đã yêu cầu nhập số điện thoại xác thực', {
-                        handled: true,
-                        event_name: eventName,
-                    })
-                }
 
                 if (this.isPhoneLike(incomingText)) {
                     const phone = this.normalizePhone(incomingText)
@@ -295,10 +292,45 @@ export class HandleZaloWebhookMessageUseCase {
                     })
                 }
 
-                console.log('[Zalo Webhook] B4.2 - Nội dung chưa hợp lệ cho đăng ký, gửi lại nút đăng ký')
-                await this.sendRegistrationButton(tokenRecord.accessToken, userId)
+                console.log('[Zalo Webhook] B4 - User chưa liên kết và tin nhắn không phải số điện thoại, gửi yêu cầu nhập số điện thoại để đăng ký')
+                await this.sendRegistrationPrompt(tokenRecord.accessToken, userId)
 
-                return BaseResponseDto.success('Đã gửi nút đăng ký cho người dùng chưa liên kết', {
+                return BaseResponseDto.success('Đã yêu cầu nhập số điện thoại để đăng ký liên kết', {
+                    handled: true,
+                    event_name: eventName,
+                })
+            }
+
+            if (linkage.byParent) {
+                const studentName = `${linkage.byParent.user?.lastName || ''} ${linkage.byParent.user?.firstName || ''}`.trim() || `#${linkage.byParent.studentId}`
+
+                if (this.isUnregisterIntent(incomingText)) {
+                    console.log(`[Zalo Webhook] B3.2a - Phụ huynh yêu cầu gỡ đăng kí số điện thoại cho học sinh #${linkage.byParent.studentId}`)
+
+                    await this.unitOfWork.executeInTransaction(async (repos) => {
+                        await repos.studentRepository.unlinkParentZaloId(linkage.byParent!.studentId)
+                    })
+
+                    await this.sendMessage(tokenRecord.accessToken, {
+                        recipient: { user_id: userId },
+                        message: {
+                            text: 'Đã gỡ đăng kí số điện thoại thành công. Nếu cần đăng ký lại, vui lòng nhập số điện thoại học sinh hoặc phụ huynh đã đăng ký tại trung tâm.',
+                        },
+                    })
+
+                    console.log('[Zalo Webhook] B3.2b - Gỡ đăng kí số điện thoại thành công')
+
+                    return BaseResponseDto.success('Đã gỡ đăng kí số điện thoại thành công', {
+                        handled: true,
+                        event_name: eventName,
+                    })
+                }
+
+                console.log(`[Zalo Webhook] B3.2 - User là phụ huynh học sinh #${linkage.byParent.studentId}, gửi menu phụ huynh`)
+                await this.sendParentMenu(tokenRecord.accessToken, userId, studentName)
+                console.log('[Zalo Webhook] B8 - Gửi menu phụ huynh thành công')
+
+                return BaseResponseDto.success('Zalo webhook handled successfully', {
                     handled: true,
                     event_name: eventName,
                 })
