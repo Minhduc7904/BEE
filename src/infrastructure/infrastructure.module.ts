@@ -59,6 +59,7 @@ import {
   HttpClientService,
   AuthService,
   ResendEmailService,
+  ZaloService,
   // SupabaseStorageService, // Disabled: not using Supabase anymore
   MediaProcessingService,
   ExcelService,
@@ -360,6 +361,7 @@ import openaiConfig from '../config/openai.config'
     MarkdownFixService,
     QuestionChapterClassificationService,
     FileConverterService,
+    ZaloService,
     GoogleAdminStrategy,
     GoogleStudentStrategy,
     ImageExportService,
@@ -426,6 +428,7 @@ import openaiConfig from '../config/openai.config'
     MarkdownFixService,
     QuestionChapterClassificationService,
     FileConverterService,
+    ZaloService,
     ImageExportService,
   ],
 })
