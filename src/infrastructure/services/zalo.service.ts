@@ -1,6 +1,8 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import axios from 'axios'
 import type { AttendanceImageTemplateData } from '../templates/attendance-image.template'
+import { TuitionPaymentStatus } from 'src/shared/enums'
+import type { TuitionPayment } from 'src/domain/entities'
 
 export interface ZaloSendResponse {
     error?: number
@@ -16,6 +18,7 @@ export class ZaloService {
     static readonly UNREGISTER_PAYLOAD = '#GO_DANG_KY_SDT'
     static readonly REGISTER_PARENT_PAYLOAD = '#DANG_KY_PHU_HUYNH'
     static readonly LATEST_ATTENDANCE_PAYLOAD = '#XEM_DIEM_DANH_GAN_NHAT'
+    static readonly TUITION_SUMMARY_PAYLOAD = '#XEM_HOC_PHI'
 
     isRegisterParentIntent(input: string): boolean {
         const normalized = input.trim().toLowerCase()
@@ -42,6 +45,48 @@ export class ZaloService {
             normalized.includes('xem điểm danh gần nhất') ||
             normalized.includes('xem diem danh gan nhat')
         )
+    }
+
+    isTuitionSummaryIntent(input: string): boolean {
+        const normalized = input.trim().toLowerCase()
+        return (
+            normalized === ZaloService.TUITION_SUMMARY_PAYLOAD.toLowerCase() ||
+            normalized.includes('xem học phí') ||
+            normalized.includes('xem hoc phi')
+        )
+    }
+
+    formatTuitionSummary(payments: TuitionPayment[]): string {
+        if (!payments.length) {
+            return 'Chưa có dữ liệu học phí cho học sinh này.'
+        }
+
+        const paidPayments = payments.filter((p) => p.status === TuitionPaymentStatus.PAID)
+        const unpaidPayments = payments.filter((p) => p.status === TuitionPaymentStatus.UNPAID)
+
+        const totalPaid = paidPayments.reduce((sum, p) => sum + (typeof p.amount === 'number' ? p.amount : 0), 0)
+        const totalUnpaid = unpaidPayments.reduce((sum, p) => sum + (typeof p.amount === 'number' ? p.amount : 0), 0)
+        const unknownUnpaidCount = unpaidPayments.filter((p) => p.amount === null || p.amount === undefined).length
+
+        const currency = (value: number): string => value.toLocaleString('vi-VN') + ' VND'
+
+        const unpaidDetailLines = unpaidPayments.slice(0, 12).map((p) => {
+            const period = `${String(p.month).padStart(2, '0')}/${p.year}`
+            const amount = typeof p.amount === 'number' ? currency(p.amount) : 'Chưa xác định'
+            const note = p.notes ? ` | Ghi chú: ${p.notes}` : ''
+            return `- ${period}: ${amount}${note}`
+        })
+
+        return [
+            'Thông tin học phí:',
+            `Tổng số tiền đã đóng: ${currency(totalPaid)}`,
+            `Tổng số tiền chưa đóng: ${currency(totalUnpaid)}${unknownUnpaidCount > 0 ? ` (còn ${unknownUnpaidCount} khoản chưa xác định số tiền)` : ''}`,
+            unpaidPayments.length ? 'Chi tiết các khoản chưa đóng:' : 'Không có khoản học phí chưa đóng.',
+            ...unpaidDetailLines,
+            unpaidPayments.length > unpaidDetailLines.length
+                ? `... và ${unpaidPayments.length - unpaidDetailLines.length} khoản chưa đóng khác.`
+                : '',
+        ].filter(Boolean).join('\n')
     }
 
     formatLatestAttendanceSummary(data: AttendanceImageTemplateData): string {
@@ -187,10 +232,8 @@ export class ZaloService {
                         buttons: [
                             {
                                 title: 'Xem học phí',
-                                type: 'oa.open.url',
-                                payload: {
-                                    url: process.env.ZALO_MENU_TUITION_URL || 'https://bee.edu.vn/tuition',
-                                },
+                                type: 'oa.query.show',
+                                payload: ZaloService.TUITION_SUMMARY_PAYLOAD,
                             },
                             {
                                 title: 'Xem điểm danh gần nhất',

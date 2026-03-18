@@ -10,6 +10,7 @@ import { AuditStatus } from 'src/shared/enums/audit-status.enum'
 import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
 import { CreateAndNotifyOneUseCase } from '../notification/create-and-notify-one.use-case'
 import { NotificationType, NotificationLevel, AttendanceStatusLabels } from 'src/shared/enums'
+import { SendAttendanceToParentUseCase } from './send-attendance-to-parent.use-case'
 
 @Injectable()
 export class CreateAttendanceUseCase {
@@ -17,6 +18,7 @@ export class CreateAttendanceUseCase {
         @Inject('UNIT_OF_WORK')
         private readonly unitOfWork: IUnitOfWork,
         private readonly createAndNotifyOne: CreateAndNotifyOneUseCase,
+        private readonly sendAttendanceToParentUseCase: SendAttendanceToParentUseCase,
     ) { }
 
     async execute(
@@ -87,6 +89,11 @@ export class CreateAttendanceUseCase {
                     data: { attendanceId: attendance.attendanceId, sessionId: attendance.sessionId, status: attendance.status },
                 }).catch(() => { /* ignore notification error */ })
             }
+
+            // Nếu học sinh đã liên kết Zalo phụ huynh thì tự động gửi thông tin điểm danh
+            await this.sendAttendanceToParentUseCase.execute({
+                attendanceId: attendance.attendanceId,
+            }).catch(() => { /* ignore zalo notify error */ })
 
             return new AttendanceResponseDto(attendance)
         })

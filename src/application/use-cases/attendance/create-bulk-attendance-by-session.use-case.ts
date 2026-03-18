@@ -14,6 +14,7 @@ import { ACTION_KEYS } from '../../../shared/constants/action-key.constants'
 import { AuditStatus } from '../../../shared/enums/audit-status.enum'
 import { RESOURCE_TYPES } from '../../../shared/constants/resource-type.constants'
 import { CreateAndNotifyManyUseCase } from '../notification/create-and-notify-many.use-case'
+import { SendAttendanceToParentUseCase } from './send-attendance-to-parent.use-case'
 
 @Injectable()
 export class CreateBulkAttendanceBySessionUseCase {
@@ -21,6 +22,7 @@ export class CreateBulkAttendanceBySessionUseCase {
     @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
     private readonly createAndNotifyMany: CreateAndNotifyManyUseCase,
+    private readonly sendAttendanceToParentUseCase: SendAttendanceToParentUseCase,
   ) { }
 
   async execute(
@@ -155,6 +157,13 @@ export class CreateBulkAttendanceBySessionUseCase {
 
           this.createAndNotifyMany.execute(notificationDataList).catch(() => { /* ignore notification error */ })
         }
+
+        // Tự động gửi attendance cho phụ huynh (nếu học sinh đã liên kết parentZaloId)
+        await Promise.allSettled(
+          createdAttendances.map((attendance) =>
+            this.sendAttendanceToParentUseCase.execute({ attendanceId: attendance.attendanceId }),
+          ),
+        )
 
         return createdAttendances.map((attendance) =>
           AttendanceResponseDto.fromEntity(attendance),

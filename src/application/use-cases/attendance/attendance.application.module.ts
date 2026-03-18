@@ -12,6 +12,7 @@ const ATTENDANCE_USE_CASES = [
   attendanceUseCases.ExportAttendanceBySessionUseCase,
   attendanceUseCases.GetAttendanceImageDataUseCase,
   attendanceUseCases.ExportAttendanceImageUseCase,
+  attendanceUseCases.SendAttendanceToParentUseCase,
   attendanceUseCases.GetAllAttendanceUseCase,
   attendanceUseCases.GetAttendanceStatisticsBySessionUseCase,
   attendanceUseCases.UpdateAttendanceUseCase,

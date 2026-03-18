@@ -104,6 +104,30 @@ export class HandleZaloWebhookMessageUseCase {
             if (linkedParentStudent) {
                 const studentName = `${linkedParentStudent.user?.lastName || ''} ${linkedParentStudent.user?.firstName || ''}`.trim() || `#${linkedParentStudent.studentId}`
 
+                if (this.zaloService.isTuitionSummaryIntent(incomingText)) {
+                    console.log(`[Zalo Webhook] B3.0 - Phụ huynh yêu cầu xem học phí của học sinh #${linkedParentStudent.studentId}`)
+
+                    const tuitionPayments = await this.unitOfWork.executeInTransaction(async (repos) => {
+                        return repos.tuitionPaymentRepository.findByStudent(linkedParentStudent.studentId)
+                    })
+
+                    const tuitionSummary = this.zaloService.formatTuitionSummary(tuitionPayments)
+
+                    await this.zaloService.sendMessage(tokenRecord.accessToken, {
+                        recipient: { user_id: userId },
+                        message: {
+                            text: tuitionSummary,
+                        },
+                    })
+
+                    await this.zaloService.sendParentMenu(tokenRecord.accessToken, userId, studentName)
+
+                    return BaseResponseDto.success('Đã gửi thông tin học phí', {
+                        handled: true,
+                        event_name: eventName,
+                    })
+                }
+
                 if (this.zaloService.isLatestAttendanceIntent(incomingText)) {
                     console.log(`[Zalo Webhook] B3.1 - Phụ huynh yêu cầu xem điểm danh gần nhất cho học sinh #${linkedParentStudent.studentId}`)
 
