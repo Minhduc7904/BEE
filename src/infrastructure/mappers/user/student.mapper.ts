@@ -19,6 +19,8 @@ export class StudentMapper {
       grade: prismaStudent.grade,
       studentPhone: prismaStudent.studentPhone ?? undefined,
       parentPhone: prismaStudent.parentPhone ?? undefined,
+      studentZaloId: prismaStudent.studentZaloId ?? undefined,
+      parentZaloId: prismaStudent.parentZaloId ?? undefined,
       school: prismaStudent.school ?? undefined,
       user: UserMapper.toDomainUser(prismaStudent.user) ?? undefined,
     })

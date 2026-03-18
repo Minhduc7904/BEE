@@ -34,4 +34,24 @@ export class PrismaZaloTokenRepository implements IZaloTokenRepository {
             },
         })
     }
+
+    async findByAppId(appId: string): Promise<{ oaId: string; appId: string; accessToken: string } | null> {
+        const token = await this.prisma.zaloToken.findFirst({
+            where: { appId },
+            orderBy: { updatedAt: 'desc' },
+            select: {
+                oaId: true,
+                appId: true,
+                accessToken: true,
+            },
+        })
+
+        if (!token) return null
+
+        return {
+            oaId: token.oaId,
+            appId: token.appId,
+            accessToken: token.accessToken,
+        }
+    }
 }

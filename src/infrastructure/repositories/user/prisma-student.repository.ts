@@ -89,6 +89,8 @@ export class PrismaStudentRepository implements IStudentRepository {
         userId: numericUserId,
         studentPhone: data.studentPhone,
         parentPhone: data.parentPhone,
+        studentZaloId: data.studentZaloId,
+        parentZaloId: data.parentZaloId,
         grade: data.grade,
         school: data.school,
       },
@@ -167,6 +169,84 @@ export class PrismaStudentRepository implements IStudentRepository {
     return StudentMapper.toDomainStudent(prismaStudent)!
   }
 
+  async findByParentZaloId(parentZaloId: string): Promise<Student | null> {
+    const prismaStudent = await this.prisma.student.findFirst({
+      where: { parentZaloId },
+      include: {
+        user: {
+          select: {
+            userId: true,
+            username: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            isActive: true,
+            createdAt: true,
+            updatedAt: true,
+            lastLoginAt: true,
+          },
+        },
+      },
+    })
+
+    if (!prismaStudent) return null
+    return StudentMapper.toDomainStudent(prismaStudent)!
+  }
+
+  async findByStudentZaloId(studentZaloId: string): Promise<Student | null> {
+    const prismaStudent = await this.prisma.student.findFirst({
+      where: { studentZaloId },
+      include: {
+        user: {
+          select: {
+            userId: true,
+            username: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            isActive: true,
+            createdAt: true,
+            updatedAt: true,
+            lastLoginAt: true,
+          },
+        },
+      },
+    })
+
+    if (!prismaStudent) return null
+    return StudentMapper.toDomainStudent(prismaStudent)!
+  }
+
+  async findByStudentOrParentPhone(phone: string): Promise<Student | null> {
+    const prismaStudent = await this.prisma.student.findFirst({
+      where: {
+        OR: [
+          { studentPhone: phone },
+          { parentPhone: phone },
+        ],
+      },
+      include: {
+        user: {
+          select: {
+            userId: true,
+            username: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            isActive: true,
+            createdAt: true,
+            updatedAt: true,
+            lastLoginAt: true,
+          },
+        },
+      },
+      orderBy: { studentId: 'desc' },
+    })
+
+    if (!prismaStudent) return null
+    return StudentMapper.toDomainStudent(prismaStudent)!
+  }
+
   async update(id: number, data: Partial<Student>): Promise<Student> {
     const numericId = NumberUtil.ensureValidId(id, 'Student ID')
 
@@ -175,6 +255,8 @@ export class PrismaStudentRepository implements IStudentRepository {
       data: {
         studentPhone: data.studentPhone,
         parentPhone: data.parentPhone,
+        studentZaloId: data.studentZaloId,
+        parentZaloId: data.parentZaloId,
         grade: data.grade,
         school: data.school,
       },
@@ -483,6 +565,8 @@ export class PrismaStudentRepository implements IStudentRepository {
                 s.user_id as userId, 
                 s.student_phone as studentPhone,
                 s.parent_phone as parentPhone,
+                s.student_zalo_id as studentZaloId,
+                s.parent_zalo_id as parentZaloId,
                 s.grade,
                 s.school,
                 u.user_id as user_userId,
@@ -515,6 +599,8 @@ export class PrismaStudentRepository implements IStudentRepository {
       userId: row.userId,
       studentPhone: row.studentPhone,
       parentPhone: row.parentPhone,
+      studentZaloId: row.studentZaloId,
+      parentZaloId: row.parentZaloId,
       grade: row.grade,
       school: row.school,
       user: {

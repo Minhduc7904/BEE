@@ -11,6 +11,8 @@ export class Student {
   // Optional properties
   studentPhone?: string
   parentPhone?: string
+  studentZaloId?: string
+  parentZaloId?: string
   school?: string
 
   // Navigation properties
@@ -22,6 +24,8 @@ export class Student {
     grade: number
     studentPhone?: string
     parentPhone?: string
+    studentZaloId?: string
+    parentZaloId?: string
     school?: string
     user?: User
   }) {
@@ -30,6 +34,8 @@ export class Student {
     this.grade = data.grade
     this.studentPhone = data.studentPhone
     this.parentPhone = data.parentPhone
+    this.studentZaloId = data.studentZaloId
+    this.parentZaloId = data.parentZaloId
     this.school = data.school
     this.user = data.user
   }
@@ -75,6 +81,8 @@ export class Student {
       grade: this.grade,
       studentPhone: this.studentPhone,
       parentPhone: this.parentPhone,
+      studentZaloId: this.studentZaloId,
+      parentZaloId: this.parentZaloId,
       school: this.school,
       fullName: this.getFullName(),
       email: this.getEmail(),
@@ -89,6 +97,8 @@ export class Student {
       grade: this.grade,
       studentPhone: this.studentPhone,
       parentPhone: this.parentPhone,
+      studentZaloId: this.studentZaloId,
+      parentZaloId: this.parentZaloId,
       school: this.school,
       user: this.user,
     })

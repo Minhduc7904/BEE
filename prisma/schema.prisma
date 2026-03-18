@@ -207,6 +207,8 @@ model Student {
   user         User    @relation("UserStudent", fields: [userId], references: [userId], onDelete: Cascade)
   studentPhone String? @map("student_phone") @db.VarChar(15)
   parentPhone  String? @map("parent_phone") @db.VarChar(15)
+  studentZaloId String? @map("student_zalo_id") @db.VarChar(32)
+  parentZaloId  String? @map("parent_zalo_id") @db.VarChar(32)
   grade        Int     @db.TinyInt
   school       String? @map("school") @db.VarChar(120)
 

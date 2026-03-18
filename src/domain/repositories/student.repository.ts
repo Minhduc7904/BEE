@@ -12,6 +12,9 @@ export interface IStudentRepository {
   create(data: CreateStudentData): Promise<Student>
   findById(id: number | string): Promise<Student | null>
   findByUserId(userId: number): Promise<Student | null>
+  findByParentZaloId(parentZaloId: string): Promise<Student | null>
+  findByStudentZaloId(studentZaloId: string): Promise<Student | null>
+  findByStudentOrParentPhone(phone: string): Promise<Student | null>
   update(id: number, data: Partial<Student>): Promise<Student>
   delete(id: number): Promise<boolean>
 

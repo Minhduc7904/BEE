@@ -5,6 +5,8 @@ export interface CreateStudentData {
   userId: number
   studentPhone?: string
   parentPhone?: string
+  studentZaloId?: string
+  parentZaloId?: string
   grade: number
   school?: string
 }

@@ -1,5 +1,5 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query } from '@nestjs/common'
-import { GetZaloWebhookTokenUseCase } from '../../application/use-cases/zalo'
+import { GetZaloWebhookTokenUseCase, HandleZaloWebhookMessageUseCase } from '../../application/use-cases/zalo'
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 
@@ -7,6 +7,7 @@ import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 export class ZaloController {
     constructor(
         private readonly getZaloWebhookTokenUseCase: GetZaloWebhookTokenUseCase,
+        private readonly handleZaloWebhookMessageUseCase: HandleZaloWebhookMessageUseCase,
     ) { }
 
     @Get('webhook')
@@ -33,12 +34,7 @@ export class ZaloController {
 
     @Post('webhook')
     @HttpCode(HttpStatus.OK)
-    webhook(@Body() payload: unknown) {
-        return {
-            success: true,
-            message: 'Zalo webhook received',
-            data: payload,
-            receivedAt: new Date().toISOString(),
-        }
+    async webhook(@Body() payload: any): Promise<BaseResponseDto<{ handled: boolean; reason?: string; event_name?: string }>> {
+        return ExceptionHandler.execute(() => this.handleZaloWebhookMessageUseCase.execute(payload))
     }
 }
