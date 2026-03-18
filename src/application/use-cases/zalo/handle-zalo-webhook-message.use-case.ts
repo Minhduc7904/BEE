@@ -21,6 +21,15 @@ interface ZaloWebhookHandleResult {
     event_name?: string
 }
 
+interface ZaloSendResponse {
+    error?: number
+    message?: string
+    data?: {
+        message_id?: string
+    }
+    [key: string]: any
+}
+
 @Injectable()
 export class HandleZaloWebhookMessageUseCase {
     private static readonly REGISTER_BUTTON_LABEL = 'Đăng ký nhận thông tin cho phụ huynh'
@@ -43,20 +52,38 @@ export class HandleZaloWebhookMessageUseCase {
     private isRegisterIntent(input: string): boolean {
         const normalized = input.trim().toLowerCase()
         return (
+            normalized === '.' ||
             normalized === HandleZaloWebhookMessageUseCase.REGISTER_PAYLOAD.toLowerCase() ||
             normalized.includes('đăng ký nhận thông tin cho phụ huynh') ||
             normalized.includes('dang ky nhan thong tin cho phu huynh')
         )
     }
 
-    private async sendMessage(accessToken: string, body: any): Promise<void> {
-        await axios.post('https://openapi.zalo.me/v3.0/oa/message/cs', body, {
+    private async sendMessage(accessToken: string, body: any): Promise<ZaloSendResponse> {
+        const response = await axios.post<ZaloSendResponse>('https://openapi.zalo.me/v3.0/oa/message/cs', body, {
             headers: {
                 access_token: accessToken,
                 'Content-Type': 'application/json',
             },
             timeout: 15_000,
         })
+
+        const zaloResult = response.data ?? {}
+
+        console.log('[Zalo API] Kết quả gọi API gửi tin:', {
+            httpStatus: response.status,
+            error: zaloResult.error,
+            message: zaloResult.message,
+            messageId: zaloResult?.data?.message_id,
+        })
+
+        if (typeof zaloResult.error === 'number' && zaloResult.error !== 0) {
+            throw new InternalServerErrorException(
+                `Zalo API từ chối gửi tin: error=${zaloResult.error}, message=${zaloResult.message || 'N/A'}`,
+            )
+        }
+
+        return zaloResult
     }
 
     private async sendRegistrationButton(accessToken: string, userId: string): Promise<void> {
@@ -207,6 +234,9 @@ export class HandleZaloWebhookMessageUseCase {
 
                 if (this.isRegisterIntent(incomingText)) {
                     console.log('[Zalo Webhook] B4.1 - User bấm/nhắn đăng ký, yêu cầu nhập số điện thoại để xác thực')
+                    if (incomingText.trim() === '.') {
+                        console.log('[Zalo Webhook] B4.1 - Nhận tín hiệu bấm nút dạng "." từ Zalo, chuyển sang bước yêu cầu nhập số điện thoại')
+                    }
                     await this.sendRegistrationPrompt(tokenRecord.accessToken, userId)
                     return BaseResponseDto.success('Đã yêu cầu nhập số điện thoại xác thực', {
                         handled: true,
@@ -279,8 +309,8 @@ export class HandleZaloWebhookMessageUseCase {
             console.log('[Zalo Webhook] B8 - Gửi menu chính thành công')
         } catch (error: any) {
             const errorMessage =
-                error?.response?.data?.message ||
                 error?.response?.data?.error_description ||
+                error?.response?.data?.message ||
                 error?.message ||
                 'Failed to send message to Zalo user'
 
