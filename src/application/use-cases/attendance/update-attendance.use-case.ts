@@ -9,7 +9,7 @@ import { ACTION_KEYS } from 'src/shared/constants/action-key.constants'
 import { AuditStatus } from 'src/shared/enums/audit-status.enum'
 import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
 import { CreateAndNotifyOneUseCase } from '../notification/create-and-notify-one.use-case'
-import { NotificationType, NotificationLevel, AttendanceStatus, AttendanceStatusLabels } from 'src/shared/enums'
+import { NotificationType, NotificationLevel, AttendanceStatusLabels } from 'src/shared/enums'
 import { SendAttendanceToParentUseCase } from './send-attendance-to-parent.use-case'
 
 @Injectable()
@@ -19,7 +19,7 @@ export class UpdateAttendanceUseCase {
     private readonly unitOfWork: IUnitOfWork,
     private readonly createAndNotifyOne: CreateAndNotifyOneUseCase,
     private readonly sendAttendanceToParentUseCase: SendAttendanceToParentUseCase,
-  ) {}
+  ) { }
 
   async execute(
     attendanceId: number,
@@ -48,13 +48,14 @@ export class UpdateAttendanceUseCase {
       }
 
       const data: UpdateAttendanceData = {}
+      const statusChanged = dto.status !== undefined && dto.status !== existing.status
 
       // Chỉ gán các trường thực sự thay đổi
-      if (dto.status !== undefined && dto.status !== existing.status) {
+      if (statusChanged) {
         data.status = dto.status
 
         // Nếu chuyển sang trạng thái có mặt → cập nhật thời điểm điểm danh
-          data.markedAt = new Date()
+        data.markedAt = new Date()
       }
 
       if (dto.notes !== undefined && dto.notes !== existing.notes) {
@@ -98,10 +99,12 @@ export class UpdateAttendanceUseCase {
         }).catch(() => { /* ignore notification error */ })
       }
 
-      // Nếu học sinh đã liên kết Zalo phụ huynh thì tự động gửi thông tin điểm danh mới
-      await this.sendAttendanceToParentUseCase.execute({
-        attendanceId: attendance.attendanceId,
-      }).catch(() => { /* ignore zalo notify error */ })
+      // Chỉ gửi Zalo khi trạng thái điểm danh thay đổi
+      if (statusChanged) {
+        await this.sendAttendanceToParentUseCase.execute({
+          attendanceId: attendance.attendanceId,
+        }).catch(() => { /* ignore zalo notify error */ })
+      }
 
       return new AttendanceResponseDto(attendance)
     })

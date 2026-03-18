@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 import type { IUnitOfWork } from 'src/domain/repositories'
 import { AttendanceStatusLabels } from 'src/shared/enums'
-import { formatVnDate, formatVnTime } from 'src/shared/utils/vietnam-date.util'
+import { formatVnDate, formatVnDateTime, formatVnTime } from 'src/shared/utils/vietnam-date.util'
 import { ZaloService } from 'src/infrastructure/services'
 
 interface SendAttendanceToParentInput {
@@ -53,16 +53,18 @@ export class SendAttendanceToParentUseCase {
         const sessionTime = attendance.classSession?.startTime && attendance.classSession?.endTime
             ? `${formatVnTime(attendance.classSession.startTime)} - ${formatVnTime(attendance.classSession.endTime)}`
             : ''
+        const arrivalTime = attendance.markedAt ? formatVnDateTime(attendance.markedAt) : 'Chưa có dữ liệu'
 
         const statusLabel = AttendanceStatusLabels[attendance.status] || attendance.status
 
         const messageLines = [
-            'Thong bao diem danh:',
-            `Hoc sinh: ${studentName}`,
-            `Lop: ${className}`,
-            `Ngay hoc: ${sessionDate}${sessionTime ? ` (${sessionTime})` : ''}`,
-            `Trang thai: ${statusLabel}`,
-            attendance.notes ? `Ghi chu: ${attendance.notes}` : '',
+            'Thông báo điểm danh:',
+            `Học sinh: ${studentName}`,
+            `Lớp: ${className}`,
+            `Ngày học: ${sessionDate}${sessionTime ? ` (${sessionTime})` : ''}`,
+            `Thời gian đến lớp: ${arrivalTime}`,
+            `Trạng thái: ${statusLabel}`,
+            attendance.notes ? `Ghi chú: ${attendance.notes}` : '',
         ].filter(Boolean)
 
         await this.zaloService.sendMessage(tokenRecord.accessToken, {
