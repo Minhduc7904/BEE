@@ -8,6 +8,7 @@ import { RESOURCE_TYPES, ACTION_KEYS } from 'src/shared/constants'
 import { CreateTuitionPaymentData } from 'src/domain/interface'
 import { TuitionPayment } from 'src/domain/entities/tuition-payment/tuition-payment.entity'
 import { CreateAndNotifyManyUseCase } from '../notification/create-and-notify-many.use-case'
+import { SendTuitionPaymentToParentUseCase } from './send-tuition-payment-to-parent.use-case'
 
 @Injectable()
 export class CreateArrayBulkTuitionPaymentUseCase {
@@ -15,6 +16,7 @@ export class CreateArrayBulkTuitionPaymentUseCase {
     @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
     private readonly createAndNotifyMany: CreateAndNotifyManyUseCase,
+    private readonly sendTuitionPaymentToParentUseCase: SendTuitionPaymentToParentUseCase,
   ) {}
 
   /**
@@ -189,7 +191,10 @@ export class CreateArrayBulkTuitionPaymentUseCase {
           }
         }
 
-        return results.created.map((p) => TuitionPaymentResponseDto.fromEntity(p))
+        return {
+          responses: results.created.map((p) => TuitionPaymentResponseDto.fromEntity(p)),
+          paymentIds: results.created.map((p) => p.paymentId),
+        }
       } catch (error) {
         /**
          * =========================
@@ -209,6 +214,15 @@ export class CreateArrayBulkTuitionPaymentUseCase {
       }
     })
 
-    return BaseResponseDto.success('Tạo học phí hàng loạt thành công', result)
+    // Gửi Zalo sau khi transaction đã commit để đảm bảo đọc đúng dữ liệu học phí vừa tạo
+    if (result.paymentIds.length > 0) {
+      await Promise.allSettled(
+        result.paymentIds.map((paymentId) =>
+          this.sendTuitionPaymentToParentUseCase.execute({ paymentId }),
+        ),
+      )
+    }
+
+    return BaseResponseDto.success('Tạo học phí hàng loạt thành công', result.responses)
   }
 }

@@ -12,6 +12,7 @@ import { RESOURCE_TYPES, ACTION_KEYS } from 'src/shared/constants'
 import { UpdateTuitionPaymentData } from 'src/domain/interface'
 import { TuitionPayment } from 'src/domain/entities/tuition-payment/tuition-payment.entity'
 import { CreateAndNotifyManyUseCase } from '../notification/create-and-notify-many.use-case'
+import { SendTuitionPaymentToParentUseCase } from './send-tuition-payment-to-parent.use-case'
 
 @Injectable()
 export class UpdateArrayBulkTuitionPaymentUseCase {
@@ -19,6 +20,7 @@ export class UpdateArrayBulkTuitionPaymentUseCase {
         @Inject('UNIT_OF_WORK')
         private readonly unitOfWork: IUnitOfWork,
         private readonly createAndNotifyMany: CreateAndNotifyManyUseCase,
+        private readonly sendTuitionPaymentToParentUseCase: SendTuitionPaymentToParentUseCase,
     ) { }
 
     /**
@@ -45,9 +47,11 @@ export class UpdateArrayBulkTuitionPaymentUseCase {
                 const results: {
                     updated: TuitionPayment[]
                     failed: any[]
+                    parentNotifyPaymentIds: number[]
                 } = {
                     updated: [],
                     failed: [],
+                    parentNotifyPaymentIds: [],
                 }
 
                 /**
@@ -83,6 +87,8 @@ export class UpdateArrayBulkTuitionPaymentUseCase {
                         const data: UpdateTuitionPaymentData = {
                             notes: paymentUpdate.notes,
                         }
+                        const amountChanged = paymentUpdate.amount !== undefined && paymentUpdate.amount !== tuitionPayment.amount
+                        const statusChanged = paymentUpdate.status !== undefined && paymentUpdate.status !== tuitionPayment.status
 
                         if (paymentUpdate.status) {
                             data.status = paymentUpdate.status
@@ -116,6 +122,9 @@ export class UpdateArrayBulkTuitionPaymentUseCase {
 
                         if (updatedPayment) {
                             results.updated.push(updatedPayment)
+                            if (amountChanged || statusChanged) {
+                                results.parentNotifyPaymentIds.push(updatedPayment.paymentId)
+                            }
                         }
                     } catch (error) {
                         results.failed.push({
@@ -173,7 +182,10 @@ export class UpdateArrayBulkTuitionPaymentUseCase {
                     }
                 }
 
-                return results.updated.map((p) => TuitionPaymentResponseDto.fromEntity(p))
+                return {
+                    responses: results.updated.map((p) => TuitionPaymentResponseDto.fromEntity(p)),
+                    parentNotifyPaymentIds: results.parentNotifyPaymentIds,
+                }
             } catch (error) {
                 /**
                  * =========================
@@ -193,6 +205,15 @@ export class UpdateArrayBulkTuitionPaymentUseCase {
             }
         })
 
-        return BaseResponseDto.success('Cập nhật học phí hàng loạt thành công', result)
+        // Chỉ gửi Zalo cho phụ huynh khi có cập nhật số tiền hoặc trạng thái và sau khi transaction đã commit
+        if (result.parentNotifyPaymentIds.length > 0) {
+            await Promise.allSettled(
+                result.parentNotifyPaymentIds.map((paymentId) =>
+                    this.sendTuitionPaymentToParentUseCase.execute({ paymentId }),
+                ),
+            )
+        }
+
+        return BaseResponseDto.success('Cập nhật học phí hàng loạt thành công', result.responses)
     }
 }

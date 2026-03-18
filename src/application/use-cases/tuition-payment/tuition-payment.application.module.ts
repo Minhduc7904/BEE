@@ -25,6 +25,7 @@ const TUITION_PAYMENT_USE_CASES = [
   tuitionPaymentUseCase.GetMonthlyTuitionPaymentStatsUseCase,
   // export
   tuitionPaymentUseCase.ExportTuitionPaymentListUseCase,
+  tuitionPaymentUseCase.SendTuitionPaymentToParentUseCase,
 ]
 @Module({
   imports: [

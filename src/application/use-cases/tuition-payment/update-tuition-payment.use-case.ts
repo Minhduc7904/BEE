@@ -13,6 +13,7 @@ import { AuditStatus } from 'src/shared/enums/audit-status.enum'
 import { UpdateTuitionPaymentData } from 'src/domain/interface/tuition-payment/tuition-payment.interface'
 import { TuitionPaymentStatus, NotificationType, NotificationLevel, TuitionPaymentStatusLabels } from 'src/shared/enums'
 import { CreateAndNotifyOneUseCase } from '../notification/create-and-notify-one.use-case'
+import { SendTuitionPaymentToParentUseCase } from './send-tuition-payment-to-parent.use-case'
 
 @Injectable()
 export class UpdateTuitionPaymentUseCase {
@@ -20,6 +21,7 @@ export class UpdateTuitionPaymentUseCase {
     @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
     private readonly createAndNotifyOne: CreateAndNotifyOneUseCase,
+    private readonly sendTuitionPaymentToParentUseCase: SendTuitionPaymentToParentUseCase,
   ) {}
 
   /**
@@ -71,6 +73,8 @@ export class UpdateTuitionPaymentUseCase {
 
       // Clone trước khi update để audit
       const beforeData = { ...tuitionPayment }
+      const amountChanged = dto.amount !== undefined && dto.amount !== tuitionPayment.amount
+      const statusChanged = dto.status !== undefined && dto.status !== tuitionPayment.status
 
       /**
        * =========================
@@ -158,9 +162,20 @@ export class UpdateTuitionPaymentUseCase {
         }).catch(() => { /* ignore notification error */ })
       }
 
-      return new TuitionPaymentResponseDto(updatedTuitionPayment)
+      return {
+        response: new TuitionPaymentResponseDto(updatedTuitionPayment),
+        paymentId: updatedTuitionPayment.paymentId,
+        shouldNotifyParent: amountChanged || statusChanged,
+      }
     })
 
-    return BaseResponseDto.success('Cập nhật học phí thành công', result)
+    // Chỉ gửi Zalo cho phụ huynh khi cập nhật số tiền hoặc trạng thái và sau khi transaction đã commit
+    if (result.shouldNotifyParent) {
+      await this.sendTuitionPaymentToParentUseCase.execute({
+        paymentId: result.paymentId,
+      }).catch(() => { /* ignore zalo notify error */ })
+    }
+
+    return BaseResponseDto.success('Cập nhật học phí thành công', result.response)
   }
 }

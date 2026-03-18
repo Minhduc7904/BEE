@@ -7,6 +7,7 @@ import { AuditStatus, NotificationType, NotificationLevel, TuitionPaymentStatusL
 import { RESOURCE_TYPES, ACTION_KEYS } from 'src/shared/constants'
 import { CreateTuitionPaymentData } from 'src/domain/interface'
 import { CreateAndNotifyOneUseCase } from '../notification/create-and-notify-one.use-case'
+import { SendTuitionPaymentToParentUseCase } from './send-tuition-payment-to-parent.use-case'
 
 @Injectable()
 export class CreateTuitionPaymentUseCase {
@@ -14,6 +15,7 @@ export class CreateTuitionPaymentUseCase {
     @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
     private readonly createAndNotifyOne: CreateAndNotifyOneUseCase,
+    private readonly sendTuitionPaymentToParentUseCase: SendTuitionPaymentToParentUseCase,
   ) {}
 
   async execute(dto: CreateTuitionPaymentDto, adminId?: number): Promise<BaseResponseDto<TuitionPaymentResponseDto>> {
@@ -85,9 +87,17 @@ export class CreateTuitionPaymentUseCase {
         }).catch(() => { /* ignore notification error */ })
       }
 
-      return new TuitionPaymentResponseDto(payment)
+      return {
+        response: new TuitionPaymentResponseDto(payment),
+        paymentId: payment.paymentId,
+      }
     })
 
-    return BaseResponseDto.success('Tạo học phí thành công', result)
+    // Gửi Zalo sau khi transaction đã commit để tránh đọc dữ liệu cũ/chưa commit
+    await this.sendTuitionPaymentToParentUseCase.execute({
+      paymentId: result.paymentId,
+    }).catch(() => { /* ignore zalo notify error */ })
+
+    return BaseResponseDto.success('Tạo học phí thành công', result.response)
   }
 }
