@@ -98,7 +98,10 @@ export class CreateBulkAttendanceBySessionUseCase {
           }))
 
         if (bulkData.length === 0) {
-          return []
+          return {
+            responses: [] as AttendanceResponseDto[],
+            attendanceIds: [] as number[],
+          }
         }
 
         /**
@@ -158,16 +161,12 @@ export class CreateBulkAttendanceBySessionUseCase {
           this.createAndNotifyMany.execute(notificationDataList).catch(() => { /* ignore notification error */ })
         }
 
-        // Tự động gửi attendance cho phụ huynh (nếu học sinh đã liên kết parentZaloId)
-        await Promise.allSettled(
-          createdAttendances.map((attendance) =>
-            this.sendAttendanceToParentUseCase.execute({ attendanceId: attendance.attendanceId }),
+        return {
+          responses: createdAttendances.map((attendance) =>
+            AttendanceResponseDto.fromEntity(attendance),
           ),
-        )
-
-        return createdAttendances.map((attendance) =>
-          AttendanceResponseDto.fromEntity(attendance),
-        )
+          attendanceIds: createdAttendances.map((attendance) => attendance.attendanceId),
+        }
       } catch (error) {
         /**
          * =========================
@@ -188,11 +187,20 @@ export class CreateBulkAttendanceBySessionUseCase {
       }
     })
 
+    // Gửi Zalo sau khi transaction đã commit để đảm bảo đọc đúng dữ liệu mới tạo
+    if (result.attendanceIds.length > 0) {
+      await Promise.allSettled(
+        result.attendanceIds.map((attendanceId) =>
+          this.sendAttendanceToParentUseCase.execute({ attendanceId }),
+        ),
+      )
+    }
+
     return BaseResponseDto.success(
-      result.length > 0
-        ? `Đã tạo attendance cho ${result.length} học sinh`
+      result.responses.length > 0
+        ? `Đã tạo attendance cho ${result.responses.length} học sinh`
         : 'Không có attendance nào được tạo',
-      result,
+      result.responses,
     )
   }
 }

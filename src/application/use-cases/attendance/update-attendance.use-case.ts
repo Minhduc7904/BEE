@@ -68,7 +68,11 @@ export class UpdateAttendanceUseCase {
 
       // Không có gì thay đổi → trả về dữ liệu cũ
       if (Object.keys(data).length === 0) {
-        return new AttendanceResponseDto(existing)
+        return {
+          response: new AttendanceResponseDto(existing),
+          attendanceId: existing.attendanceId,
+          statusChanged: false,
+        }
       }
 
       const attendance = await attendanceRepository.update(attendanceId, data)
@@ -99,16 +103,20 @@ export class UpdateAttendanceUseCase {
         }).catch(() => { /* ignore notification error */ })
       }
 
-      // Chỉ gửi Zalo khi trạng thái điểm danh thay đổi
-      if (statusChanged) {
-        await this.sendAttendanceToParentUseCase.execute({
-          attendanceId: attendance.attendanceId,
-        }).catch(() => { /* ignore zalo notify error */ })
+      return {
+        response: new AttendanceResponseDto(attendance),
+        attendanceId: attendance.attendanceId,
+        statusChanged,
       }
-
-      return new AttendanceResponseDto(attendance)
     })
 
-    return BaseResponseDto.success('Cập nhật điểm danh thành công', result)
+    // Chỉ gửi Zalo khi trạng thái điểm danh thay đổi và sau khi transaction đã commit
+    if (result.statusChanged) {
+      await this.sendAttendanceToParentUseCase.execute({
+        attendanceId: result.attendanceId,
+      }).catch(() => { /* ignore zalo notify error */ })
+    }
+
+    return BaseResponseDto.success('Cập nhật điểm danh thành công', result.response)
   }
 }

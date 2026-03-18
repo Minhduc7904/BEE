@@ -90,14 +90,17 @@ export class CreateAttendanceUseCase {
                 }).catch(() => { /* ignore notification error */ })
             }
 
-            // Nếu học sinh đã liên kết Zalo phụ huynh thì tự động gửi thông tin điểm danh
-            await this.sendAttendanceToParentUseCase.execute({
+            return {
+                response: new AttendanceResponseDto(attendance),
                 attendanceId: attendance.attendanceId,
-            }).catch(() => { /* ignore zalo notify error */ })
-
-            return new AttendanceResponseDto(attendance)
+            }
         })
 
-        return BaseResponseDto.success('Tạo điểm danh thành công', result)
+        // Gửi Zalo sau khi transaction đã commit để tránh đọc dữ liệu cũ/chưa commit
+        await this.sendAttendanceToParentUseCase.execute({
+            attendanceId: result.attendanceId,
+        }).catch(() => { /* ignore zalo notify error */ })
+
+        return BaseResponseDto.success('Tạo điểm danh thành công', result.response)
     }
 }
