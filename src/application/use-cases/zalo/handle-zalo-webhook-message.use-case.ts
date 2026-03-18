@@ -137,7 +137,7 @@ export class HandleZaloWebhookMessageUseCase {
         const appId = payload?.app_id
         const userId = payload?.sender?.id
         const incomingText = payload?.message?.text?.trim() ?? ''
-
+        console.log('Received Zalo webhook:', { eventName, appId, userId, incomingText })
         if (!appId || !eventName) {
             return BaseResponseDto.success('Webhook received', {
                 handled: false,
