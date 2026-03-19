@@ -20,7 +20,7 @@ export class StudentResponseDto extends UserResponseDto {
   school?: string
 
   roles?: RoleResponseDto[]
-  hasParentZaloId?: Boolean
+  hasParentZaloId?: boolean
   courseEnrollments?: CourseEnrollmentResponseDto[]
   classStudents?: ClassStudentResponseDto[]
 

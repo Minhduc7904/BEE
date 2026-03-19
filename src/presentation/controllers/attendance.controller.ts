@@ -39,6 +39,7 @@ import {
   GetAttendanceStatisticsBySessionUseCase,
   ExportAttendanceBySessionUseCase,
   ExportAttendanceImageUseCase,
+  SendAttendanceToParentUseCase,
   ToggleParentNotifiedUseCase,
 } from '../../application/use-cases/attendance'
 import { Injectable } from '@nestjs/common'
@@ -56,6 +57,7 @@ export class AttendanceController {
     private readonly getAttendanceStatisticsBySessionUseCase: GetAttendanceStatisticsBySessionUseCase,
     private readonly exportAttendanceBySessionUseCase: ExportAttendanceBySessionUseCase,
     private readonly exportAttendanceImageUseCase: ExportAttendanceImageUseCase,
+    private readonly sendAttendanceToParentUseCase: SendAttendanceToParentUseCase,
     private readonly toggleParentNotifiedUseCase: ToggleParentNotifiedUseCase,
   ) { }
 
@@ -205,6 +207,25 @@ export class AttendanceController {
     @CurrentUser('adminId') adminId?: number,
   ): Promise<BaseResponseDto<AttendanceResponseDto>> {
     return ExceptionHandler.execute(() => this.toggleParentNotifiedUseCase.execute(id, adminId))
+  }
+
+  /**
+   * Send attendance notification to parent manually
+   * POST /attendances/:id/send-to-parent
+   */
+  @Post(':id/send-to-parent')
+  @RequirePermission(PERMISSION_CODES.ATTENDANCE.UPDATE)
+  @HttpCode(HttpStatus.OK)
+  async sendToParent(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<BaseResponseDto<{ sent: boolean }>> {
+    return ExceptionHandler.execute(async () => {
+      const sent = await this.sendAttendanceToParentUseCase.execute({
+        attendanceId: id,
+      })
+
+      return sent ? BaseResponseDto.success( 'Đã gửi thông báo đến phụ huynh' ,{ sent: true }) : BaseResponseDto.error('Không thể gửi thông báo đến phụ huynh')
+    })
   }
 
   /**
