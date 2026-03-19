@@ -7,6 +7,7 @@ import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { IsOptionalInt, IsOptionalPhoneVN, IsOptionalString } from 'src/shared/decorators/validate'
 import { CourseEnrollmentResponseDto } from '../course-enrollment/course-enrollment.dto'
 import { ClassStudentResponseDto } from '../class-student/class-student.dto'
+
 export class StudentResponseDto extends UserResponseDto {
   studentId: number
 
@@ -19,9 +20,9 @@ export class StudentResponseDto extends UserResponseDto {
   school?: string
 
   roles?: RoleResponseDto[]
+  hasParentZaloId?: Boolean
   courseEnrollments?: CourseEnrollmentResponseDto[]
   classStudents?: ClassStudentResponseDto[]
-
 
   constructor(partial: Partial<StudentResponseDto>) {
     super(partial)
@@ -35,14 +36,15 @@ export class StudentResponseDto extends UserResponseDto {
     const baseUser = UserResponseDto.fromUser(user)
 
     // Map roles từ user.userRoles nếu có
-    const roles = user.userRoles?.map((ur: any) => ({
-      roleId: ur.role?.roleId || ur.roleId,
-      roleName: ur.role?.roleName || ur.roleName,
-      description: ur.role?.description || ur.description,
-      isAssignable: ur.role?.isAssignable ?? ur.isAssignable ?? true,
-      requiredByRoleId: ur.role?.requiredByRoleId || ur.requiredByRoleId,
-      createdAt: ur.role?.createdAt || ur.createdAt,
-    })) || []
+    const roles =
+      user.userRoles?.map((ur: any) => ({
+        roleId: ur.role?.roleId || ur.roleId,
+        roleName: ur.role?.roleName || ur.roleName,
+        description: ur.role?.description || ur.description,
+        isAssignable: ur.role?.isAssignable ?? ur.isAssignable ?? true,
+        requiredByRoleId: ur.role?.requiredByRoleId || ur.requiredByRoleId,
+        createdAt: ur.role?.createdAt || ur.createdAt,
+      })) || []
 
     return new StudentResponseDto({
       ...baseUser,
@@ -51,6 +53,7 @@ export class StudentResponseDto extends UserResponseDto {
       parentPhone: student.parentPhone,
       grade: student.grade,
       school: student.school,
+      hasParentZaloId: student.parentZaloId ? true : false,
       roles,
       courseEnrollments: student.courseEnrollments,
       classStudents: student.classStudents,
