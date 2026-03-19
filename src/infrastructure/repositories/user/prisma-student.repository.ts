@@ -506,6 +506,15 @@ export class PrismaStudentRepository implements IStudentRepository {
       paramIndex++
     }
 
+    if (filters.hasParentZaloId !== undefined) {
+      if (filters.hasParentZaloId) {
+        conditions.push(`s.parent_zalo_id IS NOT NULL AND s.parent_zalo_id <> ''`)
+      } else {
+        conditions.push(`(s.parent_zalo_id IS NULL OR s.parent_zalo_id = '')`)
+      }
+      paramIndex++
+    }
+
     // Date filters
     if (filters.createdAfter) {
       conditions.push(`u.created_at >= ?`)
@@ -754,6 +763,22 @@ export class PrismaStudentRepository implements IStudentRepository {
 
     if (filters.isActive !== undefined) {
       userFilters.isActive = filters.isActive
+    }
+
+    if (filters.hasParentZaloId !== undefined) {
+      where.AND = where.AND || []
+
+      if (filters.hasParentZaloId) {
+        where.AND.push({ parentZaloId: { not: null } })
+        where.AND.push({ parentZaloId: { not: '' } })
+      } else {
+        where.AND.push({
+          OR: [
+            { parentZaloId: null },
+            { parentZaloId: '' },
+          ],
+        })
+      }
     }
 
     // ===== student filters =====

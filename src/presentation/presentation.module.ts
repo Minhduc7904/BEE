@@ -25,6 +25,7 @@ import { ProfileAdminController } from './controllers/profile.admin.controller'
 import { ProfileStudentController } from './controllers/profile.student.controller'
 import { PermissionController } from './controllers/permission.controller'
 import { AdminController } from './controllers/admin.controller'
+import { AdminStudentController } from './controllers/super-admin.controller'
 import { CourseController } from './controllers/course.controller'
 import { CourseClassController } from './controllers/course-class.controller'
 import { LessonController } from './controllers/lesson.controller'
@@ -81,6 +82,7 @@ import { ZaloController } from './controllers/zalo.controller'
     ProfileStudentController,
     PermissionController,
     AdminController,
+    AdminStudentController,
     CourseController,
     CourseClassController,
     LessonController,

@@ -7,3 +7,4 @@ export * from './create-student.use-case';
 export * from './get-student-stats-by-status.use-case';
 export * from './get-student-stats-by-grade.use-case';
 export * from './export-student-list.use-case';
+export * from './reset-student-password-by-date-range.use-case';

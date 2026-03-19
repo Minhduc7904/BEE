@@ -20,6 +20,16 @@ export class ZaloService {
     static readonly LATEST_ATTENDANCE_PAYLOAD = '#XEM_DIEM_DANH_GAN_NHAT'
     static readonly TUITION_SUMMARY_PAYLOAD = '#XEM_HOC_PHI'
 
+    private getSupportButton() {
+        return {
+            title: 'Liên hệ hỗ trợ',
+            type: 'oa.open.url',
+            payload: {
+                url: process.env.ZALO_MENU_SUPPORT_URL || 'https://zalo.me/0399520768',
+            },
+        }
+    }
+
     isRegisterParentIntent(input: string): boolean {
         const normalized = input.trim().toLowerCase()
         return (
@@ -166,13 +176,7 @@ export class ZaloService {
                                 type: 'oa.query.show',
                                 payload: ZaloService.REGISTER_PARENT_PAYLOAD,
                             },
-                            {
-                                title: 'Liên hệ hỗ trợ',
-                                type: 'oa.open.url',
-                                payload: {
-                                    url: process.env.ZALO_MENU_SUPPORT_URL || 'https://zalo.me/0333726202',
-                                },
-                            },
+                            this.getSupportButton(),
                         ],
                     },
                 },
@@ -205,13 +209,7 @@ export class ZaloService {
                                     url: process.env.ZALO_MENU_SCHEDULE_URL || 'https://bee.edu.vn/schedule',
                                 },
                             },
-                            {
-                                title: 'Liên hệ tư vấn',
-                                type: 'oa.open.url',
-                                payload: {
-                                    url: process.env.ZALO_MENU_SUPPORT_URL || 'https://zalo.me/0333726202',
-                                },
-                            },
+                            this.getSupportButton(),
                         ],
                     },
                 },
@@ -245,6 +243,7 @@ export class ZaloService {
                                 type: 'oa.query.show',
                                 payload: ZaloService.UNREGISTER_PAYLOAD,
                             },
+                            this.getSupportButton(),
                         ],
                     },
                 },

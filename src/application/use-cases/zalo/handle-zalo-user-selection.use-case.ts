@@ -250,7 +250,7 @@ export class HandleZaloUserSelectionUseCase {
                     await this.safeSendMessage(accessToken, {
                         recipient: { user_id: userId },
                         message: {
-                            text: `Không tìm thấy học sinh với số điện thoại ${phone}. Vui lòng liên hệ 0333726202 để được hỗ trợ.`,
+                            text: `Không tìm thấy học sinh với số điện thoại ${phone}. Vui lòng liên hệ 0399520768 để được hỗ trợ.`,
                         },
                     }, { userId, appId, eventName, step: 'phone-not-found' })
 

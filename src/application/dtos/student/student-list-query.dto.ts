@@ -31,6 +31,15 @@ export class StudentListQueryDto extends ListQueryDto {
   isActive?: boolean
 
   /**
+   * Lọc theo trạng thái đã liên kết Zalo phụ huynh
+   * @optional
+   * @example true
+   */
+  @ToBoolean()
+  @IsOptionalBoolean('Trạng thái liên kết Zalo phụ huynh')
+  hasParentZaloId?: boolean
+
+  /**
    * Danh sách ID lớp học cần lọc
    * @optional
    * @example [1, 2, 3]
@@ -53,6 +62,7 @@ export class StudentListQueryDto extends ListQueryDto {
     return {
       grade: this.grade,
       isActive: this.isActive,
+      hasParentZaloId: this.hasParentZaloId,
       search: this.search, // Sử dụng flat property từ ListQueryDto
       fromDate: this.fromDate, // Sử dụng flat property từ ListQueryDto
       toDate: this.toDate, // Sử dụng flat property từ ListQueryDto

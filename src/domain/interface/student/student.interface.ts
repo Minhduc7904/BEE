@@ -43,6 +43,9 @@ export interface StudentFilterOptions extends BaseFilterOptions {
   lastName?: string
   isActive?: boolean
 
+  // Parent Zalo linking
+  hasParentZaloId?: boolean
+
   // Additional date filters
   lastLoginAfter?: Date
   lastLoginBefore?: Date
