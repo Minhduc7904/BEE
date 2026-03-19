@@ -1177,6 +1177,7 @@ model CourseClass {
   className    String    @map("class_name") @db.VarChar(100) // tên lớp học, ví dụ: "Lớp A1", "Lớp Toán nâng cao"
   startDate    DateTime? @map("start_date") @db.Date // ngày bắt đầu lớp học
   endDate      DateTime? @map("end_date") @db.Date // ngày kết thúc lớp học
+  weeklySchedule String? @map("weekly_schedule") @db.VarChar(255) // lịch học trong tuần, ví dụ: "Thứ 2, 4, 6 - 18:30"
   room         String?   @map("room") @db.VarChar(100)
   instructorId Int?
 

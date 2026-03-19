@@ -19,6 +19,7 @@ export class ZaloService {
     static readonly REGISTER_PARENT_PAYLOAD = '#DANG_KY_PHU_HUYNH'
     static readonly LATEST_ATTENDANCE_PAYLOAD = '#XEM_DIEM_DANH_GAN_NHAT'
     static readonly TUITION_SUMMARY_PAYLOAD = '#XEM_HOC_PHI'
+    static readonly VIEW_SCHEDULE_PAYLOAD = '#XEM_LICH_HOC'
 
     private getSupportButton() {
         return {
@@ -66,6 +67,44 @@ export class ZaloService {
         )
     }
 
+    isViewScheduleIntent(input: string): boolean {
+        const normalized = input.trim().toLowerCase()
+        return (
+            normalized === ZaloService.VIEW_SCHEDULE_PAYLOAD.toLowerCase() ||
+            normalized.includes('xem lịch học') ||
+            normalized.includes('xem lich hoc')
+        )
+    }
+
+    formatParentClassScheduleSummary(classStudents: any[]): string {
+        if (!classStudents.length) {
+            return 'Học sinh hiện chưa tham gia lớp học nào.'
+        }
+
+        const lines = classStudents.slice(0, 12).map((item, index) => {
+            const courseClass = item?.courseClass
+            const className = courseClass?.className || `Lớp #${item?.classId ?? 'N/A'}`
+            const weeklySchedule = courseClass?.weeklySchedule || 'Chưa cập nhật'
+            const room = courseClass?.room || 'Chưa cập nhật'
+            const instructorLastName = courseClass?.instructor?.user?.lastName || ''
+            const instructorFirstName = courseClass?.instructor?.user?.firstName || ''
+            const instructorFullName = `${instructorLastName} ${instructorFirstName}`.trim() || 'Chưa phân công'
+
+            return [
+                `${index + 1}. ${className}`,
+                `- Lịch học: ${weeklySchedule}`,
+                `- Phòng học: ${room}`,
+                `- Giáo viên: ${instructorFullName}`,
+            ].join('\n')
+        })
+
+        const moreText = classStudents.length > lines.length
+            ? `\n... và ${classStudents.length - lines.length} lớp khác.`
+            : ''
+
+        return `Danh sách lớp học của học sinh:\n${lines.join('\n\n')}${moreText}`
+    }
+
     formatTuitionSummary(payments: TuitionPayment[]): string {
         if (!payments.length) {
             return 'Chưa có dữ liệu học phí cho học sinh này.'
@@ -79,23 +118,39 @@ export class ZaloService {
         const unknownUnpaidCount = unpaidPayments.filter((p) => p.amount === null || p.amount === undefined).length
 
         const currency = (value: number): string => value.toLocaleString('vi-VN') + ' VND'
+        const formatPaidDate = (value?: Date | null): string => {
+            if (!value) return 'Chưa có'
 
-        const unpaidDetailLines = unpaidPayments.slice(0, 12).map((p) => {
+            const parsed = value instanceof Date ? value : new Date(value)
+            if (Number.isNaN(parsed.getTime())) return 'Chưa có'
+
+            return parsed.toLocaleDateString('vi-VN')
+        }
+
+        const sortedPayments = [...payments].sort((a, b) => {
+            const yearDiff = (b.year || 0) - (a.year || 0)
+            if (yearDiff !== 0) return yearDiff
+            return (b.month || 0) - (a.month || 0)
+        })
+
+        const detailLines = sortedPayments.map((p) => {
             const period = `${String(p.month).padStart(2, '0')}/${p.year}`
             const amount = typeof p.amount === 'number' ? currency(p.amount) : 'Chưa xác định'
+            const status = p.status === TuitionPaymentStatus.PAID ? 'Đã đóng' : 'Chưa đóng'
+            const paidDate = p.status === TuitionPaymentStatus.PAID
+                ? ` | Ngày đóng: ${formatPaidDate(p.paidAt)}`
+                : ''
             const note = p.notes ? ` | Ghi chú: ${p.notes}` : ''
-            return `- ${period}: ${amount}${note}`
+            return `- ${period} | ${status} | Số tiền: ${amount}${paidDate}${note}`
         })
 
         return [
             'Thông tin học phí:',
+            '(Lưu ý: Chỉ áp dụng các học phí từ tháng 2/2026 trở đi do hệ thống mới có dữ liệu đầy đủ)',
             `Tổng số tiền đã đóng: ${currency(totalPaid)}`,
             `Tổng số tiền chưa đóng: ${currency(totalUnpaid)}${unknownUnpaidCount > 0 ? ` (còn ${unknownUnpaidCount} khoản chưa xác định số tiền)` : ''}`,
-            unpaidPayments.length ? 'Chi tiết các khoản chưa đóng:' : 'Không có khoản học phí chưa đóng.',
-            ...unpaidDetailLines,
-            unpaidPayments.length > unpaidDetailLines.length
-                ? `... và ${unpaidPayments.length - unpaidDetailLines.length} khoản chưa đóng khác.`
-                : '',
+            'Chi tiết các khoản học phí (đã đóng và chưa đóng):',
+            ...detailLines,
         ].filter(Boolean).join('\n')
     }
 
@@ -237,6 +292,11 @@ export class ZaloService {
                                 title: 'Xem điểm danh gần nhất',
                                 type: 'oa.query.show',
                                 payload: ZaloService.LATEST_ATTENDANCE_PAYLOAD,
+                            },
+                            {
+                                title: 'Xem lịch học',
+                                type: 'oa.query.show',
+                                payload: ZaloService.VIEW_SCHEDULE_PAYLOAD,
                             },
                             {
                                 title: 'Gỡ đăng kí số điện thoại',

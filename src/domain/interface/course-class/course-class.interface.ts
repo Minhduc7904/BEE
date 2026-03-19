@@ -3,6 +3,7 @@ export interface CreateCourseClassData {
   className: string;
   startDate?: Date;
   endDate?: Date;
+  weeklySchedule?: string;
   room?: string;
   instructorId?: number;
 }
@@ -11,6 +12,7 @@ export interface UpdateCourseClassData {
   className?: string;
   startDate?: Date | null;
   endDate?: Date | null;
+  weeklySchedule?: string | null;
   room?: string | null;
   instructorId?: number | null;
 }

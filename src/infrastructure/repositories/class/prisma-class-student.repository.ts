@@ -213,7 +213,13 @@ export class PrismaClassStudentRepository implements IClassStudentRepository {
         const prismaClassStudents = await this.prisma.classStudent.findMany({
             where: { studentId: id, student: { user: { isActive: true } } },
             include: {
-                courseClass: true,
+                courseClass: {
+                    include: {
+                        instructor: {
+                            include: { user: true },
+                        },
+                    },
+                },
                 student: {
                     include: { user: true },
                 },

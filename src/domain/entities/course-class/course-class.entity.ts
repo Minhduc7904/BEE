@@ -14,6 +14,7 @@ export class CourseClass {
     // Optional properties
     startDate?: Date
     endDate?: Date
+    weeklySchedule?: string
     room?: string
     instructorId?: number
 
@@ -29,6 +30,7 @@ export class CourseClass {
         updatedAt?: Date
         startDate?: Date
         endDate?: Date
+        weeklySchedule?: string
         room?: string
         instructorId?: number
         course?: Course
@@ -42,6 +44,7 @@ export class CourseClass {
 
         this.startDate = data.startDate
         this.endDate = data.endDate
+        this.weeklySchedule = data.weeklySchedule
         this.room = data.room
         this.instructorId = data.instructorId
 
@@ -136,6 +139,7 @@ export class CourseClass {
             className: this.className,
             startDate: this.startDate,
             endDate: this.endDate,
+            weeklySchedule: this.weeklySchedule,
             room: this.room,
             instructorId: this.instructorId,
             createdAt: this.createdAt,
@@ -152,6 +156,7 @@ export class CourseClass {
             updatedAt: this.updatedAt,
             startDate: this.startDate,
             endDate: this.endDate,
+            weeklySchedule: this.weeklySchedule,
             room: this.room,
             instructorId: this.instructorId,
             course: this.course,

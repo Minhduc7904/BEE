@@ -22,6 +22,7 @@ export class PrismaCourseClassRepository implements ICourseClassRepository {
                 className: data.className,
                 startDate: data.startDate,
                 endDate: data.endDate,
+                weeklySchedule: data.weeklySchedule,
                 room: data.room,
                 instructorId: data.instructorId,
             },

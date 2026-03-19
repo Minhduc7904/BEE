@@ -22,6 +22,7 @@ export class CourseClassMapper {
             updatedAt: prismaClass.updatedAt ?? undefined,
             startDate: prismaClass.startDate ?? undefined,
             endDate: prismaClass.endDate ?? undefined,
+            weeklySchedule: prismaClass.weeklySchedule ?? undefined,
             room: prismaClass.room ?? undefined,
             instructorId: prismaClass.instructorId ?? undefined,
             course: prismaClass.course

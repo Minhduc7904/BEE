@@ -75,6 +75,7 @@ export class UpdateCourseClassUseCase {
                     : dto.endDate === null
                         ? null
                         : undefined,
+                weeklySchedule: dto.weeklySchedule,
                 room: dto.room,
                 instructorId: dto.instructorId,
             };

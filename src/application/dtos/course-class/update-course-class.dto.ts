@@ -31,6 +31,14 @@ export class UpdateCourseClassDto {
   endDate?: string | null
 
   /**
+   * Lịch học trong tuần (tối đa 255 ký tự)
+   * @optional
+   * @example "Thứ 2, 4, 6 - 18:30"
+   */
+  @IsOptionalString('Lịch học trong tuần', 255)
+  weeklySchedule?: string | null
+
+  /**
    * Phòng học (tối đa 100 ký tự)
    * @optional
    * @example "Phòng A101"

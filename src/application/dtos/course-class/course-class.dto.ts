@@ -9,6 +9,7 @@ export class CourseClassResponseDto {
     className: string;
     startDate: Date | null;
     endDate: Date | null;
+    weeklySchedule: string | null;
     room: string | null;
     instructorId: number | null;
     status: 'upcoming' | 'active' | 'completed' | 'unscheduled';
@@ -27,6 +28,7 @@ export class CourseClassResponseDto {
         this.className = courseClass.className;
         this.startDate = courseClass.startDate || null;
         this.endDate = courseClass.endDate || null;
+        this.weeklySchedule = courseClass.weeklySchedule || null;
         this.room = courseClass.room || null;
         this.instructorId = courseClass.instructorId || null;
         this.status = courseClass.getStatus();

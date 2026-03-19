@@ -194,6 +194,35 @@ export class HandleZaloUserSelectionUseCase {
                     })
                 }
 
+                if (this.zaloService.isViewScheduleIntent(incomingText)) {
+                    console.log(`[Zalo Webhook] B3.1c - Phụ huynh yêu cầu xem lịch học cho học sinh #${linkedParentStudent.studentId}`)
+
+                    const classStudents = await this.unitOfWork.executeInTransaction(async (repos) => {
+                        return repos.classStudentRepository.findByStudent(linkedParentStudent.studentId)
+                    })
+
+                    const scheduleSummary = this.zaloService.formatParentClassScheduleSummary(classStudents)
+
+                    await this.safeSendMessage(accessToken, {
+                        recipient: { user_id: userId },
+                        message: {
+                            text: scheduleSummary,
+                        },
+                    }, { userId, appId, eventName, step: 'view-schedule' })
+
+                    await this.safeSendParentMenu(accessToken, userId, studentName, {
+                        userId,
+                        appId,
+                        eventName,
+                        step: 'view-schedule-parent-menu',
+                    })
+
+                    return BaseResponseDto.success('Đã gửi lịch học của học sinh', {
+                        handled: true,
+                        event_name: eventName,
+                    })
+                }
+
                 if (this.zaloService.isUnregisterIntent(incomingText)) {
                     console.log(`[Zalo Webhook] B3.1a - Phụ huynh yêu cầu gỡ đăng kí số điện thoại cho học sinh #${linkedParentStudent.studentId}`)
 

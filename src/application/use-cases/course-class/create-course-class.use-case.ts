@@ -50,6 +50,7 @@ export class CreateCourseClassUseCase {
                 className: dto.className,
                 startDate: dto.startDate ? new Date(dto.startDate) : undefined,
                 endDate: dto.endDate ? new Date(dto.endDate) : undefined,
+                weeklySchedule: dto.weeklySchedule,
                 room: dto.room,
                 instructorId: dto.instructorId,
             };
