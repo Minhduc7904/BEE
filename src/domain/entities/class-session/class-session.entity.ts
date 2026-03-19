@@ -1,6 +1,7 @@
 // src/domain/entities/course/class-session.entity.ts
 
 import { CourseClass } from '../course-class/course-class.entity'
+import { HomeworkContent } from '../learningItem/homework-content.entity'
 
 export class ClassSession {
     // Required properties
@@ -14,10 +15,12 @@ export class ClassSession {
     updatedAt: Date
 
     // Optional properties
+    homeworkId?: number | null
     makeupNote?: string | null
 
     // Navigation properties
     courseClass?: CourseClass
+    homeworkContent?: HomeworkContent
 
     constructor(data: {
         sessionId: number
@@ -28,8 +31,10 @@ export class ClassSession {
         endTime: Date
         createdAt?: Date
         updatedAt?: Date
+        homeworkId?: number | null
         makeupNote?: string | null
         courseClass?: CourseClass
+        homeworkContent?: HomeworkContent
     }) {
         this.sessionId = data.sessionId
         this.classId = data.classId
@@ -40,8 +45,10 @@ export class ClassSession {
         this.createdAt = data.createdAt || new Date()
         this.updatedAt = data.updatedAt || new Date()
 
+    this.homeworkId = data.homeworkId ?? null
         this.makeupNote = data.makeupNote
         this.courseClass = data.courseClass
+    this.homeworkContent = data.homeworkContent
     }
 
     /* ===================== BUSINESS METHODS ===================== */
@@ -154,6 +161,7 @@ export class ClassSession {
             sessionDate: this.sessionDate,
             startTime: this.startTime,
             endTime: this.endTime,
+            homeworkId: this.homeworkId,
             makeupNote: this.makeupNote,
             createdAt: this.createdAt,
             updatedAt: this.updatedAt,
@@ -168,10 +176,12 @@ export class ClassSession {
             sessionDate: this.sessionDate,
             startTime: this.startTime,
             endTime: this.endTime,
+            homeworkId: this.homeworkId,
             makeupNote: this.makeupNote,
             createdAt: this.createdAt,
             updatedAt: this.updatedAt,
             courseClass: this.courseClass,
+            homeworkContent: this.homeworkContent,
         })
     }
 }

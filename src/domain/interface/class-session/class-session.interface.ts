@@ -4,6 +4,7 @@ export interface CreateClassSessionData {
     sessionDate: Date;
     startTime: Date;
     endTime: Date;
+    homeworkId?: number | null;
     makeupNote?: string;
 }
 
@@ -12,6 +13,7 @@ export interface UpdateClassSessionData {
     sessionDate?: Date;
     startTime?: Date;
     endTime?: Date;
+    homeworkId?: number | null;
     makeupNote?: string;
 }
 

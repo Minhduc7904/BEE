@@ -147,14 +147,4 @@ export class ExportAttendanceImageOptionsDto {
   @IsOptionalInt('Năm học phí', 2000, 2100)
   tuitionYear?: number
 
-  /** Include homework submit section (default: false) */
-  @IsOptionalBoolean('Bao gồm phần bài tập về nhà')
-  includeHomework?: boolean = false
-
-  /**
-   * ID của HomeworkContent cần lấy bài nộp
-   * Bắt buộc khi includeHomework = true
-   */
-  @IsOptionalInt('ID bài tập về nhà', 1)
-  homeworkContentId?: number
 }

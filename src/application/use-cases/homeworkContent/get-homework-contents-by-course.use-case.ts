@@ -64,9 +64,14 @@ export class GetHomeworkContentsByCourseUseCase {
             [...seenIds].map((id) => this.homeworkContentRepository.findByLearningItem(id)),
         )
 
-        // 4. Flatten and map to DTOs
+        // 4. Flatten, sort newest -> oldest, then map to DTOs
         const homeworkContents = contentArrays
             .flat()
+            .sort((a, b) => {
+                const aTime = new Date(a.createdAt).getTime()
+                const bTime = new Date(b.createdAt).getTime()
+                return bTime - aTime
+            })
             .map((hc) => HomeworkContentResponseDto.fromEntity(hc))
 
         return BaseResponseDto.success(

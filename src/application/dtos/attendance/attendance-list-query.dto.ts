@@ -24,9 +24,6 @@ export class AttendanceListQueryDto extends ListQueryDto {
   @IsOptionalIdNumber('ID buổi học')
   sessionId?: number
 
-  @IsOptionalIdNumber('ID homework content')
-  homeworkContentId?: number
-
   @IsOptionalIdNumber('ID học sinh')
   studentId?: number
 

@@ -49,6 +49,7 @@ export class CreateClassSessionUseCase {
         startTime,
         endTime,
         name: dto.name,
+        homeworkId: dto.homeworkId,
         makeupNote: dto.makeupNote,
       };
 

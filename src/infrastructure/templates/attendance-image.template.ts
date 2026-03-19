@@ -29,6 +29,7 @@ export interface AttendanceImageTemplateData {
         startTime: string
         endTime: string
         makeupNote: string
+      hasHomeworkAssigned: boolean
     }
 
     // Attendance status
@@ -294,11 +295,11 @@ ${this.getStyles()}
         blocks.push(this.commentBlock(
             idx++,
             'Bài tập về nhà (BTVN)',
-            options.includeHomework === true
-                ? homework
-                    ? this.renderHomeworkContent(homework)
-                    : '<span class="hw-missing">&#10008;&ensp;Học sinh chưa nộp bài tập</span>'
-                : '<span class="muted">Chưa có bài tập về nhà được giao</span>',
+            homework
+                ? this.renderHomeworkContent(homework)
+                : session.hasHomeworkAssigned
+                    ? '<span class="muted">Chưa có bài nộp bài tập về nhà</span>'
+                    : '<span class="muted">Bài tập về nhà chưa được giao</span>',
         ))
 
         // 2. Makeup (only for ABSENT)

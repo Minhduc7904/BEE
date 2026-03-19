@@ -2,6 +2,7 @@
 
 import { ClassSession } from '../../../domain/entities/class-session/class-session.entity'
 import { CourseClassMapper } from './course-class.mapper'
+import { HomeworkContentMapper } from '../learning-item/homework-content.mapper'
 
 /**
  * Mapper class để convert từ Prisma ClassSession model
@@ -24,10 +25,14 @@ export class ClassSessionMapper {
 
             createdAt: prismaSession.createdAt ?? undefined,
             updatedAt: prismaSession.updatedAt ?? undefined,
+            homeworkId: prismaSession.homeworkId ?? null,
             makeupNote: prismaSession.makeupNote ?? null,
 
             courseClass: prismaSession.courseClass
                 ? CourseClassMapper.toDomainCourseClass(prismaSession.courseClass)
+                : undefined,
+            homeworkContent: prismaSession.homeworkContent
+                ? HomeworkContentMapper.toDomainHomeworkContent(prismaSession.homeworkContent)
                 : undefined,
         })
     }

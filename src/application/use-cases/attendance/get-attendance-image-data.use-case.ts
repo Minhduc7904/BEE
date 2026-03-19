@@ -52,9 +52,10 @@ export class GetAttendanceImageDataUseCase {
 
         let homeworkSubmit: HomeworkSubmit | null = null
         const studentId = attendance.studentId ?? attendance.student?.studentId
-        if (options.includeHomework === true && options.homeworkContentId && studentId) {
+        const homeworkId = attendance.classSession?.homeworkId
+        if (typeof homeworkId === 'number' && studentId) {
             homeworkSubmit = await this.homeworkSubmitRepository.findByHomeworkAndStudent(
-                options.homeworkContentId,
+                homeworkId,
                 studentId,
             )
         }
@@ -104,6 +105,7 @@ export class GetAttendanceImageDataUseCase {
                 startTime: session.startTime ? formatVnTime(session.startTime) : 'N/A',
                 endTime: session.endTime ? formatVnTime(session.endTime) : 'N/A',
                 makeupNote: session.makeupNote || '',
+                hasHomeworkAssigned: typeof session.homeworkId === 'number',
             },
             attendance: {
                 status: attendance.status || 'PRESENT',

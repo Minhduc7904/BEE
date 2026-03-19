@@ -3,6 +3,7 @@ import type { IUnitOfWork } from 'src/domain/repositories'
 import { AttendanceStatusLabels } from 'src/shared/enums'
 import { formatVnDate, formatVnDateTime, formatVnTime } from 'src/shared/utils/vietnam-date.util'
 import { ZaloService } from 'src/infrastructure/services'
+import { GetValidZaloAccessTokenUseCase } from '../zalo/get-valid-zalo-access-token.use-case'
 
 interface SendAttendanceToParentInput {
     attendanceId: number
@@ -17,6 +18,7 @@ export class SendAttendanceToParentUseCase {
         @Inject('UNIT_OF_WORK')
         private readonly unitOfWork: IUnitOfWork,
         private readonly zaloService: ZaloService,
+        private readonly getValidZaloAccessTokenUseCase: GetValidZaloAccessTokenUseCase,
     ) { }
 
     async execute(input: SendAttendanceToParentInput): Promise<boolean> {
@@ -35,11 +37,9 @@ export class SendAttendanceToParentUseCase {
             return false
         }
 
-        const tokenRecord = await this.unitOfWork.executeInTransaction(async (repos) => {
-            return repos.zaloTokenRepository.findByAppId(appId)
-        })
+        const accessToken = await this.getValidZaloAccessTokenUseCase.execute({ appId })
 
-        if (!tokenRecord?.accessToken) {
+        if (!accessToken) {
             console.warn(`[Attendance->Parent] Không tìm thấy access token cho app_id=${appId}`)
             return false
         }
@@ -54,6 +54,30 @@ export class SendAttendanceToParentUseCase {
             ? `${formatVnTime(attendance.classSession.startTime)} - ${formatVnTime(attendance.classSession.endTime)}`
             : ''
         const arrivalTime = attendance.markedAt ? formatVnDateTime(attendance.markedAt) : 'Chưa có dữ liệu'
+        const studentId = attendance.studentId ?? attendance.student?.studentId
+        const homeworkId = attendance.classSession?.homeworkId
+
+        let homeworkLine = 'BTVN: Buổi học này chưa có bài tập về nhà'
+        if (typeof homeworkId === 'number' && studentId) {
+            const homeworkSubmit = await this.unitOfWork.executeInTransaction(async (repos) => {
+                return repos.homeworkSubmitRepository.findByHomeworkAndStudent(homeworkId, studentId)
+            })
+
+            if (homeworkSubmit) {
+                const pts = homeworkSubmit.competitionSubmit?.totalPoints ?? homeworkSubmit.points
+                const maxPts = homeworkSubmit.competitionSubmit?.maxPoints
+                const pointsText =
+                    pts === null || pts === undefined
+                        ? ''
+                        : homeworkSubmit.competitionSubmitId && maxPts != null
+                            ? ` | Điểm: ${pts}/${maxPts}`
+                            : ` | Điểm: ${pts}`
+
+                homeworkLine = `BTVN: Đã nộp lúc ${formatVnDateTime(homeworkSubmit.submitAt)}${pointsText}`
+            } else {
+                homeworkLine = 'BTVN: Chưa nộp'
+            }
+        }
 
         const statusLabel = AttendanceStatusLabels[attendance.status] || attendance.status
 
@@ -64,15 +88,33 @@ export class SendAttendanceToParentUseCase {
             `Ngày học: ${sessionDate}${sessionTime ? ` (${sessionTime})` : ''}`,
             `Thời gian đến lớp: ${arrivalTime}`,
             `Trạng thái: ${statusLabel}`,
+            homeworkLine,
             attendance.notes ? `Ghi chú: ${attendance.notes}` : '',
         ].filter(Boolean)
 
-        await this.zaloService.sendMessage(tokenRecord.accessToken, {
-            recipient: { user_id: parentZaloId },
-            message: {
-                text: messageLines.join('\n'),
-            },
-        })
+        try {
+            await this.zaloService.sendMessage(accessToken, {
+                recipient: { user_id: parentZaloId },
+                message: {
+                    text: messageLines.join('\n'),
+                },
+            })
+        } catch (error: any) {
+            const errorMessage =
+                error?.response?.data?.error_description ||
+                error?.response?.data?.message ||
+                error?.message ||
+                'Unknown Zalo send error'
+
+            console.warn('[Attendance->Parent] Gửi Zalo thất bại, bỏ qua để không ảnh hưởng luồng chính:', {
+                attendanceId: attendance.attendanceId,
+                studentId: attendance.studentId,
+                parentZaloId,
+                errorMessage,
+            })
+
+            return false
+        }
 
         if (!attendance.parentNotified) {
             await this.unitOfWork.executeInTransaction(async (repos) => {

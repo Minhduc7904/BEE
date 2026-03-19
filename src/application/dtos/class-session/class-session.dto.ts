@@ -1,12 +1,14 @@
 import { ClassSession } from '../../../domain/entities/class-session/class-session.entity';
 import { PaginationResponseDto } from '../pagination/pagination-response.dto';
 import { CourseClassResponseDto } from '../course-class/course-class.dto';
+import { HomeworkContentResponseDto } from '../homeworkContent/homework-content.dto';
 
 export class ClassSessionResponseDto {
     sessionId: number;
     classId: number;
     name: string;
     className?: string;
+    homeworkId?: number | null;
     sessionDate: Date;
     startTime: Date;
     endTime: Date;
@@ -15,11 +17,13 @@ export class ClassSessionResponseDto {
     status: 'past' | 'today' | 'upcoming';
     makeupNote?: string | null;
     courseClass?: CourseClassResponseDto;
+    homeworkContent?: HomeworkContentResponseDto | null;
 
     constructor(classSession: ClassSession) {
         this.sessionId = classSession.sessionId;
         this.classId = classSession.classId;
         this.name = classSession.name;
+        this.homeworkId = classSession.homeworkId;
         this.sessionDate = classSession.sessionDate;
         this.startTime = classSession.startTime;
         this.endTime = classSession.endTime;
@@ -30,6 +34,10 @@ export class ClassSessionResponseDto {
 
         if (classSession.courseClass) {
             this.courseClass = new CourseClassResponseDto(classSession.courseClass);
+        }
+
+        if (classSession.homeworkContent) {
+            this.homeworkContent = HomeworkContentResponseDto.fromEntity(classSession.homeworkContent);
         }
     }
 

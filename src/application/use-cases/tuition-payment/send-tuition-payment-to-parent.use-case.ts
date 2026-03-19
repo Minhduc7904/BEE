@@ -3,6 +3,7 @@ import type { IUnitOfWork } from 'src/domain/repositories'
 import { TuitionPaymentStatusLabels } from 'src/shared/enums'
 import { formatVnDate } from 'src/shared/utils/vietnam-date.util'
 import { ZaloService } from 'src/infrastructure/services'
+import { GetValidZaloAccessTokenUseCase } from '../zalo/get-valid-zalo-access-token.use-case'
 
 interface SendTuitionPaymentToParentInput {
   paymentId: number
@@ -17,6 +18,7 @@ export class SendTuitionPaymentToParentUseCase {
     @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
     private readonly zaloService: ZaloService,
+    private readonly getValidZaloAccessTokenUseCase: GetValidZaloAccessTokenUseCase,
   ) {}
 
   async execute(input: SendTuitionPaymentToParentInput): Promise<boolean> {
@@ -35,11 +37,9 @@ export class SendTuitionPaymentToParentUseCase {
       return false
     }
 
-    const tokenRecord = await this.unitOfWork.executeInTransaction(async (repos) => {
-      return repos.zaloTokenRepository.findByAppId(appId)
-    })
+    const accessToken = await this.getValidZaloAccessTokenUseCase.execute({ appId })
 
-    if (!tokenRecord?.accessToken) {
+    if (!accessToken) {
       console.warn(`[Tuition->Parent] Không tìm thấy access token cho app_id=${appId}`)
       return false
     }
@@ -66,12 +66,29 @@ export class SendTuitionPaymentToParentUseCase {
       payment.notes ? `Ghi chú: ${payment.notes}` : '',
     ].filter(Boolean)
 
-    await this.zaloService.sendMessage(tokenRecord.accessToken, {
-      recipient: { user_id: parentZaloId },
-      message: {
-        text: messageLines.join('\n'),
-      },
-    })
+    try {
+      await this.zaloService.sendMessage(accessToken, {
+        recipient: { user_id: parentZaloId },
+        message: {
+          text: messageLines.join('\n'),
+        },
+      })
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.error_description ||
+        error?.response?.data?.message ||
+        error?.message ||
+        'Unknown Zalo send error'
+
+      console.warn('[Tuition->Parent] Gửi Zalo thất bại, bỏ qua để không ảnh hưởng luồng chính:', {
+        paymentId: payment.paymentId,
+        studentId: payment.studentId,
+        parentZaloId,
+        errorMessage,
+      })
+
+      return false
+    }
 
     return true
   }

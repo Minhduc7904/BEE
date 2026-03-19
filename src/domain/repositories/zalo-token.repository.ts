@@ -11,5 +11,14 @@ export interface UpsertZaloTokenData {
 
 export interface IZaloTokenRepository {
   upsertByOaAndApp(data: UpsertZaloTokenData): Promise<void>
-  findByAppId(appId: string): Promise<{ oaId: string; appId: string; accessToken: string } | null>
+  findByAppId(appId: string): Promise<{
+    oaId: string
+    appId: string
+    accessToken: string
+    refreshToken: string
+    expiresIn: number
+    expiresAt: Date | null
+    tokenType: string | null
+    scope: string | null
+  } | null>
 }

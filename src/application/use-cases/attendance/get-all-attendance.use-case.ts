@@ -8,6 +8,7 @@ import {
 } from '../../dtos/attendance/attendance.dto'
 import { AttendanceListQueryDto } from '../../dtos/attendance/attendance-list-query.dto'
 import { TuitionFilterStatus } from '../../dtos/attendance/attendance-list-query.dto'
+import type { Attendance } from 'src/domain/entities/attendance/attendance.entity'
 
 @Injectable()
 export class GetAllAttendanceUseCase {
@@ -19,6 +20,55 @@ export class GetAllAttendanceUseCase {
     @Inject('IHomeworkSubmitRepository')
     private readonly homeworkSubmitRepository: IHomeworkSubmitRepository,
   ) {}
+
+  private getHomeworkSubmitKey(studentId: number, homeworkId: number): string {
+    return `${studentId}:${homeworkId}`
+  }
+
+  /**
+   * Resolve bài nộp theo homeworkId gắn trong từng session của attendance.
+   */
+  private async resolveHomeworkSubmitsBySession(
+    attendances: Attendance[],
+  ): Promise<Map<string, any>> {
+    const studentIdsByHomeworkId = new Map<number, Set<number>>()
+
+    for (const attendance of attendances) {
+      const homeworkId = attendance.classSession?.homeworkId
+      if (typeof homeworkId !== 'number') {
+        continue
+      }
+
+      if (!studentIdsByHomeworkId.has(homeworkId)) {
+        studentIdsByHomeworkId.set(homeworkId, new Set<number>())
+      }
+
+      studentIdsByHomeworkId.get(homeworkId)!.add(attendance.studentId)
+    }
+
+    const homeworkSubmitsMap = new Map<string, any>()
+
+    for (const [homeworkId, studentIdSet] of studentIdsByHomeworkId.entries()) {
+      const studentIds = [...studentIdSet]
+      if (studentIds.length === 0) {
+        continue
+      }
+
+      const homeworkSubmits = await this.homeworkSubmitRepository.findManyByContentAndStudents(
+        homeworkId,
+        studentIds,
+      )
+
+      for (const submit of homeworkSubmits) {
+        const key = this.getHomeworkSubmitKey(submit.studentId, homeworkId)
+        if (!homeworkSubmitsMap.has(key)) {
+          homeworkSubmitsMap.set(key, submit)
+        }
+      }
+    }
+
+    return homeworkSubmitsMap
+  }
 
   async execute(query: AttendanceListQueryDto): Promise<AttendanceListResponseDto> {
     const filters = query.toAttendanceFilterOptions()
@@ -58,29 +108,16 @@ export class GetAllAttendanceUseCase {
       }
     }
 
-    // Nếu có homeworkContentId, tìm homework submit cho từng attendance
-    let homeworkSubmitsMap = new Map<number, any>()
-
-    if (query.homeworkContentId) {
-      const studentIds = [...new Set(result.data.map(a => a.studentId))]
-
-      if (studentIds.length > 0) {
-        const homeworkSubmits = await this.homeworkSubmitRepository.findManyByContentAndStudents(
-          query.homeworkContentId,
-          studentIds,
-        )
-
-        homeworkSubmits.forEach(hs => {
-          if (!homeworkSubmitsMap.has(hs.studentId)) {
-            homeworkSubmitsMap.set(hs.studentId, hs)
-          }
-        })
-      }
-    }
+    // Tự động resolve homework submit theo homeworkId của session
+    const homeworkSubmitsMap = await this.resolveHomeworkSubmitsBySession(result.data)
 
     const attendanceResponses = result.data.map((attendance) => {
       const tuitionPayment = tuitionPaymentsMap.get(attendance.studentId)
-      const homeworkSubmit = homeworkSubmitsMap.get(attendance.studentId)
+      const homeworkId = attendance.classSession?.homeworkId
+      const homeworkSubmit =
+        typeof homeworkId === 'number'
+          ? homeworkSubmitsMap.get(this.getHomeworkSubmitKey(attendance.studentId, homeworkId))
+          : undefined
       return new AttendanceResponseDto(attendance, tuitionPayment, homeworkSubmit)
     })
 
@@ -142,27 +179,17 @@ export class GetAllAttendanceUseCase {
     const start = (page - 1) * limit
     const paged = filtered.slice(start, start + limit)
 
-    // 6. Homework submits (nếu cần)
-    let homeworkSubmitsMap = new Map<number, any>()
-    if (query.homeworkContentId) {
-      const pagedStudentIds = [...new Set(paged.map(a => a.studentId))]
-      if (pagedStudentIds.length > 0) {
-        const homeworkSubmits = await this.homeworkSubmitRepository.findManyByContentAndStudents(
-          query.homeworkContentId,
-          pagedStudentIds,
-        )
-        homeworkSubmits.forEach(hs => {
-          if (!homeworkSubmitsMap.has(hs.studentId)) {
-            homeworkSubmitsMap.set(hs.studentId, hs)
-          }
-        })
-      }
-    }
+    // 6. Homework submits theo homeworkId của session (nếu có)
+    const homeworkSubmitsMap = await this.resolveHomeworkSubmitsBySession(paged)
 
     // 7. Map sang response DTOs
     const attendanceResponses = paged.map(attendance => {
       const tuitionPayment = tuitionPaymentsMap.get(attendance.studentId)
-      const homeworkSubmit = homeworkSubmitsMap.get(attendance.studentId)
+      const homeworkId = attendance.classSession?.homeworkId
+      const homeworkSubmit =
+        typeof homeworkId === 'number'
+          ? homeworkSubmitsMap.get(this.getHomeworkSubmitKey(attendance.studentId, homeworkId))
+          : undefined
       return new AttendanceResponseDto(attendance, tuitionPayment, homeworkSubmit)
     })
 

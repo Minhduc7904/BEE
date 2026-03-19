@@ -35,7 +35,16 @@ export class PrismaZaloTokenRepository implements IZaloTokenRepository {
         })
     }
 
-    async findByAppId(appId: string): Promise<{ oaId: string; appId: string; accessToken: string } | null> {
+    async findByAppId(appId: string): Promise<{
+        oaId: string
+        appId: string
+        accessToken: string
+        refreshToken: string
+        expiresIn: number
+        expiresAt: Date | null
+        tokenType: string | null
+        scope: string | null
+    } | null> {
         const token = await this.prisma.zaloToken.findFirst({
             where: { appId },
             orderBy: { updatedAt: 'desc' },
@@ -43,6 +52,11 @@ export class PrismaZaloTokenRepository implements IZaloTokenRepository {
                 oaId: true,
                 appId: true,
                 accessToken: true,
+                refreshToken: true,
+                expiresIn: true,
+                expiresAt: true,
+                tokenType: true,
+                scope: true,
             },
         })
 
@@ -52,6 +66,11 @@ export class PrismaZaloTokenRepository implements IZaloTokenRepository {
             oaId: token.oaId,
             appId: token.appId,
             accessToken: token.accessToken,
+            refreshToken: token.refreshToken,
+            expiresIn: token.expiresIn,
+            expiresAt: token.expiresAt,
+            tokenType: token.tokenType,
+            scope: token.scope,
         }
     }
 }

@@ -23,10 +23,12 @@ export class PrismaClassSessionRepository implements IClassSessionRepository {
                 sessionDate: data.sessionDate,
                 startTime: data.startTime,
                 endTime: data.endTime,
+                homeworkId: data.homeworkId,
                 makeupNote: data.makeupNote,
             },
             include: {
                 courseClass: true,
+                homeworkContent: true,
             },
         })
 
@@ -40,6 +42,7 @@ export class PrismaClassSessionRepository implements IClassSessionRepository {
             where: { sessionId },
             include: {
                 courseClass: true,
+                homeworkContent: true,
             },
         })
 
@@ -53,6 +56,7 @@ export class PrismaClassSessionRepository implements IClassSessionRepository {
             where: { sessionId: { in: sessionIds } },
             include: {
                 courseClass: true,
+                homeworkContent: true,
             },
         })
         return ClassSessionMapper.toDomainClassSessions(prismaSessions)
@@ -66,6 +70,7 @@ export class PrismaClassSessionRepository implements IClassSessionRepository {
             data: { ...data },
             include: {
                 courseClass: true,
+                homeworkContent: true,
             },
         })
 
@@ -86,6 +91,7 @@ export class PrismaClassSessionRepository implements IClassSessionRepository {
         const prismaSessions = await this.prisma.classSession.findMany({
             include: {
                 courseClass: true,
+                homeworkContent: true,
             },
             orderBy: {
                 sessionDate: 'desc',
@@ -208,6 +214,7 @@ export class PrismaClassSessionRepository implements IClassSessionRepository {
                 orderBy,
                 include: {
                     courseClass: true,
+                    homeworkContent: true,
                 },
             }),
             this.prisma.classSession.count({ where }),
@@ -331,6 +338,7 @@ export class PrismaClassSessionRepository implements IClassSessionRepository {
                             course: true,
                         },
                     },
+                    homeworkContent: true,
                     attendances: {
                         where: {
                             studentId: studentId,
@@ -360,6 +368,7 @@ export class PrismaClassSessionRepository implements IClassSessionRepository {
             where: { classId: id },
             include: {
                 courseClass: true,
+                homeworkContent: true,
             },
             orderBy: {
                 sessionDate: 'asc',
@@ -384,6 +393,7 @@ export class PrismaClassSessionRepository implements IClassSessionRepository {
             },
             include: {
                 courseClass: true,
+                homeworkContent: true,
             },
             orderBy: {
                 startTime: 'asc',

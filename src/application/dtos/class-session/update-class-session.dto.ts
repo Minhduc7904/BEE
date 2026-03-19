@@ -1,4 +1,4 @@
-import { IsOptionalString, IsOptionalDate } from 'src/shared/decorators/validate'
+import { IsOptionalString, IsOptionalDate, IsOptionalIdNumber } from 'src/shared/decorators/validate'
 
 /**
  * DTO cập nhật buổi học
@@ -36,6 +36,14 @@ export class UpdateClassSessionDto {
    */
   @IsOptionalDate('Giờ kết thúc')
   endTime?: string
+
+  /**
+   * ID bài tập (HomeworkContent) gắn với buổi học
+   * @optional
+   * @example 12
+   */
+  @IsOptionalIdNumber('ID bài tập')
+  homeworkId?: number
 
   /**
    * Ghi chú học bù

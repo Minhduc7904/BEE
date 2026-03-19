@@ -65,6 +65,7 @@ export class UpdateClassSessionUseCase {
         sessionDate: dto.sessionDate ? new Date(dto.sessionDate) : undefined,
         startTime: dto.startTime ? new Date(dto.startTime) : undefined,
         endTime: dto.endTime ? new Date(dto.endTime) : undefined,
+        homeworkId: dto.homeworkId,
         name: dto.name,
         makeupNote: dto.makeupNote,
       };

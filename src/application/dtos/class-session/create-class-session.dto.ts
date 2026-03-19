@@ -1,4 +1,4 @@
-import { IsRequiredIdNumber, IsRequiredString, IsRequiredDate, IsOptionalString } from 'src/shared/decorators/validate'
+import { IsRequiredIdNumber, IsRequiredString, IsRequiredDate, IsOptionalString, IsOptionalIdNumber } from 'src/shared/decorators/validate'
 
 /**
  * DTO tạo buổi học mới
@@ -44,6 +44,14 @@ export class CreateClassSessionDto {
    */
   @IsRequiredDate('Giờ kết thúc')
   endTime: string
+
+  /**
+   * ID bài tập (HomeworkContent) gắn với buổi học
+   * @optional
+   * @example 12
+   */
+  @IsOptionalIdNumber('ID bài tập')
+  homeworkId?: number
 
   /**
    * Ghi chú học bù
