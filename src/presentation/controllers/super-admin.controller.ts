@@ -13,12 +13,16 @@ import { ResetStudentPasswordByDateRangeDto } from 'src/application/dtos/student
 import { ResetStudentPasswordByDateRangeUseCase } from 'src/application/use-cases/student/reset-student-password-by-date-range.use-case'
 import { BaseResponseDto } from 'src/application/dtos/common/base-response.dto'
 import { Injectable } from '@nestjs/common'
+import { UpdateAdminDirectDto } from 'src/application/dtos/admin/update-admin-direct.dto'
+import { AdminResponseDto } from 'src/application/dtos/admin/admin.dto'
+import { SuperAdminUpdateAdminDirectUseCase } from 'src/application/use-cases/admin/super-admin-update-admin-direct.use-case'
 
 @Injectable()
 @Controller('super-admin')
 export class AdminStudentController {
     constructor(
         private readonly resetStudentPasswordByDateRangeUseCase: ResetStudentPasswordByDateRangeUseCase,
+        private readonly superAdminUpdateAdminDirectUseCase: SuperAdminUpdateAdminDirectUseCase,
     ) { }
 
     /**
@@ -54,6 +58,40 @@ export class AdminStudentController {
     ): Promise<BaseResponseDto<any>> {
         return ExceptionHandler.execute(() =>
             this.resetStudentPasswordByDateRangeUseCase.execute(dto),
+        )
+    }
+
+    /**
+        * Cập nhật trực tiếp thông tin Admin và User của Admin.
+        * POST /super-admin/update-admin-direct
+        *
+        * Input (Body: UpdateAdminDirectDto):
+        * - adminId: number (required)
+        * - username?: string
+        * - email?: string
+        * - firstName?: string
+        * - lastName?: string
+        * - gender?: Gender
+        * - dateOfBirth?: Date
+        * - isEmailVerified?: boolean
+        * - isActive?: boolean
+        * - password?: string (sẽ được hash)
+        * - subjectId?: number
+        *
+        * Output (BaseResponseDto<AdminResponseDto>):
+        * - success: boolean
+        * - message: string
+        * - data: AdminResponseDto
+     */
+    @Post('update-admin-direct')
+    @RequirePermission(PERMISSION_CODES.ADMIN.CREATE)
+    @HttpCode(HttpStatus.OK)
+    async updateAdminDirect(
+        @Body() dto: UpdateAdminDirectDto,
+        @CurrentUser('adminId') _adminId?: number,
+    ): Promise<BaseResponseDto<AdminResponseDto>> {
+        return ExceptionHandler.execute(() =>
+            this.superAdminUpdateAdminDirectUseCase.execute(dto),
         )
     }
 }

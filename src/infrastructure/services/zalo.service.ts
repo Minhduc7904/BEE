@@ -162,6 +162,9 @@ export class ZaloService {
         }
 
         const status = attendanceStatusMap[data.attendance.status] || data.attendance.status
+        const makeupLine = data.attendance.status === 'ABSENT' && data.session.makeupNote
+            ? `Lịch học bù: ${data.session.makeupNote}`
+            : ''
         const homeworkText = data.homework
             ? `BTVN: Đã nộp lúc ${data.homework.submitAt}${data.homework.points ? ` | Điểm: ${data.homework.points}` : ''}`
             : 'BTVN: Chưa có bài nộp gần nhất'
@@ -170,9 +173,9 @@ export class ZaloService {
             'Thông tin điểm danh gần nhất:',
             `Học sinh: ${data.student.fullName || data.student.studentId}`,
             `Lớp: ${data.classInfo.className}`,
-            `Khóa học: ${data.classInfo.courseName}`,
             `Buổi học: ${data.session.sessionDate} (${data.session.startTime} - ${data.session.endTime})`,
             `Trạng thái: ${status}`,
+            makeupLine,
             data.attendance.markedAt ? `Thời gian điểm danh: ${data.attendance.markedAt}` : '',
             data.attendance.notes ? `Ghi chú: ${data.attendance.notes}` : '',
             homeworkText,
@@ -221,7 +224,8 @@ export class ZaloService {
                 user_id: userId,
             },
             message: {
-                text: 'Bạn chưa đăng ký Zalo phụ huynh. Vui lòng chọn một tùy chọn bên dưới.',
+                text: `Bạn chưa đăng ký Zalo phụ huynh. Vui lòng chọn một tùy chọn bên dưới.
+                (Lưu ý: Nếu bạn đang dùng Zalo trên máy tính, các nút có thể không hiển thị. Hãy mở tin nhắn trên điện thoại để sử dụng đầy đủ chức năng.)`,
                 attachment: {
                     type: 'template',
                     payload: {

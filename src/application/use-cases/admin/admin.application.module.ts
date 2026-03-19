@@ -6,6 +6,7 @@ import { InfrastructureModule } from 'src/infrastructure/infrastructure.module'
 const ADMIN_USE_CASES = [
   adminUseCases.GetAdminByIdUseCase,
   adminUseCases.UpdateAdminUseCase,
+  adminUseCases.SuperAdminUpdateAdminDirectUseCase,
   adminUseCases.GetAllAdminUseCase,
   adminUseCases.SearchAdminUseCase,
 ]
