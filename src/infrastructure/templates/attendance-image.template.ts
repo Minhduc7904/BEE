@@ -298,8 +298,8 @@ ${this.getStyles()}
             homework
                 ? this.renderHomeworkContent(homework)
                 : session.hasHomeworkAssigned
-                    ? '<span class="muted">Chưa có bài nộp bài tập về nhà</span>'
-                    : '<span class="muted">Bài tập về nhà chưa được giao</span>',
+              ? '<div class="hw-missing"><span class="hw-missing-icon">✗</span><span>Học sinh chưa nộp bài tập về nhà</span></div>'
+              : '<span class="muted">Buổi học chưa giao bài tập về nhà</span>',
         ))
 
         // 2. Makeup (only for ABSENT)
@@ -776,11 +776,30 @@ body {
 }
 
 .hw-missing {
-  display: inline-block;
-  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #fecdd3;
+  background: #fff1f2;
+  font-size: 15px;
   font-weight: 800;
-  color: var(--red);
-  letter-spacing: 0.3px;
+  color: #be123c;
+  letter-spacing: 0.2px;
+}
+
+.hw-missing-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #e11d48;
+  color: var(--white);
+  font-size: 13px;
+  line-height: 1;
 }
 
 /* Homework meta */
