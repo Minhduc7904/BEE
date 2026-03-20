@@ -23,6 +23,7 @@ const MEDIA_USE_CASES = [
   mediaUseCase.ExtractMediaTextUseCase,
   mediaUseCase.GetAdminMediaRawContentUseCase,
   mediaUseCase.GetMyMediaRawContentUseCase,
+  mediaUseCase.CleanupUnusedMediaOlderThan30DaysUseCase,
 ]
 
 @Module({

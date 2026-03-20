@@ -16,6 +16,7 @@ import { Injectable } from '@nestjs/common'
 import { UpdateAdminDirectDto } from 'src/application/dtos/admin/update-admin-direct.dto'
 import { AdminResponseDto } from 'src/application/dtos/admin/admin.dto'
 import { SuperAdminUpdateAdminDirectUseCase } from 'src/application/use-cases/admin/super-admin-update-admin-direct.use-case'
+import { CleanupUnusedMediaOlderThan30DaysUseCase } from 'src/application/use-cases/media/cleanup-unused-media-older-than-30-days.use-case'
 
 @Injectable()
 @Controller('super-admin')
@@ -23,6 +24,7 @@ export class AdminStudentController {
     constructor(
         private readonly resetStudentPasswordByDateRangeUseCase: ResetStudentPasswordByDateRangeUseCase,
         private readonly superAdminUpdateAdminDirectUseCase: SuperAdminUpdateAdminDirectUseCase,
+        private readonly cleanupUnusedMediaOlderThan30DaysUseCase: CleanupUnusedMediaOlderThan30DaysUseCase,
     ) { }
 
     /**
@@ -92,6 +94,35 @@ export class AdminStudentController {
     ): Promise<BaseResponseDto<AdminResponseDto>> {
         return ExceptionHandler.execute(() =>
             this.superAdminUpdateAdminDirectUseCase.execute(dto),
+        )
+    }
+
+    /**
+        * Tim va xoa cung tat ca media khong co usage va da tao qua 30 ngay.
+        * POST /super-admin/cleanup-unused-media-older-than-30-days
+        *
+        * Xu ly:
+        * - Lay toan bo media co createdAt <= now - 30 ngay
+        * - Chi xoa media khong con media usage
+        * - Xoa file tren MinIO truoc, sau do xoa ban ghi media trong DB
+        *
+        * Output:
+        * - olderThanDays: number
+        * - cutoffDate: string
+        * - totalCandidates: number
+        * - deletedCount: number
+        * - skippedCount: number
+        * - failedCount: number
+        * - results: danh sach ket qua tung media
+     */
+    @Post('cleanup-unused-media-older-than-30-days')
+    @RequirePermission(PERMISSION_CODES.MEDIA.PERMANENT_DELETE)
+    @HttpCode(HttpStatus.OK)
+    async cleanupUnusedMediaOlderThan30Days(
+        @CurrentUser('adminId') _adminId?: number,
+    ): Promise<BaseResponseDto<any>> {
+        return ExceptionHandler.execute(() =>
+            this.cleanupUnusedMediaOlderThan30DaysUseCase.execute(),
         )
     }
 }
