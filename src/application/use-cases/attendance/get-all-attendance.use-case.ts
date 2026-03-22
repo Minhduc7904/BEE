@@ -2,8 +2,6 @@ import { Inject, Injectable } from '@nestjs/common'
 import type { IAttendanceRepository } from 'src/domain/repositories/attendance.repository'
 import type { ITuitionPaymentRepository } from 'src/domain/repositories/tuition-payment.repository'
 import type { IHomeworkSubmitRepository } from 'src/domain/repositories/homework-submit.repository'
-import type { ICompetitionSubmitRepository } from 'src/domain/repositories/competition-submit.repository'
-import type { IHomeworkContentRepository } from 'src/domain/repositories/homework-content.repository'
 import {
   AttendanceListResponseDto,
   AttendanceResponseDto,
@@ -21,10 +19,6 @@ export class GetAllAttendanceUseCase {
     private readonly tuitionPaymentRepository: ITuitionPaymentRepository,
     @Inject('IHomeworkSubmitRepository')
     private readonly homeworkSubmitRepository: IHomeworkSubmitRepository,
-    @Inject('ICompetitionSubmitRepository')
-    private readonly competitionSubmitRepository: ICompetitionSubmitRepository,
-    @Inject('IHomeworkContentRepository')
-    private readonly homeworkContentRepository: IHomeworkContentRepository,
   ) {}
 
   private getHomeworkSubmitKey(studentId: number, homeworkId: number): string {
@@ -71,82 +65,9 @@ export class GetAllAttendanceUseCase {
           homeworkSubmitsMap.set(key, submit)
         }
       }
-
-      // Tối ưu: chỉ tìm competition submit và tạo bản ghi cho những student chưa có homework submit.
-      await this.ensureHomeworkSubmitsFromCompetition(
-        homeworkId,
-        studentIds,
-        homeworkSubmitsMap,
-      )
     }
 
     return homeworkSubmitsMap
-  }
-
-  /**
-   * Nếu homework có competitionId, tự tạo HomeworkSubmit cho các student chưa có submit
-   * bằng competition submit mới nhất của từng student.
-   */
-  private async ensureHomeworkSubmitsFromCompetition(
-    homeworkId: number,
-    studentIds: number[],
-    homeworkSubmitsMap: Map<string, any>,
-  ): Promise<void> {
-    const missingStudentIds = studentIds.filter(
-      (studentId) => !homeworkSubmitsMap.has(this.getHomeworkSubmitKey(studentId, homeworkId)),
-    )
-
-    if (missingStudentIds.length === 0) {
-      return
-    }
-
-    const homeworkContent = await this.homeworkContentRepository.findById(homeworkId)
-    const competitionId = homeworkContent?.competitionId
-    if (typeof competitionId !== 'number') {
-      return
-    }
-
-    const missingStudentIdSet = new Set(missingStudentIds)
-    const competitionSubmits = await this.competitionSubmitRepository.findByCompetition(competitionId)
-
-    // findByCompetition đã sort mới -> cũ, chỉ cần lấy bản ghi đầu tiên theo mỗi student.
-    const latestSubmitByStudentId = new Map<number, any>()
-    for (const submit of competitionSubmits) {
-      if (!missingStudentIdSet.has(submit.studentId)) {
-        continue
-      }
-      if (!latestSubmitByStudentId.has(submit.studentId)) {
-        latestSubmitByStudentId.set(submit.studentId, submit)
-      }
-    }
-
-    for (const studentId of missingStudentIds) {
-      const latestSubmit = latestSubmitByStudentId.get(studentId)
-      if (!latestSubmit) {
-        continue
-      }
-
-      const key = this.getHomeworkSubmitKey(studentId, homeworkId)
-
-      try {
-        const createdSubmit = await this.homeworkSubmitRepository.create({
-          homeworkContentId: homeworkId,
-          studentId,
-          content: `Nộp bài qua cuộc thi #${competitionId} (submit #${latestSubmit.competitionSubmitId})`,
-          competitionSubmitId: latestSubmit.competitionSubmitId,
-        })
-        homeworkSubmitsMap.set(key, createdSubmit)
-      } catch {
-        // Có thể đã được tạo song song ở request khác, lấy lại để đảm bảo response nhất quán.
-        const existingSubmit = await this.homeworkSubmitRepository.findByHomeworkAndStudent(
-          homeworkId,
-          studentId,
-        )
-        if (existingSubmit) {
-          homeworkSubmitsMap.set(key, existingSubmit)
-        }
-      }
-    }
   }
 
   async execute(query: AttendanceListQueryDto): Promise<AttendanceListResponseDto> {
