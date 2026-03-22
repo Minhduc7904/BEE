@@ -225,7 +225,7 @@ export class ZaloService {
             },
             message: {
                 text: `Bạn chưa đăng ký Zalo phụ huynh. Vui lòng chọn một tùy chọn bên dưới.
-                (Lưu ý: Nếu bạn đang dùng Zalo trên máy tính, các nút có thể không hiển thị. Hãy mở tin nhắn trên điện thoại để sử dụng đầy đủ chức năng.)`,
+(Lưu ý: Nếu bạn đang dùng Zalo trên máy tính, các nút có thể không hiển thị. Hãy mở tin nhắn trên điện thoại để sử dụng đầy đủ chức năng.)`,
                 attachment: {
                     type: 'template',
                     payload: {
