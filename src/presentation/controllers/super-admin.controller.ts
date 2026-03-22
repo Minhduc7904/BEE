@@ -5,6 +5,7 @@ import {
     HttpStatus,
     Post,
 } from '@nestjs/common'
+import axios from 'axios'
 import { CurrentUser } from 'src/shared/decorators'
 import { RequirePermission } from 'src/shared/decorators/permissions.decorator'
 import { PERMISSION_CODES } from 'src/shared/constants/permissions/permission.codes'
@@ -17,6 +18,12 @@ import { UpdateAdminDirectDto } from 'src/application/dtos/admin/update-admin-di
 import { AdminResponseDto } from 'src/application/dtos/admin/admin.dto'
 import { SuperAdminUpdateAdminDirectUseCase } from 'src/application/use-cases/admin/super-admin-update-admin-direct.use-case'
 import { CleanupUnusedMediaOlderThan30DaysUseCase } from 'src/application/use-cases/media/cleanup-unused-media-older-than-30-days.use-case'
+
+interface ExchangeFacebookTokenDto {
+    appId: string
+    appSecret: string
+    shortLivedToken: string
+}
 
 @Injectable()
 @Controller('super-admin')
@@ -124,5 +131,35 @@ export class AdminStudentController {
         return ExceptionHandler.execute(() =>
             this.cleanupUnusedMediaOlderThan30DaysUseCase.execute(),
         )
+    }
+
+    /**
+        * Exchange short-lived Facebook token sang long-lived token.
+        * POST /super-admin/facebook/exchange-access-token
+        *
+        * Input:
+        * - appId: string
+        * - appSecret: string
+        * - shortLivedToken: string
+     */
+    @Post('facebook/exchange-access-token')
+    @HttpCode(HttpStatus.OK)
+    async exchangeFacebookAccessToken(
+        @Body() dto: ExchangeFacebookTokenDto,
+        @CurrentUser('adminId') _adminId?: number,
+    ): Promise<BaseResponseDto<any>> {
+        return ExceptionHandler.execute(async () => {
+            const response = await axios.get('https://graph.facebook.com/v18.0/oauth/access_token', {
+                params: {
+                    grant_type: 'fb_exchange_token',
+                    client_id: dto.appId,
+                    client_secret: dto.appSecret,
+                    fb_exchange_token: dto.shortLivedToken,
+                },
+                timeout: 15000,
+            })
+
+            return BaseResponseDto.success('Exchange Facebook access token thành công', response.data)
+        })
     }
 }
