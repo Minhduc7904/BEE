@@ -149,6 +149,7 @@ export class AdminStudentController {
         @CurrentUser('adminId') _adminId?: number,
     ): Promise<BaseResponseDto<any>> {
         return ExceptionHandler.execute(async () => {
+            console.log('Received request to exchange Facebook access token with data:', dto)
             const response = await axios.get('https://graph.facebook.com/v18.0/oauth/access_token', {
                 params: {
                     grant_type: 'fb_exchange_token',
