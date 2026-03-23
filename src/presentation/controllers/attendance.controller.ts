@@ -224,7 +224,7 @@ export class AttendanceController {
         attendanceId: id,
       })
 
-      return sent ? BaseResponseDto.success( 'Đã gửi thông báo đến phụ huynh' ,{ sent: true }) : BaseResponseDto.error('Không thể gửi thông báo đến phụ huynh')
+      return sent ? BaseResponseDto.success('Đã gửi thông báo đến phụ huynh', { sent: true }) : BaseResponseDto.error('Không thể gửi thông báo đến phụ huynh')
     })
   }
 
