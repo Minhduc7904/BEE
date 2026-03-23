@@ -22,8 +22,14 @@ export class AttendanceResponseDto {
     classSession?: ClassSessionResponseDto | null
     tuitionPayment?: TuitionPaymentResponseDto | null
     homeworkSubmit?: HomeworkSubmitResponseDto | null
+    otherAttendancesInWeek?: AttendanceResponseDto[]
 
-    constructor(attendance: Attendance, tuitionPayment?: any, homeworkSubmit?: any) {
+    constructor(
+        attendance: Attendance,
+        tuitionPayment?: any,
+        homeworkSubmit?: any,
+        otherAttendancesInWeek?: Attendance[],
+    ) {
         this.attendanceId = attendance.attendanceId
         this.sessionId = attendance.sessionId
         this.studentId = attendance.studentId
@@ -49,6 +55,12 @@ export class AttendanceResponseDto {
 
         if (homeworkSubmit) {
             this.homeworkSubmit = HomeworkSubmitResponseDto.fromEntity(homeworkSubmit)
+        }
+
+        if (otherAttendancesInWeek && otherAttendancesInWeek.length > 0) {
+            this.otherAttendancesInWeek = otherAttendancesInWeek.map(
+                (item) => new AttendanceResponseDto(item),
+            )
         }
     }
 

@@ -30,6 +30,11 @@ export interface IAttendanceRepository {
   findBySession(sessionId: number): Promise<Attendance[]>
   findByStudent(studentId: number): Promise<Attendance[]>
   findBySessionAndStudent(sessionId: number, studentId: number): Promise<Attendance | null>
+  findByStudentsAndMarkedAtRange(
+    studentIds: number[],
+    fromDate: Date,
+    toDate: Date,
+  ): Promise<Attendance[]>
   
   // Bulk operations
   createBulk(data: CreateAttendanceData[]): Promise<Attendance[]>

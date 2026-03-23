@@ -25,6 +25,90 @@ export class GetAllAttendanceUseCase {
     return `${studentId}:${homeworkId}`
   }
 
+  private getWeekStart(date: Date): Date {
+    const weekStart = new Date(date)
+    const day = weekStart.getDay()
+    const diff = day === 0 ? -6 : 1 - day
+    weekStart.setDate(weekStart.getDate() + diff)
+    weekStart.setHours(0, 0, 0, 0)
+    return weekStart
+  }
+
+  private getWeekEnd(date: Date): Date {
+    const weekEnd = new Date(this.getWeekStart(date))
+    weekEnd.setDate(weekEnd.getDate() + 6)
+    weekEnd.setHours(12, 59, 59, 999)
+    return weekEnd
+  }
+
+  private getWeekKey(date: Date): string {
+    const weekStart = this.getWeekStart(date)
+    const year = weekStart.getFullYear()
+    const month = `${weekStart.getMonth() + 1}`.padStart(2, '0')
+    const day = `${weekStart.getDate()}`.padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  /**
+   * Lấy các attendance khác trong cùng tuần cho từng attendance theo studentId.
+   */
+  private async resolveOtherAttendancesInWeek(
+    attendances: Attendance[],
+  ): Promise<Map<number, Attendance[]>> {
+    const result = new Map<number, Attendance[]>()
+
+    if (attendances.length === 0) {
+      return result
+    }
+
+    const studentIds = [...new Set(attendances.map((attendance) => attendance.studentId))]
+
+    let minWeekStart: Date | null = null
+    let maxWeekEnd: Date | null = null
+
+    for (const attendance of attendances) {
+      const weekStart = this.getWeekStart(attendance.markedAt)
+      const weekEnd = this.getWeekEnd(attendance.markedAt)
+
+      if (!minWeekStart || weekStart < minWeekStart) {
+        minWeekStart = weekStart
+      }
+
+      if (!maxWeekEnd || weekEnd > maxWeekEnd) {
+        maxWeekEnd = weekEnd
+      }
+    }
+
+    if (!minWeekStart || !maxWeekEnd || studentIds.length === 0) {
+      return result
+    }
+
+    const weeklyAttendances = await this.attendanceRepository.findByStudentsAndMarkedAtRange(
+      studentIds,
+      minWeekStart,
+      maxWeekEnd,
+    )
+
+    const attendancesByStudentAndWeek = new Map<string, Attendance[]>()
+    for (const attendance of weeklyAttendances) {
+      const key = `${attendance.studentId}:${this.getWeekKey(attendance.markedAt)}`
+      const items = attendancesByStudentAndWeek.get(key) || []
+      items.push(attendance)
+      attendancesByStudentAndWeek.set(key, items)
+    }
+
+    for (const attendance of attendances) {
+      const key = `${attendance.studentId}:${this.getWeekKey(attendance.markedAt)}`
+      const weeklyItems = attendancesByStudentAndWeek.get(key) || []
+      result.set(
+        attendance.attendanceId,
+        weeklyItems.filter((item) => item.attendanceId !== attendance.attendanceId),
+      )
+    }
+
+    return result
+  }
+
   /**
    * Resolve bài nộp theo homeworkId gắn trong từng session của attendance.
    */
@@ -110,6 +194,7 @@ export class GetAllAttendanceUseCase {
 
     // Tự động resolve homework submit theo homeworkId của session
     const homeworkSubmitsMap = await this.resolveHomeworkSubmitsBySession(result.data)
+    const otherAttendancesInWeekMap = await this.resolveOtherAttendancesInWeek(result.data)
 
     const attendanceResponses = result.data.map((attendance) => {
       const tuitionPayment = tuitionPaymentsMap.get(attendance.studentId)
@@ -118,7 +203,13 @@ export class GetAllAttendanceUseCase {
         typeof homeworkId === 'number'
           ? homeworkSubmitsMap.get(this.getHomeworkSubmitKey(attendance.studentId, homeworkId))
           : undefined
-      return new AttendanceResponseDto(attendance, tuitionPayment, homeworkSubmit)
+      const otherAttendancesInWeek = otherAttendancesInWeekMap.get(attendance.attendanceId)
+      return new AttendanceResponseDto(
+        attendance,
+        tuitionPayment,
+        homeworkSubmit,
+        otherAttendancesInWeek,
+      )
     })
 
     return new AttendanceListResponseDto(
@@ -181,6 +272,7 @@ export class GetAllAttendanceUseCase {
 
     // 6. Homework submits theo homeworkId của session (nếu có)
     const homeworkSubmitsMap = await this.resolveHomeworkSubmitsBySession(paged)
+    const otherAttendancesInWeekMap = await this.resolveOtherAttendancesInWeek(paged)
 
     // 7. Map sang response DTOs
     const attendanceResponses = paged.map(attendance => {
@@ -190,7 +282,13 @@ export class GetAllAttendanceUseCase {
         typeof homeworkId === 'number'
           ? homeworkSubmitsMap.get(this.getHomeworkSubmitKey(attendance.studentId, homeworkId))
           : undefined
-      return new AttendanceResponseDto(attendance, tuitionPayment, homeworkSubmit)
+      const otherAttendancesInWeek = otherAttendancesInWeekMap.get(attendance.attendanceId)
+      return new AttendanceResponseDto(
+        attendance,
+        tuitionPayment,
+        homeworkSubmit,
+        otherAttendancesInWeek,
+      )
     })
 
     return new AttendanceListResponseDto(

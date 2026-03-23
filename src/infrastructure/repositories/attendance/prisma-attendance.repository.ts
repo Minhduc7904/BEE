@@ -342,6 +342,44 @@ export class PrismaAttendanceRepository implements IAttendanceRepository {
     return AttendanceMapper.toDomainAttendances(prismaAttendances)
   }
 
+  async findByStudentsAndMarkedAtRange(
+    studentIds: number[],
+    fromDate: Date,
+    toDate: Date,
+  ): Promise<Attendance[]> {
+    if (studentIds.length === 0) {
+      return []
+    }
+
+    const prismaAttendances = await this.prisma.attendance.findMany({
+      where: {
+        studentId: { in: studentIds },
+        markedAt: {
+          gte: fromDate,
+          lte: toDate,
+        },
+      },
+      include: {
+        classSession: {
+          include: {
+            courseClass: true,
+          },
+        },
+        student: {
+          include: { user: true },
+        },
+        marker: {
+          include: { user: true },
+        },
+      },
+      orderBy: {
+        markedAt: 'desc',
+      },
+    })
+
+    return AttendanceMapper.toDomainAttendances(prismaAttendances)
+  }
+
   async findBySessionAndStudent(sessionId: number, studentId: number): Promise<Attendance | null> {
     const sId = NumberUtil.ensureValidId(sessionId, 'Session ID')
     const stId = NumberUtil.ensureValidId(studentId, 'Student ID')
