@@ -74,7 +74,11 @@ export class SendAttendanceToParentUseCase {
                             ? ` | Điểm: ${pts}/${maxPts}`
                             : ` | Điểm: ${pts}`
 
-                homeworkLine = `BTVN: Đã nộp lúc ${formatVnDateTime(homeworkSubmit.submitAt)}${pointsText}`
+                const feedbackText = homeworkSubmit.feedback
+                    ? `\nNhận xét: ${homeworkSubmit.feedback}`
+                    : ''
+
+                homeworkLine = `BTVN: Đã nộp lúc ${formatVnDateTime(homeworkSubmit.submitAt)}${pointsText}${feedbackText}`
             } else {
                 homeworkLine = 'BTVN: Chưa nộp'
             }
