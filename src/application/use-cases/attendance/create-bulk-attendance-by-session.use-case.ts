@@ -18,6 +18,9 @@ import { SendAttendanceToParentUseCase } from './send-attendance-to-parent.use-c
 
 @Injectable()
 export class CreateBulkAttendanceBySessionUseCase {
+  private static readonly FIRST_ATTENDANCE_NOTE =
+    'Lưu ý: Đây là điểm danh lần thứ 1 nếu con có đi học phụ huynh sẽ nhận được điểm danh lần thứ 2 vào thời điểm con được vào lớp'
+
   constructor(
     @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
@@ -191,7 +194,10 @@ export class CreateBulkAttendanceBySessionUseCase {
     if (result.attendanceIds.length > 0) {
       await Promise.allSettled(
         result.attendanceIds.map((attendanceId) =>
-          this.sendAttendanceToParentUseCase.execute({ attendanceId }),
+          this.sendAttendanceToParentUseCase.execute({
+            attendanceId,
+            note: CreateBulkAttendanceBySessionUseCase.FIRST_ATTENDANCE_NOTE,
+          }),
         ),
       )
     }

@@ -8,6 +8,7 @@ import { GetValidZaloAccessTokenUseCase } from '../zalo/get-valid-zalo-access-to
 interface SendAttendanceToParentInput {
     attendanceId: number
     appId?: string
+    note?: string
 }
 
 @Injectable()
@@ -94,6 +95,7 @@ export class SendAttendanceToParentUseCase {
             makeupLine,
             homeworkLine,
             attendance.notes ? `Ghi chú: ${attendance.notes}` : '',
+            input.note ? `Note: ${input.note}` : '',
         ].filter(Boolean)
 
         try {
