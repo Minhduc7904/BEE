@@ -18,8 +18,10 @@ import { SendAttendanceToParentUseCase } from './send-attendance-to-parent.use-c
 
 @Injectable()
 export class CreateBulkAttendanceBySessionUseCase {
-  private static readonly FIRST_ATTENDANCE_NOTE =
-    'Lưu ý: Đây là điểm danh lần thứ 1 nếu con có đi học phụ huynh sẽ nhận được điểm danh lần thứ 2 vào thời điểm con được vào lớp'
+private static readonly FIRST_ATTENDANCE_NOTE =
+  `Lưu ý: Đây là điểm danh lần thứ 1. Nếu con có đi học, phụ huynh sẽ nhận được điểm danh lần thứ 2 khi con vào lớp. 
+Nếu con đã học một buổi tương đương, vui lòng bỏ qua thông báo này. 
+Nếu con đăng ký nhầm lớp, hãy chọn "Liên hệ hỗ trợ" để trợ giảng sắp xếp lại lịch học phù hợp.`;
 
   constructor(
     @Inject('UNIT_OF_WORK')
