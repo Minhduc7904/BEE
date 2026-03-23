@@ -9,6 +9,7 @@ import { NotFoundException, ForbiddenException } from '../../../shared/exception
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 import { QuestionType } from '../../../shared/enums'
 import { CompetitionSubmitStatus } from '../../../shared/enums/competition-submit-status.enum'
+import { HandleHomeworkSubmitByCompetitionUseCase } from './handle-homework-submit-by-competition.use-case'
 import {
     DEFAULT_QUESTION_POINTS,
     calcTrueFalsePoints,
@@ -47,6 +48,7 @@ export class FinishCompetitionSubmitUseCase {
         private readonly homeworkContentRepository: IHomeworkContentRepository,
         @Inject('IHomeworkSubmitRepository')
         private readonly homeworkSubmitRepository: IHomeworkSubmitRepository,
+        private readonly handleHomeworkSubmitByCompetitionUseCase: HandleHomeworkSubmitByCompetitionUseCase,
     ) { }
 
     async execute(
@@ -274,20 +276,17 @@ export class FinishCompetitionSubmitUseCase {
                         reason: 'Đã quá hạn nộp bài và không cho phép nộp muộn',
                     }
                 } else {
-                    const created = await this.homeworkSubmitRepository.create({
+                    const created = await this.handleHomeworkSubmitByCompetitionUseCase.excuteCreate({
                         homeworkContentId: parsedHomeworkContentId,
                         studentId,
-                        content: `Nộp bài qua cuộc thi #${competition.competitionId} (submit #${submitId})`,
-                        competitionSubmitId: submitId,
-                    })
-                    // Cập nhật điểm ngay sau khi tạo
-                    const updated = await this.homeworkSubmitRepository.update(created.homeworkSubmitId, {
+                        competitionId: competition.competitionId,
+                        submitId,
                         points: newPoints,
                     })
-                    console.log('Created new homework submit:', newPoints, updated)
+                    console.log('Created new homework submit:', newPoints, created)
                     homeworkSubmitResult = {
                         action: 'created',
-                        homeworkSubmitId: updated.homeworkSubmitId,
+                        homeworkSubmitId: created.homeworkSubmitId,
                         points: newPoints,
                     }
                 }
@@ -311,13 +310,14 @@ export class FinishCompetitionSubmitUseCase {
                 }
 
                 if (canUpdate && shouldUpdatePoints(existingSubmit.points)) {
-                    await this.homeworkSubmitRepository.update(existingSubmit.homeworkSubmitId, {
+                    const updated = await this.handleHomeworkSubmitByCompetitionUseCase.excuteUpdate({
+                        homeworkSubmitId: existingSubmit.homeworkSubmitId,
                         points: newPoints,
-                        competitionSubmitId: submitId,
+                        submitId,
                     })
                     homeworkSubmitResult = {
                         action: 'updated',
-                        homeworkSubmitId: existingSubmit.homeworkSubmitId,
+                        homeworkSubmitId: updated.homeworkSubmitId,
                         points: newPoints,
                     }
                 } else {

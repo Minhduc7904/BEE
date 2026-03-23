@@ -67,6 +67,7 @@ import {
 import { ImageExportService } from './services/image-export.service'
 import { MistralService } from './services/mistral.service'
 import { OpenAIService } from './services/openai.service'
+import { CompetitionSubmitFeedbackAiService } from './services/competition-submit-feedback-ai.service'
 import { ExamSplitService } from './services/exam-split.service'
 import { MarkdownFixService } from './services/markdown-fix.service'
 import { QuestionChapterClassificationService } from './services/question-chapter-classification.service'
@@ -357,6 +358,7 @@ import openaiConfig from '../config/openai.config'
     ExcelService,
     MistralService,
     OpenAIService,
+    CompetitionSubmitFeedbackAiService,
     ExamSplitService,
     MarkdownFixService,
     QuestionChapterClassificationService,
@@ -424,6 +426,7 @@ import openaiConfig from '../config/openai.config'
     ExcelService,
     MistralService,
     OpenAIService,
+    CompetitionSubmitFeedbackAiService,
     ExamSplitService,
     MarkdownFixService,
     QuestionChapterClassificationService,
