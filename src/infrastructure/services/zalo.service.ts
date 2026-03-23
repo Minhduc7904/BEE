@@ -77,6 +77,8 @@ export class ZaloService {
     }
 
     formatParentClassScheduleSummary(classStudents: any[]): string {
+        const supportNote = 'Lưu ý: Nếu con đăng kí nhầm lịch học, hãy liên hệ hỗ trợ để trợ giảng đăng ký lại lịch cho con.'
+
         if (!classStudents.length) {
             return 'Học sinh hiện chưa tham gia lớp học nào.'
         }
@@ -102,7 +104,7 @@ export class ZaloService {
             ? `\n... và ${classStudents.length - lines.length} lớp khác.`
             : ''
 
-        return `Danh sách lớp học của học sinh:\n${lines.join('\n\n')}${moreText}`
+        return `Danh sách lớp học của học sinh:\n${lines.join('\n\n')}${moreText}\n\n${supportNote}`
     }
 
     formatTuitionSummary(payments: TuitionPayment[]): string {
