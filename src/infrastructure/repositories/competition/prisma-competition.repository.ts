@@ -10,6 +10,7 @@ import {
 } from '../../../domain/repositories/competition.repository'
 import { PrismaService } from '../../../prisma/prisma.service'
 import { CompetitionMapper } from '../../mappers/competition/competition.mapper'
+import { PublicCompetitionStatus } from '../../../shared/enums/public-competition-status.enum'
 
 @Injectable()
 export class PrismaCompetitionRepository implements ICompetitionRepository {
@@ -143,6 +144,14 @@ export class PrismaCompetitionRepository implements ICompetitionRepository {
             where.examId = filters.examId
         }
 
+        if (filters?.grade !== undefined) {
+            where.exam = {
+                is: {
+                    grade: filters.grade,
+                },
+            }
+        }
+
         if (filters?.visibility) {
             where.visibility = filters.visibility
         }
@@ -161,6 +170,39 @@ export class PrismaCompetitionRepository implements ICompetitionRepository {
 
         if (filters?.endDateTo) {
             where.endDate = { lte: filters.endDateTo }
+        }
+
+        if (filters?.publicStatus) {
+            const now = new Date()
+            const andConditions: any[] = Array.isArray(where.AND) ? [...where.AND] : []
+
+            if (filters.publicStatus === PublicCompetitionStatus.ONGOING) {
+                // Ongoing includes perpetual competitions without endDate.
+                andConditions.push({ OR: [{ startDate: null }, { startDate: { lte: now } }] })
+                andConditions.push({ OR: [{ endDate: null }, { endDate: { gte: now } }] })
+            }
+
+            if (filters.publicStatus === PublicCompetitionStatus.ENDED) {
+                andConditions.push({ endDate: { not: null, lt: now } })
+            }
+
+            if (filters.publicStatus === PublicCompetitionStatus.UPCOMING) {
+                // Upcoming also includes competitions without endDate (perpetual after start).
+                andConditions.push({ startDate: { gt: now } })
+                andConditions.push({ OR: [{ endDate: null }, { endDate: { gte: now } }] })
+            }
+
+            if (filters.publicStatus === PublicCompetitionStatus.ATTEMPTED && filters.attemptedByStudentId) {
+                where.competitionSubmits = {
+                    some: {
+                        studentId: filters.attemptedByStudentId,
+                    },
+                }
+            }
+
+            if (andConditions.length > 0) {
+                where.AND = andConditions
+            }
         }
 
         // Build orderBy

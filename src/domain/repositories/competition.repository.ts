@@ -1,6 +1,7 @@
 // src/domain/repositories/competition.repository.ts
 import { Competition } from '../entities/exam/competition.entity'
 import { Visibility } from 'src/shared/enums'
+import { PublicCompetitionStatus } from 'src/shared/enums/public-competition-status.enum'
 
 export interface CreateCompetitionData {
     title: string
@@ -24,12 +25,15 @@ export interface CreateCompetitionData {
 
 export interface CompetitionFilterOptions {
     examId?: number
+    grade?: number
     visibility?: Visibility
     excludeVisibility?: Visibility
     createdBy?: number
     search?: string
     startDateFrom?: Date
     endDateTo?: Date
+    publicStatus?: PublicCompetitionStatus
+    attemptedByStudentId?: number
 }
 
 export interface CompetitionPaginationOptions {

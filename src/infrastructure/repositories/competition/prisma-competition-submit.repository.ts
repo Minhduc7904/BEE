@@ -488,7 +488,7 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
         const submits = await client.competitionSubmit.findMany({
             where: {
                 competitionId,
-                status: CompetitionSubmitStatus.GRADED,
+                status: CompetitionSubmitStatus.SUBMITTED,
                 totalPoints: { not: null },
                 student: { user: { isActive: true } },
             },
@@ -519,7 +519,7 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
 
         const where = {
             competitionId,
-            status: CompetitionSubmitStatus.GRADED,
+            status: CompetitionSubmitStatus.SUBMITTED,
             totalPoints: { not: null },
             student: { user: { isActive: true } },
         }

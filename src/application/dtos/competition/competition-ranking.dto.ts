@@ -1,6 +1,7 @@
 // src/application/dtos/competition/competition-ranking.dto.ts
 import { CompetitionSubmit } from '../../../domain/entities/exam/competition-submit.entity'
 import { BaseResponseDto } from '../common/base-response.dto'
+import { ListQueryDto } from '../pagination/list-query.dto'
 
 /**
  * DTO cho thông tin student trong ranking
@@ -13,8 +14,9 @@ export class RankingStudentDto {
     fullName: string
     grade?: number
     school?: string
+    avatarUrl?: string
 
-    static fromEntity(submit: CompetitionSubmit): RankingStudentDto {
+    static fromEntity(submit: CompetitionSubmit, avatarUrl?: string): RankingStudentDto {
         const dto = new RankingStudentDto()
         const student = submit.student
         
@@ -29,6 +31,7 @@ export class RankingStudentDto {
         dto.fullName = `${student.user?.lastName || ''} ${student.user?.firstName || ''}`.trim()
         dto.grade = student.grade
         dto.school = student.school ?? undefined
+        dto.avatarUrl = avatarUrl
 
         return dto
     }
@@ -83,12 +86,12 @@ export class CompetitionRankingEntryDto {
     submittedAt?: Date
     timeSpentSeconds?: number
 
-    static fromEntity(submit: CompetitionSubmit, rank: number): CompetitionRankingEntryDto {
+    static fromEntity(submit: CompetitionSubmit, rank: number, avatarUrl?: string): CompetitionRankingEntryDto {
         const dto = new CompetitionRankingEntryDto()
         
         dto.rank = rank
         dto.competitionSubmitId = submit.competitionSubmitId
-        dto.student = RankingStudentDto.fromEntity(submit)
+        dto.student = RankingStudentDto.fromEntity(submit, avatarUrl)
         dto.totalPoints = submit.totalPoints ? Number(submit.totalPoints) : 0
         dto.maxPoints = submit.maxPoints ? Number(submit.maxPoints) : undefined
         dto.attemptNumber = submit.attemptNumber
@@ -119,10 +122,7 @@ export class StudentOwnRankingResponseDto extends BaseResponseDto<{
 /**
  * Query DTO for ranking list
  */
-export class CompetitionRankingQueryDto {
-    page?: number = 1
-    limit?: number = 10
-}
+export class CompetitionRankingQueryDto extends ListQueryDto {}
 
 /**
  * Response DTO for competition ranking with pagination
@@ -130,6 +130,8 @@ export class CompetitionRankingQueryDto {
 export class CompetitionRankingResponseDto extends BaseResponseDto<{
     competitionId: number
     competitionTitle: string
+    currentUserRank?: number | null
+    currentUserRanking?: CompetitionRankingEntryDto | null
     rankings: CompetitionRankingEntryDto[]
     pagination: {
         total: number

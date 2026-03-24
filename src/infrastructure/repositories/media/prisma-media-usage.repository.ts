@@ -229,6 +229,31 @@ export class PrismaMediaUsageRepository implements IMediaUsageRepository {
     return MediaUsageMapper.toDomainList(usages)
   }
 
+  async findByEntities(
+    entityType: string,
+    entityIds: number[],
+    fieldName?: string,
+  ): Promise<MediaUsageEntity[]> {
+    if (!entityIds.length) {
+      return []
+    }
+
+    const usages = await this.prisma.mediaUsage.findMany({
+      where: {
+        entityType,
+        entityId: { in: entityIds },
+        ...(fieldName && { fieldName }),
+      },
+      include: { media: true },
+      orderBy: [
+        { entityId: 'asc' },
+        { createdAt: 'asc' },
+      ],
+    })
+
+    return MediaUsageMapper.toDomainList(usages)
+  }
+
   async findExistingByEntity(
     mediaIds: number[],
     entityType: string,

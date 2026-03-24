@@ -8,7 +8,10 @@ import {
     GetAllCompetitionsUseCase,
     GetCompetitionByIdUseCase,
     SearchCompetitionsUseCase,
+    GetPublicStudentCompetitionsUseCase,
+    GetPublicStudentCompetitionDetailUseCase,
     GetCompetitionRankingUseCase,
+    GetCompetitionLeaderboardUseCase,
     GetCompetitionQuestionStatsUseCase,
 } from './index'
 import { AttachMediaFromContentUseCase } from '../media/attach-media-from-content.use-case'
@@ -25,7 +28,10 @@ import { ProcessContentWithPresignedUrlsUseCase } from '../media/process-content
         GetAllCompetitionsUseCase,
         GetCompetitionByIdUseCase,
         SearchCompetitionsUseCase,
+        GetPublicStudentCompetitionsUseCase,
+        GetPublicStudentCompetitionDetailUseCase,
         GetCompetitionRankingUseCase,
+        GetCompetitionLeaderboardUseCase,
         GetCompetitionQuestionStatsUseCase,
         AttachMediaFromContentUseCase,
         ProcessContentWithPresignedUrlsUseCase,
@@ -37,7 +43,10 @@ import { ProcessContentWithPresignedUrlsUseCase } from '../media/process-content
         GetAllCompetitionsUseCase,
         GetCompetitionByIdUseCase,
         SearchCompetitionsUseCase,
+        GetPublicStudentCompetitionsUseCase,
+        GetPublicStudentCompetitionDetailUseCase,
         GetCompetitionRankingUseCase,
+        GetCompetitionLeaderboardUseCase,
         GetCompetitionQuestionStatsUseCase,
     ],
 })

@@ -97,6 +97,17 @@ export interface IMediaUsageRepository {
     fieldName?: string,
   ): Promise<MediaUsageEntity[]>
 
+  /**
+   * Find media usages for multiple entities in one query
+   * Optionally filter by field name
+   * Sorted by entityId asc, then createdAt asc
+   */
+  findByEntities(
+    entityType: EntityType,
+    entityIds: number[],
+    fieldName?: string,
+  ): Promise<MediaUsageEntity[]>
+
   findExistingByEntity(
     mediaIds: number[],
     entityType: EntityType,

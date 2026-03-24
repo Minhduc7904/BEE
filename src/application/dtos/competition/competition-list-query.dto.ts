@@ -1,6 +1,6 @@
 // src/application/dtos/competition/competition-list-query.dto.ts
-import { IsOptionalIdNumber, IsOptionalEnumValue, IsOptionalDate } from '../../../shared/decorators/validate'
-import { Visibility } from '../../../shared/enums'
+import { IsOptionalIdNumber, IsOptionalEnumValue, IsOptionalDate, IsOptionalInt } from '../../../shared/decorators/validate'
+import { PublicCompetitionStatus, Visibility } from '../../../shared/enums'
 import { ListQueryDto } from '../pagination/list-query.dto'
 
 export class CompetitionListQueryDto extends ListQueryDto {
@@ -10,6 +10,13 @@ export class CompetitionListQueryDto extends ListQueryDto {
      */
     @IsOptionalIdNumber('ID đề thi')
     examId?: number
+
+    /**
+     * Lọc theo khối lớp của đề thi (exam.grade)
+     * @example 10
+     */
+    @IsOptionalInt('Khối lớp', 1, 12)
+    grade?: number
 
     /**
      * Lọc theo trạng thái hiển thị
@@ -38,4 +45,14 @@ export class CompetitionListQueryDto extends ListQueryDto {
      */
     @IsOptionalDate('Ngày kết thúc')
     endDateTo?: Date
+
+    /**
+     * Lọc danh sách cuộc thi public cho học sinh theo trạng thái
+     * - ONGOING: đang diễn ra
+     * - ENDED: đã kết thúc
+     * - UPCOMING: chưa bắt đầu
+     * - ATTEMPTED: đã làm (theo học sinh hiện tại)
+     */
+    @IsOptionalEnumValue(PublicCompetitionStatus, 'Trạng thái cuộc thi public')
+    publicStatus?: PublicCompetitionStatus
 }

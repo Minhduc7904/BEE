@@ -67,8 +67,8 @@ export class GetCompetitionRankingUseCase {
         let highestRank: number | undefined = undefined
 
         for (const submit of studentSubmits) {
-            // Chỉ tính rank cho submits đã GRADED
-            if (submit.status === CompetitionSubmitStatus.GRADED && submit.totalPoints !== null) {
+            // Chỉ tính rank cho submits đã SUBMITTED
+            if (submit.status === CompetitionSubmitStatus.SUBMITTED && submit.totalPoints !== null) {
                 const score = Number(submit.totalPoints)
                 
                 // Tính rank: đếm có bao nhiêu submits có điểm cao hơn

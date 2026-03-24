@@ -16,9 +16,13 @@ import { Injectable } from '@nestjs/common'
 import {
     CompetitionResponseDto,
     CompetitionListResponseDto,
+    PublicStudentCompetitionListResponseDto,
+    PublicStudentCompetitionDetailApiResponseDto,
     CreateCompetitionDto,
     UpdateCompetitionDto,
     CompetitionListQueryDto,
+    CompetitionRankingQueryDto,
+    CompetitionRankingResponseDto,
     StudentOwnRankingResponseDto,
     CompetitionQuestionStatsDto,
     CompetitionQuestionStatsResponseDto,
@@ -35,7 +39,10 @@ import {
     UpdateCompetitionUseCase,
     DeleteCompetitionUseCase,
     SearchCompetitionsUseCase,
+    GetPublicStudentCompetitionsUseCase,
+    GetPublicStudentCompetitionDetailUseCase,
     GetCompetitionRankingUseCase,
+    GetCompetitionLeaderboardUseCase,
     GetCompetitionQuestionStatsUseCase,
 } from '../../application/use-cases/competition'
 import { Visibility } from 'src/shared/enums'
@@ -49,9 +56,106 @@ export class CompetitionController {
         private readonly updateCompetitionUseCase: UpdateCompetitionUseCase,
         private readonly deleteCompetitionUseCase: DeleteCompetitionUseCase,
         private readonly searchCompetitionsUseCase: SearchCompetitionsUseCase,
+        private readonly getPublicStudentCompetitionsUseCase: GetPublicStudentCompetitionsUseCase,
+        private readonly getPublicStudentCompetitionDetailUseCase: GetPublicStudentCompetitionDetailUseCase,
         private readonly getCompetitionRankingUseCase: GetCompetitionRankingUseCase,
+        private readonly getCompetitionLeaderboardUseCase: GetCompetitionLeaderboardUseCase,
         private readonly getCompetitionQuestionStatsUseCase: GetCompetitionQuestionStatsUseCase,
     ) { }
+
+    /**
+     * Get public competitions for the current student.
+     *
+     * @route GET /competitions/public/student
+    * @param query - Query parameters (page, limit, examId, grade, search, publicStatus)
+     * @param studentId - Current student ID (auto-injected)
+     * @returns Paginated public competitions with student-attempt state and availability.
+     *
+     * Response item fields:
+     * - competitionId, title, subtitle, examId
+     * - exam: { examId, title, grade, visibility }
+     * - startDate, endDate, durationMinutes
+     * - timelineStatus: ONGOING | UPCOMING | ENDED
+     * - attemptStatus: ATTEMPTED | NOT_ATTEMPTED
+     * - canAttempt: boolean
+     * - attemptedCount, maxAttempts
+     *
+     * @example
+     * GET /competitions/public/student?publicStatus=ONGOING
+    * GET /competitions/public/student?grade=10
+     * GET /competitions/public/student?publicStatus=ENDED
+     * GET /competitions/public/student?publicStatus=UPCOMING
+     * GET /competitions/public/student?publicStatus=ATTEMPTED
+     */
+    @Get('public/student')
+    @RequirePermission()
+    @HttpCode(HttpStatus.OK)
+    async getPublicStudentCompetitions(
+        @Query() query: CompetitionListQueryDto,
+        @CurrentUser('studentId') studentId?: number,
+    ): Promise<PublicStudentCompetitionListResponseDto> {
+        return ExceptionHandler.execute(() =>
+            this.getPublicStudentCompetitionsUseCase.execute(query, studentId),
+        )
+    }
+
+    /**
+     * Get public competition detail for current student.
+     *
+     * @route GET /competitions/public/student/:id
+     * @param id - Competition ID
+     * @param studentId - Current student ID (auto-injected)
+     * @returns PublicStudentCompetitionDetailApiResponseDto
+     *
+     * Response shape:
+     * - success: boolean
+     * - message: string
+     * - data:
+     *   - competitionId: number
+     *   - title: string
+     *   - subtitle?: string | null
+     *   - examId?: number | null
+     *   - exam?: {
+     *       examId: number,
+     *       title: string,
+     *       grade?: number,
+     *       visibility: string
+     *     } | null
+     *   - startDate?: Date | null
+     *   - endDate?: Date | null
+     *   - durationMinutes?: number | null
+     *   - maxAttempts?: number | null
+     *   - attemptedCount: number
+     *   - attemptStatus: ATTEMPTED | NOT_ATTEMPTED
+     *   - timelineStatus: ONGOING | UPCOMING | ENDED
+     *   - canAttempt: boolean
+     *   - showResultDetail: boolean
+     *   - allowLeaderboard: boolean
+     *   - allowViewScore: boolean
+     *   - allowViewAnswer: boolean
+     *   - allowViewSolutionYoutubeUrl: boolean
+     *   - allowViewExamContent: boolean
+     *
+     * Timeline masking rule for view/result flags:
+     * - If endDate is null OR endDate >= now, all flags below are forced to false:
+     *   showResultDetail, allowLeaderboard, allowViewScore,
+     *   allowViewAnswer, allowViewSolutionYoutubeUrl, allowViewExamContent.
+     * - Only when endDate < now, these flags reflect real competition settings.
+     *
+     * @example
+     * GET /competitions/public/student/123
+     */
+    @Get('public/student/:id')
+    @RequirePermission()
+    @HttpCode(HttpStatus.OK)
+    async getPublicStudentCompetitionDetail(
+        @Param('id', ParseIntPipe) id: number,
+        @CurrentUser('studentId') studentId?: number,
+    ): Promise<PublicStudentCompetitionDetailApiResponseDto> {
+        return ExceptionHandler.execute(() =>
+            this.getPublicStudentCompetitionDetailUseCase.execute(id, studentId),
+        )
+    }
 
     /**
      * Get my competitions (created by current user)
@@ -101,7 +205,7 @@ export class CompetitionController {
                 permissions: user?.permissions ?? [],
             },
         }
-        
+
         return ExceptionHandler.execute(() =>
             this.searchCompetitionsUseCase.execute(query, context),
         )
@@ -126,22 +230,42 @@ export class CompetitionController {
     }
 
     /**
-     * Get student's own competition ranking
+     * Get the current student's ranking summary for a competition.
      *
      * @route GET /competitions/:id/student/ranking
      * @param id - Competition ID
      * @param studentId - Current student ID (auto-injected)
-     * @returns All student's attempts with their ranks and highest achievement
+     * @returns StudentOwnRankingResponseDto with attempts and best achievement.
+     *
+     * Response shape:
+     * - success: boolean
+     * - message: string
+     * - data:
+     *   - competitionId: number
+     *   - competitionTitle: string
+     *   - totalAttempts: number
+     *   - highestScore: number
+     *   - highestRank?: number
+     *   - attempts: Array<{
+     *       rank: number,                  // rank = 0 if the attempt is not graded yet
+     *       competitionSubmitId: number,
+     *       totalPoints: number,
+     *       maxPoints?: number,
+     *       percentageScore?: number,
+     *       attemptNumber: number,
+     *       submittedAt?: Date,
+     *       timeSpentSeconds?: number,
+     *       status: string
+     *     }>
+     *
+     * Behavior notes:
+     * - Ranking is computed only for GRADED attempts.
+     * - Tie-break order: higher score, then lower timeSpentSeconds, then earlier submittedAt.
+     * - Endpoint is available only when competition.allowLeaderboard = true.
+     * - If the student has no attempts, attempts will be an empty array.
      *
      * @example
      * GET /competitions/123/student/ranking
-     *
-     * @description
-     * This endpoint returns all attempts made by the current student for this competition:
-     * - Each attempt shows its rank compared to all other students
-     * - Includes highest score achieved and best rank
-     * - Only counts GRADED submissions for ranking
-     * - Only works if competition.allowLeaderboard is true
      */
     @Get(':id/student/ranking')
     @RequirePermission() // Public endpoint for students
@@ -151,6 +275,95 @@ export class CompetitionController {
         @CurrentUser('studentId') studentId: number,
     ): Promise<StudentOwnRankingResponseDto> {
         return ExceptionHandler.execute(() => this.getCompetitionRankingUseCase.execute(id, studentId))
+    }
+
+    /**
+     * Get competition leaderboard across all students.
+     *
+     * @route GET /competitions/:id/ranking
+     * @param id - Competition ID
+     * @param query - Pagination query (page, limit)
+        * @returns CompetitionRankingResponseDto
+        *
+        * Response shape:
+        * - success: boolean
+        * - message: string
+        * - data:
+        *   - competitionId: number
+        *   - competitionTitle: string
+        *   - currentUserRank?: number | null   // rank riêng của user hiện tại (không nằm trong rankings)
+        *   - currentUserRanking?: {            // chi tiết entry của user hiện tại
+        *       rank: number,
+        *       competitionSubmitId: number,
+        *       student: {
+        *         studentId: number,
+        *         userId: number,
+        *         firstName: string,
+        *         lastName: string,
+        *         fullName: string,
+        *         grade?: number,
+        *         school?: string,
+        *         avatarUrl?: string
+        *       },
+        *       totalPoints: number,
+        *       maxPoints?: number,
+        *       percentageScore?: number,
+        *       attemptNumber: number,
+        *       submittedAt?: Date,
+        *       timeSpentSeconds?: number
+        *     } | null
+        *   - rankings: Array<{
+        *       rank: number,
+        *       competitionSubmitId: number,
+        *       student: {
+        *         studentId: number,
+        *         userId: number,
+        *         firstName: string,
+        *         lastName: string,
+        *         fullName: string,
+        *         grade?: number,
+        *         school?: string
+        *       },
+        *       totalPoints: number,
+        *       maxPoints?: number,
+        *       percentageScore?: number,
+        *       attemptNumber: number,
+        *       submittedAt?: Date,
+        *       timeSpentSeconds?: number
+        *     }>
+        *   - pagination: {
+        *       total: number,
+        *       page: number,
+        *       limit: number,
+        *       totalPages: number
+        *     }
+     *
+     * Rules:
+     * - Only GRADED attempts are considered.
+     * - Each student contributes only one row (their best attempt).
+     * - Best attempt is chosen by: highest score, then lower timeSpentSeconds, then earlier startedAt.
+     * - Attempt startedAt must be inside competition time window.
+        * - Ranking output is sorted by best score, then lower time, then earlier startedAt.
+        *
+        * @example
+        * GET /competitions/123/ranking?page=1&limit=20
+     */
+    @Get(':id/ranking')
+    @RequirePermission()
+    @HttpCode(HttpStatus.OK)
+    async getCompetitionLeaderboard(
+        @Param('id', ParseIntPipe) id: number,
+        @Query() query: CompetitionRankingQueryDto,
+        @CurrentUser('studentId') studentId?: number,
+    ): Promise<CompetitionRankingResponseDto> {
+        return ExceptionHandler.execute(() =>
+            this.getCompetitionLeaderboardUseCase.execute(
+                id,
+                query.page ?? 1,
+                query.limit ?? 10,
+                studentId,
+            ),
+        )
     }
 
     /**
