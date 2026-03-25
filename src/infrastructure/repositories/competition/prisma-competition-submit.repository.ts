@@ -285,6 +285,7 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
             const searchText = filters.search.trim()
             const searchPattern = `%${searchText}%`
             const normalizedSearch = `%${TextSearchUtil.removeVietnameseAccents(searchText)}%`
+            const normalizedPhoneSearch = `%${searchText.replace(/[\s\-.]/g, '')}%`
 
             const firstNameNoAccent = this.buildRemoveAccentsSQL('u.first_name')
             const lastNameNoAccent = this.buildRemoveAccentsSQL('u.last_name')
@@ -296,14 +297,20 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
                 LOWER(u.last_name) LIKE LOWER(?) OR
                 LOWER(CONCAT(u.last_name, ' ', u.first_name)) LIKE LOWER(?) OR
                 LOWER(CONCAT(u.first_name, ' ', u.last_name)) LIKE LOWER(?) OR
+                LOWER(IFNULL(s.student_phone, '')) LIKE LOWER(?) OR
+                LOWER(IFNULL(s.parent_phone, '')) LIKE LOWER(?) OR
                 LOWER(${firstNameNoAccent}) LIKE LOWER(?) OR
                 LOWER(${lastNameNoAccent}) LIKE LOWER(?) OR
                 LOWER(${fullNameNoAccent}) LIKE LOWER(?) OR
-                LOWER(${reverseFullNameNoAccent}) LIKE LOWER(?)
+                LOWER(${reverseFullNameNoAccent}) LIKE LOWER(?) OR
+                LOWER(REPLACE(REPLACE(REPLACE(IFNULL(s.student_phone, ''), ' ', ''), '-', ''), '.', '')) LIKE LOWER(?) OR
+                LOWER(REPLACE(REPLACE(REPLACE(IFNULL(s.parent_phone, ''), ' ', ''), '-', ''), '.', '')) LIKE LOWER(?)
             )`)
 
             params.push(searchPattern, searchPattern, searchPattern, searchPattern)
+            params.push(searchPattern, searchPattern)
             params.push(normalizedSearch, normalizedSearch, normalizedSearch, normalizedSearch)
+            params.push(normalizedPhoneSearch, normalizedPhoneSearch)
         }
 
         const columnMap: Record<string, string> = {

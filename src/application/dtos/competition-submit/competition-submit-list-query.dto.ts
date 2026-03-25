@@ -64,7 +64,7 @@ export class CompetitionSubmitListQueryDto {
     @IsDateString()
     startedTo?: string
 
-    /** Tìm theo tên học sinh (không phân biệt hoa/thường, có hỗ trợ không dấu) */
+    /** Tìm theo tên học sinh hoặc số điện thoại học sinh/phụ huynh (không phân biệt hoa/thường, có hỗ trợ không dấu) */
     @IsOptional()
     @IsString()
     search?: string
