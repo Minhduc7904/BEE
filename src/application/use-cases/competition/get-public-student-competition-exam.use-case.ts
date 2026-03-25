@@ -33,7 +33,7 @@ export class GetPublicStudentCompetitionExamUseCase {
     ): Promise<PublicStudentCompetitionExamResponseDto> {
         const competition = await this.competitionRepository.findById(competitionId)
 
-        if (!competition || competition.visibility !== Visibility.PUBLISHED) {
+        if (!competition) {
             throw new NotFoundException('Public competition not found')
         }
 

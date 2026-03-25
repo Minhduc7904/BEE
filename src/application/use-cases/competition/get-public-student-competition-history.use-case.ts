@@ -25,7 +25,7 @@ export class GetPublicStudentCompetitionHistoryUseCase {
     ): Promise<StudentCompetitionHistoryListResponseDto> {
         const competition = await this.competitionRepository.findById(competitionId)
 
-        if (!competition || competition.visibility !== Visibility.PUBLISHED) {
+        if (!competition) {
             throw new NotFoundException('Public competition not found')
         }
 
