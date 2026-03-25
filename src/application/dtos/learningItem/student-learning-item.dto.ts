@@ -92,6 +92,7 @@ export class HomeworkProgressDto {
     deadline?: Date  // Deadline cuối cùng (endDate của competition hoặc dueDate)
     remainingTimeSeconds?: number
     status: HomeworkStatus
+    canAttempt: boolean
 
     static create(params: {
         studentLearningItem: StudentLearningItem | null
@@ -163,6 +164,12 @@ export class HomeworkProgressDto {
             isDone: dto.isDone,
             hasInProgressSubmit,
         })
+        dto.canAttempt = [
+            HomeworkStatus.DO_NOW,
+            HomeworkStatus.RESUME,
+            HomeworkStatus.REDO,
+            HomeworkStatus.LATE_SUBMIT,
+        ].includes(dto.status)
 
         return dto
     }

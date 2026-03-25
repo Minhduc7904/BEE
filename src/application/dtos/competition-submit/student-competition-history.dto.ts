@@ -12,6 +12,7 @@ export class StudentCompetitionHistoryItemDto {
     competitionSubmitId: number
     attemptNumber: number
     status: CompetitionSubmitStatus
+    canViewDetail: boolean
 
     startedAt?: Date
     submittedAt?: Date
@@ -28,12 +29,13 @@ export class StudentCompetitionHistoryItemDto {
     createdAt: Date
     updatedAt: Date
 
-    static fromEntity(entity: CompetitionSubmit): StudentCompetitionHistoryItemDto {
+    static fromEntity(entity: CompetitionSubmit, canViewDetail = false): StudentCompetitionHistoryItemDto {
         const dto = new StudentCompetitionHistoryItemDto()
 
         dto.competitionSubmitId = entity.competitionSubmitId
         dto.attemptNumber = entity.attemptNumber
         dto.status = entity.status
+        dto.canViewDetail = canViewDetail
 
         dto.startedAt = entity.startedAt ?? undefined
         dto.submittedAt = entity.submittedAt ?? undefined

@@ -98,6 +98,11 @@ export class PrismaExamRepository implements IExamRepository {
                     statements: {
                       orderBy: { order: 'asc' },
                     },
+                    questionChapters: {
+                      include: {
+                        chapter: true,
+                      },
+                    },
                   },
                 },
               },
@@ -111,6 +116,11 @@ export class PrismaExamRepository implements IExamRepository {
               include: {
                 statements: {
                   orderBy: { order: 'asc' },
+                },
+                questionChapters: {
+                  include: {
+                    chapter: true,
+                  },
                 },
               },
             },

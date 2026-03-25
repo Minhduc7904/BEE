@@ -9,6 +9,7 @@ export enum PublicCompetitionTimelineStatus {
 }
 
 export enum PublicCompetitionAttemptStatus {
+    IN_PROGRESS = 'IN_PROGRESS',
     ATTEMPTED = 'ATTEMPTED',
     NOT_ATTEMPTED = 'NOT_ATTEMPTED',
 }
@@ -41,6 +42,7 @@ export class PublicStudentCompetitionResponseDto {
     static fromEntity(
         entity: Competition,
         attemptedCount: number,
+        hasInProgress = false,
         now: Date = new Date(),
     ): PublicStudentCompetitionResponseDto {
         const dto = new PublicStudentCompetitionResponseDto()
@@ -79,10 +81,14 @@ export class PublicStudentCompetitionResponseDto {
             dto.timelineStatus = PublicCompetitionTimelineStatus.ONGOING
         }
 
-        dto.attemptStatus =
-            attemptedCount > 0
-                ? PublicCompetitionAttemptStatus.ATTEMPTED
-                : PublicCompetitionAttemptStatus.NOT_ATTEMPTED
+        if (hasInProgress) {
+            dto.attemptStatus = PublicCompetitionAttemptStatus.IN_PROGRESS
+        } else {
+            dto.attemptStatus =
+                attemptedCount > 0
+                    ? PublicCompetitionAttemptStatus.ATTEMPTED
+                    : PublicCompetitionAttemptStatus.NOT_ATTEMPTED
+        }
 
         const hasUnlimitedAttempts = entity.maxAttempts === null || entity.maxAttempts === undefined
         dto.canAttempt =
@@ -95,11 +101,13 @@ export class PublicStudentCompetitionResponseDto {
     static fromEntities(
         entities: Competition[],
         attemptCountByCompetitionId: Map<number, number>,
+        inProgressByCompetitionId: Map<number, boolean>,
         now: Date = new Date(),
     ): PublicStudentCompetitionResponseDto[] {
         return entities.map((entity) => {
             const attemptedCount = attemptCountByCompetitionId.get(entity.competitionId) ?? 0
-            return PublicStudentCompetitionResponseDto.fromEntity(entity, attemptedCount, now)
+            const hasInProgress = inProgressByCompetitionId.get(entity.competitionId) ?? false
+            return PublicStudentCompetitionResponseDto.fromEntity(entity, attemptedCount, hasInProgress, now)
         })
     }
 }
@@ -124,6 +132,7 @@ export class PublicStudentCompetitionListResponseDto extends PaginationResponseD
 export class PublicStudentCompetitionDetailResponseDto extends PublicStudentCompetitionResponseDto {
     showResultDetail: boolean
     allowViewScore: boolean
+    bestSubmittedScore?: number | null
     allowViewAnswer: boolean
     allowViewSolutionYoutubeUrl: boolean
     allowViewExamContent: boolean
@@ -131,9 +140,11 @@ export class PublicStudentCompetitionDetailResponseDto extends PublicStudentComp
     static fromEntity(
         entity: Competition,
         attemptedCount: number,
+        hasInProgress = false,
         now: Date = new Date(),
+        bestSubmittedScore: number | null = null,
     ): PublicStudentCompetitionDetailResponseDto {
-        const base = PublicStudentCompetitionResponseDto.fromEntity(entity, attemptedCount, now)
+        const base = PublicStudentCompetitionResponseDto.fromEntity(entity, attemptedCount, hasInProgress, now)
         const dto = new PublicStudentCompetitionDetailResponseDto()
 
         Object.assign(dto, base)
@@ -144,6 +155,7 @@ export class PublicStudentCompetitionDetailResponseDto extends PublicStudentComp
         dto.showResultDetail = isHiddenByTimeline ? false : entity.showResultDetail
         dto.allowLeaderboard = entity.allowLeaderboard
         dto.allowViewScore = entity.allowViewScore
+        dto.bestSubmittedScore = bestSubmittedScore
         dto.allowViewAnswer = isHiddenByTimeline ? false : entity.allowViewAnswer
         dto.allowViewSolutionYoutubeUrl = isHiddenByTimeline ? false : entity.allowViewSolutionYoutubeUrl
         dto.allowViewExamContent = entity.allowViewExamContent

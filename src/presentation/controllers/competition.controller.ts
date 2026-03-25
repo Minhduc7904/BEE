@@ -18,6 +18,7 @@ import {
     CompetitionListResponseDto,
     PublicStudentCompetitionListResponseDto,
     PublicStudentCompetitionDetailApiResponseDto,
+    PublicStudentCompetitionExamResponseDto,
     CreateCompetitionDto,
     UpdateCompetitionDto,
     CompetitionListQueryDto,
@@ -41,11 +42,15 @@ import {
     SearchCompetitionsUseCase,
     GetPublicStudentCompetitionsUseCase,
     GetPublicStudentCompetitionDetailUseCase,
+    GetPublicStudentCompetitionExamUseCase,
+    GetPublicStudentCompetitionHistoryUseCase,
     GetCompetitionRankingUseCase,
     GetCompetitionLeaderboardUseCase,
     GetCompetitionQuestionStatsUseCase,
 } from '../../application/use-cases/competition'
 import { Visibility } from 'src/shared/enums'
+import { StudentCompetitionHistoryQueryDto } from '../../application/dtos/competition-submit/student-competition-history-query.dto'
+import { StudentCompetitionHistoryListResponseDto } from '../../application/dtos/competition-submit/student-competition-history.dto'
 @Injectable()
 @Controller('competitions')
 export class CompetitionController {
@@ -58,6 +63,8 @@ export class CompetitionController {
         private readonly searchCompetitionsUseCase: SearchCompetitionsUseCase,
         private readonly getPublicStudentCompetitionsUseCase: GetPublicStudentCompetitionsUseCase,
         private readonly getPublicStudentCompetitionDetailUseCase: GetPublicStudentCompetitionDetailUseCase,
+        private readonly getPublicStudentCompetitionExamUseCase: GetPublicStudentCompetitionExamUseCase,
+        private readonly getPublicStudentCompetitionHistoryUseCase: GetPublicStudentCompetitionHistoryUseCase,
         private readonly getCompetitionRankingUseCase: GetCompetitionRankingUseCase,
         private readonly getCompetitionLeaderboardUseCase: GetCompetitionLeaderboardUseCase,
         private readonly getCompetitionQuestionStatsUseCase: GetCompetitionQuestionStatsUseCase,
@@ -154,6 +161,131 @@ export class CompetitionController {
     ): Promise<PublicStudentCompetitionDetailApiResponseDto> {
         return ExceptionHandler.execute(() =>
             this.getPublicStudentCompetitionDetailUseCase.execute(id, studentId),
+        )
+    }
+
+    /**
+     * Get public exam content by competition for current student.
+     *
+     * @route GET /competitions/:id/student/exam
+     * @param id - Competition ID
+        * @returns PublicStudentCompetitionExamResponseDto
+        *
+        * Response shape:
+        * - success: boolean
+        * - message: string
+        * - data:
+        *   - examId: number
+        *   - title: string
+        *   - description?: string | null
+        *   - processedDescription?: string | null
+        *   - grade?: number
+        *   - subject?: {
+        *       subjectId?: number | null,
+        *       name?: string | null
+        *     }
+        *   - createdBy: number
+        *   - typeOfExam?: TypeOfExam | null
+        *   - sections: Array<{
+        *       sectionId: number,
+        *       title: string,
+        *       description?: string | null,
+        *       processedDescription?: string | null,
+        *       order: number
+        *     }>
+        *   - questions: Array<{
+        *       questionId: number,
+        *       sectionId?: number | null,
+        *       order?: number | null,
+        *       type: QuestionType,
+        *       content: string,
+        *       processedContent?: string,
+        *       difficulty?: Difficulty | null,
+        *       pointsOrigin?: number | null,
+        *       statements: Array<{
+        *         statementId: number,
+        *         content: string,
+        *         processedContent?: string,
+        *         order?: number | null
+        *       }>
+        *     }>
+        *
+        * Access rules:
+        * - Competition must exist and be PUBLISHED.
+        * - Competition must allow allowViewExamContent = true.
+        * - If one of the rules fails, endpoint returns NotFound/Forbidden.
+        *
+        * Media processing:
+        * - description/content/statement content are processed to include presigned URLs
+        *   (same pattern as question content processing use-cases).
+        *
+        * @example
+        * GET /competitions/123/student/exam
+     */
+    @Get(':id/student/exam')
+    @RequirePermission()
+    @HttpCode(HttpStatus.OK)
+    async getPublicStudentCompetitionExam(
+        @Param('id', ParseIntPipe) id: number,
+    ): Promise<PublicStudentCompetitionExamResponseDto> {
+        return ExceptionHandler.execute(() =>
+            this.getPublicStudentCompetitionExamUseCase.execute(id),
+        )
+    }
+
+    /**
+     * Get current student's attempt history for a public competition.
+     *
+     * @route GET /competitions/:id/student/history
+     * @param id - Competition ID
+     * @param query - Pagination query (page, limit, sortBy, sortOrder)
+     * @param studentId - Current student ID (auto-injected)
+        * @returns StudentCompetitionHistoryListResponseDto
+        *
+        * Response shape:
+        * - success: boolean
+        * - message: string
+        * - data:
+        *   - history: Array<{
+        *       competitionSubmitId: number,
+        *       attemptNumber: number,
+        *       status: IN_PROGRESS | SUBMITTED | GRADED | ABANDONED,
+        *       startedAt?: Date,
+        *       submittedAt?: Date,
+        *       timeSpentSeconds?: number,
+        *       timeSpentDisplay?: string,
+        *       totalPoints?: number,
+        *       maxPoints?: number,
+        *       scorePercentage?: number,
+        *       isGraded: boolean,
+        *       hasScore: boolean,
+        *       createdAt: Date,
+        *       updatedAt: Date
+        *     }>
+        *   - pagination: {
+        *       total: number,
+        *       page: number,
+        *       limit: number,
+        *       totalPages: number
+        *     }
+     *
+     * Access rules:
+     * - Competition must exist and be PUBLISHED.
+     * - Competition must allow allowViewScore = true.
+     *
+     * @example
+     * GET /competitions/123/student/history?page=1&limit=10
+     */
+    @Get(':id/student/history')
+    @RequirePermission()
+    @HttpCode(HttpStatus.OK)
+    async getPublicStudentCompetitionHistory(
+        @Param('id', ParseIntPipe) id: number,
+        @Query() query: StudentCompetitionHistoryQueryDto,
+        @CurrentUser('studentId') studentId: number,
+    ): Promise<StudentCompetitionHistoryListResponseDto> {
+        return ExceptionHandler.execute(() =>
+            this.getPublicStudentCompetitionHistoryUseCase.execute(id, studentId, query),
         )
     }
 

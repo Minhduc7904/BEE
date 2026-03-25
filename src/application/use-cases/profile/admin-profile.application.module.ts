@@ -6,6 +6,7 @@ import { InfrastructureModule } from 'src/infrastructure/infrastructure.module'
 const ADMIN_PROFILE_USE_CASES = [
   adminProfileUseCase.GetAdminProfileUseCase,
   adminProfileUseCase.UpdateAdminProfileUseCase,
+  adminProfileUseCase.UploadAdminAvatarUseCase,
 ]
 
 @Module({

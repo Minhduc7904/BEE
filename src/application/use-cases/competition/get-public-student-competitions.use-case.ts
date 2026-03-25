@@ -4,6 +4,7 @@ import type { ICompetitionRepository } from '../../../domain/repositories'
 import type { ICompetitionSubmitRepository } from '../../../domain/repositories/competition-submit.repository'
 import { CompetitionListQueryDto } from '../../dtos/competition/competition-list-query.dto'
 import { PublicCompetitionStatus, Visibility } from '../../../shared/enums'
+import { CompetitionSubmitStatus } from '../../../shared/enums/competition-submit-status.enum'
 import {
     PublicStudentCompetitionListResponseDto,
     PublicStudentCompetitionResponseDto,
@@ -45,6 +46,7 @@ export class GetPublicStudentCompetitionsUseCase {
         }
         const result = await this.competitionRepository.findAllWithPagination(pagination, filters)
         const attemptCountByCompetitionId = new Map<number, number>()
+        const inProgressByCompetitionId = new Map<number, boolean>()
 
         if (studentId && result.competitions.length > 0) {
             const competitionIds = new Set(result.competitions.map((c) => c.competitionId))
@@ -54,12 +56,17 @@ export class GetPublicStudentCompetitionsUseCase {
                 if (!competitionIds.has(submit.competitionId)) continue
                 const current = attemptCountByCompetitionId.get(submit.competitionId) ?? 0
                 attemptCountByCompetitionId.set(submit.competitionId, current + 1)
+
+                if (submit.status === CompetitionSubmitStatus.IN_PROGRESS) {
+                    inProgressByCompetitionId.set(submit.competitionId, true)
+                }
             }
         }
 
         const competitionResponses = PublicStudentCompetitionResponseDto.fromEntities(
             result.competitions,
             attemptCountByCompetitionId,
+            inProgressByCompetitionId,
         )
 
         return PublicStudentCompetitionListResponseDto.fromResult(
