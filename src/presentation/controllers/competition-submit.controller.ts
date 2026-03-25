@@ -76,6 +76,7 @@ export class CompetitionSubmitController {
      * @query isGraded       Lọc bài đã chấm (true/false)
      * @query startedFrom    Lọc từ ngày bắt đầu làm (ISO date string)
      * @query startedTo      Lọc đến ngày bắt đầu làm (ISO date string)
+    * @query search         Tìm theo tên học sinh (không phân biệt hoa/thường, có hỗ trợ không dấu)
      *
      * ─── ĐẦU RA ─────────────────────────────────────────────────────────────
      * @returns CompetitionSubmitListResponseDto

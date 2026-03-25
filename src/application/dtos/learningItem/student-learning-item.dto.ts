@@ -130,9 +130,9 @@ export class HomeworkProgressDto {
             }
             return submitDto
         })
-        // Chỉ đếm các lần thi đã hoàn thành (SUBMITTED / GRADED), không đếm IN_PROGRESS
-        const completedSubmits = params.competitionSubmits.filter(s => s.status !== 'IN_PROGRESS')
-        dto.attemptCount = completedSubmits.length
+        // Chỉ đếm các lần đã SUBMITTED để kiểm tra giới hạn lượt làm
+        const submittedSubmits = params.competitionSubmits.filter(s => s.status === 'SUBMITTED')
+        dto.attemptCount = submittedSubmits.length
         dto.maxAttempts = params.maxAttempts
         const hasInProgressSubmit = params.competitionSubmits.some(s => s.status === 'IN_PROGRESS')
 
@@ -164,12 +164,18 @@ export class HomeworkProgressDto {
             isDone: dto.isDone,
             hasInProgressSubmit,
         })
-        dto.canAttempt = [
+        const isAttemptStatusAllowed = [
             HomeworkStatus.DO_NOW,
             HomeworkStatus.RESUME,
             HomeworkStatus.REDO,
             HomeworkStatus.LATE_SUBMIT,
         ].includes(dto.status)
+        const hasAttemptsRemaining =
+            dto.maxAttempts === undefined
+            || dto.maxAttempts === null
+            || dto.attemptCount < dto.maxAttempts
+
+        dto.canAttempt = isAttemptStatusAllowed && hasAttemptsRemaining
 
         return dto
     }

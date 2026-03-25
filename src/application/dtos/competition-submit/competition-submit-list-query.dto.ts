@@ -1,6 +1,6 @@
 // src/application/dtos/competition-submit/competition-submit-list-query.dto.ts
 import { Type } from 'class-transformer'
-import { IsOptional, IsInt, Min, Max, IsEnum, IsBoolean, IsDateString } from 'class-validator'
+import { IsOptional, IsInt, Min, Max, IsEnum, IsBoolean, IsDateString, IsString } from 'class-validator'
 import { ToNumber } from 'src/shared/decorators'
 import { CompetitionSubmitStatus } from '../../../shared/enums/competition-submit-status.enum'
 
@@ -63,4 +63,9 @@ export class CompetitionSubmitListQueryDto {
     @IsOptional()
     @IsDateString()
     startedTo?: string
+
+    /** Tìm theo tên học sinh (không phân biệt hoa/thường, có hỗ trợ không dấu) */
+    @IsOptional()
+    @IsString()
+    search?: string
 }

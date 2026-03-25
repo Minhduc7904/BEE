@@ -23,6 +23,7 @@ export class GetAllCompetitionSubmitsUseCase {
         const filters = {
             competitionId: query.competitionId,
             studentId: query.studentId,
+            search: query.search,
             status: query.status,
             attemptNumber: query.attemptNumber,
             isGraded: query.isGraded,

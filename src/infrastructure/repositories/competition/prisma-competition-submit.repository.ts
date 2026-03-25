@@ -13,6 +13,7 @@ import {
 import { PrismaService } from '../../../prisma/prisma.service'
 import { CompetitionSubmitMapper } from '../../mappers/competition/competition-submit.mapper'
 import { CompetitionSubmitStatus } from '../../../shared/enums/competition-submit-status.enum'
+import { TextSearchUtil } from '../../../shared/utils/text-search.util'
 
 @Injectable()
 export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepository {
@@ -172,6 +173,10 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
     ): Promise<CompetitionSubmitListResult> {
         const client = txClient || this.prisma
 
+        if (filters?.search) {
+            return this.findWithRawQuery(client, pagination, filters)
+        }
+
         const page = pagination.page || 1
         const limit = pagination.limit || 10
         const sortBy = pagination.sortBy || 'createdAt'
@@ -212,6 +217,205 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
             limit,
             totalPages,
         }
+    }
+
+    private async findWithRawQuery(
+        client: any,
+        pagination: CompetitionSubmitPaginationOptions,
+        filters: CompetitionSubmitFilterOptions,
+    ): Promise<CompetitionSubmitListResult> {
+        const page = pagination.page || 1
+        const limit = pagination.limit || 10
+        const sortBy = pagination.sortBy || 'createdAt'
+        const sortOrder = pagination.sortOrder || 'desc'
+        const skip = (page - 1) * limit
+
+        const conditions: string[] = ['u.is_active = true']
+        const params: any[] = []
+
+        if (filters.competitionId !== undefined) {
+            conditions.push('cs.competition_id = ?')
+            params.push(filters.competitionId)
+        }
+
+        if (filters.studentId !== undefined) {
+            conditions.push('cs.student_id = ?')
+            params.push(filters.studentId)
+        }
+
+        if (filters.attemptNumber !== undefined) {
+            conditions.push('cs.attempt_number = ?')
+            params.push(filters.attemptNumber)
+        }
+
+        if (filters.startedFrom) {
+            conditions.push('cs.started_at >= ?')
+            params.push(filters.startedFrom)
+        }
+
+        if (filters.startedTo) {
+            conditions.push('cs.started_at <= ?')
+            params.push(filters.startedTo)
+        }
+
+        if (filters.submittedFrom) {
+            conditions.push('cs.submitted_at >= ?')
+            params.push(filters.submittedFrom)
+        }
+
+        if (filters.submittedTo) {
+            conditions.push('cs.submitted_at <= ?')
+            params.push(filters.submittedTo)
+        }
+
+        if (filters.isGraded !== undefined) {
+            if (filters.isGraded) {
+                conditions.push('cs.status = ?')
+                params.push(CompetitionSubmitStatus.GRADED)
+            } else {
+                conditions.push('cs.status <> ?')
+                params.push(CompetitionSubmitStatus.GRADED)
+            }
+        } else if (filters.status) {
+            conditions.push('cs.status = ?')
+            params.push(filters.status)
+        }
+
+        if (filters.search?.trim()) {
+            const searchText = filters.search.trim()
+            const searchPattern = `%${searchText}%`
+            const normalizedSearch = `%${TextSearchUtil.removeVietnameseAccents(searchText)}%`
+
+            const firstNameNoAccent = this.buildRemoveAccentsSQL('u.first_name')
+            const lastNameNoAccent = this.buildRemoveAccentsSQL('u.last_name')
+            const fullNameNoAccent = this.buildRemoveAccentsSQL(`CONCAT(u.last_name, ' ', u.first_name)`)
+            const reverseFullNameNoAccent = this.buildRemoveAccentsSQL(`CONCAT(u.first_name, ' ', u.last_name)`)
+
+            conditions.push(`(
+                LOWER(u.first_name) LIKE LOWER(?) OR
+                LOWER(u.last_name) LIKE LOWER(?) OR
+                LOWER(CONCAT(u.last_name, ' ', u.first_name)) LIKE LOWER(?) OR
+                LOWER(CONCAT(u.first_name, ' ', u.last_name)) LIKE LOWER(?) OR
+                LOWER(${firstNameNoAccent}) LIKE LOWER(?) OR
+                LOWER(${lastNameNoAccent}) LIKE LOWER(?) OR
+                LOWER(${fullNameNoAccent}) LIKE LOWER(?) OR
+                LOWER(${reverseFullNameNoAccent}) LIKE LOWER(?)
+            )`)
+
+            params.push(searchPattern, searchPattern, searchPattern, searchPattern)
+            params.push(normalizedSearch, normalizedSearch, normalizedSearch, normalizedSearch)
+        }
+
+        const columnMap: Record<string, string> = {
+            createdAt: 'cs.created_at',
+            updatedAt: 'cs.updated_at',
+            startedAt: 'cs.started_at',
+            submittedAt: 'cs.submitted_at',
+            gradedAt: 'cs.graded_at',
+            status: 'cs.status',
+            attemptNumber: 'cs.attempt_number',
+            totalPoints: 'cs.total_points',
+            maxPoints: 'cs.max_points',
+            timeSpentSeconds: 'cs.time_spent_seconds',
+            competitionId: 'cs.competition_id',
+            studentId: 'cs.student_id',
+        }
+        const orderColumn = columnMap[sortBy] || 'cs.created_at'
+        const orderDirection = sortOrder === 'asc' ? 'ASC' : 'DESC'
+
+        const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+
+        const baseFrom = `
+            FROM competition_submits cs
+            INNER JOIN students s ON cs.student_id = s.student_id
+            INNER JOIN users u ON s.user_id = u.user_id
+            ${whereClause}
+        `
+
+        const countQuery = `SELECT COUNT(*) as total ${baseFrom}`
+        const idsQuery = `
+            SELECT cs.competition_submit_id
+            ${baseFrom}
+            ORDER BY ${orderColumn} ${orderDirection}
+            LIMIT ? OFFSET ?
+        `
+
+        const [countResult, idsResult] = await Promise.all([
+            client.$queryRawUnsafe(countQuery, ...params) as Promise<Array<{ total: bigint | number }>>,
+            client.$queryRawUnsafe(idsQuery, ...params, limit, skip) as Promise<Array<{ competition_submit_id: number }>>,
+        ])
+
+        const total = Number(countResult[0]?.total ?? 0)
+        const ids = idsResult.map((row) => row.competition_submit_id)
+
+        const prismaSubmits = ids.length === 0
+            ? []
+            : await client.competitionSubmit.findMany({
+                where: { competitionSubmitId: { in: ids } },
+                include: {
+                    competition: true,
+                    student: {
+                        include: {
+                            user: true,
+                        },
+                    },
+                },
+            })
+
+        const idOrder = new Map(ids.map((id, index) => [id, index]))
+        prismaSubmits.sort(
+            (a: any, b: any) =>
+                (idOrder.get(a.competitionSubmitId) ?? 0) - (idOrder.get(b.competitionSubmitId) ?? 0),
+        )
+
+        const competitionSubmits = prismaSubmits
+            .map((s: any) => CompetitionSubmitMapper.toDomainCompetitionSubmit(s))
+            .filter(Boolean)
+
+        return {
+            competitionSubmits,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
+        }
+    }
+
+    private buildRemoveAccentsSQL(columnName: string): string {
+        const replacements = [
+            ['à', 'a'], ['á', 'a'], ['ạ', 'a'], ['ả', 'a'], ['ã', 'a'],
+            ['â', 'a'], ['ầ', 'a'], ['ấ', 'a'], ['ậ', 'a'], ['ẩ', 'a'], ['ẫ', 'a'],
+            ['ă', 'a'], ['ằ', 'a'], ['ắ', 'a'], ['ặ', 'a'], ['ẳ', 'a'], ['ẵ', 'a'],
+            ['è', 'e'], ['é', 'e'], ['ẹ', 'e'], ['ẻ', 'e'], ['ẽ', 'e'],
+            ['ê', 'e'], ['ề', 'e'], ['ế', 'e'], ['ệ', 'e'], ['ể', 'e'], ['ễ', 'e'],
+            ['ì', 'i'], ['í', 'i'], ['ị', 'i'], ['ỉ', 'i'], ['ĩ', 'i'],
+            ['ò', 'o'], ['ó', 'o'], ['ọ', 'o'], ['ỏ', 'o'], ['õ', 'o'],
+            ['ô', 'o'], ['ồ', 'o'], ['ố', 'o'], ['ộ', 'o'], ['ổ', 'o'], ['ỗ', 'o'],
+            ['ơ', 'o'], ['ờ', 'o'], ['ớ', 'o'], ['ợ', 'o'], ['ở', 'o'], ['ỡ', 'o'],
+            ['ù', 'u'], ['ú', 'u'], ['ụ', 'u'], ['ủ', 'u'], ['ũ', 'u'],
+            ['ư', 'u'], ['ừ', 'u'], ['ứ', 'u'], ['ự', 'u'], ['ử', 'u'], ['ữ', 'u'],
+            ['ỳ', 'y'], ['ý', 'y'], ['ỵ', 'y'], ['ỷ', 'y'], ['ỹ', 'y'],
+            ['đ', 'd'],
+            ['À', 'A'], ['Á', 'A'], ['Ạ', 'A'], ['Ả', 'A'], ['Ã', 'A'],
+            ['Â', 'A'], ['Ầ', 'A'], ['Ấ', 'A'], ['Ậ', 'A'], ['Ẩ', 'A'], ['Ẫ', 'A'],
+            ['Ă', 'A'], ['Ằ', 'A'], ['Ắ', 'A'], ['Ặ', 'A'], ['Ẳ', 'A'], ['Ẵ', 'A'],
+            ['È', 'E'], ['É', 'E'], ['Ẹ', 'E'], ['Ẻ', 'E'], ['Ẽ', 'E'],
+            ['Ê', 'E'], ['Ề', 'E'], ['Ế', 'E'], ['Ệ', 'E'], ['Ể', 'E'], ['Ễ', 'E'],
+            ['Ì', 'I'], ['Í', 'I'], ['Ị', 'I'], ['Ỉ', 'I'], ['Ĩ', 'I'],
+            ['Ò', 'O'], ['Ó', 'O'], ['Ọ', 'O'], ['Ỏ', 'O'], ['Õ', 'O'],
+            ['Ô', 'O'], ['Ồ', 'O'], ['Ố', 'O'], ['Ộ', 'O'], ['Ổ', 'O'], ['Ỗ', 'O'],
+            ['Ơ', 'O'], ['Ờ', 'O'], ['Ớ', 'O'], ['Ợ', 'O'], ['Ở', 'O'], ['Ỡ', 'O'],
+            ['Ù', 'U'], ['Ú', 'U'], ['Ụ', 'U'], ['Ủ', 'U'], ['Ũ', 'U'],
+            ['Ư', 'U'], ['Ừ', 'U'], ['Ứ', 'U'], ['Ự', 'U'], ['Ử', 'U'], ['Ữ', 'U'],
+            ['Ỳ', 'Y'], ['Ý', 'Y'], ['Ỵ', 'Y'], ['Ỷ', 'Y'], ['Ỹ', 'Y'],
+            ['Đ', 'D'],
+        ]
+
+        let sql = columnName
+        for (const [accented, plain] of replacements) {
+            sql = `REPLACE(${sql}, '${accented}', '${plain}')`
+        }
+        return sql
     }
 
     async findByFilters(

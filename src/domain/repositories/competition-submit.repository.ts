@@ -36,6 +36,7 @@ export interface GradeCompetitionSubmitData {
 export interface CompetitionSubmitFilterOptions {
     competitionId?: number
     studentId?: number
+    search?: string
     status?: CompetitionSubmitStatus
     attemptNumber?: number
     startedFrom?: Date
