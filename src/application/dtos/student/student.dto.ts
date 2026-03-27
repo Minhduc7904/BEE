@@ -11,6 +11,8 @@ import { ClassStudentResponseDto } from '../class-student/class-student.dto'
 export class StudentResponseDto extends UserResponseDto {
   studentId: number
 
+  streak: number
+
   studentPhone?: string
 
   parentPhone?: string
@@ -49,6 +51,7 @@ export class StudentResponseDto extends UserResponseDto {
     return new StudentResponseDto({
       ...baseUser,
       studentId: student.studentId,
+      streak: 0,
       studentPhone: student.studentPhone,
       parentPhone: student.parentPhone,
       grade: student.grade,

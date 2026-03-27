@@ -37,11 +37,13 @@ import {
   PrismaTempQuestionChapterRepository,
   PrismaExamImportSessionRepository,
   PrismaExamRepository,
+  PrismaExamAttemptRepository,
   PrismaCompetitionRepository,
   PrismaCompetitionSubmitRepository,
   PrismaCompetitionAnswerRepository,
   PrismaSectionRepository,
   PrismaQuestionRepository,
+  PrismaQuestionAnswerRepository,
   PrismaStatementRepository,
   PrismaQuestionExamRepository,
   PrismaQuestionChapterRepository,
@@ -256,6 +258,11 @@ import openaiConfig from '../config/openai.config'
       inject: [PrismaService],
     },
     {
+      provide: 'IExamAttemptRepository',
+      useFactory: (prisma: PrismaService) => new PrismaExamAttemptRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
       provide: 'ICompetitionRepository',
       useFactory: (prisma: PrismaService) => new PrismaCompetitionRepository(prisma),
       inject: [PrismaService],
@@ -283,6 +290,11 @@ import openaiConfig from '../config/openai.config'
     {
       provide: 'IQuestionRepository',
       useFactory: (prisma: PrismaService) => new PrismaQuestionRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IQuestionAnswerRepository',
+      useFactory: (prisma: PrismaService) => new PrismaQuestionAnswerRepository(prisma),
       inject: [PrismaService],
     },
     {
@@ -404,8 +416,10 @@ import openaiConfig from '../config/openai.config'
     'ITempQuestionChapterRepository',
     'IExamImportSessionRepository',
     'IExamRepository',
+    'IExamAttemptRepository',
     'ISectionRepository',
     'IQuestionRepository',
+    'IQuestionAnswerRepository',
     'IStatementRepository',
     'IQuestionExamRepository',
     'IQuestionChapterRepository',

@@ -45,6 +45,8 @@ import { TempSectionController } from './controllers/temp-section.controller'
 import { TempQuestionController } from './controllers/temp-question.controller'
 import { TempStatementController } from './controllers/temp-statement.controller'
 import { QuestionController } from './controllers/question.controller'
+import { QuestionAnswerController } from './controllers/question-answer.controller'
+import { ExamAttemptController } from './controllers/exam-attempt.controller'
 import { StatementController } from './controllers/statement.controller'
 import { ExamController } from './controllers/exam.controller'
 import { CompetitionController } from './controllers/competition.controller'
@@ -102,6 +104,8 @@ import { ZaloController } from './controllers/zalo.controller'
     TempQuestionController,
     TempStatementController,
     QuestionController,
+    QuestionAnswerController,
+    ExamAttemptController,
     StatementController,
     ExamController,
     CompetitionController,

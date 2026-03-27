@@ -26,6 +26,7 @@ export class UserMapper {
       firstName: prismaUser.firstName,
       lastName: prismaUser.lastName,
       isActive: prismaUser.isActive,
+      totalPoint: prismaUser.totalPoint ?? 0,
       isEmailVerified: prismaUser.isEmailVerified ?? false,
       createdAt: prismaUser.createdAt,
       email: prismaUser.email ?? undefined,

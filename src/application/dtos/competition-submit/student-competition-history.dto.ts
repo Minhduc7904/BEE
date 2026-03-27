@@ -10,6 +10,8 @@ import { BaseResponseDto } from '../common/base-response.dto'
  */
 export class StudentCompetitionHistoryItemDto {
     competitionSubmitId: number
+    competitionId: number
+    competitionTitle?: string
     attemptNumber: number
     status: CompetitionSubmitStatus
     canViewDetail: boolean
@@ -33,6 +35,8 @@ export class StudentCompetitionHistoryItemDto {
         const dto = new StudentCompetitionHistoryItemDto()
 
         dto.competitionSubmitId = entity.competitionSubmitId
+        dto.competitionId = entity.competitionId
+        dto.competitionTitle = entity.competition?.title
         dto.attemptNumber = entity.attemptNumber
         dto.status = entity.status
         dto.canViewDetail = canViewDetail

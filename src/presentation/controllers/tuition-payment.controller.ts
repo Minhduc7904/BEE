@@ -109,8 +109,21 @@ export class TuitionPaymentController {
   }
 
   /**
+   * [STUDENT] Thống kê học phí của chính mình theo trạng thái
    * GET /tuition-payments/my/stats/status
-   * STUDENT: thống kê học phí của chính mình
+   *
+   * Ví dụ request:
+   *   GET /tuition-payments/my/stats/status?year=2024
+   *
+   * Ví dụ response:
+   *   {
+   *     "success": true,
+   *     "data": {
+   *       "total": 5,
+   *       "paid": 3,
+   *       "unpaid": 2
+   *     }
+   *   }
    */
   @Get('my/stats/status')
   @RequirePermission()
@@ -131,6 +144,23 @@ export class TuitionPaymentController {
     return ExceptionHandler.execute(() => this.getTuitionPaymentStatsByMoneyUseCase.execute(query))
   }
 
+  /**
+   * [STUDENT] Thống kê số tiền học phí của chính mình
+   * GET /tuition-payments/my/stats/money
+   *
+   * Ví dụ request:
+   *   GET /tuition-payments/my/stats/money?year=2024
+   *
+   * Ví dụ response:
+   *   {
+   *     "success": true,
+   *     "data": {
+   *       "totalAmount": 10000000,
+   *       "paidAmount": 7000000,
+   *       "unpaidAmount": 3000000
+   *     }
+   *   }
+   */
   @Get('my/stats/money')
   @RequirePermission()
   @HttpCode(HttpStatus.OK)
@@ -198,11 +228,40 @@ export class TuitionPaymentController {
   }
 
   /**
+   * [STUDENT] Lấy danh sách học phí của chính mình
    * GET /tuition-payments/my
-   * STUDENT: list học phí của chính mình
+   *
+   * Ví dụ request:
+   *   GET /tuition-payments/my?page=1&pageSize=10&year=2024
+   *
+   * Ví dụ response:
+   *   {
+   *     "success": true,
+   *     "data": [
+   *       {
+   *         "id": 1,
+   *         "amount": 2000000,
+   *         "status": "PAID",
+   *         "dueDate": "2024-03-01",
+   *         ...
+   *       },
+   *       {
+   *         "id": 2,
+   *         "amount": 3000000,
+   *         "status": "UNPAID",
+   *         "dueDate": "2024-04-01",
+   *         ...
+   *       }
+   *     ],
+   *     "pagination": {
+   *       "page": 1,
+   *       "pageSize": 10,
+   *       "total": 2
+   *     }
+   *   }
    */
   @Get('my')
-  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT.GET_MY)
+  @RequirePermission()
   @HttpCode(HttpStatus.OK)
   async getMy(
     @Query() query: TuitionPaymentListQueryDto,

@@ -8,6 +8,8 @@ const STUDENT_PROFILE_USE_CASES = [
   studentProfileUseCase.UpdateStudentProfileUseCase,
   studentProfileUseCase.UploadStudentAvatarUseCase,
   studentProfileUseCase.ChangeStudentPasswordUseCase,
+  studentProfileUseCase.GetStudentDifficultyProgressUseCase,
+  studentProfileUseCase.GetStudentYearlyActivityUseCase,
 ]
 
 @Module({

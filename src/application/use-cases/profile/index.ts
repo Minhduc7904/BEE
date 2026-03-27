@@ -5,3 +5,5 @@ export * from './get-student-profile.use-case';
 export * from './update-student-profile.use-case';
 export * from './upload-student-avatar.use-case';
 export * from './change-student-password.use-case';
+export * from './get-student-difficulty-progress.use-case';
+export * from './get-student-yearly-activity.use-case';

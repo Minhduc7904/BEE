@@ -85,6 +85,9 @@ export class SendAttendanceToParentUseCase {
         }
 
         const statusLabel = AttendanceStatusLabels[attendance.status] || attendance.status
+        const attendanceTimeLabel = attendance.status === 'ABSENT'
+            ? 'Thời gian điểm danh'
+            : 'Thời gian đến lớp'
         const makeupLine = attendance.status === 'ABSENT' && attendance.classSession?.makeupNote
             ? `Lịch học bù: ${attendance.classSession.makeupNote}`
             : ''
@@ -94,7 +97,7 @@ export class SendAttendanceToParentUseCase {
             `Học sinh: ${studentName}`,
             `Lớp: ${className}`,
             `Ngày học: ${sessionDate}${sessionTime ? ` (${sessionTime})` : ''}`,
-            `Thời gian đến lớp: ${arrivalTime}`,
+            `${attendanceTimeLabel}: ${arrivalTime}`,
             `Trạng thái: ${statusLabel}`,
             makeupLine,
             homeworkLine,

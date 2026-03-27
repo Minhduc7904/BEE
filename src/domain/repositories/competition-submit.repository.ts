@@ -61,6 +61,11 @@ export interface CompetitionSubmitListResult {
     totalPages: number
 }
 
+export interface DailyCompetitionSubmitCount {
+    date: string
+    count: number
+}
+
 export interface ICompetitionSubmitRepository {
     create(data: CreateCompetitionSubmitData, txClient?: any): Promise<CompetitionSubmit>
     findById(id: number, txClient?: any): Promise<CompetitionSubmit | null>
@@ -127,6 +132,12 @@ export interface ICompetitionSubmitRepository {
         txClient?: any,
     ): Promise<CompetitionSubmitListResult>
 
+    findPublicStudentHistory(
+        studentId: number,
+        pagination: CompetitionSubmitPaginationOptions,
+        txClient?: any,
+    ): Promise<CompetitionSubmitListResult>
+
     // Leaderboard
     getLeaderboard(
         competitionId: number,
@@ -140,4 +151,16 @@ export interface ICompetitionSubmitRepository {
         limit: number,
         txClient?: any,
     ): Promise<{ submits: CompetitionSubmit[], total: number }>
+
+    // Activity stats
+    countByStudentDailyInYear(
+        studentId: number,
+        year: number,
+        txClient?: any,
+    ): Promise<DailyCompetitionSubmitCount[]>
+
+    getStudentActivityDatesVn(
+        studentId: number,
+        txClient?: any,
+    ): Promise<string[]>
 }

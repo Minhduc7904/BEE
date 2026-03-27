@@ -35,6 +35,8 @@ import { TempSectionApplicationModule } from './use-cases/temp-section/temp-sect
 import { TempQuestionApplicationModule } from './use-cases/temp-question/temp-question.application.module'
 import { TempStatementApplicationModule } from './use-cases/temp-statement/temp-statement.application.module'
 import { QuestionApplicationModule } from './use-cases/question/question.application.module'
+import { ExamAttemptApplicationModule } from './use-cases/exam-attempt/exam-attempt.application.module'
+import { QuestionAnswerApplicationModule } from './use-cases/question-answer/question-answer.application.module'
 import { StatementApplicationModule } from './use-cases/statement/statement.application.module'
 import { ExamApplicationModule } from './use-cases/exam/exam.application.module'
 import { CompetitionApplicationModule } from './use-cases/competition/competition.application.module'
@@ -97,6 +99,8 @@ const modules = [
   TempQuestionApplicationModule,
   TempStatementApplicationModule,
   QuestionApplicationModule,
+  ExamAttemptApplicationModule,
+  QuestionAnswerApplicationModule,
   StatementApplicationModule,
   ExamApplicationModule,
   CompetitionApplicationModule,

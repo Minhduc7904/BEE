@@ -112,7 +112,7 @@ export class PrismaTuitionPaymentRepository implements ITuitionPaymentRepository
     const skip = (page - 1) * limit
     const sortBy = pagination.sortBy || 'createdAt'
     const sortOrder = pagination.sortOrder || 'desc'
-
+    
     if (filters?.search || filters?.grade !== undefined || filters?.minAmount !== undefined || filters?.maxAmount !== undefined) {
       return this.findWithRawQuery(pagination, filters)
     }

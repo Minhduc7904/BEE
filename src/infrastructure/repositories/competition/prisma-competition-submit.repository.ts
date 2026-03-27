@@ -14,10 +14,62 @@ import { PrismaService } from '../../../prisma/prisma.service'
 import { CompetitionSubmitMapper } from '../../mappers/competition/competition-submit.mapper'
 import { CompetitionSubmitStatus } from '../../../shared/enums/competition-submit-status.enum'
 import { TextSearchUtil } from '../../../shared/utils/text-search.util'
+import { Visibility } from '../../../shared/enums'
 
 @Injectable()
 export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepository {
     constructor(private readonly prisma: PrismaService | any) {}
+
+    private buildStudentHistoryOrderBy(
+        sortBy?: string,
+        sortOrder: 'asc' | 'desc' = 'desc',
+    ): any[] {
+        const safeSortBy =
+            sortBy === 'createdAt' ||
+            sortBy === 'attemptNumber' ||
+            sortBy === 'totalPoints' ||
+            sortBy === 'timeSpentSeconds' ||
+            sortBy === 'submittedAt'
+                ? sortBy
+                : 'createdAt'
+
+        if (safeSortBy === 'attemptNumber') {
+            return [
+                { attemptNumber: sortOrder },
+                { submittedAt: 'desc' },
+                { competitionSubmitId: 'desc' },
+            ]
+        }
+
+        if (safeSortBy === 'totalPoints') {
+            return [
+                { totalPoints: sortOrder },
+                { timeSpentSeconds: 'asc' },
+                { submittedAt: 'asc' },
+                { competitionSubmitId: 'asc' },
+            ]
+        }
+
+        if (safeSortBy === 'timeSpentSeconds') {
+            return [
+                { timeSpentSeconds: sortOrder },
+                { submittedAt: 'asc' },
+                { competitionSubmitId: 'asc' },
+            ]
+        }
+
+        if (safeSortBy === 'createdAt') {
+            return [
+                { createdAt: sortOrder },
+                { competitionSubmitId: sortOrder },
+            ]
+        }
+
+        return [
+            { submittedAt: sortOrder },
+            { competitionSubmitId: sortOrder },
+        ]
+    }
 
     async create(data: CreateCompetitionSubmitData, txClient?: any): Promise<CompetitionSubmit> {
         const client = txClient || this.prisma
@@ -819,7 +871,7 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
 
         const page = pagination.page || 1
         const limit = pagination.limit || 10
-        const sortBy = pagination.sortBy || 'submittedAt'
+        const sortBy = pagination.sortBy || 'createdAt'
         const sortOrder = pagination.sortOrder || 'desc'
         const skip = (page - 1) * limit
 
@@ -834,8 +886,7 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
             },
         }
 
-        const orderBy: any = {}
-        orderBy[sortBy] = sortOrder
+        const orderBy = this.buildStudentHistoryOrderBy(sortBy, sortOrder)
 
         const [prismaSubmits, total] = await Promise.all([
             client.competitionSubmit.findMany({
@@ -865,6 +916,118 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
             limit,
             totalPages,
         }
+    }
+
+    async findPublicStudentHistory(
+        studentId: number,
+        pagination: CompetitionSubmitPaginationOptions,
+        txClient?: any,
+    ): Promise<CompetitionSubmitListResult> {
+        const client = txClient || this.prisma
+
+        const page = pagination.page || 1
+        const limit = pagination.limit || 10
+        const sortBy = pagination.sortBy || 'createdAt'
+        const sortOrder = pagination.sortOrder || 'desc'
+        const skip = (page - 1) * limit
+
+        const where: any = {
+            studentId,
+            status: {
+                notIn: [
+                    CompetitionSubmitStatus.IN_PROGRESS,
+                    CompetitionSubmitStatus.ABANDONED,
+                ],
+            },
+            competition: {
+                visibility: Visibility.PUBLISHED,
+            },
+        }
+
+        const orderBy = this.buildStudentHistoryOrderBy(sortBy, sortOrder)
+
+        const [prismaSubmits, total] = await Promise.all([
+            client.competitionSubmit.findMany({
+                where,
+                skip,
+                take: limit,
+                orderBy,
+                include: {
+                    competition: true,
+                    student: {
+                        include: { user: true },
+                    },
+                },
+            }),
+            client.competitionSubmit.count({ where }),
+        ])
+
+        const competitionSubmits = prismaSubmits
+            .map((s: any) => CompetitionSubmitMapper.toDomainCompetitionSubmit(s))
+            .filter(Boolean)
+        const totalPages = Math.ceil(total / limit)
+
+        return {
+            competitionSubmits,
+            total,
+            page,
+            limit,
+            totalPages,
+        }
+    }
+
+    async countByStudentDailyInYear(
+        studentId: number,
+        year: number,
+        txClient?: any,
+    ): Promise<{ date: string; count: number }[]> {
+        const client = txClient || this.prisma
+                const fromDate = `${year}-01-01`
+                const toDate = `${year + 1}-01-01`
+
+        const rows = await client.$queryRawUnsafe(
+            `
+                        SELECT DATE(DATE_ADD(started_at, INTERVAL 7 HOUR)) AS date, COUNT(*) AS count
+            FROM competition_submits
+            WHERE student_id = ?
+                            AND started_at IS NOT NULL
+                            AND DATE(DATE_ADD(started_at, INTERVAL 7 HOUR)) >= ?
+                            AND DATE(DATE_ADD(started_at, INTERVAL 7 HOUR)) < ?
+                        GROUP BY DATE(DATE_ADD(started_at, INTERVAL 7 HOUR))
+                        ORDER BY DATE(DATE_ADD(started_at, INTERVAL 7 HOUR)) ASC
+            `,
+            studentId,
+                        fromDate,
+                        toDate,
+        ) as Array<{ date: string | Date; count: number | bigint }>
+
+        return rows.map((row) => ({
+            date: row.date instanceof Date ? row.date.toISOString().slice(0, 10) : String(row.date),
+            count: typeof row.count === 'bigint' ? Number(row.count) : row.count,
+        }))
+    }
+
+    async getStudentActivityDatesVn(
+        studentId: number,
+        txClient?: any,
+    ): Promise<string[]> {
+        const client = txClient || this.prisma
+
+        const rows = await client.$queryRawUnsafe(
+            `
+            SELECT DISTINCT DATE(DATE_ADD(started_at, INTERVAL 7 HOUR)) AS date
+            FROM competition_submits
+            WHERE student_id = ?
+              AND started_at IS NOT NULL
+              AND DATE(DATE_ADD(started_at, INTERVAL 7 HOUR)) <= DATE(DATE_ADD(UTC_TIMESTAMP(), INTERVAL 7 HOUR))
+            ORDER BY date DESC
+            `,
+            studentId,
+        ) as Array<{ date: string | Date }>
+
+        return rows.map((row) =>
+            row.date instanceof Date ? row.date.toISOString().slice(0, 10) : String(row.date),
+        )
     }
 
     private buildWhereClause(filters?: CompetitionSubmitFilterOptions): any {

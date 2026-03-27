@@ -612,6 +612,7 @@ export class PrismaStudentRepository implements IStudentRepository {
                 u.first_name as user_firstName,
                 u.last_name as user_lastName,
                 u.is_active as user_isActive,
+                u.total_point as user_totalPoint,
                 u.created_at as user_createdAt,
                 u.updated_at as user_updatedAt,
                 u.last_login_at as user_lastLoginAt
@@ -647,6 +648,7 @@ export class PrismaStudentRepository implements IStudentRepository {
         firstName: row.user_firstName,
         lastName: row.user_lastName,
         isActive: Boolean(row.user_isActive),
+        totalPoint: Number(row.user_totalPoint ?? 0),
         createdAt: row.user_createdAt,
         updatedAt: row.user_updatedAt,
         lastLoginAt: row.user_lastLoginAt,

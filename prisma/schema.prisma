@@ -101,6 +101,7 @@ model User {
   dateOfBirth DateTime? @map("date_of_birth") @db.Date
 
   isActive    Boolean   @default(true) @map("is_active")
+  totalPoint  Int       @default(0) @map("total_point")
   lastLoginAt DateTime? @map("last_login_at") @db.Timestamp(0)
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamp(0)
@@ -119,6 +120,7 @@ model User {
   EmailVerificationToken EmailVerificationToken[]
   PasswordResetToken     PasswordResetToken[]
   notifications          Notification[]
+  userPointLogs          UserPointLog[]
   createdJobs            Job[]                    @relation("JobCreator")
 
   @@index([lastName, firstName], map: "idx_users_name")
@@ -202,15 +204,15 @@ model EmailVerificationToken {
 }
 
 model Student {
-  studentId    Int     @id @default(autoincrement()) @map("student_id")
-  userId       Int     @unique @map("user_id")
-  user         User    @relation("UserStudent", fields: [userId], references: [userId], onDelete: Cascade)
-  studentPhone String? @map("student_phone") @db.VarChar(15)
-  parentPhone  String? @map("parent_phone") @db.VarChar(15)
+  studentId     Int     @id @default(autoincrement()) @map("student_id")
+  userId        Int     @unique @map("user_id")
+  user          User    @relation("UserStudent", fields: [userId], references: [userId], onDelete: Cascade)
+  studentPhone  String? @map("student_phone") @db.VarChar(15)
+  parentPhone   String? @map("parent_phone") @db.VarChar(15)
   studentZaloId String? @map("student_zalo_id") @db.VarChar(32)
   parentZaloId  String? @map("parent_zalo_id") @db.VarChar(32)
-  grade        Int     @db.TinyInt
-  school       String? @map("school") @db.VarChar(120)
+  grade         Int     @db.TinyInt
+  school        String? @map("school") @db.VarChar(120)
 
   pointLogs            StudentPointLog[]
   courseEnrollments    CourseEnrollment[]
@@ -220,6 +222,7 @@ model Student {
   studentLearningItems StudentLearningItem[]
   tuitionPayments      TuitionPayment[]
   competitionSubmits   CompetitionSubmit[]
+  examAttempts         ExamAttempt[]
 
   // ✅ UNIQUE theo cặp studentPhone + parentPhone
   @@unique([studentPhone, parentPhone], map: "uq_student_studentPhone_parentPhone")
@@ -244,6 +247,36 @@ model StudentPointLog {
   createdAt DateTime  @default(now())
 
   @@index([studentId, type])
+}
+
+model UserPointLog {
+  pointLogId Int  @id @default(autoincrement()) @map("point_log_id")
+
+  // Người dùng được cộng/trừ điểm
+  userId Int  @map("user_id")
+  user   User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  // Loại biến động điểm
+  type   PointType @map("type") // BONUS = cộng điểm, PENALTY = trừ điểm
+  points Int       @map("points") // luôn lưu số dương, chiều tăng/giảm dựa vào type
+
+  // Nguồn phát sinh điểm: EXAM_ATTEMPT, CONTRIBUTION, CHECK_IN, ADMIN_ADJUST, ...
+  source String @map("source") @db.VarChar(50)
+
+  // Tham chiếu nghiệp vụ để truy vết
+  referenceType String? @map("reference_type") @db.VarChar(50) // ví dụ: "EXAM_ATTEMPT", "COURSE_COMPLETION", "ATTENDANCE", "TEACHER_REWARD"
+  referenceId   Int?    @map("reference_id") // ID của thực thể tham chiếu, ví dụ exam_attempt_id, course_id, attendance_id
+
+  note     String? @map("note") @db.VarChar(255)
+  metadata Json?   @map("metadata")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+
+  @@index([userId, createdAt], map: "idx_user_point_logs_user_created")
+  @@index([userId, type], map: "idx_user_point_logs_user_type")
+  @@index([source], map: "idx_user_point_logs_source")
+  @@index([referenceType, referenceId], map: "idx_user_point_logs_ref")
+  @@map("user_point_logs")
 }
 
 model Admin {
@@ -497,12 +530,63 @@ model Exam {
   sections     Section[]      @relation("ExamSections")
   questions    QuestionExam[]
   tempExam     TempExam?      @relation("TempExamFinal")
+  examAttempts ExamAttempt[]
 
   @@index([grade, subjectId], map: "idx_exams_grade_subject")
   @@index([subjectId], map: "idx_exams_subject_id")
   @@index([createdBy], map: "idx_exams_created_by")
   @@index([createdAt], map: "idx_exams_created_at")
   @@map("exams")
+}
+
+enum ExamAttemptStatus {
+  IN_PROGRESS
+  SUBMITTED
+}
+
+model ExamAttempt {
+  attemptId Int    @id @default(autoincrement()) @map("attempt_id")
+  examId    Int    @map("exam_id")
+  studentId Int    @map("student_id")
+  score     Float? @map("score")
+
+  startedAt       DateTime          @map("started_at") @db.Timestamp(0)
+  endAt           DateTime?         @map("end_at") @db.Timestamp(0)
+  status          ExamAttemptStatus @map("status") // IN_PROGRESS, SUBMITTED
+  points          Decimal?          @map("points") @db.Decimal(10, 2) // điểm đạt được
+  maxPoints       Decimal?          @map("max_points") @db.Decimal(10, 2) // điểm tối đa của bài thi           
+  questionIds     Json?             @map("question_ids") // array ID các câu hỏi được chọn làm 
+  // Relations
+  exam            Exam              @relation(fields: [examId], references: [examId], onDelete: Cascade)
+  student         Student           @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  questionAnswers QuestionAnswer[]
+
+  @@index([examId], map: "idx_exam_attempts_exam_id")
+  @@index([studentId], map: "idx_exam_attempts_student_id")
+  @@index([startedAt], map: "idx_exam_attempts_started_at")
+  @@map("exam_attempts")
+}
+
+model QuestionAnswer {
+  questionAnswerId Int @id @default(autoincrement()) @map("question_answer_id")
+  attemptId        Int @map("attempt_id")
+  questionId       Int @map("question_id")
+
+  answer               String? @map("answer") @db.Text
+  selectedStatementIds Json?   @map("selected_statement_ids") // array ID các câu trả lời đã chọn (cho SINGLE_CHOICE, MULTIPLE_CHOICE, TRUE_FALSE)
+
+  isCorrect        Boolean? @map("is_correct") // đúng hay sai (null nếu chưa chấm)
+  points           Decimal? @map("points") @db.Decimal(10, 2) // điểm đạt được
+  maxPoints        Decimal? @map("max_points") @db.Decimal(10, 2) // điểm tối đa của câu này
+  timeSpentSeconds Int?     @map("time_spent_seconds") // thời gian làm câu này (giây)
+
+  // Relations
+  examAttempt ExamAttempt @relation(fields: [attemptId], references: [attemptId], onDelete: Cascade)
+  question    Question    @relation(fields: [questionId], references: [questionId], onDelete: Cascade)
+
+  @@index([attemptId], map: "idx_question_answers_attempt_id")
+  @@index([questionId], map: "idx_question_answers_question_id")
+  @@map("question_answers")
 }
 
 model Section {
@@ -550,6 +634,7 @@ model Question {
   questionChapters   QuestionChapter[]
   tempQuestion       TempQuestion?       @relation("TempQuestionFinal")
   competitionAnswers CompetitionAnswer[]
+  questionAnswers    QuestionAnswer[]
 
   @@index([subjectId, grade], map: "idx_questions_subject_grade")
   @@index([subjectId], map: "idx_questions_subject_id")
@@ -1058,14 +1143,14 @@ model Course {
 }
 
 model CourseClass {
-  classId      Int       @id @default(autoincrement()) @map("class_id")
-  courseId     Int       @map("course_id")
-  className    String    @map("class_name") @db.VarChar(100) // tên lớp học, ví dụ: "Lớp A1", "Lớp Toán nâng cao"
-  startDate    DateTime? @map("start_date") @db.Date // ngày bắt đầu lớp học
-  endDate      DateTime? @map("end_date") @db.Date // ngày kết thúc lớp học
-  weeklySchedule String? @map("weekly_schedule") @db.VarChar(255) // lịch học trong tuần, ví dụ: "Thứ 2, 4, 6 - 18:30"
-  room         String?   @map("room") @db.VarChar(100)
-  instructorId Int?
+  classId        Int       @id @default(autoincrement()) @map("class_id")
+  courseId       Int       @map("course_id")
+  className      String    @map("class_name") @db.VarChar(100) // tên lớp học, ví dụ: "Lớp A1", "Lớp Toán nâng cao"
+  startDate      DateTime? @map("start_date") @db.Date // ngày bắt đầu lớp học
+  endDate        DateTime? @map("end_date") @db.Date // ngày kết thúc lớp học
+  weeklySchedule String?   @map("weekly_schedule") @db.VarChar(255) // lịch học trong tuần, ví dụ: "Thứ 2, 4, 6 - 18:30"
+  room           String?   @map("room") @db.VarChar(100)
+  instructorId   Int?
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
@@ -1091,9 +1176,9 @@ model ClassSession {
   endTime     DateTime @map("end_time") @db.Time // giờ kết thúc
 
   // Relations
-  courseClass      CourseClass      @relation(fields: [classId], references: [classId], onDelete: Cascade)
-  homeworkContent  HomeworkContent? @relation(fields: [homeworkId], references: [homeworkContentId], onDelete: SetNull)
-  attendances      Attendance[]
+  courseClass     CourseClass      @relation(fields: [classId], references: [classId], onDelete: Cascade)
+  homeworkContent HomeworkContent? @relation(fields: [homeworkId], references: [homeworkContentId], onDelete: SetNull)
+  attendances     Attendance[]
 
   @@index([classId], map: "idx_class_sessions_class_id")
   @@index([homeworkId], map: "idx_class_sessions_homework_id")

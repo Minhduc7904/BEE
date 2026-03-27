@@ -44,6 +44,7 @@ import {
     GetPublicStudentCompetitionDetailUseCase,
     GetPublicStudentCompetitionExamUseCase,
     GetPublicStudentCompetitionHistoryUseCase,
+    GetPublicStudentCompetitionSubmitHistoryUseCase,
     GetCompetitionRankingUseCase,
     GetCompetitionLeaderboardUseCase,
     GetCompetitionQuestionStatsUseCase,
@@ -65,10 +66,20 @@ export class CompetitionController {
         private readonly getPublicStudentCompetitionDetailUseCase: GetPublicStudentCompetitionDetailUseCase,
         private readonly getPublicStudentCompetitionExamUseCase: GetPublicStudentCompetitionExamUseCase,
         private readonly getPublicStudentCompetitionHistoryUseCase: GetPublicStudentCompetitionHistoryUseCase,
+        private readonly getPublicStudentCompetitionSubmitHistoryUseCase: GetPublicStudentCompetitionSubmitHistoryUseCase,
         private readonly getCompetitionRankingUseCase: GetCompetitionRankingUseCase,
         private readonly getCompetitionLeaderboardUseCase: GetCompetitionLeaderboardUseCase,
         private readonly getCompetitionQuestionStatsUseCase: GetCompetitionQuestionStatsUseCase,
     ) { }
+
+    private resolveStudentId(currentStudentId: number, studentId?: string): number {
+        if (!studentId) return currentStudentId
+
+        const parsed = Number(studentId)
+        if (!Number.isInteger(parsed) || parsed <= 0) return currentStudentId
+
+        return parsed
+    }
 
     /**
      * Get public competitions for the current student.
@@ -286,6 +297,32 @@ export class CompetitionController {
     ): Promise<StudentCompetitionHistoryListResponseDto> {
         return ExceptionHandler.execute(() =>
             this.getPublicStudentCompetitionHistoryUseCase.execute(id, studentId, query),
+        )
+    }
+
+    /**
+     * Get current student's submitted attempts across all public competitions.
+     *
+        * @route GET /competitions/public/student-submits
+     * @param query - Pagination query (page, limit, sortBy, sortOrder)
+     * @param studentId - Current student ID (auto-injected)
+     * @returns StudentCompetitionHistoryListResponseDto
+     *
+     * @example
+        * GET /competitions/public/student-submits?page=1&limit=10
+     */
+    @Get('public/student-submits')
+    @RequirePermission()
+    @HttpCode(HttpStatus.OK)
+    async getPublicStudentSubmittedHistory(
+        @Query() query: StudentCompetitionHistoryQueryDto,
+        @CurrentUser('studentId') studentId: number,
+        @Query('studentId') studentIdQuery?: string,
+    ): Promise<StudentCompetitionHistoryListResponseDto> {
+        const targetStudentId = this.resolveStudentId(studentId, studentIdQuery)
+
+        return ExceptionHandler.execute(() =>
+            this.getPublicStudentCompetitionSubmitHistoryUseCase.execute(targetStudentId, query),
         )
     }
 

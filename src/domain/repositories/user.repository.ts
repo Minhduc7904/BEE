@@ -16,6 +16,7 @@ export interface CreateUserData {
   isActive?: boolean
   avatarId?: number
   isEmailVerified?: boolean
+  totalPoint?: number
   emailVerifiedAt?: Date
   lastLoginAt?: Date
   createdAt?: Date
@@ -33,6 +34,7 @@ export interface UpdateUserData {
   avatarId?: number
   passwordHash?: string
   isEmailVerified?: boolean
+  totalPoint?: number
   emailVerifiedAt?: Date
   lastLoginAt?: Date
   gender?: Gender

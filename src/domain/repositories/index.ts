@@ -37,10 +37,12 @@ export * from './temp-question.repository';
 export * from './temp-statement.repository';
 export * from './temp-question-chapter.repository';
 export * from './question.repository';
+export * from './question-answer.repository';
 export * from './question-chapter.repository';
 export * from './statement.repository';
 export * from './section.repository';
 export * from './exam.repository'
+export * from './exam-attempt.repository'
 export * from './competition.repository'
 export * from './competition-submit.repository'
 export * from './competition-answer.repository'
