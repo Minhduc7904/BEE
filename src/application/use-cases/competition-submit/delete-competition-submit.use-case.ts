@@ -1,6 +1,10 @@
 // src/application/use-cases/competition-submit/delete-competition-submit.use-case.ts
 import { Injectable, Inject } from '@nestjs/common'
-import type { ICompetitionSubmitRepository, IAdminAuditLogRepository } from '../../../domain/repositories'
+import type {
+    ICompetitionSubmitRepository,
+    IAdminAuditLogRepository,
+    IHomeworkSubmitRepository,
+} from '../../../domain/repositories'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 import { ACTION_KEYS } from '../../../shared/constants/action-key.constants'
@@ -12,6 +16,8 @@ export class DeleteCompetitionSubmitUseCase {
     constructor(
         @Inject('ICompetitionSubmitRepository')
         private readonly competitionSubmitRepository: ICompetitionSubmitRepository,
+        @Inject('IHomeworkSubmitRepository')
+        private readonly homeworkSubmitRepository: IHomeworkSubmitRepository,
         @Inject('IAdminAuditLogRepository')
         private readonly auditLogRepository: IAdminAuditLogRepository,
     ) { }
@@ -21,6 +27,11 @@ export class DeleteCompetitionSubmitUseCase {
 
         if (!submit) {
             throw new NotFoundException(`Bài nộp với ID ${id} không tồn tại`)
+        }
+
+        const linkedHomeworkSubmit = await this.homeworkSubmitRepository.findByCompetitionSubmitId(id)
+        if (linkedHomeworkSubmit) {
+            await this.homeworkSubmitRepository.delete(linkedHomeworkSubmit.homeworkSubmitId)
         }
 
         await this.competitionSubmitRepository.delete(id)
@@ -36,6 +47,7 @@ export class DeleteCompetitionSubmitUseCase {
                 studentId: submit.studentId,
                 attemptNumber: submit.attemptNumber,
                 status: submit.status,
+                linkedHomeworkSubmitId: linkedHomeworkSubmit?.homeworkSubmitId ?? null,
             },
         })
 
