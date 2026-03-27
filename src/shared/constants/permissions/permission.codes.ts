@@ -20,6 +20,7 @@ export const PERMISSION_CODES = {
   COMPETITION_SUBMIT: {
     GET_ALL: 'competition-submit:get-all',
     GET_BY_ID: 'competition-submit:get-by-id',
+    UPDATE: 'competition-submit:update',
     DELETE: 'competition-submit:delete',
     GET_MY_HISTORY: 'competition-submit:get-my-history',
     REGRADE: 'competition-submit:regrade',

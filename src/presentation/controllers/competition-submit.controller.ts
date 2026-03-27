@@ -3,9 +3,11 @@ import {
     Controller,
     Get,
     Post,
+    Put,
     Delete,
     Query,
     Param,
+    Body,
     HttpCode,
     HttpStatus,
     ParseIntPipe,
@@ -22,6 +24,7 @@ import {
     DeleteCompetitionSubmitUseCase,
     GetAdminCompetitionSubmitDetailUseCase,
     RegradeCompetitionSubmitUseCase,
+    UpdateCompetitionSubmitUseCase,
 } from '../../application/use-cases/competition-submit'
 import {
     CompetitionSubmitListQueryDto,
@@ -29,6 +32,7 @@ import {
     CompetitionSubmitListResponseDto,
     AdminCompetitionSubmitDetailDto,
     AdminCompetitionSubmitDetailResponseDto,
+    UpdateCompetitionSubmitDto,
 } from '../../application/dtos/competition-submit'
 
 /**
@@ -57,6 +61,7 @@ export class CompetitionSubmitController {
         private readonly deleteCompetitionSubmitUseCase: DeleteCompetitionSubmitUseCase,
         private readonly getAdminCompetitionSubmitDetailUseCase: GetAdminCompetitionSubmitDetailUseCase,
         private readonly regradeCompetitionSubmitUseCase: RegradeCompetitionSubmitUseCase,
+        private readonly updateCompetitionSubmitUseCase: UpdateCompetitionSubmitUseCase,
     ) { }
 
     /**
@@ -172,6 +177,17 @@ export class CompetitionSubmitController {
         @Param('id', ParseIntPipe) id: number,
     ): Promise<BaseResponseDto<any>> {
         return ExceptionHandler.execute(() => this.regradeCompetitionSubmitUseCase.execute(id))
+    }
+
+    @Put(':id')
+    @RequirePermission(PERMISSION_CODES.COMPETITION_SUBMIT.UPDATE)
+    @HttpCode(HttpStatus.OK)
+    async updateCompetitionSubmit(
+        @Param('id', ParseIntPipe) id: number,
+        @Body() dto: UpdateCompetitionSubmitDto,
+        @CurrentUser('adminId') adminId: number,
+    ): Promise<BaseResponseDto<CompetitionSubmitResponseDto>> {
+        return ExceptionHandler.execute(() => this.updateCompetitionSubmitUseCase.execute(id, dto, adminId))
     }
 
     /**
