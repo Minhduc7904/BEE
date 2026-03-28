@@ -19,7 +19,12 @@ import {
   CreateExamDto,
   UpdateExamDto,
   ExamListQueryDto,
+  PublicStudentExamListQueryDto,
+  PublicStudentExamListResponseDto,
+  PublicStudentExamDetailResponseDto,
+  PublicExamTypeCountResponseDto,
 } from '../../application/dtos/exam'
+import { PublicStudentCompetitionExamResponseDto } from '../../application/dtos/competition'
 import { QuestionListResponseDto, QuestionByExamQueryDto } from '../../application/dtos/question'
 import { SectionResponseDto } from '../../application/dtos/section'
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
@@ -34,6 +39,10 @@ import {
   UpdateExamUseCase,
   DeleteExamUseCase,
   SearchExamsUseCase,
+  GetPublicExamTypeCountsUseCase,
+  GetPublicStudentExamsUseCase,
+  GetPublicStudentExamByIdUseCase,
+  GetPublicStudentExamContentUseCase,
 } from '../../application/use-cases/exam'
 import { GetQuestionsByExamUseCase } from '../../application/use-cases/question'
 import { GetSectionsByExamUseCase } from '../../application/use-cases/section'
@@ -49,6 +58,10 @@ export class ExamController {
     private readonly updateExamUseCase: UpdateExamUseCase,
     private readonly deleteExamUseCase: DeleteExamUseCase,
     private readonly searchExamsUseCase: SearchExamsUseCase,
+    private readonly getPublicExamTypeCountsUseCase: GetPublicExamTypeCountsUseCase,
+    private readonly getPublicStudentExamsUseCase: GetPublicStudentExamsUseCase,
+    private readonly getPublicStudentExamByIdUseCase: GetPublicStudentExamByIdUseCase,
+    private readonly getPublicStudentExamContentUseCase: GetPublicStudentExamContentUseCase,
     private readonly getQuestionsByExamUseCase: GetQuestionsByExamUseCase,
     private readonly getSectionsByExamUseCase: GetSectionsByExamUseCase,
   ) { }
@@ -101,7 +114,7 @@ export class ExamController {
         permissions: user?.permissions ?? [],
       },
     }
-    
+
     return ExceptionHandler.execute(() =>
       this.searchExamsUseCase.execute(query, context),
     )
@@ -122,6 +135,123 @@ export class ExamController {
   @HttpCode(HttpStatus.OK)
   async getAllExams(@Query() query: ExamListQueryDto): Promise<ExamListResponseDto> {
     return ExceptionHandler.execute(() => this.getAllExamsUseCase.execute(query))
+  }
+
+  /**
+   * Đếm số lượng đề thi public theo từng loại đề (dành cho học sinh)
+   *
+   * @route GET /exams/public/type-counts
+   * @returns Thống kê số lượng đề thi PUBLISHED theo từng typeOfExam
+   *
+   * @example
+   * GET /exams/public/type-counts
+   * Response: {
+   *   "success": true,
+   *   "message": "Lấy thống kê số lượng đề thi public theo loại thành công",
+   *   "data": {
+   *     "totalPublished": 128,
+   *     "items": [
+   *       { "typeOfExam": "CK1", "label": "Cuối kỳ 1", "total": 15 },
+   *       { "typeOfExam": "CK2", "label": "Cuối kỳ 2", "total": 14 },
+   *       { "typeOfExam": "GK1", "label": "Giữa kỳ 1", "total": 21 },
+   *       { "typeOfExam": "GK2", "label": "Giữa kỳ 2", "total": 19 },
+   *       { "typeOfExam": "TSA", "label": "Tuyển sinh Đại học", "total": 9 },
+   *       { "typeOfExam": "THPT", "label": "THPT Quốc Gia", "total": 18 },
+   *       { "typeOfExam": "OTTHPT", "label": "Ôn tập THPT", "total": 10 },
+   *       { "typeOfExam": "OT", "label": "Ôn tập", "total": 8 },
+   *       { "typeOfExam": "HSA", "label": "Học sinh giỏi", "total": 7 },
+   *       { "typeOfExam": "OTHS", "label": "Ôn tập chung", "total": 7 }
+   *     ]
+   *   }
+   * }
+   */
+  @Get('public/type-counts')
+  @RequirePermission()
+  @HttpCode(HttpStatus.OK)
+  async getPublicExamTypeCounts(): Promise<BaseResponseDto<PublicExamTypeCountResponseDto>> {
+    return ExceptionHandler.execute(() => this.getPublicExamTypeCountsUseCase.execute())
+  }
+
+  /**
+   * Lấy danh sách đề thi public cho học sinh (có lọc + phân trang)
+   *
+   * @route GET /exams/public/student
+   * @param query - Query params: page, limit, search, grade, typeOfExam, subjectId, sortBy, sortOrder
+   * @returns Danh sách đề thi có visibility = PUBLISHED
+   *
+   * @example
+   * GET /exams/public/student?page=1&limit=10&grade=10&typeOfExam=GK1&search=toán
+   * Response: {
+   *   "success": true,
+   *   "message": "Lấy danh sách đề thi public thành công",
+   *   "data": [
+   *     {
+   *       "examId": 123,
+   *       "title": "Đề thi giữa kỳ 1 Toán 10",
+   *       "grade": 10,
+   *       "visibility": "PUBLISHED",
+   *       "typeOfExam": "GK1",
+   *       "subjectId": 5,
+   *       "subjectName": "Toán",
+   *       "questionCount": 40
+   *     }
+   *   ],
+   *   "meta": {
+   *     "page": 1,
+   *     "limit": 10,
+   *     "total": 56,
+   *     "totalPages": 6,
+   *     "hasPrevious": false,
+   *     "hasNext": true,
+   *     "nextPage": 2
+   *   }
+   * }
+   */
+  @Get('public/student')
+  @RequirePermission()
+  @HttpCode(HttpStatus.OK)
+  async getPublicStudentExams(
+    @Query() query: PublicStudentExamListQueryDto,
+  ): Promise<PublicStudentExamListResponseDto> {
+    return ExceptionHandler.execute(() => this.getPublicStudentExamsUseCase.execute(query))
+  }
+
+  /**
+   * Lấy nội dung đề thi public cho học sinh (sections + questions)
+   *
+   * @route GET /exams/public/student/:id/exam
+   * @param id - Exam ID
+   * @returns Response giống PublicStudentCompetitionExamResponseDto
+   *
+   * @example
+   * GET /exams/public/student/123/exam
+   */
+  @Get('public/student/:id/exam')
+  @RequirePermission()
+  @HttpCode(HttpStatus.OK)
+  async getPublicStudentExamContent(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<PublicStudentCompetitionExamResponseDto> {
+    return ExceptionHandler.execute(() => this.getPublicStudentExamContentUseCase.execute(id))
+  }
+
+  /**
+   * Lấy chi tiết đề thi cho học sinh (chỉ áp dụng đề thi public)
+   *
+   * @route GET /exams/public/student/:id
+   * @param id - Exam ID
+   * @returns Chi tiết đề thi nếu đề có visibility = PUBLISHED
+   *
+   * @example
+   * GET /exams/public/student/123
+   */
+  @Get('public/student/:id')
+  @RequirePermission()
+  @HttpCode(HttpStatus.OK)
+  async getPublicStudentExamById(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<BaseResponseDto<PublicStudentExamDetailResponseDto>> {
+    return ExceptionHandler.execute(() => this.getPublicStudentExamByIdUseCase.execute(id))
   }
 
   /**

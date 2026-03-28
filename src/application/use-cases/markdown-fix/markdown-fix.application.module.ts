@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common'
 import { InfrastructureModule } from 'src/infrastructure/infrastructure.module'
 import { FixMarkdownUseCase } from './'
+import { RenderMarkdownUseCase } from './render-markdown.use-case'
 
-const MARKDOWN_FIX_USE_CASES = [FixMarkdownUseCase]
+const MARKDOWN_FIX_USE_CASES = [FixMarkdownUseCase, RenderMarkdownUseCase]
 
 @Module({
   imports: [

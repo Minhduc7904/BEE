@@ -72,6 +72,7 @@ import { OpenAIService } from './services/openai.service'
 import { CompetitionSubmitFeedbackAiService } from './services/competition-submit-feedback-ai.service'
 import { ExamSplitService } from './services/exam-split.service'
 import { MarkdownFixService } from './services/markdown-fix.service'
+import { MarkdownRenderService } from './services/markdown-render.service'
 import { QuestionChapterClassificationService } from './services/question-chapter-classification.service'
 import { FileConverterService } from './services/file-converter.service'
 import { GoogleAdminStrategy } from './strategies/google-admin.strategy'
@@ -373,6 +374,7 @@ import openaiConfig from '../config/openai.config'
     CompetitionSubmitFeedbackAiService,
     ExamSplitService,
     MarkdownFixService,
+    MarkdownRenderService,
     QuestionChapterClassificationService,
     FileConverterService,
     ZaloService,
@@ -443,6 +445,7 @@ import openaiConfig from '../config/openai.config'
     CompetitionSubmitFeedbackAiService,
     ExamSplitService,
     MarkdownFixService,
+    MarkdownRenderService,
     QuestionChapterClassificationService,
     FileConverterService,
     ZaloService,

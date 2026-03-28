@@ -16,6 +16,7 @@ export interface CreateExamData {
 export interface ExamFilterOptions {
   subjectId?: number
   grade?: number
+  typeOfExam?: TypeOfExam
   visibility?: ExamVisibility
   excludeVisibility?: ExamVisibility
   createdBy?: number
@@ -37,6 +38,11 @@ export interface ExamListResult {
   totalPages: number
 }
 
+export interface PublishedExamTypeCount {
+  typeOfExam: TypeOfExam | null
+  total: number
+}
+
 export interface IExamRepository {
   create(data: CreateExamData, txClient?: any): Promise<Exam>
   findById(id: number, txClient?: any): Promise<Exam | null>
@@ -48,6 +54,9 @@ export interface IExamRepository {
     filters?: ExamFilterOptions,
     txClient?: any,
   ): Promise<ExamListResult>
+
+  // Count published exams by type for student-facing statistics
+  countPublishedByType(txClient?: any): Promise<PublishedExamTypeCount[]>
   
   // Count questions in exam
   countQuestionsByExamId(examId: number, txClient?: any): Promise<number>

@@ -68,7 +68,7 @@ export class SubjectController {
    * - sortOrder: thứ tự sắp xếp (asc, desc)
    */
   @Get()
-  @RequirePermission(PERMISSION_CODES.SUBJECT.GET_ALL)
+  @RequirePermission()
   @HttpCode(HttpStatus.OK)
   async getAllSubjects(
     @Query() query: SubjectListQueryDto,

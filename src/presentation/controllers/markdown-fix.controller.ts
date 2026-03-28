@@ -1,6 +1,11 @@
 import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common'
-import { FixMarkdownUseCase } from '../../application/use-cases/markdown-fix'
-import { FixMarkdownRequestDto, FixMarkdownResponseDto } from '../../application/dtos/markdown-fix'
+import { FixMarkdownUseCase, RenderMarkdownUseCase } from '../../application/use-cases/markdown-fix'
+import {
+  FixMarkdownRequestDto,
+  FixMarkdownResponseDto,
+  RenderMarkdownRequestDto,
+  RenderMarkdownResponseDto,
+} from '../../application/dtos/markdown-fix'
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
@@ -13,7 +18,10 @@ import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.
  */
 @Controller('markdown')
 export class MarkdownFixController {
-  constructor(private readonly fixMarkdownUseCase: FixMarkdownUseCase) {}
+  constructor(
+    private readonly fixMarkdownUseCase: FixMarkdownUseCase,
+    private readonly renderMarkdownUseCase: RenderMarkdownUseCase,
+  ) {}
 
   /**
    * Sửa chính tả và ngữ pháp đoạn Markdown.
@@ -37,5 +45,17 @@ export class MarkdownFixController {
   @HttpCode(HttpStatus.OK)
   async fixSpelling(@Body() dto: FixMarkdownRequestDto): Promise<BaseResponseDto<FixMarkdownResponseDto>> {
     return ExceptionHandler.execute(() => this.fixMarkdownUseCase.execute(dto))
+  }
+
+  /**
+   * Render Markdown sang HTML để FE hiển thị trực tiếp.
+   *
+   * FE gửi content markdown, BE trả html đã render (hỗ trợ table, task list, math KaTeX).
+   */
+  @Post('render-html')
+  @RequirePermission()
+  @HttpCode(HttpStatus.OK)
+  async renderHtml(@Body() dto: RenderMarkdownRequestDto): Promise<BaseResponseDto<RenderMarkdownResponseDto>> {
+    return ExceptionHandler.execute(() => this.renderMarkdownUseCase.execute(dto))
   }
 }

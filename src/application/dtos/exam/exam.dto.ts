@@ -103,6 +103,7 @@ export class ExamResponseDto {
     lastName: string
     fullName: string
     email?: string
+    avatarUrl?: string
   } | null
 
   // Media
@@ -200,5 +201,162 @@ export class ExamListResponseDto extends PaginationResponseDto<ExamResponseDto> 
   static fromEntities(exams: Exam[], page: number, limit: number, total: number): ExamListResponseDto {
     const data = exams.map((exam) => ExamResponseDto.fromEntity(exam))
     return new ExamListResponseDto(data, page, limit, total)
+  }
+}
+
+export class PublicExamTypeCountItemDto {
+  typeOfExam: TypeOfExam
+  label: string
+  total: number
+
+  constructor(data: { typeOfExam: TypeOfExam; label: string; total: number }) {
+    this.typeOfExam = data.typeOfExam
+    this.label = data.label
+    this.total = data.total
+  }
+}
+
+export class PublicExamTypeCountResponseDto {
+  totalPublished: number
+  items: PublicExamTypeCountItemDto[]
+
+  constructor(data: { totalPublished: number; items: PublicExamTypeCountItemDto[] }) {
+    this.totalPublished = data.totalPublished
+    this.items = data.items
+  }
+}
+
+export class PublicStudentExamListResponseDto extends PaginationResponseDto<ExamResponseDto> {
+  static fromResult(
+    items: ExamResponseDto[],
+    page: number,
+    limit: number,
+    total: number,
+  ): PublicStudentExamListResponseDto {
+    return PaginationResponseDto.success(
+      'Lấy danh sách đề thi public thành công',
+      items,
+      page,
+      limit,
+      total,
+    ) as PublicStudentExamListResponseDto
+  }
+}
+
+export class PublicStudentExamCompetitionResponseDto {
+  competitionId: number
+  title: string
+  subtitle?: string | null
+  examId?: number | null
+  policies?: string | null
+  startDate?: Date | null
+  endDate?: Date | null
+  durationMinutes?: number | null
+  maxAttempts?: number | null
+  visibility: string
+  showResultDetail: boolean
+  allowLeaderboard: boolean
+  allowViewScore: boolean
+  allowViewAnswer: boolean
+  enableAntiCheating: boolean
+  allowViewSolutionYoutubeUrl?: boolean
+  allowViewExamContent?: boolean
+  createdAt: Date
+  updatedAt: Date
+
+  static fromEntity(competition: Competition): PublicStudentExamCompetitionResponseDto {
+    const dto = new PublicStudentExamCompetitionResponseDto()
+    dto.competitionId = competition.competitionId
+    dto.title = competition.title
+    dto.subtitle = competition.subtitle
+    dto.examId = competition.examId
+    dto.policies = competition.policies
+    dto.startDate = competition.startDate ?? null
+    dto.endDate = competition.endDate ?? null
+    dto.durationMinutes = competition.durationMinutes
+    dto.maxAttempts = competition.maxAttempts
+    dto.visibility = competition.visibility
+    dto.showResultDetail = competition.showResultDetail
+    dto.allowLeaderboard = competition.allowLeaderboard
+    dto.allowViewScore = competition.allowViewScore
+    dto.allowViewAnswer = competition.allowViewAnswer
+    dto.enableAntiCheating = competition.enableAntiCheating
+    dto.allowViewSolutionYoutubeUrl = competition.allowViewSolutionYoutubeUrl
+    dto.allowViewExamContent = competition.allowViewExamContent
+    dto.createdAt = competition.createdAt
+    dto.updatedAt = competition.updatedAt
+    return dto
+  }
+
+  static fromEntities(competitions: Competition[]): PublicStudentExamCompetitionResponseDto[] {
+    return competitions.map((item) => this.fromEntity(item))
+  }
+}
+
+export class PublicStudentExamDetailResponseDto {
+  examId: number
+  title: string
+  description?: string | null
+  processedDescription?: string | null
+  grade?: number
+  visibility: ExamVisibility
+  subjectId?: number | null
+  subjectName?: string | null
+  createdByAdmin?: {
+    adminId: number
+    userId: number
+    firstName: string
+    lastName: string
+    fullName: string
+    email?: string
+    avatarUrl?: string
+  } | null
+  solutionYoutubeUrl?: string | null
+  typeOfExam?: TypeOfExam | null
+  competitions?: PublicStudentExamCompetitionResponseDto[]
+  createdAt: Date
+  updatedAt: Date
+  hasDescription: boolean
+  hasSolution: boolean
+  isPublished: boolean
+  isDraft: boolean
+
+  static fromEntity(exam: Exam): PublicStudentExamDetailResponseDto {
+    const dto = new PublicStudentExamDetailResponseDto()
+    dto.examId = exam.examId
+    dto.title = exam.title
+    dto.description = exam.description
+    dto.processedDescription = exam.description
+    dto.grade = exam.grade
+    dto.visibility = exam.visibility
+    dto.subjectId = exam.subjectId
+    dto.subjectName = exam.subject?.name || null
+
+    if (exam.admin?.user) {
+      dto.createdByAdmin = {
+        adminId: exam.admin.adminId,
+        userId: exam.admin.user.userId,
+        firstName: exam.admin.user.firstName,
+        lastName: exam.admin.user.lastName,
+        fullName: exam.admin.user.getFullName(),
+        email: exam.admin.user.email,
+      }
+    } else {
+      dto.createdByAdmin = null
+    }
+
+    dto.solutionYoutubeUrl = exam.solutionYoutubeUrl
+    dto.typeOfExam = exam.typeOfExam
+    dto.competitions = exam.competitions
+      ? PublicStudentExamCompetitionResponseDto.fromEntities(exam.competitions)
+      : []
+    dto.createdAt = exam.createdAt
+    dto.updatedAt = exam.updatedAt
+    dto.hasDescription = exam.hasDescription()
+    dto.hasSolution = Boolean(exam.solutionYoutubeUrl)
+    dto.isPublished = exam.isPublished()
+    dto.isDraft = exam.isDraft()
+
+    return dto
   }
 }
