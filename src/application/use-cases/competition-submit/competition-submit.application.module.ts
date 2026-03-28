@@ -21,6 +21,7 @@ import {
     GetCompetitionSubmitQuestionStatisticsUseCase,
 } from './index'
 import { ProcessContentWithPresignedUrlsUseCase } from '../media/process-content-with-presigned-urls.use-case'
+import { ProcessContentWithPresignedUrlsAndRenderHtmlUseCase } from '../media/process-content-with-presigned-urls-and-render-html.use-case'
 
 @Module({
     imports: [
@@ -45,6 +46,7 @@ import { ProcessContentWithPresignedUrlsUseCase } from '../media/process-content
         HandleHomeworkSubmitByCompetitionUseCase,
         GetCompetitionSubmitQuestionStatisticsUseCase,
         ProcessContentWithPresignedUrlsUseCase,
+        ProcessContentWithPresignedUrlsAndRenderHtmlUseCase,
     ],
     exports: [
         GetCompetitionRemainingTimeUseCase,

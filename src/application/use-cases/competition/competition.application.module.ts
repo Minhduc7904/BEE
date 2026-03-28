@@ -19,6 +19,7 @@ import {
 } from './index'
 import { AttachMediaFromContentUseCase } from '../media/attach-media-from-content.use-case'
 import { ProcessContentWithPresignedUrlsUseCase } from '../media/process-content-with-presigned-urls.use-case'
+import { ProcessContentWithPresignedUrlsAndRenderHtmlUseCase } from '../media/process-content-with-presigned-urls-and-render-html.use-case'
 
 @Module({
     imports: [
@@ -41,6 +42,7 @@ import { ProcessContentWithPresignedUrlsUseCase } from '../media/process-content
         GetCompetitionQuestionStatsUseCase,
         AttachMediaFromContentUseCase,
         ProcessContentWithPresignedUrlsUseCase,
+        ProcessContentWithPresignedUrlsAndRenderHtmlUseCase,
     ],
     exports: [
         CreateCompetitionUseCase,

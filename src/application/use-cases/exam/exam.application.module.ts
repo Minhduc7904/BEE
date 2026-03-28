@@ -5,6 +5,7 @@ import * as examUseCase from './'
 import { InfrastructureModule } from 'src/infrastructure/infrastructure.module'
 import { AttachMediaFromContentUseCase } from '../media/attach-media-from-content.use-case'
 import { ProcessContentWithPresignedUrlsUseCase } from '../media/process-content-with-presigned-urls.use-case'
+import { ProcessContentWithPresignedUrlsAndRenderHtmlUseCase } from '../media/process-content-with-presigned-urls-and-render-html.use-case'
 
 const EXAM_USE_CASES = [
   examUseCase.GetAllExamsUseCase,
@@ -19,6 +20,7 @@ const EXAM_USE_CASES = [
   examUseCase.GetPublicStudentExamContentUseCase,
   AttachMediaFromContentUseCase,
   ProcessContentWithPresignedUrlsUseCase,
+  ProcessContentWithPresignedUrlsAndRenderHtmlUseCase,
 ]
 
 @Module({

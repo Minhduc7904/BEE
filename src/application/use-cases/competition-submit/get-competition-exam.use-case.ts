@@ -3,7 +3,8 @@ import { Inject, Injectable } from '@nestjs/common'
 import type { ICompetitionRepository, IExamRepository } from '../../../domain/repositories'
 import { CompetitionExamResponseDto, CompetitionExamQuestionDto, CompetitionExamStatementDto } from '../../dtos/competition-submit/competition-exam.dto'
 import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
-import { ProcessContentWithPresignedUrlsUseCase, type ContentField } from '../media/process-content-with-presigned-urls.use-case'
+import { type ContentField } from '../media/process-content-with-presigned-urls.use-case'
+import { ProcessContentWithPresignedUrlsAndRenderHtmlUseCase } from '../media/process-content-with-presigned-urls-and-render-html.use-case'
 import { QUESTION_CONTENT_FIELDS } from '../../../shared/constants/media-field-name.constants'
 
 @Injectable()
@@ -13,7 +14,7 @@ export class GetCompetitionExamUseCase {
         private readonly competitionRepository: ICompetitionRepository,
         @Inject('IExamRepository')
         private readonly examRepository: IExamRepository,
-        private readonly processContentUseCase: ProcessContentWithPresignedUrlsUseCase,
+        private readonly processContentAndRenderHtmlUseCase: ProcessContentWithPresignedUrlsAndRenderHtmlUseCase,
     ) { }
 
     async execute(competitionId: number): Promise<CompetitionExamResponseDto> {
@@ -65,18 +66,18 @@ export class GetCompetitionExamUseCase {
         }
 
         // 7. Xử lý toàn bộ presigned URLs trong một lần
-        const processedResults = await this.processContentUseCase.execute(contentFields)
+        const processedResults = await this.processContentAndRenderHtmlUseCase.execute(contentFields)
 
         // 8. Gán processedContent về từng question và statement
         for (const question of allQuestions) {
-            question.processedContent = this.processContentUseCase.getProcessedContent(
+            question.processedContent = this.processContentAndRenderHtmlUseCase.getProcessedContent(
                 processedResults,
                 `Q${question.questionId}_${QUESTION_CONTENT_FIELDS.CONTENT}`,
             ) || question.content
 
             if (question.statements) {
                 for (const stmt of question.statements) {
-                    stmt.processedContent = this.processContentUseCase.getProcessedContent(
+                    stmt.processedContent = this.processContentAndRenderHtmlUseCase.getProcessedContent(
                         processedResults,
                         `Q${question.questionId}_S${stmt.statementId}_CONTENT`,
                     ) || stmt.content

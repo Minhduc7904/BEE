@@ -4,7 +4,8 @@ import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 import { PublicStudentExamDetailResponseDto } from '../../dtos/exam/exam.dto'
 import { ExamVisibility, MediaStatus } from '../../../shared/enums'
 import { ForbiddenException, NotFoundException } from '../../../shared/exceptions/custom-exceptions'
-import { ProcessContentWithPresignedUrlsUseCase, type ContentField } from '../media/process-content-with-presigned-urls.use-case'
+import { type ContentField } from '../media/process-content-with-presigned-urls.use-case'
+import { ProcessContentWithPresignedUrlsAndRenderHtmlUseCase } from '../media/process-content-with-presigned-urls-and-render-html.use-case'
 import { EXAM_CONTENT_FIELDS } from '../../../shared/constants/media-field-name.constants'
 import { MinioService } from '../../../infrastructure/services/minio.service'
 import { EntityType } from '../../../shared/constants/entity-type.constants'
@@ -19,7 +20,7 @@ export class GetPublicStudentExamByIdUseCase {
         private readonly examRepository: IExamRepository,
         @Inject('IMediaUsageRepository')
         private readonly mediaUsageRepository: IMediaUsageRepository,
-        private readonly processContentUseCase: ProcessContentWithPresignedUrlsUseCase,
+        private readonly processContentAndRenderHtmlUseCase: ProcessContentWithPresignedUrlsAndRenderHtmlUseCase,
         private readonly minioService: MinioService,
     ) { }
 
@@ -66,8 +67,8 @@ export class GetPublicStudentExamByIdUseCase {
                 { fieldName: EXAM_CONTENT_FIELDS.DESCRIPTION, content: examResponse.description },
             ]
 
-            const processedResults = await this.processContentUseCase.execute(contentFields, expirySeconds)
-            examResponse.processedDescription = this.processContentUseCase.getProcessedContent(
+            const processedResults = await this.processContentAndRenderHtmlUseCase.execute(contentFields, expirySeconds)
+            examResponse.processedDescription = this.processContentAndRenderHtmlUseCase.getProcessedContent(
                 processedResults,
                 EXAM_CONTENT_FIELDS.DESCRIPTION,
             ) || examResponse.description

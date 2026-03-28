@@ -10,7 +10,8 @@ import {
     PublicStudentCompetitionExamSectionDto,
     PublicStudentCompetitionExamStatementDto,
 } from '../../dtos/competition/public-student-competition-exam.dto'
-import { ProcessContentWithPresignedUrlsUseCase, type ContentField } from '../media/process-content-with-presigned-urls.use-case'
+import { type ContentField } from '../media/process-content-with-presigned-urls.use-case'
+import { ProcessContentWithPresignedUrlsAndRenderHtmlUseCase } from '../media/process-content-with-presigned-urls-and-render-html.use-case'
 import {
     EXAM_CONTENT_FIELDS,
     QUESTION_CONTENT_FIELDS,
@@ -22,7 +23,7 @@ export class GetPublicStudentExamContentUseCase {
     constructor(
         @Inject('IExamRepository')
         private readonly examRepository: IExamRepository,
-        private readonly processContentUseCase: ProcessContentWithPresignedUrlsUseCase,
+        private readonly processContentAndRenderHtmlUseCase: ProcessContentWithPresignedUrlsAndRenderHtmlUseCase,
     ) { }
 
     async execute(examId: number, expirySeconds = 3600): Promise<PublicStudentCompetitionExamResponseDto> {
@@ -60,8 +61,8 @@ export class GetPublicStudentExamContentUseCase {
                 { fieldName: EXAM_CONTENT_FIELDS.DESCRIPTION, content: data.description },
             ]
 
-            const processedResults = await this.processContentUseCase.execute(contentFields, expirySeconds)
-            data.processedDescription = this.processContentUseCase.getProcessedContent(
+            const processedResults = await this.processContentAndRenderHtmlUseCase.execute(contentFields, expirySeconds)
+            data.processedDescription = this.processContentAndRenderHtmlUseCase.getProcessedContent(
                 processedResults,
                 EXAM_CONTENT_FIELDS.DESCRIPTION,
             ) || data.description
@@ -95,9 +96,9 @@ export class GetPublicStudentExamContentUseCase {
                 { fieldName: SECTION_CONTENT_FIELDS.DESCRIPTION, content: dto.description },
             ]
 
-            const processedResults = await this.processContentUseCase.execute(contentFields, expirySeconds)
+            const processedResults = await this.processContentAndRenderHtmlUseCase.execute(contentFields, expirySeconds)
 
-            dto.processedDescription = this.processContentUseCase.getProcessedContent(
+            dto.processedDescription = this.processContentAndRenderHtmlUseCase.getProcessedContent(
                 processedResults,
                 SECTION_CONTENT_FIELDS.DESCRIPTION,
             ) || dto.description
@@ -152,15 +153,15 @@ export class GetPublicStudentExamContentUseCase {
                 })
             })
 
-            const processedResults = await this.processContentUseCase.execute(contentFields, expirySeconds)
+            const processedResults = await this.processContentAndRenderHtmlUseCase.execute(contentFields, expirySeconds)
 
-            dto.processedContent = this.processContentUseCase.getProcessedContent(
+            dto.processedContent = this.processContentAndRenderHtmlUseCase.getProcessedContent(
                 processedResults,
                 QUESTION_CONTENT_FIELDS.CONTENT,
             ) || dto.content
 
             dto.statements.forEach((stmt, index) => {
-                stmt.processedContent = this.processContentUseCase.getProcessedContent(
+                stmt.processedContent = this.processContentAndRenderHtmlUseCase.getProcessedContent(
                     processedResults,
                     `${QUESTION_CONTENT_FIELDS.STATEMENT_PREFIX}${index}`,
                 ) || stmt.content
