@@ -38,6 +38,7 @@ export class PublicStudentCompetitionExamSectionDto {
 export class PublicStudentCompetitionExamDataDto {
     examId: number
     title: string
+    attemptStatus?: 'ATTEMPTED' | 'NOT_ATTEMPTED'
     description?: string | null
     processedDescription?: string | null
     grade?: number
@@ -51,4 +52,4 @@ export class PublicStudentCompetitionExamDataDto {
     questions: PublicStudentCompetitionExamQuestionDto[]
 }
 
-export class PublicStudentCompetitionExamResponseDto extends BaseResponseDto<PublicStudentCompetitionExamDataDto> {}
+export class PublicStudentCompetitionExamResponseDto extends BaseResponseDto<PublicStudentCompetitionExamDataDto> { }

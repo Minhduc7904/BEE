@@ -20,6 +20,7 @@ import {
   UpdateExamDto,
   ExamListQueryDto,
   PublicStudentExamListQueryDto,
+  PublicStudentExamContentQueryDto,
   PublicStudentExamListResponseDto,
   PublicStudentExamDetailResponseDto,
   PublicExamTypeCountResponseDto,
@@ -212,8 +213,9 @@ export class ExamController {
   @HttpCode(HttpStatus.OK)
   async getPublicStudentExams(
     @Query() query: PublicStudentExamListQueryDto,
+    @CurrentUser('studentId') studentId?: number,
   ): Promise<PublicStudentExamListResponseDto> {
-    return ExceptionHandler.execute(() => this.getPublicStudentExamsUseCase.execute(query))
+    return ExceptionHandler.execute(() => this.getPublicStudentExamsUseCase.execute(query, studentId))
   }
 
   /**
@@ -221,18 +223,21 @@ export class ExamController {
    *
    * @route GET /exams/public/student/:id/exam
    * @param id - Exam ID
+   * @param query - Query params: questionIds (optional)
    * @returns Response giống PublicStudentCompetitionExamResponseDto
    *
    * @example
    * GET /exams/public/student/123/exam
+   * GET /exams/public/student/123/exam?questionIds=11&questionIds=12
    */
   @Get('public/student/:id/exam')
   @RequirePermission()
   @HttpCode(HttpStatus.OK)
   async getPublicStudentExamContent(
     @Param('id', ParseIntPipe) id: number,
+    @Query() query: PublicStudentExamContentQueryDto,
   ): Promise<PublicStudentCompetitionExamResponseDto> {
-    return ExceptionHandler.execute(() => this.getPublicStudentExamContentUseCase.execute(id))
+    return ExceptionHandler.execute(() => this.getPublicStudentExamContentUseCase.execute(id, query))
   }
 
   /**
@@ -250,8 +255,9 @@ export class ExamController {
   @HttpCode(HttpStatus.OK)
   async getPublicStudentExamById(
     @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('studentId') studentId?: number,
   ): Promise<BaseResponseDto<PublicStudentExamDetailResponseDto>> {
-    return ExceptionHandler.execute(() => this.getPublicStudentExamByIdUseCase.execute(id))
+    return ExceptionHandler.execute(() => this.getPublicStudentExamByIdUseCase.execute(id, studentId))
   }
 
   /**

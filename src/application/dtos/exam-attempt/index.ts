@@ -1,2 +1,4 @@
 export * from './student-exam-attempt-list-query.dto'
 export * from './student-exam-attempt.dto'
+export * from './student-exam-attempt-detail.dto'
+export * from './start-public-student-exam-attempt.dto'

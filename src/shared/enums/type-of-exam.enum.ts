@@ -62,11 +62,11 @@ export const TYPE_OF_EXAM_LABELS: Record<TypeOfExam, string> = {
   [TypeOfExam.CK2]: 'Cuối kỳ 2',
   [TypeOfExam.GK1]: 'Giữa kỳ 1',
   [TypeOfExam.GK2]: 'Giữa kỳ 2',
-  [TypeOfExam.TSA]: 'Tuyển sinh Đại học',
+  [TypeOfExam.TSA]: 'Đánh giá tư duy',
   [TypeOfExam.THPT]: 'THPT Quốc Gia',
   [TypeOfExam.OTTHPT]: 'Ôn tập THPT',
   [TypeOfExam.OT]: 'Ôn tập',
-  [TypeOfExam.HSA]: 'Học sinh giỏi',
+  [TypeOfExam.HSA]: 'Đánh giá năng lực',
   [TypeOfExam.OTHS]: 'Ôn tập chung',
 };
 
@@ -78,10 +78,10 @@ export const TYPE_OF_EXAM_DESCRIPTIONS: Record<TypeOfExam, string> = {
   [TypeOfExam.CK2]: 'Đề thi cuối học kỳ 2',
   [TypeOfExam.GK1]: 'Đề thi giữa học kỳ 1',
   [TypeOfExam.GK2]: 'Đề thi giữa học kỳ 2',
-  [TypeOfExam.TSA]: 'Đề thi tuyển sinh Đại học khối A',
+  [TypeOfExam.TSA]: 'Đề thi đánh giá tư duy',
   [TypeOfExam.THPT]: 'Đề thi THPT Quốc Gia',
   [TypeOfExam.OTTHPT]: 'Đề ôn tập THPT Quốc Gia',
-  [TypeOfExam.OT]: 'Đề ôn tập chung',
-  [TypeOfExam.HSA]: 'Đề thi học sinh giỏi',
-  [TypeOfExam.OTHS]: 'Đề ôn tập học sinh',
+  [TypeOfExam.OT]: 'Đề ôn tập',
+  [TypeOfExam.HSA]: 'Đề thi đánh giá năng lực',
+  [TypeOfExam.OTHS]: 'Đề ôn tập chung',
 };

@@ -18,6 +18,29 @@ export interface StudentExamAttemptFilterOptions {
     status?: ExamAttemptStatus
 }
 
+export interface CreateExamAttemptData {
+    examId: number
+    studentId: number
+    status: ExamAttemptStatus
+    startedAt: Date
+    duration?: number
+    questionIds?: number[]
+}
+
+export interface UpdateExamAttemptScoringData {
+    score?: number | null
+    points?: number | null
+    maxPoints?: number | null
+}
+
+export interface SubmitExamAttemptData {
+    status: ExamAttemptStatus
+    endAt: Date
+    score?: number | null
+    points?: number | null
+    maxPoints?: number | null
+}
+
 export interface ExamAttemptListResult {
     examAttempts: ExamAttempt[]
     total: number
@@ -44,4 +67,44 @@ export interface IExamAttemptRepository {
         filters?: StudentExamAttemptFilterOptions,
         txClient?: any,
     ): Promise<ExamAttemptListResult>
+
+    findPublicByAttemptAndStudent(
+        attemptId: number,
+        studentId: number,
+        txClient?: any,
+    ): Promise<ExamAttempt | null>
+
+    hasSubmittedExamByStudent(
+        studentId: number,
+        examId: number,
+        txClient?: any,
+    ): Promise<boolean>
+
+    findSubmittedExamIdsByStudent(
+        studentId: number,
+        examIds: number[],
+        txClient?: any,
+    ): Promise<number[]>
+
+    findQuestionIdsByExamId(
+        examId: number,
+        txClient?: any,
+    ): Promise<number[]>
+
+    create(
+        data: CreateExamAttemptData,
+        txClient?: any,
+    ): Promise<ExamAttempt>
+
+    updateScoring(
+        attemptId: number,
+        data: UpdateExamAttemptScoringData,
+        txClient?: any,
+    ): Promise<ExamAttempt>
+
+    submitAttempt(
+        attemptId: number,
+        data: SubmitExamAttemptData,
+        txClient?: any,
+    ): Promise<ExamAttempt>
 }

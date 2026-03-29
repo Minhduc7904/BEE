@@ -1,17 +1,176 @@
 import { Injectable } from '@nestjs/common'
 import {
+  CreateExamAttemptData,
   ExamAttemptListResult,
   ExamAttemptPaginationOptions,
   IExamAttemptRepository,
   StudentExamAttemptFilterOptions,
 } from '../../../domain/repositories/exam-attempt.repository'
 import { PrismaService } from '../../../prisma/prisma.service'
+import { ExamAttemptStatus } from '../../../shared/enums/exam-attempt-status.enum'
 import { ExamVisibility } from '../../../shared/enums/exam-visibility.enum'
 import { ExamAttemptMapper } from '../../mappers/exam/exam-attempt.mapper'
 
 @Injectable()
 export class PrismaExamAttemptRepository implements IExamAttemptRepository {
   constructor(private readonly prisma: PrismaService | any) { }
+
+  async submitAttempt(
+    attemptId: number,
+    data: { status: ExamAttemptStatus; endAt: Date; score?: number | null; points?: number | null; maxPoints?: number | null },
+    txClient?: any,
+  ) {
+    const client = txClient || this.prisma
+
+    const updated = await client.examAttempt.update({
+      where: {
+        attemptId,
+      },
+      data: {
+        status: data.status,
+        endAt: data.endAt,
+        ...(data.score !== undefined ? { score: data.score } : {}),
+        ...(data.points !== undefined ? { points: data.points } : {}),
+        ...(data.maxPoints !== undefined ? { maxPoints: data.maxPoints } : {}),
+      },
+      include: {
+        exam: true,
+      },
+    })
+
+    return ExamAttemptMapper.toDomainExamAttempt(updated)!
+  }
+
+  async updateScoring(
+    attemptId: number,
+    data: { score?: number | null; points?: number | null; maxPoints?: number | null },
+    txClient?: any,
+  ) {
+    const client = txClient || this.prisma
+
+    const updated = await client.examAttempt.update({
+      where: {
+        attemptId,
+      },
+      data: {
+        ...(data.score !== undefined ? { score: data.score } : {}),
+        ...(data.points !== undefined ? { points: data.points } : {}),
+        ...(data.maxPoints !== undefined ? { maxPoints: data.maxPoints } : {}),
+      },
+      include: {
+        exam: true,
+      },
+    })
+
+    return ExamAttemptMapper.toDomainExamAttempt(updated)!
+  }
+
+  async hasSubmittedExamByStudent(
+    studentId: number,
+    examId: number,
+    txClient?: any,
+  ): Promise<boolean> {
+    const client = txClient || this.prisma
+
+    const count = await client.examAttempt.count({
+      where: {
+        studentId,
+        examId,
+        status: ExamAttemptStatus.SUBMITTED,
+      },
+    })
+
+    return count > 0
+  }
+
+  async findSubmittedExamIdsByStudent(
+    studentId: number,
+    examIds: number[],
+    txClient?: any,
+  ): Promise<number[]> {
+    if (examIds.length === 0) {
+      return []
+    }
+
+    const client = txClient || this.prisma
+
+    const rows = await client.examAttempt.findMany({
+      where: {
+        studentId,
+        examId: { in: examIds },
+        status: ExamAttemptStatus.SUBMITTED,
+      },
+      select: {
+        examId: true,
+      },
+      distinct: ['examId'],
+    })
+
+    return rows.map((row: { examId: number }) => row.examId)
+  }
+
+  async findPublicByAttemptAndStudent(
+    attemptId: number,
+    studentId: number,
+    txClient?: any,
+  ) {
+    const client = txClient || this.prisma
+
+    const prismaAttempt = await client.examAttempt.findFirst({
+      where: {
+        attemptId,
+        studentId,
+        exam: {
+          visibility: ExamVisibility.PUBLISHED,
+        },
+      },
+      include: {
+        exam: true,
+      },
+    })
+
+    return ExamAttemptMapper.toDomainExamAttempt(prismaAttempt)
+  }
+
+  async create(data: CreateExamAttemptData, txClient?: any) {
+    const client = txClient || this.prisma
+
+    const created = await client.examAttempt.create({
+      data: {
+        examId: data.examId,
+        studentId: data.studentId,
+        status: data.status,
+        startedAt: data.startedAt,
+        duration: data.duration,
+        questionIds: data.questionIds,
+      },
+      include: {
+        exam: true,
+      },
+    })
+
+    return ExamAttemptMapper.toDomainExamAttempt(created)!
+  }
+
+  async findQuestionIdsByExamId(examId: number, txClient?: any): Promise<number[]> {
+    const client = txClient || this.prisma
+
+    const rows = await client.questionExam.findMany({
+      where: {
+        examId,
+      },
+      orderBy: [
+        { sectionId: 'asc' },
+        { order: 'asc' },
+        { questionId: 'asc' },
+      ],
+      select: {
+        questionId: true,
+      },
+    })
+
+    return rows.map((row: { questionId: number }) => row.questionId)
+  }
 
   async findPublicByStudentWithPagination(
     studentId: number,

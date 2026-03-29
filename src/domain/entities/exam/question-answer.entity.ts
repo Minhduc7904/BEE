@@ -3,7 +3,7 @@ import { Question } from './question.entity'
 
 export class QuestionAnswer {
   questionAnswerId: number
-  attemptId: number
+  attemptId?: number | null
   questionId: number
 
   answer?: string | null
@@ -18,7 +18,7 @@ export class QuestionAnswer {
 
   constructor(data: {
     questionAnswerId: number
-    attemptId: number
+    attemptId?: number | null
     questionId: number
     answer?: string | null
     selectedStatementIds?: number[] | null

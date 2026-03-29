@@ -6,6 +6,11 @@ import { ExamVisibility, TypeOfExam } from '../../../shared/enums'
 import { Subject } from '../../../domain/entities/subject/subject.entity'
 import { PaginationResponseDto, PaginationMetaDto } from '../pagination/pagination-response.dto'
 
+export enum PublicStudentExamAttemptStatus {
+  ATTEMPTED = 'ATTEMPTED',
+  NOT_ATTEMPTED = 'NOT_ATTEMPTED',
+}
+
 export class QuestionExamResponseDto {
   questionId: number
   examId: number
@@ -128,6 +133,7 @@ export class ExamResponseDto {
   isDraft: boolean
   questionCount: number
   competitionCount: number
+  attemptStatus?: PublicStudentExamAttemptStatus
 
   // Processed content with presigned URLs
   processedDescription?: string | null
@@ -320,6 +326,7 @@ export class PublicStudentExamDetailResponseDto {
   hasSolution: boolean
   isPublished: boolean
   isDraft: boolean
+  attemptStatus: PublicStudentExamAttemptStatus
 
   static fromEntity(exam: Exam): PublicStudentExamDetailResponseDto {
     const dto = new PublicStudentExamDetailResponseDto()
@@ -356,6 +363,7 @@ export class PublicStudentExamDetailResponseDto {
     dto.hasSolution = Boolean(exam.solutionYoutubeUrl)
     dto.isPublished = exam.isPublished()
     dto.isDraft = exam.isDraft()
+    dto.attemptStatus = PublicStudentExamAttemptStatus.NOT_ATTEMPTED
 
     return dto
   }

@@ -11,7 +11,7 @@ export class QuestionAnswerMapper {
 
     return new QuestionAnswer({
       questionAnswerId: prismaAnswer.questionAnswerId,
-      attemptId: prismaAnswer.attemptId,
+      attemptId: prismaAnswer.attemptId ?? undefined,
       questionId: prismaAnswer.questionId,
       answer: prismaAnswer.answer ?? undefined,
       selectedStatementIds: this.parseNumberArray(prismaAnswer.selectedStatementIds),

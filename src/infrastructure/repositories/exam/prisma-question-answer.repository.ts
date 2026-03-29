@@ -1,19 +1,187 @@
 import { Injectable } from '@nestjs/common'
 import { Difficulty } from '../../../shared/enums'
+import { QuestionAnswer } from '../../../domain/entities/exam/question-answer.entity'
 import {
+    CreateQuestionAnswerData,
     IQuestionAnswerRepository,
     QuestionAnswerListResult,
     QuestionAnswerPaginationOptions,
+    UpdateQuestionAnswerData,
     StudentQuestionAnswerFilterOptions,
     StudentDifficultyProgressStat,
 } from '../../../domain/repositories/question-answer.repository'
 import { PrismaService } from '../../../prisma/prisma.service'
 import { QuestionAnswerMapper } from '../../mappers/exam/question-answer.mapper'
 import { ExamVisibility } from '../../../shared/enums/exam-visibility.enum'
+import { ExamAttemptStatus } from '../../../shared/enums/exam-attempt-status.enum'
 
 @Injectable()
 export class PrismaQuestionAnswerRepository implements IQuestionAnswerRepository {
     constructor(private readonly prisma: PrismaService | any) { }
+
+    async findPublicByStudentAndAttempt(
+        studentId: number,
+        attemptId: number,
+        txClient?: any,
+    ): Promise<QuestionAnswer[]> {
+        const client = txClient || this.prisma
+
+        const answers = await client.questionAnswer.findMany({
+            where: {
+                attemptId,
+                examAttempt: {
+                    studentId,
+                    exam: {
+                        visibility: ExamVisibility.PUBLISHED,
+                    },
+                },
+            },
+            include: {
+                question: {
+                    include: {
+                        statements: true,
+                    },
+                },
+                examAttempt: {
+                    include: {
+                        exam: true,
+                    },
+                },
+            },
+            orderBy: {
+                questionAnswerId: 'asc',
+            },
+        })
+
+        return QuestionAnswerMapper.toDomainQuestionAnswers(answers)
+    }
+
+    async findByAttemptAndQuestion(
+        attemptId: number | null,
+        questionId: number,
+        txClient?: any,
+    ) {
+        const client = txClient || this.prisma
+
+        const answer = await client.questionAnswer.findFirst({
+            where: {
+                attemptId,
+                questionId,
+            },
+            include: {
+                question: {
+                    include: {
+                        statements: true,
+                    },
+                },
+                examAttempt: {
+                    include: {
+                        exam: true,
+                    },
+                },
+            },
+            orderBy: {
+                questionAnswerId: 'asc',
+            },
+        })
+
+        return QuestionAnswerMapper.toDomainQuestionAnswer(answer)
+    }
+
+    async create(data: CreateQuestionAnswerData, txClient?: any) {
+        const client = txClient || this.prisma
+
+        const created = await client.questionAnswer.create({
+            data: {
+                attemptId: data.attemptId ?? null,
+                questionId: data.questionId,
+                answer: data.answer ?? null,
+                selectedStatementIds: data.selectedStatementIds ?? null,
+                isCorrect: data.isCorrect ?? null,
+                points: data.points ?? null,
+                maxPoints: data.maxPoints ?? null,
+                timeSpentSeconds: data.timeSpentSeconds ?? null,
+            },
+            include: {
+                question: {
+                    include: {
+                        statements: true,
+                    },
+                },
+                examAttempt: {
+                    include: {
+                        exam: true,
+                    },
+                },
+            },
+        })
+
+        return QuestionAnswerMapper.toDomainQuestionAnswer(created)!
+    }
+
+    async update(questionAnswerId: number, data: UpdateQuestionAnswerData, txClient?: any) {
+        const client = txClient || this.prisma
+
+        const updated = await client.questionAnswer.update({
+            where: {
+                questionAnswerId,
+            },
+            data: {
+                ...(data.answer !== undefined ? { answer: data.answer } : {}),
+                ...(data.selectedStatementIds !== undefined
+                    ? { selectedStatementIds: data.selectedStatementIds ?? null }
+                    : {}),
+                ...(data.isCorrect !== undefined ? { isCorrect: data.isCorrect } : {}),
+                ...(data.points !== undefined ? { points: data.points } : {}),
+                ...(data.maxPoints !== undefined ? { maxPoints: data.maxPoints } : {}),
+                ...(data.timeSpentSeconds !== undefined
+                    ? { timeSpentSeconds: data.timeSpentSeconds }
+                    : {}),
+            },
+            include: {
+                question: {
+                    include: {
+                        statements: true,
+                    },
+                },
+                examAttempt: {
+                    include: {
+                        exam: true,
+                    },
+                },
+            },
+        })
+
+        return QuestionAnswerMapper.toDomainQuestionAnswer(updated)!
+    }
+
+    async calculateAttemptTotals(attemptId: number, txClient?: any): Promise<{ totalPoints: number; maxPoints: number }> {
+        const client = txClient || this.prisma
+
+        const [totalPointsAgg, maxPointsAgg] = await Promise.all([
+            client.questionAnswer.aggregate({
+                where: {
+                    attemptId,
+                },
+                _sum: {
+                    points: true,
+                },
+            }),
+            client.questionAnswer.aggregate({
+                where: {
+                    attemptId,
+                },
+                _sum: {
+                    maxPoints: true,
+                },
+            }),
+        ])
+
+        return {
+            totalPoints: Number(totalPointsAgg._sum.points ?? 0),
+            maxPoints: Number(maxPointsAgg._sum.maxPoints ?? 0),
+        }
+    }
 
     async findPublicByStudentWithPagination(
         studentId: number,
@@ -29,16 +197,38 @@ export class PrismaQuestionAnswerRepository implements IQuestionAnswerRepository
         const sortOrder = pagination.sortOrder || 'desc'
         const skip = (page - 1) * limit
 
+        const submittedAttemptWhere: any = {
+            studentId,
+            status: ExamAttemptStatus.SUBMITTED,
+            exam: {
+                visibility: ExamVisibility.PUBLISHED,
+            },
+        }
+
+        if (filters?.attemptId !== undefined) {
+            submittedAttemptWhere.attemptId = filters.attemptId
+        }
+
+        if (filters?.examId !== undefined) {
+            submittedAttemptWhere.examId = filters.examId
+        }
+
         const where: any = {
             questionId: filters?.questionId,
-            examAttempt: {
-                studentId,
-                attemptId: filters?.attemptId,
-                examId: filters?.examId,
-                exam: {
-                    visibility: ExamVisibility.PUBLISHED,
-                },
-            },
+            OR: filters?.attemptId !== undefined
+                ? [
+                    {
+                        examAttempt: submittedAttemptWhere,
+                    },
+                ]
+                : [
+                    {
+                        attemptId: null,
+                    },
+                    {
+                        examAttempt: submittedAttemptWhere,
+                    },
+                ],
         }
 
         const allowedSortFields = new Set(['questionAnswerId', 'questionId', 'timeSpentSeconds', 'points', 'maxPoints'])
@@ -51,7 +241,11 @@ export class PrismaQuestionAnswerRepository implements IQuestionAnswerRepository
                     ? { [sortBy]: sortOrder }
                     : { questionAnswerId: 'desc' },
                 include: {
-                    question: true,
+                    question: {
+                        include: {
+                            statements: true,
+                        },
+                    },
                     examAttempt: {
                         include: {
                             exam: true,

@@ -250,7 +250,7 @@ model StudentPointLog {
 }
 
 model UserPointLog {
-  pointLogId Int  @id @default(autoincrement()) @map("point_log_id")
+  pointLogId Int @id @default(autoincrement()) @map("point_log_id")
 
   // Người dùng được cộng/trừ điểm
   userId Int  @map("user_id")
@@ -553,6 +553,7 @@ model ExamAttempt {
   startedAt       DateTime          @map("started_at") @db.Timestamp(0)
   endAt           DateTime?         @map("end_at") @db.Timestamp(0)
   status          ExamAttemptStatus @map("status") // IN_PROGRESS, SUBMITTED
+  duration        Int?              @map("duration") // thời gian làm bài (phút)
   points          Decimal?          @map("points") @db.Decimal(10, 2) // điểm đạt được
   maxPoints       Decimal?          @map("max_points") @db.Decimal(10, 2) // điểm tối đa của bài thi           
   questionIds     Json?             @map("question_ids") // array ID các câu hỏi được chọn làm 
@@ -569,7 +570,7 @@ model ExamAttempt {
 
 model QuestionAnswer {
   questionAnswerId Int @id @default(autoincrement()) @map("question_answer_id")
-  attemptId        Int @map("attempt_id")
+  attemptId        Int? @map("attempt_id")
   questionId       Int @map("question_id")
 
   answer               String? @map("answer") @db.Text
@@ -581,8 +582,8 @@ model QuestionAnswer {
   timeSpentSeconds Int?     @map("time_spent_seconds") // thời gian làm câu này (giây)
 
   // Relations
-  examAttempt ExamAttempt @relation(fields: [attemptId], references: [attemptId], onDelete: Cascade)
-  question    Question    @relation(fields: [questionId], references: [questionId], onDelete: Cascade)
+  examAttempt ExamAttempt? @relation(fields: [attemptId], references: [attemptId], onDelete: SetNull)
+  question    Question     @relation(fields: [questionId], references: [questionId], onDelete: Cascade)
 
   @@index([attemptId], map: "idx_question_answers_attempt_id")
   @@index([questionId], map: "idx_question_answers_question_id")

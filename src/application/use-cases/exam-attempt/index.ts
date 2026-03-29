@@ -1,2 +1,5 @@
 export * from './get-public-student-exam-attempts.use-case'
+export * from './get-public-student-exam-attempt-detail.use-case'
+export * from './create-public-student-exam-attempt.use-case'
+export * from './submit-public-student-exam-attempt.use-case'
 export * from './exam-attempt.application.module'

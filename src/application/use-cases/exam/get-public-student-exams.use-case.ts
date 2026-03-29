@@ -1,7 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common'
-import type { IExamRepository } from '../../../domain/repositories'
+import type { IExamAttemptRepository, IExamRepository } from '../../../domain/repositories'
 import {
     ExamResponseDto,
+    PublicStudentExamAttemptStatus,
     PublicStudentExamListQueryDto,
     PublicStudentExamListResponseDto,
 } from '../../dtos/exam'
@@ -12,9 +13,14 @@ export class GetPublicStudentExamsUseCase {
     constructor(
         @Inject('IExamRepository')
         private readonly examRepository: IExamRepository,
+        @Inject('IExamAttemptRepository')
+        private readonly examAttemptRepository: IExamAttemptRepository,
     ) { }
 
-    async execute(query: PublicStudentExamListQueryDto): Promise<PublicStudentExamListResponseDto> {
+    async execute(
+        query: PublicStudentExamListQueryDto,
+        studentId?: number,
+    ): Promise<PublicStudentExamListResponseDto> {
         const filters = {
             subjectId: query.subjectId,
             grade: query.grade,
@@ -32,6 +38,21 @@ export class GetPublicStudentExamsUseCase {
 
         const result = await this.examRepository.findAllWithPagination(pagination, filters)
         const items = ExamResponseDto.fromEntities(result.exams)
+
+        if (studentId && items.length > 0) {
+            const examIds = items.map((item) => item.examId)
+            const submittedExamIds = await this.examAttemptRepository.findSubmittedExamIdsByStudent(
+                studentId,
+                examIds,
+            )
+            const submittedExamIdSet = new Set(submittedExamIds)
+
+            for (const item of items) {
+                item.attemptStatus = submittedExamIdSet.has(item.examId)
+                    ? PublicStudentExamAttemptStatus.ATTEMPTED
+                    : PublicStudentExamAttemptStatus.NOT_ATTEMPTED
+            }
+        }
 
         return PublicStudentExamListResponseDto.fromResult(
             items,

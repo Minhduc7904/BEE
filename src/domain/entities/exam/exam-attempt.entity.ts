@@ -11,6 +11,7 @@ export class ExamAttempt {
   startedAt: Date
 
   score?: number | null
+  duration?: number | null
   endAt?: Date | null
   points?: number | null
   maxPoints?: number | null
@@ -27,6 +28,7 @@ export class ExamAttempt {
     status: ExamAttemptStatus
     startedAt: Date
     score?: number | null
+    duration?: number | null
     endAt?: Date | null
     points?: number | null
     maxPoints?: number | null
@@ -41,6 +43,7 @@ export class ExamAttempt {
     this.status = data.status
     this.startedAt = data.startedAt
     this.score = data.score
+    this.duration = data.duration
     this.endAt = data.endAt
     this.points = data.points
     this.maxPoints = data.maxPoints

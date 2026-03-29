@@ -1,10 +1,24 @@
 import { Module } from '@nestjs/common'
 import { InfrastructureModule } from 'src/infrastructure/infrastructure.module'
 import { GetPublicStudentQuestionAnswersUseCase } from './get-public-student-question-answers.use-case'
+import { GetPublicStudentQuestionAnswersByAttemptUseCase } from './get-public-student-question-answers-by-attempt.use-case'
+import { SubmitPublicStudentQuestionAnswerUseCase } from './submit-public-student-question-answer.use-case'
+import { ProcessContentWithPresignedUrlsUseCase } from '../media/process-content-with-presigned-urls.use-case'
+import { ProcessContentWithPresignedUrlsAndRenderHtmlUseCase } from '../media/process-content-with-presigned-urls-and-render-html.use-case'
 
 @Module({
   imports: [InfrastructureModule],
-  providers: [GetPublicStudentQuestionAnswersUseCase],
-  exports: [GetPublicStudentQuestionAnswersUseCase],
+  providers: [
+    GetPublicStudentQuestionAnswersUseCase,
+    GetPublicStudentQuestionAnswersByAttemptUseCase,
+    SubmitPublicStudentQuestionAnswerUseCase,
+    ProcessContentWithPresignedUrlsUseCase,
+    ProcessContentWithPresignedUrlsAndRenderHtmlUseCase,
+  ],
+  exports: [
+    GetPublicStudentQuestionAnswersUseCase,
+    GetPublicStudentQuestionAnswersByAttemptUseCase,
+    SubmitPublicStudentQuestionAnswerUseCase,
+  ],
 })
 export class QuestionAnswerApplicationModule {}

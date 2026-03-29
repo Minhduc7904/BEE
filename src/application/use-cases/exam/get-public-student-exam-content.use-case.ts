@@ -10,6 +10,7 @@ import {
     PublicStudentCompetitionExamSectionDto,
     PublicStudentCompetitionExamStatementDto,
 } from '../../dtos/competition/public-student-competition-exam.dto'
+import { PublicStudentExamContentQueryDto } from '../../dtos/exam'
 import { type ContentField } from '../media/process-content-with-presigned-urls.use-case'
 import { ProcessContentWithPresignedUrlsAndRenderHtmlUseCase } from '../media/process-content-with-presigned-urls-and-render-html.use-case'
 import {
@@ -26,7 +27,11 @@ export class GetPublicStudentExamContentUseCase {
         private readonly processContentAndRenderHtmlUseCase: ProcessContentWithPresignedUrlsAndRenderHtmlUseCase,
     ) { }
 
-    async execute(examId: number, expirySeconds = 3600): Promise<PublicStudentCompetitionExamResponseDto> {
+    async execute(
+        examId: number,
+        query?: PublicStudentExamContentQueryDto,
+        expirySeconds = 3600,
+    ): Promise<PublicStudentCompetitionExamResponseDto> {
         const exam = await this.examRepository.findByIdWithFullDetails(examId)
 
         if (!exam) {
@@ -37,8 +42,15 @@ export class GetPublicStudentExamContentUseCase {
             throw new ForbiddenException('Chỉ được xem nội dung đề thi public')
         }
 
-        const sections = await this.buildSections(exam.sections || [], expirySeconds)
-        const questions = await this.buildQuestions(exam.questions || [], expirySeconds)
+        const questionExams = this.filterQuestionExamsByQuestionIds(
+            this.collectQuestionExams(exam),
+            query?.questionIds,
+        )
+        const sections = await this.buildSections(
+            this.filterSectionsByQuestionExams(exam.sections || [], questionExams, query?.questionIds),
+            expirySeconds,
+        )
+        const questions = await this.buildQuestions(questionExams, expirySeconds)
 
         const data: PublicStudentCompetitionExamDataDto = {
             examId: exam.examId,
@@ -73,6 +85,54 @@ export class GetPublicStudentExamContentUseCase {
             message: 'Lấy nội dung đề thi public thành công',
             data,
         }
+    }
+
+    private collectQuestionExams(exam: any): any[] {
+        const examLevelQuestions: any[] = Array.isArray(exam.questions) ? exam.questions : []
+        const sectionLevelQuestions: any[] = Array.isArray(exam.sections)
+            ? exam.sections.flatMap((section: any) =>
+                Array.isArray(section?.questions) ? section.questions : [],
+            )
+            : []
+
+        const combined = [...examLevelQuestions, ...sectionLevelQuestions]
+        const uniqueMap = new Map<string, any>()
+
+        for (const item of combined) {
+            if (!item?.questionId) {
+                continue
+            }
+
+            const key = `${item.questionId}-${item.sectionId ?? 'null'}-${item.order ?? 'null'}`
+            if (!uniqueMap.has(key)) {
+                uniqueMap.set(key, item)
+            }
+        }
+
+        return Array.from(uniqueMap.values())
+    }
+
+    private filterQuestionExamsByQuestionIds(questionExams: any[], questionIds?: number[]): any[] {
+        if (!questionIds || questionIds.length === 0) {
+            return questionExams
+        }
+
+        const questionIdSet = new Set(questionIds)
+        return questionExams.filter((item) => questionIdSet.has(item.questionId))
+    }
+
+    private filterSectionsByQuestionExams(sections: any[], questionExams: any[], questionIds?: number[]): any[] {
+        if (!questionIds || questionIds.length === 0) {
+            return sections
+        }
+
+        const sectionIdSet = new Set(
+            questionExams
+                .map((item) => item?.sectionId)
+                .filter((sectionId) => sectionId !== null && sectionId !== undefined),
+        )
+
+        return sections.filter((section) => sectionIdSet.has(section.sectionId))
     }
 
     private async buildSections(sections: any[], expirySeconds: number): Promise<PublicStudentCompetitionExamSectionDto[]> {

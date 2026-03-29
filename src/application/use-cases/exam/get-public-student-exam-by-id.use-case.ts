@@ -1,7 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common'
-import type { IExamRepository, IMediaUsageRepository } from '../../../domain/repositories'
+import type { IExamAttemptRepository, IExamRepository, IMediaUsageRepository } from '../../../domain/repositories'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
-import { PublicStudentExamDetailResponseDto } from '../../dtos/exam/exam.dto'
+import {
+    PublicStudentExamAttemptStatus,
+    PublicStudentExamDetailResponseDto,
+} from '../../dtos/exam/exam.dto'
 import { ExamVisibility, MediaStatus } from '../../../shared/enums'
 import { ForbiddenException, NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 import { type ContentField } from '../media/process-content-with-presigned-urls.use-case'
@@ -18,13 +21,19 @@ export class GetPublicStudentExamByIdUseCase {
     constructor(
         @Inject('IExamRepository')
         private readonly examRepository: IExamRepository,
+        @Inject('IExamAttemptRepository')
+        private readonly examAttemptRepository: IExamAttemptRepository,
         @Inject('IMediaUsageRepository')
         private readonly mediaUsageRepository: IMediaUsageRepository,
         private readonly processContentAndRenderHtmlUseCase: ProcessContentWithPresignedUrlsAndRenderHtmlUseCase,
         private readonly minioService: MinioService,
     ) { }
 
-    async execute(examId: number, expirySeconds = 3600): Promise<BaseResponseDto<PublicStudentExamDetailResponseDto>> {
+    async execute(
+        examId: number,
+        studentId?: number,
+        expirySeconds = 3600,
+    ): Promise<BaseResponseDto<PublicStudentExamDetailResponseDto>> {
         const exam = await this.examRepository.findById(examId)
 
         if (!exam) {
@@ -36,6 +45,16 @@ export class GetPublicStudentExamByIdUseCase {
         }
 
         const examResponse = PublicStudentExamDetailResponseDto.fromEntity(exam)
+
+        if (studentId) {
+            const hasSubmitted = await this.examAttemptRepository.hasSubmittedExamByStudent(
+                studentId,
+                examId,
+            )
+            examResponse.attemptStatus = hasSubmitted
+                ? PublicStudentExamAttemptStatus.ATTEMPTED
+                : PublicStudentExamAttemptStatus.NOT_ATTEMPTED
+        }
 
         const createdByUserId = exam.admin?.user?.userId
         if (createdByUserId && examResponse.createdByAdmin) {

@@ -14,6 +14,7 @@ export class ExamAttemptMapper {
       examId: prismaAttempt.examId,
       studentId: prismaAttempt.studentId,
       score: prismaAttempt.score ?? undefined,
+      duration: prismaAttempt.duration ?? undefined,
       startedAt: prismaAttempt.startedAt,
       endAt: prismaAttempt.endAt ?? undefined,
       status: prismaAttempt.status as ExamAttemptStatus,
