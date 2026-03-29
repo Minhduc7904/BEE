@@ -11,9 +11,9 @@ import {
     ForbiddenException,
 } from '../../../shared/exceptions/custom-exceptions'
 import {
-    ProcessContentWithPresignedUrlsUseCase,
     type ContentField,
 } from '../media/process-content-with-presigned-urls.use-case'
+import { ProcessContentWithPresignedUrlsAndRenderHtmlUseCase } from '../media/process-content-with-presigned-urls-and-render-html.use-case'
 import { QUESTION_CONTENT_FIELDS } from '../../../shared/constants/media-field-name.constants'
 
 /**
@@ -29,7 +29,7 @@ export class GetStudentCompetitionResultUseCase {
     constructor(
         @Inject('ICompetitionSubmitRepository')
         private readonly competitionSubmitRepository: ICompetitionSubmitRepository,
-        private readonly processContentUseCase: ProcessContentWithPresignedUrlsUseCase,
+        private readonly processContentAndRenderHtmlUseCase: ProcessContentWithPresignedUrlsAndRenderHtmlUseCase,
     ) { }
 
     async execute(
@@ -95,20 +95,20 @@ export class GetStudentCompetitionResultUseCase {
                     })
                 })
 
-                const processedResults = await this.processContentUseCase.execute(
+                const processedResults = await this.processContentAndRenderHtmlUseCase.execute(
                     contentFields,
                     expirySeconds,
                 )
 
                 q.processedContent =
-                    this.processContentUseCase.getProcessedContent(
+                    this.processContentAndRenderHtmlUseCase.getProcessedContent(
                         processedResults,
                         QUESTION_CONTENT_FIELDS.CONTENT,
                     ) || q.content
 
                 if (allowViewAnswer && q.solution) {
                     q.processedSolution =
-                        this.processContentUseCase.getProcessedContent(
+                        this.processContentAndRenderHtmlUseCase.getProcessedContent(
                             processedResults,
                             QUESTION_CONTENT_FIELDS.SOLUTION,
                         ) || q.solution
@@ -116,7 +116,7 @@ export class GetStudentCompetitionResultUseCase {
 
                 q.statements.forEach((stmt, index) => {
                     stmt.processedContent =
-                        this.processContentUseCase.getProcessedContent(
+                        this.processContentAndRenderHtmlUseCase.getProcessedContent(
                             processedResults,
                             `${QUESTION_CONTENT_FIELDS.STATEMENT_PREFIX}${index}`,
                         ) || stmt.content
