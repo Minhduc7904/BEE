@@ -27,6 +27,7 @@ export class UpdateTempExamUseCase {
       description: dto.description,
       grade: dto.grade,
       subjectId: dto.subjectId,
+      typeOfExam: dto.typeOfExam,
       visibility: dto.visibility,
       metadata: dto.metadata,
       rawContent: dto.rawContent,

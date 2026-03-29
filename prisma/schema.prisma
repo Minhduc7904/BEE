@@ -682,6 +682,7 @@ model TempExam {
   description        String?        @map("description") @db.Text
   grade              Int?           @map("grade") @db.TinyInt
   subjectId          Int?           @map("subject_id")
+  typeOfExam         TypeOfExam?    @map("type_of_exam")
   visibility         ExamVisibility @default(DRAFT) @map("visibility")
   solutionYoutubeUrl String?        @map("solution_youtube_url") @db.VarChar(500)
   metadata           Json?          @map("metadata") // dữ liệu bổ sung từ AI parsing

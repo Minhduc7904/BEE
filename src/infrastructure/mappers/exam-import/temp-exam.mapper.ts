@@ -1,7 +1,7 @@
 // src/infrastructure/mappers/exam-import/temp-exam.mapper.ts
 
 import { TempExam } from '../../../domain/entities/exam-import/temp-exam.entity'
-import { ExamVisibility } from '../../../shared/enums'
+import { ExamVisibility, TypeOfExam } from '../../../shared/enums'
 import { SubjectMapper } from '../subject/subject.mapper'
 import { TempSectionMapper } from './temp-section.mapper'
 
@@ -23,6 +23,7 @@ export class TempExamMapper {
       description: prismaExam.description,
       grade: prismaExam.grade,
       subjectId: prismaExam.subjectId,
+      typeOfExam: prismaExam.typeOfExam as TypeOfExam,
       visibility: prismaExam.visibility as ExamVisibility,
       solutionYoutubeUrl: prismaExam.solutionYoutubeUrl,
       metadata: prismaExam.metadata,

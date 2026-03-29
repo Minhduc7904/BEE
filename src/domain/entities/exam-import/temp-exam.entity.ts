@@ -1,6 +1,7 @@
 // src/domain/entities/exam-import/temp-exam.entity.ts
 
 import { ExamVisibility } from '../../../shared/enums'
+import { TypeOfExam } from '../../../shared/enums'
 import { Subject } from '../subject/subject.entity'
 import { Exam } from '../exam/exam.entity'
 import { TempSection } from './temp-section.entity'
@@ -18,6 +19,7 @@ export class TempExam {
   description?: string | null
   grade?: number | null
   subjectId?: number | null
+  typeOfExam?: TypeOfExam | null
   visibility: ExamVisibility
   solutionYoutubeUrl?: string | null
   metadata?: any | null
@@ -38,6 +40,7 @@ export class TempExam {
     description?: string | null
     grade?: number | null
     subjectId?: number | null
+    typeOfExam?: TypeOfExam | null
     visibility?: ExamVisibility
     solutionYoutubeUrl?: string | null
     metadata?: any | null
@@ -55,6 +58,7 @@ export class TempExam {
     this.description = data.description
     this.grade = data.grade
     this.subjectId = data.subjectId
+    this.typeOfExam = data.typeOfExam
     this.visibility = data.visibility || ExamVisibility.DRAFT
     this.solutionYoutubeUrl = data.solutionYoutubeUrl
     this.metadata = data.metadata
@@ -138,6 +142,7 @@ export class TempExam {
       description: this.description,
       grade: this.grade,
       subjectId: this.subjectId,
+      typeOfExam: this.typeOfExam,
       visibility: this.visibility,
       metadata: this.metadata,
       examId: this.examId,
@@ -169,6 +174,7 @@ export class TempExam {
       description: data.description,
       grade: data.grade,
       subjectId: data.subjectId,
+      typeOfExam: data.typeOfExam as TypeOfExam,
       visibility: data.visibility as ExamVisibility,
       metadata: data.metadata,
       examId: data.examId,

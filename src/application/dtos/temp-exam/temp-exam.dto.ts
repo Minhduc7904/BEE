@@ -1,6 +1,6 @@
 // src/application/dtos/temp-exam/temp-exam.dto.ts
 import { TempExam } from '../../../domain/entities/exam-import/temp-exam.entity'
-import { ExamVisibility } from '../../../shared/enums'
+import { TypeOfExam } from '../../../shared/enums'
 
 export class TempExamResponseDto {
   tempExamId: number
@@ -10,6 +10,7 @@ export class TempExamResponseDto {
   grade?: number | null
   subjectId?: number | null
   subjectName?: string
+  typeOfExam?: TypeOfExam | null
   visibility: string
   solutionYoutubeUrl?: string | null
   metadata?: any
@@ -32,6 +33,7 @@ export class TempExamResponseDto {
       grade: tempExam.grade ?? undefined,
       subjectId: tempExam.subjectId ?? undefined,
       subjectName: tempExam.subject?.name,
+      typeOfExam: tempExam.typeOfExam ?? undefined,
       visibility: tempExam.visibility,
       solutionYoutubeUrl: tempExam.solutionYoutubeUrl ?? undefined,
       metadata: tempExam.metadata,

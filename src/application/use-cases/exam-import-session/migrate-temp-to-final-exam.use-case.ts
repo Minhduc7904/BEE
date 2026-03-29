@@ -199,6 +199,7 @@ export class MigrateTempToFinalExamUseCase {
                     title: tempExam.title,
                     description: tempExam.description,
                     grade: tempExam.grade || 12,
+                    typeOfExam: tempExam.typeOfExam,
                     visibility: tempExam.visibility,
                     solutionYoutubeUrl: tempExam.solutionYoutubeUrl,
                     adminId,

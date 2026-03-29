@@ -1,6 +1,6 @@
 import { Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
-import { ExamVisibility } from '../../../shared/enums'
+import { ExamVisibility, TypeOfExam } from '../../../shared/enums'
 import { IsOptionalString, IsOptionalInt, IsOptionalIdNumber, IsOptionalEnumValue } from 'src/shared/decorators/validate'
 
 /**
@@ -39,6 +39,14 @@ export class UpdateTempExamDto {
    */
   @IsOptionalIdNumber('Môn học')
   subjectId?: number
+
+  /**
+   * Loại đề thi
+   * @optional
+   * @example "GK1"
+   */
+  @IsOptionalEnumValue(TypeOfExam, 'Loại đề thi')
+  typeOfExam?: TypeOfExam
 
   /**
    * Trạng thái hiển thị

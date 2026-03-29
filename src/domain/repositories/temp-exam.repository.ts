@@ -1,5 +1,5 @@
 import { TempExam } from '../entities/exam-import/temp-exam.entity'
-import { ExamVisibility } from '../../shared/enums'
+import { ExamVisibility, TypeOfExam } from '../../shared/enums'
 
 export interface CreateTempExamData {
   sessionId: number
@@ -7,6 +7,7 @@ export interface CreateTempExamData {
   description?: string
   grade?: number
   subjectId?: number
+  typeOfExam?: TypeOfExam
   visibility?: ExamVisibility
   metadata?: any
   rawContent?: string
@@ -18,6 +19,7 @@ export interface UpdateTempExamData {
   description?: string
   grade?: number
   subjectId?: number
+  typeOfExam?: TypeOfExam
   visibility?: ExamVisibility
   metadata?: any
   rawContent?: string
