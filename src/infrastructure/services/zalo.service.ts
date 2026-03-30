@@ -77,54 +77,87 @@ export class ZaloService {
     }
 
     formatParentClassScheduleSummary(classStudents: any[]): string {
-        const supportNote = 'Lưu ý: Nếu con đăng kí nhầm lịch học, hãy liên hệ hỗ trợ để trợ giảng đăng ký lại lịch cho con.'
+        const supportNote =
+            '⚠️ LƯU Ý: Nếu con đăng ký nhầm lịch học, vui lòng bấm "LIÊN HỆ HỖ TRỢ" để được trợ giảng hỗ trợ đăng ký lại.'
 
         if (!classStudents.length) {
-            return 'Học sinh hiện chưa tham gia lớp học nào.'
+            return '📭 HỌC SINH HIỆN CHƯA THAM GIA LỚP HỌC NÀO.'
         }
 
         const lines = classStudents.slice(0, 12).map((item, index) => {
             const courseClass = item?.courseClass
-            const className = courseClass?.className || `Lớp #${item?.classId ?? 'N/A'}`
-            const weeklySchedule = courseClass?.weeklySchedule || 'Chưa cập nhật'
-            const room = courseClass?.room || 'Chưa cập nhật'
-            const instructorLastName = courseClass?.instructor?.user?.lastName || ''
-            const instructorFirstName = courseClass?.instructor?.user?.firstName || ''
-            const instructorFullName = `${instructorLastName} ${instructorFirstName}`.trim() || 'Chưa phân công'
+            const className =
+                courseClass?.className || `LỚP #${item?.classId ?? 'N/A'}`
+            const weeklySchedule =
+                courseClass?.weeklySchedule || 'CHƯA CẬP NHẬT'
+            const room = courseClass?.room || 'CHƯA CẬP NHẬT'
+            const instructorLastName =
+                courseClass?.instructor?.user?.lastName || ''
+            const instructorFirstName =
+                courseClass?.instructor?.user?.firstName || ''
+            const instructorFullName =
+                `${instructorLastName} ${instructorFirstName}`.trim() ||
+                'CHƯA PHÂN CÔNG'
 
             return [
-                `${index + 1}. ${className}`,
-                `- Lịch học: ${weeklySchedule}`,
-                `- Phòng học: ${room}`,
-                `- Giáo viên: ${instructorFullName}`,
+                `📘 ${index + 1}. ${className}`,
+                `🗓️ LỊCH HỌC: ${weeklySchedule}`,
+                `🏫 PHÒNG HỌC: ${room}`,
+                `👨‍🏫 GIÁO VIÊN: ${instructorFullName}`,
             ].join('\n')
         })
 
-        const moreText = classStudents.length > lines.length
-            ? `\n... và ${classStudents.length - lines.length} lớp khác.`
-            : ''
+        const moreText =
+            classStudents.length > lines.length
+                ? `\n📌 ... VÀ ${classStudents.length - lines.length} LỚP KHÁC`
+                : ''
 
-        return `Danh sách lớp học của học sinh:\n${lines.join('\n\n')}${moreText}\n\n${supportNote}`
+        return [
+            '📚 DANH SÁCH LỚP HỌC',
+            '━━━━━━━━━━━━━━━',
+            lines.join('\n\n'),
+            moreText,
+            '',
+            supportNote,
+        ]
+            .filter(Boolean)
+            .join('\n')
     }
 
     formatTuitionSummary(payments: TuitionPayment[]): string {
         if (!payments.length) {
-            return 'Chưa có dữ liệu học phí cho học sinh này.'
+            return '📭 CHƯA CÓ DỮ LIỆU HỌC PHÍ.'
         }
 
-        const paidPayments = payments.filter((p) => p.status === TuitionPaymentStatus.PAID)
-        const unpaidPayments = payments.filter((p) => p.status === TuitionPaymentStatus.UNPAID)
+        const paidPayments = payments.filter(
+            (p) => p.status === TuitionPaymentStatus.PAID,
+        )
+        const unpaidPayments = payments.filter(
+            (p) => p.status === TuitionPaymentStatus.UNPAID,
+        )
 
-        const totalPaid = paidPayments.reduce((sum, p) => sum + (typeof p.amount === 'number' ? p.amount : 0), 0)
-        const totalUnpaid = unpaidPayments.reduce((sum, p) => sum + (typeof p.amount === 'number' ? p.amount : 0), 0)
-        const unknownUnpaidCount = unpaidPayments.filter((p) => p.amount === null || p.amount === undefined).length
+        const totalPaid = paidPayments.reduce(
+            (sum, p) => sum + (typeof p.amount === 'number' ? p.amount : 0),
+            0,
+        )
 
-        const currency = (value: number): string => value.toLocaleString('vi-VN') + ' VND'
+        const totalUnpaid = unpaidPayments.reduce(
+            (sum, p) => sum + (typeof p.amount === 'number' ? p.amount : 0),
+            0,
+        )
+
+        const unknownUnpaidCount = unpaidPayments.filter(
+            (p) => p.amount === null || p.amount === undefined,
+        ).length
+
+        const currency = (value: number): string =>
+            value.toLocaleString('vi-VN') + ' VND'
+
         const formatPaidDate = (value?: Date | null): string => {
-            if (!value) return 'Chưa có'
+            if (!value) return 'CHƯA CÓ'
 
             const parsed = value instanceof Date ? value : new Date(value)
-            if (Number.isNaN(parsed.getTime())) return 'Chưa có'
+            if (Number.isNaN(parsed.getTime())) return 'CHƯA CÓ'
 
             return parsed.toLocaleDateString('vi-VN')
         }
@@ -137,51 +170,99 @@ export class ZaloService {
 
         const detailLines = sortedPayments.map((p) => {
             const period = `${String(p.month).padStart(2, '0')}/${p.year}`
-            const amount = typeof p.amount === 'number' ? currency(p.amount) : 'Chưa xác định'
-            const status = p.status === TuitionPaymentStatus.PAID ? 'Đã đóng' : 'Chưa đóng'
-            const paidDate = p.status === TuitionPaymentStatus.PAID
-                ? ` | Ngày đóng: ${formatPaidDate(p.paidAt)}`
-                : ''
-            const note = p.notes ? ` | Ghi chú: ${p.notes}` : ''
-            return `- ${period} | ${status} | Số tiền: ${amount}${paidDate}${note}`
+            const amount =
+                typeof p.amount === 'number'
+                    ? currency(p.amount)
+                    : 'CHƯA XÁC ĐỊNH'
+
+            const status =
+                p.status === TuitionPaymentStatus.PAID
+                    ? '✅ ĐÃ ĐÓNG'
+                    : '❌ CHƯA ĐÓNG'
+
+            const paidDate =
+                p.status === TuitionPaymentStatus.PAID
+                    ? ` | 📅 NGÀY ĐÓNG: ${formatPaidDate(p.paidAt)}`
+                    : ''
+
+            const note = p.notes ? ` | 📝 GHI CHÚ: ${p.notes}` : ''
+
+            return `📌 ${period} | ${status} | 💰 ${amount}${paidDate}${note}`
         })
 
         return [
-            'Thông tin học phí:',
-            '(Lưu ý: Chỉ áp dụng các học phí từ tháng 2/2026 trở đi do hệ thống mới có dữ liệu đầy đủ)',
-            `Tổng số tiền đã đóng: ${currency(totalPaid)}`,
-            `Tổng số tiền chưa đóng: ${currency(totalUnpaid)}${unknownUnpaidCount > 0 ? ` (còn ${unknownUnpaidCount} khoản chưa xác định số tiền)` : ''}`,
-            'Chi tiết các khoản học phí (đã đóng và chưa đóng):',
+            '💰 THÔNG TIN HỌC PHÍ',
+            '━━━━━━━━━━━━━━━',
+            '⚠️ (CHỈ ÁP DỤNG TỪ 02/2026 DO HỆ THỐNG MỚI CÓ DỮ LIỆU ĐẦY ĐỦ)',
+            '',
+            `💵 TỔNG ĐÃ ĐÓNG: ${currency(totalPaid)}`,
+            `💸 TỔNG CHƯA ĐÓNG: ${currency(totalUnpaid)}${
+                unknownUnpaidCount > 0
+                    ? ` (CÒN ${unknownUnpaidCount} KHOẢN CHƯA XÁC ĐỊNH)`
+                    : ''
+            }`,
+            '',
+            '📋 CHI TIẾT:',
             ...detailLines,
-        ].filter(Boolean).join('\n')
+        ]
+            .filter(Boolean)
+            .join('\n')
     }
 
     formatLatestAttendanceSummary(data: AttendanceImageTemplateData): string {
         const attendanceStatusMap: Record<string, string> = {
-            PRESENT: 'Có mặt',
-            LATE: 'Đi muộn',
-            ABSENT: 'Vắng mặt',
+            PRESENT: '✅ CÓ MẶT',
+            LATE: '⏰ ĐI MUỘN',
+            ABSENT: '❌ VẮNG MẶT',
         }
 
-        const status = attendanceStatusMap[data.attendance.status] || data.attendance.status
-        const makeupLine = data.attendance.status === 'ABSENT' && data.session.makeupNote
-            ? `Lịch học bù: ${data.session.makeupNote}`
+        const status =
+            attendanceStatusMap[data.attendance.status] ||
+            data.attendance.status
+
+        // ✅ ƯU TIÊN: ghi chú học bù từ attendance.notes
+        const makeupNote =
+            data.attendance.status === 'ABSENT'
+                ? data.session.makeupNote
+                : ''
+
+        const makeupLine = makeupNote
+            ? `🔁 LỊCH HỌC BÙ: ${makeupNote}`
             : ''
-        const homeworkText = data.homework
-            ? `BTVN: Đã nộp lúc ${data.homework.submitAt}${data.homework.points ? ` | Điểm: ${data.homework.points}` : ''}`
-            : 'BTVN: Chưa có bài nộp gần nhất'
+
+        // ❗️Vắng thì không hiện BTVN
+        let homeworkText = ''
+        if (data.attendance.status !== 'ABSENT') {
+            homeworkText = data.homework
+                ? `📚 BTVN: Đã nộp lúc ${data.homework.submitAt}${
+                    data.homework.points
+                        ? ` | 🎯 ${data.homework.points}`
+                        : ''
+                }`
+                : '📚 BTVN: Chưa có bài nộp gần nhất'
+        }
 
         return [
-            'Thông tin điểm danh gần nhất:',
-            `Học sinh: ${data.student.fullName || data.student.studentId}`,
-            `Lớp: ${data.classInfo.className}`,
-            `Buổi học: ${data.session.sessionDate} (${data.session.startTime} - ${data.session.endTime})`,
-            `Trạng thái: ${status}`,
+            '📢 ĐIỂM DANH GẦN NHẤT',
+            '━━━━━━━━━━━━━━━',
+            `👨‍🎓 HỌC SINH: ${
+                data.student.fullName || data.student.studentId
+            }`,
+            `🏫 LỚP: ${data.classInfo.className}`,
+            `📅 BUỔI HỌC: ${data.session.sessionDate} (${data.session.startTime} - ${data.session.endTime})`,
+            `📌 TRẠNG THÁI: ${status}`,
             makeupLine,
-            data.attendance.markedAt ? `Thời gian điểm danh: ${data.attendance.markedAt}` : '',
-            data.attendance.notes ? `Ghi chú: ${data.attendance.notes}` : '',
+            data.attendance.markedAt
+                ? `⏰ THỜI GIAN ĐIỂM DANH: ${data.attendance.markedAt}`
+                : '',
+            // ❗️NOTE thường vẫn giữ nếu không phải makeup
+            data.attendance.status !== 'ABSENT' && data.attendance.notes
+                ? `📝 GHI CHÚ: ${data.attendance.notes}`
+                : '',
             homeworkText,
-        ].filter(Boolean).join('\n')
+        ]
+            .filter(Boolean)
+            .join('\n')
     }
 
     async sendMessage(accessToken: string, body: any): Promise<ZaloSendResponse> {
