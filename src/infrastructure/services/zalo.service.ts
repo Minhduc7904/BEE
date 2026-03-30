@@ -284,7 +284,14 @@ export class ZaloService {
                 user_id: userId,
             },
             message: {
-                text: `Chào mừng phụ huynh học sinh em ${studentName}`,
+                text: [
+                    `👋 CHÀO MỪNG PHỤ HUYNH`,
+                    ``,
+                    `Phụ huynh của học sinh: ${studentName}`,
+                    ``,
+                    `📢 Đây là tài khoản chỉ dùng để gửi thông báo.`,
+                    `Nếu phụ huynh có thắc mắc, vui lòng bấm "Liên hệ hỗ trợ" để được giải đáp.`,
+                ].join('\n'),
                 attachment: {
                     type: 'template',
                     payload: {
