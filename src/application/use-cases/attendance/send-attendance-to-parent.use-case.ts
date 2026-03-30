@@ -71,10 +71,10 @@ export class SendAttendanceToParentUseCase {
         const studentId = attendance.studentId ?? attendance.student?.studentId
         const homeworkId = attendance.classSession?.homeworkId
 
-        // ❗️ FIX: nếu vắng -> KHÔNG xử lý BTVN
+        // ❗️ Không gửi BTVN nếu vắng
         let homeworkLine = ''
         if (attendance.status !== AttendanceStatus.ABSENT) {
-            homeworkLine = 'BTVN: Buổi học này chưa có bài tập về nhà'
+            homeworkLine = '📚 BTVN: Buổi học này chưa có bài tập về nhà'
 
             if (typeof homeworkId === 'number' && studentId) {
                 const homeworkSubmit =
@@ -96,18 +96,18 @@ export class SendAttendanceToParentUseCase {
                         pts === null || pts === undefined
                             ? ''
                             : homeworkSubmit.competitionSubmitId && maxPts != null
-                            ? ` | Điểm: ${pts}/${maxPts}`
-                            : ` | Điểm: ${pts}`
+                            ? ` | 🎯 ${pts}/${maxPts}`
+                            : ` | 🎯 ${pts}`
 
                     const feedbackText = homeworkSubmit.feedback
-                        ? `\nNhận xét: ${homeworkSubmit.feedback}`
+                        ? `\n💬 NHẬN XÉT: ${homeworkSubmit.feedback}`
                         : ''
 
-                    homeworkLine = `BTVN: Đã nộp lúc ${formatVnDateTime(
+                    homeworkLine = `📚 BTVN: Đã nộp lúc ${formatVnDateTime(
                         homeworkSubmit.submitAt,
                     )}${pointsText}${feedbackText}`
                 } else {
-                    homeworkLine = 'BTVN: Chưa nộp'
+                    homeworkLine = '📚 BTVN: Chưa nộp'
                 }
             }
         }
@@ -117,26 +117,27 @@ export class SendAttendanceToParentUseCase {
 
         const attendanceTimeLabel =
             attendance.status === AttendanceStatus.ABSENT
-                ? 'Thời gian điểm danh'
-                : 'Thời gian đến lớp'
+                ? '⏰ THỜI GIAN ĐIỂM DANH'
+                : '⏰ THỜI GIAN ĐẾN LỚP'
 
         const makeupLine =
             attendance.status === AttendanceStatus.ABSENT &&
             attendance.classSession?.makeupNote
-                ? `Lịch học bù: ${attendance.classSession.makeupNote}`
+                ? `🔁 LỊCH HỌC BÙ: ${attendance.classSession.makeupNote}`
                 : ''
 
         const messageLines = [
-            'Thông báo điểm danh:',
-            `Học sinh: ${studentName}`,
-            `Lớp: ${className}`,
-            `Ngày học: ${sessionDate}${sessionTime ? ` (${sessionTime})` : ''}`,
+            '📢 THÔNG BÁO ĐIỂM DANH',
+            '━━━━━━━━━━━━━━━',
+            `👨‍🎓 HỌC SINH: ${studentName}`,
+            `🏫 LỚP: ${className}`,
+            `📅 NGÀY HỌC: ${sessionDate}${sessionTime ? ` (${sessionTime})` : ''}`,
             `${attendanceTimeLabel}: ${arrivalTime}`,
-            `Trạng thái: ${statusLabel}`,
+            `📌 TRẠNG THÁI: ${statusLabel}`,
             makeupLine,
-            homeworkLine, // ❗️ sẽ rỗng nếu vắng
-            attendance.notes ? `Ghi chú: ${attendance.notes}` : '',
-            input.note ? `Note: ${input.note}` : '',
+            homeworkLine,
+            attendance.notes ? `📝 GHI CHÚ: ${attendance.notes}` : '',
+            input.note ? `📎 NOTE: ${input.note}` : '',
         ].filter(Boolean)
 
         try {
@@ -154,7 +155,7 @@ export class SendAttendanceToParentUseCase {
                 'Unknown Zalo send error'
 
             console.warn(
-                '[Attendance->Parent] Gửi Zalo thất bại, bỏ qua để không ảnh hưởng luồng chính:',
+                '[Attendance->Parent] Gửi Zalo thất bại:',
                 {
                     attendanceId: attendance.attendanceId,
                     studentId: attendance.studentId,
