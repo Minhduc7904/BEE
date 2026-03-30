@@ -6,9 +6,14 @@ import {
     IQuestionAnswerRepository,
     QuestionAnswerListResult,
     QuestionAnswerPaginationOptions,
+    StudentQuestionAnswerChapterStat,
+    StudentQuestionAnswerDailyStat,
+    StudentQuestionAnswerDifficultyStat,
     UpdateQuestionAnswerData,
     StudentQuestionAnswerFilterOptions,
     StudentDifficultyProgressStat,
+    StudentQuestionAnswerStatisticsFilterOptions,
+    StudentQuestionAnswerStatisticsResult,
 } from '../../../domain/repositories/question-answer.repository'
 import { PrismaService } from '../../../prisma/prisma.service'
 import { QuestionAnswerMapper } from '../../mappers/exam/question-answer.mapper'
@@ -18,6 +23,126 @@ import { ExamAttemptStatus } from '../../../shared/enums/exam-attempt-status.enu
 @Injectable()
 export class PrismaQuestionAnswerRepository implements IQuestionAnswerRepository {
     constructor(private readonly prisma: PrismaService | any) { }
+
+    async getPublicStudentStatistics(
+        studentId: number,
+        filters?: StudentQuestionAnswerStatisticsFilterOptions,
+        txClient?: any,
+    ): Promise<StudentQuestionAnswerStatisticsResult> {
+        const client = txClient || this.prisma
+
+        const dateConditions: string[] = []
+        const dateParams: Array<string | number> = [studentId]
+
+        if (filters?.fromDate) {
+            dateConditions.push('AND DATE(DATE_ADD(ea.started_at, INTERVAL 7 HOUR)) >= ?')
+            dateParams.push(filters.fromDate)
+        }
+
+        if (filters?.toDate) {
+            dateConditions.push('AND DATE(DATE_ADD(ea.started_at, INTERVAL 7 HOUR)) <= ?')
+            dateParams.push(filters.toDate)
+        }
+
+        const dateWhereSql = dateConditions.length > 0 ? `\n        ${dateConditions.join('\n        ')}` : ''
+
+        const chapterRows = await client.$queryRawUnsafe(
+            `
+            SELECT
+              c.chapter_id AS chapterId,
+              c.name AS chapterName,
+              COUNT(qa.question_answer_id) AS answeredCount,
+              SUM(CASE WHEN qa.is_correct = 1 THEN 1 ELSE 0 END) AS correctCount,
+              SUM(CASE WHEN qa.is_correct = 0 THEN 1 ELSE 0 END) AS incorrectCount
+            FROM question_answers qa
+            INNER JOIN exam_attempts ea ON ea.attempt_id = qa.attempt_id
+            INNER JOIN exams e ON e.exam_id = ea.exam_id
+            INNER JOIN questions q ON q.question_id = qa.question_id
+            LEFT JOIN question_chapters qc ON qc.question_id = q.question_id
+            LEFT JOIN chapters c ON c.chapter_id = qc.chapter_id
+            WHERE ea.student_id = ?
+              AND e.visibility = 'PUBLISHED'${dateWhereSql}
+            GROUP BY c.chapter_id, c.name
+            ORDER BY answeredCount DESC, c.chapter_id ASC
+            `,
+            ...dateParams,
+        ) as Array<{
+            chapterId: number | null
+            chapterName: string | null
+            answeredCount: number | bigint
+            correctCount: number | bigint | null
+            incorrectCount: number | bigint | null
+        }>
+
+        const difficultyRows = await client.$queryRawUnsafe(
+            `
+            SELECT
+              q.difficulty AS difficulty,
+              COUNT(qa.question_answer_id) AS answeredCount,
+              SUM(CASE WHEN qa.is_correct = 1 THEN 1 ELSE 0 END) AS correctCount,
+              SUM(CASE WHEN qa.is_correct = 0 THEN 1 ELSE 0 END) AS incorrectCount
+            FROM question_answers qa
+            INNER JOIN exam_attempts ea ON ea.attempt_id = qa.attempt_id
+            INNER JOIN exams e ON e.exam_id = ea.exam_id
+            INNER JOIN questions q ON q.question_id = qa.question_id
+            WHERE ea.student_id = ?
+              AND e.visibility = 'PUBLISHED'${dateWhereSql}
+            GROUP BY q.difficulty
+            ORDER BY answeredCount DESC
+            `,
+            ...dateParams,
+        ) as Array<{
+            difficulty: Difficulty | null
+            answeredCount: number | bigint
+            correctCount: number | bigint | null
+            incorrectCount: number | bigint | null
+        }>
+
+        const dailyRows = await client.$queryRawUnsafe(
+            `
+            SELECT
+              DATE(DATE_ADD(ea.started_at, INTERVAL 7 HOUR)) AS date,
+              COUNT(qa.question_answer_id) AS answeredCount
+            FROM question_answers qa
+            INNER JOIN exam_attempts ea ON ea.attempt_id = qa.attempt_id
+            INNER JOIN exams e ON e.exam_id = ea.exam_id
+            WHERE ea.student_id = ?
+              AND e.visibility = 'PUBLISHED'${dateWhereSql}
+            GROUP BY DATE(DATE_ADD(ea.started_at, INTERVAL 7 HOUR))
+            ORDER BY DATE(DATE_ADD(ea.started_at, INTERVAL 7 HOUR)) ASC
+            `,
+            ...dateParams,
+        ) as Array<{
+            date: string | Date
+            answeredCount: number | bigint
+        }>
+
+        const byChapter: StudentQuestionAnswerChapterStat[] = chapterRows.map((row) => ({
+            chapterId: row.chapterId != null ? Number(row.chapterId) : null,
+            chapterName: row.chapterName || 'Không có chapter',
+            answeredCount: typeof row.answeredCount === 'bigint' ? Number(row.answeredCount) : Number(row.answeredCount || 0),
+            correctCount: typeof row.correctCount === 'bigint' ? Number(row.correctCount) : Number(row.correctCount || 0),
+            incorrectCount: typeof row.incorrectCount === 'bigint' ? Number(row.incorrectCount) : Number(row.incorrectCount || 0),
+        }))
+
+        const byDifficulty: StudentQuestionAnswerDifficultyStat[] = difficultyRows.map((row) => ({
+            difficulty: row.difficulty,
+            answeredCount: typeof row.answeredCount === 'bigint' ? Number(row.answeredCount) : Number(row.answeredCount || 0),
+            correctCount: typeof row.correctCount === 'bigint' ? Number(row.correctCount) : Number(row.correctCount || 0),
+            incorrectCount: typeof row.incorrectCount === 'bigint' ? Number(row.incorrectCount) : Number(row.incorrectCount || 0),
+        }))
+
+        const byDay: StudentQuestionAnswerDailyStat[] = dailyRows.map((row) => ({
+            date: row.date instanceof Date ? row.date.toISOString().slice(0, 10) : String(row.date),
+            answeredCount: typeof row.answeredCount === 'bigint' ? Number(row.answeredCount) : Number(row.answeredCount || 0),
+        }))
+
+        return {
+            byChapter,
+            byDifficulty,
+            byDay,
+        }
+    }
 
     async findPublicByStudentAndAttempt(
         studentId: number,

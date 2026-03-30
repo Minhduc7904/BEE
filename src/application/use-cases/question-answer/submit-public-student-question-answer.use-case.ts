@@ -52,6 +52,7 @@ export class SubmitPublicStudentQuestionAnswerUseCase {
         }
 
         let attemptMaxPoints: number | null = null
+        let attemptStatus: ExamAttemptStatus | null = null
 
         if (body.attemptId) {
             const attempt = await this.examAttemptRepository.findPublicByAttemptAndStudent(
@@ -68,6 +69,7 @@ export class SubmitPublicStudentQuestionAnswerUseCase {
             }
 
             attemptMaxPoints = attempt.maxPoints != null ? Number(attempt.maxPoints) : null
+            attemptStatus = attempt.status
         }
 
         const question = await this.questionRepository.findById(body.questionId)
@@ -163,9 +165,14 @@ export class SubmitPublicStudentQuestionAnswerUseCase {
             })
         }
 
+        const responseItem =
+            attemptStatus != null
+                ? StudentQuestionAnswerItemDto.fromEntityByAttemptStatus(saved, attemptStatus)
+                : StudentQuestionAnswerItemDto.fromEntity(saved)
+
         return BaseResponseDto.success(
             existing ? 'Cap nhat cau tra loi thanh cong' : 'Tao cau tra loi thanh cong',
-            StudentQuestionAnswerItemDto.fromEntity(saved),
+            responseItem,
         )
     }
 

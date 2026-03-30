@@ -5,11 +5,14 @@ import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
 import { CurrentUser } from '../../shared/decorators/current-user.decorator'
 import {
+    GetPublicStudentQuestionAnswerStatisticsUseCase,
     GetPublicStudentQuestionAnswersByAttemptUseCase,
     GetPublicStudentQuestionAnswersUseCase,
     SubmitPublicStudentQuestionAnswerUseCase,
 } from '../../application/use-cases/question-answer'
 import {
+    StudentQuestionAnswerStatisticsDataDto,
+    StudentQuestionAnswerStatisticsQueryDto,
     StudentQuestionAnswerByAttemptResponseDto,
     StudentQuestionAnswerItemDto,
     StudentQuestionAnswerListQueryDto,
@@ -22,6 +25,7 @@ import {
 export class QuestionAnswerController {
     constructor(
         private readonly getPublicStudentQuestionAnswersUseCase: GetPublicStudentQuestionAnswersUseCase,
+        private readonly getPublicStudentQuestionAnswerStatisticsUseCase: GetPublicStudentQuestionAnswerStatisticsUseCase,
         private readonly getPublicStudentQuestionAnswersByAttemptUseCase: GetPublicStudentQuestionAnswersByAttemptUseCase,
         private readonly submitPublicStudentQuestionAnswerUseCase: SubmitPublicStudentQuestionAnswerUseCase,
     ) { }
@@ -75,6 +79,32 @@ export class QuestionAnswerController {
 
         return ExceptionHandler.execute(() =>
             this.getPublicStudentQuestionAnswersUseCase.execute(targetStudentId, query),
+        )
+    }
+
+    /**
+     * Get question-answer statistics of current student in a date range (Vietnam timezone).
+     *
+     * @route GET /question-answers/public/student/statistics
+     * @param query - fromDate/toDate (supports ISO date or dd/MM/yyyy)
+     * @param studentId - Current student ID (auto-injected)
+     * @returns BaseResponseDto<StudentQuestionAnswerStatisticsDataDto>
+     *
+     * @example
+     * GET /question-answers/public/student/statistics?fromDate=16/03/2026&toDate=17/03/2026
+     */
+    @Get('public/student/statistics')
+    @RequirePermission()
+    @HttpCode(HttpStatus.OK)
+    async getPublicStudentQuestionAnswerStatistics(
+        @Query() query: StudentQuestionAnswerStatisticsQueryDto,
+        @CurrentUser('studentId') studentId: number,
+        @Query('studentId') studentIdQuery?: string,
+    ): Promise<BaseResponseDto<StudentQuestionAnswerStatisticsDataDto>> {
+        const targetStudentId = this.resolveStudentId(studentId, studentIdQuery)
+
+        return ExceptionHandler.execute(() =>
+            this.getPublicStudentQuestionAnswerStatisticsUseCase.execute(targetStudentId, query),
         )
     }
 

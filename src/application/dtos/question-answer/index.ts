@@ -1,3 +1,5 @@
 export * from './student-question-answer-list-query.dto'
 export * from './student-question-answer.dto'
+export * from './student-question-answer-statistics-query.dto'
+export * from './student-question-answer-statistics.dto'
 export * from './submit-student-question-answer.dto'

@@ -166,6 +166,18 @@ export class PrismaQuestionRepository implements IQuestionRepository {
             where: {
                 questionId: { in: ids },
             },
+            include: {
+                statements: {
+                    orderBy: {
+                        order: 'asc',
+                    },
+                },
+                questionChapters: {
+                    include: {
+                        chapter: true,
+                    },
+                },
+            },
         })
 
         return QuestionMapper.toDomainQuestions(questions)

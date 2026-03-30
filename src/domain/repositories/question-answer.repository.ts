@@ -6,6 +6,37 @@ export interface StudentDifficultyProgressStat {
     totalCount: number
 }
 
+export interface StudentQuestionAnswerStatisticsFilterOptions {
+    fromDate?: string
+    toDate?: string
+}
+
+export interface StudentQuestionAnswerChapterStat {
+    chapterId: number | null
+    chapterName: string
+    answeredCount: number
+    correctCount: number
+    incorrectCount: number
+}
+
+export interface StudentQuestionAnswerDifficultyStat {
+    difficulty: Difficulty | null
+    answeredCount: number
+    correctCount: number
+    incorrectCount: number
+}
+
+export interface StudentQuestionAnswerDailyStat {
+    date: string
+    answeredCount: number
+}
+
+export interface StudentQuestionAnswerStatisticsResult {
+    byChapter: StudentQuestionAnswerChapterStat[]
+    byDifficulty: StudentQuestionAnswerDifficultyStat[]
+    byDay: StudentQuestionAnswerDailyStat[]
+}
+
 export interface QuestionAnswerPaginationOptions {
     page?: number
     limit?: number
@@ -58,6 +89,12 @@ export interface IQuestionAnswerRepository {
         grade?: number,
         txClient?: any,
     ): Promise<StudentDifficultyProgressStat[]>
+
+    getPublicStudentStatistics(
+        studentId: number,
+        filters?: StudentQuestionAnswerStatisticsFilterOptions,
+        txClient?: any,
+    ): Promise<StudentQuestionAnswerStatisticsResult>
 
     findPublicByStudentWithPagination(
         studentId: number,
