@@ -256,7 +256,7 @@ export class ZaloService {
                 ? `⏰ THỜI GIAN ĐIỂM DANH: ${data.attendance.markedAt}`
                 : '',
             // ❗️NOTE thường vẫn giữ nếu không phải makeup
-            data.attendance.status !== 'ABSENT' && data.attendance.notes
+            data.attendance.notes
                 ? `📝 GHI CHÚ: ${data.attendance.notes}`
                 : '',
             homeworkText,
