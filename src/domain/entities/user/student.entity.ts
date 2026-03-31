@@ -1,11 +1,13 @@
 // src/domain/entities/student.entity.ts
 
 import { User } from './user.entity'
+import { ConversationMode } from '../../../shared/enums'
 
 export class Student {
   // Required properties
   studentId: number
   userId: number
+
   grade: number
 
   // Optional properties
@@ -14,6 +16,9 @@ export class Student {
   studentZaloId?: string
   parentZaloId?: string
   school?: string
+
+  conversationMode: ConversationMode
+  lastAdminReplyAt?: Date
 
   // Navigation properties
   user?: User
@@ -28,6 +33,8 @@ export class Student {
     parentZaloId?: string
     school?: string
     user?: User
+    conversationMode?: ConversationMode
+    lastAdminReplyAt?: Date
   }) {
     this.studentId = data.studentId
     this.userId = data.userId
@@ -38,6 +45,8 @@ export class Student {
     this.parentZaloId = data.parentZaloId
     this.school = data.school
     this.user = data.user
+    this.conversationMode = data.conversationMode ?? ConversationMode.BOT
+    this.lastAdminReplyAt = data.lastAdminReplyAt
   }
 
   /* ===================== DOMAIN METHODS ===================== */
@@ -87,6 +96,8 @@ export class Student {
       fullName: this.getFullName(),
       email: this.getEmail(),
       isActive: this.isActive(),
+      conversationMode: this.conversationMode,
+      lastAdminReplyAt: this.lastAdminReplyAt,
     }
   }
 
@@ -101,6 +112,8 @@ export class Student {
       parentZaloId: this.parentZaloId,
       school: this.school,
       user: this.user,
+      conversationMode: this.conversationMode,
+      lastAdminReplyAt: this.lastAdminReplyAt,
     })
   }
 }

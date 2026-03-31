@@ -57,7 +57,7 @@ export class PrismaStudentRepository implements IStudentRepository {
     for (const [accented, plain] of replacements) {
       sql = `REPLACE(${sql}, '${accented}', '${plain}')`
     }
-    
+
     return sql
   }
 
@@ -287,6 +287,8 @@ export class PrismaStudentRepository implements IStudentRepository {
         parentZaloId: data.parentZaloId,
         grade: data.grade,
         school: data.school,
+        conversationMode: data.conversationMode,
+        lastAdminReplyAt: data.lastAdminReplyAt,
       },
     })
 
@@ -418,7 +420,7 @@ export class PrismaStudentRepository implements IStudentRepository {
     if (filters.search) {
       const searchPattern = `%${filters.search}%`
       const normalizedSearch = `%${TextSearchUtil.removeVietnameseAccents(filters.search)}%`
-      
+
       // Build SQL expressions for accent-insensitive search
       const usernameNoAccent = this.buildRemoveAccentsSQL('u.username')
       const emailNoAccent = this.buildRemoveAccentsSQL('u.email')
@@ -427,7 +429,7 @@ export class PrismaStudentRepository implements IStudentRepository {
       const schoolNoAccent = this.buildRemoveAccentsSQL('s.school')
       const fullNameNoAccent = this.buildRemoveAccentsSQL('CONCAT(u.last_name, " ", u.first_name)')
       const reverseFullNameNoAccent = this.buildRemoveAccentsSQL('CONCAT(u.first_name, " ", u.last_name)')
-      
+
       conditions.push(`(
                 LOWER(u.username) LIKE LOWER(?) OR 
                 LOWER(u.email) LIKE LOWER(?) OR 

@@ -203,16 +203,23 @@ model EmailVerificationToken {
   @@map("email_verification_tokens")
 }
 
+enum ConversationMode {
+  BOT
+  HUMAN
+}
+
 model Student {
-  studentId     Int     @id @default(autoincrement()) @map("student_id")
-  userId        Int     @unique @map("user_id")
-  user          User    @relation("UserStudent", fields: [userId], references: [userId], onDelete: Cascade)
-  studentPhone  String? @map("student_phone") @db.VarChar(15)
-  parentPhone   String? @map("parent_phone") @db.VarChar(15)
-  studentZaloId String? @map("student_zalo_id") @db.VarChar(32)
-  parentZaloId  String? @map("parent_zalo_id") @db.VarChar(32)
-  grade         Int     @db.TinyInt
-  school        String? @map("school") @db.VarChar(120)
+  studentId        Int              @id @default(autoincrement()) @map("student_id")
+  userId           Int              @unique @map("user_id")
+  user             User             @relation("UserStudent", fields: [userId], references: [userId], onDelete: Cascade)
+  studentPhone     String?          @map("student_phone") @db.VarChar(15)
+  parentPhone      String?          @map("parent_phone") @db.VarChar(15)
+  studentZaloId    String?          @map("student_zalo_id") @db.VarChar(32)
+  parentZaloId     String?          @map("parent_zalo_id") @db.VarChar(32)
+  grade            Int              @db.TinyInt
+  school           String?          @map("school") @db.VarChar(120)
+  conversationMode ConversationMode @default(BOT) @map("conversation_mode")
+  lastAdminReplyAt DateTime?        @map("last_admin_reply_at") @db.Timestamp(0)
 
   pointLogs            StudentPointLog[]
   courseEnrollments    CourseEnrollment[]
@@ -569,9 +576,9 @@ model ExamAttempt {
 }
 
 model QuestionAnswer {
-  questionAnswerId Int @id @default(autoincrement()) @map("question_answer_id")
+  questionAnswerId Int  @id @default(autoincrement()) @map("question_answer_id")
   attemptId        Int? @map("attempt_id")
-  questionId       Int @map("question_id")
+  questionId       Int  @map("question_id")
 
   answer               String? @map("answer") @db.Text
   selectedStatementIds Json?   @map("selected_statement_ids") // array ID các câu trả lời đã chọn (cho SINGLE_CHOICE, MULTIPLE_CHOICE, TRUE_FALSE)
