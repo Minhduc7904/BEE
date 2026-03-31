@@ -11,6 +11,7 @@ interface ZaloWebhookPayload {
 
     sender?: {
         id?: string
+        admin_id?: string
     }
 
     recipient?: {
@@ -42,6 +43,7 @@ export class HandleZaloWebhookMessageUseCase {
     async execute(payload: ZaloWebhookPayload): Promise<BaseResponseDto<ZaloWebhookHandleResult>> {
         const eventName = payload?.event_name
         const appId = payload?.app_id
+        const isAdminMessage = !!payload?.sender?.admin_id
 
         const isOaEvent = eventName?.startsWith('oa_send_')
         const userId = isOaEvent
@@ -99,14 +101,28 @@ export class HandleZaloWebhookMessageUseCase {
                 })
             }
 
-            await this.studentRepository.update(student.studentId, {
-                conversationMode: ConversationMode.HUMAN,
-                lastAdminReplyAt: new Date(),
-            })
+            // 🔥 CHỈ admin mới được chuyển HUMAN
+            if (isAdminMessage) {
+                console.log(`[Zalo Webhook] Admin message → switch to HUMAN, isAdminMessage=${isAdminMessage}`)
+
+                await this.studentRepository.update(student.studentId, {
+                    conversationMode: ConversationMode.HUMAN,
+                    lastAdminReplyAt: new Date(),
+                })
+
+                return BaseResponseDto.success('Webhook received', {
+                    handled: false,
+                    reason: 'Switched to HUMAN mode (admin message)',
+                    event_name: eventName,
+                })
+            }
+
+            // 🔥 Bot message → ignore
+            console.log(`[Zalo Webhook] Ignore bot message (no admin_id), isAdminMessage=${isAdminMessage}`)
 
             return BaseResponseDto.success('Webhook received', {
                 handled: false,
-                reason: 'Switched to HUMAN mode',
+                reason: 'Ignore bot self message',
                 event_name: eventName,
             })
         }
