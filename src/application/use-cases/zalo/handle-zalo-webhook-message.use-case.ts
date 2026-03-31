@@ -26,7 +26,7 @@ interface ZaloWebhookHandleResult {
 @Injectable()
 export class HandleZaloWebhookMessageUseCase {
     constructor(
-        @Inject('STUDENT_REPOSITORY')
+        @Inject('IStudentRepository')
         private readonly studentRepository: IStudentRepository,
         private readonly getValidZaloAccessTokenUseCase: GetValidZaloAccessTokenUseCase,
         private readonly handleZaloUserSelectionUseCase: HandleZaloUserSelectionUseCase,

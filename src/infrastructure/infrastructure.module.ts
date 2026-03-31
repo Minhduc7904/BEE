@@ -339,6 +339,11 @@ import openaiConfig from '../config/openai.config'
       inject: [PrismaService],
     },
     {
+      provide: 'IStudentRepository',
+      useFactory: (prisma: PrismaService) => new PrismaStudentRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
       provide: 'PASSWORD_SERVICE',
       useClass: PasswordService,
     },
@@ -386,6 +391,7 @@ import openaiConfig from '../config/openai.config'
     'UNIT_OF_WORK',
     'IUserRepository',
     'IAdminRepository',
+    'IStudentRepository',
     'IRoleRepository',
     'IPermissionRepository',
     'IClassStudentRepository',
