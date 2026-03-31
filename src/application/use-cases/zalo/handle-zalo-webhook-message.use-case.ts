@@ -77,7 +77,9 @@ export class HandleZaloWebhookMessageUseCase {
         const student = await this.studentRepository.findByParentZaloId(userId)
 
         // ===== B4 - Nếu admin nhắn (OA) → chuyển HUMAN =====
+        console.log(`[Zalo Webhook] Received event=${eventName} from user_id=${userId}, linked_student_id=${student?.studentId}`)
         if (eventName.startsWith('oa_send_')) {
+            console.log(`[Zalo Webhook] OA message received, switching to HUMAN mode if linked student exists`)
             if (!student) {
                 return BaseResponseDto.success('Webhook received', {
                     handled: false,
@@ -90,6 +92,8 @@ export class HandleZaloWebhookMessageUseCase {
                 conversationMode: ConversationMode.HUMAN,
                 lastAdminReplyAt: new Date(),
             })
+
+            console.log(`[Zalo Webhook] Switched to HUMAN mode for student_id=${student.studentId} due to OA message`)
 
             return BaseResponseDto.success('Webhook received', {
                 handled: false,
