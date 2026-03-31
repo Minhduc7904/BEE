@@ -35,7 +35,12 @@ export class HandleZaloWebhookMessageUseCase {
     async execute(payload: ZaloWebhookPayload): Promise<BaseResponseDto<ZaloWebhookHandleResult>> {
         const eventName = payload?.event_name
         const appId = payload?.app_id
-        const userId = payload?.sender?.id
+
+        // 🔥 FIX QUAN TRỌNG: phân biệt userId thật
+        const isOaEvent = eventName?.startsWith('oa_send_')
+        const userId = isOaEvent
+            ? (payload as any)?.recipient?.id // OA gửi → lấy recipient
+            : payload?.sender?.id            // user gửi → lấy sender
 
         // ===== B1 - Validate =====
         if (!appId || !eventName) {
@@ -48,7 +53,7 @@ export class HandleZaloWebhookMessageUseCase {
         if (!userId) {
             return BaseResponseDto.success('Webhook received', {
                 handled: false,
-                reason: 'Missing sender id',
+                reason: 'Missing user id',
                 event_name: eventName,
             })
         }
@@ -73,17 +78,15 @@ export class HandleZaloWebhookMessageUseCase {
             })
         }
 
-        // ===== B3 - Lấy student (chỉ query 1 lần) =====
+        // ===== B3 - Query student (1 lần duy nhất) =====
         const student = await this.studentRepository.findByParentZaloId(userId)
 
-        // ===== B4 - Nếu admin nhắn (OA) → chuyển HUMAN =====
-        console.log(`[Zalo Webhook] Received event=${eventName} from user_id=${userId}, linked_student_id=${student?.studentId}`)
-        if (eventName.startsWith('oa_send_')) {
-            console.log(`[Zalo Webhook] OA message received, switching to HUMAN mode if linked student exists`)
+        // ===== B4 - OA → chuyển HUMAN =====
+        if (isOaEvent) {
             if (!student) {
                 return BaseResponseDto.success('Webhook received', {
                     handled: false,
-                    reason: 'No linked student found for sender id',
+                    reason: 'No linked student found for user',
                     event_name: eventName,
                 })
             }
@@ -93,11 +96,9 @@ export class HandleZaloWebhookMessageUseCase {
                 lastAdminReplyAt: new Date(),
             })
 
-            console.log(`[Zalo Webhook] Switched to HUMAN mode for student_id=${student.studentId} due to OA message`)
-
             return BaseResponseDto.success('Webhook received', {
                 handled: false,
-                reason: 'Switched to HUMAN mode due to OA message',
+                reason: 'Switched to HUMAN mode',
                 event_name: eventName,
             })
         }
@@ -117,7 +118,7 @@ export class HandleZaloWebhookMessageUseCase {
             })
         }
 
-        // ===== B7 - Nếu chưa liên kết → vẫn cho bot xử lý (tuỳ business)
+        // ===== B7 - Chưa link → vẫn cho bot xử lý =====
         if (!student) {
             return this.handleZaloUserSelectionUseCase.execute({
                 appId,
@@ -129,23 +130,21 @@ export class HandleZaloWebhookMessageUseCase {
             })
         }
 
-        // ===== B8 - Xử lý HUMAN / BOT mode =====
+        // ===== B8 - HUMAN / BOT logic =====
         if (student.conversationMode === ConversationMode.HUMAN) {
-            const now = new Date()
-            const lastReply = student.lastAdminReplyAt
-
+            const now = Date.now()
+            const lastReply = student.lastAdminReplyAt?.getTime() ?? 0
             const TEN_MINUTES = 10 * 60 * 1000
 
-            if (lastReply && now.getTime() - new Date(lastReply).getTime() < TEN_MINUTES) {
-                // ⛔ Vẫn trong HUMAN → bot không trả lời
+            if (now - lastReply < TEN_MINUTES) {
                 return BaseResponseDto.success('Webhook received', {
                     handled: false,
-                    reason: 'Conversation is in HUMAN mode (within 10 minutes)',
+                    reason: 'HUMAN mode active',
                     event_name: eventName,
                 })
             }
 
-            // 🔄 Hết 10 phút → chuyển lại BOT
+            // 🔄 Hết timeout → quay lại BOT
             await this.studentRepository.update(student.studentId, {
                 conversationMode: ConversationMode.BOT,
             })
