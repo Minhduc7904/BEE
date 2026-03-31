@@ -8,12 +8,19 @@ import { ConversationMode } from 'src/shared/enums'
 interface ZaloWebhookPayload {
     app_id?: string
     event_name?: string
+
     sender?: {
         id?: string
     }
+
+    recipient?: {
+        id?: string // 🔥 QUAN TRỌNG cho oa_send_*
+    }
+
     message?: {
         text?: string
         msg_id?: string
+        attachments?: any[] // 🔥 future-proof (image, gif, sticker)
     }
 }
 
@@ -36,11 +43,10 @@ export class HandleZaloWebhookMessageUseCase {
         const eventName = payload?.event_name
         const appId = payload?.app_id
 
-        // 🔥 FIX QUAN TRỌNG: phân biệt userId thật
         const isOaEvent = eventName?.startsWith('oa_send_')
         const userId = isOaEvent
-            ? (payload as any)?.recipient?.id // OA gửi → lấy recipient
-            : payload?.sender?.id            // user gửi → lấy sender
+            ? payload?.recipient?.id
+            : payload?.sender?.id
 
         // ===== B1 - Validate =====
         if (!appId || !eventName) {
@@ -78,15 +84,17 @@ export class HandleZaloWebhookMessageUseCase {
             })
         }
 
-        // ===== B3 - Query student (1 lần duy nhất) =====
+        // ===== B3 - Query student =====
         const student = await this.studentRepository.findByParentZaloId(userId)
-        console.log(`[Zalo Webhook] Received event=${eventName} from userId=${userId}, linkedStudentId=${student?.studentId}`)
-        // ===== B4 - OA → chuyển HUMAN =====
+
+        // console.log(`[Zalo Webhook] event=${eventName}, userId=${userId}, studentId=${student?.studentId}`)
+
+        // ===== B4 - OA → HUMAN =====
         if (isOaEvent) {
             if (!student) {
                 return BaseResponseDto.success('Webhook received', {
                     handled: false,
-                    reason: 'No linked student found for user',
+                    reason: 'No linked student found',
                     event_name: eventName,
                 })
             }
@@ -103,22 +111,25 @@ export class HandleZaloWebhookMessageUseCase {
             })
         }
 
-        // ===== B5 - Normalize message =====
+        // ===== B5 - Normalize =====
         const rawMessage = payload?.message ?? {}
         const incomingText = rawMessage?.text?.trim() || '[USER_SEND_MEDIA]'
 
-        // ===== B6 - Lấy access token =====
+        // 🔥 B5.1 - Detect command force BOT
+        const isForceBotCommand = /^#\w+/i.test(incomingText)
+
+        // ===== B6 - Access token =====
         const accessToken = await this.getValidZaloAccessTokenUseCase.execute({ appId })
 
         if (!accessToken) {
             return BaseResponseDto.success('Webhook received', {
                 handled: false,
-                reason: 'No access token found for app_id',
+                reason: 'No access token found',
                 event_name: eventName,
             })
         }
 
-        // ===== B7 - Chưa link → vẫn cho bot xử lý =====
+        // ===== B7 - Nếu chưa link =====
         if (!student) {
             return this.handleZaloUserSelectionUseCase.execute({
                 appId,
@@ -130,24 +141,33 @@ export class HandleZaloWebhookMessageUseCase {
             })
         }
 
-        // ===== B8 - HUMAN / BOT logic =====
+        // ===== B8 - HUMAN / BOT =====
         if (student.conversationMode === ConversationMode.HUMAN) {
-            const now = Date.now()
-            const lastReply = student.lastAdminReplyAt?.getTime() ?? 0
-            const TEN_MINUTES = 10 * 60 * 1000
+            // 🔥 Ưu tiên command → ép về BOT
+            if (isForceBotCommand) {
+                // console.log(`[Zalo Webhook] Force BOT due to command: ${incomingText}`)
 
-            if (now - lastReply < TEN_MINUTES) {
-                return BaseResponseDto.success('Webhook received', {
-                    handled: false,
-                    reason: 'HUMAN mode active',
-                    event_name: eventName,
+                await this.studentRepository.update(student.studentId, {
+                    conversationMode: ConversationMode.BOT,
+                })
+            } else {
+                const now = Date.now()
+                const lastReply = student.lastAdminReplyAt?.getTime() ?? 0
+                const TEN_MINUTES = 10 * 60 * 1000
+
+                if (now - lastReply < TEN_MINUTES) {
+                    return BaseResponseDto.success('Webhook received', {
+                        handled: false,
+                        reason: 'HUMAN mode active',
+                        event_name: eventName,
+                    })
+                }
+
+                // 🔄 timeout → BOT
+                await this.studentRepository.update(student.studentId, {
+                    conversationMode: ConversationMode.BOT,
                 })
             }
-
-            // 🔄 Hết timeout → quay lại BOT
-            await this.studentRepository.update(student.studentId, {
-                conversationMode: ConversationMode.BOT,
-            })
         }
 
         // ===== B9 - BOT xử lý =====
