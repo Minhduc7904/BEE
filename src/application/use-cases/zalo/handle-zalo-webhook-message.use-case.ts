@@ -140,12 +140,12 @@ export class HandleZaloWebhookMessageUseCase {
                 linkedParentStudent: null,
             })
         }
-
+        console.log(`[Zalo Webhook] Found linked student: studentId=${student.studentId}, conversationMode=${student.conversationMode}`)
         // ===== B8 - HUMAN / BOT =====
         if (student.conversationMode === ConversationMode.HUMAN) {
             // 🔥 Ưu tiên command → ép về BOT
             if (isForceBotCommand) {
-                // console.log(`[Zalo Webhook] Force BOT due to command: ${incomingText}`)
+                console.log(`[Zalo Webhook] Force BOT due to command: ${incomingText}`)
 
                 await this.studentRepository.update(student.studentId, {
                     conversationMode: ConversationMode.BOT,
