@@ -32,19 +32,14 @@ export class HandleZaloWebhookMessageUseCase {
     ) { }
 
     async execute(payload: ZaloWebhookPayload): Promise<BaseResponseDto<ZaloWebhookHandleResult>> {
+        // console.log('[Zalo Webhook] B1 - Đã nhận webhook từ Zalo')
+
         const eventName = payload?.event_name
         const appId = payload?.app_id
         const userId = payload?.sender?.id
-        const incomingText = payload?.message?.text?.trim() ?? ''
-        console.log('[Zalo Webhook] B1 - Đã nhận webhook từ Zalo')
-        console.log('[Zalo Webhook] B1.1 - Thông tin đầu vào:', {
-            eventName,
-            appId,
-            userId,
-            incomingText,
-        })
+
+        // ===== B1.1 - Validate =====
         if (!appId || !eventName) {
-            console.log('[Zalo Webhook] Dừng xử lý - Thiếu app_id hoặc event_name')
             return BaseResponseDto.success('Webhook received', {
                 handled: false,
                 reason: 'Missing app_id or event_name',
@@ -52,7 +47,7 @@ export class HandleZaloWebhookMessageUseCase {
         }
 
         if (!userId) {
-            console.log('[Zalo Webhook] Dừng xử lý - Thiếu sender.id')
+            // console.log('[Zalo Webhook] Dừng xử lý - Thiếu sender.id')
             return BaseResponseDto.success('Webhook received', {
                 handled: false,
                 reason: 'Missing sender id',
@@ -60,16 +55,46 @@ export class HandleZaloWebhookMessageUseCase {
             })
         }
 
-        if (eventName !== 'user_send_text') {
-            console.log(`[Zalo Webhook] Bỏ qua event không hỗ trợ: ${eventName}`)
+        // ===== B2 - Support tất cả message user =====
+        const SUPPORTED_EVENTS = [
+            'user_send_text',
+            'user_send_sticker',
+            'user_send_gif',
+            'user_send_image',
+        ]
+
+        if (!SUPPORTED_EVENTS.includes(eventName)) {
+            // console.log(`[Zalo Webhook] Bỏ qua event không hỗ trợ: ${eventName}`)
             return BaseResponseDto.success('Webhook received', {
                 handled: false,
-                reason: 'Event is not user_send_text',
+                reason: 'Unsupported event',
                 event_name: eventName,
             })
         }
 
-        console.log('[Zalo Webhook] B2 - Đang lấy access token hợp lệ theo app_id')
+        // ===== B3 - Normalize message (QUAN TRỌNG) =====
+        const rawMessage = payload?.message ?? {}
+
+        let incomingText = ''
+
+        // Nếu có text thì ưu tiên dùng text
+        if (rawMessage?.text?.trim()) {
+            incomingText = rawMessage.text.trim()
+        } else {
+            // fallback cho sticker/gif/image
+            incomingText = '[USER_SEND_MEDIA]'
+        }
+
+        // console.log('[Zalo Webhook] B3.1 - Normalize message:', {
+        //     eventName,
+        //     appId,
+        //     userId,
+        //     incomingText,
+        // })
+
+        // ===== B4 - Lấy access token =====
+        // console.log('[Zalo Webhook] B4 - Đang lấy access token hợp lệ theo app_id')
+
         const accessToken = await this.getValidZaloAccessTokenUseCase.execute({ appId })
 
         if (!accessToken) {
@@ -81,12 +106,17 @@ export class HandleZaloWebhookMessageUseCase {
             })
         }
 
-        console.log('[Zalo Webhook] B2.1 - Đã tìm thấy access token, tiếp tục xử lý nghiệp vụ')
+        // console.log('[Zalo Webhook] B4.1 - Đã có access token')
 
-        console.log('[Zalo Webhook] B3 - Kiểm tra user đã đăng ký parentZaloId chưa')
+        // ===== B5 - Kiểm tra user liên kết =====
+        // console.log('[Zalo Webhook] B5 - Kiểm tra user đã đăng ký parentZaloId chưa')
+
         const linkedParentStudent = await this.unitOfWork.executeInTransaction(async (repos) => {
             return repos.studentRepository.findByParentZaloId(userId)
         })
+
+        // ===== B6 - Xử lý nghiệp vụ (UNIFIED FLOW) =====
+        // console.log('[Zalo Webhook] B6 - Forward xuống use case')
 
         return this.handleZaloUserSelectionUseCase.execute({
             appId,
