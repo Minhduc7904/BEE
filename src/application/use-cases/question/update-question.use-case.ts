@@ -115,7 +115,8 @@ export class UpdateQuestionUseCase {
       if (dto.subjectId !== undefined) updateData.subjectId = dto.subjectId
       if (dto.pointsOrigin !== undefined) updateData.pointsOrigin = dto.pointsOrigin
       if (dto.visibility !== undefined) updateData.visibility = dto.visibility
-
+      if (dto.correctAnswer !== undefined) updateData.correctAnswer = dto.correctAnswer
+      if (dto.solutionYoutubeUrl !== undefined) updateData.solutionYoutubeUrl = dto.solutionYoutubeUrl
       const updatedQuestion = await questionRepository.update(questionId, updateData)
 
       // --- Handle Chapters Update ---
