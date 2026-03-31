@@ -80,7 +80,7 @@ export class HandleZaloWebhookMessageUseCase {
 
         // ===== B3 - Query student (1 lần duy nhất) =====
         const student = await this.studentRepository.findByParentZaloId(userId)
-
+        console.log(`[Zalo Webhook] Received event=${eventName} from userId=${userId}, linkedStudentId=${student?.studentId}`)
         // ===== B4 - OA → chuyển HUMAN =====
         if (isOaEvent) {
             if (!student) {
