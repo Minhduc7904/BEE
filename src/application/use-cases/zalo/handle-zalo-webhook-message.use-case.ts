@@ -87,7 +87,7 @@ export class HandleZaloWebhookMessageUseCase {
         // ===== B3 - Query student =====
         const student = await this.studentRepository.findByParentZaloId(userId)
 
-        // console.log(`[Zalo Webhook] event=${eventName}, userId=${userId}, studentId=${student?.studentId}`)
+        console.log(`[Zalo Webhook] event=${eventName}, userId=${userId}, studentId=${student?.studentId}`)
 
         // ===== B4 - OA → HUMAN =====
         if (isOaEvent) {
