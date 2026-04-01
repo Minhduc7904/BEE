@@ -59,21 +59,17 @@ export class GetPublicStudentQuestionAnswersUseCase {
     )
 
     const contentFields: ContentField[] = []
-    for (const item of questionAnswers) {
-      if (item.questionContent) {
-        contentFields.push({
-          fieldName: `Q${item.questionId}_${QUESTION_CONTENT_FIELDS.CONTENT}`,
-          content: item.questionContent,
-        })
-      }
+    const mergedContentByQuestionAnswerId = new Map<number, string>()
 
-      if (item.statements) {
-        for (const statement of item.statements) {
-          contentFields.push({
-            fieldName: `Q${item.questionId}_S${statement.statementId}_CONTENT`,
-            content: statement.content,
-          })
-        }
+    for (const item of questionAnswers) {
+      const mergedContent = this.mergeQuestionAndStatementsContent(item)
+
+      if (mergedContent) {
+        mergedContentByQuestionAnswerId.set(item.questionAnswerId, mergedContent)
+        contentFields.push({
+          fieldName: `QA${item.questionAnswerId}_${QUESTION_CONTENT_FIELDS.CONTENT}`,
+          content: mergedContent,
+        })
       }
     }
 
@@ -81,22 +77,14 @@ export class GetPublicStudentQuestionAnswersUseCase {
       const processedResults = await this.processContentAndRenderHtmlUseCase.execute(contentFields)
 
       for (const item of questionAnswers) {
-        if (item.questionContent) {
+        const mergedContent = mergedContentByQuestionAnswerId.get(item.questionAnswerId)
+
+        if (mergedContent) {
           item.processedQuestionContent =
             this.processContentAndRenderHtmlUseCase.getProcessedContent(
               processedResults,
-              `Q${item.questionId}_${QUESTION_CONTENT_FIELDS.CONTENT}`,
-            ) ?? item.questionContent
-        }
-
-        if (item.statements) {
-          for (const statement of item.statements) {
-            statement.processedContent =
-              this.processContentAndRenderHtmlUseCase.getProcessedContent(
-                processedResults,
-                `Q${item.questionId}_S${statement.statementId}_CONTENT`,
-              ) ?? statement.content
-          }
+              `QA${item.questionAnswerId}_${QUESTION_CONTENT_FIELDS.CONTENT}`,
+            ) ?? mergedContent
         }
       }
     }
@@ -107,5 +95,28 @@ export class GetPublicStudentQuestionAnswersUseCase {
       result.limit,
       result.total,
     )
+  }
+
+  private mergeQuestionAndStatementsContent(item: StudentQuestionAnswerItemDto): string | undefined {
+    const segments: string[] = []
+
+    if (item.questionContent?.trim()) {
+      segments.push(item.questionContent.trim())
+    }
+
+    const validStatements = (item.statements ?? []).filter((statement) => statement.content?.trim())
+
+    if (validStatements.length > 0) {
+      const statementsBlock = validStatements
+        .map((statement, index) => `${index + 1}. ${statement.content.trim()}`)
+        .join('\n')
+      segments.push(statementsBlock)
+    }
+
+    if (segments.length === 0) {
+      return undefined
+    }
+
+    return segments.join('\n\n')
   }
 }
