@@ -131,7 +131,7 @@ export class PrismaQuestionAnswerRepository implements IQuestionAnswerRepository
 
         const byChapter: StudentQuestionAnswerChapterStat[] = chapterRows.map((row) => ({
             chapterId: row.chapterId != null ? Number(row.chapterId) : null,
-            chapterName: row.chapterName || 'Không có chapter',
+            chapterName: row.chapterName || 'Khác',
             totalQuestionsInChapter: typeof row.totalQuestionsInChapter === 'bigint'
                 ? Number(row.totalQuestionsInChapter)
                 : Number(row.totalQuestionsInChapter || 0),
