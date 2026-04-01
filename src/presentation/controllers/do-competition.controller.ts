@@ -361,8 +361,8 @@ export class DoCompetitionController {
      *
      * ─── ĐẦU RA ─────────────────────────────────────────────────────────────
      * @returns StudentCompetitionHistoryListResponseDto
-     *   data.history[]     - danh sách lần thi (attemptNumber, status, điểm, thời gian)
-     *   data.pagination    - { total, page, limit, totalPages }
+    *   data[]             - danh sách lần thi (attemptNumber, status, điểm, thời gian)
+    *   meta               - { total, page, limit, totalPages, hasPrevious, hasNext, previousPage?, nextPage? }
      */
     @Get(':competitionId/history')
     @RequirePermission()

@@ -1,7 +1,7 @@
 // src/application/dtos/competition-submit/student-competition-history.dto.ts
 import { CompetitionSubmit } from '../../../domain/entities/exam/competition-submit.entity'
 import { CompetitionSubmitStatus } from '../../../shared/enums'
-import { BaseResponseDto } from '../common/base-response.dto'
+import { PaginationResponseDto } from '../pagination/pagination-response.dto'
 
 /**
  * DTO trả về 1 lần thi đã hoàn thành (SUBMITTED / GRADED) trong lịch sử của học sinh.
@@ -60,12 +60,25 @@ export class StudentCompetitionHistoryItemDto {
     }
 }
 
-export class StudentCompetitionHistoryListResponseDto extends BaseResponseDto<{
-    history: StudentCompetitionHistoryItemDto[]
-    pagination: {
-        total: number
-        page: number
-        limit: number
-        totalPages: number
+export class StudentCompetitionHistoryListResponseDto extends PaginationResponseDto<StudentCompetitionHistoryItemDto> {
+    constructor(
+        data: StudentCompetitionHistoryItemDto[],
+        page: number,
+        limit: number,
+        total: number,
+        message = 'Lấy lịch sử làm bài thành công',
+    ) {
+        const meta = {
+            page,
+            limit,
+            total,
+            totalPages: Math.ceil(total / limit),
+            hasPrevious: page > 1,
+            hasNext: page < Math.ceil(total / limit),
+            previousPage: page > 1 ? page - 1 : undefined,
+            nextPage: page < Math.ceil(total / limit) ? page + 1 : undefined,
+        }
+
+        super(true, message, data, meta)
     }
-}> {}
+}

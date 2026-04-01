@@ -7,7 +7,6 @@ import {
     StudentCompetitionHistoryItemDto,
     StudentCompetitionHistoryListResponseDto,
 } from '../../dtos/competition-submit/student-competition-history.dto'
-import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 
 @Injectable()
 export class GetPublicStudentCompetitionHistoryUseCase {
@@ -52,14 +51,11 @@ export class GetPublicStudentCompetitionHistoryUseCase {
             StudentCompetitionHistoryItemDto.fromEntity(item, canViewDetail),
         )
 
-        return BaseResponseDto.success('Lấy lịch sử làm bài thành công', {
+        return new StudentCompetitionHistoryListResponseDto(
             history,
-            pagination: {
-                total: result.total,
-                page: result.page,
-                limit: result.limit,
-                totalPages: result.totalPages,
-            },
-        })
+            result.page,
+            result.limit,
+            result.total,
+        )
     }
 }

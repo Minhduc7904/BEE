@@ -256,8 +256,7 @@ export class CompetitionController {
         * Response shape:
         * - success: boolean
         * - message: string
-        * - data:
-        *   - history: Array<{
+        * - data: Array<{
         *       competitionSubmitId: number,
         *       attemptNumber: number,
         *       status: IN_PROGRESS | SUBMITTED | GRADED | ABANDONED,
@@ -273,11 +272,15 @@ export class CompetitionController {
         *       createdAt: Date,
         *       updatedAt: Date
         *     }>
-        *   - pagination: {
+        * - meta: {
         *       total: number,
         *       page: number,
         *       limit: number,
-        *       totalPages: number
+        *       totalPages: number,
+        *       hasPrevious: boolean,
+        *       hasNext: boolean,
+        *       previousPage?: number,
+        *       nextPage?: number
         *     }
      *
      * Access rules:

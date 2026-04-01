@@ -57,6 +57,7 @@ export class GetPublicStudentQuestionAnswerStatisticsUseCase {
         new StudentQuestionAnswerChapterStatisticsItemDto({
           chapterId: item.chapterId,
           chapterName: item.chapterName,
+          totalQuestionsInChapter: item.totalQuestionsInChapter,
           answeredCount: item.answeredCount,
           correctCount: item.correctCount,
           incorrectCount: item.incorrectCount,

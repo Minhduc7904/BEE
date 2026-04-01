@@ -17,6 +17,8 @@ export class MarkdownRenderService {
             return ''
         }
 
+        const normalizedContent = this.normalizeMathDelimiters(content)
+
         const md = new MarkdownIt({
             html: options?.allowRawHtml ?? true,
             linkify: true,
@@ -34,6 +36,14 @@ export class MarkdownRenderService {
             },
         } as any)
 
-        return md.render(content)
+        return md.render(normalizedContent)
+    }
+
+    private normalizeMathDelimiters(content: string): string {
+        // markdown-it-texmath with dollar delimiters does not parse "$ ... $" reliably.
+        // Normalize to "$...$" and "$$...$$" before rendering.
+        return content
+            .replace(/\$\$\s*([\s\S]*?)\s*\$\$/g, (_match, expr: string) => `$$${expr}$$`)
+            .replace(/\$\s*([^$\n]+?)\s*\$/g, (_match, expr: string) => `$${expr}$`)
     }
 }

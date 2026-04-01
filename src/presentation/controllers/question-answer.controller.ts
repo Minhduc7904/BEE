@@ -89,6 +89,51 @@ export class QuestionAnswerController {
      * @param query - fromDate/toDate (supports ISO date or dd/MM/yyyy)
      * @param studentId - Current student ID (auto-injected)
      * @returns BaseResponseDto<StudentQuestionAnswerStatisticsDataDto>
+        *
+        * Request query:
+        * {
+        *   fromDate?: string, // ISO (2026-03-16) or dd/MM/yyyy (16/03/2026)
+        *   toDate?: string    // ISO (2026-03-17) or dd/MM/yyyy (17/03/2026)
+        * }
+        *
+        * Response shape:
+        * {
+        *   success: true,
+        *   message: string,
+        *   data: {
+        *     timezone: 'Asia/Ho_Chi_Minh',
+        *     fromDate?: string,
+        *     toDate?: string,
+        *     summary: {
+        *       totalAnswered: number,
+        *       totalCorrect: number,
+        *       totalIncorrect: number,
+        *       overallCorrectRate: number
+        *     },
+        *     byChapter: Array<{
+        *       chapterId: number | null,
+        *       chapterName: string,
+        *       totalQuestionsInChapter: number,
+        *       answeredCount: number,
+        *       correctCount: number,
+        *       incorrectCount: number,
+        *       correctRate: number
+        *     }>,
+        *     byDifficulty: Array<{
+        *       difficulty: Difficulty | null,
+        *       label: string,
+        *       answeredCount: number,
+        *       correctCount: number,
+        *       incorrectCount: number,
+        *       correctRate: number
+        *     }>,
+        *     byDay: Array<{
+        *       date: string,
+        *       dateIso: string,
+        *       answeredCount: number
+        *     }>
+        *   }
+        * }
      *
      * @example
      * GET /question-answers/public/student/statistics?fromDate=16/03/2026&toDate=17/03/2026

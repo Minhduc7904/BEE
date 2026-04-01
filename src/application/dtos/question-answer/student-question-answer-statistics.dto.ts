@@ -5,6 +5,7 @@ import { formatVnDate } from '../../../shared/utils/vietnam-date.util'
 export class StudentQuestionAnswerChapterStatisticsItemDto {
   chapterId: number | null
   chapterName: string
+  totalQuestionsInChapter: number
   answeredCount: number
   correctCount: number
   incorrectCount: number
@@ -13,12 +14,14 @@ export class StudentQuestionAnswerChapterStatisticsItemDto {
   constructor(data: {
     chapterId: number | null
     chapterName: string
+    totalQuestionsInChapter: number
     answeredCount: number
     correctCount: number
     incorrectCount: number
   }) {
     this.chapterId = data.chapterId
     this.chapterName = data.chapterName
+    this.totalQuestionsInChapter = data.totalQuestionsInChapter
     this.answeredCount = data.answeredCount
     this.correctCount = data.correctCount
     this.incorrectCount = data.incorrectCount

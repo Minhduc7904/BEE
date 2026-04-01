@@ -14,6 +14,7 @@ export interface StudentQuestionAnswerStatisticsFilterOptions {
 export interface StudentQuestionAnswerChapterStat {
     chapterId: number | null
     chapterName: string
+    totalQuestionsInChapter: number
     answeredCount: number
     correctCount: number
     incorrectCount: number

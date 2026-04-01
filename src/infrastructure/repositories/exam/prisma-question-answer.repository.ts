@@ -51,6 +51,7 @@ export class PrismaQuestionAnswerRepository implements IQuestionAnswerRepository
             SELECT
               c.chapter_id AS chapterId,
               c.name AS chapterName,
+                            COALESCE(ct.totalQuestionsInChapter, 0) AS totalQuestionsInChapter,
               COUNT(qa.question_answer_id) AS answeredCount,
               SUM(CASE WHEN qa.is_correct = 1 THEN 1 ELSE 0 END) AS correctCount,
               SUM(CASE WHEN qa.is_correct = 0 THEN 1 ELSE 0 END) AS incorrectCount
@@ -58,17 +59,28 @@ export class PrismaQuestionAnswerRepository implements IQuestionAnswerRepository
             INNER JOIN exam_attempts ea ON ea.attempt_id = qa.attempt_id
             INNER JOIN exams e ON e.exam_id = ea.exam_id
             INNER JOIN questions q ON q.question_id = qa.question_id
-            LEFT JOIN question_chapters qc ON qc.question_id = q.question_id
+            LEFT JOIN questions_chapters qc ON qc.question_id = q.question_id
             LEFT JOIN chapters c ON c.chapter_id = qc.chapter_id
+                        LEFT JOIN (
+                            SELECT
+                                qc2.chapter_id AS chapterId,
+                                COUNT(DISTINCT qc2.question_id) AS totalQuestionsInChapter
+                            FROM questions_chapters qc2
+                            INNER JOIN questions_exams qe2 ON qe2.question_id = qc2.question_id
+                            INNER JOIN exams e2 ON e2.exam_id = qe2.exam_id
+                            WHERE e2.visibility = 'PUBLISHED'
+                            GROUP BY qc2.chapter_id
+                        ) ct ON ct.chapterId = c.chapter_id
             WHERE ea.student_id = ?
               AND e.visibility = 'PUBLISHED'${dateWhereSql}
-            GROUP BY c.chapter_id, c.name
+                        GROUP BY c.chapter_id, c.name, ct.totalQuestionsInChapter
             ORDER BY answeredCount DESC, c.chapter_id ASC
             `,
             ...dateParams,
         ) as Array<{
             chapterId: number | null
             chapterName: string | null
+                        totalQuestionsInChapter: number | bigint | null
             answeredCount: number | bigint
             correctCount: number | bigint | null
             incorrectCount: number | bigint | null
@@ -120,6 +132,9 @@ export class PrismaQuestionAnswerRepository implements IQuestionAnswerRepository
         const byChapter: StudentQuestionAnswerChapterStat[] = chapterRows.map((row) => ({
             chapterId: row.chapterId != null ? Number(row.chapterId) : null,
             chapterName: row.chapterName || 'Không có chapter',
+            totalQuestionsInChapter: typeof row.totalQuestionsInChapter === 'bigint'
+                ? Number(row.totalQuestionsInChapter)
+                : Number(row.totalQuestionsInChapter || 0),
             answeredCount: typeof row.answeredCount === 'bigint' ? Number(row.answeredCount) : Number(row.answeredCount || 0),
             correctCount: typeof row.correctCount === 'bigint' ? Number(row.correctCount) : Number(row.correctCount || 0),
             incorrectCount: typeof row.incorrectCount === 'bigint' ? Number(row.incorrectCount) : Number(row.incorrectCount || 0),
