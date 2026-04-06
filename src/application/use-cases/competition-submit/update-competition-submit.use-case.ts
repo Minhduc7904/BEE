@@ -19,7 +19,7 @@ export class UpdateCompetitionSubmitUseCase {
         private readonly competitionSubmitRepository: ICompetitionSubmitRepository,
         @Inject('IAdminAuditLogRepository')
         private readonly auditLogRepository: IAdminAuditLogRepository,
-    ) {}
+    ) { }
 
     async execute(
         id: number,
@@ -31,19 +31,27 @@ export class UpdateCompetitionSubmitUseCase {
             throw new NotFoundException(`Bai nop voi ID ${id} khong ton tai`)
         }
 
-        if (dto.status === CompetitionSubmitStatus.SUBMITTED && !dto.submittedAt) {
-            throw new ValidationException('submittedAt is required when status is SUBMITTED')
+        if (
+            dto.status === CompetitionSubmitStatus.SUBMITTED &&
+            !dto.submittedAt &&
+            !existingSubmit.submittedAt
+        ) {
+            throw new ValidationException('Chỉnh sửa trạng thái thành đã nộp yêu cầu phải có thời gian nộp bài')
         }
 
-        const updated = await this.competitionSubmitRepository.update(id, {
+        const updatePayload: any = {
             status: dto.status,
-            submittedAt: dto.submittedAt ? new Date(dto.submittedAt) : undefined,
-            gradedAt: dto.gradedAt ? new Date(dto.gradedAt) : undefined,
             totalPoints: dto.totalPoints,
             maxPoints: dto.maxPoints,
             timeSpentSeconds: dto.timeSpentSeconds,
             metadata: dto.metadata,
-        })
+        }
+
+        if (dto.submittedAt !== undefined) {
+            updatePayload.submittedAt = new Date(dto.submittedAt)
+        }
+
+        const updated = await this.competitionSubmitRepository.update(id, updatePayload)
 
         await this.auditLogRepository.create({
             adminId,

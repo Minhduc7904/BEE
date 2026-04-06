@@ -195,7 +195,7 @@ export class RegradeCompetitionSubmitUseCase {
         // 8. Cập nhật submit: SUBMITTED + tổng điểm mới
         const updatedSubmit = await this.competitionSubmitRepository.update(submitId, {
             status: CompetitionSubmitStatus.SUBMITTED,
-            gradedAt: now,
+            submittedAt: now,
             totalPoints,
             maxPoints,
         })

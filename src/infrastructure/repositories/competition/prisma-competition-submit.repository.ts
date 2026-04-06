@@ -152,12 +152,7 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
     async update(id: number, data: UpdateCompetitionSubmitData, txClient?: any): Promise<CompetitionSubmit> {
         const client = txClient || this.prisma
 
-        if (
-            data.status === CompetitionSubmitStatus.SUBMITTED &&
-            (data.submittedAt === undefined || data.submittedAt === null)
-        ) {
-            throw new BadRequestException('submittedAt is required when status is SUBMITTED')
-        }
+ 
 
         const updateData: any = {}
 
