@@ -27,6 +27,7 @@ const TUITION_PAYMENT_USE_CASES = [
   // export
   tuitionPaymentUseCase.ExportTuitionPaymentListUseCase,
   tuitionPaymentUseCase.SendTuitionPaymentToParentUseCase,
+  tuitionPaymentUseCase.SendBulkTuitionPaymentToParentUseCase,
   GetValidZaloAccessTokenUseCase,
 ]
 @Module({

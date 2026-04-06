@@ -12,7 +12,7 @@ import { RESOURCE_TYPES, ACTION_KEYS } from 'src/shared/constants'
 import { UpdateTuitionPaymentData } from 'src/domain/interface'
 import { TuitionPayment } from 'src/domain/entities/tuition-payment/tuition-payment.entity'
 import { CreateAndNotifyManyUseCase } from '../notification/create-and-notify-many.use-case'
-import { SendTuitionPaymentToParentUseCase } from './send-tuition-payment-to-parent.use-case'
+import { SendBulkTuitionPaymentToParentUseCase } from './send-bulk-tuition-payment-to-parent.use-case'
 
 @Injectable()
 export class UpdateArrayBulkTuitionPaymentUseCase {
@@ -20,7 +20,7 @@ export class UpdateArrayBulkTuitionPaymentUseCase {
         @Inject('UNIT_OF_WORK')
         private readonly unitOfWork: IUnitOfWork,
         private readonly createAndNotifyMany: CreateAndNotifyManyUseCase,
-        private readonly sendTuitionPaymentToParentUseCase: SendTuitionPaymentToParentUseCase,
+        private readonly sendBulkTuitionPaymentToParentUseCase: SendBulkTuitionPaymentToParentUseCase,
     ) { }
 
     /**
@@ -207,11 +207,9 @@ export class UpdateArrayBulkTuitionPaymentUseCase {
 
         // Chỉ gửi Zalo cho phụ huynh khi có cập nhật số tiền hoặc trạng thái và sau khi transaction đã commit
         if (result.parentNotifyPaymentIds.length > 0) {
-            await Promise.allSettled(
-                result.parentNotifyPaymentIds.map((paymentId) =>
-                    this.sendTuitionPaymentToParentUseCase.execute({ paymentId }),
-                ),
-            )
+            await this.sendBulkTuitionPaymentToParentUseCase.execute({
+                paymentIds: result.parentNotifyPaymentIds,
+            })
         }
 
         return BaseResponseDto.success('Cập nhật học phí hàng loạt thành công', result.responses)

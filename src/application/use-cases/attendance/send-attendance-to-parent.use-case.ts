@@ -3,6 +3,7 @@ import type { IUnitOfWork } from 'src/domain/repositories'
 import { AttendanceStatusLabels, AttendanceStatus } from 'src/shared/enums'
 import { formatVnDate, formatVnDateTime, formatVnTime } from 'src/shared/utils/vietnam-date.util'
 import { ZaloService } from 'src/infrastructure/services'
+import { AttendanceParentMessageTemplate } from 'src/infrastructure/templates/attendance-parent-message.template'
 import { GetValidZaloAccessTokenUseCase } from '../zalo/get-valid-zalo-access-token.use-case'
 
 interface SendAttendanceToParentInput {
@@ -20,7 +21,7 @@ export class SendAttendanceToParentUseCase {
         private readonly unitOfWork: IUnitOfWork,
         private readonly zaloService: ZaloService,
         private readonly getValidZaloAccessTokenUseCase: GetValidZaloAccessTokenUseCase,
-    ) {}
+    ) { }
 
     async execute(input: SendAttendanceToParentInput): Promise<boolean> {
         const appId =
@@ -58,10 +59,10 @@ export class SendAttendanceToParentUseCase {
 
         const sessionTime =
             attendance.classSession?.startTime &&
-            attendance.classSession?.endTime
+                attendance.classSession?.endTime
                 ? `${formatVnTime(attendance.classSession.startTime)} - ${formatVnTime(
-                      attendance.classSession.endTime,
-                  )}`
+                    attendance.classSession.endTime,
+                )}`
                 : ''
 
         const arrivalTime = attendance.markedAt
@@ -96,8 +97,8 @@ export class SendAttendanceToParentUseCase {
                         pts === null || pts === undefined
                             ? ''
                             : homeworkSubmit.competitionSubmitId && maxPts != null
-                            ? ` | 🎯 ${pts}/${maxPts}`
-                            : ` | 🎯 ${pts}`
+                                ? ` | 🎯 ${pts}/${maxPts}`
+                                : ` | 🎯 ${pts}`
 
                     const feedbackText = homeworkSubmit.feedback
                         ? `\n💬 NHẬN XÉT: ${homeworkSubmit.feedback}`
@@ -122,29 +123,29 @@ export class SendAttendanceToParentUseCase {
 
         const makeupLine =
             attendance.status === AttendanceStatus.ABSENT &&
-            attendance.classSession?.makeupNote
+                attendance.classSession?.makeupNote
                 ? `🔁 LỊCH HỌC BÙ: ${attendance.classSession.makeupNote}`
                 : ''
 
-        const messageLines = [
-            '📢 THÔNG BÁO ĐIỂM DANH',
-            '━━━━━━━━━━━━━━━',
-            `👨‍🎓 HỌC SINH: ${studentName}`,
-            `🏫 LỚP: ${className}`,
-            `📅 NGÀY HỌC: ${sessionDate}${sessionTime ? ` (${sessionTime})` : ''}`,
-            `${attendanceTimeLabel}: ${arrivalTime}`,
-            `📌 TRẠNG THÁI: ${statusLabel}`,
+        const messageText = AttendanceParentMessageTemplate.render({
+            studentName,
+            className,
+            sessionDate,
+            sessionTime,
+            attendanceTimeLabel,
+            arrivalTime,
+            statusLabel,
             makeupLine,
             homeworkLine,
-            attendance.notes ? `📝 GHI CHÚ: ${attendance.notes}` : '',
-            input.note ? `📎 NOTE: ${input.note}` : '',
-        ].filter(Boolean)
+            notes: attendance.notes || undefined,
+            note: input.note,
+        })
 
         try {
             await this.zaloService.sendMessage(accessToken, {
                 recipient: { user_id: parentZaloId },
                 message: {
-                    text: messageLines.join('\n'),
+                    text: messageText,
                 },
             })
         } catch (error: any) {

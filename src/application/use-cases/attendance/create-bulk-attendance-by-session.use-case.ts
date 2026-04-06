@@ -14,7 +14,7 @@ import { ACTION_KEYS } from '../../../shared/constants/action-key.constants'
 import { AuditStatus } from '../../../shared/enums/audit-status.enum'
 import { RESOURCE_TYPES } from '../../../shared/constants/resource-type.constants'
 import { CreateAndNotifyManyUseCase } from '../notification/create-and-notify-many.use-case'
-import { SendAttendanceToParentUseCase } from './send-attendance-to-parent.use-case'
+import { SendBulkAttendanceToParentUseCase } from './send-bulk-attendance-to-parent.use-case'
 
 @Injectable()
 export class CreateBulkAttendanceBySessionUseCase {
@@ -27,7 +27,7 @@ Nếu con đăng ký nhầm lớp, hãy chọn "Liên hệ hỗ trợ" để tr�
     @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
     private readonly createAndNotifyMany: CreateAndNotifyManyUseCase,
-    private readonly sendAttendanceToParentUseCase: SendAttendanceToParentUseCase,
+    private readonly sendBulkAttendanceToParentUseCase: SendBulkAttendanceToParentUseCase,
   ) { }
 
   async execute(
@@ -194,14 +194,10 @@ Nếu con đăng ký nhầm lớp, hãy chọn "Liên hệ hỗ trợ" để tr�
 
     // Gửi Zalo sau khi transaction đã commit để đảm bảo đọc đúng dữ liệu mới tạo
     if (result.attendanceIds.length > 0) {
-      await Promise.allSettled(
-        result.attendanceIds.map((attendanceId) =>
-          this.sendAttendanceToParentUseCase.execute({
-            attendanceId,
-            note: CreateBulkAttendanceBySessionUseCase.FIRST_ATTENDANCE_NOTE,
-          }),
-        ),
-      )
+      await this.sendBulkAttendanceToParentUseCase.execute({
+        attendanceIds: result.attendanceIds,
+        note: CreateBulkAttendanceBySessionUseCase.FIRST_ATTENDANCE_NOTE,
+      })
     }
 
     return BaseResponseDto.success(

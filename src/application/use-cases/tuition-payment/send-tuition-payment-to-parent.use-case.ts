@@ -1,8 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 import type { IUnitOfWork } from 'src/domain/repositories'
-import { TuitionPaymentStatusLabels } from 'src/shared/enums'
-import { formatVnDate } from 'src/shared/utils/vietnam-date.util'
 import { ZaloService } from 'src/infrastructure/services'
+import { TuitionPaymentParentMessageTemplate } from 'src/infrastructure/templates/tuition-payment-parent-message.template'
 import { GetValidZaloAccessTokenUseCase } from '../zalo/get-valid-zalo-access-token.use-case'
 
 interface SendTuitionPaymentToParentInput {
@@ -19,7 +18,7 @@ export class SendTuitionPaymentToParentUseCase {
     private readonly unitOfWork: IUnitOfWork,
     private readonly zaloService: ZaloService,
     private readonly getValidZaloAccessTokenUseCase: GetValidZaloAccessTokenUseCase,
-  ) {}
+  ) { }
 
   async execute(input: SendTuitionPaymentToParentInput): Promise<boolean> {
     const appId = input.appId || process.env.ZALO_APP_ID || SendTuitionPaymentToParentUseCase.DEFAULT_APP_ID
@@ -44,33 +43,13 @@ export class SendTuitionPaymentToParentUseCase {
       return false
     }
 
-    const studentName = payment.student?.user
-      ? `${payment.student.user.lastName || ''} ${payment.student.user.firstName || ''}`.trim()
-      : `#${payment.studentId}`
-
-    const amountText = typeof payment.amount === 'number'
-      ? `${payment.amount.toLocaleString('vi-VN')}đ`
-      : 'Chưa xác định'
-
-    const statusLabel = TuitionPaymentStatusLabels[payment.status] || payment.status
-    const period = `${String(payment.month).padStart(2, '0')}/${payment.year}`
-
-    const messageLines = [
-      'Thông báo học phí:',
-      `Học sinh: ${studentName}`,
-      payment.course?.title ? `Khóa học: ${payment.course.title}` : '',
-      `Kỳ học phí: ${period}`,
-      `Số tiền: ${amountText}`,
-      `Trạng thái: ${statusLabel}`,
-      payment.paidAt ? `Ngày thanh toán: ${formatVnDate(payment.paidAt)}` : '',
-      payment.notes ? `Ghi chú: ${payment.notes}` : '',
-    ].filter(Boolean)
+    const messageText = TuitionPaymentParentMessageTemplate.render(payment)
 
     try {
       await this.zaloService.sendMessage(accessToken, {
         recipient: { user_id: parentZaloId },
         message: {
-          text: messageLines.join('\n'),
+          text: messageText,
         },
       })
     } catch (error: any) {
