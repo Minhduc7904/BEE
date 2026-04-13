@@ -26,6 +26,19 @@ export class MarkdownRenderService {
             typographer: false,
         })
 
+        md.renderer.rules.image = (tokens, idx, rendererOptions, env, self) => {
+            const token = tokens[idx]
+            const src = token.attrGet('src') || ''
+
+            // Keep original alt/title attrs and enhance image presentation.
+            token.attrSet('style', 'display:block;margin:0 auto;max-width:100%;height:auto;')
+
+            const imageHtml = self.renderToken(tokens, idx, rendererOptions)
+            const safeHref = md.utils.escapeHtml(src)
+
+            return `<a href="${safeHref}" target="_blank" rel="noopener noreferrer" style="display:inline-block;max-width:100%;">${imageHtml}</a>`
+        }
+
         // Render inline ($...$) and block ($$...$$) math using KaTeX.
         md.use(texmath as any, {
             engine: katex,
