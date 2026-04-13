@@ -22,7 +22,7 @@ export class UpdateTuitionPaymentUseCase {
     private readonly unitOfWork: IUnitOfWork,
     private readonly createAndNotifyOne: CreateAndNotifyOneUseCase,
     private readonly sendTuitionPaymentToParentUseCase: SendTuitionPaymentToParentUseCase,
-  ) {}
+  ) { }
 
   /**
    * Helper: Strip time from date (set to 00:00:00)
@@ -73,8 +73,9 @@ export class UpdateTuitionPaymentUseCase {
 
       // Clone trước khi update để audit
       const beforeData = { ...tuitionPayment }
-      const amountChanged = dto.amount !== undefined && dto.amount !== tuitionPayment.amount
-      const statusChanged = dto.status !== undefined && dto.status !== tuitionPayment.status
+      const statusChangedToPaid =
+        dto.status === TuitionPaymentStatus.PAID &&
+        tuitionPayment.status !== TuitionPaymentStatus.PAID
 
       /**
        * =========================
@@ -152,24 +153,35 @@ export class UpdateTuitionPaymentUseCase {
       const student = await repos.studentRepository.findById(updatedTuitionPayment.studentId)
       if (student) {
         const statusLabel = TuitionPaymentStatusLabels[updatedTuitionPayment.status] || updatedTuitionPayment.status
+        const notificationLevel =
+          updatedTuitionPayment.status === TuitionPaymentStatus.PAID
+            ? NotificationLevel.SUCCESS
+            : NotificationLevel.INFO
         this.createAndNotifyOne.execute({
           userId: student.userId,
           title: 'Cập nhật học phí',
           message: `Học phí tháng ${updatedTuitionPayment.month}/${updatedTuitionPayment.year} đã được cập nhật - Số tiền: ${updatedTuitionPayment.amount?.toLocaleString('vi-VN')}đ - Trạng thái: ${statusLabel}`,
           type: NotificationType.TUITION,
-          level: NotificationLevel.INFO,
-          data: { paymentId: updatedTuitionPayment.paymentId, amount: updatedTuitionPayment.amount, month: updatedTuitionPayment.month, year: updatedTuitionPayment.year, status: updatedTuitionPayment.status },
+          level: notificationLevel,
+          data: {
+            paymentId: updatedTuitionPayment.paymentId,
+            amount: updatedTuitionPayment.amount,
+            month: updatedTuitionPayment.month,
+            year: updatedTuitionPayment.year,
+            status: updatedTuitionPayment.status,
+            shouldShowReminderModal: true,
+          },
         }).catch(() => { /* ignore notification error */ })
       }
 
       return {
         response: new TuitionPaymentResponseDto(updatedTuitionPayment),
         paymentId: updatedTuitionPayment.paymentId,
-        shouldNotifyParent: amountChanged || statusChanged,
+        shouldNotifyParent: statusChangedToPaid,
       }
     })
 
-    // Chỉ gửi Zalo cho phụ huynh khi cập nhật số tiền hoặc trạng thái và sau khi transaction đã commit
+    // Chỉ gửi Zalo cho phụ huynh khi học phí được cập nhật sang trạng thái PAID và sau khi transaction đã commit
     if (result.shouldNotifyParent) {
       await this.sendTuitionPaymentToParentUseCase.execute({
         paymentId: result.paymentId,

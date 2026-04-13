@@ -8,6 +8,7 @@ import { ACTION_KEYS } from '../../../shared/constants/action-key.constants'
 import { AuditStatus } from '../../../shared/enums/audit-status.enum'
 import { RESOURCE_TYPES } from '../../../shared/constants/resource-type.constants'
 import { NotificationLevel, NotificationType } from 'src/shared/enums'
+import { TuitionPaymentStatus } from 'src/shared/enums'
 import { CreateAndNotifyOneUseCase } from './create-and-notify-one.use-case'
 import { CreateAndNotifyManyUseCase } from './create-and-notify-many.use-case'
 
@@ -31,8 +32,8 @@ export class SendNotificationUseCase {
             const adminAuditLogRepository = repos.adminAuditLogRepository
 
             try {
-                // Validate: chỉ được chọn đúng 1 trong 3 options
-                const optionsCount = [dto.userIds, dto.role, dto.all].filter(Boolean).length
+                // Validate: chỉ được chọn đúng 1 trong 4 options
+                const optionsCount = [dto.userIds, dto.role, dto.all, dto.allUnpaidTuition].filter(Boolean).length
                 if (optionsCount !== 1) {
                     if (adminId) {
                         await adminAuditLogRepository.create({
@@ -41,11 +42,11 @@ export class SendNotificationUseCase {
                             status: AuditStatus.FAIL,
                             resourceType: RESOURCE_TYPES.NOTIFICATION,
                             errorMessage:
-                                'Vui lòng chỉ định duy nhất một trong các lựa chọn: userIds, role hoặc all',
+                                'Vui lòng chỉ định duy nhất một trong các lựa chọn: userIds, role, all hoặc allUnpaidTuition',
                         })
                     }
                     throw new BadRequestException(
-                        'Vui lòng chỉ định duy nhất một trong các lựa chọn: userIds, role hoặc all',
+                        'Vui lòng chỉ định duy nhất một trong các lựa chọn: userIds, role, all hoặc allUnpaidTuition',
                     )
                 }
 
@@ -82,6 +83,22 @@ export class SendNotificationUseCase {
                 else if (dto.all) {
                     targetUserIds = await userRepository.findAllActiveUserIds()
                     targetingMethod = 'toàn bộ người dùng đang hoạt động'
+                }
+                // Ưu tiên 4: gửi cho tất cả học sinh có học phí chưa đóng
+                else if (dto.allUnpaidTuition) {
+                    const unpaidPayments = await repos.tuitionPaymentRepository.findByStatus(TuitionPaymentStatus.UNPAID)
+                    const unpaidStudentIds = Array.from(new Set(unpaidPayments.map((p) => p.studentId)))
+                    const unpaidUserIds: number[] = []
+
+                    for (const studentId of unpaidStudentIds) {
+                        const student = await repos.studentRepository.findById(studentId)
+                        if (student) {
+                            unpaidUserIds.push(student.userId)
+                        }
+                    }
+
+                    targetUserIds = await userRepository.filterActiveUserIds(Array.from(new Set(unpaidUserIds)))
+                    targetingMethod = `học sinh chưa đóng học phí (${targetUserIds.length})`
                 }
 
                 // Validate: phải có user để gửi

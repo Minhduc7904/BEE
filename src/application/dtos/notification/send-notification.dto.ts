@@ -57,7 +57,7 @@ export class SendNotificationDto {
      * @example [1, 2, 3, 4, 5]
      */
     @IsOptionalIntArray('Danh sách ID người dùng')
-    @ValidateIf((o) => !o.role && !o.all)
+    @ValidateIf((o) => !o.role && !o.all && !o.allUnpaidTuition)
     userIds?: number[]
 
     /**
@@ -67,16 +67,26 @@ export class SendNotificationDto {
      */
     @IsOptional()
     @IsEnum(ROLE_NAMES)
-    @ValidateIf((o) => !o.userIds && !o.all)
+    @ValidateIf((o) => !o.userIds && !o.all && !o.allUnpaidTuition)
     role?: keyof typeof ROLE_NAMES
 
     /**
-     * Send to all users (mutually exclusive with userIds and role)
+     * Send to all users (mutually exclusive with userIds, role and allUnpaidTuition)
      * @optional
      * @default false
      * @example true
      */
     @IsOptionalBoolean('Gửi cho tất cả')
-    @ValidateIf((o) => !o.userIds && !o.role)
+    @ValidateIf((o) => !o.userIds && !o.role && !o.allUnpaidTuition)
     all?: boolean
+
+    /**
+     * Send to all students who still have unpaid tuition (mutually exclusive with userIds, role and all)
+     * @optional
+     * @default false
+     * @example true
+     */
+    @IsOptionalBoolean('Gửi cho tất cả học sinh chưa đóng học phí')
+    @ValidateIf((o) => !o.userIds && !o.role && !o.all)
+    allUnpaidTuition?: boolean
 }

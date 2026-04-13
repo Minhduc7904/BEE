@@ -3,7 +3,7 @@ import { BaseResponseDto, TuitionPaymentResponseDto } from 'src/application/dtos
 import { CreateBulkTuitionPaymentDto } from 'src/application/dtos/tuition-payment/create-bulk-tuition-payment.dto'
 import type { IUnitOfWork } from 'src/domain/repositories'
 import { ValidationException, NotFoundException } from 'src/shared/exceptions/custom-exceptions'
-import { AuditStatus, NotificationType, NotificationLevel, TuitionPaymentStatusLabels } from 'src/shared/enums'
+import { AuditStatus, NotificationType, NotificationLevel, TuitionPaymentStatusLabels, TuitionPaymentStatus } from 'src/shared/enums'
 import { RESOURCE_TYPES, ACTION_KEYS } from 'src/shared/constants'
 import { CreateTuitionPaymentData } from 'src/domain/interface'
 import { TuitionPayment } from 'src/domain/entities/tuition-payment/tuition-payment.entity'
@@ -143,13 +143,22 @@ export class CreateBulkTuitionPaymentUseCase {
             const statusLabel = dto.status ? (TuitionPaymentStatusLabels[dto.status] || dto.status) : 'Chưa nộp'
             const notificationDataList = students.map((s) => {
               const payment = createdPayments.find((p) => p.studentId === s.studentId)
+              const notificationLevel =
+                payment?.status === TuitionPaymentStatus.PAID ? NotificationLevel.SUCCESS : NotificationLevel.INFO
               return {
                 userId: s.userId,
                 title: 'Học phí mới',
                 message: `Học phí tháng ${dto.month}/${dto.year} đã được tạo - Số tiền: ${payment?.amount?.toLocaleString('vi-VN')}đ - Trạng thái: ${statusLabel}`,
                 type: NotificationType.TUITION,
-                level: NotificationLevel.INFO,
-                data: { paymentId: payment?.paymentId, amount: payment?.amount, month: dto.month, year: dto.year, status: dto.status },
+                level: notificationLevel,
+                data: {
+                  paymentId: payment?.paymentId,
+                  amount: payment?.amount,
+                  month: dto.month,
+                  year: dto.year,
+                  status: dto.status,
+                  shouldShowReminderModal: true,
+                },
               }
             })
             this.createAndNotifyMany.execute(notificationDataList).catch(() => { /* ignore notification error */ })
@@ -158,7 +167,9 @@ export class CreateBulkTuitionPaymentUseCase {
 
         return {
           responses: createdPayments.map((p) => TuitionPaymentResponseDto.fromEntity(p)),
-          paymentIds: createdPayments.map((p) => p.paymentId),
+          parentNotifyPaymentIds: createdPayments
+            .filter((p) => p.status === TuitionPaymentStatus.PAID)
+            .map((p) => p.paymentId),
         }
       } catch (error) {
         /**
@@ -179,10 +190,10 @@ export class CreateBulkTuitionPaymentUseCase {
       }
     })
 
-    // Gửi Zalo sau khi transaction đã commit để đảm bảo đọc đúng dữ liệu học phí vừa tạo
-    if (result.paymentIds.length > 0) {
+    // Chỉ gửi Zalo sau commit cho các học phí tạo mới có trạng thái PAID
+    if (result.parentNotifyPaymentIds.length > 0) {
       await this.sendBulkTuitionPaymentToParentUseCase.execute({
-        paymentIds: result.paymentIds,
+        paymentIds: result.parentNotifyPaymentIds,
       })
     }
 

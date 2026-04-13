@@ -3,7 +3,7 @@ import { BaseResponseDto, TuitionPaymentResponseDto } from 'src/application/dtos
 import { CreateTuitionPaymentDto } from 'src/application/dtos/tuition-payment/create-tuition-payment.dto'
 import type { IUnitOfWork } from 'src/domain/repositories'
 import { ConflictException, NotFoundException, ForbiddenException } from 'src/shared/exceptions/custom-exceptions'
-import { AuditStatus, NotificationType, NotificationLevel, TuitionPaymentStatusLabels } from 'src/shared/enums'
+import { AuditStatus, NotificationType, NotificationLevel, TuitionPaymentStatusLabels, TuitionPaymentStatus } from 'src/shared/enums'
 import { RESOURCE_TYPES, ACTION_KEYS } from 'src/shared/constants'
 import { CreateTuitionPaymentData } from 'src/domain/interface'
 import { CreateAndNotifyOneUseCase } from '../notification/create-and-notify-one.use-case'
@@ -16,7 +16,7 @@ export class CreateTuitionPaymentUseCase {
     private readonly unitOfWork: IUnitOfWork,
     private readonly createAndNotifyOne: CreateAndNotifyOneUseCase,
     private readonly sendTuitionPaymentToParentUseCase: SendTuitionPaymentToParentUseCase,
-  ) {}
+  ) { }
 
   async execute(dto: CreateTuitionPaymentDto, adminId?: number): Promise<BaseResponseDto<TuitionPaymentResponseDto>> {
     const result = await this.unitOfWork.executeInTransaction(async (repos) => {
@@ -77,26 +77,38 @@ export class CreateTuitionPaymentUseCase {
       const student = await repos.studentRepository.findById(dto.studentId)
       if (student) {
         const statusLabel = TuitionPaymentStatusLabels[payment.status] || payment.status
+        const notificationLevel =
+          payment.status === TuitionPaymentStatus.PAID ? NotificationLevel.SUCCESS : NotificationLevel.INFO
         this.createAndNotifyOne.execute({
           userId: student.userId,
           title: 'Học phí mới',
           message: `Học phí tháng ${payment.month}/${payment.year} đã được tạo - Số tiền: ${payment.amount?.toLocaleString('vi-VN')}đ - Trạng thái: ${statusLabel}`,
           type: NotificationType.TUITION,
-          level: NotificationLevel.INFO,
-          data: { paymentId: payment.paymentId, amount: payment.amount, month: payment.month, year: payment.year, status: payment.status },
+          level: notificationLevel,
+          data: {
+            paymentId: payment.paymentId,
+            amount: payment.amount,
+            month: payment.month,
+            year: payment.year,
+            status: payment.status,
+            shouldShowReminderModal: true,
+          },
         }).catch(() => { /* ignore notification error */ })
       }
 
       return {
         response: new TuitionPaymentResponseDto(payment),
         paymentId: payment.paymentId,
+        shouldNotifyParent: payment.status === TuitionPaymentStatus.PAID,
       }
     })
 
-    // Gửi Zalo sau khi transaction đã commit để tránh đọc dữ liệu cũ/chưa commit
-    await this.sendTuitionPaymentToParentUseCase.execute({
-      paymentId: result.paymentId,
-    }).catch(() => { /* ignore zalo notify error */ })
+    // Chỉ gửi Zalo sau commit khi học phí tạo mới có trạng thái PAID
+    if (result.shouldNotifyParent) {
+      await this.sendTuitionPaymentToParentUseCase.execute({
+        paymentId: result.paymentId,
+      }).catch(() => { /* ignore zalo notify error */ })
+    }
 
     return BaseResponseDto.success('Tạo học phí thành công', result.response)
   }

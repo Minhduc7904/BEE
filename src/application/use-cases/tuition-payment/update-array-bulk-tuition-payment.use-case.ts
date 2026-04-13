@@ -87,8 +87,9 @@ export class UpdateArrayBulkTuitionPaymentUseCase {
                         const data: UpdateTuitionPaymentData = {
                             notes: paymentUpdate.notes,
                         }
-                        const amountChanged = paymentUpdate.amount !== undefined && paymentUpdate.amount !== tuitionPayment.amount
-                        const statusChanged = paymentUpdate.status !== undefined && paymentUpdate.status !== tuitionPayment.status
+                        const statusChangedToPaid =
+                            paymentUpdate.status === TuitionPaymentStatus.PAID &&
+                            tuitionPayment.status !== TuitionPaymentStatus.PAID
 
                         if (paymentUpdate.status) {
                             data.status = paymentUpdate.status
@@ -122,7 +123,7 @@ export class UpdateArrayBulkTuitionPaymentUseCase {
 
                         if (updatedPayment) {
                             results.updated.push(updatedPayment)
-                            if (amountChanged || statusChanged) {
+                            if (statusChangedToPaid) {
                                 results.parentNotifyPaymentIds.push(updatedPayment.paymentId)
                             }
                         }
@@ -166,13 +167,24 @@ export class UpdateArrayBulkTuitionPaymentUseCase {
                         const student = await studentRepository.findById(payment.studentId)
                         if (student) {
                             const statusLabel = TuitionPaymentStatusLabels[payment.status] || payment.status
+                            const notificationLevel =
+                                payment.status === TuitionPaymentStatus.PAID
+                                    ? NotificationLevel.SUCCESS
+                                    : NotificationLevel.INFO
                             notificationDataList.push({
                                 userId: student.userId,
                                 title: 'Cập nhật học phí',
                                 message: `Học phí tháng ${payment.month}/${payment.year} đã được cập nhật - Số tiền: ${payment.amount?.toLocaleString('vi-VN')}đ - Trạng thái: ${statusLabel}`,
                                 type: NotificationType.TUITION,
-                                level: NotificationLevel.INFO,
-                                data: { paymentId: payment.paymentId, amount: payment.amount, month: payment.month, year: payment.year, status: payment.status },
+                                level: notificationLevel,
+                                data: {
+                                    paymentId: payment.paymentId,
+                                    amount: payment.amount,
+                                    month: payment.month,
+                                    year: payment.year,
+                                    status: payment.status,
+                                    shouldShowReminderModal: true,
+                                },
                             })
                         }
                     }
@@ -205,7 +217,7 @@ export class UpdateArrayBulkTuitionPaymentUseCase {
             }
         })
 
-        // Chỉ gửi Zalo cho phụ huynh khi có cập nhật số tiền hoặc trạng thái và sau khi transaction đã commit
+        // Chỉ gửi Zalo cho phụ huynh khi học phí được cập nhật sang trạng thái PAID và sau khi transaction đã commit
         if (result.parentNotifyPaymentIds.length > 0) {
             await this.sendBulkTuitionPaymentToParentUseCase.execute({
                 paymentIds: result.parentNotifyPaymentIds,
