@@ -9,6 +9,7 @@ const CHAPTER_USE_CASES = [
   chapterUseCase.GetAllChaptersUseCase,
   chapterUseCase.GetChapterChildrenUseCase,
   chapterUseCase.GetRootChaptersUseCase,
+  chapterUseCase.GetPublicStudentChaptersBySubjectUseCase,
   chapterUseCase.UpdateChapterUseCase,
   chapterUseCase.DeleteChapterUseCase,
 ]

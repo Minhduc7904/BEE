@@ -28,6 +28,7 @@ import {
   GetAllChaptersUseCase,
   GetChapterChildrenUseCase,
   GetRootChaptersUseCase,
+  GetPublicStudentChaptersBySubjectUseCase,
   UpdateChapterUseCase,
   DeleteChapterUseCase,
 } from '../../application/use-cases/chapter'
@@ -43,6 +44,7 @@ export class ChapterController {
     private readonly getAllChaptersUseCase: GetAllChaptersUseCase,
     private readonly getChapterChildrenUseCase: GetChapterChildrenUseCase,
     private readonly getRootChaptersUseCase: GetRootChaptersUseCase,
+    private readonly getPublicStudentChaptersBySubjectUseCase: GetPublicStudentChaptersBySubjectUseCase,
     private readonly updateChapterUseCase: UpdateChapterUseCase,
     private readonly deleteChapterUseCase: DeleteChapterUseCase,
   ) {}
@@ -128,6 +130,19 @@ export class ChapterController {
     @Query('limit', new ParseIntPipe({ optional: true })) limit: number = 100,
   ): Promise<PaginationResponseDto<ChapterResponseDto>> {
     return ExceptionHandler.execute(() => this.getRootChaptersUseCase.execute(subjectId, page, limit))
+  }
+
+  /**
+   * Get all chapters by subject for students
+   * GET /chapters/public/student/subject/:subjectId
+   */
+  @Get('public/student/subject/:subjectId')
+  @RequirePermission()
+  @HttpCode(HttpStatus.OK)
+  async getPublicStudentChaptersBySubject(
+    @Param('subjectId', ParseIntPipe) subjectId: number,
+  ): Promise<BaseResponseDto<ChapterResponseDto[]>> {
+    return ExceptionHandler.execute(() => this.getPublicStudentChaptersBySubjectUseCase.execute(subjectId))
   }
 
   /**

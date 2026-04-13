@@ -11,6 +11,7 @@ import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
 import { CreateAndNotifyOneUseCase } from '../notification/create-and-notify-one.use-case'
 import { NotificationType, NotificationLevel, AttendanceStatusLabels } from 'src/shared/enums'
 import { SendAttendanceToParentUseCase } from './send-attendance-to-parent.use-case'
+import { AttendanceStatus } from 'src/shared/enums'
 
 @Injectable()
 export class CreateAttendanceUseCase {
@@ -97,9 +98,11 @@ export class CreateAttendanceUseCase {
         })
 
         // Gửi Zalo sau khi transaction đã commit để tránh đọc dữ liệu cũ/chưa commit
-        await this.sendAttendanceToParentUseCase.execute({
-            attendanceId: result.attendanceId,
-        }).catch(() => { /* ignore zalo notify error */ })
+        if (dto.status !== AttendanceStatus.ABSENT) {
+            await this.sendAttendanceToParentUseCase.execute({
+                attendanceId: result.attendanceId,
+            }).catch(() => { /* ignore zalo notify error */ })
+        }
 
         return BaseResponseDto.success('Tạo điểm danh thành công', result.response)
     }
