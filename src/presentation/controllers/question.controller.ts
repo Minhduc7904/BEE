@@ -32,6 +32,7 @@ import { RequirePermission } from '../../shared/decorators/permissions.decorator
 import { CurrentUser } from '../../shared/decorators/current-user.decorator'
 import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 import { Visibility } from '../../shared/enums'
+import { NotFoundException } from '../../shared/exceptions/custom-exceptions'
 import {
   GetAllQuestionsUseCase,
   GetQuestionByIdUseCase,
@@ -146,6 +147,29 @@ export class QuestionController {
     // Student endpoint only returns public questions
     query.visibility = Visibility.PUBLISHED
     return ExceptionHandler.execute(() => this.getAllQuestionsUseCase.execute(query, 3600, studentId, true))
+  }
+
+  /**
+   * Get public question detail for students.
+   *
+   * @route GET /questions/public/student/:id
+   * @param id - Question ID
+   * @returns Public question details
+   *
+   * @example
+   * GET /questions/public/student/123
+   */
+  @Get('public/student/:id')
+  @RequirePermission()
+  @HttpCode(HttpStatus.OK)
+  async getPublicStudentQuestionById(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<BaseResponseDto<QuestionResponseDto>> {
+    return ExceptionHandler.execute(async () => {
+      const result = await this.getQuestionByIdUseCase.execute(id)
+
+      return result
+    })
   }
 
   /**

@@ -1,4 +1,4 @@
-import { IsOptionalEnumValue, IsOptionalIdNumber, IsOptionalInt } from '../../../shared/decorators/validate'
+import { IsOptionalEnumValue, IsOptionalIdNumber, IsOptionalInt, IsOptionalIntArray } from '../../../shared/decorators/validate'
 import { TypeOfExam } from '../../../shared/enums'
 import { ListQueryDto } from '../pagination/list-query.dto'
 
@@ -26,6 +26,14 @@ export class PublicStudentExamListQueryDto extends ListQueryDto {
      */
     @IsOptionalEnumValue(TypeOfExam, 'Loại đề thi')
     typeOfExam?: TypeOfExam
+
+    /**
+     * Lọc theo danh sách chapterId của câu hỏi trong đề
+     * Chỉ cần đề có ít nhất 1 câu hỏi thuộc 1 chapter trong danh sách
+     * @example [5, 6]
+     */
+    @IsOptionalIntArray('Danh sách ID chương')
+    chapterIds?: number[]
 
     sortBy?: string = 'createdAt'
 }

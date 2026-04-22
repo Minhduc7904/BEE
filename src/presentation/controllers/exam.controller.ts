@@ -178,7 +178,7 @@ export class ExamController {
    * Lấy danh sách đề thi public cho học sinh (có lọc + phân trang)
    *
    * @route GET /exams/public/student
-   * @param query - Query params: page, limit, search, grade, typeOfExam, subjectId, sortBy, sortOrder
+    * @param query - Query params: page, limit, search, grade, typeOfExam, subjectId, chapterIds, sortBy, sortOrder
    * @returns Danh sách đề thi có visibility = PUBLISHED
    *
    * @example
@@ -213,6 +213,26 @@ export class ExamController {
   @RequirePermission()
   @HttpCode(HttpStatus.OK)
   async getPublicStudentExams(
+    @Query() query: PublicStudentExamListQueryDto,
+    @CurrentUser('studentId') studentId?: number,
+  ): Promise<PublicStudentExamListResponseDto> {
+    return ExceptionHandler.execute(() => this.getPublicStudentExamsUseCase.execute(query, studentId))
+  }
+
+  /**
+   * Tìm kiếm đề thi public cho học sinh (search + filter + phân trang)
+   *
+   * @route GET /exams/public/student/search
+    * @param query - Query params: search, page, limit, grade, typeOfExam, subjectId, chapterIds, sortBy, sortOrder
+   * @returns Danh sách đề thi public phù hợp từ khóa tìm kiếm
+   *
+   * @example
+   * GET /exams/public/student/search?search=toán&page=1&limit=10&typeOfExam=GK1
+   */
+  @Get('public/student/search')
+  @RequirePermission()
+  @HttpCode(HttpStatus.OK)
+  async searchPublicStudentExams(
     @Query() query: PublicStudentExamListQueryDto,
     @CurrentUser('studentId') studentId?: number,
   ): Promise<PublicStudentExamListResponseDto> {

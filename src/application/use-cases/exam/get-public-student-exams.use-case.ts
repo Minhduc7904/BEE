@@ -25,6 +25,7 @@ export class GetPublicStudentExamsUseCase {
             subjectId: query.subjectId,
             grade: query.grade,
             typeOfExam: query.typeOfExam,
+            chapterIds: query.chapterIds,
             visibility: ExamVisibility.PUBLISHED,
             search: query.search,
         }
