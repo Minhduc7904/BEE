@@ -32,6 +32,8 @@ export class CompetitionSubmitMapper {
             totalPoints: prismaSubmit.totalPoints ? this.decimalToNumber(prismaSubmit.totalPoints) : undefined,
             maxPoints: prismaSubmit.maxPoints ? this.decimalToNumber(prismaSubmit.maxPoints) : undefined,
             timeSpentSeconds: prismaSubmit.timeSpentSeconds ?? undefined,
+            graderId: prismaSubmit.graderId ?? undefined,
+            feedback: prismaSubmit.feedback ?? undefined,
             metadata: prismaSubmit.metadata ?? undefined,
             createdAt: prismaSubmit.createdAt,
             updatedAt: prismaSubmit.updatedAt,

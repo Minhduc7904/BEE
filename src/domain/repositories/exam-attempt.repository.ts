@@ -31,6 +31,8 @@ export interface UpdateExamAttemptScoringData {
     score?: number | null
     points?: number | null
     maxPoints?: number | null
+    gradedAt?: Date | null
+    feedback?: string | null
 }
 
 export interface SubmitExamAttemptData {
@@ -39,6 +41,8 @@ export interface SubmitExamAttemptData {
     score?: number | null
     points?: number | null
     maxPoints?: number | null
+    gradedAt?: Date | null
+    feedback?: string | null
 }
 
 export interface ExamAttemptListResult {

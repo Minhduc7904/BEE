@@ -305,6 +305,8 @@ model Admin {
   attendances      Attendance[]
   learningItems    LearningItem[]
   homeworkSubmits  HomeworkSubmit[]
+  gradedExamAttempts ExamAttempt[]      @relation("ExamAttemptGrader")
+  gradedCompetitionSubmits CompetitionSubmit[] @relation("CompetitionSubmitGrader")
   courseAssistants CourseAssistant[]
 
   @@index([subjectId], map: "idx_admins_subject_id")
@@ -560,18 +562,24 @@ model ExamAttempt {
 
   startedAt       DateTime          @map("started_at") @db.Timestamp(0)
   endAt           DateTime?         @map("end_at") @db.Timestamp(0)
+  gradedAt        DateTime?         @map("graded_at") @db.Timestamp(0)
   status          ExamAttemptStatus @map("status") // IN_PROGRESS, SUBMITTED
   duration        Int?              @map("duration") // thời gian làm bài (phút)
   points          Decimal?          @map("points") @db.Decimal(10, 2) // điểm đạt được
   maxPoints       Decimal?          @map("max_points") @db.Decimal(10, 2) // điểm tối đa của bài thi           
   questionIds     Json?             @map("question_ids") // array ID các câu hỏi được chọn làm 
+  graderId        Int?              @map("grader_id") // admin/giáo viên chấm bài
+  feedback        String?           @map("feedback") @db.Text // nhận xét của giáo viên
+
   // Relations
   exam            Exam              @relation(fields: [examId], references: [examId], onDelete: Cascade)
   student         Student           @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  grader          Admin?            @relation("ExamAttemptGrader", fields: [graderId], references: [adminId], onDelete: SetNull)
   questionAnswers QuestionAnswer[]
 
   @@index([examId], map: "idx_exam_attempts_exam_id")
   @@index([studentId], map: "idx_exam_attempts_student_id")
+  @@index([graderId], map: "idx_exam_attempts_grader_id")
   @@index([startedAt], map: "idx_exam_attempts_started_at")
   @@map("exam_attempts")
 }
@@ -909,6 +917,8 @@ model CompetitionSubmit {
   totalPoints      Decimal? @map("total_points") @db.Decimal(10, 2) // điểm đạt được
   maxPoints        Decimal? @map("max_points") @db.Decimal(10, 2) // điểm tối đa
   timeSpentSeconds Int?     @map("time_spent_seconds") // thời gian làm bài (giây)
+  graderId         Int?     @map("grader_id") // admin/giáo viên chấm bài
+  feedback         String?  @map("feedback") @db.Text // nhận xét của giáo viên
 
   metadata Json? @map("metadata") // lưu IP, device, anti-cheating logs, etc.
 
@@ -918,12 +928,14 @@ model CompetitionSubmit {
   // Relations
   competition        Competition         @relation(fields: [competitionId], references: [competitionId], onDelete: Cascade)
   student            Student             @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  grader             Admin?              @relation("CompetitionSubmitGrader", fields: [graderId], references: [adminId], onDelete: SetNull)
   competitionAnswers CompetitionAnswer[]
   homeworkSubmit     HomeworkSubmit?
 
   @@unique([competitionId, studentId, attemptNumber], map: "unique_competition_student_attempt")
   @@index([competitionId], map: "idx_competition_submits_competition")
   @@index([studentId], map: "idx_competition_submits_student")
+  @@index([graderId], map: "idx_competition_submits_grader_id")
   @@index([status], map: "idx_competition_submits_status")
   @@index([submittedAt], map: "idx_competition_submits_submitted_at")
   @@map("competition_submits")

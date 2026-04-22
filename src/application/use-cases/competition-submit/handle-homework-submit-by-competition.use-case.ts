@@ -70,6 +70,10 @@ export class HandleHomeworkSubmitByCompetitionUseCase {
         }
     }
 
+    async generateFeedbackByCompetitionSubmitId(competitionSubmitId?: number): Promise<string | null> {
+        return this.generateAiFeedback(competitionSubmitId)
+    }
+
     private async tryGenerateAndSaveFeedback(homeworkSubmitId: number, competitionSubmitId?: number): Promise<string | null> {
         const aiFeedback = await this.generateAiFeedback(competitionSubmitId)
         if (!aiFeedback) {
@@ -83,7 +87,7 @@ export class HandleHomeworkSubmitByCompetitionUseCase {
             return aiFeedback
         } catch (error: any) {
             this.logger.warn(`Không lưu được feedback AI cho homeworkSubmitId=${homeworkSubmitId}: ${error?.message || 'Unknown error'}`)
-            return null
+            return aiFeedback
         }
     }
 

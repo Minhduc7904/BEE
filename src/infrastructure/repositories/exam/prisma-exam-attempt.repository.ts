@@ -17,7 +17,15 @@ export class PrismaExamAttemptRepository implements IExamAttemptRepository {
 
   async submitAttempt(
     attemptId: number,
-    data: { status: ExamAttemptStatus; endAt: Date; score?: number | null; points?: number | null; maxPoints?: number | null },
+    data: {
+      status: ExamAttemptStatus
+      endAt: Date
+      score?: number | null
+      points?: number | null
+      maxPoints?: number | null
+      gradedAt?: Date | null
+      feedback?: string | null
+    },
     txClient?: any,
   ) {
     const client = txClient || this.prisma
@@ -32,6 +40,8 @@ export class PrismaExamAttemptRepository implements IExamAttemptRepository {
         ...(data.score !== undefined ? { score: data.score } : {}),
         ...(data.points !== undefined ? { points: data.points } : {}),
         ...(data.maxPoints !== undefined ? { maxPoints: data.maxPoints } : {}),
+        ...(data.gradedAt !== undefined ? { gradedAt: data.gradedAt } : {}),
+        ...(data.feedback !== undefined ? { feedback: data.feedback } : {}),
       },
       include: {
         exam: true,
@@ -43,7 +53,13 @@ export class PrismaExamAttemptRepository implements IExamAttemptRepository {
 
   async updateScoring(
     attemptId: number,
-    data: { score?: number | null; points?: number | null; maxPoints?: number | null },
+    data: {
+      score?: number | null
+      points?: number | null
+      maxPoints?: number | null
+      gradedAt?: Date | null
+      feedback?: string | null
+    },
     txClient?: any,
   ) {
     const client = txClient || this.prisma
@@ -56,6 +72,8 @@ export class PrismaExamAttemptRepository implements IExamAttemptRepository {
         ...(data.score !== undefined ? { score: data.score } : {}),
         ...(data.points !== undefined ? { points: data.points } : {}),
         ...(data.maxPoints !== undefined ? { maxPoints: data.maxPoints } : {}),
+        ...(data.gradedAt !== undefined ? { gradedAt: data.gradedAt } : {}),
+        ...(data.feedback !== undefined ? { feedback: data.feedback } : {}),
       },
       include: {
         exam: true,

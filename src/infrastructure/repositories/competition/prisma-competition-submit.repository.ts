@@ -86,6 +86,8 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
                 totalPoints: data.totalPoints ?? null,
                 maxPoints: data.maxPoints ?? null,
                 timeSpentSeconds: data.timeSpentSeconds ?? null,
+                graderId: data.graderId ?? null,
+                feedback: data.feedback ?? null,
                 metadata: data.metadata ?? null,
             },
             include: {
@@ -162,6 +164,8 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
         if (data.totalPoints !== undefined) updateData.totalPoints = data.totalPoints
         if (data.maxPoints !== undefined) updateData.maxPoints = data.maxPoints
         if (data.timeSpentSeconds !== undefined) updateData.timeSpentSeconds = data.timeSpentSeconds
+        if (data.graderId !== undefined) updateData.graderId = data.graderId
+        if (data.feedback !== undefined) updateData.feedback = data.feedback
         if (data.metadata !== undefined) updateData.metadata = data.metadata
 
         const updated = await client.competitionSubmit.update({

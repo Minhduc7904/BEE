@@ -13,8 +13,11 @@ export class ExamAttempt {
   score?: number | null
   duration?: number | null
   endAt?: Date | null
+  gradedAt?: Date | null
   points?: number | null
   maxPoints?: number | null
+  graderId?: number | null
+  feedback?: string | null
   questionIds?: number[] | null
 
   exam?: Exam | null
@@ -30,8 +33,11 @@ export class ExamAttempt {
     score?: number | null
     duration?: number | null
     endAt?: Date | null
+    gradedAt?: Date | null
     points?: number | null
     maxPoints?: number | null
+    graderId?: number | null
+    feedback?: string | null
     questionIds?: number[] | null
     exam?: Exam | null | undefined
     student?: Student | null | undefined
@@ -45,8 +51,11 @@ export class ExamAttempt {
     this.score = data.score
     this.duration = data.duration
     this.endAt = data.endAt
+    this.gradedAt = data.gradedAt
     this.points = data.points
     this.maxPoints = data.maxPoints
+    this.graderId = data.graderId
+    this.feedback = data.feedback
     this.questionIds = data.questionIds
     this.exam = data.exam
     this.student = data.student

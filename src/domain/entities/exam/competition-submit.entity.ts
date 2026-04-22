@@ -22,6 +22,8 @@ export class CompetitionSubmit {
     totalPoints?: number | null // Decimal trong DB, number trong TS
     maxPoints?: number | null
     timeSpentSeconds?: number | null
+    graderId?: number | null
+    feedback?: string | null
     metadata?: any // JSON metadata
 
     // Navigation properties
@@ -43,6 +45,8 @@ export class CompetitionSubmit {
         totalPoints?: number | null
         maxPoints?: number | null
         timeSpentSeconds?: number | null
+        graderId?: number | null
+        feedback?: string | null
         metadata?: any
         competition?: Competition | null | undefined
         student?: Student | null | undefined
@@ -61,6 +65,8 @@ export class CompetitionSubmit {
         this.totalPoints = data.totalPoints
         this.maxPoints = data.maxPoints
         this.timeSpentSeconds = data.timeSpentSeconds
+        this.graderId = data.graderId
+        this.feedback = data.feedback
         this.metadata = data.metadata
         this.competition = data.competition
         this.student = data.student
@@ -176,6 +182,8 @@ export class CompetitionSubmit {
             totalPoints: this.totalPoints,
             maxPoints: this.maxPoints,
             timeSpentSeconds: this.timeSpentSeconds,
+            graderId: this.graderId,
+            feedback: this.feedback,
             metadata: this.metadata,
             createdAt: this.createdAt,
             updatedAt: this.updatedAt,
@@ -199,6 +207,8 @@ export class CompetitionSubmit {
             totalPoints: this.totalPoints,
             maxPoints: this.maxPoints,
             timeSpentSeconds: this.timeSpentSeconds,
+            graderId: this.graderId,
+            feedback: this.feedback,
             metadata: this.metadata,
             createdAt: this.createdAt,
             updatedAt: this.updatedAt,

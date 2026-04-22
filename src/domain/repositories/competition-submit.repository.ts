@@ -13,6 +13,8 @@ export interface CreateCompetitionSubmitData {
     totalPoints?: number | null
     maxPoints?: number | null
     timeSpentSeconds?: number | null
+    graderId?: number | null
+    feedback?: string | null
     metadata?: any
 }
 
@@ -23,6 +25,8 @@ export interface UpdateCompetitionSubmitData {
     totalPoints?: number | null
     maxPoints?: number | null
     timeSpentSeconds?: number | null
+    graderId?: number | null
+    feedback?: string | null
     metadata?: any
 }
 

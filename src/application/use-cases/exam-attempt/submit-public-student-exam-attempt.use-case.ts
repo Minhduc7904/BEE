@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 import type {
     IExamAttemptRepository,
     IExamRepository,
@@ -16,7 +16,9 @@ import {
     calcTrueFalsePoints,
     parseNumericAnswer,
 } from '../../../shared/constants/grading-rules.constants'
+import { CompetitionSubmitFeedbackAiService, type CompetitionSubmitStatsForAi } from 'src/infrastructure/services/competition-submit-feedback-ai.service'
 import { StudentExamAttemptDetailDto } from '../../dtos/exam-attempt'
+import { QuestionTypeLabels } from '../../../shared/enums'
 
 interface GradeResult {
     isCorrect: boolean | null
@@ -32,8 +34,18 @@ interface QuestionGradeInfo {
     correctAnswer: string | null
 }
 
+interface FeedbackStatsCounter {
+    total: number
+    correct: number
+    incorrect: number
+    unanswered: number
+    ungraded: number
+}
+
 @Injectable()
 export class SubmitPublicStudentExamAttemptUseCase {
+    private readonly logger = new Logger(SubmitPublicStudentExamAttemptUseCase.name)
+
     constructor(
         @Inject('IExamAttemptRepository')
         private readonly examAttemptRepository: IExamAttemptRepository,
@@ -43,6 +55,7 @@ export class SubmitPublicStudentExamAttemptUseCase {
         private readonly examRepository: IExamRepository,
         @Inject('IStudentRepository')
         private readonly studentRepository: IStudentRepository,
+        private readonly competitionSubmitFeedbackAiService: CompetitionSubmitFeedbackAiService,
     ) { }
 
     async execute(
@@ -218,18 +231,162 @@ export class SubmitPublicStudentExamAttemptUseCase {
             : 0
 
         const now = new Date()
+        const aiFeedback = await this.generateAiFeedbackForAttempt(
+            attemptId,
+            attempt.examId,
+            studentId,
+            scoredQuestionIds,
+            questionMap,
+            answers,
+            totalPoints,
+            maxPoints,
+            score,
+        )
+
         const submittedAttempt = await this.examAttemptRepository.submitAttempt(attemptId, {
             status: ExamAttemptStatus.SUBMITTED,
             endAt: now,
+            gradedAt: now,
             score,
             points: totalPoints,
             maxPoints,
+            feedback: aiFeedback,
         })
 
         return BaseResponseDto.success('Nộp bài thành công', {
             attempt: StudentExamAttemptDetailDto.fromEntity(submittedAttempt),
             answersGradedOnFinish: gradingUpdatedCount,
+            feedback: aiFeedback,
+            feedbackSource: aiFeedback ? 'exam_attempt' : null,
         })
+    }
+
+    private async generateAiFeedbackForAttempt(
+        attemptId: number,
+        examId: number,
+        studentId: number,
+        scoredQuestionIds: number[],
+        questionMap: Map<number, QuestionGradeInfo>,
+        answers: Array<any>,
+        totalPoints: number,
+        maxPoints: number,
+        scorePercentage: number,
+    ): Promise<string | null> {
+        try {
+            const stats = this.buildAttemptStats(
+                attemptId,
+                examId,
+                studentId,
+                scoredQuestionIds,
+                questionMap,
+                answers,
+                totalPoints,
+                maxPoints,
+                scorePercentage,
+            )
+
+            const feedback = await this.competitionSubmitFeedbackAiService.generateFeedbackFromStatistics(stats)
+            return feedback || null
+        } catch (error: any) {
+            this.logger.warn(`Không tạo được feedback cho examAttemptId=${attemptId}: ${error?.message || 'Unknown error'}`)
+            return null
+        }
+    }
+
+    private buildAttemptStats(
+        attemptId: number,
+        examId: number,
+        studentId: number,
+        scoredQuestionIds: number[],
+        questionMap: Map<number, QuestionGradeInfo>,
+        answers: Array<any>,
+        totalPoints: number,
+        maxPoints: number,
+        scorePercentage: number,
+    ): CompetitionSubmitStatsForAi {
+        const answerMap = new Map<number, any>(answers.map((a) => [a.questionId, a]))
+        const totals = this.createEmptyCounter()
+        const byTypeMap = new Map<string, { key: string; label: string; counts: FeedbackStatsCounter }>()
+
+        for (const questionId of scoredQuestionIds) {
+            const qInfo = questionMap.get(questionId)
+            if (!qInfo) {
+                continue
+            }
+
+            const answer = answerMap.get(questionId)
+            const status = this.resolveAnswerStatus(answer)
+
+            this.incrementCounter(totals, status, answer)
+
+            const key = qInfo.type
+            const label = (QuestionTypeLabels as Record<string, string>)[qInfo.type] || qInfo.type
+            const existing = byTypeMap.get(key) || {
+                key,
+                label,
+                counts: this.createEmptyCounter(),
+            }
+
+            this.incrementCounter(existing.counts, status, answer)
+            byTypeMap.set(key, existing)
+        }
+
+        return {
+            competitionSubmitId: attemptId,
+            competitionId: 0,
+            examId,
+            studentId,
+            totalPoints,
+            maxPoints,
+            scorePercentage,
+            totals,
+            bySection: [],
+            byChapter: [],
+            byDifficulty: [],
+            byQuestionType: Array.from(byTypeMap.values()),
+        }
+    }
+
+    private createEmptyCounter(): FeedbackStatsCounter {
+        return {
+            total: 0,
+            correct: 0,
+            incorrect: 0,
+            unanswered: 0,
+            ungraded: 0,
+        }
+    }
+
+    private resolveAnswerStatus(answer: any): 'correct' | 'incorrect' | 'unanswered' {
+        if (!answer) {
+            return 'unanswered'
+        }
+
+        const hasTextAnswer = Boolean(answer.answer && String(answer.answer).trim().length > 0)
+        const hasSelectedStatements = Boolean(answer.selectedStatementIds && answer.selectedStatementIds.length > 0)
+        const hasAnyAnswer = hasTextAnswer || hasSelectedStatements
+
+        if (!hasAnyAnswer) {
+            return 'unanswered'
+        }
+
+        if (answer.isCorrect === true) {
+            return 'correct'
+        }
+
+        return 'incorrect'
+    }
+
+    private incrementCounter(
+        counter: FeedbackStatsCounter,
+        status: 'correct' | 'incorrect' | 'unanswered',
+        answer?: any,
+    ): void {
+        counter.total += 1
+        counter[status] += 1
+        if (status === 'incorrect' && answer?.isCorrect == null) {
+            counter.ungraded += 1
+        }
     }
 
     private gradeAnswer(

@@ -1,5 +1,5 @@
 // src/application/use-cases/competition-submit/finish-competition-submit.use-case.ts
-import { Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 import type { ICompetitionRepository, IExamRepository } from '../../../domain/repositories'
 import type { ICompetitionSubmitRepository } from '../../../domain/repositories/competition-submit.repository'
 import type { ICompetitionAnswerRepository } from '../../../domain/repositories/competition-answer.repository'
@@ -35,6 +35,8 @@ interface QuestionGradeInfo {
 
 @Injectable()
 export class FinishCompetitionSubmitUseCase {
+    private readonly logger = new Logger(FinishCompetitionSubmitUseCase.name)
+
     constructor(
         @Inject('ICompetitionSubmitRepository')
         private readonly competitionSubmitRepository: ICompetitionSubmitRepository,
@@ -56,6 +58,8 @@ export class FinishCompetitionSubmitUseCase {
         studentId: number,
         homeworkContentId?: number | string,
     ): Promise<BaseResponseDto<any>> {
+        const hasHomeworkContext = homeworkContentId !== undefined && homeworkContentId !== null
+
         // 1. Tìm submit và kiểm tra quyền
         const submit = await this.competitionSubmitRepository.findById(submitId)
         if (!submit) {
@@ -240,9 +244,11 @@ export class FinishCompetitionSubmitUseCase {
             reason?: string
             homeworkSubmitId?: number
             points?: number
+            feedback?: string | null
         } | null = null
+        let homeworkFeedback: string | null = null
 
-        if (homeworkContentId) {
+        if (hasHomeworkContext) {
             const parsedHomeworkContentId = Number(homeworkContentId)
             const homeworkContent = await this.homeworkContentRepository.findById(parsedHomeworkContentId)
             if (!homeworkContent) {
@@ -283,12 +289,13 @@ export class FinishCompetitionSubmitUseCase {
                         submitId,
                         points: newPoints,
                     })
-                    console.log('Created new homework submit:', newPoints, created)
                     homeworkSubmitResult = {
                         action: 'created',
                         homeworkSubmitId: created.homeworkSubmitId,
                         points: newPoints,
+                        feedback: created.feedback ?? null,
                     }
+                    homeworkFeedback = created.feedback ?? null
                 }
             } else {
                 // Đã có submit → kiểm tra có được cập nhật điểm không
@@ -319,16 +326,35 @@ export class FinishCompetitionSubmitUseCase {
                         action: 'updated',
                         homeworkSubmitId: updated.homeworkSubmitId,
                         points: newPoints,
+                        feedback: updated.feedback ?? null,
                     }
+                    homeworkFeedback = updated.feedback ?? null
                 } else {
+                    const existingFeedback = existingSubmit.feedback ?? null
                     homeworkSubmitResult = {
                         action: 'skipped',
                         reason: !canUpdate
                             ? skipReason
                             : `Điểm mới (${newPoints}) không cao hơn điểm hiện tại (${existingSubmit.points ?? 0}) và updateMaxPoints = true`,
+                        feedback: existingFeedback,
                     }
+                    homeworkFeedback = existingFeedback
                 }
             }
+        }
+
+        let competitionFeedback: string | null = null
+        if (hasHomeworkContext) {
+            const homeworkSubmitId = homeworkSubmitResult?.homeworkSubmitId
+            if (homeworkSubmitId) {
+                homeworkFeedback = await this.tryGenerateAndSaveHomeworkFeedback(
+                    homeworkSubmitId,
+                    submitId,
+                    homeworkFeedback,
+                )
+            }
+        } else {
+            competitionFeedback = await this.tryGenerateAndSaveCompetitionFeedback(submitId)
         }
 
         // 11. Trả về kết quả
@@ -355,7 +381,63 @@ export class FinishCompetitionSubmitUseCase {
             solutionYoutubeUrl: allowViewSolutionYoutubeUrl ? (exam.solutionYoutubeUrl ?? null) : null,
             answersGradedOnFinish: gradingUpdates.length,
             homeworkSubmit: homeworkSubmitResult,
+            feedback: homeworkFeedback ?? competitionFeedback,
+            feedbackSource: homeworkFeedback ? 'homework_submit' : competitionFeedback ? 'competition_submit' : null,
         })
+    }
+
+    private async tryGenerateAndSaveCompetitionFeedback(
+        competitionSubmitId: number,
+    ): Promise<string | null> {
+        const aiFeedback = await this.handleHomeworkSubmitByCompetitionUseCase.generateFeedbackByCompetitionSubmitId(
+            competitionSubmitId,
+        )
+
+        if (!aiFeedback) {
+            return null
+        }
+
+        try {
+            await this.competitionSubmitRepository.update(competitionSubmitId, {
+                feedback: aiFeedback,
+            })
+            return aiFeedback
+        } catch (error: any) {
+            this.logger.warn(
+                `Không lưu được feedback cho competitionSubmitId=${competitionSubmitId}: ${error?.message || 'Unknown error'}`,
+            )
+            return aiFeedback
+        }
+    }
+
+    private async tryGenerateAndSaveHomeworkFeedback(
+        homeworkSubmitId: number,
+        competitionSubmitId: number,
+        existingFeedback: string | null,
+    ): Promise<string | null> {
+        if (existingFeedback && existingFeedback.trim().length > 0) {
+            return existingFeedback
+        }
+
+        const aiFeedback = await this.handleHomeworkSubmitByCompetitionUseCase.generateFeedbackByCompetitionSubmitId(
+            competitionSubmitId,
+        )
+
+        if (!aiFeedback) {
+            return null
+        }
+
+        try {
+            await this.homeworkSubmitRepository.update(homeworkSubmitId, {
+                feedback: aiFeedback,
+            })
+            return aiFeedback
+        } catch (error: any) {
+            this.logger.warn(
+                `Không lưu được feedback cho homeworkSubmitId=${homeworkSubmitId}: ${error?.message || 'Unknown error'}`,
+            )
+            return aiFeedback
+        }
     }
 
     /**
