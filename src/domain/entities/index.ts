@@ -23,3 +23,5 @@ export * from './learningItem/youtube-content.entity'
 export * from './notification/notification.entity'
 export * from './tuition-payment'
 export * from './job'
+
+export * from './question-chat'

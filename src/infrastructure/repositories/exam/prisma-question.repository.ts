@@ -11,6 +11,7 @@ import {
 import { PrismaService } from '../../../prisma/prisma.service'
 import { QuestionMapper } from '../../mappers/exam/question.mapper'
 import { TextSearchUtil } from '../../../shared/utils/text-search.util'
+import { ExamVisibility } from '../../../shared/enums/exam-visibility.enum'
 
 @Injectable()
 export class PrismaQuestionRepository implements IQuestionRepository {
@@ -304,6 +305,27 @@ export class PrismaQuestionRepository implements IQuestionRepository {
         if (filters?.excludeQuestionIds !== undefined && filters.excludeQuestionIds.length > 0) {
             where.questionId = {
                 notIn: filters.excludeQuestionIds,
+            }
+        }
+
+        if (filters?.answeredByStudentId !== undefined) {
+            where.questionAnswers = {
+                some: {
+                    ...(filters.answerIsCorrect !== undefined ? { isCorrect: filters.answerIsCorrect } : {}),
+                    OR: [
+                        {
+                            attemptId: null,
+                        },
+                        {
+                            examAttempt: {
+                                studentId: filters.answeredByStudentId,
+                                exam: {
+                                    visibility: ExamVisibility.PUBLISHED,
+                                },
+                            },
+                        },
+                    ],
+                },
             }
         }
 

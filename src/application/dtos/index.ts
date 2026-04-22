@@ -58,3 +58,9 @@ export * from './competition'
 
 // Competition Submit DTOs
 export * from './competition-submit'
+
+// Question Chat DTOs
+export * from './question-chat'
+
+// Question Chat Message DTOs
+export * from './question-chat-message'

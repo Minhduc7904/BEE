@@ -52,6 +52,8 @@ import {
   PrismaYoutubeContentRepository,
   PrismaHomeworkContentRepository,
   PrismaHomeworkSubmitRepository,
+  PrismaQuestionChatMessageRepository,
+  PrismaQuestionChatRepository,
 } from './repositories'
 import {
   PasswordService,
@@ -75,6 +77,7 @@ import { MarkdownFixService } from './services/markdown-fix.service'
 import { MarkdownRenderService } from './services/markdown-render.service'
 import { QuestionChapterClassificationService } from './services/question-chapter-classification.service'
 import { FileConverterService } from './services/file-converter.service'
+import { QuestionChatAIService } from './services/question-chat-ai.service'
 import { GoogleAdminStrategy } from './strategies/google-admin.strategy'
 import { GoogleStudentStrategy } from './strategies/google-student.strategy'
 import jwtConfig from '../config/jwt.config'
@@ -344,6 +347,16 @@ import openaiConfig from '../config/openai.config'
       inject: [PrismaService],
     },
     {
+      provide: 'IQuestionChatMessageRepository',
+      useFactory: (prisma: PrismaService) => new PrismaQuestionChatMessageRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IQuestionChatRepository',
+      useFactory: (prisma: PrismaService) => new PrismaQuestionChatRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
       provide: 'PASSWORD_SERVICE',
       useClass: PasswordService,
     },
@@ -386,6 +399,7 @@ import openaiConfig from '../config/openai.config'
     GoogleAdminStrategy,
     GoogleStudentStrategy,
     ImageExportService,
+    QuestionChatAIService,
   ],
   exports: [
     'UNIT_OF_WORK',
@@ -436,6 +450,8 @@ import openaiConfig from '../config/openai.config'
     'IYoutubeContentRepository',
     'IHomeworkContentRepository',
     'IHomeworkSubmitRepository',
+    'IQuestionChatMessageRepository',
+    'IQuestionChatRepository',
     'PASSWORD_SERVICE',
     'JWT_TOKEN_SERVICE',
     'TOKEN_HASH_SERVICE',
@@ -456,6 +472,7 @@ import openaiConfig from '../config/openai.config'
     FileConverterService,
     ZaloService,
     ImageExportService,
+    QuestionChatAIService,
   ],
 })
 

@@ -19,6 +19,8 @@ const QUESTION_USE_CASES = [
   questionUseCase.AddQuestionToSectionUseCase,
   questionUseCase.AddQuestionToExamUseCase,
   questionUseCase.SearchQuestionsUseCase,
+  questionUseCase.SearchPublicStudentQuestionsUseCase,
+  questionUseCase.GetRelatedPublicStudentQuestionsUseCase,
   AttachMediaFromContentUseCase,
   ProcessContentWithPresignedUrlsUseCase,
   ProcessContentWithPresignedUrlsAndRenderHtmlUseCase,

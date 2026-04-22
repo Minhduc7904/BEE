@@ -89,13 +89,15 @@ export class SubmitPublicStudentQuestionAnswerUseCase {
             existing = await this.questionAnswerRepository.findById(
                 body.questionAnswerId,
             )
+            if (existing.attemptId) {
+                existing = null;
+            }
         } else {
             existing = await this.questionAnswerRepository.findByAttemptAndQuestion(
                 body.attemptId ?? null,
                 body.questionId,
             )
         }
-
 
         let selectedStatementIds: number[] = existing?.selectedStatementIds ?? []
         let trueFalseAnswerJson: string | undefined = undefined

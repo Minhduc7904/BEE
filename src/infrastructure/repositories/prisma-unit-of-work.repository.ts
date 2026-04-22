@@ -82,6 +82,8 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _questionExamRepository: any
     let _questionChapterRepository: any
     let _zaloTokenRepository: any
+    let _questionChatRepository: any
+    let _questionChatMessageRepository: any
 
     Object.defineProperty(repos, 'studentRepository', {
       get: () => (_studentRepository ??= new Repositories.PrismaStudentRepository(client)),
@@ -255,6 +257,16 @@ export class PrismaUnitOfWork implements IUnitOfWork {
 
     Object.defineProperty(repos, 'zaloTokenRepository', {
       get: () => (_zaloTokenRepository ??= new Repositories.PrismaZaloTokenRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'questionChatRepository', {
+      get: () => (_questionChatRepository ??= new Repositories.PrismaQuestionChatRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'questionChatMessageRepository', {
+      get: () => (_questionChatMessageRepository ??= new Repositories.PrismaQuestionChatMessageRepository(client)),
       enumerable: true,
     })
 

@@ -48,6 +48,8 @@ import { VideoContentApplicationModule } from './use-cases/videoContent/video-co
 import { DocumentContentApplicationModule } from './use-cases/documentContent/document-content.application.module'
 import { MarkdownFixApplicationModule } from './use-cases/markdown-fix/markdown-fix.application.module'
 import { ZaloApplicationModule } from './use-cases/zalo/zalo.application.module'
+import { QuestionChatApplicationModule } from './use-cases/question-chat/question-chat.application.module'
+import { QuestionChatMessageApplicationModule } from './use-cases/question-chat-message/question-chat-message.application.module'
 
 const modules = [
   // Auth & Account
@@ -113,6 +115,10 @@ const modules = [
   DocumentContentApplicationModule,
   MarkdownFixApplicationModule,
   ZaloApplicationModule,
+
+  // Question Chat
+  QuestionChatApplicationModule,
+  QuestionChatMessageApplicationModule,
 ]
 
 @Module({

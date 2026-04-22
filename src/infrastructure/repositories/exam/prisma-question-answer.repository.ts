@@ -199,6 +199,7 @@ export class PrismaQuestionAnswerRepository implements IQuestionAnswerRepository
     async findPublicByStudentAndQuestionIds(
         studentId: number,
         questionIds: number[],
+        isCorrect?: boolean,
         txClient?: any,
     ): Promise<QuestionAnswer[]> {
         if (!questionIds.length) return []
@@ -210,6 +211,7 @@ export class PrismaQuestionAnswerRepository implements IQuestionAnswerRepository
                 questionId: {
                     in: questionIds,
                 },
+                ...(isCorrect !== undefined ? { isCorrect } : {}),
                 OR: [
                     {
                         attemptId: null,

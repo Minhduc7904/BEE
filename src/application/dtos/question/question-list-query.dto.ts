@@ -1,6 +1,6 @@
 // src/application/dtos/question/question-list-query.dto.ts
 import { ListQueryDto } from '../pagination/list-query.dto'
-import { IsOptionalIdNumber, IsOptionalEnumValue, IsOptionalInt, IsOptionalIntArray } from 'src/shared/decorators/validate'
+import { IsOptionalIdNumber, IsOptionalEnumValue, IsOptionalInt, IsOptionalIntArray, IsOptionalBoolean } from 'src/shared/decorators/validate'
 import { QuestionType, Difficulty, Visibility } from 'src/shared/enums'
 
 /**
@@ -72,4 +72,12 @@ export class QuestionListQueryDto extends ListQueryDto {
    */
   @IsOptionalIntArray('Danh sách ID chương')
   chapterIds?: number[]
+
+  /**
+   * Filter by student answer correctness (student endpoint)
+   * @optional
+   * @example true
+   */
+  @IsOptionalBoolean('Trạng thái đúng/sai')
+  isCorrect?: boolean
 }

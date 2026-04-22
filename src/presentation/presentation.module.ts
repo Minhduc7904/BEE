@@ -60,7 +60,8 @@ import { DocumentContentController } from './controllers/document-content.contro
 import { HealthController } from './controllers/health.controller'
 import { MarkdownFixController } from './controllers/markdown-fix.controller'
 import { ZaloController } from './controllers/zalo.controller'
-
+import { QuestionChatController } from './controllers/question-chat.controller'
+import { QuestionChatMessageController } from './controllers/question-chat-message.controller'
 @Module({
   imports: [
     ApplicationModule, // ✅ lấy toàn bộ UseCase đã export
@@ -119,6 +120,8 @@ import { ZaloController } from './controllers/zalo.controller'
     HealthController,
     MarkdownFixController,
     ZaloController,
+    QuestionChatController,
+    QuestionChatMessageController,
   ],
   providers: [
     // WebSocket Gateways
@@ -135,4 +138,4 @@ import { ZaloController } from './controllers/zalo.controller'
     AttendanceGateway,
   ],
 })
-export class PresentationModule {}
+export class PresentationModule { }

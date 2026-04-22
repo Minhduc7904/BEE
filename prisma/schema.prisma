@@ -122,6 +122,7 @@ model User {
   notifications          Notification[]
   userPointLogs          UserPointLog[]
   createdJobs            Job[]                    @relation("JobCreator")
+  questionChats          QuestionChat[]
 
   @@index([lastName, firstName], map: "idx_users_name")
   @@map("users")
@@ -643,6 +644,7 @@ model Question {
   tempQuestion       TempQuestion?       @relation("TempQuestionFinal")
   competitionAnswers CompetitionAnswer[]
   questionAnswers    QuestionAnswer[]
+  questionChats      QuestionChat[]
 
   @@index([subjectId, grade], map: "idx_questions_subject_grade")
   @@index([subjectId], map: "idx_questions_subject_id")
@@ -1466,6 +1468,49 @@ model TuitionPayment {
   @@index([year, month], map: "idx_tuition_payments_year_month")
   @@index([status], map: "idx_tuition_payments_status")
   @@map("tuition_payments")
+}
+
+// ============================================
+// QUESTION AI CHAT - Đoạn chat giữa người dùng và AI về câu hỏi
+// ============================================
+
+enum QuestionChatRole {
+  USER
+  AI
+}
+
+model QuestionChat {
+  chatId     Int      @id @default(autoincrement()) @map("chat_id")
+  userId     Int      @map("user_id")
+  questionId Int      @map("question_id")
+  title      String?  @map("title") @db.VarChar(255) // tiêu đề tóm tắt cuộc hội thoại (optional)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  user     User                  @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  question Question              @relation(fields: [questionId], references: [questionId], onDelete: Cascade)
+  messages QuestionChatMessage[]
+
+  @@index([userId, questionId], map: "idx_question_chats_user_question")
+  @@index([userId, createdAt], map: "idx_question_chats_user_created")
+  @@index([questionId], map: "idx_question_chats_question")
+  @@map("question_chats")
+}
+
+model QuestionChatMessage {
+  messageId Int              @id @default(autoincrement()) @map("message_id")
+  chatId    Int              @map("chat_id")
+  role      QuestionChatRole @map("role") // USER hoặc AI
+  content   String           @map("content") @db.LongText // nội dung tin nhắn
+  metadata  Json?            @map("metadata") // token usage, model info, etc.
+  createdAt DateTime         @default(now()) @map("created_at") @db.Timestamp(0)
+
+  // Relations
+  chat QuestionChat @relation(fields: [chatId], references: [chatId], onDelete: Cascade)
+
+  @@index([chatId, createdAt], map: "idx_question_chat_messages_chat_created")
+  @@map("question_chat_messages")
 }
 
 // ============================================

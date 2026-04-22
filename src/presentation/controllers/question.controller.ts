@@ -24,6 +24,7 @@ import {
   AddQuestionToSectionDto,
   AddQuestionToExamDto,
   SearchQuestionsDto,
+  PublicStudentRelatedQuestionsQueryDto,
 } from '../../application/dtos/question'
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
@@ -42,6 +43,8 @@ import {
   AddQuestionToSectionUseCase,
   AddQuestionToExamUseCase,
   SearchQuestionsUseCase,
+  SearchPublicStudentQuestionsUseCase,
+  GetRelatedPublicStudentQuestionsUseCase,
 } from '../../application/use-cases/question'
 
 @Injectable()
@@ -58,6 +61,8 @@ export class QuestionController {
     private readonly addQuestionToSectionUseCase: AddQuestionToSectionUseCase,
     private readonly addQuestionToExamUseCase: AddQuestionToExamUseCase,
     private readonly searchQuestionsUseCase: SearchQuestionsUseCase,
+    private readonly searchPublicStudentQuestionsUseCase: SearchPublicStudentQuestionsUseCase,
+    private readonly getRelatedPublicStudentQuestionsUseCase: GetRelatedPublicStudentQuestionsUseCase,
   ) {}
 
   /**
@@ -122,11 +127,13 @@ export class QuestionController {
    * Get public questions for students with pagination
    *
    * @route GET /questions/public/student
-    * @param query - Query parameters (page, limit, subjectId, chapterIds, type, difficulty, grade, search)
-    * @returns Paginated list of public questions (includes chapters and current student's question answers)
+    * @param query - Query parameters (page, limit, subjectId, chapterIds, type, difficulty, grade, search, isCorrect)
+    * @returns Paginated list of public questions (includes chapters and current student's question answers; when isCorrect is provided, only questions already answered by current student are returned)
    *
    * @example
     * GET /questions/public/student?page=1&limit=10&chapterIds=5&chapterIds=6
+     * GET /questions/public/student?page=1&limit=10&isCorrect=true
+     * GET /questions/public/student?page=1&limit=10&isCorrect=false
    * GET /questions/public/student?page=1&limit=10
    */
   @Get('public/student')
@@ -139,6 +146,54 @@ export class QuestionController {
     // Student endpoint only returns public questions
     query.visibility = Visibility.PUBLISHED
     return ExceptionHandler.execute(() => this.getAllQuestionsUseCase.execute(query, 3600, studentId, true))
+  }
+
+  /**
+   * Search public questions for current student.
+   *
+   * @route GET /questions/public/student/search
+   * @param query - Query parameters (search, page, limit, subjectId, chapterIds, type, difficulty, grade, isCorrect)
+   * @param studentId - Current student ID (auto-injected)
+   * @returns Paginated list of public questions matching keyword and filters
+   *
+   * @example
+   * GET /questions/public/student/search?search=dao+ham&page=1&limit=10
+   */
+  @Get('public/student/search')
+  @RequirePermission()
+  @HttpCode(HttpStatus.OK)
+  async searchPublicStudentQuestions(
+    @Query() query: QuestionListQueryDto,
+    @CurrentUser('studentId') studentId?: number,
+  ): Promise<QuestionListResponseDto> {
+    return ExceptionHandler.execute(() =>
+      this.searchPublicStudentQuestionsUseCase.execute(query, studentId),
+    )
+  }
+
+  /**
+   * Suggest related public questions from a target question for current student.
+   *
+   * @route GET /questions/public/student/:questionId/related
+   * @param questionId - Base question ID
+   * @param query - Query params (limit)
+   * @param studentId - Current student ID (auto-injected)
+   * @returns Related public questions
+   *
+   * @example
+   * GET /questions/public/student/123/related?limit=10
+   */
+  @Get('public/student/:questionId/related')
+  @RequirePermission()
+  @HttpCode(HttpStatus.OK)
+  async getRelatedPublicStudentQuestions(
+    @Param('questionId', ParseIntPipe) questionId: number,
+    @Query() query: PublicStudentRelatedQuestionsQueryDto,
+    @CurrentUser('studentId') studentId?: number,
+  ): Promise<QuestionListResponseDto> {
+    return ExceptionHandler.execute(() =>
+      this.getRelatedPublicStudentQuestionsUseCase.execute(questionId, query, studentId),
+    )
   }
 
   /**

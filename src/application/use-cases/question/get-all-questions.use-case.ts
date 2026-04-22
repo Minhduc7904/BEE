@@ -21,7 +21,7 @@ export class GetAllQuestionsUseCase {
     private readonly questionAnswerRepository: IQuestionAnswerRepository,
     private readonly processContentUseCase: ProcessContentWithPresignedUrlsUseCase,
     private readonly processContentAndRenderHtmlUseCase: ProcessContentWithPresignedUrlsAndRenderHtmlUseCase,
-  ) {}
+  ) { }
 
   async execute(
     query: QuestionListQueryDto,
@@ -38,6 +38,8 @@ export class GetAllQuestionsUseCase {
       createdBy: query.createdBy,
       chapterIds: query.chapterIds?.length ? query.chapterIds : query.chapterId ? [query.chapterId] : undefined,
       search: query.search,
+      answeredByStudentId: studentId && query.isCorrect !== undefined ? studentId : undefined,
+      answerIsCorrect: query.isCorrect,
     }
 
     const pagination = {
@@ -53,7 +55,11 @@ export class GetAllQuestionsUseCase {
 
     if (studentId && questionResponses.length > 0) {
       const questionIds = questionResponses.map((item) => item.questionId)
-      const studentAnswers = await this.questionAnswerRepository.findPublicByStudentAndQuestionIds(studentId, questionIds)
+      const studentAnswers = await this.questionAnswerRepository.findPublicByStudentAndQuestionIds(
+        studentId,
+        questionIds,
+        query.isCorrect,
+      )
 
       const answerMap = new Map<number, StudentQuestionAnswerSummaryDto[]>()
       for (const answer of studentAnswers) {

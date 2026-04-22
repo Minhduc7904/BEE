@@ -29,6 +29,8 @@ export interface QuestionFilterOptions {
   examId?: number
   search?: string
   excludeQuestionIds?: number[]
+  answeredByStudentId?: number
+  answerIsCorrect?: boolean
 }
 
 export interface QuestionPaginationOptions {

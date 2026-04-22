@@ -10,3 +10,5 @@ export { RemoveQuestionFromExamUseCase } from './remove-question-from-exam.use-c
 export { AddQuestionToSectionUseCase } from './add-question-to-section.use-case'
 export { AddQuestionToExamUseCase } from './add-question-to-exam.use-case'
 export { SearchQuestionsUseCase } from './search-questions.use-case'
+export { SearchPublicStudentQuestionsUseCase } from './search-public-student-questions.use-case'
+export { GetRelatedPublicStudentQuestionsUseCase } from './get-related-public-student-questions.use-case'
