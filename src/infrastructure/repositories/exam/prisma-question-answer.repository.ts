@@ -80,7 +80,7 @@ export class PrismaQuestionAnswerRepository implements IQuestionAnswerRepository
         ) as Array<{
             chapterId: number | null
             chapterName: string | null
-                        totalQuestionsInChapter: number | bigint | null
+            totalQuestionsInChapter: number | bigint | null
             answeredCount: number | bigint
             correctCount: number | bigint | null
             incorrectCount: number | bigint | null
@@ -270,6 +270,21 @@ export class PrismaQuestionAnswerRepository implements IQuestionAnswerRepository
             },
             orderBy: {
                 questionAnswerId: 'asc',
+            },
+        })
+
+        return QuestionAnswerMapper.toDomainQuestionAnswer(answer)
+    }
+
+
+    async findById(
+        questionAnswerId: number,
+        txClient?: any,
+    ) {
+        const client = txClient || this.prisma
+        const answer = await client.questionAnswer.findUnique({
+            where: {
+                questionAnswerId,
             },
         })
 

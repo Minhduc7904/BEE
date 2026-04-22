@@ -72,15 +72,30 @@ export class SubmitPublicStudentQuestionAnswerUseCase {
             attemptStatus = attempt.status
         }
 
+        if (body.questionAnswerId) {
+            const existing = await this.questionAnswerRepository.findById(body.questionAnswerId)
+
+            if (!existing) {
+                throw new NotFoundException(`Khong tim thay cau tra loi voi ID ${body.questionAnswerId}`)
+            }
+        }
+
         const question = await this.questionRepository.findById(body.questionId)
         if (!question) {
             throw new NotFoundException(`Cau hoi voi ID ${body.questionId} khong ton tai`)
         }
+        let existing: any = null;
+        if (body.questionAnswerId) {
+            existing = await this.questionAnswerRepository.findById(
+                body.questionAnswerId,
+            )
+        } else {
+            existing = await this.questionAnswerRepository.findByAttemptAndQuestion(
+                body.attemptId ?? null,
+                body.questionId,
+            )
+        }
 
-        const existing = await this.questionAnswerRepository.findByAttemptAndQuestion(
-            body.attemptId ?? null,
-            body.questionId,
-        )
 
         let selectedStatementIds: number[] = existing?.selectedStatementIds ?? []
         let trueFalseAnswerJson: string | undefined = undefined

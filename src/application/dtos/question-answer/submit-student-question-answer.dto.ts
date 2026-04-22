@@ -22,6 +22,9 @@ export class SubmitStudentQuestionAnswerDto {
     @IsRequiredIdNumber('ID câu hỏi')
     questionId: number
 
+    @IsOptionalInt('ID câu trả lời')
+    questionAnswerId?: number
+
     @IsOptional()
     @IsString({ message: 'Câu trả lời dạng văn bản phải là chuỗi ký tự' })
     @MaxLength(10000, { message: 'Câu trả lời dạng văn bản không được vượt quá 10000 ký tự' })

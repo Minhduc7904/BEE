@@ -122,6 +122,11 @@ export interface IQuestionAnswerRepository {
         txClient?: any,
     ): Promise<QuestionAnswer | null>
 
+    findById(
+        questionAnswerId: number,
+        txClient?: any,
+    ): Promise<QuestionAnswer | null>
+
     create(
         data: CreateQuestionAnswerData,
         txClient?: any,
