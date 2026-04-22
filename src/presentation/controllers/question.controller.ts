@@ -64,7 +64,7 @@ export class QuestionController {
     private readonly searchQuestionsUseCase: SearchQuestionsUseCase,
     private readonly searchPublicStudentQuestionsUseCase: SearchPublicStudentQuestionsUseCase,
     private readonly getRelatedPublicStudentQuestionsUseCase: GetRelatedPublicStudentQuestionsUseCase,
-  ) {}
+  ) { }
 
   /**
    * Get my questions (created by current user)
@@ -150,6 +150,30 @@ export class QuestionController {
   }
 
   /**
+ * Search public questions for current student.
+ *
+ * @route GET /questions/public/student/search
+ * @param query - Query parameters (search, page, limit, subjectId, chapterIds, type, difficulty, grade, isCorrect)
+ * @param studentId - Current student ID (auto-injected)
+ * @returns Paginated list of public questions matching keyword and filters
+ *
+ * @example
+ * GET /questions/public/student/search?search=dao+ham&page=1&limit=10
+ */
+  @Get('public/student/search')
+  @RequirePermission()
+  @HttpCode(HttpStatus.OK)
+  async searchPublicStudentQuestions(
+    @Query() query: QuestionListQueryDto,
+    @CurrentUser('studentId') studentId?: number,
+  ): Promise<QuestionListResponseDto> {
+    return ExceptionHandler.execute(() =>
+      this.searchPublicStudentQuestionsUseCase.execute(query, studentId),
+    )
+  }
+
+
+  /**
    * Get public question detail for students.
    *
    * @route GET /questions/public/student/:id
@@ -172,28 +196,6 @@ export class QuestionController {
     })
   }
 
-  /**
-   * Search public questions for current student.
-   *
-   * @route GET /questions/public/student/search
-   * @param query - Query parameters (search, page, limit, subjectId, chapterIds, type, difficulty, grade, isCorrect)
-   * @param studentId - Current student ID (auto-injected)
-   * @returns Paginated list of public questions matching keyword and filters
-   *
-   * @example
-   * GET /questions/public/student/search?search=dao+ham&page=1&limit=10
-   */
-  @Get('public/student/search')
-  @RequirePermission()
-  @HttpCode(HttpStatus.OK)
-  async searchPublicStudentQuestions(
-    @Query() query: QuestionListQueryDto,
-    @CurrentUser('studentId') studentId?: number,
-  ): Promise<QuestionListResponseDto> {
-    return ExceptionHandler.execute(() =>
-      this.searchPublicStudentQuestionsUseCase.execute(query, studentId),
-    )
-  }
 
   /**
    * Suggest related public questions from a target question for current student.
