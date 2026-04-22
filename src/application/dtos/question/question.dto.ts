@@ -2,6 +2,7 @@
 import { Question } from '../../../domain/entities/exam/question.entity'
 import { Statement } from '../../../domain/entities/exam/statement.entity'
 import { QuestionChapter } from '../../../domain/entities/exam/question-chapter.entity'
+import { QuestionAnswer } from '../../../domain/entities/exam/question-answer.entity'
 import { QuestionType, Difficulty, Visibility } from '../../../shared/enums'
 import { Subject } from '../../../domain/entities/subject/subject.entity'
 import { PaginationResponseDto, PaginationMetaDto } from '../pagination/pagination-response.dto'
@@ -57,6 +58,7 @@ export class QuestionResponseDto {
   subject?: Subject
   questionChapters?: QuestionChapter[]
   statements?: StatementResponseDto[]
+  studentQuestionAnswers?: StudentQuestionAnswerSummaryDto[]
 
   // ===== Exam Context (from QuestionExam) =====
   order?: number | null
@@ -103,6 +105,7 @@ export class QuestionResponseDto {
       subject: question.subject ?? undefined,
       questionChapters: question.questionChapters,
       statements: question.statements?.map((stmt) => StatementResponseDto.fromEntity(stmt)),
+      studentQuestionAnswers: undefined,
 
       // Exam Context (from first examQuestion if exists)
       order: question.examQuestions?.[0]?.order ?? null,
@@ -124,6 +127,38 @@ export class QuestionResponseDto {
 
   static fromEntities(questions: Question[]): QuestionResponseDto[] {
     return questions.map((question) => QuestionResponseDto.fromEntity(question))
+  }
+}
+
+export class StudentQuestionAnswerSummaryDto {
+  questionAnswerId: number
+  attemptId?: number
+  examId?: number
+  examTitle?: string
+  answer?: string
+  selectedStatementIds?: number[]
+  isCorrect?: boolean
+  points?: number
+  maxPoints?: number
+  timeSpentSeconds?: number
+  startedAt?: Date
+  endAt?: Date
+
+  static fromEntity(entity: QuestionAnswer): StudentQuestionAnswerSummaryDto {
+    return {
+      questionAnswerId: entity.questionAnswerId,
+      attemptId: entity.attemptId ?? undefined,
+      examId: entity.examAttempt?.examId,
+      examTitle: entity.examAttempt?.exam?.title,
+      answer: entity.answer ?? undefined,
+      selectedStatementIds: entity.selectedStatementIds ?? undefined,
+      isCorrect: entity.isCorrect ?? undefined,
+      points: entity.points ?? undefined,
+      maxPoints: entity.maxPoints ?? undefined,
+      timeSpentSeconds: entity.timeSpentSeconds ?? undefined,
+      startedAt: entity.examAttempt?.startedAt ?? undefined,
+      endAt: entity.examAttempt?.endAt ?? undefined,
+    }
   }
 }
 

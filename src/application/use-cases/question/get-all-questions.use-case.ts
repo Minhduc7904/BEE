@@ -1,8 +1,12 @@
 // src/application/use-cases/question/get-all-questions.use-case.ts
 import { Inject, Injectable } from '@nestjs/common'
-import type { IQuestionRepository } from '../../../domain/repositories'
+import type { IQuestionRepository, IQuestionAnswerRepository } from '../../../domain/repositories'
 import { QuestionListQueryDto } from '../../dtos/question/question-list-query.dto'
-import { QuestionListResponseDto, QuestionResponseDto } from '../../dtos/question/question.dto'
+import {
+  QuestionListResponseDto,
+  QuestionResponseDto,
+  StudentQuestionAnswerSummaryDto,
+} from '../../dtos/question/question.dto'
 import { SortOrder } from 'src/shared/enums/sort-order.enum'
 import { ProcessContentWithPresignedUrlsUseCase, type ContentField } from '../media/process-content-with-presigned-urls.use-case'
 import { QUESTION_CONTENT_FIELDS } from '../../../shared/constants/media-field-name.constants'
@@ -12,10 +16,12 @@ export class GetAllQuestionsUseCase {
   constructor(
     @Inject('IQuestionRepository')
     private readonly questionRepository: IQuestionRepository,
+    @Inject('IQuestionAnswerRepository')
+    private readonly questionAnswerRepository: IQuestionAnswerRepository,
     private readonly processContentUseCase: ProcessContentWithPresignedUrlsUseCase,
   ) {}
 
-  async execute(query: QuestionListQueryDto, expirySeconds = 3600): Promise<QuestionListResponseDto> {
+  async execute(query: QuestionListQueryDto, expirySeconds = 3600, studentId?: number): Promise<QuestionListResponseDto> {
     const filters = {
       subjectId: query.subjectId,
       type: query.type,
@@ -37,6 +43,22 @@ export class GetAllQuestionsUseCase {
     const result = await this.questionRepository.findAllWithPagination(pagination, filters)
 
     const questionResponses = QuestionResponseDto.fromEntities(result.questions)
+
+    if (studentId && questionResponses.length > 0) {
+      const questionIds = questionResponses.map((item) => item.questionId)
+      const studentAnswers = await this.questionAnswerRepository.findPublicByStudentAndQuestionIds(studentId, questionIds)
+
+      const answerMap = new Map<number, StudentQuestionAnswerSummaryDto[]>()
+      for (const answer of studentAnswers) {
+        const existing = answerMap.get(answer.questionId) ?? []
+        existing.push(StudentQuestionAnswerSummaryDto.fromEntity(answer))
+        answerMap.set(answer.questionId, existing)
+      }
+
+      questionResponses.forEach((item) => {
+        item.studentQuestionAnswers = answerMap.get(item.questionId) ?? []
+      })
+    }
 
     // Process all questions with presigned URLs
     for (const dto of questionResponses) {

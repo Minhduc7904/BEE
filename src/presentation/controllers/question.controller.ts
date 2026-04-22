@@ -123,7 +123,7 @@ export class QuestionController {
    *
    * @route GET /questions/public/student
     * @param query - Query parameters (page, limit, subjectId, chapterIds, type, difficulty, grade, search)
-   * @returns Paginated list of public questions
+    * @returns Paginated list of public questions (includes chapters and current student's question answers)
    *
    * @example
     * GET /questions/public/student?page=1&limit=10&chapterIds=5&chapterIds=6
@@ -132,10 +132,13 @@ export class QuestionController {
   @Get('public/student')
   @RequirePermission()
   @HttpCode(HttpStatus.OK)
-  async getPublicStudentQuestions(@Query() query: QuestionListQueryDto): Promise<QuestionListResponseDto> {
+  async getPublicStudentQuestions(
+    @Query() query: QuestionListQueryDto,
+    @CurrentUser('studentId') studentId?: number,
+  ): Promise<QuestionListResponseDto> {
     // Student endpoint only returns public questions
     query.visibility = Visibility.PUBLISHED
-    return ExceptionHandler.execute(() => this.getAllQuestionsUseCase.execute(query))
+    return ExceptionHandler.execute(() => this.getAllQuestionsUseCase.execute(query, 3600, studentId))
   }
 
   /**

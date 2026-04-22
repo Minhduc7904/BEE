@@ -110,6 +110,12 @@ export interface IQuestionAnswerRepository {
         txClient?: any,
     ): Promise<QuestionAnswer[]>
 
+    findPublicByStudentAndQuestionIds(
+        studentId: number,
+        questionIds: number[],
+        txClient?: any,
+    ): Promise<QuestionAnswer[]>
+
     findByAttemptAndQuestion(
         attemptId: number | null,
         questionId: number,

@@ -196,6 +196,54 @@ export class PrismaQuestionAnswerRepository implements IQuestionAnswerRepository
         return QuestionAnswerMapper.toDomainQuestionAnswers(answers)
     }
 
+    async findPublicByStudentAndQuestionIds(
+        studentId: number,
+        questionIds: number[],
+        txClient?: any,
+    ): Promise<QuestionAnswer[]> {
+        if (!questionIds.length) return []
+
+        const client = txClient || this.prisma
+
+        const answers = await client.questionAnswer.findMany({
+            where: {
+                questionId: {
+                    in: questionIds,
+                },
+                OR: [
+                    {
+                        attemptId: null,
+                    },
+                    {
+                        examAttempt: {
+                            studentId,
+                            exam: {
+                                visibility: ExamVisibility.PUBLISHED,
+                            },
+                        },
+                    },
+                ],
+            },
+            include: {
+                examAttempt: {
+                    include: {
+                        exam: true,
+                    },
+                },
+            },
+            orderBy: [
+                {
+                    questionId: 'asc',
+                },
+                {
+                    questionAnswerId: 'desc',
+                },
+            ],
+        })
+
+        return QuestionAnswerMapper.toDomainQuestionAnswers(answers)
+    }
+
     async findByAttemptAndQuestion(
         attemptId: number | null,
         questionId: number,
