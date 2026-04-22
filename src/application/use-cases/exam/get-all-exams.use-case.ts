@@ -17,6 +17,7 @@ export class GetAllExamsUseCase {
       grade: query.grade,
       visibility: query.visibility,
       createdBy: query.createdBy,
+      chapterIds: query.chapterIds,
       search: query.search,
     }
 

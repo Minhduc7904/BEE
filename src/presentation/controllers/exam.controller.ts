@@ -125,11 +125,12 @@ export class ExamController {
    * Get all exams with filters
    *
    * @route GET /exams
-   * @param query - Query parameters (page, limit, subjectId, grade, visibility, etc.)
+    * @param query - Query parameters (page, limit, subjectId, chapterIds, grade, visibility, etc.)
    * @returns Paginated list of exams
    *
    * @example
    * GET /exams?page=1&limit=10&subjectId=5&grade=10
+    * GET /exams?page=1&limit=10&chapterIds=5&chapterIds=6
    */
   @Get()
   @RequirePermission(PERMISSION_CODES.EXAM.GET_ALL)

@@ -207,6 +207,22 @@ export class PrismaExamRepository implements IExamRepository {
       where.createdBy = filters.createdBy
     }
 
+    if (filters?.chapterIds !== undefined && filters.chapterIds.length > 0) {
+      where.questions = {
+        some: {
+          question: {
+            questionChapters: {
+              some: {
+                chapterId: {
+                  in: filters.chapterIds,
+                },
+              },
+            },
+          },
+        },
+      }
+    }
+
     // Build orderBy
     const orderBy: any = {}
     orderBy[sortBy] = sortOrder
@@ -333,6 +349,18 @@ export class PrismaExamRepository implements IExamRepository {
     if (filters.createdBy !== undefined) {
       conditions.push('e.created_by = ?')
       params.push(filters.createdBy)
+    }
+
+    if (filters.chapterIds !== undefined && filters.chapterIds.length > 0) {
+      const placeholders = filters.chapterIds.map(() => '?').join(', ')
+      conditions.push(`EXISTS (
+        SELECT 1
+        FROM questions_exams qe
+        INNER JOIN questions_chapters qc ON qc.question_id = qe.question_id
+        WHERE qe.exam_id = e.exam_id
+          AND qc.chapter_id IN (${placeholders})
+      )`)
+      params.push(...filters.chapterIds)
     }
 
     if (filters.search) {

@@ -1,5 +1,5 @@
 // src/application/dtos/exam/exam-list-query.dto.ts
-import { IsOptionalIdNumber, IsOptionalInt, IsOptionalEnumValue } from '../../../shared/decorators/validate'
+import { IsOptionalIdNumber, IsOptionalInt, IsOptionalEnumValue, IsOptionalIntArray } from '../../../shared/decorators/validate'
 import { ExamVisibility, TypeOfExam } from '../../../shared/enums'
 import { ListQueryDto } from '../pagination/list-query.dto'
 
@@ -38,4 +38,12 @@ export class ExamListQueryDto extends ListQueryDto {
    */
   @IsOptionalIdNumber('ID người tạo')
   createdBy?: number
+
+  /**
+   * Lọc theo danh sách chapterId của câu hỏi trong đề
+   * Chỉ cần đề có ít nhất 1 câu hỏi thuộc 1 chapter trong danh sách
+   * @example [5, 6]
+   */
+  @IsOptionalIntArray('Danh sách ID chương')
+  chapterIds?: number[]
 }

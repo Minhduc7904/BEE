@@ -23,7 +23,7 @@ export class GetAllQuestionsUseCase {
       grade: query.grade,
       visibility: query.visibility,
       createdBy: query.createdBy,
-      chapterIds: query.chapterId ? [query.chapterId] : undefined,
+      chapterIds: query.chapterIds?.length ? query.chapterIds : query.chapterId ? [query.chapterId] : undefined,
       search: query.search,
     }
 

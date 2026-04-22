@@ -21,6 +21,7 @@ export interface ExamFilterOptions {
   excludeVisibility?: ExamVisibility
   createdBy?: number
   search?: string
+  chapterIds?: number[]
 }
 
 export interface ExamPaginationOptions {

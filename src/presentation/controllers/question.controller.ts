@@ -103,12 +103,13 @@ export class QuestionController {
   /**
    * Get all questions with filters
    *
-   * @route GET /questions
-   * @param query - Query parameters (page, limit, subjectId, type, difficulty, grade, etc.)
+    * @route GET /questions
+    * @param query - Query parameters (page, limit, subjectId, chapterIds, type, difficulty, grade, etc.)
    * @returns Paginated list of questions
    *
    * @example
-   * GET /questions?page=1&limit=10&subjectId=5&grade=10
+    * GET /questions?page=1&limit=10&subjectId=5&grade=10
+    * GET /questions?page=1&limit=10&chapterIds=5&chapterIds=6
    */
   @Get()
   @RequirePermission(PERMISSION_CODES.QUESTION.GET_ALL)
@@ -121,11 +122,11 @@ export class QuestionController {
    * Get public questions for students with pagination
    *
    * @route GET /questions/public/student
-   * @param query - Query parameters (page, limit, subjectId, chapterId, type, difficulty, grade, search)
+    * @param query - Query parameters (page, limit, subjectId, chapterIds, type, difficulty, grade, search)
    * @returns Paginated list of public questions
    *
    * @example
-   * GET /questions/public/student?page=1&limit=10&chapterId=5
+    * GET /questions/public/student?page=1&limit=10&chapterIds=5&chapterIds=6
    * GET /questions/public/student?page=1&limit=10
    */
   @Get('public/student')

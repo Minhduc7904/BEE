@@ -56,6 +56,7 @@ export class SearchExamsUseCase {
         const filters: any = {
             subjectId: query.subjectId,
             grade: query.grade,
+            chapterIds: query.chapterIds,
             search: query.search,
         }
 
