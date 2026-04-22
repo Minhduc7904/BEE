@@ -138,7 +138,7 @@ export class QuestionController {
   ): Promise<QuestionListResponseDto> {
     // Student endpoint only returns public questions
     query.visibility = Visibility.PUBLISHED
-    return ExceptionHandler.execute(() => this.getAllQuestionsUseCase.execute(query, 3600, studentId))
+    return ExceptionHandler.execute(() => this.getAllQuestionsUseCase.execute(query, 3600, studentId, true))
   }
 
   /**

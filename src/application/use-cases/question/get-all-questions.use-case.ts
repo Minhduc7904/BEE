@@ -9,6 +9,7 @@ import {
 } from '../../dtos/question/question.dto'
 import { SortOrder } from 'src/shared/enums/sort-order.enum'
 import { ProcessContentWithPresignedUrlsUseCase, type ContentField } from '../media/process-content-with-presigned-urls.use-case'
+import { ProcessContentWithPresignedUrlsAndRenderHtmlUseCase } from '../media/process-content-with-presigned-urls-and-render-html.use-case'
 import { QUESTION_CONTENT_FIELDS } from '../../../shared/constants/media-field-name.constants'
 
 @Injectable()
@@ -19,9 +20,15 @@ export class GetAllQuestionsUseCase {
     @Inject('IQuestionAnswerRepository')
     private readonly questionAnswerRepository: IQuestionAnswerRepository,
     private readonly processContentUseCase: ProcessContentWithPresignedUrlsUseCase,
+    private readonly processContentAndRenderHtmlUseCase: ProcessContentWithPresignedUrlsAndRenderHtmlUseCase,
   ) {}
 
-  async execute(query: QuestionListQueryDto, expirySeconds = 3600, studentId?: number): Promise<QuestionListResponseDto> {
+  async execute(
+    query: QuestionListQueryDto,
+    expirySeconds = 3600,
+    studentId?: number,
+    renderHtml = false,
+  ): Promise<QuestionListResponseDto> {
     const filters = {
       subjectId: query.subjectId,
       type: query.type,
@@ -82,19 +89,22 @@ export class GetAllQuestionsUseCase {
       }
 
       // Process all contents at once
-      const processedResults = await this.processContentUseCase.execute(
-        contentFields,
-        expirySeconds,
-      )
+      const processedResults = renderHtml
+        ? await this.processContentAndRenderHtmlUseCase.execute(contentFields, expirySeconds)
+        : await this.processContentUseCase.execute(contentFields, expirySeconds)
+
+      const getProcessedContent = renderHtml
+        ? this.processContentAndRenderHtmlUseCase.getProcessedContent.bind(this.processContentAndRenderHtmlUseCase)
+        : this.processContentUseCase.getProcessedContent.bind(this.processContentUseCase)
 
       // Map processed contents back to response
-      dto.processedContent = this.processContentUseCase.getProcessedContent(
+      dto.processedContent = getProcessedContent(
         processedResults,
         QUESTION_CONTENT_FIELDS.CONTENT,
       ) || dto.content
 
       if (dto.solution) {
-        dto.processedSolution = this.processContentUseCase.getProcessedContent(
+        dto.processedSolution = getProcessedContent(
           processedResults,
           QUESTION_CONTENT_FIELDS.SOLUTION,
         ) || dto.solution
@@ -102,7 +112,7 @@ export class GetAllQuestionsUseCase {
 
       if (dto.statements) {
         dto.statements.forEach((stmt, index) => {
-          stmt.processedContent = this.processContentUseCase.getProcessedContent(
+          stmt.processedContent = getProcessedContent(
             processedResults,
             `${QUESTION_CONTENT_FIELDS.STATEMENT_PREFIX}${index}`,
           ) || stmt.content
