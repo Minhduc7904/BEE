@@ -30,6 +30,7 @@ import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
 import { CurrentUser } from '../../shared/decorators/current-user.decorator'
 import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
+import { Visibility } from '../../shared/enums'
 import {
   GetAllQuestionsUseCase,
   GetQuestionByIdUseCase,
@@ -113,6 +114,26 @@ export class QuestionController {
   @RequirePermission(PERMISSION_CODES.QUESTION.GET_ALL)
   @HttpCode(HttpStatus.OK)
   async getAllQuestions(@Query() query: QuestionListQueryDto): Promise<QuestionListResponseDto> {
+    return ExceptionHandler.execute(() => this.getAllQuestionsUseCase.execute(query))
+  }
+
+  /**
+   * Get public questions for students with pagination
+   *
+   * @route GET /questions/public/student
+   * @param query - Query parameters (page, limit, subjectId, chapterId, type, difficulty, grade, search)
+   * @returns Paginated list of public questions
+   *
+   * @example
+   * GET /questions/public/student?page=1&limit=10&chapterId=5
+   * GET /questions/public/student?page=1&limit=10
+   */
+  @Get('public/student')
+  @RequirePermission()
+  @HttpCode(HttpStatus.OK)
+  async getPublicStudentQuestions(@Query() query: QuestionListQueryDto): Promise<QuestionListResponseDto> {
+    // Student endpoint only returns public questions
+    query.visibility = Visibility.PUBLISHED
     return ExceptionHandler.execute(() => this.getAllQuestionsUseCase.execute(query))
   }
 

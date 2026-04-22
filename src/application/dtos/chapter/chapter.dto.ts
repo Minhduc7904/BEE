@@ -208,6 +208,11 @@ export class ChapterResponseDto {
    */
   parentName?: string
 
+  /**
+   * Number of published questions in this chapter (student-facing endpoints)
+   */
+  questionCount?: number
+
   static fromChapter(chapter: Chapter): ChapterResponseDto {
     return {
       chapterId: chapter.chapterId,

@@ -135,14 +135,24 @@ export class ChapterController {
   /**
    * Get all chapters by subject for students
    * GET /chapters/public/student/subject/:subjectId
+   * Query params:
+   * - page: số trang (mặc định: 1)
+   * - limit: số lượng mỗi trang (mặc định: 100)
+   * - search: tìm kiếm theo tên chương/slug (hỗ trợ có dấu, không dấu, hoa thường)
+    * Response: mỗi chapter có thêm questionCount (số câu hỏi PUBLISHED trong chapter)
    */
   @Get('public/student/subject/:subjectId')
   @RequirePermission()
   @HttpCode(HttpStatus.OK)
   async getPublicStudentChaptersBySubject(
     @Param('subjectId', ParseIntPipe) subjectId: number,
-  ): Promise<BaseResponseDto<ChapterResponseDto[]>> {
-    return ExceptionHandler.execute(() => this.getPublicStudentChaptersBySubjectUseCase.execute(subjectId))
+    @Query('page', new ParseIntPipe({ optional: true })) page: number = 1,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit: number = 100,
+    @Query('search') search?: string,
+  ): Promise<PaginationResponseDto<ChapterResponseDto>> {
+    return ExceptionHandler.execute(() =>
+      this.getPublicStudentChaptersBySubjectUseCase.execute(subjectId, page, limit, search),
+    )
   }
 
   /**
