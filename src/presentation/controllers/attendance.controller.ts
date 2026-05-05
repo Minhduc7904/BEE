@@ -218,13 +218,18 @@ export class AttendanceController {
   @HttpCode(HttpStatus.OK)
   async sendToParent(
     @Param('id', ParseIntPipe) id: number,
-  ): Promise<BaseResponseDto<{ sent: boolean }>> {
+  ): Promise<BaseResponseDto<{ sent: boolean; messageText: string; errorMessage?: string }>> {
     return ExceptionHandler.execute(async () => {
-      const sent = await this.sendAttendanceToParentUseCase.execute({
+      const result = await this.sendAttendanceToParentUseCase.execute({
         attendanceId: id,
       })
+      return BaseResponseDto.success(
+        result.sent
+          ? 'Đã gửi thông báo đến phụ huynh'
+          : 'Không thể gửi thông báo đến phụ huynh',
+        result,
+      )
 
-      return sent ? BaseResponseDto.success('Đã gửi thông báo đến phụ huynh', { sent: true }) : BaseResponseDto.error('Không thể gửi thông báo đến phụ huynh')
     })
   }
 
