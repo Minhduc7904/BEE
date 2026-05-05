@@ -34,7 +34,7 @@ export class SuperAdminUpdateAdminDirectUseCase {
       await this.validateUniqueConstraints(repos, admin.user.userId, dto)
 
       const userUpdateData: UpdateUserData = {}
-      const adminUpdateData: { subjectId?: number | undefined } = {}
+      const adminUpdateData: { subjectId?: number | null; adminZaloOaId?: string | null } = {}
 
       if (dto.username !== undefined) userUpdateData.username = dto.username
       if (dto.email !== undefined) userUpdateData.email = dto.email
@@ -51,6 +51,7 @@ export class SuperAdminUpdateAdminDirectUseCase {
       }
 
       if (dto.subjectId !== undefined) adminUpdateData.subjectId = dto.subjectId
+      if (dto.adminZaloOaId !== undefined) adminUpdateData.adminZaloOaId = dto.adminZaloOaId
 
       const hasUserChanges = this.hasRealChanges(admin.user, userUpdateData)
       const hasAdminChanges = this.hasRealChanges(admin, adminUpdateData)

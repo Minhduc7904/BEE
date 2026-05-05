@@ -17,6 +17,7 @@ export class PrismaAdminRepository implements IAdminRepository {
       data: {
         userId: numericUserId,
         subjectId: data.subjectId,
+        adminZaloOaId: data.adminZaloOaId,
       },
     })
 
@@ -39,8 +40,9 @@ export class PrismaAdminRepository implements IAdminRepository {
                 role: true
               },
             },
-          },  
-        }
+          },
+        },
+        subject: true,
       },
     })
 
@@ -173,6 +175,22 @@ export class PrismaAdminRepository implements IAdminRepository {
       where: { adminId: numericId },
       data: {
         subjectId: data.subjectId,
+        adminZaloOaId: data.adminZaloOaId,
+      },
+      include: {
+        user: {
+          include: {
+            userRoles: {
+              where: {
+                isActive: true,
+              },
+              include: {
+                role: true,
+              },
+            },
+          },
+        },
+        subject: true,
       },
     })
 

@@ -10,6 +10,7 @@ export class Admin {
 
   // Optional properties
   subjectId?: number | null
+  adminZaloOaId?: string | null
 
   // Navigation properties
   user?: User
@@ -19,12 +20,14 @@ export class Admin {
     adminId: number
     userId: number
     subjectId?: number | null
+    adminZaloOaId?: string | null
     user?: User
     subject?: Subject
   }) {
     this.adminId = data.adminId
     this.userId = data.userId
     this.subjectId = data.subjectId
+    this.adminZaloOaId = data.adminZaloOaId
     this.user = data.user
     this.subject = data.subject
   }
@@ -99,6 +102,7 @@ export class Admin {
       adminId: this.adminId,
       userId: this.userId,
       subjectId: this.subjectId,
+      adminZaloOaId: this.adminZaloOaId,
       fullName: this.getFullName(),
       email: this.getEmail(),
       isActive: this.isActive(),
@@ -111,6 +115,7 @@ export class Admin {
       adminId: this.adminId,
       userId: this.userId,
       subjectId: this.subjectId,
+      adminZaloOaId: this.adminZaloOaId,
       user: this.user,
       subject: this.subject,
     })
@@ -125,11 +130,13 @@ export class Admin {
     adminId: number,
     userId: number,
     subjectId?: number,
+    adminZaloOaId?: string | null,
   ): Admin {
     return new Admin({
       adminId,
       userId,
       subjectId,
+      adminZaloOaId,
     })
   }
 
@@ -141,6 +148,7 @@ export class Admin {
       adminId: data.adminId,
       userId: data.userId,
       subjectId: data.subjectId,
+      adminZaloOaId: data.adminZaloOaId,
       user: data.user,
       subject: data.subject
         ? Subject.fromPrisma(data.subject)

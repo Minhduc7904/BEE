@@ -288,26 +288,27 @@ model UserPointLog {
 }
 
 model Admin {
-  adminId   Int  @id @default(autoincrement()) @map("admin_id")
-  userId    Int  @unique @map("user_id")
-  user      User @relation("UserAdmin", fields: [userId], references: [userId], onDelete: Cascade)
-  subjectId Int? @map("subject_id")
+  adminId       Int     @id @default(autoincrement()) @map("admin_id")
+  userId        Int     @unique @map("user_id")
+  user          User    @relation("UserAdmin", fields: [userId], references: [userId], onDelete: Cascade)
+  subjectId     Int?    @map("subject_id")
+  adminZaloOaId String? @map("admin_zalo_oa_id") @db.VarChar(32)
 
   // Relations
-  subject          Subject?          @relation("AdminSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
-  AdminAuditLog    AdminAuditLog[]
-  Exam             Exam[]            @relation("ExamCreatedBy")
-  Competition      Competition[]     @relation("CompetitionCreatedBy")
-  Course           Course[]          @relation("CourseTeacher")
-  Lesson           Lesson[]          @relation("LessonTeacher")
-  Question         Question[]        @relation("QuestionCreatedBy")
-  courseClasses    CourseClass[]
-  attendances      Attendance[]
-  learningItems    LearningItem[]
-  homeworkSubmits  HomeworkSubmit[]
-  gradedExamAttempts ExamAttempt[]      @relation("ExamAttemptGrader")
+  subject                  Subject?            @relation("AdminSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
+  AdminAuditLog            AdminAuditLog[]
+  Exam                     Exam[]              @relation("ExamCreatedBy")
+  Competition              Competition[]       @relation("CompetitionCreatedBy")
+  Course                   Course[]            @relation("CourseTeacher")
+  Lesson                   Lesson[]            @relation("LessonTeacher")
+  Question                 Question[]          @relation("QuestionCreatedBy")
+  courseClasses            CourseClass[]
+  attendances              Attendance[]
+  learningItems            LearningItem[]
+  homeworkSubmits          HomeworkSubmit[]
+  gradedExamAttempts       ExamAttempt[]       @relation("ExamAttemptGrader")
   gradedCompetitionSubmits CompetitionSubmit[] @relation("CompetitionSubmitGrader")
-  courseAssistants CourseAssistant[]
+  courseAssistants         CourseAssistant[]
 
   @@index([subjectId], map: "idx_admins_subject_id")
   @@map("admins")

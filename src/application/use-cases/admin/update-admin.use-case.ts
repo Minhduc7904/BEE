@@ -33,7 +33,7 @@ export class UpdateAdminUseCase {
 
       // 3. Tách data cho User và Admin
       const userUpdateData: UpdateUserDto = {}
-      const adminUpdateData: { subjectId?: number | undefined } = {}
+      const adminUpdateData: { subjectId?: number | null; adminZaloOaId?: string | null } = {}
 
       // Tách các trường của User
       if (dto.username !== undefined) userUpdateData.username = dto.username
@@ -45,6 +45,7 @@ export class UpdateAdminUseCase {
 
       // Tách các trường của Admin
       if (dto.subjectId !== undefined) adminUpdateData.subjectId = dto.subjectId
+      if (dto.adminZaloOaId !== undefined) adminUpdateData.adminZaloOaId = dto.adminZaloOaId
 
       // 4. Kiểm tra xem có thay đổi thực sự không
       const hasUserChanges = this.hasRealChanges(admin.user, userUpdateData)

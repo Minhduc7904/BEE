@@ -1,12 +1,14 @@
 // src/application/dtos/admin/admin-response.dto.ts
 import { UserResponseDto, UpdateUserDto } from '..'
 import { RoleWithPermissionsResponseDto } from '../role/role.dto'
-import { IsOptionalIdNumber } from 'src/shared/decorators/validate'
+import { IsOptionalIdNumber, IsOptionalString } from 'src/shared/decorators/validate'
 
 export class AdminResponseDto extends UserResponseDto {
   adminId: number
 
   subjectId?: number
+
+  adminZaloOaId?: string | null
 
   subject?: string
 
@@ -27,6 +29,7 @@ export class AdminResponseDto extends UserResponseDto {
       ...baseUser,
       adminId: admin.adminId,
       subjectId: admin.subjectId,
+      adminZaloOaId: admin.adminZaloOaId,
       subject: admin.getSubjectName ? admin.getSubjectName() : admin.subject?.name,
       roles: user.userRoles
         ? user.userRoles
@@ -65,4 +68,12 @@ export class UpdateAdminDto extends UpdateUserDto {
    */
   @IsOptionalIdNumber('Mã môn học')
   subjectId?: number
+
+  /**
+   * Zalo OA ID cua admin
+   * @optional
+   * @example "1234567890123456789"
+   */
+  @IsOptionalString('Zalo OA ID', 32)
+  adminZaloOaId?: string | null
 }
