@@ -1,7 +1,9 @@
 // src/application/dtos/admin/admin-response.dto.ts
 import { UserResponseDto, UpdateUserDto } from '..'
 import { RoleWithPermissionsResponseDto } from '../role/role.dto'
-import { IsOptionalIdNumber, IsOptionalString } from 'src/shared/decorators/validate'
+import { Transform } from 'class-transformer'
+import { IsOptional, IsString, MaxLength } from 'class-validator'
+import { IsOptionalIdNumber } from 'src/shared/decorators/validate'
 
 export class AdminResponseDto extends UserResponseDto {
   adminId: number
@@ -74,6 +76,13 @@ export class UpdateAdminDto extends UpdateUserDto {
    * @optional
    * @example "1234567890123456789"
    */
-  @IsOptionalString('Zalo OA ID', 32)
+  @Transform(({ value }) => {
+    if (typeof value !== 'string') return value
+    const trimmed = value.trim()
+    return trimmed === '' ? null : trimmed
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(32)
   adminZaloOaId?: string | null
 }
