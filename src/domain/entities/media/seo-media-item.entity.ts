@@ -1,4 +1,3 @@
-import { MediaEntity } from './media.entity'
 import { SeoMediaSlotEntity } from './seo-media-slot.entity'
 
 /**
@@ -8,28 +7,39 @@ import { SeoMediaSlotEntity } from './seo-media-slot.entity'
 export class SeoMediaItemEntity {
   itemId: number
   slotId: number
-  mediaId: number
+  bucketName: string
+  objectKey: string
+  publicUrl: string
+  originalName: string
+  mimeType: string
+  fileSize: number
+  width: number | null
+  height: number | null
   sortOrder: number
   alt: string | null
   linkUrl: string | null
   createdAt: Date
   updatedAt: Date
   slot?: SeoMediaSlotEntity
-  media?: MediaEntity
 
   constructor(data: {
     itemId: number
     slotId: number
-    mediaId: number
+    bucketName: string
+    objectKey: string
+    publicUrl: string
+    originalName: string
+    mimeType: string
+    fileSize: number
+    width: number | null
+    height: number | null
     sortOrder: number
     alt: string | null
     linkUrl: string | null
     createdAt: Date
     updatedAt: Date
     slot?: SeoMediaSlotEntity
-    media?: MediaEntity
   }) {
     Object.assign(this, data)
   }
 }
-

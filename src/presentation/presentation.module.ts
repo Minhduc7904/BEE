@@ -21,6 +21,7 @@ import { EmailResetPasswordController } from './controllers/email-reset-password
 import { MediaController } from './controllers/media.controller'
 import { MediaUsageController } from './controllers/media-usage.controller'
 import { MediaFolderController } from './controllers/media-folder.controller'
+import { SeoMediaController } from './controllers/seo-media.controller'
 import { ProfileAdminController } from './controllers/profile.admin.controller'
 import { ProfileStudentController } from './controllers/profile.student.controller'
 import { PermissionController } from './controllers/permission.controller'
@@ -81,6 +82,7 @@ import { QuestionChatMessageController } from './controllers/question-chat-messa
     MediaController,
     MediaUsageController,
     MediaFolderController,
+    SeoMediaController,
     ProfileAdminController,
     ProfileStudentController,
     PermissionController,

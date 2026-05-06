@@ -1004,6 +1004,80 @@ export const PERMISSIONS = [
     },
 
     // ===================================
+    // SEO MEDIA MANAGEMENT
+    // ===================================
+    {
+        code: 'seo-media:upload-image',
+        name: 'Upload ảnh SEO media',
+        description: 'Upload ảnh trực tiếp lên bucket public seo-media của MinIO',
+        group: 'SEO_MEDIA_MANAGEMENT',
+        isSystem: true,
+    },
+    {
+        code: 'seo-media:slot:create',
+        name: 'Tạo SEO media slot',
+        description: 'Tạo vị trí hiển thị media cho trang SEO',
+        group: 'SEO_MEDIA_MANAGEMENT',
+        isSystem: true,
+    },
+    {
+        code: 'seo-media:slot:view',
+        name: 'Xem SEO media slot',
+        description: 'Xem danh sách và chi tiết slot SEO media',
+        group: 'SEO_MEDIA_MANAGEMENT',
+        isSystem: true,
+    },
+    {
+        code: 'seo-media:slot:update',
+        name: 'Cập nhật SEO media slot',
+        description: 'Chỉnh sửa thông tin slot SEO media',
+        group: 'SEO_MEDIA_MANAGEMENT',
+        isSystem: true,
+    },
+    {
+        code: 'seo-media:slot:delete',
+        name: 'Xóa SEO media slot',
+        description: 'Xóa slot SEO media khỏi hệ thống',
+        group: 'SEO_MEDIA_MANAGEMENT',
+        isSystem: true,
+    },
+    {
+        code: 'seo-media:item:create',
+        name: 'Tạo SEO media item',
+        description: 'Thêm media vào slot SEO',
+        group: 'SEO_MEDIA_MANAGEMENT',
+        isSystem: true,
+    },
+    {
+        code: 'seo-media:item:view',
+        name: 'Xem SEO media item',
+        description: 'Xem danh sách media item trong slot SEO',
+        group: 'SEO_MEDIA_MANAGEMENT',
+        isSystem: true,
+    },
+    {
+        code: 'seo-media:item:update',
+        name: 'Cập nhật SEO media item',
+        description: 'Chỉnh sửa thông tin media item trong slot SEO',
+        group: 'SEO_MEDIA_MANAGEMENT',
+        isSystem: true,
+    },
+    {
+        code: 'seo-media:item:delete',
+        name: 'Xóa SEO media item',
+        description: 'Xóa media item khỏi slot SEO',
+        group: 'SEO_MEDIA_MANAGEMENT',
+        isSystem: true,
+    },
+    {
+        code: 'seo-media:item:reorder',
+        name: 'Sắp xếp SEO media item',
+        description: 'Cập nhật thứ tự hiển thị media trong slot SEO',
+        group: 'SEO_MEDIA_MANAGEMENT',
+        isSystem: true,
+    },
+
+    // ===================================
     // LEARNING ITEM MANAGEMENT
     // ===================================
     {
@@ -1658,6 +1732,13 @@ export const PERMISSIONS = [
         code: 'admin:page:media-folders',
         name: 'Truy cập trang Thư mục Media',
         description: 'Cho phép truy cập vào trang quản lý thư mục media cá nhân - thư mục lưu trữ file của admin',
+        group: 'ADMIN_PAGE_ACCESS',
+        isSystem: true,
+    },
+    {
+        code: 'admin:page:seo-media',
+        name: 'Truy cập trang SEO Media',
+        description: 'Cho phép truy cập vào trang quản lý SEO media slots và items',
         group: 'ADMIN_PAGE_ACCESS',
         isSystem: true,
     },

@@ -28,6 +28,8 @@ export * from './attendance.repository';
 export * from './media.repository';
 export * from './media-usage.repository';
 export * from './media-folder.repository';
+export * from './seo-media-slot.repository';
+export * from './seo-media-item.repository';
 export * from './notification.repository';
 export * from './tuition-payment.repository';
 export * from './exam-import-session.repository';

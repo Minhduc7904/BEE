@@ -6,7 +6,6 @@ export class SeoMediaSlotMapper {
     prismaSlot: any,
     options?: {
       includeItems?: boolean
-      includeItemMedia?: boolean
     },
   ): SeoMediaSlotEntity {
     return new SeoMediaSlotEntity({
@@ -21,7 +20,6 @@ export class SeoMediaSlotMapper {
         options?.includeItems && prismaSlot.items
           ? SeoMediaItemMapper.toDomainList(prismaSlot.items, {
               includeSlot: false,
-              includeMedia: options?.includeItemMedia ?? false,
             })
           : undefined,
     })
@@ -31,10 +29,8 @@ export class SeoMediaSlotMapper {
     prismaSlots: any[],
     options?: {
       includeItems?: boolean
-      includeItemMedia?: boolean
     },
   ): SeoMediaSlotEntity[] {
     return prismaSlots.map((slot) => this.toDomain(slot, options))
   }
 }
-

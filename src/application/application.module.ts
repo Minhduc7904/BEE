@@ -19,6 +19,7 @@ import { AuditLogApplicationModule } from './use-cases/log/audit-log.application
 import { MediaApplicationModule } from './use-cases/media/media.application.module'
 import { MediaFolderApplicationModule } from './use-cases/media-folder/media-folder.application.module'
 import { MediaUsageApplicationModule } from './use-cases/media-usage/media-usage.application.module'
+import { SeoMediaApplicationModule } from './use-cases/seo-media/seo-media.application.module'
 import { PermissionApplicationModule } from './use-cases/permission/permission.application.module'
 import { PasswordRecoveryApplicationModule } from './use-cases/reset-password/password-recovery.application.module'
 import { AdminProfileApplicationModule } from './use-cases/profile/admin-profile.application.module'
@@ -72,6 +73,7 @@ const modules = [
   MediaApplicationModule,
   MediaFolderApplicationModule,
   MediaUsageApplicationModule,
+  SeoMediaApplicationModule,
 
   // Course & Learning
   CourseApplicationModule,

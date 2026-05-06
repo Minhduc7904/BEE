@@ -31,6 +31,8 @@ import { ITempQuestionRepository } from './temp-question.repository'
 import { ITempStatementRepository } from './temp-statement.repository'
 import { ITempQuestionChapterRepository } from './temp-question-chapter.repository'
 import { IMediaUsageRepository } from './media-usage.repository'
+import { ISeoMediaSlotRepository } from './seo-media-slot.repository'
+import { ISeoMediaItemRepository } from './seo-media-item.repository'
 import { IExamRepository } from './exam.repository'
 import { ICompetitionRepository } from './competition.repository'
 import { ISectionRepository } from './section.repository'
@@ -51,6 +53,8 @@ export interface UnitOfWorkRepos {
   permissionRepository: IPermissionRepository
   adminAuditLogRepository: IAdminAuditLogRepository
   mediaRepository: IMediaRepository
+  seoMediaSlotRepository: ISeoMediaSlotRepository
+  seoMediaItemRepository: ISeoMediaItemRepository
   subjectRepository: ISubjectRepository
   chapterRepository: IChapterRepository
   attendanceRepository: IAttendanceRepository

@@ -18,6 +18,8 @@ import {
   PrismaAdminLogRepository,
   PrismaMediaFolderRepository,
   PrismaMediaUsageRepository,
+  PrismaSeoMediaSlotRepository,
+  PrismaSeoMediaItemRepository,
   PrismaCourseRepository,
   PrismaCourseClassRepository,
   PrismaLessonRepository,
@@ -159,6 +161,16 @@ import openaiConfig from '../config/openai.config'
     {
       provide: 'IMediaUsageRepository',
       useFactory: (prisma: PrismaService) => new PrismaMediaUsageRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'ISeoMediaSlotRepository',
+      useFactory: (prisma: PrismaService) => new PrismaSeoMediaSlotRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'ISeoMediaItemRepository',
+      useFactory: (prisma: PrismaService) => new PrismaSeoMediaItemRepository(prisma),
       inject: [PrismaService],
     },
     {
@@ -420,6 +432,8 @@ import openaiConfig from '../config/openai.config'
     'IMediaRepository',
     'IMediaFolderRepository',
     'IMediaUsageRepository',
+    'ISeoMediaSlotRepository',
+    'ISeoMediaItemRepository',
     'ICourseRepository',
     'ICourseClassRepository',
     'ILessonRepository',

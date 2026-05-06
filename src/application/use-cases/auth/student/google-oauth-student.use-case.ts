@@ -20,6 +20,7 @@ import { StorageProvider } from '../../../../shared/enums'
 import { MediaType, MediaStatus } from 'src/shared/enums'
 import { v4 as uuidv4 } from 'uuid'
 import { ROLE_IDS } from 'src/shared/constants'
+import { detectMediaType, generateObjectKey, sanitizeFilename } from 'src/shared/utils'
 
 @Injectable()
 export class GoogleOAuthStudentUseCase {
@@ -75,14 +76,19 @@ export class GoogleOAuthStudentUseCase {
         // Nếu Google cung cấp avatar, upload trước với uploadedBy null
         if (googleProfile.picture) {
           try {
+            const googleAvatarMimeType = 'image/jpeg'
+            const detectedMediaType = detectMediaType(googleAvatarMimeType)
+            const originalFilename = sanitizeFilename('google_avatar.jpg', {
+              fallbackName: 'avatar',
+            })
             const avatar = await repos.mediaRepository.create({
               bucketName: 'images', // Bucket cho avatar
-              objectKey: `avatars/google_${username}_${Date.now()}.jpg`,
-              originalFilename: 'google_avatar.jpg',
-              mimeType: 'image/jpeg',
+              objectKey: generateObjectKey('avatars', originalFilename),
+              originalFilename,
+              mimeType: googleAvatarMimeType,
               fileSize: 0, // Google avatar external URL
-              type: 'IMAGE' as MediaType,
-              status: 'READY' as MediaStatus,
+              type: detectedMediaType,
+              status: MediaStatus.READY,
               // Note: Google avatar URL not stored, will be handled via MediaUsage
             })
             avatarId = avatar.mediaId

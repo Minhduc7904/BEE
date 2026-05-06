@@ -50,6 +50,8 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _documentRepository: any
     let _userRefreshTokenRepository: any
     let _mediaRepository: any
+    let _seoMediaSlotRepository: any
+    let _seoMediaItemRepository: any
     let _subjectRepository: any
     let _chapterRepository: any
     let _attendanceRepository: any
@@ -97,6 +99,16 @@ export class PrismaUnitOfWork implements IUnitOfWork {
 
     Object.defineProperty(repos, 'mediaRepository', {
       get: () => (_mediaRepository ??= new Repositories.PrismaMediaRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'seoMediaSlotRepository', {
+      get: () => (_seoMediaSlotRepository ??= new Repositories.PrismaSeoMediaSlotRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'seoMediaItemRepository', {
+      get: () => (_seoMediaItemRepository ??= new Repositories.PrismaSeoMediaItemRepository(client)),
       enumerable: true,
     })
 

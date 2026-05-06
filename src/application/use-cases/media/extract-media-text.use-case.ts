@@ -9,6 +9,7 @@ import { MediaStatus, MediaType } from 'src/shared/enums'
 import { BaseResponseDto } from '../../dtos'
 import { MediaTextExtractionResponseDto } from '../../dtos/media'
 import { EntityType } from 'src/shared/constants/entity-type.constants'
+import { detectMediaType, generateObjectKey, sanitizeFilename } from 'src/shared/utils'
 
 export interface OcrImageBase64 {
   id: string
@@ -172,20 +173,23 @@ export class ExtractMediaTextUseCase {
 
           const match = image.imageBase64.match(/^data:(image\/\w+);base64,/)
           const mimeType = match?.[1] ?? 'image/png'
+          const detectedMediaType = detectMediaType(mimeType)
           const ext = mimeType.split('/')[1]
 
-          const fileName = `${image.id}-${Date.now()}.${ext}`
-          const objectKey = `extracted-images/${mediaId}/${fileName}`
+          const safeOriginalName = sanitizeFilename(`${image.id}.${ext}`, {
+            fallbackName: 'ocr_image',
+          })
+          const objectKey = generateObjectKey(`extracted-images/${mediaId}`, safeOriginalName)
 
           await this.minioService.uploadFile(media.bucketName, objectKey, imageBuffer, { 'Content-Type': mimeType })
 
           const imageMedia = await this.mediaRepository.create({
             bucketName: media.bucketName,
             objectKey,
-            originalFilename: image.id,
+            originalFilename: safeOriginalName,
             mimeType,
             fileSize: imageBuffer.length,
-            type: MediaType.IMAGE,
+            type: detectedMediaType,
             status: MediaStatus.READY,
             uploadedBy: media.uploadedBy,
             parentId: mediaId,
