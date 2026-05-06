@@ -1,3 +1,5 @@
 export * from './media-folder.entity'
 export * from './media-usage.entity'
 export * from './media.entity'
+export * from './seo-media-slot.entity'
+export * from './seo-media-item.entity'

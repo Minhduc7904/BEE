@@ -7,7 +7,8 @@ import { Readable } from 'stream'
  * MinioService - Production-ready MinIO integration
  * 
  * SECURITY PRINCIPLES:
- * - All buckets are PRIVATE (no public access)
+ * - Buckets are PRIVATE by default
+ * - SEO media bucket is explicitly PUBLIC READ
  * - Access control handled via presigned URLs ONLY
  * - No direct URL exposure
  * - Authorization handled at application layer (Guards/MediaUsage)
@@ -24,6 +25,7 @@ export class MinioService implements OnModuleInit {
   private readonly minioClient: Minio.Client
   private readonly publicClient?: Minio.Client  // Client for generating presigned URLs with public endpoint
   private readonly buckets: Record<string, string>
+  private readonly publicReadBucketKeys = new Set(['seoMedia'])
   private readonly isProduction: boolean
   private readonly maxRetries = 3
   private readonly retryDelay = 1000 // ms
@@ -80,9 +82,9 @@ export class MinioService implements OnModuleInit {
     
     // Only auto-create buckets in non-production environments
     if (!this.isProduction) {
-      await this.createPrivateBucketsIfNotExist()
+      await this.createBucketsIfNotExist()
     } else {
-      this.logger.warn('Production mode: Buckets must be created manually. Skipping auto-creation.')
+      this.logger.warn('Production mode: verifying buckets (SEO public bucket can be auto-created if missing).')
       await this.verifyBucketsExist()
     }
   }
@@ -114,19 +116,21 @@ export class MinioService implements OnModuleInit {
   }
 
   /**
-   * Create all PRIVATE buckets if not exist (dev/staging only)
-   * Buckets are created WITHOUT public access policy
+   * Create all configured buckets if not exist (dev/staging)
+   * Bucket policy is applied right after creation/check.
    */
-  private async createPrivateBucketsIfNotExist(): Promise<void> {
+  private async createBucketsIfNotExist(): Promise<void> {
     try {
       for (const [key, bucketName] of Object.entries(this.buckets)) {
         const exists = await this.minioClient.bucketExists(bucketName)
         if (!exists) {
           await this.minioClient.makeBucket(bucketName, 'us-east-1')
-          this.logger.log(`✅ PRIVATE bucket created: ${bucketName}`)
+          this.logger.log(`✅ Bucket created: ${bucketName}`)
         } else {
           this.logger.log(`ℹ️ Bucket already exists: ${bucketName}`)
         }
+
+        await this.applyBucketPolicy(key, bucketName)
       }
     } catch (error) {
       this.logger.error(`❌ Error creating buckets: ${error.message}`)
@@ -142,14 +146,52 @@ export class MinioService implements OnModuleInit {
       for (const [key, bucketName] of Object.entries(this.buckets)) {
         const exists = await this.minioClient.bucketExists(bucketName)
         if (!exists) {
+          if (this.isPublicReadBucketKey(key)) {
+            await this.minioClient.makeBucket(bucketName, 'us-east-1')
+            this.logger.warn(`⚠️ Public bucket auto-created in production: ${bucketName}`)
+            await this.setPublicReadPolicy(bucketName)
+            continue
+          }
           throw new Error(`Required bucket does not exist: ${bucketName}`)
         }
+
+        await this.applyBucketPolicy(key, bucketName)
         this.logger.log(`✅ Verified bucket exists: ${bucketName}`)
       }
     } catch (error) {
       this.logger.error(`❌ Bucket verification failed: ${error.message}`)
       throw new InternalServerErrorException('Storage configuration error')
     }
+  }
+
+  private isPublicReadBucketKey(bucketKey: string): boolean {
+    return this.publicReadBucketKeys.has(bucketKey)
+  }
+
+  private async applyBucketPolicy(bucketKey: string, bucketName: string): Promise<void> {
+    if (!this.isPublicReadBucketKey(bucketKey)) {
+      return
+    }
+    await this.setPublicReadPolicy(bucketName)
+  }
+
+  private async setPublicReadPolicy(bucketName: string): Promise<void> {
+    const policy = JSON.stringify({
+      Version: '2012-10-17',
+      Statement: [
+        {
+          Effect: 'Allow',
+          Principal: {
+            AWS: ['*'],
+          },
+          Action: ['s3:GetObject'],
+          Resource: [`arn:aws:s3:::${bucketName}/*`],
+        },
+      ],
+    })
+
+    await this.minioClient.setBucketPolicy(bucketName, policy)
+    this.logger.log(`✅ Public-read policy applied: ${bucketName}`)
   }
 
   // ==================== UPLOAD OPERATIONS ====================

@@ -1413,6 +1413,7 @@ model Media {
   children Media[]      @relation("MediaHierarchy")
   uploader User?        @relation("MediaUploader", fields: [uploadedBy], references: [userId], onDelete: SetNull)
   usages   MediaUsage[]
+  seoMediaItems SeoMediaItem[] // Danh sach cac vi tri SEO dang su dung media nay
 
   @@unique([bucketName, objectKey], map: "unique_media_location")
   @@index([type], map: "idx_media_type")
@@ -1443,6 +1444,44 @@ model MediaUsage {
   @@index([entityType, entityId], map: "idx_media_usages_entity")
   @@index([usedBy], map: "idx_media_usages_used_by")
   @@map("media_usages")
+}
+
+// Bang vi tri media cho SEO.
+// Moi slot (vd: home_hero, home_gallery, footer_banner) co the chua nhieu media.
+model SeoMediaSlot {
+  slotId      Int      @id @default(autoincrement()) @map("slot_id") // ID cua slot
+  code        String   @unique @map("code") @db.VarChar(100) // Ma ky thuat duy nhat de FE/BE truy cap slot
+  name        String   @map("name") @db.VarChar(255) // Ten hien thi cua slot
+  description String?  @map("description") @db.Text // Mo ta muc dich su dung slot
+  isActive    Boolean  @default(true) @map("is_active") // Bat/tat slot ma khong can xoa du lieu
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0) // Thoi diem tao
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamp(0) // Thoi diem cap nhat gan nhat
+
+  items SeoMediaItem[] // Danh sach media thuoc slot nay
+
+  @@index([isActive], map: "idx_seo_media_slots_active")
+  @@map("seo_media_slots")
+}
+
+// Bang mapping media cho tung slot SEO.
+// Day la quan he 1-n: 1 slot co nhieu item media.
+model SeoMediaItem {
+  itemId     Int      @id @default(autoincrement()) @map("item_id") // ID dong item
+  slotId     Int      @map("slot_id") // FK toi slot SEO
+  mediaId    Int      @map("media_id") // FK toi bang media goc
+  sortOrder  Int      @default(0) @map("sort_order") // Thu tu hien thi trong cung 1 slot
+  alt        String?  @map("alt") @db.VarChar(255) // Alt text cho image phuc vu SEO/a11y
+  linkUrl    String?  @map("link_url") @db.VarChar(1000) // Link dieu huong khi click media (neu co)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp(0) // Thoi diem tao item
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamp(0) // Thoi diem cap nhat item
+
+  slot  SeoMediaSlot @relation(fields: [slotId], references: [slotId], onDelete: Cascade) // Item thuoc slot nao
+  media Media        @relation(fields: [mediaId], references: [mediaId], onDelete: Cascade) // Item dung file media nao
+
+  @@unique([slotId, mediaId], map: "uq_seo_media_items_slot_media")
+  @@index([slotId, sortOrder], map: "idx_seo_media_items_slot_order")
+  @@index([mediaId], map: "idx_seo_media_items_media")
+  @@map("seo_media_items")
 }
 
 enum TuitionPaymentStatus {

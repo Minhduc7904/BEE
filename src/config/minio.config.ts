@@ -13,6 +13,7 @@ export const MinioConfig = registerAs('minio', () => ({
     audios: process.env.MINIO_BUCKET_AUDIOS || 'audios',
     documents: process.env.MINIO_BUCKET_DOCUMENTS || 'documents',
     others: process.env.MINIO_BUCKET_OTHERS || 'others',
+    seoMedia: process.env.MINIO_BUCKET_SEO_MEDIA || 'seo-media',
   },
 }))
 
