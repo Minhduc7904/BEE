@@ -1,6 +1,7 @@
 // src/infrastructure/mappers/admin.mapper.ts
 import { Admin } from '../../../domain/entities'
 import { UserMapper } from '..'
+import { SubjectMapper } from '../subject/subject.mapper'
 
 /**
  * Mapper class để convert từ Prisma Admin models sang Domain Admin entities
@@ -15,8 +16,10 @@ export class AdminMapper {
     return new Admin({
       adminId: prismaAdmin.adminId,
       userId: prismaAdmin.userId,
-      subjectId: prismaAdmin.subjectId ?? undefined,
+      subjectId: prismaAdmin.subjectId ?? null,
+      adminZaloOaId: prismaAdmin.adminZaloOaId ?? null,
       user: UserMapper.toDomainUser(prismaAdmin.user) || undefined,
+      subject: SubjectMapper.toDomainSubject(prismaAdmin.subject ?? null) || undefined,
     })
   }
 

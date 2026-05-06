@@ -12,6 +12,12 @@ interface SendAttendanceToParentInput {
     note?: string
 }
 
+export interface SendAttendanceToParentResult {
+    sent: boolean
+    messageText: string
+    errorMessage?: string
+}
+
 @Injectable()
 export class SendAttendanceToParentUseCase {
     private static readonly DEFAULT_APP_ID = '443601004373365149'
@@ -23,7 +29,7 @@ export class SendAttendanceToParentUseCase {
         private readonly getValidZaloAccessTokenUseCase: GetValidZaloAccessTokenUseCase,
     ) { }
 
-    async execute(input: SendAttendanceToParentInput): Promise<boolean> {
+    async execute(input: SendAttendanceToParentInput): Promise<SendAttendanceToParentResult> {
         const appId =
             input.appId ||
             process.env.ZALO_APP_ID ||
@@ -33,17 +39,12 @@ export class SendAttendanceToParentUseCase {
             return repos.attendanceRepository.findById(input.attendanceId)
         })
 
-        if (!attendance) return false
-
-        const parentZaloId = attendance.student?.parentZaloId
-        if (!parentZaloId) return false
-
-        const accessToken =
-            await this.getValidZaloAccessTokenUseCase.execute({ appId })
-
-        if (!accessToken) {
-            console.warn(`[Attendance->Parent] Không tìm thấy access token cho app_id=${appId}`)
-            return false
+        if (!attendance) {
+            return {
+                sent: false,
+                messageText: '',
+                errorMessage: 'Không tìm thấy phiếu điểm danh',
+            }
         }
 
         const studentName = attendance.student?.user
@@ -72,7 +73,6 @@ export class SendAttendanceToParentUseCase {
         const studentId = attendance.studentId ?? attendance.student?.studentId
         const homeworkId = attendance.classSession?.homeworkId
 
-        // ❗️ Không gửi BTVN nếu vắng
         let homeworkLine = ''
         if (attendance.status !== AttendanceStatus.ABSENT) {
             homeworkLine = '📚 BTVN: Buổi học này chưa có bài tập về nhà'
@@ -141,6 +141,28 @@ export class SendAttendanceToParentUseCase {
             note: input.note,
         })
 
+        const parentZaloId = attendance.student?.parentZaloId
+        if (!parentZaloId) {
+            return {
+                sent: false,
+                messageText,
+                errorMessage: 'Phụ huynh chưa có Zalo ID',
+            }
+        }
+
+        const accessToken =
+            await this.getValidZaloAccessTokenUseCase.execute({ appId })
+
+        if (!accessToken) {
+            const errorMessage = `Không tìm thấy access token cho app_id=${appId}`
+            console.warn(`[Attendance->Parent] ${errorMessage}`)
+            return {
+                sent: false,
+                messageText,
+                errorMessage,
+            }
+        }
+
         try {
             await this.zaloService.sendMessage(accessToken, {
                 recipient: { user_id: parentZaloId },
@@ -165,7 +187,11 @@ export class SendAttendanceToParentUseCase {
                 },
             )
 
-            return false
+            return {
+                sent: false,
+                messageText,
+                errorMessage,
+            }
         }
 
         if (!attendance.parentNotified) {
@@ -179,6 +205,9 @@ export class SendAttendanceToParentUseCase {
             })
         }
 
-        return true
+        return {
+            sent: true,
+            messageText,
+        }
     }
 }

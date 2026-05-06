@@ -17,6 +17,8 @@ export class StudentResponseDto extends UserResponseDto {
 
   parentPhone?: string
 
+  parentZaloId?: string
+
   grade: number
 
   school?: string
@@ -54,6 +56,7 @@ export class StudentResponseDto extends UserResponseDto {
       streak: 0,
       studentPhone: student.studentPhone,
       parentPhone: student.parentPhone,
+      parentZaloId: student.parentZaloId,
       grade: student.grade,
       school: student.school,
       hasParentZaloId: student.parentZaloId ? true : false,

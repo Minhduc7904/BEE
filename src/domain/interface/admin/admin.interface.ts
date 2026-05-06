@@ -5,10 +5,12 @@ import { PaginationOptions, PaginationResult, BaseFilterOptions, SortOptions } f
 export interface CreateAdminData {
   userId: number
   subjectId?: number
+  adminZaloOaId?: string | null
 }
 
 export interface UpdateAdminData {
-  subjectId?: number
+  subjectId?: number | null
+  adminZaloOaId?: string | null
 }
 
 // Admin-specific sort fields
