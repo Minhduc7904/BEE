@@ -22,8 +22,15 @@ export class CreateSeoMediaSlotUseCase {
     const slot = await this.seoMediaSlotRepository.create({
       code: dto.code.trim(),
       name: dto.name.trim(),
+      pageKey: dto.pageKey?.trim() || null,
+      type: dto.type?.trim() || undefined,
       description: dto.description?.trim() || undefined,
       isActive: dto.isActive,
+      minItems: dto.minItems,
+      maxItems: dto.maxItems ?? null,
+      recommendedWidth: dto.recommendedWidth ?? null,
+      recommendedHeight: dto.recommendedHeight ?? null,
+      metadata: dto.metadata ?? null,
     })
 
     return BaseResponseDto.success(

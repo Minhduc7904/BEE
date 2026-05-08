@@ -4,8 +4,15 @@ export interface ISeoMediaSlotRepository {
   create(data: {
     code: string
     name: string
+    pageKey?: string | null
+    type?: string
     description?: string | null
     isActive?: boolean
+    minItems?: number
+    maxItems?: number | null
+    recommendedWidth?: number | null
+    recommendedHeight?: number | null
+    metadata?: unknown | null
   }): Promise<SeoMediaSlotEntity>
 
   findById(
@@ -24,6 +31,8 @@ export interface ISeoMediaSlotRepository {
 
   findAll(filters?: {
     code?: string
+    pageKey?: string
+    type?: string
     isActive?: boolean
     includeItems?: boolean
     skip?: number
@@ -35,8 +44,15 @@ export interface ISeoMediaSlotRepository {
     data: {
       code?: string
       name?: string
+      pageKey?: string | null
+      type?: string
       description?: string | null
       isActive?: boolean
+      minItems?: number
+      maxItems?: number | null
+      recommendedWidth?: number | null
+      recommendedHeight?: number | null
+      metadata?: unknown | null
     },
   ): Promise<SeoMediaSlotEntity>
 
@@ -44,6 +60,8 @@ export interface ISeoMediaSlotRepository {
 
   count(filters?: {
     code?: string
+    pageKey?: string
+    type?: string
     isActive?: boolean
   }): Promise<number>
 }

@@ -60,6 +60,19 @@ export class MediaProcessingService {
 
   private async optimizeImage({ buffer, mimeType }: OptimizeParams) {
     const metadata = await sharp(buffer).metadata()
+    const normalizedMimeType = mimeType.toLowerCase()
+
+    // Keep GIF as-is (especially animated GIFs) to preserve playback.
+    // Only JPEG/PNG are converted to WebP.
+    if (normalizedMimeType !== 'image/jpeg' && normalizedMimeType !== 'image/png') {
+      return {
+        buffer,
+        mimeType,
+        extension: this.extensionFromMime(mimeType),
+        width: metadata.width ?? null,
+        height: metadata.height ?? null,
+      }
+    }
 
     const optimizedBuffer = await sharp(buffer)
       .rotate()

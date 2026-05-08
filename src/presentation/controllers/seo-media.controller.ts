@@ -36,6 +36,7 @@ import {
   CreateSeoMediaSlotUseCase,
   DeleteSeoMediaItemUseCase,
   DeleteSeoMediaSlotUseCase,
+  GetPublicSeoMediaItemsBySlotCodeUseCase,
   GetSeoMediaItemsBySlotUseCase,
   GetSeoMediaSlotByCodeUseCase,
   GetSeoMediaSlotByIdUseCase,
@@ -62,6 +63,7 @@ export class SeoMediaController {
     private readonly getSeoMediaSlotByCodeUseCase: GetSeoMediaSlotByCodeUseCase,
     private readonly updateSeoMediaSlotUseCase: UpdateSeoMediaSlotUseCase,
     private readonly deleteSeoMediaSlotUseCase: DeleteSeoMediaSlotUseCase,
+    private readonly getPublicSeoMediaItemsBySlotCodeUseCase: GetPublicSeoMediaItemsBySlotCodeUseCase,
     private readonly createSeoMediaItemUseCase: CreateSeoMediaItemUseCase,
     private readonly getSeoMediaItemsBySlotUseCase: GetSeoMediaItemsBySlotUseCase,
     private readonly updateSeoMediaItemUseCase: UpdateSeoMediaItemUseCase,
@@ -69,6 +71,21 @@ export class SeoMediaController {
     private readonly reorderSeoMediaItemsUseCase: ReorderSeoMediaItemsUseCase,
     private readonly uploadSeoMediaImageUseCase: UploadSeoMediaImageUseCase,
   ) {}
+
+  /**
+   * Public SEO frontend API.
+   * Returns active media items by slot code without auth/permission requirements.
+   */
+  @Get('public/slots/:code/items')
+  @HttpCode(HttpStatus.OK)
+  async getPublicItemsBySlotCode(
+    @Param('code') code: string,
+    @Query() query: GetSeoMediaItemListDto,
+  ): Promise<SeoMediaItemListResponseDto> {
+    return ExceptionHandler.execute(() =>
+      this.getPublicSeoMediaItemsBySlotCodeUseCase.execute(code, query),
+    )
+  }
 
   @UseInterceptors(FileInterceptor('file'), FileSizeByRoleInterceptor)
   @Post('upload-image')
@@ -528,6 +545,45 @@ SEO MEDIA API DOCUMENTATION
     "fileSize": 345678,
     "width": 1920,
     "height": 1080
+  }
+}
+
+13) Public get SEO media items by slot code
+- Purpose: frontend SEO pages load active media items by slot code without auth/permission.
+- Endpoint: GET /seo-media/public/slots/:code/items?page=1&limit=10
+- Request:
+  - Path param: `code` (example: `home_hero`, `home_gallery`, `footer_banner`)
+  - Query params: `page`, `limit`, `includeSlot`
+- Response:
+{
+  "success": true,
+  "message": "Lay danh sach SEO media items thanh cong",
+  "data": [
+    {
+      "itemId": 1,
+      "slotId": 1,
+      "bucketName": "seo-media",
+      "objectKey": "2026/05/uuid.jpg",
+      "publicUrl": "http://localhost:9000/seo-media/2026/05/uuid.jpg",
+      "originalName": "banner_home.jpg",
+      "mimeType": "image/jpeg",
+      "fileSize": 345678,
+      "width": 1920,
+      "height": 1080,
+      "sortOrder": 0,
+      "alt": "Home hero",
+      "linkUrl": null,
+      "createdAt": "2026-05-06T10:00:00.000Z",
+      "updatedAt": "2026-05-06T10:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 10,
+    "total": 1,
+    "totalPages": 1,
+    "hasPrevious": false,
+    "hasNext": false
   }
 }
 */

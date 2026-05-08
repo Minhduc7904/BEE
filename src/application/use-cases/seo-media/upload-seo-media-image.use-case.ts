@@ -62,7 +62,7 @@ export class UploadSeoMediaImageUseCase {
       overrideExtension: optimized?.extension,
     })
 
-    const objectKey = generateObjectKey('seo-media', sanitizedOriginalName)
+    const objectKey = generateObjectKey('images', sanitizedOriginalName)
     const bucketName = this.minioService.getBuckets().seoMedia
 
     const stream = Readable.from(uploadBuffer)

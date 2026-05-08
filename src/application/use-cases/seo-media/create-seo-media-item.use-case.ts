@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Inject,
   Injectable,
@@ -11,7 +12,8 @@ import {
 } from 'src/application/dtos/seo-media'
 import type { ISeoMediaItemRepository } from 'src/domain/repositories/seo-media-item.repository'
 import type { ISeoMediaSlotRepository } from 'src/domain/repositories/seo-media-slot.repository'
-import { normalizeStoredPublicPath } from 'src/shared/utils'
+import { MinioService } from 'src/infrastructure/services/minio.service'
+import { buildPublicObjectPath } from 'src/shared/utils'
 
 @Injectable()
 export class CreateSeoMediaItemUseCase {
@@ -20,6 +22,7 @@ export class CreateSeoMediaItemUseCase {
     private readonly seoMediaItemRepository: ISeoMediaItemRepository,
     @Inject('ISeoMediaSlotRepository')
     private readonly seoMediaSlotRepository: ISeoMediaSlotRepository,
+    private readonly minioService: MinioService,
   ) {}
 
   async execute(dto: CreateSeoMediaItemDto): Promise<BaseResponseDto<SeoMediaItemResponseDto>> {
@@ -28,9 +31,12 @@ export class CreateSeoMediaItemUseCase {
       throw new NotFoundException(`SEO media slot with ID ${dto.slotId} not found`)
     }
 
+    const bucketName = this.getSeoBucketName(dto.bucketName)
+    const objectKey = this.getSeoObjectKey(dto.objectKey)
+
     const duplicated = await this.seoMediaItemRepository.findBySlotAndObjectKey(
       dto.slotId,
-      dto.objectKey.trim(),
+      objectKey,
     )
     if (duplicated) {
       throw new ConflictException('Image already exists in this SEO slot')
@@ -39,13 +45,9 @@ export class CreateSeoMediaItemUseCase {
     const item = await this.seoMediaItemRepository.create(
       {
         slotId: dto.slotId,
-        bucketName: dto.bucketName.trim(),
-        objectKey: dto.objectKey.trim(),
-        publicUrl: normalizeStoredPublicPath(
-          dto.publicUrl,
-          dto.bucketName.trim(),
-          dto.objectKey.trim(),
-        ),
+        bucketName,
+        objectKey,
+        publicUrl: buildPublicObjectPath(bucketName, objectKey),
         originalName: dto.originalName.trim(),
         mimeType: dto.mimeType.trim(),
         fileSize: dto.fileSize,
@@ -64,5 +66,34 @@ export class CreateSeoMediaItemUseCase {
       'SEO media item created successfully',
       SeoMediaItemResponseDto.fromEntity(item),
     )
+  }
+
+  private getSeoBucketName(inputBucketName?: string): string {
+    const seoBucketName = this.minioService.getBuckets().seoMedia
+    const bucketName = inputBucketName?.trim()
+
+    if (bucketName && bucketName !== seoBucketName) {
+      throw new BadRequestException(`SEO media must use bucket "${seoBucketName}"`)
+    }
+
+    return seoBucketName
+  }
+
+  private getSeoObjectKey(inputObjectKey: string): string {
+    const objectKey = this.normalizeSeoObjectKey(inputObjectKey)
+
+    if (!/^images\/\d{4}\/\d{2}\/.+/.test(objectKey)) {
+      throw new BadRequestException('SEO media objectKey must be uploaded by SEO media upload API')
+    }
+
+    return objectKey
+  }
+
+  private normalizeSeoObjectKey(inputObjectKey: string): string {
+    return inputObjectKey
+      .trim()
+      .replace(/^\/+/, '')
+      .replace(/^minio\/seo-media\//, '')
+      .replace(/^seo-media\//, '')
   }
 }

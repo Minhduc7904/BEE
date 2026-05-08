@@ -8,8 +8,15 @@ export class SeoMediaSlotEntity {
   slotId: number
   code: string
   name: string
+  pageKey: string | null
+  type: string
   description: string | null
   isActive: boolean
+  minItems: number
+  maxItems: number | null
+  recommendedWidth: number | null
+  recommendedHeight: number | null
+  metadata: unknown | null
   createdAt: Date
   updatedAt: Date
   items?: SeoMediaItemEntity[]
@@ -18,8 +25,15 @@ export class SeoMediaSlotEntity {
     slotId: number
     code: string
     name: string
+    pageKey: string | null
+    type: string
     description: string | null
     isActive: boolean
+    minItems: number
+    maxItems: number | null
+    recommendedWidth: number | null
+    recommendedHeight: number | null
+    metadata: unknown | null
     createdAt: Date
     updatedAt: Date
     items?: SeoMediaItemEntity[]

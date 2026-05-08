@@ -1449,17 +1449,45 @@ model MediaUsage {
 // Bang vi tri media cho SEO.
 // Moi slot (vd: home_hero, home_gallery, footer_banner) co the chua nhieu media.
 model SeoMediaSlot {
-  slotId      Int      @id @default(autoincrement()) @map("slot_id") // ID cua slot
-  code        String   @unique @map("code") @db.VarChar(100) // Ma ky thuat duy nhat de FE/BE truy cap slot
-  name        String   @map("name") @db.VarChar(255) // Ten hien thi cua slot
-  description String?  @map("description") @db.Text // Mo ta muc dich su dung slot
-  isActive    Boolean  @default(true) @map("is_active") // Bat/tat slot ma khong can xoa du lieu
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0) // Thoi diem tao
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamp(0) // Thoi diem cap nhat gan nhat
+  slotId Int @id @default(autoincrement()) @map("slot_id")
+
+  // Ma ky thuat duy nhat de FE/BE truy cap slot
+  code String @unique @map("code") @db.VarChar(100)
+
+  // Ten hien thi trong admin
+  name String @map("name") @db.VarChar(255)
+
+  // Slot nay thuoc page nao, vd: home, about, contact
+  pageKey String? @map("page_key") @db.VarChar(100)
+
+  // Loai slot, vd: image, banner, gallery, carousel, video
+  type String @default("image") @map("type") @db.VarChar(50)
+
+  // Mo ta muc dich su dung slot
+  description String? @map("description") @db.Text
+
+  // Bat/tat slot ma khong can xoa du lieu
+  isActive Boolean @default(true) @map("is_active")
+
+  // So luong media toi thieu/toi da trong slot
+  minItems Int  @default(0) @map("min_items")
+  maxItems Int? @map("max_items")
+
+  // Kich thuoc anh khuyen nghi
+  recommendedWidth  Int? @map("recommended_width")
+  recommendedHeight Int? @map("recommended_height")
+
+  // Config mo rong cho FE/admin
+  metadata Json? @map("metadata")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
   items SeoMediaItem[] // Danh sach media thuoc slot nay
 
   @@index([isActive], map: "idx_seo_media_slots_active")
+  @@index([pageKey], map: "idx_seo_media_slots_page_key")
+  @@index([type], map: "idx_seo_media_slots_type")
   @@map("seo_media_slots")
 }
 

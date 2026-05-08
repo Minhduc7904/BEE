@@ -10,14 +10,14 @@ export class CreateSeoMediaItemDto {
   @IsRequiredIdNumber('ID slot')
   slotId: number
 
-  @IsRequiredString('Bucket name', 100)
-  bucketName: string
+  @IsOptionalString('Bucket name', 100)
+  bucketName?: string
 
   @IsRequiredString('Object key', 500)
   objectKey: string
 
-  @IsRequiredString('Public URL', 1000)
-  publicUrl: string
+  @IsOptionalString('Public URL', 1000)
+  publicUrl?: string
 
   @IsRequiredString('Original file name', 255)
   originalName: string

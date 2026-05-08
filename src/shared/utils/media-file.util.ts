@@ -50,7 +50,9 @@ export function generateObjectKey(
   const uniqueId = options?.uniqueId ?? uuidv4()
   const normalizedPrefix = prefix.replace(/^\/+|\/+$/g, '')
 
-  return `${normalizedPrefix}/${year}/${month}/${uniqueId}${fileExt}`
+  return normalizedPrefix
+    ? `${normalizedPrefix}/${year}/${month}/${uniqueId}${fileExt}`
+    : `${year}/${month}/${uniqueId}${fileExt}`
 }
 
 export function buildPublicObjectPath(bucketName: string, objectKey: string): string {
@@ -77,13 +79,20 @@ export function normalizeStoredPublicPath(
 
   try {
     const parsed = new URL(trimmed)
-    return parsed.pathname || fallbackPath
+    return normalizeStoredMinioPath(parsed.pathname || fallbackPath)
   } catch {
     if (trimmed.startsWith('/')) {
-      return trimmed
+      return normalizeStoredMinioPath(trimmed)
     }
     return fallbackPath
   }
+}
+
+function normalizeStoredMinioPath(pathname: string): string {
+  const normalizedPath = pathname.startsWith('/') ? pathname : `/${pathname}`
+  return normalizedPath.startsWith('/minio/')
+    ? normalizedPath.slice('/minio'.length)
+    : normalizedPath
 }
 
 export function resolvePublicUrlFromDb(publicUrl?: string | null): string | undefined {

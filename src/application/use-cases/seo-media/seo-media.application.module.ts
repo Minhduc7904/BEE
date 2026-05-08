@@ -15,6 +15,7 @@ const SEO_MEDIA_USE_CASES = [
   seoMediaUseCases.DeleteSeoMediaItemUseCase,
   seoMediaUseCases.ReorderSeoMediaItemsUseCase,
   seoMediaUseCases.UploadSeoMediaImageUseCase,
+  seoMediaUseCases.GetPublicSeoMediaItemsBySlotCodeUseCase,
 ]
 
 @Module({

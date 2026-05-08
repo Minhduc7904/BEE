@@ -23,12 +23,16 @@ export class GetSeoMediaSlotListUseCase {
     const [slots, total] = await Promise.all([
       this.seoMediaSlotRepository.findAll({
         isActive: dto.isActive,
+        pageKey: dto.pageKey,
+        type: dto.type,
         includeItems: dto.includeItems,
         skip,
         take: limit,
       }),
       this.seoMediaSlotRepository.count({
         isActive: dto.isActive,
+        pageKey: dto.pageKey,
+        type: dto.type,
       }),
     ])
 

@@ -28,15 +28,29 @@ export class PrismaSeoMediaSlotRepository implements ISeoMediaSlotRepository {
   async create(data: {
     code: string
     name: string
+    pageKey?: string | null
+    type?: string
     description?: string | null
     isActive?: boolean
+    minItems?: number
+    maxItems?: number | null
+    recommendedWidth?: number | null
+    recommendedHeight?: number | null
+    metadata?: unknown | null
   }): Promise<SeoMediaSlotEntity> {
     const slot = await this.prisma.seoMediaSlot.create({
       data: {
         code: data.code,
         name: data.name,
+        pageKey: data.pageKey ?? null,
+        type: data.type ?? 'image',
         description: data.description ?? null,
         isActive: data.isActive ?? true,
+        minItems: data.minItems ?? 0,
+        maxItems: data.maxItems ?? null,
+        recommendedWidth: data.recommendedWidth ?? null,
+        recommendedHeight: data.recommendedHeight ?? null,
+        metadata: data.metadata === undefined ? undefined : data.metadata as Prisma.InputJsonValue,
       },
     })
 
@@ -73,6 +87,8 @@ export class PrismaSeoMediaSlotRepository implements ISeoMediaSlotRepository {
 
   async findAll(filters?: {
     code?: string
+    pageKey?: string
+    type?: string
     isActive?: boolean
     includeItems?: boolean
     skip?: number
@@ -97,15 +113,29 @@ export class PrismaSeoMediaSlotRepository implements ISeoMediaSlotRepository {
     data: {
       code?: string
       name?: string
+      pageKey?: string | null
+      type?: string
       description?: string | null
       isActive?: boolean
+      minItems?: number
+      maxItems?: number | null
+      recommendedWidth?: number | null
+      recommendedHeight?: number | null
+      metadata?: unknown | null
     },
   ): Promise<SeoMediaSlotEntity> {
     const updateData: Prisma.SeoMediaSlotUpdateInput = {
       ...(data.code !== undefined && { code: data.code }),
       ...(data.name !== undefined && { name: data.name }),
+      ...(data.pageKey !== undefined && { pageKey: data.pageKey }),
+      ...(data.type !== undefined && { type: data.type }),
       ...(data.description !== undefined && { description: data.description }),
       ...(data.isActive !== undefined && { isActive: data.isActive }),
+      ...(data.minItems !== undefined && { minItems: data.minItems }),
+      ...(data.maxItems !== undefined && { maxItems: data.maxItems }),
+      ...(data.recommendedWidth !== undefined && { recommendedWidth: data.recommendedWidth }),
+      ...(data.recommendedHeight !== undefined && { recommendedHeight: data.recommendedHeight }),
+      ...(data.metadata !== undefined && { metadata: data.metadata as Prisma.InputJsonValue }),
     }
 
     const slot = await this.prisma.seoMediaSlot.update({
@@ -122,7 +152,12 @@ export class PrismaSeoMediaSlotRepository implements ISeoMediaSlotRepository {
     })
   }
 
-  async count(filters?: { code?: string; isActive?: boolean }): Promise<number> {
+  async count(filters?: {
+    code?: string
+    pageKey?: string
+    type?: string
+    isActive?: boolean
+  }): Promise<number> {
     return this.prisma.seoMediaSlot.count({
       where: filters,
     })
