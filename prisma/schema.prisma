@@ -509,15 +509,15 @@ model Chapter {
 }
 
 enum TypeOfExam {
-  CK1
-  TSA
-  THPT
-  OTTHPT
-  OT
-  CK2
-  GK1
-  GK2
-  HSA
+  CK1 // cuối kỳ 1
+  TSA // đánh giá tư duy
+  THPT // THPT quốc gia
+  OTTHPT // ôn tập THPT
+  OT // ôn tập
+  CK2 // cuối kỳ 2
+  GK1 // giữa kỳ 1
+  GK2 // giữa kỳ 2
+  HSA // đánh giá năng lực
   OTHS
 }
 

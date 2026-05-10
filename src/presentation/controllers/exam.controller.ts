@@ -282,6 +282,42 @@ export class ExamController {
   }
 
   /**
+   * Lấy chi tiết đề thi public cho SEO (không yêu cầu permission/auth)
+   *
+   * @route GET /exams/public/seo/:id
+   * @param id - Exam ID
+   * @returns Chi tiết đề thi nếu đề có visibility = PUBLISHED
+   *
+   * @example
+   * GET /exams/public/seo/123
+   */
+  @Get('public/seo/:id')
+  @HttpCode(HttpStatus.OK)
+  async getPublicSeoExamById(
+    @Param('id', ParseIntPipe) id: number,
+  ): Promise<BaseResponseDto<PublicStudentExamDetailResponseDto>> {
+    return ExceptionHandler.execute(() => this.getPublicStudentExamByIdUseCase.execute(id))
+  }
+
+  /**
+   * Lấy danh sách đề thi public cho SEO (không yêu cầu permission/auth)
+   *
+   * @route GET /exams/public/seo
+   * @param query - Query params: page, limit, search, grade, typeOfExam, subjectId, chapterIds, sortBy, sortOrder
+   * @returns Danh sách đề thi có visibility = PUBLISHED
+   *
+   * @example
+   * GET /exams/public/seo?page=1&limit=10&grade=10
+   */
+  @Get('public/seo')
+  @HttpCode(HttpStatus.OK)
+  async getPublicSeoExams(
+    @Query() query: PublicStudentExamListQueryDto,
+  ): Promise<PublicStudentExamListResponseDto> {
+    return ExceptionHandler.execute(() => this.getPublicStudentExamsUseCase.execute(query))
+  }
+
+  /**
    * Get exam by ID
    *
    * @route GET /exams/:id
