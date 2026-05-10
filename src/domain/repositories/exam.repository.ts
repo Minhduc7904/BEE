@@ -11,6 +11,12 @@ export interface CreateExamData {
   subjectId?: number | null
   solutionYoutubeUrl?: string | null
   typeOfExam?: TypeOfExam | null
+  slug?: string | null
+}
+
+export interface ExamSlugCandidate {
+  examId: number
+  title: string
 }
 
 export interface ExamFilterOptions {
@@ -47,9 +53,12 @@ export interface PublishedExamTypeCount {
 export interface IExamRepository {
   create(data: CreateExamData, txClient?: any): Promise<Exam>
   findById(id: number, txClient?: any): Promise<Exam | null>
+  findBySlug(slug: string, txClient?: any): Promise<Exam | null>
   findByIdWithFullDetails(id: number, txClient?: any): Promise<Exam | null>
   update(id: number, data: Partial<CreateExamData>, txClient?: any): Promise<Exam>
   delete(id: number, txClient?: any): Promise<void>
+  findMissingSlugCandidates(txClient?: any): Promise<ExamSlugCandidate[]>
+  existsBySlug(slug: string, txClient?: any): Promise<boolean>
   findAllWithPagination(
     pagination: ExamPaginationOptions,
     filters?: ExamFilterOptions,

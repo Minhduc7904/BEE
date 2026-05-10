@@ -77,6 +77,25 @@ export class SubjectController {
   }
 
   /**
+   * Get all subjects with pagination and filtering
+   * GET /subjects/public/seo
+   * Query params:
+   * - page: số trang (mặc định: 1)
+   * - limit: số lượng mỗi trang (mặc định: 10, max: 100)
+   * - search: tìm kiếm theo name, code
+   * - code: filter theo mã môn học
+   * - sortBy: trường sắp xếp (name, code)
+   * - sortOrder: thứ tự sắp xếp (asc, desc)
+   */
+  @Get('public/seo') 
+    @HttpCode(HttpStatus.OK)
+  async getAllPublicSeoSubjects(
+    @Query() query: SubjectListQueryDto,
+  ): Promise<PaginationResponseDto<SubjectResponseDto>> {
+    return ExceptionHandler.execute(() => this.getAllSubjectsUseCase.execute(query))
+  }
+
+  /**
    * Get subject by ID
    * GET /subjects/:id
    */

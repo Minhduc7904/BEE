@@ -16,6 +16,7 @@ export class Exam {
   updatedAt: Date
 
   // Optional properties
+  slug?: string | null
   description?: string | null
   subjectId?: number | null
   solutionYoutubeUrl?: string | null
@@ -39,6 +40,7 @@ export class Exam {
     visibility: ExamVisibility
     createdAt: Date
     updatedAt: Date
+    slug?: string | null
     description?: string | null
     subjectId?: number | null
     solutionYoutubeUrl?: string | null
@@ -57,6 +59,7 @@ export class Exam {
     this.visibility = data.visibility
     this.createdAt = data.createdAt
     this.updatedAt = data.updatedAt
+    this.slug = data.slug
     this.description = data.description
     this.subjectId = data.subjectId
     this.solutionYoutubeUrl = data.solutionYoutubeUrl

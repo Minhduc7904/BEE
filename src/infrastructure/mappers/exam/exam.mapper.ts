@@ -18,6 +18,7 @@ export class ExamMapper {
     return new Exam({
       examId: prisma.examId,
       title: prisma.title,
+      slug: prisma.slug ?? null,
       grade: prisma.grade ?? undefined,
       createdBy: prisma.createdBy,
       visibility: prisma.visibility as any,

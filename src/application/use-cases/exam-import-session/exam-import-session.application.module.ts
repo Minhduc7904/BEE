@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 
 import * as examImportSessionUseCase from './'
 import { InfrastructureModule } from 'src/infrastructure/infrastructure.module'
+import { AttachMediaFromContentUseCase } from '../media/attach-media-from-content.use-case'
 
 const EXAM_IMPORT_SESSION_USE_CASES = [
   examImportSessionUseCase.CreateExamImportSessionUseCase,
@@ -15,6 +16,7 @@ const EXAM_IMPORT_SESSION_USE_CASES = [
   examImportSessionUseCase.ClassifyQuestionChaptersUseCase,
   examImportSessionUseCase.MigrateTempToFinalExamUseCase,
   examImportSessionUseCase.ManualSplitQuestionsUseCase,
+  AttachMediaFromContentUseCase,
 ]
 
 @Module({

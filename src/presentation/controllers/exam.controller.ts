@@ -43,7 +43,10 @@ import {
   GetPublicExamTypeCountsUseCase,
   GetPublicStudentExamsUseCase,
   GetPublicStudentExamByIdUseCase,
+  GetPublicStudentExamBySlugUseCase,
   GetPublicStudentExamContentUseCase,
+  GetPublicSeoRelatedExamsBySlugUseCase,
+  GetPublicSeoLatestExamsUseCase,
 } from '../../application/use-cases/exam'
 import { GetQuestionsByExamUseCase } from '../../application/use-cases/question'
 import { GetSectionsByExamUseCase } from '../../application/use-cases/section'
@@ -62,7 +65,10 @@ export class ExamController {
     private readonly getPublicExamTypeCountsUseCase: GetPublicExamTypeCountsUseCase,
     private readonly getPublicStudentExamsUseCase: GetPublicStudentExamsUseCase,
     private readonly getPublicStudentExamByIdUseCase: GetPublicStudentExamByIdUseCase,
+    private readonly getPublicStudentExamBySlugUseCase: GetPublicStudentExamBySlugUseCase,
     private readonly getPublicStudentExamContentUseCase: GetPublicStudentExamContentUseCase,
+    private readonly getPublicSeoRelatedExamsBySlugUseCase: GetPublicSeoRelatedExamsBySlugUseCase,
+    private readonly getPublicSeoLatestExamsUseCase: GetPublicSeoLatestExamsUseCase,
     private readonly getQuestionsByExamUseCase: GetQuestionsByExamUseCase,
     private readonly getSectionsByExamUseCase: GetSectionsByExamUseCase,
   ) { }
@@ -98,7 +104,7 @@ export class ExamController {
    * @returns Paginated list of exams matching search criteria
    *
    * @example
-   * GET /exams/search?search=toán&page=1&limit=10&grade=10
+   * GET /exams/search?search=toÃ¡n&page=1&limit=10&grade=10
    */
   @Get('search')
   @RequirePermission(PERMISSION_CODES.EXAM.SEARCH)
@@ -140,29 +146,29 @@ export class ExamController {
   }
 
   /**
-   * Đếm số lượng đề thi public theo từng loại đề (dành cho học sinh)
+   * Äáº¿m sá»‘ lÆ°á»£ng Ä‘á» thi public theo tá»«ng loáº¡i Ä‘á» (dÃ nh cho há»c sinh)
    *
    * @route GET /exams/public/type-counts
-   * @returns Thống kê số lượng đề thi PUBLISHED theo từng typeOfExam
+   * @returns Thá»‘ng kÃª sá»‘ lÆ°á»£ng Ä‘á» thi PUBLISHED theo tá»«ng typeOfExam
    *
    * @example
    * GET /exams/public/type-counts
    * Response: {
    *   "success": true,
-   *   "message": "Lấy thống kê số lượng đề thi public theo loại thành công",
+   *   "message": "Láº¥y thá»‘ng kÃª sá»‘ lÆ°á»£ng Ä‘á» thi public theo loáº¡i thÃ nh cÃ´ng",
    *   "data": {
    *     "totalPublished": 128,
    *     "items": [
-   *       { "typeOfExam": "CK1", "label": "Cuối kỳ 1", "total": 15 },
-   *       { "typeOfExam": "CK2", "label": "Cuối kỳ 2", "total": 14 },
-   *       { "typeOfExam": "GK1", "label": "Giữa kỳ 1", "total": 21 },
-   *       { "typeOfExam": "GK2", "label": "Giữa kỳ 2", "total": 19 },
-   *       { "typeOfExam": "TSA", "label": "Tuyển sinh Đại học", "total": 9 },
-   *       { "typeOfExam": "THPT", "label": "THPT Quốc Gia", "total": 18 },
-   *       { "typeOfExam": "OTTHPT", "label": "Ôn tập THPT", "total": 10 },
-   *       { "typeOfExam": "OT", "label": "Ôn tập", "total": 8 },
-   *       { "typeOfExam": "HSA", "label": "Học sinh giỏi", "total": 7 },
-   *       { "typeOfExam": "OTHS", "label": "Ôn tập chung", "total": 7 }
+   *       { "typeOfExam": "CK1", "label": "Cuá»‘i ká»³ 1", "total": 15 },
+   *       { "typeOfExam": "CK2", "label": "Cuá»‘i ká»³ 2", "total": 14 },
+   *       { "typeOfExam": "GK1", "label": "Giá»¯a ká»³ 1", "total": 21 },
+   *       { "typeOfExam": "GK2", "label": "Giá»¯a ká»³ 2", "total": 19 },
+   *       { "typeOfExam": "TSA", "label": "Tuyá»ƒn sinh Äáº¡i há»c", "total": 9 },
+   *       { "typeOfExam": "THPT", "label": "THPT Quá»‘c Gia", "total": 18 },
+   *       { "typeOfExam": "OTTHPT", "label": "Ã”n táº­p THPT", "total": 10 },
+   *       { "typeOfExam": "OT", "label": "Ã”n táº­p", "total": 8 },
+   *       { "typeOfExam": "HSA", "label": "Há»c sinh giá»i", "total": 7 },
+   *       { "typeOfExam": "OTHS", "label": "Ã”n táº­p chung", "total": 7 }
    *     ]
    *   }
    * }
@@ -175,26 +181,26 @@ export class ExamController {
   }
 
   /**
-   * Lấy danh sách đề thi public cho học sinh (có lọc + phân trang)
+   * Láº¥y danh sÃ¡ch Ä‘á» thi public cho há»c sinh (cÃ³ lá»c + phÃ¢n trang)
    *
    * @route GET /exams/public/student
     * @param query - Query params: page, limit, search, grade, typeOfExam, subjectId, chapterIds, sortBy, sortOrder
-   * @returns Danh sách đề thi có visibility = PUBLISHED
+   * @returns Danh sÃ¡ch Ä‘á» thi cÃ³ visibility = PUBLISHED
    *
    * @example
-   * GET /exams/public/student?page=1&limit=10&grade=10&typeOfExam=GK1&search=toán
+   * GET /exams/public/student?page=1&limit=10&grade=10&typeOfExam=GK1&search=toÃ¡n
    * Response: {
    *   "success": true,
-   *   "message": "Lấy danh sách đề thi public thành công",
+   *   "message": "Láº¥y danh sÃ¡ch Ä‘á» thi public thÃ nh cÃ´ng",
    *   "data": [
    *     {
    *       "examId": 123,
-   *       "title": "Đề thi giữa kỳ 1 Toán 10",
+   *       "title": "Äá» thi giá»¯a ká»³ 1 ToÃ¡n 10",
    *       "grade": 10,
    *       "visibility": "PUBLISHED",
    *       "typeOfExam": "GK1",
    *       "subjectId": 5,
-   *       "subjectName": "Toán",
+   *       "subjectName": "ToÃ¡n",
    *       "questionCount": 40
    *     }
    *   ],
@@ -220,14 +226,14 @@ export class ExamController {
   }
 
   /**
-   * Tìm kiếm đề thi public cho học sinh (search + filter + phân trang)
+   * TÃ¬m kiáº¿m Ä‘á» thi public cho há»c sinh (search + filter + phÃ¢n trang)
    *
    * @route GET /exams/public/student/search
     * @param query - Query params: search, page, limit, grade, typeOfExam, subjectId, chapterIds, sortBy, sortOrder
-   * @returns Danh sách đề thi public phù hợp từ khóa tìm kiếm
+   * @returns Danh sÃ¡ch Ä‘á» thi public phÃ¹ há»£p tá»« khÃ³a tÃ¬m kiáº¿m
    *
    * @example
-   * GET /exams/public/student/search?search=toán&page=1&limit=10&typeOfExam=GK1
+   * GET /exams/public/student/search?search=toÃ¡n&page=1&limit=10&typeOfExam=GK1
    */
   @Get('public/student/search')
   @RequirePermission()
@@ -240,12 +246,12 @@ export class ExamController {
   }
 
   /**
-   * Lấy nội dung đề thi public cho học sinh (sections + questions)
+   * Láº¥y ná»™i dung Ä‘á» thi public cho há»c sinh (sections + questions)
    *
    * @route GET /exams/public/student/:id/exam
    * @param id - Exam ID
    * @param query - Query params: questionIds (optional)
-   * @returns Response giống PublicStudentCompetitionExamResponseDto
+   * @returns Response giá»‘ng PublicStudentCompetitionExamResponseDto
    *
    * @example
    * GET /exams/public/student/123/exam
@@ -262,11 +268,11 @@ export class ExamController {
   }
 
   /**
-   * Lấy chi tiết đề thi cho học sinh (chỉ áp dụng đề thi public)
+   * Láº¥y chi tiáº¿t Ä‘á» thi cho há»c sinh (chá»‰ Ã¡p dá»¥ng Ä‘á» thi public)
    *
    * @route GET /exams/public/student/:id
    * @param id - Exam ID
-   * @returns Chi tiết đề thi nếu đề có visibility = PUBLISHED
+   * @returns Chi tiáº¿t Ä‘á» thi náº¿u Ä‘á» cÃ³ visibility = PUBLISHED
    *
    * @example
    * GET /exams/public/student/123
@@ -282,29 +288,64 @@ export class ExamController {
   }
 
   /**
-   * Lấy chi tiết đề thi public cho SEO (không yêu cầu permission/auth)
+   * Láº¥y chi tiáº¿t Ä‘á» thi public cho SEO (khÃ´ng yÃªu cáº§u permission/auth)
    *
-   * @route GET /exams/public/seo/:id
-   * @param id - Exam ID
-   * @returns Chi tiết đề thi nếu đề có visibility = PUBLISHED
+   * @route GET /exams/public/seo/:slug
+   * @param slug - Exam slug
+   * @returns Chi tiáº¿t Ä‘á» thi náº¿u Ä‘á» cÃ³ visibility = PUBLISHED
    *
    * @example
-   * GET /exams/public/seo/123
+   * GET /exams/public/seo/de-thi-cuoi-hoc-ky
    */
-  @Get('public/seo/:id')
+  @Get('public/seo/latest')
   @HttpCode(HttpStatus.OK)
-  async getPublicSeoExamById(
-    @Param('id', ParseIntPipe) id: number,
+  async getPublicSeoLatestExams(): Promise<PublicStudentExamListResponseDto> {
+    return ExceptionHandler.execute(async () => {
+      const response = await this.getPublicSeoLatestExamsUseCase.execute(4)
+      if (response.data) {
+        for (const item of response.data) {
+          delete (item as any).createdByAdmin
+        }
+      }
+      return response
+    })
+  }
+
+  @Get('public/seo/:slug/related')
+  @HttpCode(HttpStatus.OK)
+  async getPublicSeoRelatedExamsBySlug(
+    @Param('slug') slug: string,
+  ): Promise<PublicStudentExamListResponseDto> {
+    return ExceptionHandler.execute(async () => {
+      const response = await this.getPublicSeoRelatedExamsBySlugUseCase.execute(slug, 10)
+      if (response.data) {
+        for (const item of response.data) {
+          delete (item as any).createdByAdmin
+        }
+      }
+      return response
+    })
+  }
+  @Get('public/seo/:slug')
+  @HttpCode(HttpStatus.OK)
+  async getPublicSeoExamBySlug(
+    @Param('slug') slug: string,
   ): Promise<BaseResponseDto<PublicStudentExamDetailResponseDto>> {
-    return ExceptionHandler.execute(() => this.getPublicStudentExamByIdUseCase.execute(id))
+    return ExceptionHandler.execute(async () => {
+      const response = await this.getPublicStudentExamBySlugUseCase.execute(slug)
+      if (response.data) {
+        delete (response.data as any).createdByAdmin
+      }
+      return response
+    })
   }
 
   /**
-   * Lấy danh sách đề thi public cho SEO (không yêu cầu permission/auth)
+   * Láº¥y danh sÃ¡ch Ä‘á» thi public cho SEO (khÃ´ng yÃªu cáº§u permission/auth)
    *
    * @route GET /exams/public/seo
    * @param query - Query params: page, limit, search, grade, typeOfExam, subjectId, chapterIds, sortBy, sortOrder
-   * @returns Danh sách đề thi có visibility = PUBLISHED
+   * @returns Danh sÃ¡ch Ä‘á» thi cÃ³ visibility = PUBLISHED
    *
    * @example
    * GET /exams/public/seo?page=1&limit=10&grade=10
@@ -314,7 +355,17 @@ export class ExamController {
   async getPublicSeoExams(
     @Query() query: PublicStudentExamListQueryDto,
   ): Promise<PublicStudentExamListResponseDto> {
-    return ExceptionHandler.execute(() => this.getPublicStudentExamsUseCase.execute(query))
+    return ExceptionHandler.execute(async () => {
+      const response = await this.getPublicStudentExamsUseCase.execute(query, undefined, {
+        renderDescriptionHtml: true,
+      })
+      if (response.data) {
+        for (const item of response.data) {
+          delete (item as any).createdByAdmin
+        }
+      }
+      return response
+    })
   }
 
   /**
@@ -345,11 +396,11 @@ export class ExamController {
    * @example
    * POST /exams
    * Body: {
-   *   "title": "Đề thi Toán học kỳ 1",
+   *   "title": "Äá» thi ToÃ¡n há»c ká»³ 1",
    *   "grade": 10,
    *   "visibility": "DRAFT",
    *   "subjectId": 5,
-   *   "description": "Đề thi giữa kỳ"
+   *   "description": "Äá» thi giá»¯a ká»³"
    * }
    */
   @Post()
@@ -374,7 +425,7 @@ export class ExamController {
    * @example
    * PUT /exams/123
    * Body: {
-   *   "title": "Đề thi Toán học kỳ 2",
+   *   "title": "Äá» thi ToÃ¡n há»c ká»³ 2",
    *   "visibility": "PUBLISHED"
    * }
    */
@@ -450,3 +501,4 @@ export class ExamController {
     return ExceptionHandler.execute(() => this.getSectionsByExamUseCase.execute(id))
   }
 }
+

@@ -91,6 +91,7 @@ export class ExamResponseDto {
   // Identity
   examId: number
   title: string
+  slug?: string | null
   description?: string | null
   grade?: number
   visibility: ExamVisibility
@@ -113,6 +114,7 @@ export class ExamResponseDto {
 
   // Media
   solutionYoutubeUrl?: string | null
+  thumbnailUrl?: string | null
 
   // Type of exam
   typeOfExam?: TypeOfExam | null
@@ -144,6 +146,7 @@ export class ExamResponseDto {
     // Identity
     dto.examId = exam.examId
     dto.title = exam.title
+    dto.slug = exam.slug ?? null
     dto.description = exam.description
     dto.grade = exam.grade
     dto.visibility = exam.visibility
@@ -169,6 +172,7 @@ export class ExamResponseDto {
 
     // Media
     dto.solutionYoutubeUrl = exam.solutionYoutubeUrl
+    dto.thumbnailUrl = null
 
     // Type of exam
     dto.typeOfExam = exam.typeOfExam
@@ -318,6 +322,7 @@ export class PublicStudentExamDetailResponseDto {
     avatarUrl?: string
   } | null
   solutionYoutubeUrl?: string | null
+  thumbnailUrl?: string | null
   typeOfExam?: TypeOfExam | null
   competitions?: PublicStudentExamCompetitionResponseDto[]
   createdAt: Date
@@ -353,6 +358,7 @@ export class PublicStudentExamDetailResponseDto {
     }
 
     dto.solutionYoutubeUrl = exam.solutionYoutubeUrl
+    dto.thumbnailUrl = null
     dto.typeOfExam = exam.typeOfExam
     dto.competitions = exam.competitions
       ? PublicStudentExamCompetitionResponseDto.fromEntities(exam.competitions)

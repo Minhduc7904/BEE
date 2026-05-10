@@ -136,13 +136,14 @@ export class TextSearchUtil {
    * Generate slug from Vietnamese text
    * 
    * @param text - Text to convert to slug
+   * @param maxLength - Optional max length for slug (null = no limit)
    * @returns URL-friendly slug
    * 
    * @example
    * TextSearchUtil.generateSlug("Tính đạo hàm của hàm số")
    * // Returns: "tinh-dao-ham-cua-ham-so"
    */
-  static generateSlug(text: string): string {
+  static generateSlug(text: string, maxLength: number | null = 200): string {
     if (!text) return ''
     
     let slug = text.toLowerCase().trim()
@@ -159,8 +160,10 @@ export class TextSearchUtil {
     // Remove leading/trailing dashes
     slug = slug.replace(/^-+|-+$/g, '')
     
-    // Limit length
-    slug = slug.substring(0, 200)
+    // Limit length if configured
+    if (maxLength !== null && maxLength > 0) {
+      slug = slug.substring(0, maxLength)
+    }
     
     return slug
   }

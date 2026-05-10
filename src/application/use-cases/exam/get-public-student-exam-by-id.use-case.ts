@@ -9,12 +9,13 @@ import { ExamVisibility, MediaStatus } from '../../../shared/enums'
 import { ForbiddenException, NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 import { type ContentField } from '../media/process-content-with-presigned-urls.use-case'
 import { ProcessContentWithPresignedUrlsAndRenderHtmlUseCase } from '../media/process-content-with-presigned-urls-and-render-html.use-case'
-import { EXAM_CONTENT_FIELDS } from '../../../shared/constants/media-field-name.constants'
+import { EXAM_CONTENT_FIELDS, EXAM_MEDIA_FIELDS } from '../../../shared/constants/media-field-name.constants'
 import { MinioService } from '../../../infrastructure/services/minio.service'
 import { EntityType } from '../../../shared/constants/entity-type.constants'
 import { FIELD_NAMES } from '../../../shared/constants'
 
 const AVATAR_URL_EXPIRY_SECONDS = 3600 * 24
+const EXAM_IMAGE_URL_EXPIRY_SECONDS = 3600 * 24
 
 @Injectable()
 export class GetPublicStudentExamByIdUseCase {
@@ -77,6 +78,29 @@ export class GetPublicStudentExamByIdUseCase {
                     } catch {
                         // Silently ignore - avatar URL is optional
                     }
+                }
+            }
+        }
+
+        const examImageUsages = await this.mediaUsageRepository.findByEntity(
+            EntityType.EXAM,
+            exam.examId,
+            EXAM_MEDIA_FIELDS.EXAM_IMAGE,
+        )
+
+        const examImageUsage = examImageUsages.find((usage) => usage.media?.status === MediaStatus.READY)
+        if (examImageUsage?.media) {
+            if (examImageUsage.media.publicUrl) {
+                examResponse.thumbnailUrl = examImageUsage.media.publicUrl
+            } else {
+                try {
+                    examResponse.thumbnailUrl = await this.minioService.getPresignedUrl(
+                        examImageUsage.media.bucketName,
+                        examImageUsage.media.objectKey,
+                        EXAM_IMAGE_URL_EXPIRY_SECONDS,
+                    )
+                } catch {
+                    // Silently ignore - thumbnail is optional
                 }
             }
         }

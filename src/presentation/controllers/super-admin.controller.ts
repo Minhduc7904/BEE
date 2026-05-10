@@ -18,6 +18,7 @@ import { UpdateAdminDirectDto } from 'src/application/dtos/admin/update-admin-di
 import { AdminResponseDto } from 'src/application/dtos/admin/admin.dto'
 import { SuperAdminUpdateAdminDirectUseCase } from 'src/application/use-cases/admin/super-admin-update-admin-direct.use-case'
 import { CleanupUnusedMediaOlderThan30DaysUseCase } from 'src/application/use-cases/media/cleanup-unused-media-older-than-30-days.use-case'
+import { GenerateMissingExamSlugsUseCase } from 'src/application/use-cases/exam/generate-missing-exam-slugs.use-case'
 
 interface ExchangeFacebookTokenDto {
     appId: string
@@ -32,6 +33,7 @@ export class AdminStudentController {
         private readonly resetStudentPasswordByDateRangeUseCase: ResetStudentPasswordByDateRangeUseCase,
         private readonly superAdminUpdateAdminDirectUseCase: SuperAdminUpdateAdminDirectUseCase,
         private readonly cleanupUnusedMediaOlderThan30DaysUseCase: CleanupUnusedMediaOlderThan30DaysUseCase,
+        private readonly generateMissingExamSlugsUseCase: GenerateMissingExamSlugsUseCase,
     ) { }
 
     /**
@@ -130,6 +132,27 @@ export class AdminStudentController {
     ): Promise<BaseResponseDto<any>> {
         return ExceptionHandler.execute(() =>
             this.cleanupUnusedMediaOlderThan30DaysUseCase.execute(),
+        )
+    }
+
+    /**
+        * Generate slug cho tat ca exam chua co slug.
+        * POST /super-admin/exams/generate-missing-slugs
+        *
+        * Output:
+        * - totalCandidates: number
+        * - updatedCount: number
+        * - skippedCount: number
+        * - results: danh sach ket qua tung exam
+     */
+    @Post('exams/generate-missing-slugs')
+    @RequirePermission(PERMISSION_CODES.EXAM.UPDATE)
+    @HttpCode(HttpStatus.OK)
+    async generateMissingExamSlugs(
+        @CurrentUser('adminId') _adminId?: number,
+    ): Promise<BaseResponseDto<any>> {
+        return ExceptionHandler.execute(() =>
+            this.generateMissingExamSlugsUseCase.execute(),
         )
     }
 

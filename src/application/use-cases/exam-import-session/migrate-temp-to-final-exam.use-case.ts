@@ -24,9 +24,10 @@ import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 import { EntityType } from 'src/shared/constants/entity-type.constants'
 import { ACTION_KEYS } from 'src/shared/constants/action-key.constants'
 import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
-import { TEMP_EXAM_TO_EXAM_FIELD_MAP } from 'src/shared/constants/media-field-name.constants'
+import { EXAM_MEDIA_FIELDS, TEMP_EXAM_TO_EXAM_FIELD_MAP } from 'src/shared/constants/media-field-name.constants'
 import { TextSearchUtil } from 'src/shared/utils/text-search.util'
 import { DEFAULT_QUESTION_POINTS } from 'src/shared/constants/grading-rules.constants'
+import { AttachMediaFromContentUseCase } from '../media/attach-media-from-content.use-case'
 
 interface MigrateTempToFinalExamParams {
     sessionId: number
@@ -82,6 +83,7 @@ export class MigrateTempToFinalExamUseCase {
         @Inject('ITempStatementRepository')
         private readonly tempStatementRepository: ITempStatementRepository,
         private readonly prisma: PrismaService,
+        private readonly attachMediaFromContentUseCase: AttachMediaFromContentUseCase,
     ) { }
 
     async execute(params: MigrateTempToFinalExamParams): Promise<BaseResponseDto<MigrateTempToFinalExamResult>> {
@@ -194,10 +196,18 @@ export class MigrateTempToFinalExamUseCase {
                     throw new BadRequestException('Exam chưa có môn học. Vui lòng cập nhật môn học trước khi migrate.')
                 }
 
+                const normalizedResults = this.attachMediaFromContentUseCase.normalizeAndExtract([
+                    { fieldName: EXAM_MEDIA_FIELDS.DESCRIPTION, content: tempExam.description },
+                ])
+                const normalizedDescription = this.attachMediaFromContentUseCase.getNormalizedContent(
+                    normalizedResults,
+                    EXAM_MEDIA_FIELDS.DESCRIPTION,
+                )
+
                 // 4.2. Create Exam using repository
                 const exam = await repos.examRepository.create({
                     title: tempExam.title,
-                    description: tempExam.description,
+                    description: normalizedDescription || undefined,
                     grade: tempExam.grade || 12,
                     typeOfExam: tempExam.typeOfExam,
                     visibility: tempExam.visibility,

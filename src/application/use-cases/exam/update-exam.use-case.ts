@@ -11,6 +11,7 @@ import { RESOURCE_TYPES } from '../../../shared/constants/resource-type.constant
 import { EntityType } from '../../../shared/constants/entity-type.constants'
 import { AttachMediaFromContentUseCase } from '../media/attach-media-from-content.use-case'
 import { EXAM_MEDIA_FIELDS } from '../../../shared/constants/media-field-name.constants'
+import { TextSearchUtil } from '../../../shared/utils/text-search.util'
 
 @Injectable()
 export class UpdateExamUseCase {
@@ -46,7 +47,13 @@ export class UpdateExamUseCase {
       }
 
       const updateData: any = {}
-      if (dto.title !== undefined) updateData.title = dto.title
+      if (dto.title !== undefined) {
+        updateData.title = dto.title
+
+        const baseSlug = TextSearchUtil.generateSlug(dto.title, null)
+        const safeBaseSlug = baseSlug || exam.slug || `exam-${examId}`
+        updateData.slug = await this.generateUniqueSlug(safeBaseSlug, exam.examId, exam.slug, examRepository)
+      }
       if (dto.grade !== undefined) updateData.grade = dto.grade
       if (dto.visibility !== undefined) updateData.visibility = dto.visibility
       if (dto.subjectId !== undefined) updateData.subjectId = dto.subjectId
@@ -110,6 +117,29 @@ export class UpdateExamUseCase {
       success: true,
       message: 'Cập nhật đề thi thành công',
       data: ExamResponseDto.fromEntity(result!),
+    }
+  }
+
+  private async generateUniqueSlug(
+    baseSlug: string,
+    examId: number,
+    currentSlug: string | null | undefined,
+    examRepository: { findBySlug: (slug: string) => Promise<any> },
+  ): Promise<string> {
+    let candidate = baseSlug
+    let counter = 2
+
+    while (true) {
+      if (candidate === currentSlug) {
+        return candidate
+      }
+
+      const existing = await examRepository.findBySlug(candidate)
+      if (!existing || existing.examId === examId) {
+        return candidate
+      }
+
+      candidate = `${baseSlug}-${counter++}`
     }
   }
 }

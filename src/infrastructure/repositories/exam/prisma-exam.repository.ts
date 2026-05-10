@@ -18,12 +18,33 @@ import { TextSearchUtil } from '../../../shared/utils/text-search.util'
 export class PrismaExamRepository implements IExamRepository {
   constructor(private readonly prisma: PrismaService | any) { }
 
+  private async generateUniqueSlug(title: string, client: any): Promise<string> {
+    const baseSlug = TextSearchUtil.generateSlug(title, null)
+    const safeBaseSlug = baseSlug || 'exam'
+    let candidate = safeBaseSlug
+    let counter = 2
+
+    while (true) {
+      const exists = await client.exam.findFirst({
+        where: { slug: candidate },
+        select: { examId: true },
+      })
+
+      if (!exists) return candidate
+
+      candidate = `${safeBaseSlug}-${counter++}`
+    }
+  }
+
   async create(data: CreateExamData, txClient?: any): Promise<Exam> {
     const client = txClient || this.prisma
+
+    const slug = await this.generateUniqueSlug(data.title, client)
 
     const created = await client.exam.create({
       data: {
         title: data.title,
+        slug,
         description: data.description,
         grade: data.grade,
         visibility: data.visibility,
@@ -48,6 +69,41 @@ export class PrismaExamRepository implements IExamRepository {
 
     const exam = await client.exam.findUnique({
       where: { examId: id },
+      include: {
+        subject: true,
+        admin: {
+          include: {
+            user: true,
+          },
+        },
+        competitions: {
+          orderBy: { createdAt: 'desc' },
+          include: {
+            admin: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        },
+        _count: {
+          select: {
+            questions: true,
+          },
+        },
+      },
+    })
+
+    if (!exam) return null
+
+    return ExamMapper.toDomainExam(exam)
+  }
+
+  async findBySlug(slug: string, txClient?: any): Promise<Exam | null> {
+    const client = txClient || this.prisma
+
+    const exam = await client.exam.findUnique({
+      where: { slug },
       include: {
         subject: true,
         admin: {
@@ -143,16 +199,44 @@ export class PrismaExamRepository implements IExamRepository {
     const updated = await client.exam.update({
       where: { examId: id },
       data: {
-        ...(data.title && { title: data.title }),
+        ...(data.title !== undefined && { title: data.title }),
+        ...(data.slug !== undefined && { slug: data.slug }),
         ...(data.description !== undefined && { description: data.description }),
-        ...(data.grade && { grade: data.grade }),
-        ...(data.visibility && { visibility: data.visibility }),
+        ...(data.grade !== undefined && { grade: data.grade }),
+        ...(data.visibility !== undefined && { visibility: data.visibility }),
+        ...(data.subjectId !== undefined && { subjectId: data.subjectId }),
         ...(data.solutionYoutubeUrl !== undefined && { solutionYoutubeUrl: data.solutionYoutubeUrl }),
         ...(data.typeOfExam !== undefined && { typeOfExam: data.typeOfExam }),
       },
     })
 
     return ExamMapper.toDomainExam(updated)!
+  }
+
+  async findMissingSlugCandidates(txClient?: any): Promise<{ examId: number; title: string }[]> {
+    const client = txClient || this.prisma
+
+    return client.exam.findMany({
+      where: {
+        OR: [{ slug: null }, { slug: '' }],
+      },
+      select: {
+        examId: true,
+        title: true,
+      },
+      orderBy: { examId: 'asc' },
+    })
+  }
+
+  async existsBySlug(slug: string, txClient?: any): Promise<boolean> {
+    const client = txClient || this.prisma
+
+    const exists = await client.exam.findFirst({
+      where: { slug },
+      select: { examId: true },
+    })
+
+    return Boolean(exists)
   }
 
   async delete(id: number, txClient?: any): Promise<void> {

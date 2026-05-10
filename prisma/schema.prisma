@@ -524,6 +524,7 @@ enum TypeOfExam {
 model Exam {
   examId             Int            @id @default(autoincrement()) @map("exam_id") @db.Int
   title              String         @map("title") @db.VarChar(255)
+  slug               String?        @unique @map("slug") @db.VarChar(255)
   description        String?        @map("description") @db.Text
   grade              Int?           @map("grade") @db.TinyInt
   subjectId          Int?           @map("subject_id")
