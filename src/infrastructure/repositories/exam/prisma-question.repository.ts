@@ -7,6 +7,7 @@ import {
     QuestionFilterOptions,
     QuestionPaginationOptions,
     QuestionListResult,
+    QuestionSlugCandidate,
 } from '../../../domain/repositories/question.repository'
 import { PrismaService } from '../../../prisma/prisma.service'
 import { QuestionMapper } from '../../mappers/exam/question.mapper'
@@ -196,6 +197,7 @@ export class PrismaQuestionRepository implements IQuestionRepository {
             updateData.slug = await this.generateUniqueSlug(data.content, client)
         }
         if (data.searchableContent !== undefined) updateData.searchableContent = data.searchableContent
+        if (data.slug !== undefined && data.content === undefined) updateData.slug = data.slug
         if (data.type !== undefined) updateData.type = data.type
         if (data.correctAnswer !== undefined) updateData.correctAnswer = data.correctAnswer
         if (data.solution !== undefined) updateData.solution = data.solution
@@ -222,6 +224,38 @@ export class PrismaQuestionRepository implements IQuestionRepository {
         })
     }
 
+    async findSlugPatternCandidates(prefix = 'question-', txClient?: any): Promise<QuestionSlugCandidate[]> {
+        const client = txClient || this.prisma
+
+        return client.question.findMany({
+            where: {
+                slug: {
+                    startsWith: prefix,
+                },
+            },
+            select: {
+                questionId: true,
+                content: true,
+                slug: true,
+            },
+            orderBy: { questionId: 'asc' },
+        })
+    }
+
+    async existsBySlug(slug: string, excludeQuestionId?: number, txClient?: any): Promise<boolean> {
+        const client = txClient || this.prisma
+
+        const exists = await client.question.findFirst({
+            where: {
+                slug,
+                ...(excludeQuestionId !== undefined ? { questionId: { not: excludeQuestionId } } : {}),
+            },
+            select: { questionId: true },
+        })
+
+        return Boolean(exists)
+    }
+
     async findAllWithPagination(
         pagination: QuestionPaginationOptions,
         filters?: QuestionFilterOptions,
@@ -239,21 +273,25 @@ export class PrismaQuestionRepository implements IQuestionRepository {
         const where: any = {}
 
         if (filters?.search) {
+            const searchText = filters.search.trim()
+            const searchId = /^\d+$/.test(searchText) ? Number(searchText) : null
+
             // Use improved search with TextSearchUtil
             where.OR = [
+                ...(searchId !== null ? [{ questionId: searchId }] : []),
                 // Priority 1: Search in searchableContent (stripped markdown)
-                { searchableContent: { contains: TextSearchUtil.stripMarkdownForSearch(filters.search) } },
+                { searchableContent: { contains: TextSearchUtil.stripMarkdownForSearch(searchText) } },
                 // Priority 2: Search in original content
-                { content: { contains: filters.search } },
+                { content: { contains: searchText } },
                 // Priority 3: Search in answer
-                { correctAnswer: { contains: filters.search } },
+                { correctAnswer: { contains: searchText } },
                 // Priority 4: Search in solution
-                { solution: { contains: TextSearchUtil.stripMarkdownForSearch(filters.search) } },
+                { solution: { contains: TextSearchUtil.stripMarkdownForSearch(searchText) } },
                 // Priority 5: Search in statements
                 {
                     statements: {
                         some: {
-                            content: { contains: filters.search }
+                            content: { contains: searchText }
                         }
                     }
                 }

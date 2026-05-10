@@ -48,6 +48,12 @@ export interface QuestionListResult {
   totalPages: number
 }
 
+export interface QuestionSlugCandidate {
+  questionId: number
+  content: string
+  slug: string
+}
+
 export interface IQuestionRepository {
   create(data: CreateQuestionData, txClient?: any): Promise<Question>
   createMany(dataArray: CreateQuestionData[], txClient?: any): Promise<number>
@@ -56,6 +62,8 @@ export interface IQuestionRepository {
   findByIds(ids: number[], txClient?: any): Promise<Question[]>
   update(id: number, data: Partial<CreateQuestionData>, txClient?: any): Promise<Question>
   delete(id: number, txClient?: any): Promise<void>
+  findSlugPatternCandidates(prefix?: string, txClient?: any): Promise<QuestionSlugCandidate[]>
+  existsBySlug(slug: string, excludeQuestionId?: number, txClient?: any): Promise<boolean>
   findAllWithPagination(
     pagination: QuestionPaginationOptions,
     filters?: QuestionFilterOptions,

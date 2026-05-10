@@ -45,6 +45,8 @@ import {
   AddQuestionToExamUseCase,
   SearchQuestionsUseCase,
   SearchPublicStudentQuestionsUseCase,
+  GetPublicSeoQuestionBySlugUseCase,
+  GetRelatedPublicSeoQuestionsBySlugUseCase,
   GetRelatedPublicStudentQuestionsUseCase,
 } from '../../application/use-cases/question'
 
@@ -63,6 +65,8 @@ export class QuestionController {
     private readonly addQuestionToExamUseCase: AddQuestionToExamUseCase,
     private readonly searchQuestionsUseCase: SearchQuestionsUseCase,
     private readonly searchPublicStudentQuestionsUseCase: SearchPublicStudentQuestionsUseCase,
+    private readonly getPublicSeoQuestionBySlugUseCase: GetPublicSeoQuestionBySlugUseCase,
+    private readonly getRelatedPublicSeoQuestionsBySlugUseCase: GetRelatedPublicSeoQuestionsBySlugUseCase,
     private readonly getRelatedPublicStudentQuestionsUseCase: GetRelatedPublicStudentQuestionsUseCase,
   ) { }
 
@@ -169,6 +173,69 @@ export class QuestionController {
   ): Promise<QuestionListResponseDto> {
     return ExceptionHandler.execute(() =>
       this.searchPublicStudentQuestionsUseCase.execute(query, studentId),
+    )
+  }
+
+    /**
+ * Search public questions for current student.
+ *
+ * @route GET /questions/public/seo/search
+ * @param query - Query parameters (search, page, limit, subjectId, chapterIds, type, difficulty, grade, isCorrect)
+ * @param studentId - Current student ID (auto-injected)
+ * @returns Paginated list of public questions matching keyword and filters
+ *
+ * @example
+ * GET /questions/public/seo/search?search=dao+ham&page=1&limit=10
+ */
+  @Get('public/seo/search')
+  @HttpCode(HttpStatus.OK)
+  async searchPublicSeoQuestions(
+    @Query() query: QuestionListQueryDto,
+  ): Promise<QuestionListResponseDto> {
+    return ExceptionHandler.execute(() =>
+      this.searchPublicStudentQuestionsUseCase.execute(query),
+    )
+  }
+
+  /**
+ * Get public question detail by slug for SEO.
+ *
+ * @route GET /questions/public/seo/:slug
+ * @param slug - Question slug
+ * @returns Public question details
+ *
+ * @example
+ * GET /questions/public/seo/dao-ham-co-ban
+ */
+  @Get('public/seo/:slug')
+  @HttpCode(HttpStatus.OK)
+  async getPublicSeoQuestionBySlug(
+    @Param('slug') slug: string,
+  ): Promise<BaseResponseDto<QuestionResponseDto>> {
+    return ExceptionHandler.execute(() =>
+      this.getPublicSeoQuestionBySlugUseCase.execute(slug),
+    )
+  }
+
+  /**
+ * Suggest related public questions from a target question slug for SEO.
+ *
+ * @route GET /questions/public/seo/:slug/related
+ * @param slug - Base question slug
+ * @param query - Query params (limit)
+ * @returns Related public questions
+ *
+ * @example
+ * GET /questions/public/seo/dao-ham-co-ban/related?limit=10
+ */
+  @Get('public/seo/:slug/related')
+  @HttpCode(HttpStatus.OK)
+  async getRelatedPublicSeoQuestionsBySlug(
+    @Param('slug') slug: string,
+    @Query() query: PublicStudentRelatedQuestionsQueryDto,
+  ): Promise<QuestionListResponseDto> {
+    return ExceptionHandler.execute(() =>
+      this.getRelatedPublicSeoQuestionsBySlugUseCase.execute(slug, query),
     )
   }
 

@@ -34,6 +34,7 @@ export class StatementResponseDto {
 export class QuestionResponseDto {
   // ===== Identity =====
   questionId: number
+  slug: string
 
   // ===== Content =====
   content: string
@@ -81,6 +82,7 @@ export class QuestionResponseDto {
     return {
       // Identity
       questionId: question.questionId,
+      slug: question.slug,
 
       // Content
       content: question.content,

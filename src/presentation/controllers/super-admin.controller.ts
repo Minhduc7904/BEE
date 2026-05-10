@@ -19,6 +19,7 @@ import { AdminResponseDto } from 'src/application/dtos/admin/admin.dto'
 import { SuperAdminUpdateAdminDirectUseCase } from 'src/application/use-cases/admin/super-admin-update-admin-direct.use-case'
 import { CleanupUnusedMediaOlderThan30DaysUseCase } from 'src/application/use-cases/media/cleanup-unused-media-older-than-30-days.use-case'
 import { GenerateMissingExamSlugsUseCase } from 'src/application/use-cases/exam/generate-missing-exam-slugs.use-case'
+import { RegenerateQuestionSlugsUseCase } from 'src/application/use-cases/question/regenerate-question-slugs.use-case'
 
 interface ExchangeFacebookTokenDto {
     appId: string
@@ -34,6 +35,7 @@ export class AdminStudentController {
         private readonly superAdminUpdateAdminDirectUseCase: SuperAdminUpdateAdminDirectUseCase,
         private readonly cleanupUnusedMediaOlderThan30DaysUseCase: CleanupUnusedMediaOlderThan30DaysUseCase,
         private readonly generateMissingExamSlugsUseCase: GenerateMissingExamSlugsUseCase,
+        private readonly regenerateQuestionSlugsUseCase: RegenerateQuestionSlugsUseCase,
     ) { }
 
     /**
@@ -153,6 +155,27 @@ export class AdminStudentController {
     ): Promise<BaseResponseDto<any>> {
         return ExceptionHandler.execute(() =>
             this.generateMissingExamSlugsUseCase.execute(),
+        )
+    }
+
+    /**
+        * Regenerate slug cho question co slug dang question-123.
+        * POST /super-admin/questions/regenerate-slugs
+        *
+        * Output:
+        * - totalCandidates: number
+        * - updatedCount: number
+        * - skippedCount: number
+        * - results: danh sach ket qua tung question
+     */
+    @Post('questions/regenerate-slugs')
+    @RequirePermission(PERMISSION_CODES.QUESTION.UPDATE)
+    @HttpCode(HttpStatus.OK)
+    async regenerateQuestionSlugs(
+        @CurrentUser('adminId') _adminId?: number,
+    ): Promise<BaseResponseDto<any>> {
+        return ExceptionHandler.execute(() =>
+            this.regenerateQuestionSlugsUseCase.execute(),
         )
     }
 
