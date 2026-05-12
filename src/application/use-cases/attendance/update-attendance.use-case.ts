@@ -4,7 +4,7 @@ import { AttendanceResponseDto } from 'src/application/dtos/attendance/attendanc
 import { UpdateAttendanceDto } from 'src/application/dtos/attendance/update-attendance.dto'
 import { UpdateAttendanceData } from 'src/domain/interface/attendance/attendance.interface'
 import { BaseResponseDto } from 'src/application/dtos/common/base-response.dto'
-import { NotFoundException } from 'src/shared/exceptions/custom-exceptions'
+import { NotFoundException, ForbiddenException } from 'src/shared/exceptions/custom-exceptions'
 import { ACTION_KEYS } from 'src/shared/constants/action-key.constants'
 import { AuditStatus } from 'src/shared/enums/audit-status.enum'
 import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
@@ -45,6 +45,15 @@ export class UpdateAttendanceUseCase {
           })
         }
         throw new NotFoundException(`Điểm danh với ID ${attendanceId} không tồn tại`)
+      }
+
+      const student = await repos.studentRepository.findById(existing.studentId)
+      if (!student) {
+        throw new NotFoundException(`Học sinh với ID ${existing.studentId} không tồn tại`)
+      }
+
+      if (!student.user?.isActive) {
+        throw new ForbiddenException('Học sinh đã bị vô hiệu hóa, không thể cập nhật điểm danh')
       }
 
       const data: UpdateAttendanceData = {}
@@ -90,18 +99,15 @@ export class UpdateAttendanceUseCase {
       }
 
       // Gửi thông báo cho học sinh
-      const student = await repos.studentRepository.findById(attendance.studentId)
-      if (student) {
-        const statusLabel = AttendanceStatusLabels[attendance.status] || attendance.status
-        this.createAndNotifyOne.execute({
-          userId: student.userId,
-          title: 'Cập nhật điểm danh',
-          message: `Điểm danh của bạn đã được cập nhật thành: ${statusLabel}`,
-          type: NotificationType.ATTENDANCE,
-          level: NotificationLevel.INFO,
-          data: { attendanceId: attendance.attendanceId, sessionId: attendance.sessionId, status: attendance.status },
-        }).catch(() => { /* ignore notification error */ })
-      }
+      const statusLabel = AttendanceStatusLabels[attendance.status] || attendance.status
+      this.createAndNotifyOne.execute({
+        userId: student.userId,
+        title: 'Cập nhật điểm danh',
+        message: `Điểm danh của bạn đã được cập nhật thành: ${statusLabel}`,
+        type: NotificationType.ATTENDANCE,
+        level: NotificationLevel.INFO,
+        data: { attendanceId: attendance.attendanceId, sessionId: attendance.sessionId, status: attendance.status },
+      }).catch(() => { /* ignore notification error */ })
 
       return {
         response: new AttendanceResponseDto(attendance),
