@@ -5,7 +5,7 @@ import { AdminResponseDto, BaseResponseDto } from '../../dtos'
 import { NotFoundException, ForbiddenException } from '../../../shared/exceptions/custom-exceptions'
 import { MinioService } from '../../../infrastructure/services/minio.service'
 import { EntityType } from '../../../shared/constants/entity-type.constants'
-import { FIELD_NAMES } from '../../../shared/constants'
+import { USER_MEDIA_FIELDS } from '../../../shared/constants'
 import { MediaStatus } from '../../../shared/enums'
 
 @Injectable()
@@ -37,7 +37,7 @@ export class GetAdminProfileUseCase {
     const avatarUsages = await this.mediaUsageRepository.findByEntity(
       EntityType.USER,
       userId,
-      FIELD_NAMES.AVATAR,
+      USER_MEDIA_FIELDS.AVATAR,
     )
 
     if (avatarUsages.length > 0) {
@@ -64,3 +64,4 @@ export class GetAdminProfileUseCase {
     )
   }
 }
+

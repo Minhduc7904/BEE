@@ -9,7 +9,7 @@ import { AuditStatus } from 'src/shared/enums/audit-status.enum'
 import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
 import { EntityType } from 'src/shared/constants/entity-type.constants'
 import { MediaVisibility } from 'src/shared/enums'
-import { FIELD_NAMES } from 'src/shared/constants'
+import { VIDEO_MEDIA_FIELDS } from 'src/shared/constants'
 
 @Injectable()
 export class CreateVideoContentUseCase {
@@ -35,7 +35,7 @@ export class CreateVideoContentUseCase {
                     mediaId: dto.mediaId,
                     entityType: EntityType.VIDEO_CONTENT,
                     entityId: videoContent.videoContentId,
-                    fieldName: FIELD_NAMES.VIDEO_FILE,
+                    fieldName: VIDEO_MEDIA_FIELDS.VIDEO_FILE,
                     usedBy: adminId,
                     visibility: MediaVisibility.PUBLIC,
                 })

@@ -26,37 +26,46 @@ export class MarkdownRenderService {
             typographer: false,
         })
 
-md.renderer.rules.image = (tokens, idx, rendererOptions, env, self) => {
-    const token = tokens[idx];
-    const src = token.attrGet("src") || "";
+        md.renderer.rules.image = (tokens, idx, rendererOptions, env, self) => {
+            const token = tokens[idx]
+            const src = token.attrGet('src') || ''
+            const alt = token.content.trim()
 
-    token.attrSet(
-        "style",
-        [
-            "display:block",
-            "margin:0 auto",
-            "max-width:100%",
-            "max-height:clamp(260px,60vh,560px)",
-            "width:auto",
-            "height:auto",
-            "object-fit:contain",
-        ].join(";")
-    );
+            token.attrSet('alt', alt)
+            token.attrSet(
+                'style',
+                [
+                    'display:block',
+                    'margin:0 auto',
+                    'max-width:100%',
+                    'max-height:clamp(260px,60vh,560px)',
+                    'width:auto',
+                    'height:auto',
+                    'object-fit:contain',
+                ].join(';'),
+            )
 
-    const imageHtml = self.renderToken(tokens, idx, rendererOptions);
-    const safeHref = md.utils.escapeHtml(src);
+            const imageHtml = self.renderToken(tokens, idx, rendererOptions)
+            const safeHref = md.utils.escapeHtml(src)
+            const safeCaption = md.utils.escapeHtml(alt)
+            const captionHtml = alt
+                ? `<span style="display:block;margin-top:8px;text-align:center;"><em>${safeCaption}</em></span>`
+                : ''
 
-    return `
-        <a 
-            href="${safeHref}" 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            style="display:flex;justify-content:center;align-items:center;width:100%;max-width:100%;margin:20px 0;"
-        >
-            ${imageHtml}
-        </a>
-    `;
-};
+            return `
+                <span style="display:block;margin:20px 0;">
+                    <a
+                        href="${safeHref}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style="display:flex;justify-content:center;align-items:center;width:100%;max-width:100%;"
+                    >
+                        ${imageHtml}
+                    </a>
+                    ${captionHtml}
+                </span>
+            `
+        }
 
         // Render inline ($...$) and block ($$...$$) math using KaTeX.
         md.use(texmath as any, {

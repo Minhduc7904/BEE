@@ -10,7 +10,7 @@ import { AuditStatus } from 'src/shared/enums/audit-status.enum'
 import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
 import { EntityType } from 'src/shared/constants/entity-type.constants'
 import { MediaVisibility } from 'src/shared/enums'
-import { FIELD_NAMES } from 'src/shared/constants/field-name.constants'
+import { DOCUMENT_MEDIA_FIELDS } from 'src/shared/constants/media-field-name.constants'
 
 @Injectable()
 export class UpdateDocumentContentUseCase {
@@ -36,7 +36,7 @@ export class UpdateDocumentContentUseCase {
                 const existingUsages = await mediaUsageRepository.findByEntity(
                     EntityType.DOCUMENT_CONTENT,
                     id,
-                    FIELD_NAMES.DOCUMENT_FILE
+                    DOCUMENT_MEDIA_FIELDS.DOCUMENT_FILE
                 )
                 
                 const existingMediaIds = existingUsages.map(usage => usage.mediaId)
@@ -64,7 +64,7 @@ export class UpdateDocumentContentUseCase {
                                 mediaId,
                                 entityType: EntityType.DOCUMENT_CONTENT,
                                 entityId: id,
-                                fieldName: FIELD_NAMES.DOCUMENT_FILE,
+                                fieldName: DOCUMENT_MEDIA_FIELDS.DOCUMENT_FILE,
                                 usedBy: adminId,
                                 visibility: MediaVisibility.PUBLIC,
                             })

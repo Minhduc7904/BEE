@@ -13,7 +13,7 @@ import { CompetitionSubmitStatus } from '../../../shared/enums/competition-submi
 import { CompetitionSubmit } from '../../../domain/entities/exam/competition-submit.entity'
 import { MinioService } from '../../../infrastructure/services/minio.service'
 import { EntityType } from '../../../shared/constants/entity-type.constants'
-import { FIELD_NAMES } from '../../../shared/constants'
+import { USER_MEDIA_FIELDS } from '../../../shared/constants'
 import { MediaStatus } from '../../../shared/enums'
 
 @Injectable()
@@ -185,7 +185,7 @@ export class GetCompetitionLeaderboardUseCase {
         const usages = await this.mediaUsageRepository.findByEntities(
             EntityType.USER,
             userIds,
-            FIELD_NAMES.AVATAR,
+            USER_MEDIA_FIELDS.AVATAR,
         )
 
 

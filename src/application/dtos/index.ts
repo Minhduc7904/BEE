@@ -32,6 +32,8 @@ export * from './student/student-list-query.dto'
 // Subject DTOs
 export * from './subject/subject.dto'
 export * from './subject/subject-list-query.dto'
+export * from './tag'
+export * from './document'
 
 // Chapter DTOs
 export * from './chapter/chapter.dto'

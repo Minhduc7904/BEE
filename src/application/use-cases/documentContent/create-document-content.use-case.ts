@@ -9,7 +9,7 @@ import { AuditStatus } from 'src/shared/enums/audit-status.enum'
 import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
 import { EntityType } from 'src/shared/constants/entity-type.constants'
 import { MediaVisibility } from 'src/shared/enums'
-import { FIELD_NAMES } from 'src/shared/constants/field-name.constants'
+import { DOCUMENT_MEDIA_FIELDS } from 'src/shared/constants/media-field-name.constants'
 
 @Injectable()
 export class CreateDocumentContentUseCase {
@@ -42,7 +42,7 @@ export class CreateDocumentContentUseCase {
                             mediaId,
                             entityType: EntityType.DOCUMENT_CONTENT,
                             entityId: documentContent.documentContentId,
-                            fieldName: FIELD_NAMES.DOCUMENT_FILE,
+                            fieldName: DOCUMENT_MEDIA_FIELDS.DOCUMENT_FILE,
                             usedBy: adminId,
                             visibility: MediaVisibility.PUBLIC,
                         })

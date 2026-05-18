@@ -175,16 +175,17 @@ export class ExtractMediaTextUseCase {
           const mimeType = match?.[1] ?? 'image/png'
           const detectedMediaType = detectMediaType(mimeType)
           const ext = mimeType.split('/')[1]
+          const bucketName = this.resolveBucket(detectedMediaType)
 
           const safeOriginalName = sanitizeFilename(`${image.id}.${ext}`, {
             fallbackName: 'ocr_image',
           })
           const objectKey = generateObjectKey(`extracted-images/${mediaId}`, safeOriginalName)
 
-          await this.minioService.uploadFile(media.bucketName, objectKey, imageBuffer, { 'Content-Type': mimeType })
+          await this.minioService.uploadFile(bucketName, objectKey, imageBuffer, { 'Content-Type': mimeType })
 
           const imageMedia = await this.mediaRepository.create({
-            bucketName: media.bucketName,
+            bucketName,
             objectKey,
             originalFilename: safeOriginalName,
             mimeType,
@@ -256,5 +257,22 @@ export class ExtractMediaTextUseCase {
     }
 
     return BaseResponseDto.success('Text extracted successfully', response)
+  }
+
+  private resolveBucket(mediaType: MediaType): string {
+    const buckets = this.minioService.getBuckets()
+
+    switch (mediaType) {
+      case MediaType.IMAGE:
+        return buckets.images
+      case MediaType.VIDEO:
+        return buckets.videos
+      case MediaType.AUDIO:
+        return buckets.audios
+      case MediaType.DOCUMENT:
+        return buckets.documents
+      default:
+        return buckets.others
+    }
   }
 }

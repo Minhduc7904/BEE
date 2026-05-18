@@ -51,6 +51,8 @@ import { MarkdownFixApplicationModule } from './use-cases/markdown-fix/markdown-
 import { ZaloApplicationModule } from './use-cases/zalo/zalo.application.module'
 import { QuestionChatApplicationModule } from './use-cases/question-chat/question-chat.application.module'
 import { QuestionChatMessageApplicationModule } from './use-cases/question-chat-message/question-chat-message.application.module'
+import { DocumentApplicationModule } from './use-cases/document/document.application.module'
+import { TagApplicationModule } from './use-cases/tag/tag.application.module'
 
 const modules = [
   // Auth & Account
@@ -74,6 +76,8 @@ const modules = [
   MediaFolderApplicationModule,
   MediaUsageApplicationModule,
   SeoMediaApplicationModule,
+  DocumentApplicationModule,
+  TagApplicationModule,
 
   // Course & Learning
   CourseApplicationModule,

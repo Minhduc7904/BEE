@@ -69,7 +69,17 @@ export const EXAM_CONTENT_FIELDS = {
 } as const
 
 export const USER_MEDIA_FIELDS = {
-  AVATAR: 'AVATAR',
+  AVATAR: 'avatar',
+} as const
+
+export const DOCUMENT_MEDIA_FIELDS = {
+  DOCUMENT_FILE: 'DOCUMENT_FILE',
+  DOCUMENT_THUMBNAIL: 'DOCUMENT_THUMBNAIL',
+  CONTENT: 'content',
+} as const
+
+export const VIDEO_MEDIA_FIELDS = {
+  VIDEO_FILE: 'VIDEO_FILE',
 } as const
 
 /**

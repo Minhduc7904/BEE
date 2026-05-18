@@ -20,6 +20,7 @@ import { SuperAdminUpdateAdminDirectUseCase } from 'src/application/use-cases/ad
 import { CleanupUnusedMediaOlderThan30DaysUseCase } from 'src/application/use-cases/media/cleanup-unused-media-older-than-30-days.use-case'
 import { GenerateMissingExamSlugsUseCase } from 'src/application/use-cases/exam/generate-missing-exam-slugs.use-case'
 import { RegenerateQuestionSlugsUseCase } from 'src/application/use-cases/question/regenerate-question-slugs.use-case'
+import { SeedDefaultTagsUseCase } from 'src/application/use-cases/tag'
 
 interface ExchangeFacebookTokenDto {
     appId: string
@@ -36,6 +37,7 @@ export class AdminStudentController {
         private readonly cleanupUnusedMediaOlderThan30DaysUseCase: CleanupUnusedMediaOlderThan30DaysUseCase,
         private readonly generateMissingExamSlugsUseCase: GenerateMissingExamSlugsUseCase,
         private readonly regenerateQuestionSlugsUseCase: RegenerateQuestionSlugsUseCase,
+        private readonly seedDefaultTagsUseCase: SeedDefaultTagsUseCase,
     ) { }
 
     /**
@@ -176,6 +178,27 @@ export class AdminStudentController {
     ): Promise<BaseResponseDto<any>> {
         return ExceptionHandler.execute(() =>
             this.regenerateQuestionSlugsUseCase.execute(),
+        )
+    }
+
+    /**
+        * Seed cac tag mac dinh bang upsert.
+        * POST /super-admin/tags/seed-defaults
+        *
+        * Thu tu seed:
+        * - CHAPTER tu CHAPTERS
+        * - SUBJECT tu SUBJECTS
+        * - DOCUMENT_TYPE tu DOCUMENT_TYPE_TAGS
+        * - LEVEL tu LEVEL_TAGS
+     */
+    @Post('tags/seed-defaults')
+    @RequirePermission(PERMISSION_CODES.ADMIN.CREATE)
+    @HttpCode(HttpStatus.OK)
+    async seedDefaultTags(
+        @CurrentUser('adminId') _adminId?: number,
+    ): Promise<BaseResponseDto<any>> {
+        return ExceptionHandler.execute(() =>
+            this.seedDefaultTagsUseCase.execute(),
         )
     }
 

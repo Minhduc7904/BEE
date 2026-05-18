@@ -6,7 +6,7 @@ import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 import { MinioService } from '../../../infrastructure/services/minio.service'
 import { EntityType } from 'src/shared/constants/entity-type.constants'
-import { FIELD_NAMES } from 'src/shared/constants'
+import { DOCUMENT_MEDIA_FIELDS } from 'src/shared/constants'
 import { MediaStatus } from 'src/shared/enums'
 
 @Injectable()
@@ -30,7 +30,7 @@ export class GetDocumentContentByIdUseCase {
         const mediaUsages = await this.mediaUsageRepository.findByEntity(
             EntityType.DOCUMENT_CONTENT,
             id,
-            FIELD_NAMES.DOCUMENT_FILE,
+            DOCUMENT_MEDIA_FIELDS.DOCUMENT_FILE,
         )
 
         // Generate viewUrl for each media

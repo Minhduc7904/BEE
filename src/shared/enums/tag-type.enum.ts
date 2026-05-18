@@ -1,0 +1,10 @@
+export enum TagType {
+  GRADE = 'GRADE',
+  CHAPTER = 'CHAPTER',
+  DOCUMENT_TYPE = 'DOCUMENT_TYPE',
+  LEVEL = 'LEVEL',
+  SUBJECT = 'SUBJECT',
+  TOPIC = 'TOPIC',
+  KEYWORD = 'KEYWORD',
+  OTHER = 'OTHER',
+}

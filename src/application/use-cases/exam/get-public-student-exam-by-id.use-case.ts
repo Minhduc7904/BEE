@@ -12,7 +12,7 @@ import { ProcessContentWithPresignedUrlsAndRenderHtmlUseCase } from '../media/pr
 import { EXAM_CONTENT_FIELDS, EXAM_MEDIA_FIELDS } from '../../../shared/constants/media-field-name.constants'
 import { MinioService } from '../../../infrastructure/services/minio.service'
 import { EntityType } from '../../../shared/constants/entity-type.constants'
-import { FIELD_NAMES } from '../../../shared/constants'
+import { USER_MEDIA_FIELDS } from '../../../shared/constants'
 
 const AVATAR_URL_EXPIRY_SECONDS = 3600 * 24
 const EXAM_IMAGE_URL_EXPIRY_SECONDS = 3600 * 24
@@ -62,7 +62,7 @@ export class GetPublicStudentExamByIdUseCase {
             const avatarUsages = await this.mediaUsageRepository.findByEntity(
                 EntityType.USER,
                 createdByUserId,
-                FIELD_NAMES.AVATAR,
+                USER_MEDIA_FIELDS.AVATAR,
             )
 
             if (avatarUsages.length > 0) {

@@ -5,7 +5,7 @@ import { MinioService } from '../../../infrastructure/services/minio.service'
 import { MediaProcessingService } from '../../../infrastructure/services/media-processing.service'
 import { MediaType, MediaStatus, MediaVisibility } from '../../../shared/enums'
 import { EntityType } from '../../../shared/constants/entity-type.constants'
-import { FIELD_NAMES } from '../../../shared/constants'
+import { USER_MEDIA_FIELDS } from '../../../shared/constants'
 import { BaseResponseDto } from '../../dtos'
 import { MediaResponseDto } from '../../dtos/media'
 import { Readable } from 'stream'
@@ -99,14 +99,14 @@ export class UploadStudentAvatarUseCase {
       await this.mediaUsageRepository.detachByEntity(
         EntityType.USER,
         userId,
-        FIELD_NAMES.AVATAR,
+        USER_MEDIA_FIELDS.AVATAR,
       )
 
       await this.mediaUsageRepository.attach({
         mediaId: mediaRecord.mediaId,
         entityType: EntityType.USER,
         entityId: userId,
-        fieldName: FIELD_NAMES.AVATAR,
+        fieldName: USER_MEDIA_FIELDS.AVATAR,
         usedBy: userId,
         visibility: MediaVisibility.PUBLIC,
       })
@@ -137,3 +137,4 @@ export class UploadStudentAvatarUseCase {
     }
   }
 }
+

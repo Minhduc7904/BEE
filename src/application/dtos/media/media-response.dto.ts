@@ -46,8 +46,8 @@ export class MediaResponseDto {
     dto.height = entity.height
     dto.duration = entity.duration
     dto.folderId = entity.folderId
-    dto.description = undefined // Not in entity yet
-    dto.alt = undefined // Not in entity yet
+    dto.description = entity.description
+    dto.alt = entity.alt
     dto.uploadedBy = entity.uploadedBy
     dto.uploader = entity.uploader ? UserResponseDto.fromUser(entity.uploader) : undefined
     dto.usages = entity.usages ? entity.usages.map((usage) => MediaUsageResponseDto.fromEntity(usage)) : undefined

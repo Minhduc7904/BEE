@@ -6,7 +6,7 @@ import { VideoContentListResponseDto, VideoContentResponseDto, MediaFileDto } fr
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 import { MinioService } from '../../../infrastructure/services/minio.service'
 import { EntityType } from 'src/shared/constants/entity-type.constants'
-import { FIELD_NAMES } from 'src/shared/constants'
+import { VIDEO_MEDIA_FIELDS } from 'src/shared/constants'
 import { MediaStatus } from 'src/shared/enums'
 
 @Injectable()
@@ -41,7 +41,7 @@ export class GetAllVideoContentUseCase {
                 const mediaUsages = await this.mediaUsageRepository.findByEntity(
                     EntityType.VIDEO_CONTENT,
                     item.videoContentId,
-                    FIELD_NAMES.VIDEO_FILE,
+                    VIDEO_MEDIA_FIELDS.VIDEO_FILE,
                 )
 
                 // Generate viewUrl for each media

@@ -14,7 +14,7 @@ import { MediaFileDto } from '../../dtos/documentContent/document-content.dto'
 import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 import { MinioService } from '../../../infrastructure/services/minio.service'
 import { EntityType } from '../../../shared/constants/entity-type.constants'
-import { FIELD_NAMES } from '../../../shared/constants'
+import { DOCUMENT_MEDIA_FIELDS, VIDEO_MEDIA_FIELDS } from '../../../shared/constants'
 import { MediaStatus } from '../../../shared/enums'
 import { LearningItemType } from '../../../shared/enums'
 
@@ -123,7 +123,7 @@ export class GetStudentLearningItemByIdUseCase {
                 const mediaFiles = await this.getMediaFilesForEntity(
                     EntityType.VIDEO_CONTENT,
                     videoContent.videoContentId,
-                    FIELD_NAMES.VIDEO_FILE,
+                    VIDEO_MEDIA_FIELDS.VIDEO_FILE,
                     true, // isVideoStreaming = true
                     learningItemId, // Pass learningItemId để tạo streaming URL
                 )
@@ -137,7 +137,7 @@ export class GetStudentLearningItemByIdUseCase {
                 const mediaFiles = await this.getMediaFilesForEntity(
                     EntityType.DOCUMENT_CONTENT,
                     documentContent.documentContentId,
-                    FIELD_NAMES.DOCUMENT_FILE,
+                    DOCUMENT_MEDIA_FIELDS.DOCUMENT_FILE,
                     false, // isVideoStreaming = false
                 )
                 mediaFilesMap.set(documentContent.documentContentId, mediaFiles)

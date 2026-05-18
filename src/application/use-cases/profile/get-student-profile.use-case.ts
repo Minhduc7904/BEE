@@ -14,7 +14,7 @@ import {
 } from '../../../shared/exceptions/custom-exceptions'
 import { MinioService } from '../../../infrastructure/services/minio.service'
 import { EntityType } from '../../../shared/constants/entity-type.constants'
-import { FIELD_NAMES } from '../../../shared/constants'
+import { USER_MEDIA_FIELDS } from '../../../shared/constants'
 import { MediaStatus } from '../../../shared/enums'
 import { formatVnDateISO } from '../../../shared/utils/vietnam-date.util'
 
@@ -53,7 +53,7 @@ export class GetStudentProfileUseCase {
     const avatarUsages = await this.mediaUsageRepository.findByEntity(
       EntityType.USER,
       student.userId,
-      FIELD_NAMES.AVATAR,
+      USER_MEDIA_FIELDS.AVATAR,
     )
 
     if (avatarUsages.length > 0) {
@@ -146,3 +146,4 @@ export class GetStudentProfileUseCase {
     return formatVnDateISO(date)
   }
 }
+

@@ -17,6 +17,8 @@ export class MediaEntity {
   width?: number
   height?: number
   duration?: number
+  description?: string
+  alt?: string
   rawContent?: string
   uploadedBy: number
   uploader?: User
@@ -42,6 +44,8 @@ export class MediaEntity {
     width?: number
     height?: number
     duration?: number
+    description?: string
+    alt?: string
     rawContent?: string
     uploadedBy: number
     uploader?: User

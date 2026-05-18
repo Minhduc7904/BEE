@@ -43,6 +43,9 @@ import { IQuestionChapterRepository } from './question-chapter.repository'
 import { IZaloTokenRepository } from './zalo-token.repository'
 import { IQuestionChatRepository } from './question-chat.repository'
 import { IQuestionChatMessageRepository } from './question-chat-message.repository'
+import { IDocumentRepository } from './document.repository'
+import { ITagRepository } from './tag.repository'
+import { IDocumentTagRepository } from './document-tag.repository'
 // src/domain/repositories/unit-of-work.repository.ts
 export interface UnitOfWorkRepos {
   userRepository: IUserRepository
@@ -89,6 +92,9 @@ export interface UnitOfWorkRepos {
   zaloTokenRepository: IZaloTokenRepository
   questionChatRepository: IQuestionChatRepository
   questionChatMessageRepository: IQuestionChatMessageRepository
+  documentRepository: IDocumentRepository
+  tagRepository: ITagRepository
+  documentTagRepository: IDocumentTagRepository
 }
 
 export interface IUnitOfWork {

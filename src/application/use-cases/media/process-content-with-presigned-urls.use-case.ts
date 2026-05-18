@@ -15,6 +15,11 @@ export interface ProcessedContentField {
   processedContent: string | null
 }
 
+interface ResolvedMediaContent {
+  url: string
+  alt?: string
+}
+
 @Injectable()
 export class ProcessContentWithPresignedUrlsUseCase {
   constructor(
@@ -46,7 +51,7 @@ export class ProcessContentWithPresignedUrlsUseCase {
     }
 
     // Step 2: Generate presigned URLs for all media IDs
-    const mediaIdToUrlMap = await this.generatePresignedUrls(
+    const mediaIdToContentMap = await this.generatePresignedMediaContent(
       Array.from(allMediaIds),
       expirySeconds,
     )
@@ -63,7 +68,7 @@ export class ProcessContentWithPresignedUrlsUseCase {
 
       const processedContent = this.replaceMarkdownImages(
         field.content,
-        mediaIdToUrlMap,
+        mediaIdToContentMap,
       )
 
       return {
@@ -90,14 +95,14 @@ export class ProcessContentWithPresignedUrlsUseCase {
   /**
    * Generate presigned URLs for multiple media IDs
    */
-  private async generatePresignedUrls(
+  private async generatePresignedMediaContent(
     mediaIds: number[],
     expirySeconds: number,
-  ): Promise<Map<number, string>> {
-    const mediaIdToUrlMap = new Map<number, string>()
+  ): Promise<Map<number, ResolvedMediaContent>> {
+    const mediaIdToContentMap = new Map<number, ResolvedMediaContent>()
 
     if (mediaIds.length === 0) {
-      return mediaIdToUrlMap
+      return mediaIdToContentMap
     }
 
     // Fetch all media from database
@@ -118,7 +123,10 @@ export class ProcessContentWithPresignedUrlsUseCase {
             media.objectKey,
             expirySeconds,
           )
-          mediaIdToUrlMap.set(media.mediaId, url)
+          mediaIdToContentMap.set(media.mediaId, {
+            url,
+            alt: media.alt,
+          })
         } catch (error) {
           console.error(
             `Failed to generate presigned URL for media ${media.mediaId}:`,
@@ -128,7 +136,7 @@ export class ProcessContentWithPresignedUrlsUseCase {
       }),
     )
 
-    return mediaIdToUrlMap
+    return mediaIdToContentMap
   }
 
   /**
@@ -137,14 +145,20 @@ export class ProcessContentWithPresignedUrlsUseCase {
    */
   private replaceMarkdownImages(
     content: string,
-    mediaIdToUrlMap: Map<number, string>,
+    mediaIdToContentMap: Map<number, ResolvedMediaContent>,
   ): string {
     const imagePattern = /!\[media:(\d+)\]\([^)]+\)/g
     return content.replace(imagePattern, (fullMatch, mediaIdStr) => {
       const id = Number(mediaIdStr)
-      const url = mediaIdToUrlMap.get(id)
-      if (!url) return fullMatch
-      return `![media:${id}](${url})`
+      const mediaContent = mediaIdToContentMap.get(id)
+      if (!mediaContent) return fullMatch
+
+      const alt = this.escapeMarkdownAlt(mediaContent.alt || `media:${id}`)
+      return `![${alt}](${mediaContent.url})`
     })
+  }
+
+  private escapeMarkdownAlt(value: string): string {
+    return value.replace(/[\[\]\r\n]/g, ' ').trim()
   }
 }

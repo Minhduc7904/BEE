@@ -21,6 +21,8 @@ export class MediaMapper {
       width: prismaMedia.width ?? undefined,
       height: prismaMedia.height ?? undefined,
       duration: prismaMedia.duration ?? undefined,
+      description: prismaMedia.description ?? undefined,
+      alt: prismaMedia.alt ?? undefined,
       rawContent: prismaMedia.rawContent ?? undefined,
       uploadedBy: prismaMedia.uploadedBy!,
       uploader: UserMapper.toDomainUser(prismaMedia.uploader) ?? undefined,

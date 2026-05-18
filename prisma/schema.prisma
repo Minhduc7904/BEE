@@ -26,6 +26,17 @@ enum Visibility {
   PUBLISHED // Công khai hiển thị ở nơi người dùng có thể thấy
 }
 
+enum TagType {
+  GRADE
+  CHAPTER
+  DOCUMENT_TYPE
+  LEVEL
+  SUBJECT
+  TOPIC
+  KEYWORD
+  OTHER
+}
+
 enum ExamVisibility {
   DRAFT // Bản nháp, chưa công bố
   PUBLISHED // Đã xuất bản, công khai
@@ -123,6 +134,8 @@ model User {
   userPointLogs          UserPointLog[]
   createdJobs            Job[]                    @relation("JobCreator")
   questionChats          QuestionChat[]
+  createdDocuments       Document[]               @relation("DocumentCreator")
+  updatedDocuments       Document[]               @relation("DocumentUpdater")
 
   @@index([lastName, firstName], map: "idx_users_name")
   @@map("users")
@@ -1430,7 +1443,7 @@ model Media {
 model MediaUsage {
   usageId    Int             @id @default(autoincrement()) @map("usage_id")
   mediaId    Int             @map("media_id")
-  entityType String          @map("entity_type") @db.VarChar(50) // "USER", "COURSE", "QUESTION", "LESSON", etc
+  entityType String          @map("entity_type") @db.VarChar(50) // "USER", "COURSE", "QUESTION", "LESSON", "DOCUMENT", etc
   entityId   Int             @map("entity_id")
   fieldName  String?         @map("field_name") @db.VarChar(100) // "avatar", "thumbnail", "banner", "content_image", etc
   usedBy     Int?            @map("used_by") // user nào sử dụng media này
@@ -1445,6 +1458,130 @@ model MediaUsage {
   @@index([entityType, entityId], map: "idx_media_usages_entity")
   @@index([usedBy], map: "idx_media_usages_used_by")
   @@map("media_usages")
+}
+
+// Bang tai lieu phuc vu SEO va thu vien hoc tap.
+// File PDF, anh dai dien, anh preview khong luu truc tiep o day.
+// Luu qua MediaUsage voi entityType = "DOCUMENT", entityId = documentId,
+// fieldName vi du: "file", "thumbnail", "cover", "preview_image".
+model Document {
+  // Khoa chinh cua tai lieu.
+  documentId Int @id @default(autoincrement()) @map("document_id")
+
+  // Noi dung hien thi
+  // Tieu de H1 cua trang tai lieu, vi du: "Tai lieu tich phan lop 12".
+  title            String  @map("title") @db.VarChar(255)
+  // Duong dan SEO duy nhat, vi du: "tai-lieu-tich-phan".
+  slug             String  @unique @map("slug") @db.VarChar(255)
+  // Mo ta ngan de hien thi trong danh sach tai lieu.
+  shortDescription String? @map("short_description") @db.VarChar(500)
+  // Noi dung HTML/Markdown hoac phan giai thich bo sung tren landing page tai lieu.
+  content          String? @map("content") @db.LongText
+
+  // Ten nguon hoac tac gia goc neu tai lieu duoc tong hop.
+  sourceName   String?      @map("source_name") @db.VarChar(255)
+  // URL nguon tham khao neu co.
+  sourceUrl    String?      @map("source_url") @db.VarChar(1000)
+
+  // SEO on-page
+  // Tu khoa chinh can len top, vi du: "tai lieu tich phan".
+  targetKeyword   String? @map("target_keyword") @db.VarChar(255) // vd: "tai lieu tich phan"
+  // Danh sach tu khoa phu, bien the va long-tail.
+  keywordText     String? @map("keyword_text") @db.Text // tu khoa phu, bien the, long-tail
+  // Title tag rieng cho SEO, co the khac title H1.
+  metaTitle       String? @map("meta_title") @db.VarChar(255)
+  // Meta description hien thi tren Google.
+  metaDescription String? @map("meta_description") @db.VarChar(500)
+  // Tieu de khi chia se len Facebook/Zalo/OpenGraph.
+  ogTitle         String? @map("og_title") @db.VarChar(255)
+  // Mo ta khi chia se len Facebook/Zalo/OpenGraph.
+  ogDescription   String? @map("og_description") @db.VarChar(500)
+  // Y dinh tim kiem: informational, practice, download, exam prep, ...
+  searchIntent    String? @map("search_intent") @db.VarChar(100) // informational, practice, download, exam prep
+  // Diem SEO noi bo de admin danh gia muc do toi uu.
+  seoScore        Int?    @map("seo_score") @db.TinyInt
+  // Trang thai va thong ke
+  // Trang thai hien thi: DRAFT, PRIVATE, PUBLISHED.
+  visibility     Visibility @default(DRAFT) @map("visibility")
+  // Danh dau tai lieu noi bat de dua len trang chu/danh sach.
+  isFeatured     Boolean    @default(false) @map("is_featured")
+  // Tong luot xem trang tai lieu.
+  viewCount      Int        @default(0) @map("view_count")
+  // Tong luot tai file tai lieu.
+  downloadCount  Int        @default(0) @map("download_count")
+  // Thoi gian doc uoc tinh tinh bang phut.
+  readingTime    Int?       @map("reading_time") // phut
+
+  // User tao tai lieu.
+  createdBy Int?     @map("created_by")
+  // User cap nhat tai lieu gan nhat.
+  updatedBy Int?     @map("updated_by")
+  // Thoi diem tao ban ghi.
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  // Thoi diem cap nhat ban ghi.
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  creator User?         @relation("DocumentCreator", fields: [createdBy], references: [userId], onDelete: SetNull)
+  updater User?         @relation("DocumentUpdater", fields: [updatedBy], references: [userId], onDelete: SetNull)
+  tags    DocumentTag[]
+
+  @@index([visibility], map: "idx_documents_visibility")
+  @@index([targetKeyword], map: "idx_documents_target_keyword")
+  @@index([isFeatured, visibility], map: "idx_documents_featured_visibility")
+  @@index([createdBy], map: "idx_documents_created_by")
+  @@index([updatedBy], map: "idx_documents_updated_by")
+  @@fulltext([title, shortDescription, content, targetKeyword, keywordText, metaTitle, metaDescription], map: "ft_documents_seo")
+  @@map("documents")
+}
+
+// Bang tag de phan nhom tai lieu theo tu khoa/chu de SEO.
+model Tag {
+  // Khoa chinh cua tag.
+  tagId Int @id @default(autoincrement()) @map("tag_id")
+
+  // Ten tag hien thi, vi du: "Tich phan", "Toan 12", "On thi THPT".
+  name        String   @unique @map("name") @db.VarChar(120)
+  // Slug duy nhat cho URL hoac filter tag.
+  slug        String   @unique @map("slug") @db.VarChar(160)
+  // Loai tag de phan nhom theo khoi lop, chuong, loai tai lieu, ...
+  type        TagType  @default(KEYWORD) @map("type")
+  // Mo ta ngan cua tag de dung tren trang danh sach tag neu can SEO.
+  description String?  @map("description") @db.VarChar(500)
+  // Bat/tat tag ma khong can xoa lien ket cu.
+  isActive    Boolean  @default(true) @map("is_active")
+  // Thoi diem tao tag.
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  // Thoi diem cap nhat tag.
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  documents DocumentTag[]
+
+  @@index([isActive], map: "idx_tags_active")
+  @@index([type], map: "idx_tags_type")
+  @@map("tags")
+}
+
+// Bang mapper gan tag vao tai lieu theo quan he many-to-many.
+model DocumentTag {
+  // ID tai lieu duoc gan tag.
+  documentId Int      @map("document_id")
+  // ID tag duoc gan vao tai lieu.
+  tagId      Int      @map("tag_id")
+  // Thu tu uu tien hien thi tag tren trang tai lieu.
+  sortOrder  Int      @default(0) @map("sort_order")
+  // Thoi diem gan tag vao tai lieu.
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+
+  // Relations
+  document Document @relation(fields: [documentId], references: [documentId], onDelete: Cascade)
+  tag      Tag      @relation(fields: [tagId], references: [tagId], onDelete: Cascade)
+
+  @@id([documentId, tagId])
+  @@index([tagId], map: "idx_document_tags_tag")
+  @@index([documentId, sortOrder], map: "idx_document_tags_document_order")
+  @@map("documents_tags")
 }
 
 // Bang vi tri media cho SEO.

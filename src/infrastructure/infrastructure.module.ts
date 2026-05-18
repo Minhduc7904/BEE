@@ -56,6 +56,9 @@ import {
   PrismaHomeworkSubmitRepository,
   PrismaQuestionChatMessageRepository,
   PrismaQuestionChatRepository,
+  PrismaDocumentRepository,
+  PrismaDocumentTagRepository,
+  PrismaTagRepository,
 } from './repositories'
 import {
   PasswordService,
@@ -68,6 +71,10 @@ import {
   ZaloService,
   // SupabaseStorageService, // Disabled: not using Supabase anymore
   MediaProcessingService,
+  DocumentThumbnailService,
+  DocumentContentExtractionService,
+  DocumentSeoAiService,
+  DocumentMediaAltTextAiService,
   ExcelService,
 } from './services'
 import { ImageExportService } from './services/image-export.service'
@@ -369,6 +376,21 @@ import openaiConfig from '../config/openai.config'
       inject: [PrismaService],
     },
     {
+      provide: 'IDocumentRepository',
+      useFactory: (prisma: PrismaService) => new PrismaDocumentRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'ITagRepository',
+      useFactory: (prisma: PrismaService) => new PrismaTagRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IDocumentTagRepository',
+      useFactory: (prisma: PrismaService) => new PrismaDocumentTagRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
       provide: 'PASSWORD_SERVICE',
       useClass: PasswordService,
     },
@@ -398,6 +420,10 @@ import openaiConfig from '../config/openai.config'
     //   useClass: SupabaseStorageService, // Disabled: not using Supabase anymore
     // },
     MediaProcessingService,
+    DocumentThumbnailService,
+    DocumentContentExtractionService,
+    DocumentSeoAiService,
+    DocumentMediaAltTextAiService,
     ExcelService,
     MistralService,
     OpenAIService,
@@ -466,6 +492,9 @@ import openaiConfig from '../config/openai.config'
     'IHomeworkSubmitRepository',
     'IQuestionChatMessageRepository',
     'IQuestionChatRepository',
+    'IDocumentRepository',
+    'ITagRepository',
+    'IDocumentTagRepository',
     'PASSWORD_SERVICE',
     'JWT_TOKEN_SERVICE',
     'TOKEN_HASH_SERVICE',
@@ -475,6 +504,10 @@ import openaiConfig from '../config/openai.config'
     'IEmailService',
     // 'IStorageService', // Disabled: not using Supabase anymore
     MediaProcessingService,
+    DocumentThumbnailService,
+    DocumentContentExtractionService,
+    DocumentSeoAiService,
+    DocumentMediaAltTextAiService,
     ExcelService,
     MistralService,
     OpenAIService,
