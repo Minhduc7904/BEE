@@ -38,6 +38,7 @@ export interface DocumentListOptions {
   requiredTagId?: number
   tagId?: number
   tagIds?: number[]
+  tagSlugs?: string[]
   includeTags?: boolean
 }
 

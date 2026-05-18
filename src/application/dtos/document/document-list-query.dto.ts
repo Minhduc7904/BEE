@@ -4,6 +4,7 @@ import {
   IsOptionalEnumValue,
   IsOptionalInt,
   IsOptionalIntArray,
+  IsOptionalStringArray,
 } from 'src/shared/decorators/validate'
 import { Visibility } from 'src/shared/enums'
 import { SortOrder } from 'src/shared/enums/sort-order.enum'
@@ -20,6 +21,9 @@ export class DocumentListQueryDto extends ListQueryDto {
 
   @IsOptionalIntArray('Danh sach tag')
   tagIds?: number[]
+
+  @IsOptionalStringArray('Danh sach slug tag')
+  tagSlugs?: string[]
 
   @IsOptionalBoolean('Kem danh sach tag')
   includeTags?: boolean

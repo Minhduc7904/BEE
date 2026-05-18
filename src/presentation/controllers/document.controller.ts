@@ -347,11 +347,12 @@ Response 200:
 }
 
 3. Get public SEO document list
-URL: GET /api/documents/public/seo?page=1&limit=10&search=tich%20phan&tagIds=1&tagIds=2&includeTags=true&sortBy=createdAt&sortOrder=desc
+URL: GET /api/documents/public/seo?page=1&limit=10&search=tich%20phan&tagSlugs=tich-phan&tagSlugs=toan-12&includeTags=true&sortBy=createdAt&sortOrder=desc
 Notes:
 - Khong can auth/permission.
 - Chi tra ve document co visibility = PUBLISHED.
-- Ho tro pagination day du va loc theo tagId hoac tagIds.
+- Search khong phan biet co dau/khong dau va hoa/thuong.
+- Ho tro pagination day du va loc theo tag slug.
 Request:
 - Body: none
 - Query params:
@@ -359,8 +360,7 @@ Request:
   - limit: number
   - search: string
   - isFeatured: boolean
-  - tagId: number
-  - tagIds: number[]
+  - tagSlugs: string[]
   - includeTags: boolean
   - sortBy: documentId | title | slug | visibility | isFeatured | viewCount | downloadCount | createdAt | updatedAt
   - sortOrder: asc | desc

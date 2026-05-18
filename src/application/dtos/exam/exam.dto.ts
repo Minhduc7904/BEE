@@ -5,6 +5,10 @@ import { Competition } from '../../../domain/entities/exam/competition.entity'
 import { ExamVisibility, TypeOfExam } from '../../../shared/enums'
 import { Subject } from '../../../domain/entities/subject/subject.entity'
 import { PaginationResponseDto, PaginationMetaDto } from '../pagination/pagination-response.dto'
+import {
+  PublicStudentCompetitionExamQuestionDto,
+  PublicStudentCompetitionExamSectionDto,
+} from '../competition/public-student-competition-exam.dto'
 
 export enum PublicStudentExamAttemptStatus {
   ATTEMPTED = 'ATTEMPTED',
@@ -373,4 +377,17 @@ export class PublicStudentExamDetailResponseDto {
 
     return dto
   }
+}
+
+export class PublicSeoExamDetailResponseDto {
+  examId: number
+  title: string
+  subject?: string | null
+  grade?: number | null
+  examType?: TypeOfExam | null
+  sections: PublicStudentCompetitionExamSectionDto[]
+  questions: PublicStudentCompetitionExamQuestionDto[]
+  processedDescription?: string | null
+  description?: string | null
+  solutionYoutubeUrl?: string | null
 }

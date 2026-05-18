@@ -9,6 +9,7 @@ export {
 	PublicStudentExamAttemptStatus,
 	PublicStudentExamListResponseDto,
 	PublicStudentExamDetailResponseDto,
+	PublicSeoExamDetailResponseDto,
 	PublicStudentExamCompetitionResponseDto,
 } from './exam.dto'
 export { CreateExamDto } from './create-exam.dto'

@@ -191,6 +191,7 @@ export class GetPublicStudentExamContentUseCase {
 
             const dto: PublicStudentCompetitionExamQuestionDto = {
                 questionId: question.questionId,
+                slug: question.slug,
                 sectionId: questionExam.sectionId,
                 order: questionExam.order,
                 type: question.type,

@@ -1,7 +1,7 @@
-import { IsOptional, IsArray, IsNotEmpty, IsInt, IsPositive } from 'class-validator'
+import { IsOptional, IsArray, IsNotEmpty, IsInt, IsPositive, IsString } from 'class-validator'
 import { applyDecorators } from '@nestjs/common'
 import { VALIDATION_MESSAGES } from 'src/shared/constants'
-import { ToNumberArray } from '../'
+import { ToNumberArray, ToStringArray } from '../'
 
 /**
  * Decorator for optional array field validation
@@ -74,6 +74,20 @@ export function IsRequiredIntArray(label: string) {
     IsPositive({
       each: true,
       message: `${label} phải là số nguyên dương`,
+    }),
+  )
+}
+
+export function IsOptionalStringArray(label: string) {
+  return applyDecorators(
+    ToStringArray(),
+    IsOptional(),
+    IsArray({
+      message: VALIDATION_MESSAGES.FIELD_INVALID(label),
+    }),
+    IsString({
+      each: true,
+      message: VALIDATION_MESSAGES.FIELD_INVALID(label),
     }),
   )
 }

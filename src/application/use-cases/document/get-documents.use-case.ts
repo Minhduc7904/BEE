@@ -33,6 +33,7 @@ export class GetDocumentsUseCase {
         requiredTagId: options?.requiredTagId,
         tagId: query.tagId,
         tagIds: query.tagIds?.length ? query.tagIds : query.tagId ? [query.tagId] : undefined,
+        tagSlugs: query.tagSlugs?.length ? query.tagSlugs : undefined,
         includeTags: query.includeTags,
       }),
     )

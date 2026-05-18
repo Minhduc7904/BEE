@@ -16,6 +16,7 @@ export class PublicStudentCompetitionExamQuestionChapterDto {
 
 export class PublicStudentCompetitionExamQuestionDto {
     questionId: number
+    slug: string
     sectionId?: number | null
     order?: number | null
     type: QuestionType

@@ -23,6 +23,7 @@ import {
   PublicStudentExamContentQueryDto,
   PublicStudentExamListResponseDto,
   PublicStudentExamDetailResponseDto,
+  PublicSeoExamDetailResponseDto,
   PublicExamTypeCountResponseDto,
 } from '../../application/dtos/exam'
 import { PublicStudentCompetitionExamResponseDto } from '../../application/dtos/competition'
@@ -326,16 +327,14 @@ export class ExamController {
       return response
     })
   }
+  
   @Get('public/seo/:slug')
   @HttpCode(HttpStatus.OK)
   async getPublicSeoExamBySlug(
     @Param('slug') slug: string,
-  ): Promise<BaseResponseDto<PublicStudentExamDetailResponseDto>> {
+  ): Promise<BaseResponseDto<PublicSeoExamDetailResponseDto>> {
     return ExceptionHandler.execute(async () => {
       const response = await this.getPublicStudentExamBySlugUseCase.execute(slug)
-      if (response.data) {
-        delete (response.data as any).createdByAdmin
-      }
       return response
     })
   }
