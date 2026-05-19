@@ -9,6 +9,7 @@ import {
   IsOptionalDate,
   IsOptionalIntArray,
   IsRequiredNumber,
+  IsOptionalInt,
   IsOptionalPhoneVN
 } from 'src/shared/decorators/validate'
 import { Gender } from 'src/shared/enums'
@@ -182,6 +183,13 @@ export class RegisterStudentDto {
    */
   @IsOptionalString('Trường')
   school?: string
+
+  /**
+   * High school graduation year
+   * @optional
+   */
+  @IsOptionalInt('Năm tốt nghiệp cấp 3', 1900, 2100)
+  highSchoolGraduationYear?: number
 
   /**
    * Grade level (1-12)

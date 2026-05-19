@@ -11,7 +11,11 @@ import { RequirePermission } from 'src/shared/decorators/permissions.decorator'
 import { PERMISSION_CODES } from 'src/shared/constants/permissions/permission.codes'
 import { ExceptionHandler } from 'src/shared/utils/exception-handler.util'
 import { ResetStudentPasswordByDateRangeDto } from 'src/application/dtos/student/reset-student-password-by-date-range.dto'
+import { UpdateStudentGraduationYearByGradeDto } from 'src/application/dtos/student/update-student-graduation-year-by-grade.dto'
+import { PromoteStudentGradeByGraduationYearDto } from 'src/application/dtos/student/promote-student-grade-by-graduation-year.dto'
 import { ResetStudentPasswordByDateRangeUseCase } from 'src/application/use-cases/student/reset-student-password-by-date-range.use-case'
+import { UpdateStudentGraduationYearByGradeUseCase } from 'src/application/use-cases/student/update-student-graduation-year-by-grade.use-case'
+import { PromoteStudentGradeByGraduationYearUseCase } from 'src/application/use-cases/student/promote-student-grade-by-graduation-year.use-case'
 import { BaseResponseDto } from 'src/application/dtos/common/base-response.dto'
 import { Injectable } from '@nestjs/common'
 import { UpdateAdminDirectDto } from 'src/application/dtos/admin/update-admin-direct.dto'
@@ -33,6 +37,8 @@ interface ExchangeFacebookTokenDto {
 export class AdminStudentController {
     constructor(
         private readonly resetStudentPasswordByDateRangeUseCase: ResetStudentPasswordByDateRangeUseCase,
+        private readonly updateStudentGraduationYearByGradeUseCase: UpdateStudentGraduationYearByGradeUseCase,
+        private readonly promoteStudentGradeByGraduationYearUseCase: PromoteStudentGradeByGraduationYearUseCase,
         private readonly superAdminUpdateAdminDirectUseCase: SuperAdminUpdateAdminDirectUseCase,
         private readonly cleanupUnusedMediaOlderThan30DaysUseCase: CleanupUnusedMediaOlderThan30DaysUseCase,
         private readonly generateMissingExamSlugsUseCase: GenerateMissingExamSlugsUseCase,
@@ -73,6 +79,49 @@ export class AdminStudentController {
     ): Promise<BaseResponseDto<any>> {
         return ExceptionHandler.execute(() =>
             this.resetStudentPasswordByDateRangeUseCase.execute(dto),
+        )
+    }
+
+    /**
+        * Cập nhật năm tốt nghiệp cấp 3 cho học sinh theo khối.
+        * POST /super-admin/students/graduation-year/by-grade
+        *
+        * Input:
+        * - grade: number (1-12)
+        * - highSchoolGraduationYear: number
+        *
+        * Chỉ cập nhật các học sinh thuộc khối đã truyền và chưa có năm tốt nghiệp cấp 3.
+     */
+    @Post('students/graduation-year/by-grade')
+    @RequirePermission(PERMISSION_CODES.STUDENT.UPDATE)
+    @HttpCode(HttpStatus.OK)
+    async updateStudentGraduationYearByGrade(
+        @Body() dto: UpdateStudentGraduationYearByGradeDto,
+        @CurrentUser('adminId') _adminId?: number,
+    ): Promise<BaseResponseDto<any>> {
+        return ExceptionHandler.execute(() =>
+            this.updateStudentGraduationYearByGradeUseCase.execute(dto),
+        )
+    }
+
+    /**
+        * Tăng khối cho học sinh theo năm tốt nghiệp cấp 3.
+        * POST /super-admin/students/promote-grade/by-graduation-year
+        *
+        * Input:
+        * - highSchoolGraduationYear: number
+        *
+        * Chỉ tăng khối cho các học sinh có năm tốt nghiệp đã truyền và đang dưới lớp 12.
+     */
+    @Post('students/promote-grade/by-graduation-year')
+    @RequirePermission(PERMISSION_CODES.STUDENT.UPDATE)
+    @HttpCode(HttpStatus.OK)
+    async promoteStudentGradeByGraduationYear(
+        @Body() dto: PromoteStudentGradeByGraduationYearDto,
+        @CurrentUser('adminId') _adminId?: number,
+    ): Promise<BaseResponseDto<any>> {
+        return ExceptionHandler.execute(() =>
+            this.promoteStudentGradeByGraduationYearUseCase.execute(dto),
         )
     }
 

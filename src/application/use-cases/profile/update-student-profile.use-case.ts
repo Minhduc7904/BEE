@@ -42,6 +42,7 @@ export class UpdateStudentProfileUseCase {
                 parentPhone?: string
                 grade?: number
                 school?: string
+                highSchoolGraduationYear?: number
             } = {}
 
             // Tách các trường của User
@@ -57,6 +58,9 @@ export class UpdateStudentProfileUseCase {
             if (dto.parentPhone !== undefined) studentUpdateData.parentPhone = dto.parentPhone
             if (dto.grade !== undefined) studentUpdateData.grade = dto.grade
             if (dto.school !== undefined) studentUpdateData.school = dto.school
+            if (dto.highSchoolGraduationYear !== undefined) {
+                studentUpdateData.highSchoolGraduationYear = dto.highSchoolGraduationYear
+            }
 
             // 4. Kiểm tra xem có thay đổi thực sự không
             const hasUserChanges = this.hasRealChanges(student.user, userUpdateData)

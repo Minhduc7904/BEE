@@ -16,6 +16,7 @@ export class Student {
   studentZaloId?: string
   parentZaloId?: string
   school?: string
+  highSchoolGraduationYear?: number
 
   conversationMode: ConversationMode
   lastAdminReplyAt?: Date
@@ -32,6 +33,7 @@ export class Student {
     studentZaloId?: string
     parentZaloId?: string
     school?: string
+    highSchoolGraduationYear?: number
     user?: User
     conversationMode?: ConversationMode
     lastAdminReplyAt?: Date
@@ -44,6 +46,7 @@ export class Student {
     this.studentZaloId = data.studentZaloId
     this.parentZaloId = data.parentZaloId
     this.school = data.school
+    this.highSchoolGraduationYear = data.highSchoolGraduationYear
     this.user = data.user
     this.conversationMode = data.conversationMode ?? ConversationMode.BOT
     this.lastAdminReplyAt = data.lastAdminReplyAt
@@ -93,6 +96,7 @@ export class Student {
       studentZaloId: this.studentZaloId,
       parentZaloId: this.parentZaloId,
       school: this.school,
+      highSchoolGraduationYear: this.highSchoolGraduationYear,
       fullName: this.getFullName(),
       email: this.getEmail(),
       isActive: this.isActive(),
@@ -111,6 +115,7 @@ export class Student {
       studentZaloId: this.studentZaloId,
       parentZaloId: this.parentZaloId,
       school: this.school,
+      highSchoolGraduationYear: this.highSchoolGraduationYear,
       user: this.user,
       conversationMode: this.conversationMode,
       lastAdminReplyAt: this.lastAdminReplyAt,

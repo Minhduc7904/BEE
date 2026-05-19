@@ -14,6 +14,7 @@ export class GetAllCourseUseCase {
 
     async execute(query: CourseListQueryDto | CourseSearchQueryDto): Promise<CourseListResponseDto> {
         const filters = query.toCourseFilterOptions()
+        filters.isEnded ??= false
         const pagination = query.toCoursePaginationOptions()
         const result = await this.courseRepository.findAllWithPagination(pagination, filters)
 

@@ -223,17 +223,18 @@ enum ConversationMode {
 }
 
 model Student {
-  studentId        Int              @id @default(autoincrement()) @map("student_id")
-  userId           Int              @unique @map("user_id")
-  user             User             @relation("UserStudent", fields: [userId], references: [userId], onDelete: Cascade)
-  studentPhone     String?          @map("student_phone") @db.VarChar(15)
-  parentPhone      String?          @map("parent_phone") @db.VarChar(15)
-  studentZaloId    String?          @map("student_zalo_id") @db.VarChar(32)
-  parentZaloId     String?          @map("parent_zalo_id") @db.VarChar(32)
-  grade            Int              @db.TinyInt
-  school           String?          @map("school") @db.VarChar(120)
-  conversationMode ConversationMode @default(BOT) @map("conversation_mode")
-  lastAdminReplyAt DateTime?        @map("last_admin_reply_at") @db.Timestamp(0)
+  studentId                Int              @id @default(autoincrement()) @map("student_id")
+  userId                   Int              @unique @map("user_id")
+  user                     User             @relation("UserStudent", fields: [userId], references: [userId], onDelete: Cascade)
+  studentPhone             String?          @map("student_phone") @db.VarChar(15)
+  parentPhone              String?          @map("parent_phone") @db.VarChar(15)
+  studentZaloId            String?          @map("student_zalo_id") @db.VarChar(32)
+  parentZaloId             String?          @map("parent_zalo_id") @db.VarChar(32)
+  grade                    Int              @db.TinyInt
+  school                   String?          @map("school") @db.VarChar(120)
+  highSchoolGraduationYear Int?             @map("high_school_graduation_year") @db.SmallInt
+  conversationMode         ConversationMode @default(BOT) @map("conversation_mode")
+  lastAdminReplyAt         DateTime?        @map("last_admin_reply_at") @db.Timestamp(0)
 
   pointLogs            StudentPointLog[]
   courseEnrollments    CourseEnrollment[]
@@ -1152,6 +1153,7 @@ model Course {
   priceVND        Int         @default(0) @map("price_vnd") // giá khoá học (đơn vị: VND)
   compareAtVND    Int?        @map("compare_at_vnd") // giá gốc (nếu có) để hiển thị giá khuyến mãi
   visibility      Visibility  @default(DRAFT) @map("visibility") // trạng thái khoá học
+  isEnded         Boolean     @default(false) @map("is_ended") // khoa hoc da ket thuc hay chua
   teacherId       Int?        @map("teacher_id") // FK tới admin_users nếu admin là giáo viên
   hasTuitionFee   Boolean     @default(true) @map("has_tuition_fee") // khoá học có thu học phí hay không
   paymentType     PaymentType @default(MONTHLY) @map("payment_type") // loại thanh toán: 1 lần hoặc theo tháng

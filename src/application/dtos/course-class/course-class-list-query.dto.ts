@@ -26,6 +26,11 @@ export class CourseClassListQueryDto extends ListQueryDto {
 
     @IsOptional()
     @ToBoolean()
+    @IsBoolean({ message: 'isCourseEnded phải là boolean' })
+    isCourseEnded?: boolean;
+
+    @IsOptional()
+    @ToBoolean()
     @IsBoolean({ message: 'isActive phải là boolean' })
     isActive?: boolean;
 
@@ -50,6 +55,7 @@ export class CourseClassListQueryDto extends ListQueryDto {
             courseId: this.courseId,
             instructorId: this.instructorId,
             teacherId: this.teacherId,
+            isCourseEnded: this.isCourseEnded,
             isActive: this.isActive,
             isUpcoming: this.isUpcoming,
             isCompleted: this.isCompleted,

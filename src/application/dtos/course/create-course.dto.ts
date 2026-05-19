@@ -2,7 +2,7 @@
 import { Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { CourseVisibility } from 'src/shared/enums'
-import { IsRequiredString, IsOptionalString, IsOptionalInt, IsRequiredNumber, IsOptionalNumber, IsOptionalEnumValue, IsOptionalIdNumber } from 'src/shared/decorators/validate'
+import { IsRequiredString, IsOptionalString, IsOptionalInt, IsRequiredNumber, IsOptionalNumber, IsOptionalEnumValue, IsOptionalIdNumber, IsOptionalBoolean } from 'src/shared/decorators/validate'
 /**
  * DTO tạo khóa học mới
  * @description Chứa thông tin cơ bản để tạo khóa học mới
@@ -79,6 +79,14 @@ export class CreateCourseDto {
    */
   @IsOptionalEnumValue(CourseVisibility, 'Trạng thái')
   visibility?: CourseVisibility
+
+  /**
+   * Khóa học đã kết thúc chưa
+   * @optional
+   * @example false
+   */
+  @IsOptionalBoolean('Khóa học đã kết thúc')
+  isEnded?: boolean
 
   /**
    * ID giáo viên phụ trách

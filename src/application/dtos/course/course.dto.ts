@@ -39,6 +39,7 @@ export class CourseResponseDto {
 
   // ===== State / config =====
   visibility: string
+  isEnded: boolean
 
   // ===== Audit =====
   createdAt: Date
@@ -87,6 +88,7 @@ export class CourseResponseDto {
 
       // State / config
       visibility: course.visibility,
+      isEnded: course.isEnded,
 
       // Audit
       createdAt: course.createdAt,

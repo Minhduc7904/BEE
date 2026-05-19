@@ -6,6 +6,7 @@ import {
 } from '../../dtos/course-class/course-class.dto';
 import { CourseClassListQueryDto } from '../../dtos/course-class/course-class-list-query.dto';
 import { CourseClassSearchQueryDto } from '../../dtos/course-class/course-class-search-query.dto';
+import type { CourseClassFilterOptions } from '../../../domain/interface/course-class/course-class.interface';
 
 @Injectable()
 export class GetAllCourseClassUseCase {
@@ -17,7 +18,14 @@ export class GetAllCourseClassUseCase {
     async execute(
         query: CourseClassListQueryDto | CourseClassSearchQueryDto,
     ): Promise<CourseClassListResponseDto> {
-        const filters = query.toCourseClassFilterOptions();
+        const filters: CourseClassFilterOptions = {
+            ...query.toCourseClassFilterOptions(),
+        };
+        const hasCourseFilter =
+            filters.courseId !== undefined || (filters.courseIds?.length ?? 0) > 0
+        if (!hasCourseFilter) {
+            filters.isCourseEnded ??= false
+        }
         const pagination = query.toCourseClassPaginationOptions();
 
         const result = await this.courseClassRepository.findAllWithPagination(

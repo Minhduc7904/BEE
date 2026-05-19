@@ -15,6 +15,7 @@ export class Course {
     title: string
     priceVND: number
     visibility: CourseVisibility
+    isEnded: boolean
     hasTuitionFee: boolean
     paymentType: PaymentType
     autoRenew: boolean
@@ -46,6 +47,7 @@ export class Course {
         title: string
         priceVND: number
         visibility: CourseVisibility
+        isEnded?: boolean
         hasTuitionFee: boolean
         paymentType: PaymentType
         autoRenew: boolean
@@ -72,6 +74,7 @@ export class Course {
         this.title = data.title
         this.priceVND = data.priceVND
         this.visibility = data.visibility
+        this.isEnded = data.isEnded ?? false
         this.hasTuitionFee = data.hasTuitionFee
         this.paymentType = data.paymentType
         this.autoRenew = data.autoRenew
@@ -172,6 +175,7 @@ export class Course {
             priceVND: this.priceVND,
             compareAtVND: this.compareAtVND,
             visibility: this.visibility,
+            isEnded: this.isEnded,
             teacherId: this.teacherId,
             hasTuitionFee: this.hasTuitionFee,
             paymentType: this.paymentType,
@@ -190,6 +194,7 @@ export class Course {
             code: this.code,
             priceVND: this.priceVND,
             visibility: this.visibility,
+            isEnded: this.isEnded,
             hasTuitionFee: this.hasTuitionFee,
             paymentType: this.paymentType,
             autoRenew: this.autoRenew,

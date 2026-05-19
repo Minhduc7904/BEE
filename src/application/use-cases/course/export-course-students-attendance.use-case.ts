@@ -53,8 +53,7 @@ export class ExportCourseStudentsAttendanceUseCase {
             return {
                 stt: index + 1,
                 studentCode: student.studentId || '',
-                lastName: student.user?.lastName || '',
-                firstName: student.user?.firstName || '',
+                fullName: `${student.user?.lastName || ''} ${student.user?.firstName || ''}`.trim(),
                 school: student.school || '',
                 parentPhone: student.parentPhone || '',
                 studentPhone: student.studentPhone || '',
@@ -98,21 +97,20 @@ export class ExportCourseStudentsAttendanceUseCase {
             // Default columns (always included)
             { header: 'STT', key: 'stt', width: 8 },
             { header: 'Mã học sinh', key: 'studentCode', width: 15 },
-            { header: 'Họ', key: 'lastName', width: 20 },
-            { header: 'Tên', key: 'firstName', width: 15 },
+            { header: 'Họ và tên', key: 'fullName', width: 30 },
         ]
 
-        // Optional columns
-        if (options.includeSchool !== false) {
-            columns.push({ header: 'Trường', key: 'school', width: 25 })
+        // Optional columns (match student list order)
+        if (options.includeStudentPhone === true) {
+            columns.push({ header: 'SĐT học sinh', key: 'studentPhone', width: 15 })
         }
 
         if (options.includeParentPhone !== false) {
             columns.push({ header: 'SĐT phụ huynh', key: 'parentPhone', width: 15 })
         }
 
-        if (options.includeStudentPhone === true) {
-            columns.push({ header: 'SĐT học sinh', key: 'studentPhone', width: 15 })
+        if (options.includeSchool !== false) {
+            columns.push({ header: 'Trường', key: 'school', width: 25 })
         }
 
         if (options.includeGrade !== false) {

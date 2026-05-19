@@ -12,6 +12,7 @@ export interface CreateCourseData {
   priceVND: number
   compareAtVND?: number
   visibility?: CourseVisibility
+  isEnded?: boolean
   teacherId?: number
   isUpdatable?: boolean
 }
@@ -25,6 +26,7 @@ export interface UpdateCourseData {
   subjectId?: number
   description?: string
   visibility?: CourseVisibility
+  isEnded?: boolean
   teacherId?: number
 
   // ===== Pricing / payment =====
@@ -42,6 +44,7 @@ export interface CourseFilterOptions {
   subjectId?: number
   visibility?: CourseVisibility
   excludeVisibility?: CourseVisibility
+  isEnded?: boolean
   teacherId?: number
   academicYear?: string
   search?: string

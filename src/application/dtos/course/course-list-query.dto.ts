@@ -1,9 +1,9 @@
 // src/application/dtos/course/course-list-query.dto.ts
 import { ListQueryDto } from '../pagination/list-query.dto'
-import { Trim, ToNumber } from 'src/shared/decorators'
+import { Trim, ToBoolean, ToNumber } from 'src/shared/decorators'
 import { VALIDATION_MESSAGES } from 'src/shared/constants'
 import { CourseVisibility } from 'src/shared/enums'
-import { IsOptionalInt, IsOptionalIdNumber, IsOptionalEnumValue, IsOptionalString } from 'src/shared/decorators/validate'
+import { IsOptionalInt, IsOptionalIdNumber, IsOptionalEnumValue, IsOptionalString, IsOptionalBoolean } from 'src/shared/decorators/validate'
 
 /**
  * DTO truy vấn danh sách khóa học
@@ -37,6 +37,15 @@ export class CourseListQueryDto extends ListQueryDto {
     visibility?: CourseVisibility
 
     /**
+     * Khóa học đã kết thúc chưa
+     * @optional
+     * @example false
+     */
+    @ToBoolean()
+    @IsOptionalBoolean('Khóa học đã kết thúc')
+    isEnded?: boolean
+
+    /**
      * ID giáo viên
      * @optional
      * @example 3
@@ -61,6 +70,7 @@ export class CourseListQueryDto extends ListQueryDto {
             grade: this.grade,
             subjectId: this.subjectId,
             visibility: this.visibility,
+            isEnded: this.isEnded,
             teacherId: this.teacherId,
             academicYear: this.academicYear,
             search: this.search,
@@ -81,6 +91,7 @@ export class CourseListQueryDto extends ListQueryDto {
             'grade',
             'priceVND',
             'visibility',
+            'isEnded',
             'createdAt',
             'updatedAt',
         ]

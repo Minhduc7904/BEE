@@ -93,6 +93,7 @@ export class PrismaStudentRepository implements IStudentRepository {
         parentZaloId: data.parentZaloId,
         grade: data.grade,
         school: data.school,
+        highSchoolGraduationYear: data.highSchoolGraduationYear,
       },
     })
 
@@ -287,12 +288,55 @@ export class PrismaStudentRepository implements IStudentRepository {
         parentZaloId: data.parentZaloId,
         grade: data.grade,
         school: data.school,
+        highSchoolGraduationYear: data.highSchoolGraduationYear,
         conversationMode: data.conversationMode,
         lastAdminReplyAt: data.lastAdminReplyAt,
       },
     })
 
     return StudentMapper.toDomainStudent(prismaStudent)!
+  }
+
+  async updateMissingGraduationYearByGrade(grade: number, highSchoolGraduationYear: number): Promise<number> {
+    const result = await this.prisma.student.updateMany({
+      where: {
+        grade,
+        highSchoolGraduationYear: null,
+      },
+      data: {
+        highSchoolGraduationYear,
+      },
+    })
+
+    return result.count
+  }
+
+  async promoteGradeByGraduationYear(highSchoolGraduationYear: number): Promise<{
+    totalStudents: number
+    updatedCount: number
+    skippedCount: number
+  }> {
+    const where = { highSchoolGraduationYear }
+    const [totalStudents, updateResult] = await Promise.all([
+      this.prisma.student.count({ where }),
+      this.prisma.student.updateMany({
+        where: {
+          highSchoolGraduationYear,
+          grade: { lt: 12 },
+        },
+        data: {
+          grade: {
+            increment: 1,
+          },
+        },
+      }),
+    ])
+
+    return {
+      totalStudents,
+      updatedCount: updateResult.count,
+      skippedCount: totalStudents - updateResult.count,
+    }
   }
 
   async delete(id: number): Promise<boolean> {
@@ -381,6 +425,13 @@ export class PrismaStudentRepository implements IStudentRepository {
         include: {
           user: true,
           classStudents: {
+            where: {
+              courseClass: {
+                course: {
+                  isEnded: false,
+                },
+              },
+            },
             include: {
               courseClass: {
                 select: {
@@ -463,6 +514,12 @@ export class PrismaStudentRepository implements IStudentRepository {
     if (filters.school) {
       conditions.push(`LOWER(s.school) LIKE LOWER(?)`)
       params.push(`%${filters.school}%`)
+      paramIndex++
+    }
+
+    if (filters.highSchoolGraduationYear !== undefined) {
+      conditions.push(`s.high_school_graduation_year = ?`)
+      params.push(filters.highSchoolGraduationYear)
       paramIndex++
     }
 
@@ -569,8 +626,13 @@ export class PrismaStudentRepository implements IStudentRepository {
 
     if (sortBy) {
       const { field, direction } = sortBy
-      if (['studentId', 'grade', 'school'].includes(field)) {
-        orderByClause = `ORDER BY s.${field === 'studentId' ? 'student_id' : field === 'school' ? 'school' : 'grade'} ${direction}`
+      if (['studentId', 'grade', 'school', 'highSchoolGraduationYear'].includes(field)) {
+        const columnMap: { [key: string]: string } = {
+          studentId: 'student_id',
+          highSchoolGraduationYear: 'high_school_graduation_year',
+        }
+        const column = columnMap[field] || field
+        orderByClause = `ORDER BY s.${column} ${direction}`
       } else if (
         ['userId', 'username', 'email', 'firstName', 'lastName', 'createdAt', 'updatedAt', 'lastLoginAt'].includes(
           field,
@@ -608,6 +670,7 @@ export class PrismaStudentRepository implements IStudentRepository {
                 s.parent_zalo_id as parentZaloId,
                 s.grade,
                 s.school,
+                s.high_school_graduation_year as highSchoolGraduationYear,
                 u.user_id as user_userId,
                 u.username as user_username,
                 u.email as user_email,
@@ -643,6 +706,7 @@ export class PrismaStudentRepository implements IStudentRepository {
       parentZaloId: row.parentZaloId,
       grade: row.grade,
       school: row.school,
+      highSchoolGraduationYear: row.highSchoolGraduationYear,
       user: {
         userId: row.user_userId,
         username: row.user_username,
@@ -794,6 +858,10 @@ export class PrismaStudentRepository implements IStudentRepository {
       where.school = { contains: filters.school }
     }
 
+    if (filters.highSchoolGraduationYear !== undefined) {
+      where.highSchoolGraduationYear = filters.highSchoolGraduationYear
+    }
+
     // ===== attach user =====
     if (Object.keys(userFilters).length > 0) {
       where.user = userFilters
@@ -834,6 +902,11 @@ export class PrismaStudentRepository implements IStudentRepository {
     if (filters?.grade !== undefined) {
       conditions.push(`s.grade = ?`)
       params.push(filters.grade)
+    }
+
+    if (filters?.highSchoolGraduationYear !== undefined) {
+      conditions.push(`s.high_school_graduation_year = ?`)
+      params.push(filters.highSchoolGraduationYear)
     }
 
     if (filters?.isActive !== undefined) {
@@ -894,6 +967,11 @@ export class PrismaStudentRepository implements IStudentRepository {
       params.push(filters.grade)
     }
 
+    if (filters?.highSchoolGraduationYear !== undefined) {
+      conditions.push(`s.high_school_graduation_year = ?`)
+      params.push(filters.highSchoolGraduationYear)
+    }
+
     // ===== user active filter (nếu có) =====
     if (filters?.isActive !== undefined) {
       conditions.push(`u.is_active = ?`)
@@ -940,7 +1018,7 @@ export class PrismaStudentRepository implements IStudentRepository {
     const { field, direction } = sortBy
 
     // Student fields
-    if (['studentId', 'grade', 'school'].includes(field)) {
+    if (['studentId', 'grade', 'school', 'highSchoolGraduationYear'].includes(field)) {
       return { [field]: direction }
     }
 

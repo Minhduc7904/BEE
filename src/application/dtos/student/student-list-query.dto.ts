@@ -22,6 +22,15 @@ export class StudentListQueryDto extends ListQueryDto {
   grade?: number
 
   /**
+   * Năm tốt nghiệp cấp 3
+   * @optional
+   * @example 2026
+   */
+  @ToNumber()
+  @IsOptionalInt('Năm tốt nghiệp cấp 3', 1900, 2100)
+  highSchoolGraduationYear?: number
+
+  /**
    * Trạng thái hoạt động
    * @optional
    * @example true
@@ -61,6 +70,7 @@ export class StudentListQueryDto extends ListQueryDto {
   toStudentFilterOptions() {
     return {
       grade: this.grade,
+      highSchoolGraduationYear: this.highSchoolGraduationYear,
       isActive: this.isActive,
       hasParentZaloId: this.hasParentZaloId,
       search: this.search, // Sử dụng flat property từ ListQueryDto
@@ -83,6 +93,7 @@ export class StudentListQueryDto extends ListQueryDto {
       'userId',
       'grade',
       'school',
+      'highSchoolGraduationYear',
       'username',
       'email',
       'firstName',
@@ -113,6 +124,7 @@ export class StudentListQueryDto extends ListQueryDto {
       'userId',
       'grade',
       'school',
+      'highSchoolGraduationYear',
       'username',
       'email',
       'firstName',

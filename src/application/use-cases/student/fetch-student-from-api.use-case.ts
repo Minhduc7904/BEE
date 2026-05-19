@@ -125,6 +125,7 @@ export class FetchStudentFromApiUseCase {
           parentPhone: apiData.phone, // phone là số điện thoại phụ huynh
           grade: parseInt(apiData.class), // class -> grade
           school: apiData.highSchool, // highSchool -> school
+          highSchoolGraduationYear: apiData.graduationYear,
         })
 
         this.logger.debug(`Created student for user ID: ${user.userId}`)
@@ -135,6 +136,7 @@ export class FetchStudentFromApiUseCase {
           parentPhone: apiData.phone,
           grade: parseInt(apiData.class),
           school: apiData.highSchool,
+          highSchoolGraduationYear: apiData.graduationYear,
         })
 
         this.logger.debug(`Updated student for user ID: ${user.userId}`)

@@ -30,8 +30,7 @@ export class ExportAttendanceBySessionUseCase {
     const excelData = result.data.map((attendance, index) => ({
       stt: index + 1,
       studentCode: attendance.student?.studentId || '',
-      lastName: attendance.student?.user.lastName || '',
-      firstName: attendance.student?.user.firstName || '',
+      fullName: `${attendance.student?.user.lastName || ''} ${attendance.student?.user.firstName || ''}`.trim(),
       school: attendance.student?.school || '',
       parentPhone: attendance.student?.parentPhone || '',
       studentPhone: attendance.student?.studentPhone || '',
@@ -74,21 +73,20 @@ export class ExportAttendanceBySessionUseCase {
       // Default columns (always included)
       { header: 'STT', key: 'stt', width: 8 },
       { header: 'Mã học sinh', key: 'studentCode', width: 15 },
-      { header: 'Họ', key: 'lastName', width: 20 },
-      { header: 'Tên', key: 'firstName', width: 15 },
+      { header: 'Họ và tên', key: 'fullName', width: 30 },
     ]
 
-    // Optional columns
-    if (options.includeSchool !== false) {
-      columns.push({ header: 'Trường', key: 'school', width: 25 })
+    // Optional columns (match student list order)
+    if (options.includeStudentPhone === true) {
+      columns.push({ header: 'SĐT học sinh', key: 'studentPhone', width: 15 })
     }
 
     if (options.includeParentPhone !== false) {
       columns.push({ header: 'SĐT phụ huynh', key: 'parentPhone', width: 15 })
     }
 
-    if (options.includeStudentPhone === true) {
-      columns.push({ header: 'SĐT học sinh', key: 'studentPhone', width: 15 })
+    if (options.includeSchool !== false) {
+      columns.push({ header: 'Trường', key: 'school', width: 25 })
     }
 
     if (options.includeGrade !== false) {

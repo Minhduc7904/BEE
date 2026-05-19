@@ -14,6 +14,8 @@ const STUDENT_USE_CASES = [
   studentUseCase.GetStudentStatsByGradeUseCase,
   studentUseCase.ExportStudentListUseCase,
   studentUseCase.ResetStudentPasswordByDateRangeUseCase,
+  studentUseCase.UpdateStudentGraduationYearByGradeUseCase,
+  studentUseCase.PromoteStudentGradeByGraduationYearUseCase,
 ]
 
 @Module({

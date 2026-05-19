@@ -22,7 +22,17 @@ export class CreateCourseClassUseCase {
     ): Promise<BaseResponseDto<CourseClassResponseDto>> {
         const result = await this.unitOfWork.executeInTransaction(async (repos) => {
             const courseClassRepository = repos.courseClassRepository
+            const courseRepository = repos.courseRepository
             const adminAuditLogRepository = repos.adminAuditLogRepository
+
+            const course = await courseRepository.findById(dto.courseId)
+            if (!course) {
+                throw new ConflictException('Khóa học không tồn tại')
+            }
+
+            if (course.isEnded) {
+                throw new ConflictException('Khóa học đã kết thúc, không thể thêm lớp học')
+            }
 
             // Validate date logic
             if (dto.startDate && dto.endDate) {

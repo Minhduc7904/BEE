@@ -27,7 +27,11 @@ export class PrismaClassSessionRepository implements IClassSessionRepository {
                 makeupNote: data.makeupNote,
             },
             include: {
-                courseClass: true,
+                courseClass: {
+                    include: {
+                        course: true,
+                    },
+                },
                 homeworkContent: true,
             },
         })
@@ -41,7 +45,11 @@ export class PrismaClassSessionRepository implements IClassSessionRepository {
         const prismaSession = await this.prisma.classSession.findUnique({
             where: { sessionId },
             include: {
-                courseClass: true,
+                courseClass: {
+                    include: {
+                        course: true,
+                    },
+                },
                 homeworkContent: true,
             },
         })
@@ -55,7 +63,11 @@ export class PrismaClassSessionRepository implements IClassSessionRepository {
         const prismaSessions = await this.prisma.classSession.findMany({
             where: { sessionId: { in: sessionIds } },
             include: {
-                courseClass: true,
+                courseClass: {
+                    include: {
+                        course: true,
+                    },
+                },
                 homeworkContent: true,
             },
         })
@@ -69,7 +81,11 @@ export class PrismaClassSessionRepository implements IClassSessionRepository {
             where: { sessionId },
             data: { ...data },
             include: {
-                courseClass: true,
+                courseClass: {
+                    include: {
+                        course: true,
+                    },
+                },
                 homeworkContent: true,
             },
         })
@@ -90,7 +106,11 @@ export class PrismaClassSessionRepository implements IClassSessionRepository {
     async findAll(): Promise<ClassSession[]> {
         const prismaSessions = await this.prisma.classSession.findMany({
             include: {
-                courseClass: true,
+                courseClass: {
+                    include: {
+                        course: true,
+                    },
+                },
                 homeworkContent: true,
             },
             orderBy: {
@@ -213,7 +233,11 @@ export class PrismaClassSessionRepository implements IClassSessionRepository {
                 take: limit,
                 orderBy,
                 include: {
-                    courseClass: true,
+                    courseClass: {
+                        include: {
+                            course: true,
+                        },
+                    },
                     homeworkContent: true,
                 },
             }),
@@ -367,7 +391,11 @@ export class PrismaClassSessionRepository implements IClassSessionRepository {
         const prismaSessions = await this.prisma.classSession.findMany({
             where: { classId: id },
             include: {
-                courseClass: true,
+                courseClass: {
+                    include: {
+                        course: true,
+                    },
+                },
                 homeworkContent: true,
             },
             orderBy: {
@@ -392,7 +420,11 @@ export class PrismaClassSessionRepository implements IClassSessionRepository {
                 },
             },
             include: {
-                courseClass: true,
+                courseClass: {
+                    include: {
+                        course: true,
+                    },
+                },
                 homeworkContent: true,
             },
             orderBy: {

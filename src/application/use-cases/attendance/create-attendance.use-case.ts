@@ -29,7 +29,17 @@ export class CreateAttendanceUseCase {
     ): Promise<BaseResponseDto<AttendanceResponseDto>> {
         const result = await this.unitOfWork.executeInTransaction(async (repos) => {
             const attendanceRepository = repos.attendanceRepository
+            const classSessionRepository = repos.classSessionRepository
             const adminAuditLogRepository = repos.adminAuditLogRepository
+
+            const session = await classSessionRepository.findById(dto.sessionId)
+            if (!session) {
+                throw new NotFoundException(`Buổi học với ID ${dto.sessionId} không tồn tại`)
+            }
+
+            if (session.courseClass?.course?.isEnded) {
+                throw new ConflictException('Khóa học đã kết thúc, không thể điểm danh')
+            }
 
             // Check if attendance already exists
             const existing = await attendanceRepository.findBySessionAndStudent(

@@ -26,6 +26,7 @@ export class SearchCoursesUseCase {
     async execute(query: CourseSearchQueryDto, context?: SearchContext): Promise<CourseListResponseDto> {
         // Apply search filters based on user permissions
         const filters = this.buildFilters(query, context)
+        filters.isEnded ??= false
         const pagination = query.toCoursePaginationOptions()
 
         const result = await this.courseRepository.findAllWithPagination(pagination, filters)

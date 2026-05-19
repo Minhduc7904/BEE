@@ -23,6 +23,8 @@ export class StudentResponseDto extends UserResponseDto {
 
   school?: string
 
+  highSchoolGraduationYear?: number
+
   roles?: RoleResponseDto[]
   hasParentZaloId?: boolean
   courseEnrollments?: CourseEnrollmentResponseDto[]
@@ -59,6 +61,7 @@ export class StudentResponseDto extends UserResponseDto {
       parentZaloId: student.parentZaloId,
       grade: student.grade,
       school: student.school,
+      highSchoolGraduationYear: student.highSchoolGraduationYear,
       hasParentZaloId: student.parentZaloId ? true : false,
       roles,
       courseEnrollments: student.courseEnrollments,
@@ -132,4 +135,12 @@ export class UpdateStudentDto extends UpdateUserDto {
    */
   @IsOptionalString('Trường học')
   school?: string
+
+  /**
+   * Năm tốt nghiệp cấp 3
+   * @optional
+   * @example 2026
+   */
+  @IsOptionalInt('Năm tốt nghiệp cấp 3', 1900, 2100)
+  highSchoolGraduationYear?: number
 }

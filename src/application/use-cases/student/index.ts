@@ -8,3 +8,5 @@ export * from './get-student-stats-by-status.use-case';
 export * from './get-student-stats-by-grade.use-case';
 export * from './export-student-list.use-case';
 export * from './reset-student-password-by-date-range.use-case';
+export * from './update-student-graduation-year-by-grade.use-case';
+export * from './promote-student-grade-by-graduation-year.use-case';

@@ -68,6 +68,14 @@ export class UpdateCourseBasicInfoDto {
    */
   @IsOptionalIdNumber('Giáo viên')
   teacherId?: number
+
+  /**
+   * Khóa học đã kết thúc chưa
+   * @optional
+   * @example false
+   */
+  @IsOptionalBoolean('Khóa học đã kết thúc')
+  isEnded?: boolean
 }
 
 /**

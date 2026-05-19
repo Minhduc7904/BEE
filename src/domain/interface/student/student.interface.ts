@@ -9,6 +9,7 @@ export interface CreateStudentData {
   parentZaloId?: string
   grade: number
   school?: string
+  highSchoolGraduationYear?: number
 }
 
 // Student-specific sort fields
@@ -17,6 +18,7 @@ export type StudentSortField =
   | 'userId'
   | 'grade'
   | 'school'
+  | 'highSchoolGraduationYear'
   | 'username'
   | 'email'
   | 'firstName'
@@ -33,6 +35,7 @@ export interface StudentFilterOptions extends BaseFilterOptions {
   // Student-specific fields
   grade?: number
   school?: string
+  highSchoolGraduationYear?: number
   studentPhone?: string
   parentPhone?: string
 

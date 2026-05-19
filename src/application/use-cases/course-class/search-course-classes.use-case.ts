@@ -30,6 +30,7 @@ export class SearchCourseClassesUseCase {
     ): Promise<CourseClassListResponseDto> {
         // Apply search filters based on user permissions
         const filters = this.buildFilters(query, context)
+        filters.isCourseEnded ??= false
         const pagination = query.toCourseClassPaginationOptions()
 
         const result = await this.courseClassRepository.findAllWithPagination(

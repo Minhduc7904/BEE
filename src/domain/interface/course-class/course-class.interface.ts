@@ -22,6 +22,7 @@ export interface CourseClassFilterOptions {
   courseIds?: number[];
   instructorId?: number;
   teacherId?: number;
+  isCourseEnded?: boolean;
   isActive?: boolean;
   isUpcoming?: boolean;
   isCompleted?: boolean;

@@ -136,23 +136,24 @@ export class PrismaCourseClassRepository implements ICourseClassRepository {
             filters?.instructorId !== undefined ||
             filters?.teacherId !== undefined
         ) {
-            const orConditions: any[] = []
-
-            if (filters?.instructorId !== undefined) {
-                orConditions.push({ instructorId: filters.instructorId })
-            }
+            const courseFilter: any = {}
 
             if (filters?.teacherId !== undefined) {
-                orConditions.push({
-                    course: {
-                        teacherId: filters.teacherId,
-                    },
-                })
+                courseFilter.teacherId = filters.teacherId
             }
 
-            if (orConditions.length > 0) {
-                andConditions.push({ OR: orConditions })
-            }
+            const orConditions: any[] = []
+            if (filters?.instructorId !== undefined) orConditions.push({ instructorId: filters.instructorId })
+            if (Object.keys(courseFilter).length > 0) orConditions.push({ course: courseFilter })
+            if (orConditions.length > 0) andConditions.push({ OR: orConditions })
+        }
+
+        if (filters?.isCourseEnded !== undefined) {
+            andConditions.push({
+                course: {
+                    isEnded: filters.isCourseEnded,
+                },
+            })
         }
 
         /* ===================== SEARCH ===================== */

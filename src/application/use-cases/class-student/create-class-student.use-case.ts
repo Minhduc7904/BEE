@@ -33,6 +33,10 @@ export class CreateClassStudentUseCase {
       throw new NotFoundException(`Không tìm thấy lớp học với ID ${createDto.classId}`)
     }
 
+    if (courseClass.course?.isEnded) {
+      throw new ConflictException('Khóa học đã kết thúc, không thể thêm học sinh vào lớp')
+    }
+
     // Check if student exists
     const student = await this.studentRepository.findById(createDto.studentId)
     if (!student) {

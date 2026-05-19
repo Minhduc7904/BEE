@@ -33,6 +33,9 @@ export class StudentCourseDetailResponseDto {
   createdAt: Date
   updatedAt: Date
 
+  // ===== State =====
+  isEnded: boolean
+
   // ===== Computed =====
   isFree: boolean
   hasDiscount: boolean
@@ -86,6 +89,9 @@ export class StudentCourseDetailResponseDto {
       // Audit
       createdAt: course.createdAt,
       updatedAt: course.updatedAt,
+
+      // State
+      isEnded: course.isEnded,
 
       // Computed
       isFree: course.isFree(),

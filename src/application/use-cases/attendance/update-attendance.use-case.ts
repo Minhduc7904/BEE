@@ -4,7 +4,7 @@ import { AttendanceResponseDto } from 'src/application/dtos/attendance/attendanc
 import { UpdateAttendanceDto } from 'src/application/dtos/attendance/update-attendance.dto'
 import { UpdateAttendanceData } from 'src/domain/interface/attendance/attendance.interface'
 import { BaseResponseDto } from 'src/application/dtos/common/base-response.dto'
-import { NotFoundException, ForbiddenException } from 'src/shared/exceptions/custom-exceptions'
+import { NotFoundException, ForbiddenException, ConflictException } from 'src/shared/exceptions/custom-exceptions'
 import { ACTION_KEYS } from 'src/shared/constants/action-key.constants'
 import { AuditStatus } from 'src/shared/enums/audit-status.enum'
 import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
@@ -29,6 +29,7 @@ export class UpdateAttendanceUseCase {
   ): Promise<BaseResponseDto<AttendanceResponseDto>> {
     const result = await this.unitOfWork.executeInTransaction(async (repos) => {
       const attendanceRepository = repos.attendanceRepository
+      const classSessionRepository = repos.classSessionRepository
       const adminAuditLogRepository = repos.adminAuditLogRepository
 
       const existing = await attendanceRepository.findById(attendanceId)
@@ -45,6 +46,11 @@ export class UpdateAttendanceUseCase {
           })
         }
         throw new NotFoundException(`Điểm danh với ID ${attendanceId} không tồn tại`)
+      }
+
+      const session = await classSessionRepository.findById(existing.sessionId)
+      if (session?.courseClass?.course?.isEnded) {
+        throw new ConflictException('Khóa học đã kết thúc, không thể cập nhật điểm danh')
       }
 
       const student = await repos.studentRepository.findById(existing.studentId)

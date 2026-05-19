@@ -56,6 +56,10 @@ export class CreateCourseEnrollmentUseCase {
         throw new NotFoundException(`Không tìm thấy khóa học với ID ${createDto.courseId}`)
       }
 
+      if (course.isEnded) {
+        throw new ConflictException('Khóa học đã kết thúc, không thể thêm học sinh vào khóa')
+      }
+
       if (isStudent && course.visibility !== 'PUBLISHED') {
         throw new ConflictException('Bạn không có quyền đăng ký khóa học này')
       }

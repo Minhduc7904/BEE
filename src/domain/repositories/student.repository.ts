@@ -17,6 +17,12 @@ export interface IStudentRepository {
   findByStudentOrParentPhone(phone: string): Promise<Student | null>
   unlinkParentZaloId(studentId: number): Promise<Student>
   update(id: number, data: Partial<Student>): Promise<Student>
+  updateMissingGraduationYearByGrade(grade: number, highSchoolGraduationYear: number): Promise<number>
+  promoteGradeByGraduationYear(highSchoolGraduationYear: number): Promise<{
+    totalStudents: number
+    updatedCount: number
+    skippedCount: number
+  }>
   delete(id: number): Promise<boolean>
 
   // Legacy methods (kept for backward compatibility)

@@ -51,6 +51,9 @@ export class CreateStudentUseCase {
                 if (courses.length !== dto.courseIds.length) {
                     throw new ConflictException('Một hoặc nhiều khóa học không tồn tại');
                 }
+                if (courses.some(course => course.isEnded)) {
+                    throw new ConflictException('Không thể thêm học sinh vào khóa học đã kết thúc');
+                }
                 // Additional validations related to courses can be added here
             }
 
@@ -58,6 +61,9 @@ export class CreateStudentUseCase {
                 const courseClasses = await courseClassRepository.findByIds(dto.classIds);
                 if (courseClasses.length !== dto.classIds.length) {
                     throw new ConflictException('Một hoặc nhiều lớp học không tồn tại');
+                }
+                if (courseClasses.some(courseClass => courseClass.course?.isEnded)) {
+                    throw new ConflictException('Không thể thêm học sinh vào lớp thuộc khóa học đã kết thúc');
                 }
                 if (dto.courseIds?.length) {
                     const courseIds = dto.courseIds; // TS giờ chắc chắn là number[]
@@ -77,6 +83,9 @@ export class CreateStudentUseCase {
                 const classSessions = await classSessionRepository.findByIds(dto.sessionIds);
                 if (classSessions.length !== dto.sessionIds.length) {
                     throw new ConflictException('Một hoặc nhiều buổi học không tồn tại');
+                }
+                if (classSessions.some(session => session.courseClass?.course?.isEnded)) {
+                    throw new ConflictException('Không thể điểm danh học sinh vào buổi thuộc khóa học đã kết thúc');
                 }
                 // Additional validations related to class sessions can be added here
             }
@@ -106,6 +115,7 @@ export class CreateStudentUseCase {
                 parentPhone: dto.parentPhone,
                 grade: dto.grade,
                 school: dto.school,
+                highSchoolGraduationYear: dto.highSchoolGraduationYear,
             })
 
             if (dto.courseIds && dto.courseIds.length > 0) {

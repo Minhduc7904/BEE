@@ -66,6 +66,7 @@ export class ExportStudentListUseCase {
                 parentPhone: student.parentPhone || '',
                 studentPhone: student.studentPhone || '',
                 grade: student.grade || '',
+                highSchoolGraduationYear: student.highSchoolGraduationYear || '',
                 email: student.user.email || '',
                 isActive: student.user.isActive ? 'Hoạt động' : 'Không hoạt động',
                 createdAt: this.formatDateTime(student.user.createdAt),
@@ -148,6 +149,10 @@ export class ExportStudentListUseCase {
 
         if (options.includeGrade !== false) {
             columns.push({ header: 'Khối', key: 'grade', width: 10 })
+        }
+
+        if (options.includeHighSchoolGraduationYear !== false) {
+            columns.push({ header: 'Năm tốt nghiệp cấp 3', key: 'highSchoolGraduationYear', width: 22 })
         }
 
         if (options.includeEmail !== false) {

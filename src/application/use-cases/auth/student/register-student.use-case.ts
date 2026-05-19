@@ -51,6 +51,7 @@ export class RegisterStudentUseCase {
         parentPhone: dto.parentPhone,
         grade: dto.grade,
         school: dto.school,
+        highSchoolGraduationYear: dto.highSchoolGraduationYear,
       })
 
       return BaseResponseDto.success(

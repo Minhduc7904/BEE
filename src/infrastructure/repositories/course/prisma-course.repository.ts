@@ -68,6 +68,7 @@ export class PrismaCourseRepository implements ICourseRepository {
                 priceVND: data.priceVND,
                 compareAtVND: data.compareAtVND,
                 visibility: data.visibility || 'DRAFT',
+                isEnded: data.isEnded ?? false,
                 teacherId: data.teacherId,
             },
             include: {
@@ -195,6 +196,10 @@ export class PrismaCourseRepository implements ICourseRepository {
 
         if (filters?.visibility) {
             where.visibility = filters.visibility
+        }
+
+        if (filters?.isEnded !== undefined) {
+            where.isEnded = filters.isEnded
         }
 
         if (filters?.excludeVisibility) {
@@ -331,6 +336,10 @@ export class PrismaCourseRepository implements ICourseRepository {
 
         if (filters?.visibility) {
             where.visibility = filters.visibility
+        }
+
+        if (filters?.isEnded !== undefined) {
+            where.isEnded = filters.isEnded
         }
 
         if (filters?.teacherId !== undefined) {

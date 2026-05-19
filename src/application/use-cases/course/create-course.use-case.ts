@@ -49,6 +49,7 @@ export class CreateCourseUseCase {
                 priceVND: dto.priceVND,
                 compareAtVND: dto.compareAtVND,
                 visibility: dto.visibility || CourseVisibility.DRAFT,
+                isEnded: dto.isEnded,
                 teacherId: dto.teacherId,
             }
 
@@ -65,6 +66,7 @@ export class CreateCourseUseCase {
                         title: course.title,
                         grade: course.grade,
                         visibility: course.visibility,
+                        isEnded: course.isEnded,
                     },
                 })
             }

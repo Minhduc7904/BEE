@@ -22,6 +22,7 @@ export class StudentMapper {
       studentZaloId: prismaStudent.studentZaloId ?? undefined,
       parentZaloId: prismaStudent.parentZaloId ?? undefined,
       school: prismaStudent.school ?? undefined,
+      highSchoolGraduationYear: prismaStudent.highSchoolGraduationYear ?? undefined,
       conversationMode: prismaStudent.conversationMode as ConversationMode,
       lastAdminReplyAt: prismaStudent.lastAdminReplyAt ?? undefined,
       user: UserMapper.toDomainUser(prismaStudent.user) ?? undefined,
