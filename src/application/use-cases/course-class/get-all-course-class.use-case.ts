@@ -21,11 +21,7 @@ export class GetAllCourseClassUseCase {
         const filters: CourseClassFilterOptions = {
             ...query.toCourseClassFilterOptions(),
         };
-        const hasCourseFilter =
-            filters.courseId !== undefined || (filters.courseIds?.length ?? 0) > 0
-        if (!hasCourseFilter) {
-            filters.isCourseEnded ??= false
-        }
+        filters.isCourseEnded ??= false
         const pagination = query.toCourseClassPaginationOptions();
 
         const result = await this.courseClassRepository.findAllWithPagination(

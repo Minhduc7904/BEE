@@ -5,6 +5,7 @@ import { VALIDATION_MESSAGES } from 'src/shared/constants'
 import { Trim } from 'src/shared/decorators/trim.decorator'
 import { ToNumber, ToNumberArray } from 'src/shared/decorators'
 import { SortOrder } from 'src/shared/enums/sort-order.enum'
+import type { CourseClassFilterOptions } from 'src/domain/interface/course-class/course-class.interface'
 import { IsOptionalString, IsOptionalIdNumber, IsOptionalIntArray } from 'src/shared/decorators/validate'
 
 export class CourseClassSearchQueryDto {
@@ -21,7 +22,7 @@ export class CourseClassSearchQueryDto {
     instructorId?: number;
 
     /* ===================== FILTER ===================== */
-    toCourseClassFilterOptions() {
+    toCourseClassFilterOptions(): CourseClassFilterOptions {
         return {
             search: this.search,
             courseIds: this.courseIds,

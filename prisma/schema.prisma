@@ -136,6 +136,8 @@ model User {
   questionChats          QuestionChat[]
   createdDocuments       Document[]               @relation("DocumentCreator")
   updatedDocuments       Document[]               @relation("DocumentUpdater")
+  createdTeacherProfiles TeacherProfile[]         @relation("TeacherProfileCreator")
+  updatedTeacherProfiles TeacherProfile[]         @relation("TeacherProfileUpdater")
 
   @@index([lastName, firstName], map: "idx_users_name")
   @@map("users")
@@ -310,6 +312,7 @@ model Admin {
 
   // Relations
   subject                  Subject?            @relation("AdminSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
+  teacherProfile           TeacherProfile?     @relation("TeacherProfileAdmin")
   AdminAuditLog            AdminAuditLog[]
   Exam                     Exam[]              @relation("ExamCreatedBy")
   Competition              Competition[]       @relation("CompetitionCreatedBy")
@@ -1535,6 +1538,64 @@ model Document {
   @@index([updatedBy], map: "idx_documents_updated_by")
   @@fulltext([title, shortDescription, content, targetKeyword, keywordText, metaTitle, metaDescription], map: "ft_documents_seo")
   @@map("documents")
+}
+
+// Bang thong tin giao vien cho SEO/landing page.
+// Avatar/cover luu qua MediaUsage voi entityType = "TEACHER_PROFILE".
+model TeacherProfile {
+  teacherProfileId Int @id @default(autoincrement()) @map("teacher_profile_id")
+
+  // Admin giao vien (neu co)
+  adminId Int? @unique @map("admin_id")
+
+  // Thong tin hien thi
+  displayName      String  @map("display_name") @db.VarChar(255)
+  slug             String  @unique @map("slug") @db.VarChar(255)
+  headline         String? @map("headline") @db.VarChar(255)
+  shortDescription String? @map("short_description") @db.VarChar(500)
+  bio              String? @map("bio") @db.LongText
+  expertise        String? @map("expertise") @db.Text
+
+  // Thong tin lien lac
+  contactEmail    String? @map("contact_email") @db.VarChar(120)
+  contactPhone    String? @map("contact_phone") @db.VarChar(20)
+  contactZalo     String? @map("contact_zalo") @db.VarChar(32)
+  contactFacebook String? @map("contact_facebook") @db.VarChar(255)
+  contactWebsite  String? @map("contact_website") @db.VarChar(255)
+
+  // SEO on-page
+  targetKeyword   String? @map("target_keyword") @db.VarChar(255)
+  keywordText     String? @map("keyword_text") @db.Text
+  metaTitle       String? @map("meta_title") @db.VarChar(255)
+  metaDescription String? @map("meta_description") @db.VarChar(500)
+  ogTitle         String? @map("og_title") @db.VarChar(255)
+  ogDescription   String? @map("og_description") @db.VarChar(500)
+  searchIntent    String? @map("search_intent") @db.VarChar(100)
+  seoScore        Int?    @map("seo_score") @db.TinyInt
+
+  // Trang thai va thong ke
+  visibility Visibility @default(DRAFT) @map("visibility")
+  isFeatured Boolean    @default(false) @map("is_featured")
+  viewCount  Int        @default(0) @map("view_count")
+
+  // User tao/cap nhat
+  createdBy Int?     @map("created_by")
+  updatedBy Int?     @map("updated_by")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Relations
+  admin   Admin? @relation("TeacherProfileAdmin", fields: [adminId], references: [adminId], onDelete: SetNull)
+  creator User?  @relation("TeacherProfileCreator", fields: [createdBy], references: [userId], onDelete: SetNull)
+  updater User?  @relation("TeacherProfileUpdater", fields: [updatedBy], references: [userId], onDelete: SetNull)
+
+  @@index([visibility], map: "idx_teacher_profiles_visibility")
+  @@index([targetKeyword], map: "idx_teacher_profiles_target_keyword")
+  @@index([isFeatured, visibility], map: "idx_teacher_profiles_featured_visibility")
+  @@index([createdBy], map: "idx_teacher_profiles_created_by")
+  @@index([updatedBy], map: "idx_teacher_profiles_updated_by")
+  @@fulltext([displayName, headline, shortDescription, bio, targetKeyword, keywordText, metaTitle, metaDescription], map: "ft_teacher_profiles_seo")
+  @@map("teacher_profiles")
 }
 
 // Bang tag de phan nhom tai lieu theo tu khoa/chu de SEO.

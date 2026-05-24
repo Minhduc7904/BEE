@@ -26,7 +26,6 @@ export class SearchCoursesUseCase {
     async execute(query: CourseSearchQueryDto, context?: SearchContext): Promise<CourseListResponseDto> {
         // Apply search filters based on user permissions
         const filters = this.buildFilters(query, context)
-        filters.isEnded ??= false
         const pagination = query.toCoursePaginationOptions()
 
         const result = await this.courseRepository.findAllWithPagination(pagination, filters)
@@ -51,6 +50,17 @@ export class SearchCoursesUseCase {
 
         const user = context?.user
         const permissions = user?.permissions ?? []
+        const isAdmin = !!user?.adminId && !user?.studentId
+
+        if (isAdmin) {
+            return {
+                ...baseFilters,
+                isEnded: baseFilters.isEnded ?? false,
+                visibility: undefined,
+                teacherId: undefined,
+                // excludeVisibility: CourseVisibility.DRAFT,
+            }
+        }
 
         // Case 1: No user or student user - only PUBLISHED courses
         // if (!user || user.studentId) {

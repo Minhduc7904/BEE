@@ -30,7 +30,6 @@ export class SearchCourseClassesUseCase {
     ): Promise<CourseClassListResponseDto> {
         // Apply search filters based on user permissions
         const filters = this.buildFilters(query, context)
-        filters.isCourseEnded ??= false
         const pagination = query.toCourseClassPaginationOptions()
 
         const result = await this.courseClassRepository.findAllWithPagination(
@@ -56,6 +55,11 @@ export class SearchCourseClassesUseCase {
 
         const user = context?.user
         const permissions = user?.permissions ?? []
+        const isAdmin = !!user?.adminId && !user?.studentId
+
+        if (isAdmin) {
+            filters.isCourseEnded ??= false
+        }
 
         // Case 1: No user or student user - return query filters as-is
         // Note: CourseClass doesn't have visibility, so no need to filter by it
