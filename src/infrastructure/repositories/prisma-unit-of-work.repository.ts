@@ -87,6 +87,7 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _questionChatRepository: any
     let _questionChatMessageRepository: any
     let _tagRepository: any
+    let _teacherProfileRepository: any
     let _documentTagRepository: any
 
     Object.defineProperty(repos, 'studentRepository', {
@@ -286,6 +287,11 @@ export class PrismaUnitOfWork implements IUnitOfWork {
 
     Object.defineProperty(repos, 'documentRepository', {
       get: () => (_documentRepository ??= new Repositories.PrismaDocumentRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'teacherProfileRepository', {
+      get: () => (_teacherProfileRepository ??= new Repositories.PrismaTeacherProfileRepository(client)),
       enumerable: true,
     })
 

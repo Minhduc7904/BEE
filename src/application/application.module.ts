@@ -52,6 +52,7 @@ import { ZaloApplicationModule } from './use-cases/zalo/zalo.application.module'
 import { QuestionChatApplicationModule } from './use-cases/question-chat/question-chat.application.module'
 import { QuestionChatMessageApplicationModule } from './use-cases/question-chat-message/question-chat-message.application.module'
 import { DocumentApplicationModule } from './use-cases/document/document.application.module'
+import { TeacherProfileApplicationModule } from './use-cases/teacher-profile/teacher-profile.application.module'
 import { TagApplicationModule } from './use-cases/tag/tag.application.module'
 
 const modules = [
@@ -77,6 +78,7 @@ const modules = [
   MediaUsageApplicationModule,
   SeoMediaApplicationModule,
   DocumentApplicationModule,
+  TeacherProfileApplicationModule,
   TagApplicationModule,
 
   // Course & Learning

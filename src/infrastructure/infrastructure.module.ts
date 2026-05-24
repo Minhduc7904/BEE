@@ -57,6 +57,7 @@ import {
   PrismaQuestionChatMessageRepository,
   PrismaQuestionChatRepository,
   PrismaDocumentRepository,
+  PrismaTeacherProfileRepository,
   PrismaDocumentTagRepository,
   PrismaTagRepository,
 } from './repositories'
@@ -74,6 +75,7 @@ import {
   DocumentThumbnailService,
   DocumentContentExtractionService,
   DocumentSeoAiService,
+  TeacherProfileSeoAiService,
   DocumentMediaAltTextAiService,
   ExcelService,
 } from './services'
@@ -381,6 +383,11 @@ import openaiConfig from '../config/openai.config'
       inject: [PrismaService],
     },
     {
+      provide: 'ITeacherProfileRepository',
+      useFactory: (prisma: PrismaService) => new PrismaTeacherProfileRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
       provide: 'ITagRepository',
       useFactory: (prisma: PrismaService) => new PrismaTagRepository(prisma),
       inject: [PrismaService],
@@ -423,6 +430,7 @@ import openaiConfig from '../config/openai.config'
     DocumentThumbnailService,
     DocumentContentExtractionService,
     DocumentSeoAiService,
+    TeacherProfileSeoAiService,
     DocumentMediaAltTextAiService,
     ExcelService,
     MistralService,
@@ -493,6 +501,7 @@ import openaiConfig from '../config/openai.config'
     'IQuestionChatMessageRepository',
     'IQuestionChatRepository',
     'IDocumentRepository',
+    'ITeacherProfileRepository',
     'ITagRepository',
     'IDocumentTagRepository',
     'PASSWORD_SERVICE',
@@ -507,6 +516,7 @@ import openaiConfig from '../config/openai.config'
     DocumentThumbnailService,
     DocumentContentExtractionService,
     DocumentSeoAiService,
+    TeacherProfileSeoAiService,
     DocumentMediaAltTextAiService,
     ExcelService,
     MistralService,

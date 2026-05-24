@@ -312,7 +312,6 @@ model Admin {
 
   // Relations
   subject                  Subject?            @relation("AdminSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
-  teacherProfile           TeacherProfile?     @relation("TeacherProfileAdmin")
   AdminAuditLog            AdminAuditLog[]
   Exam                     Exam[]              @relation("ExamCreatedBy")
   Competition              Competition[]       @relation("CompetitionCreatedBy")
@@ -1540,61 +1539,119 @@ model Document {
   @@map("documents")
 }
 
-// Bang thong tin giao vien cho SEO/landing page.
+// Bang thong tin giao vien doc lap cho SEO/landing page.
 // Avatar/cover luu qua MediaUsage voi entityType = "TEACHER_PROFILE".
 model TeacherProfile {
+  // Khoa chinh cua ho so giao vien SEO.
   teacherProfileId Int @id @default(autoincrement()) @map("teacher_profile_id")
 
-  // Admin giao vien (neu co)
-  adminId Int? @unique @map("admin_id")
-
   // Thong tin hien thi
+  // Ten giao vien hien thi lam H1 tren trang profile.
   displayName      String  @map("display_name") @db.VarChar(255)
+  // Duong dan SEO duy nhat, vi du: "thay-nguyen-van-a".
   slug             String  @unique @map("slug") @db.VarChar(255)
+  // Cau headline ngan hien thi duoi ten, vi du: "Giao vien Toan THPT 10 nam kinh nghiem".
   headline         String? @map("headline") @db.VarChar(255)
+  // Mo ta ngan dung o danh sach giao vien hoac hero section.
   shortDescription String? @map("short_description") @db.VarChar(500)
+  // Tieu su/hanh trinh giang day chi tiet tren trang profile.
   bio              String? @map("bio") @db.LongText
+  // Chuyen mon noi bat cua giao vien, co the nhap dang text/list.
   expertise        String? @map("expertise") @db.Text
 
+  // Thong tin day hoc
+  // Cac mon/chu de giao vien giang day, vi du: "Toan 10, Toan 11, On thi THPT".
+  teachingSubjects String? @map("teaching_subjects") @db.Text
+  // Khoi/lop phu trach, vi du: "Lop 9, 10, 11, 12".
+  gradeLevels      String? @map("grade_levels") @db.VarChar(255)
+  // Hinh thuc day: online, offline, 1-1, nhom nho, khoa hoc ghi hinh.
+  teachingFormats  String? @map("teaching_formats") @db.VarChar(255)
+  // Phuong phap giang day, triet ly day hoc, cach theo sat hoc sinh.
+  teachingMethods  String? @map("teaching_methods") @db.Text
+  // So nam kinh nghiem giang day.
+  yearsExperience  Int?    @map("years_experience") @db.SmallInt
+  // Hoc van/bang cap nen tang cua giao vien.
+  education        String? @map("education") @db.Text
+  // Chung chi chuyen mon, nghiep vu su pham hoac chung nhan lien quan.
+  certifications   String? @map("certifications") @db.Text
+  // Thanh tich giang day, giai thuong, ket qua hoc sinh tieu bieu.
+  achievements     String? @map("achievements") @db.Text
+  // Khu vuc day truc tiep hoac khu vuc phuc vu, vi du: "TP.HCM", "Ha Noi", "Toan quoc".
+  teachingArea     String? @map("teaching_area") @db.VarChar(255)
+  // Noi cong tac hien tai hoac don vi/thuong hieu ca nhan neu muon public.
+  workplace        String? @map("workplace") @db.VarChar(255)
+
   // Thong tin lien lac
+  // Email lien he public tren trang profile.
   contactEmail    String? @map("contact_email") @db.VarChar(120)
+  // So dien thoai lien he public.
   contactPhone    String? @map("contact_phone") @db.VarChar(20)
+  // So Zalo hoac Zalo ID dung de lien he.
   contactZalo     String? @map("contact_zalo") @db.VarChar(32)
+  // Link Facebook ca nhan/fanpage cua giao vien.
   contactFacebook String? @map("contact_facebook") @db.VarChar(255)
+  // Website/landing page rieng cua giao vien neu co.
   contactWebsite  String? @map("contact_website") @db.VarChar(255)
+  // Dia chi lien he hoac dia diem lop hoc neu duoc phep public.
+  contactAddress  String? @map("contact_address") @db.VarChar(500)
+  // Link dat lich tu van/hoc thu, co the tro toi form ngoai he thong.
+  bookingUrl      String? @map("booking_url") @db.VarChar(1000)
+  // Nhan nut CTA, vi du: "Dang ky hoc thu", "Lien he tu van".
+  ctaLabel        String? @map("cta_label") @db.VarChar(120)
+  // URL cua nut CTA chinh tren trang profile.
+  ctaUrl          String? @map("cta_url") @db.VarChar(1000)
 
   // SEO on-page
+  // Tu khoa chinh can SEO cho trang giao vien.
   targetKeyword   String? @map("target_keyword") @db.VarChar(255)
+  // Danh sach tu khoa phu, bien the va long-tail.
   keywordText     String? @map("keyword_text") @db.Text
+  // Title tag rieng cho SEO, co the khac displayName/H1.
   metaTitle       String? @map("meta_title") @db.VarChar(255)
+  // Meta description hien thi tren Google.
   metaDescription String? @map("meta_description") @db.VarChar(500)
+  // Tieu de khi chia se len Facebook/Zalo/OpenGraph.
   ogTitle         String? @map("og_title") @db.VarChar(255)
+  // Mo ta khi chia se len Facebook/Zalo/OpenGraph.
   ogDescription   String? @map("og_description") @db.VarChar(500)
+  // Y dinh tim kiem: teacher profile, tutor, online class, exam prep, ...
   searchIntent    String? @map("search_intent") @db.VarChar(100)
+  // Diem SEO noi bo de admin/editor danh gia muc do toi uu.
   seoScore        Int?    @map("seo_score") @db.TinyInt
 
   // Trang thai va thong ke
+  // Trang thai hien thi: DRAFT, PRIVATE, PUBLISHED.
   visibility Visibility @default(DRAFT) @map("visibility")
+  // Danh dau giao vien noi bat de dua len trang chu/danh sach.
   isFeatured Boolean    @default(false) @map("is_featured")
+  // Tong luot xem trang profile.
   viewCount  Int        @default(0) @map("view_count")
+  // Thu tu sap xep thu cong trong danh sach giao vien.
+  sortOrder  Int        @default(0) @map("sort_order")
 
   // User tao/cap nhat
+  // User tao ho so SEO nay.
   createdBy Int?     @map("created_by")
+  // User cap nhat ho so SEO gan nhat.
   updatedBy Int?     @map("updated_by")
+  // Thoi diem tao ban ghi.
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  // Thoi diem cap nhat ban ghi.
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
-  admin   Admin? @relation("TeacherProfileAdmin", fields: [adminId], references: [adminId], onDelete: SetNull)
+  // Nguoi tao ho so SEO, giu lai null neu user bi xoa.
   creator User?  @relation("TeacherProfileCreator", fields: [createdBy], references: [userId], onDelete: SetNull)
+  // Nguoi cap nhat ho so SEO gan nhat, giu lai null neu user bi xoa.
   updater User?  @relation("TeacherProfileUpdater", fields: [updatedBy], references: [userId], onDelete: SetNull)
 
   @@index([visibility], map: "idx_teacher_profiles_visibility")
   @@index([targetKeyword], map: "idx_teacher_profiles_target_keyword")
   @@index([isFeatured, visibility], map: "idx_teacher_profiles_featured_visibility")
+  @@index([sortOrder], map: "idx_teacher_profiles_sort_order")
   @@index([createdBy], map: "idx_teacher_profiles_created_by")
   @@index([updatedBy], map: "idx_teacher_profiles_updated_by")
-  @@fulltext([displayName, headline, shortDescription, bio, targetKeyword, keywordText, metaTitle, metaDescription], map: "ft_teacher_profiles_seo")
+  @@fulltext([displayName, headline, shortDescription, bio, expertise, teachingSubjects, teachingMethods, targetKeyword, keywordText, metaTitle, metaDescription], map: "ft_teacher_profiles_seo")
   @@map("teacher_profiles")
 }
 

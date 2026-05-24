@@ -33,6 +33,7 @@ export class GetPublicSeoRelatedExamsBySlugUseCase {
       grade: exam.grade ?? undefined,
       typeOfExam: exam.typeOfExam ?? undefined
     } as PublicStudentExamListQueryDto
+    
 
     const response = await this.getPublicStudentExamsUseCase.execute(query, undefined, {
       renderDescriptionHtml: true,

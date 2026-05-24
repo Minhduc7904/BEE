@@ -64,6 +64,7 @@ import { ZaloController } from './controllers/zalo.controller'
 import { QuestionChatController } from './controllers/question-chat.controller'
 import { QuestionChatMessageController } from './controllers/question-chat-message.controller'
 import { DocumentController } from './controllers/document.controller'
+import { TeacherProfileController } from './controllers/teacher-profile.controller'
 import { TagController } from './controllers/tag.controller'
 @Module({
   imports: [
@@ -86,6 +87,7 @@ import { TagController } from './controllers/tag.controller'
     MediaFolderController,
     SeoMediaController,
     DocumentController,
+    TeacherProfileController,
     TagController,
     ProfileAdminController,
     ProfileStudentController,

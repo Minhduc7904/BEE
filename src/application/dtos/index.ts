@@ -34,6 +34,7 @@ export * from './subject/subject.dto'
 export * from './subject/subject-list-query.dto'
 export * from './tag'
 export * from './document'
+export * from './teacher-profile'
 
 // Chapter DTOs
 export * from './chapter/chapter.dto'
