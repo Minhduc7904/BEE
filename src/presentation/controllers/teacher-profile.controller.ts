@@ -146,6 +146,18 @@ Common response object: TeacherProfileResponseDto
   "teacherProfileId": 1,
   "displayName": "Thay Nguyen Van A",
   "slug": "thay-nguyen-van-a",
+  "profileImageMediaId": 123,
+  "profileImageUrl": "https://cdn.example.com/teachers/thay-nguyen-van-a.webp",
+  "scheduleImageMediaIds": [201, 202],
+  "scheduleImageUrls": [
+    "https://cdn.example.com/teachers/thay-nguyen-van-a-schedule-1.webp",
+    "https://cdn.example.com/teachers/thay-nguyen-van-a-schedule-2.webp"
+  ],
+  "classroomImageMediaIds": [301, 302],
+  "classroomImageUrls": [
+    "https://cdn.example.com/teachers/thay-nguyen-van-a-classroom-1.webp",
+    "https://cdn.example.com/teachers/thay-nguyen-van-a-classroom-2.webp"
+  ],
   "headline": "Giao vien Toan THPT 10 nam kinh nghiem",
   "shortDescription": "Chuyen on thi THPT va boi duong hoc sinh gioi.",
   "bio": "Tieu su va hanh trinh giang day...",
@@ -193,11 +205,17 @@ Notes:
 - Auth/permission required.
 - slug tu sinh tu displayName.
 - Client khong can truyen slug.
+- profileImageMediaId la media anh dai dien giao vien, phai tro toi media IMAGE da READY.
+- scheduleImageMediaIds la danh sach media anh lich hoc giao vien, moi media phai la IMAGE da READY.
+- classroomImageMediaIds la danh sach media hinh anh lop hoc cua giao vien, moi media phai la IMAGE da READY.
 - Neu slug bi trung, he thong tu them hau to -2, -3.
 - Neu bo trong mot trong cac truong SEO: targetKeyword, keywordText, metaTitle, metaDescription, ogTitle, ogDescription, searchIntent, he thong se goi AI de sinh tu context teacher profile.
 Request body:
 {
   "displayName": "Thay Nguyen Van A",
+  "profileImageMediaId": 123,
+  "scheduleImageMediaIds": [201, 202],
+  "classroomImageMediaIds": [301, 302],
   "headline": "Giao vien Toan THPT 10 nam kinh nghiem",
   "shortDescription": "Chuyen on thi THPT va boi duong hoc sinh gioi.",
   "bio": "Tieu su va hanh trinh giang day...",
@@ -242,6 +260,18 @@ Response 201:
     "teacherProfileId": 1,
     "displayName": "Thay Nguyen Van A",
     "slug": "thay-nguyen-van-a",
+    "profileImageMediaId": 123,
+    "profileImageUrl": "https://cdn.example.com/teachers/thay-nguyen-van-a.webp",
+    "scheduleImageMediaIds": [201, 202],
+    "scheduleImageUrls": [
+      "https://cdn.example.com/teachers/thay-nguyen-van-a-schedule-1.webp",
+      "https://cdn.example.com/teachers/thay-nguyen-van-a-schedule-2.webp"
+    ],
+    "classroomImageMediaIds": [301, 302],
+    "classroomImageUrls": [
+      "https://cdn.example.com/teachers/thay-nguyen-van-a-classroom-1.webp",
+      "https://cdn.example.com/teachers/thay-nguyen-van-a-classroom-2.webp"
+    ],
     "headline": "Giao vien Toan THPT 10 nam kinh nghiem",
     "shortDescription": "Chuyen on thi THPT va boi duong hoc sinh gioi.",
     "bio": "Tieu su va hanh trinh giang day...",
@@ -289,6 +319,7 @@ URL: GET /api/teacher-profiles?page=1&limit=10&search=toan&visibility=PUBLISHED&
 Notes:
 - Auth/permission required.
 - Dung cho trang quan tri danh sach ho so giao vien.
+- Moi item tra ve profileImageUrl neu ho so co anh dai dien san sang.
 Query params:
 - page: number, default 1
 - limit: number, default 10
@@ -364,6 +395,7 @@ Notes:
 - No auth.
 - Always visibility = PUBLISHED.
 - Dung cho trang public SEO danh sach giao vien.
+- Moi item tra ve profileImageUrl neu ho so co anh dai dien san sang.
 Query params:
 - page: number, default 1
 - limit: number, default 10
@@ -437,6 +469,7 @@ URL: GET /api/teacher-profiles/public/seo/thay-nguyen-van-a
 Notes:
 - No auth.
 - Only returns PUBLISHED profile.
+- Tra ve profileImageUrl, scheduleImageUrls va classroomImageUrls neu ho so co media anh san sang.
 Path params:
 - slug: string
 
@@ -513,6 +546,7 @@ URL: GET /api/teacher-profiles/slug/thay-nguyen-van-a
 Notes:
 - Auth/permission required.
 - Returns profile regardless of visibility.
+- Tra ve profileImageUrl, scheduleImageUrls va classroomImageUrls neu ho so co media anh san sang.
 Path params:
 - slug: string
 
@@ -571,6 +605,7 @@ URL: GET /api/teacher-profiles/1
 Notes:
 - Auth/permission required.
 - Returns profile regardless of visibility.
+- Tra ve profileImageUrl, scheduleImageUrls va classroomImageUrls neu ho so co media anh san sang.
 Path params:
 - teacherProfileId: number
 
@@ -630,11 +665,17 @@ Notes:
 - Auth/permission required.
 - Khong nhan slug tu client.
 - Neu sua displayName, he thong tu sinh lai slug va tu xu ly trung lap.
+- Neu truyen profileImageMediaId moi, he thong go anh dai dien cu va gan anh dai dien moi.
+- Neu truyen scheduleImageMediaIds, he thong dong bo theo danh sach moi: media khong con trong list se bi go, list rong se go tat ca anh lich hoc.
+- Neu truyen classroomImageMediaIds, he thong dong bo theo danh sach moi: media khong con trong list se bi go, list rong se go tat ca hinh anh lop hoc.
 Path params:
 - teacherProfileId: number
 Request body:
 {
   "displayName": "Thay Nguyen Van A Updated",
+  "profileImageMediaId": 789,
+  "scheduleImageMediaIds": [901, 902],
+  "classroomImageMediaIds": [903, 904],
   "headline": "Giao vien Toan THPT va on thi THPT",
   "shortDescription": "Chuyen day Toan THPT theo lo trinh ca nhan hoa.",
   "bio": "Noi dung tieu su cap nhat...",
@@ -679,6 +720,8 @@ Response 200:
     "teacherProfileId": 1,
     "displayName": "Thay Nguyen Van A Updated",
     "slug": "thay-nguyen-van-a-updated",
+    "profileImageMediaId": 789,
+    "profileImageUrl": "https://cdn.example.com/teachers/thay-nguyen-van-a-updated.webp",
     "headline": "Giao vien Toan THPT va on thi THPT",
     "shortDescription": "Chuyen day Toan THPT theo lo trinh ca nhan hoa.",
     "bio": "Noi dung tieu su cap nhat...",

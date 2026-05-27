@@ -1,10 +1,15 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { PaginationResponseDto, TeacherProfileListQueryDto, TeacherProfileResponseDto } from 'src/application/dtos'
 import type { IUnitOfWork } from 'src/domain/repositories'
+import { MinioService } from 'src/infrastructure/services/minio.service'
+import { attachProfileImageUrlsToTeacherProfiles } from './teacher-profile-media.util'
 
 @Injectable()
 export class GetTeacherProfilesUseCase {
-  constructor(@Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork) {}
+  constructor(
+    @Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork,
+    private readonly minioService: MinioService,
+  ) {}
 
   async execute(query: TeacherProfileListQueryDto): Promise<PaginationResponseDto<TeacherProfileResponseDto>> {
     const pagination = query.toTeacherProfilePaginationOptions()
@@ -21,9 +26,12 @@ export class GetTeacherProfilesUseCase {
       }),
     )
 
+    const items = TeacherProfileResponseDto.fromEntityList(result.data)
+    await attachProfileImageUrlsToTeacherProfiles(this.unitOfWork, this.minioService, items)
+
     return PaginationResponseDto.success(
       'Lay danh sach ho so giao vien thanh cong',
-      TeacherProfileResponseDto.fromEntityList(result.data),
+      items,
       pagination.page,
       pagination.limit,
       result.total,

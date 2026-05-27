@@ -2,12 +2,17 @@ import {
   IsOptionalBoolean,
   IsOptionalEmail,
   IsOptionalEnumValue,
+  IsOptionalIdNumber,
   IsOptionalInt,
   IsOptionalString,
   IsRequiredString,
 } from 'src/shared/decorators/validate'
 import { TeacherProfileEntity } from 'src/domain/entities'
 import { Visibility } from 'src/shared/enums'
+import { Transform } from 'class-transformer'
+import { IsArray, IsInt, IsOptional, IsPositive } from 'class-validator'
+import { VALIDATION_MESSAGES } from 'src/shared/constants'
+import { applyDecorators } from '@nestjs/common'
 
 export class CreateTeacherProfileDto {
   @IsRequiredString('Ten giao vien hien thi', 255, 2)
@@ -15,6 +20,15 @@ export class CreateTeacherProfileDto {
 
   @IsOptionalString('Slug giao vien', 255, 2)
   slug?: string
+
+  @IsOptionalIdNumber('ID media anh dai dien giao vien')
+  profileImageMediaId?: number
+
+  @IsOptionalMediaIdArray('Danh sach ID media anh lich hoc giao vien')
+  scheduleImageMediaIds?: number[]
+
+  @IsOptionalMediaIdArray('Danh sach ID media anh lop hoc giao vien')
+  classroomImageMediaIds?: number[]
 
   @IsOptionalString('Headline', 255)
   headline?: string
@@ -122,6 +136,15 @@ export class CreateTeacherProfileDto {
 export class UpdateTeacherProfileDto {
   @IsOptionalString('Ten giao vien hien thi', 255, 2)
   displayName?: string
+
+  @IsOptionalIdNumber('ID media anh dai dien giao vien')
+  profileImageMediaId?: number
+
+  @IsOptionalMediaIdArray('Danh sach ID media anh lich hoc giao vien')
+  scheduleImageMediaIds?: number[]
+
+  @IsOptionalMediaIdArray('Danh sach ID media anh lop hoc giao vien')
+  classroomImageMediaIds?: number[]
 
   @IsOptionalString('Headline', 255)
   headline?: string
@@ -269,6 +292,12 @@ export class TeacherProfileResponseDto {
   updatedBy: number | null
   createdAt: Date
   updatedAt: Date
+  profileImageMediaId?: number | null
+  profileImageUrl?: string | null
+  scheduleImageMediaIds?: number[]
+  scheduleImageUrls?: string[]
+  classroomImageMediaIds?: number[]
+  classroomImageUrls?: string[]
 
   static fromEntity(entity: TeacherProfileEntity): TeacherProfileResponseDto {
     const dto = new TeacherProfileResponseDto()
@@ -279,4 +308,34 @@ export class TeacherProfileResponseDto {
   static fromEntityList(entities: TeacherProfileEntity[]): TeacherProfileResponseDto[] {
     return entities.map((entity) => this.fromEntity(entity))
   }
+}
+
+function IsOptionalMediaIdArray(label: string) {
+  return applyDecorators(
+    Transform(({ value }) => toNumberArrayPreserveEmpty(value)),
+    IsOptional(),
+    IsArray({
+      message: VALIDATION_MESSAGES.FIELD_INVALID(label),
+    }),
+    IsInt({
+      each: true,
+      message: VALIDATION_MESSAGES.FIELD_INVALID(label),
+    }),
+    IsPositive({
+      each: true,
+      message: `${label} phai la so nguyen duong`,
+    }),
+  )
+}
+
+function toNumberArrayPreserveEmpty(value: unknown): number[] | undefined {
+  if (value === '' || value === null || value === undefined) {
+    return undefined
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((item) => Number(item))
+  }
+
+  return [Number(value)]
 }
