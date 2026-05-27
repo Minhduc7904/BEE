@@ -11,8 +11,12 @@ import {
   HttpCode,
   HttpStatus,
   ParseIntPipe,
+  StreamableFile,
+  Res,
+  Injectable,
 } from '@nestjs/common'
 import { CourseEnrollmentListQueryDto } from '../../application/dtos/course-enrollment/course-enrollment-list-query.dto'
+import { ExportCourseEnrollmentListOptionDto } from '../../application/dtos/course-enrollment/export-course-enrollment-list-option.dto'
 import { CreateCourseEnrollmentDto } from '../../application/dtos/course-enrollment/create-course-enrollment.dto'
 import { UpdateCourseEnrollmentDto } from '../../application/dtos/course-enrollment/update-course-enrollment.dto'
 import {
@@ -30,11 +34,11 @@ import {
   CreateCourseEnrollmentUseCase,
   UpdateCourseEnrollmentUseCase,
   DeleteCourseEnrollmentUseCase,
+  ExportCourseEnrollmentListUseCase,
 } from '../../application/use-cases/course-enrollment'
 
-import { Injectable } from '@nestjs/common'
 import { CurrentUser } from 'src/shared/decorators/current-user.decorator'
-import { CourseEnrollmentStatus, Visibility } from 'src/shared/enums'
+import type { Response } from 'express'
 
 @Injectable()
 @Controller('course-enrollments')
@@ -46,6 +50,7 @@ export class CourseEnrollmentController {
     private readonly createCourseEnrollmentUseCase: CreateCourseEnrollmentUseCase,
     private readonly updateCourseEnrollmentUseCase: UpdateCourseEnrollmentUseCase,
     private readonly deleteCourseEnrollmentUseCase: DeleteCourseEnrollmentUseCase,
+    private readonly exportCourseEnrollmentListUseCase: ExportCourseEnrollmentListUseCase,
   ) { }
 
   @Get()
@@ -73,6 +78,25 @@ export class CourseEnrollmentController {
   ): Promise<CourseEnrollmentListResponseDto> {
     return ExceptionHandler.execute(() => {
       return this.getStudentCourseEnrollmentsUseCase.execute(user.studentId, query)
+    })
+  }
+
+  @Get('export/excel')
+  @RequirePermission(PERMISSION_CODES.COURSE_ENROLLMENT.EXPORT_EXCEL)
+  @HttpCode(HttpStatus.OK)
+  async exportCourseEnrollmentList(
+    @Query() options: ExportCourseEnrollmentListOptionDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<StreamableFile> {
+    return ExceptionHandler.execute(async () => {
+      const { buffer, filename } = await this.exportCourseEnrollmentListUseCase.execute(options)
+
+      res.set({
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition': `attachment; filename="${encodeURIComponent(filename)}"`,
+      })
+
+      return new StreamableFile(buffer)
     })
   }
 

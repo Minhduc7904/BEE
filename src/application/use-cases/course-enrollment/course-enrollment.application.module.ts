@@ -10,6 +10,7 @@ const COURSE_ENROLLMENT_USE_CASES = [
   courseEnrollmentUseCase.CreateCourseEnrollmentUseCase,
   courseEnrollmentUseCase.UpdateCourseEnrollmentUseCase,
   courseEnrollmentUseCase.DeleteCourseEnrollmentUseCase,
+  courseEnrollmentUseCase.ExportCourseEnrollmentListUseCase,
 ]
 
 @Module({

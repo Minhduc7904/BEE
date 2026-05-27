@@ -893,6 +893,14 @@ export const PERMISSIONS = [
         isSystem: true,
     },
 
+    {
+        code: 'course-enrollment:export-excel',
+        name: 'Xuất danh sách đăng ký',
+        description: 'Xuất danh sách học viên đăng ký khóa học ra Excel',
+        group: 'COURSE_ENROLLMENT_MANAGEMENT',
+        isSystem: true,
+    },
+
     // ===================================
     // NOTIFICATION MANAGEMENT
     // ===================================
