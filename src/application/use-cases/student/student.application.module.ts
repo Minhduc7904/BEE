@@ -16,6 +16,7 @@ const STUDENT_USE_CASES = [
   studentUseCase.ResetStudentPasswordByDateRangeUseCase,
   studentUseCase.UpdateStudentGraduationYearByGradeUseCase,
   studentUseCase.PromoteStudentGradeByGraduationYearUseCase,
+  studentUseCase.HardDeleteStudentsByGraduationYearGradeExcludedCoursesUseCase,
 ]
 
 @Module({

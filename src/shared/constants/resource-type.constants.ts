@@ -5,6 +5,7 @@ export const RESOURCE_TYPES = {
   PERMISSION: 'PERMISSION',
   USER_ROLE: 'USER_ROLE',
   USER: 'USER',
+  STUDENT: 'STUDENT',
   SUBJECT: 'SUBJECT',
   CHAPTER: 'CHAPTER',
   DOCUMENT: 'DOCUMENT',
@@ -59,6 +60,12 @@ export const RESOURCE_TYPE_TABLE = {
     tableName: 'users',
     primaryKey: 'userId',
     repositoryName: 'userRepository',
+  },
+  [RESOURCE_TYPES.STUDENT]: {
+    displayName: 'Student',
+    tableName: 'students',
+    primaryKey: 'studentId',
+    repositoryName: 'studentRepository',
   },
   [RESOURCE_TYPES.SUBJECT]: {
     displayName: 'Subject',
