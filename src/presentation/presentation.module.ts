@@ -32,6 +32,7 @@ import { CourseClassController } from './controllers/course-class.controller'
 import { LessonController } from './controllers/lesson.controller'
 import { LearningItemController } from './controllers/learning-item.controller'
 import { LessonLearningItemController } from './controllers/lesson-learning-item.controller'
+import { StudentLearningItemController } from './controllers/student-learning-item.controller'
 import { ClassSessionController } from './controllers/class-session.controller'
 import { ClassStudentController } from './controllers/class-student.controller'
 import { CourseEnrollmentController } from './controllers/course-enrollment.controller'
@@ -99,6 +100,7 @@ import { TagController } from './controllers/tag.controller'
     LessonController,
     LearningItemController,
     LessonLearningItemController,
+    StudentLearningItemController,
     ClassSessionController,
     ClassStudentController,
     CourseEnrollmentController,

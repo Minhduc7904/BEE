@@ -37,8 +37,8 @@ export class GetStudentLessonByIdUseCase {
             throw new NotFoundException('Không tìm thấy bài học')
         }
 
-        // 2. Kiểm tra lesson có phải DRAFT không
-        if (lesson.visibility === Visibility.DRAFT) {
+        // 2. Chỉ cho học sinh xem lesson đã public
+        if (lesson.visibility !== Visibility.PUBLISHED) {
             throw new ConflictException('Bài học này chưa được công bố')
         }
 

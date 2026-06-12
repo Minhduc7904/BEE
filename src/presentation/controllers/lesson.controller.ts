@@ -42,19 +42,23 @@ export class LessonController {
     }
 
     /**
-     * Get all lessons for a course (for student)
+     * Get all public lessons for a course (for student)
      * GET /lessons/student/course/:courseId
-     * 
-     * Kiểm tra:
-     * - Course có tồn tại không
-     * - Course có phải DRAFT không (nếu DRAFT thì throw error)
-     * - Student đã enroll chưa (nếu chưa thì throw error)
-     * 
-     * Trả về:
-     * - Tất cả lessons của course (loại trừ DRAFT)
-     * - Bao gồm chapters và learningItems với student progress
-     * - Thống kê % hoàn thành của từng lesson
-     * - Sắp xếp theo orderInCourse
+     *
+     * Rule:
+     * - Course phải tồn tại và không được ở trạng thái DRAFT.
+     * - Student phải có enrollment ACTIVE trong course.
+     * - Chỉ trả về lesson có visibility = PUBLISHED.
+     * - Lesson có visibility = DRAFT hoặc PRIVATE sẽ không được trả về.
+     *
+     * Input:
+     * - courseId: ID của course cần lấy danh sách lesson.
+     * - studentId: ID của student lấy từ token đăng nhập.
+     *
+     * Output:
+     * - Danh sách lesson public của course.
+     * - Bao gồm chapters, learningItems, student progress và % hoàn thành từng lesson.
+     * - Sắp xếp theo orderInCourse tăng dần.
      */
     @Get('student/course/:courseId')
     @RequirePermission()
@@ -69,19 +73,23 @@ export class LessonController {
     }
 
     /**
-     * Get a single lesson by ID (for student)
+     * Get a single public lesson by ID (for student)
      * GET /lessons/:id/student
-     * 
-     * Kiểm tra:
-     * - Lesson có tồn tại không
-     * - Lesson có phải DRAFT không (nếu DRAFT thì throw error)
-     * - Course có tồn tại không
-     * - Student đã enroll vào course chưa (nếu chưa thì throw error)
-     * 
-     * Trả về:
-     * - Thông tin chi tiết lesson (loại trừ DRAFT)
-     * - Bao gồm chapters và learningItems với student progress
-     * - Thống kê % hoàn thành của lesson
+     *
+     * Rule:
+     * - Lesson phải tồn tại.
+     * - Lesson phải có visibility = PUBLISHED.
+     * - Lesson có visibility = DRAFT hoặc PRIVATE sẽ không được trả về.
+     * - Course của lesson phải tồn tại.
+     * - Student phải có enrollment ACTIVE trong course của lesson.
+     *
+     * Input:
+     * - id: ID của lesson cần lấy chi tiết.
+     * - studentId: ID của student lấy từ token đăng nhập.
+     *
+     * Output:
+     * - Thông tin chi tiết lesson public.
+     * - Bao gồm chapters, learningItems, student progress và % hoàn thành lesson.
      */
     @Get(':id/student')
     @RequirePermission()

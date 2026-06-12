@@ -3,16 +3,23 @@ import { Controller, Get, Post, Delete, Put, Query, Param, Body, HttpCode, HttpS
 import { LessonLearningItemListQueryDto } from '../../application/dtos/lessonLearningItem/lesson-learning-item-list-query.dto'
 import { CreateLessonLearningItemDto, ReorderLessonLearningItemsDto } from '../../application/dtos/lessonLearningItem'
 import { LessonLearningItemListResponseDto, LessonLearningItemResponseDto } from '../../application/dtos/lessonLearningItem/lesson-learning-item.dto'
+import {
+    StudentLessonLearningItemListResponseDto,
+    StudentLessonLearningItemResponseDto,
+} from '../../application/dtos/lessonLearningItem'
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
 import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
+import { CurrentUser } from '../../shared/decorators/current-user.decorator'
 import {
     GetAllLessonLearningItemUseCase,
     GetLessonLearningItemByIdUseCase,
     CreateLessonLearningItemUseCase,
     DeleteLessonLearningItemUseCase,
     ReorderLessonLearningItemsUseCase,
+    GetStudentLessonLearningItemsUseCase,
+    GetStudentLessonLearningItemByIdUseCase,
 } from '../../application/use-cases/lessonLearningItem'
 import { Injectable } from '@nestjs/common'
 
@@ -25,6 +32,8 @@ export class LessonLearningItemController {
         private readonly createLessonLearningItemUseCase: CreateLessonLearningItemUseCase,
         private readonly deleteLessonLearningItemUseCase: DeleteLessonLearningItemUseCase,
         private readonly reorderLessonLearningItemsUseCase: ReorderLessonLearningItemsUseCase,
+        private readonly getStudentLessonLearningItemsUseCase: GetStudentLessonLearningItemsUseCase,
+        private readonly getStudentLessonLearningItemByIdUseCase: GetStudentLessonLearningItemByIdUseCase,
     ) { }
 
     @Get()
@@ -32,6 +41,66 @@ export class LessonLearningItemController {
     @HttpCode(HttpStatus.OK)
     async getAllLessonLearningItems(@Query() query: LessonLearningItemListQueryDto): Promise<LessonLearningItemListResponseDto> {
         return ExceptionHandler.execute(() => this.getAllLessonLearningItemUseCase.execute(query))
+    }
+
+    /**
+     * Get all learning items of a public lesson for current student.
+     * GET /lesson-learning-items/student/lesson/:lessonId
+     *
+     * Rule:
+     * - Lesson phải có visibility = PUBLISHED.
+     * - Student phải có enrollment ACTIVE trong course của lesson.
+     * - Mỗi learningItem join thêm bản ghi students_learning_items của student hiện tại.
+     * - Nếu student chưa học item thì studentLearningItem = null, isLearned = false.
+     *
+     * Input:
+     * - lessonId: ID của lesson cần lấy danh sách mục học tập.
+     * - studentId: ID của student lấy từ token đăng nhập.
+     *
+     * Output:
+     * - Danh sách lesson_learning_items kèm learningItem và progress của student.
+     */
+    @Get('student/lesson/:lessonId')
+    @RequirePermission()
+    @HttpCode(HttpStatus.OK)
+    async getStudentLessonLearningItems(
+        @Param('lessonId', ParseIntPipe) lessonId: number,
+        @CurrentUser('studentId') studentId: number,
+    ): Promise<StudentLessonLearningItemListResponseDto> {
+        return ExceptionHandler.execute(() =>
+            this.getStudentLessonLearningItemsUseCase.execute(lessonId, studentId),
+        )
+    }
+
+    /**
+     * Get one learning item of a public lesson for current student.
+     * GET /lesson-learning-items/student/:lessonId/:learningItemId
+     *
+     * Rule:
+     * - Lesson phải có visibility = PUBLISHED.
+     * - Student phải có enrollment ACTIVE trong course của lesson.
+     * - Learning item phải thuộc lesson qua bảng lesson_learning_items.
+     * - Learning item join thêm bản ghi students_learning_items của student hiện tại.
+     *
+     * Input:
+     * - lessonId: ID của lesson.
+     * - learningItemId: ID của mục học tập.
+     * - studentId: ID của student lấy từ token đăng nhập.
+     *
+     * Output:
+     * - Một lesson_learning_item kèm learningItem và progress của student.
+     */
+    @Get('student/:lessonId/:learningItemId')
+    @RequirePermission()
+    @HttpCode(HttpStatus.OK)
+    async getStudentLessonLearningItemById(
+        @Param('lessonId', ParseIntPipe) lessonId: number,
+        @Param('learningItemId', ParseIntPipe) learningItemId: number,
+        @CurrentUser('studentId') studentId: number,
+    ): Promise<BaseResponseDto<StudentLessonLearningItemResponseDto>> {
+        return ExceptionHandler.execute(() =>
+            this.getStudentLessonLearningItemByIdUseCase.execute(lessonId, learningItemId, studentId),
+        )
     }
 
     @Get(':lessonId/:learningItemId')

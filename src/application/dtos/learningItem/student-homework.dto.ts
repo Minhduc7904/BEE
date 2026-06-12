@@ -1,6 +1,7 @@
 // src/application/dtos/learningItem/student-homework.dto.ts
 import { LearningItem } from 'src/domain/entities'
 import { PaginationResponseDto } from '../pagination/pagination-response.dto'
+import { StudentLearningItemStateResponseDto } from '../studentLearningItem'
 
 export class HomeworkContentWithStatusDto {
     homeworkContentId: number
@@ -58,6 +59,7 @@ export class StudentHomeworkResponseDto {
     // Student progress
     isLearned: boolean
     learnedAt?: Date
+    studentLearningItem: StudentLearningItemStateResponseDto | null
 
     // Lesson info
     lessonId?: number
@@ -83,6 +85,7 @@ export class StudentHomeworkResponseDto {
         // Student progress
         this.isLearned = data.studentLearningItem?.isLearned ?? false
         this.learnedAt = data.studentLearningItem?.learnedAt
+        this.studentLearningItem = StudentLearningItemStateResponseDto.fromPrisma(data.studentLearningItem)
 
         // Lesson info
         if (data.lesson) {

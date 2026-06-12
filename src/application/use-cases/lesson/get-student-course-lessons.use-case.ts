@@ -52,7 +52,7 @@ export class GetStudentCourseLessonsUseCase {
             throw new ForbiddenException('Bạn chưa đăng ký khóa học này')
         }
 
-        // 4. Lấy tất cả lessons (không bao gồm DRAFT) với chapters và learningItems
+        // 4. Lấy tất cả lessons public với chapters và learningItems
         const lessons = await this.lessonRepository.findByCourseForStudent(courseId)
 
         // 5. Lấy tất cả learning item IDs từ lessons

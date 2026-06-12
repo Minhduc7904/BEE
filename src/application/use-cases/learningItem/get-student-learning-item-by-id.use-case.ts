@@ -15,8 +15,8 @@ import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 import { MinioService } from '../../../infrastructure/services/minio.service'
 import { EntityType } from '../../../shared/constants/entity-type.constants'
 import { DOCUMENT_MEDIA_FIELDS, VIDEO_MEDIA_FIELDS } from '../../../shared/constants'
-import { MediaStatus } from '../../../shared/enums'
-import { LearningItemType } from '../../../shared/enums'
+import { CourseEnrollmentStatus, LearningItemType, MediaStatus, Visibility } from '../../../shared/enums'
+import { PrismaService } from '../../../prisma/prisma.service'
 
 @Injectable()
 export class GetStudentLearningItemByIdUseCase {
@@ -34,6 +34,7 @@ export class GetStudentLearningItemByIdUseCase {
         @Inject('IExamRepository')
         private readonly examRepository: IExamRepository,
         private readonly minioService: MinioService,
+        private readonly prisma: PrismaService,
     ) { }
 
     async execute(
@@ -44,6 +45,28 @@ export class GetStudentLearningItemByIdUseCase {
         const learningItem = await this.learningItemRepository.findByIdWithContents(learningItemId)
 
         if (!learningItem) {
+            throw new NotFoundException('Không tìm thấy learning item')
+        }
+
+        const accessibleLessonLearningItem = await this.prisma.lessonLearningItem.findFirst({
+            where: {
+                learningItemId,
+                lesson: {
+                    visibility: Visibility.PUBLISHED,
+                    course: {
+                        courseEnrollments: {
+                            some: {
+                                studentId,
+                                status: CourseEnrollmentStatus.ACTIVE,
+                            },
+                        },
+                    },
+                },
+            },
+            select: { lessonId: true },
+        })
+
+        if (!accessibleLessonLearningItem) {
             throw new NotFoundException('Không tìm thấy learning item')
         }
 

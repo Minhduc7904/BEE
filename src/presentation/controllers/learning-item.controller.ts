@@ -58,6 +58,22 @@ export class LearningItemController {
         return ExceptionHandler.execute(() => this.getAllLearningItemUseCase.execute(query))
     }
 
+    /**
+     * Get homework learning items for current student
+     * GET /learning-items/student/my-homeworks
+     *
+     * Rule:
+     * - Student chỉ lấy được homework thuộc course đang có enrollment ACTIVE.
+     * - Homework phải được gắn với ít nhất một lesson có visibility = PUBLISHED.
+     * - Homework thuộc lesson DRAFT hoặc PRIVATE sẽ không được trả về.
+     *
+     * Input:
+     * - studentId: ID của student lấy từ token đăng nhập.
+     * - query: bộ lọc page, limit, search, courseId, lessonId, status.
+     *
+     * Output:
+     * - Danh sách homework learning item hợp lệ với trạng thái làm bài của student.
+     */
     @Get('student/my-homeworks')
     @RequirePermission()
     @HttpCode(HttpStatus.OK)
@@ -71,11 +87,21 @@ export class LearningItemController {
     /**
      * Get a single learning item by ID (for student)
      * GET /learning-items/:id/student
-     * 
-     * Trả về:
-     * - Thông tin chi tiết learning item
-     * - Content tùy theo type (homework, document, youtube, video)
-     * - Progress của student (isLearned, learnedAt)
+     *
+     * Rule:
+     * - Learning item phải tồn tại.
+     * - Learning item phải được gắn với ít nhất một lesson có visibility = PUBLISHED.
+     * - Student phải có enrollment ACTIVE trong course của lesson public đó.
+     * - Learning item chỉ thuộc lesson DRAFT hoặc PRIVATE sẽ không được trả về.
+     *
+     * Input:
+     * - id: ID của learning item cần lấy chi tiết.
+     * - studentId: ID của student lấy từ token đăng nhập.
+     *
+     * Output:
+     * - Thông tin chi tiết learning item.
+     * - Content tùy theo type (homework, document, youtube, video).
+     * - Progress của student (isLearned, learnedAt).
      */
     @Get(':id/student')
     @RequirePermission()
@@ -93,6 +119,12 @@ export class LearningItemController {
      * Stream video with Range Request support (for student)
      * GET /learning-items/:id/student/video/stream/:mediaId?token=xxx
      * 
+     * Rule:
+     * - Learning item phải tồn tại.
+     * - Learning item phải được gắn với ít nhất một lesson có visibility = PUBLISHED.
+     * - Student phải có enrollment ACTIVE trong course của lesson public đó.
+     * - Video thuộc learning item chỉ nằm trong lesson DRAFT hoặc PRIVATE sẽ không được stream.
+     *
      * Hỗ trợ HTTP Range Requests để streaming video từng đoạn:
      * - Client gửi header "Range: bytes=0-1023" để request một phần của video
      * - Server trả về status 206 Partial Content với phần được request

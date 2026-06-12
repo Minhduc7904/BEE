@@ -3,6 +3,7 @@ import { Lesson } from '../../../domain/entities'
 import { StudentLearningItem } from '../../../domain/entities'
 import { Visibility } from '../../../shared/enums'
 import { ChapterResponseDto } from '../chapter/chapter.dto'
+import { StudentLearningItemStateResponseDto } from '../studentLearningItem'
 
 export class StudentLearningItemProgressDto {
     learningItemId: number
@@ -13,6 +14,7 @@ export class StudentLearningItemProgressDto {
     // Student progress
     isLearned: boolean
     learnedAt?: Date
+    studentLearningItem: StudentLearningItemStateResponseDto | null
 }
 
 export class StudentLessonResponseDto {
@@ -60,6 +62,7 @@ export class StudentLessonResponseDto {
                     order: li.order ?? undefined,
                     isLearned: studentProgress?.isLearned ?? false,
                     learnedAt: studentProgress?.learnedAt ?? undefined,
+                    studentLearningItem: StudentLearningItemStateResponseDto.fromPrisma(studentProgress),
                 }
             }) ?? []
 

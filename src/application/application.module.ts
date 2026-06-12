@@ -15,6 +15,7 @@ import { EmailVerificationApplicationModule } from './use-cases/email-verificati
 import { LessonApplicationModule } from './use-cases/lesson/lesson.application.module'
 import { LearningItemApplicationModule } from './use-cases/learningItem/learning-item.application.module'
 import { LessonLearningItemApplicationModule } from './use-cases/lessonLearningItem/lesson-learning-item.application.module'
+import { StudentLearningItemApplicationModule } from './use-cases/studentLearningItem/student-learning-item.application.module'
 import { AuditLogApplicationModule } from './use-cases/log/audit-log.application.module'
 import { MediaApplicationModule } from './use-cases/media/media.application.module'
 import { MediaFolderApplicationModule } from './use-cases/media-folder/media-folder.application.module'
@@ -90,6 +91,7 @@ const modules = [
   LessonApplicationModule,
   LearningItemApplicationModule,
   LessonLearningItemApplicationModule,
+  StudentLearningItemApplicationModule,
 
   // Class & Attendance
   ClassSessionApplicationModule,

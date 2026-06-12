@@ -8,7 +8,7 @@ import {
     StudentHomeworkListResponseDto,
     HomeworkContentWithStatusDto,
 } from '../../dtos/learningItem/student-homework.dto'
-import { LearningItemType } from 'src/shared/enums'
+import { CourseEnrollmentStatus, LearningItemType, Visibility } from 'src/shared/enums'
 import { PrismaService } from 'src/prisma/prisma.service'
 
 @Injectable()
@@ -31,9 +31,12 @@ export class GetStudentHomeworksUseCase {
         const sortBy = query.sortBy || 'createdAt'
         const sortOrder = query.sortOrder || 'desc'
 
-        // 1. Lấy danh sách courseId mà student đã enroll
+        // 1. Lấy danh sách courseId mà student đang active enrollment
         const enrollments = await this.prisma.courseEnrollment.findMany({
-            where: { studentId },
+            where: {
+                studentId,
+                status: CourseEnrollmentStatus.ACTIVE,
+            },
             select: { courseId: true },
         })
         const enrolledCourseIds = enrollments.map((e) => e.courseId)
@@ -43,10 +46,15 @@ export class GetStudentHomeworksUseCase {
             return new StudentHomeworkListResponseDto([], page, limit, 0)
         }
 
-        // 2. Build where clause — chỉ lấy learningItem thuộc lesson trong khoá đã enroll
+        if (query.courseId && !enrolledCourseIds.includes(query.courseId)) {
+            return new StudentHomeworkListResponseDto([], page, limit, 0)
+        }
+
+        // 2. Build where clause — chỉ lấy learningItem thuộc lesson public trong khoá đang active enrollment
         const lessonFilter: any = {
             lesson: {
                 courseId: { in: enrolledCourseIds },
+                visibility: Visibility.PUBLISHED,
             },
         }
 
@@ -92,7 +100,10 @@ export class GetStudentHomeworksUseCase {
                     },
                     lessons: {
                         where: {
-                            lesson: { courseId: { in: enrolledCourseIds } },
+                            lesson: {
+                                courseId: { in: enrolledCourseIds },
+                                visibility: Visibility.PUBLISHED,
+                            },
                         },
                         include: {
                             lesson: {

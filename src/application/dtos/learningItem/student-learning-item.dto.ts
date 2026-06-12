@@ -5,6 +5,7 @@ import { HomeworkContentResponseDto } from '../homeworkContent/homework-content.
 import { DocumentContentResponseDto, MediaFileDto } from '../documentContent/document-content.dto'
 import { YoutubeContentResponseDto } from '../youtubeContent/youtube-content.dto'
 import { VideoContentResponseDto } from '../videoContent/video-content.dto'
+import { StudentLearningItemStateResponseDto } from '../studentLearningItem'
 
 /**
  * Trạng thái làm bài homework/competition
@@ -263,6 +264,7 @@ export class StudentLearningItemResponseDto {
     // Progress của student (cho DOCUMENT, YOUTUBE, VIDEO)
     // Với HOMEWORK: progress được gắn vào từng homeworkContent
     progress?: StudentLearningItemProgressDto
+    studentLearningItem: StudentLearningItemStateResponseDto | null
 
     // Content tùy theo type (chỉ 1 trong 4 sẽ có giá trị)
     homeworkContents?: HomeworkContentResponseDto[]
@@ -290,6 +292,7 @@ export class StudentLearningItemResponseDto {
         if (learningItem.type !== LearningItemType.HOMEWORK) {
             dto.progress = StudentLearningItemProgressDto.fromEntity(studentLearningItem)
         }
+        dto.studentLearningItem = StudentLearningItemStateResponseDto.fromPrisma(studentLearningItem)
 
         // Content theo type
         if (learningItem.type === LearningItemType.HOMEWORK && learningItem.homeworkContents) {

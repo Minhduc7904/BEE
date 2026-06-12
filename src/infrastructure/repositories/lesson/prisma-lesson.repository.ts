@@ -374,7 +374,7 @@ export class PrismaLessonRepository implements ILessonRepository {
         const prismaLessons = await this.prisma.lesson.findMany({
             where: { 
                 courseId: numericCourseId,
-                visibility: { not: Visibility.DRAFT }, // Loại trừ lesson DRAFT
+                visibility: Visibility.PUBLISHED,
             },
             include: {
                 course: {

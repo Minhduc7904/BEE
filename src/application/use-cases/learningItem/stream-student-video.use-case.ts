@@ -5,7 +5,8 @@ import type { ILearningItemRepository, IMediaUsageRepository, IMediaRepository }
 import type { IStudentLearningItemRepository } from '../../../domain/repositories/student-learning-item.repository'
 import { NotFoundException, ForbiddenException } from '../../../shared/exceptions/custom-exceptions'
 import { MinioService } from '../../../infrastructure/services/minio.service'
-import { MediaStatus } from '../../../shared/enums'
+import { CourseEnrollmentStatus, MediaStatus, Visibility } from '../../../shared/enums'
+import { PrismaService } from '../../../prisma/prisma.service'
 
 export interface StreamVideoResult {
     stream: Readable
@@ -24,6 +25,7 @@ export class StreamStudentVideoUseCase {
         @Inject('IMediaRepository')
         private readonly mediaRepository: IMediaRepository,
         private readonly minioService: MinioService,
+        private readonly prisma: PrismaService,
     ) { }
 
     /**
@@ -44,6 +46,28 @@ export class StreamStudentVideoUseCase {
         // 1. Verify learning item exists and student has access
         const learningItem = await this.learningItemRepository.findByIdWithContents(learningItemId)
         if (!learningItem) {
+            throw new NotFoundException('Không tìm thấy learning item')
+        }
+
+        const accessibleLessonLearningItem = await this.prisma.lessonLearningItem.findFirst({
+            where: {
+                learningItemId,
+                lesson: {
+                    visibility: Visibility.PUBLISHED,
+                    course: {
+                        courseEnrollments: {
+                            some: {
+                                studentId,
+                                status: CourseEnrollmentStatus.ACTIVE,
+                            },
+                        },
+                    },
+                },
+            },
+            select: { lessonId: true },
+        })
+
+        if (!accessibleLessonLearningItem) {
             throw new NotFoundException('Không tìm thấy learning item')
         }
 
