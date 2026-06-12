@@ -2,6 +2,14 @@ import { Injectable } from '@nestjs/common'
 import { PrismaService } from '../../prisma/prisma.service'
 import { CourseEnrollmentStatus, Visibility } from '../../shared/enums'
 
+type ClassLessonAccessRecord = {
+    classId: number
+    displayOrder?: number | null
+    isVisible: boolean
+    availableFrom: Date | null
+    availableUntil: Date | null
+}
+
 @Injectable()
 export class StudentClassLessonAccessService {
     constructor(private readonly prisma: PrismaService) { }
@@ -37,13 +45,27 @@ export class StudentClassLessonAccessService {
         })
 
         const lessonOrderMap = new Map<number, number | null>()
+
         for (const lesson of lessons) {
-            if (this.canViewLessonByClassRecords(lesson.classLessons, classIds, now)) {
-                lessonOrderMap.set(
-                    lesson.lessonId,
-                    this.getDisplayOrderFromClassRecords(lesson.classLessons, now),
-                )
+            const canView = this.canViewLessonByClassRecords(
+                lesson.classLessons,
+                classIds,
+                now,
+            )
+
+            if (!canView) {
+                continue
             }
+
+            const classDisplayOrder = this.getDisplayOrderFromClassRecords(
+                lesson.classLessons,
+                now,
+            )
+
+            lessonOrderMap.set(
+                lesson.lessonId,
+                classDisplayOrder ?? lesson.orderInCourse ?? null,
+            )
         }
 
         return lessonOrderMap
@@ -55,11 +77,18 @@ export class StudentClassLessonAccessService {
         studentId: number,
     ): Promise<boolean> {
         const classIds = await this.getStudentClassIds(courseId, studentId)
+
+        /**
+         * Nếu học sinh chưa được gán vào class nào trong course,
+         * không khóa lesson theo classLesson.
+         * => Hiện lesson bình thường.
+         */
         if (classIds.length === 0) {
             return true
         }
 
         const now = new Date()
+
         const classLessons = await this.prisma.courseClassLesson.findMany({
             where: {
                 classId: { in: classIds },
@@ -135,37 +164,69 @@ export class StudentClassLessonAccessService {
             visibleLessonIds.push(...lessonOrderMap.keys())
         }
 
-        const filters: any[] = []
-        if (visibleLessonIds.length > 0) {
-            filters.push({
-                lessonId: { in: Array.from(new Set(visibleLessonIds)) },
-            })
+        const uniqueVisibleLessonIds = Array.from(new Set(visibleLessonIds))
+
+        if (uniqueVisibleLessonIds.length === 0) {
+            return []
         }
 
-        return filters
+        return [
+            {
+                lessonId: { in: uniqueVisibleLessonIds },
+            },
+        ]
     }
 
     private canViewLessonByClassRecords(
-        classLessons: Array<{
-            classId: number
-            isVisible: boolean
-            availableFrom: Date | null
-            availableUntil: Date | null
-        }>,
+        classLessons: ClassLessonAccessRecord[],
         classIds: number[],
         now: Date,
     ): boolean {
-        if (classIds.length === 0 || classLessons.length === 0) {
+        /**
+         * Không có classIds nghĩa là học sinh chưa được gán class trong course.
+         * Rule mong muốn: vẫn hiện toàn bộ lesson published.
+         */
+        if (classIds.length === 0) {
             return true
         }
 
-        const configuredClassIds = new Set(classLessons.map((classLesson) => classLesson.classId))
-        const hasClassWithoutConfig = classIds.some((classId) => !configuredClassIds.has(classId))
+        /**
+         * Không có bản ghi classLesson cho lesson này.
+         * Rule mong muốn: vẫn hiện lesson.
+         */
+        if (classLessons.length === 0) {
+            return true
+        }
+
+        /**
+         * Nếu học sinh thuộc nhiều class, mà có ít nhất 1 class chưa config lesson,
+         * thì không khóa lesson đó.
+         *
+         * Ví dụ:
+         * - student ở class A, B
+         * - lesson chỉ config cho class A
+         * - class B chưa config
+         * => vẫn hiện lesson.
+         */
+        const configuredClassIds = new Set(
+            classLessons.map((classLesson) => classLesson.classId),
+        )
+
+        const hasClassWithoutConfig = classIds.some(
+            (classId) => !configuredClassIds.has(classId),
+        )
+
         if (hasClassWithoutConfig) {
             return true
         }
 
-        return classLessons.some((classLesson) => this.isClassLessonActive(classLesson, now))
+        /**
+         * Chỉ khi tất cả class của học sinh đều đã có config,
+         * lúc đó mới áp rule isVisible + availableFrom + availableUntil.
+         */
+        return classLessons.some((classLesson) =>
+            this.isClassLessonActive(classLesson, now),
+        )
     }
 
     private isClassLessonActive(
@@ -192,18 +253,13 @@ export class StudentClassLessonAccessService {
     }
 
     private getDisplayOrderFromClassRecords(
-        classLessons: Array<{
-            displayOrder: number | null
-            isVisible: boolean
-            availableFrom: Date | null
-            availableUntil: Date | null
-        }>,
+        classLessons: ClassLessonAccessRecord[],
         now: Date,
     ): number | null {
         const displayOrders = classLessons
             .filter((classLesson) => this.isClassLessonActive(classLesson, now))
             .map((classLesson) => classLesson.displayOrder)
-            .filter((displayOrder): displayOrder is number => displayOrder !== null)
+            .filter((displayOrder): displayOrder is number => displayOrder !== null && displayOrder !== undefined)
 
         if (displayOrders.length === 0) {
             return null
@@ -212,13 +268,20 @@ export class StudentClassLessonAccessService {
         return Math.min(...displayOrders)
     }
 
-    private async getStudentClassIds(courseId: number, studentId: number): Promise<number[]> {
+    private async getStudentClassIds(
+        courseId: number,
+        studentId: number,
+    ): Promise<number[]> {
         const classStudents = await this.prisma.classStudent.findMany({
             where: {
                 studentId,
-                courseClass: { courseId },
+                courseClass: {
+                    courseId,
+                },
             },
-            select: { classId: true },
+            select: {
+                classId: true,
+            },
         })
 
         return classStudents.map((classStudent) => classStudent.classId)
