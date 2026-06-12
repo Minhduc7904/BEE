@@ -15,8 +15,8 @@ import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 import { MinioService } from '../../../infrastructure/services/minio.service'
 import { EntityType } from '../../../shared/constants/entity-type.constants'
 import { DOCUMENT_MEDIA_FIELDS, VIDEO_MEDIA_FIELDS } from '../../../shared/constants'
-import { CourseEnrollmentStatus, LearningItemType, MediaStatus, Visibility } from '../../../shared/enums'
-import { PrismaService } from '../../../prisma/prisma.service'
+import { LearningItemType, MediaStatus } from '../../../shared/enums'
+import { StudentClassLessonAccessService } from 'src/application/services/student-class-lesson-access.service'
 
 @Injectable()
 export class GetStudentLearningItemByIdUseCase {
@@ -34,7 +34,7 @@ export class GetStudentLearningItemByIdUseCase {
         @Inject('IExamRepository')
         private readonly examRepository: IExamRepository,
         private readonly minioService: MinioService,
-        private readonly prisma: PrismaService,
+        private readonly studentClassLessonAccessService: StudentClassLessonAccessService,
     ) { }
 
     async execute(
@@ -48,23 +48,11 @@ export class GetStudentLearningItemByIdUseCase {
             throw new NotFoundException('Không tìm thấy learning item')
         }
 
-        const accessibleLessonLearningItem = await this.prisma.lessonLearningItem.findFirst({
-            where: {
+        const accessibleLessonLearningItem =
+            await this.studentClassLessonAccessService.findAccessibleLessonForLearningItem(
                 learningItemId,
-                lesson: {
-                    visibility: Visibility.PUBLISHED,
-                    course: {
-                        courseEnrollments: {
-                            some: {
-                                studentId,
-                                status: CourseEnrollmentStatus.ACTIVE,
-                            },
-                        },
-                    },
-                },
-            },
-            select: { lessonId: true },
-        })
+                studentId,
+            )
 
         if (!accessibleLessonLearningItem) {
             throw new NotFoundException('Không tìm thấy learning item')

@@ -29,6 +29,7 @@ import { AdminController } from './controllers/admin.controller'
 import { AdminStudentController } from './controllers/super-admin.controller'
 import { CourseController } from './controllers/course.controller'
 import { CourseClassController } from './controllers/course-class.controller'
+import { CourseClassLessonController } from './controllers/course-class-lesson.controller'
 import { LessonController } from './controllers/lesson.controller'
 import { LearningItemController } from './controllers/learning-item.controller'
 import { LessonLearningItemController } from './controllers/lesson-learning-item.controller'
@@ -97,6 +98,7 @@ import { TagController } from './controllers/tag.controller'
     AdminStudentController,
     CourseController,
     CourseClassController,
+    CourseClassLessonController,
     LessonController,
     LearningItemController,
     LessonLearningItemController,

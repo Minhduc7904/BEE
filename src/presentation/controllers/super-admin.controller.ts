@@ -21,6 +21,7 @@ import { CleanupUnusedMediaOlderThan30DaysUseCase } from 'src/application/use-ca
 import { GenerateMissingExamSlugsUseCase } from 'src/application/use-cases/exam/generate-missing-exam-slugs.use-case'
 import { RegenerateQuestionSlugsUseCase } from 'src/application/use-cases/question/regenerate-question-slugs.use-case'
 import { SeedDefaultTagsUseCase } from 'src/application/use-cases/tag'
+import { SyncPermissionsFromCodesUseCase } from 'src/application/use-cases/permission'
 
 interface ExchangeFacebookTokenDto {
   appId: string
@@ -41,6 +42,7 @@ export class AdminStudentController {
     private readonly generateMissingExamSlugsUseCase: GenerateMissingExamSlugsUseCase,
     private readonly regenerateQuestionSlugsUseCase: RegenerateQuestionSlugsUseCase,
     private readonly seedDefaultTagsUseCase: SeedDefaultTagsUseCase,
+    private readonly syncPermissionsFromCodesUseCase: SyncPermissionsFromCodesUseCase,
   ) {}
 
   /**
@@ -280,6 +282,30 @@ export class AdminStudentController {
   @HttpCode(HttpStatus.OK)
   async seedDefaultTags(@CurrentUser('adminId') _adminId?: number): Promise<BaseResponseDto<any>> {
     return ExceptionHandler.execute(() => this.seedDefaultTagsUseCase.execute())
+  }
+
+  /**
+   * Sync all permission codes from src/shared/constants/permissions/permission.codes.ts into DB.
+   * POST /api/super-admin/permissions/sync-from-codes
+   *
+   * Input:
+   * - No body/query params.
+   *
+   * Output:
+   * - source: source constant file path
+   * - totalFromSource: total permission code entries read from PERMISSION_CODES
+   * - totalUnique: total unique permission codes upserted by code
+   * - createdCount: number of newly inserted permissions
+   * - updatedCount: number of existing permissions whose metadata was changed
+   * - unchangedCount: number of existing permissions already matching the source
+   * - duplicateCodes: duplicate code report if the source contains duplicate values
+   * - permissions: sync result for each unique permission code
+   */
+  @Post('permissions/sync-from-codes')
+  @RequirePermission(PERMISSION_CODES.PERMISSION.SYNC_FROM_CODES)
+  @HttpCode(HttpStatus.OK)
+  async syncPermissionsFromCodes(@CurrentUser('adminId') _adminId?: number): Promise<BaseResponseDto<any>> {
+    return ExceptionHandler.execute(() => this.syncPermissionsFromCodesUseCase.execute())
   }
 
   /**

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 
 import * as learningItemUseCase from './'
 import { InfrastructureModule } from 'src/infrastructure/infrastructure.module'
+import { StudentClassLessonAccessService } from 'src/application/services/student-class-lesson-access.service'
 
 const LEARNING_ITEM_USE_CASES = [
   learningItemUseCase.GetAllLearningItemUseCase,
@@ -12,6 +13,7 @@ const LEARNING_ITEM_USE_CASES = [
   learningItemUseCase.DeleteLearningItemUseCase,
   learningItemUseCase.GetStudentHomeworksUseCase,
   learningItemUseCase.StreamStudentVideoUseCase,
+  StudentClassLessonAccessService,
 ]
 
 @Module({

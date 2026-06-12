@@ -3,36 +3,24 @@ import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 import { StudentLearningItemStateResponseDto } from '../../dtos/studentLearningItem'
 import { PrismaService } from '../../../prisma/prisma.service'
 import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
-import { CourseEnrollmentStatus, Visibility } from '../../../shared/enums'
+import { StudentClassLessonAccessService } from 'src/application/services/student-class-lesson-access.service'
 
 @Injectable()
 export class MarkStudentLearningItemLearnedUseCase {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly studentClassLessonAccessService: StudentClassLessonAccessService,
+    ) { }
 
     async execute(
         studentId: number,
         learningItemId: number,
     ): Promise<BaseResponseDto<StudentLearningItemStateResponseDto>> {
-        const accessibleLessonLearningItem = await this.prisma.lessonLearningItem.findFirst({
-            where: {
+        const accessibleLessonLearningItem =
+            await this.studentClassLessonAccessService.findAccessibleLessonForLearningItem(
                 learningItemId,
-                lesson: {
-                    visibility: Visibility.PUBLISHED,
-                    course: {
-                        courseEnrollments: {
-                            some: {
-                                studentId,
-                                status: CourseEnrollmentStatus.ACTIVE,
-                            },
-                        },
-                    },
-                },
-            },
-            select: {
-                lessonId: true,
-                learningItemId: true,
-            },
-        })
+                studentId,
+            )
 
         if (!accessibleLessonLearningItem) {
             throw new NotFoundException('Không tìm thấy mục học tập')

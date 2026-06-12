@@ -12,6 +12,7 @@ import {
     ConflictException 
 } from '../../../shared/exceptions/custom-exceptions'
 import { CourseVisibility } from 'src/shared/enums'
+import { StudentClassLessonAccessService } from 'src/application/services/student-class-lesson-access.service'
 
 @Injectable()
 export class GetStudentCourseLessonsUseCase {
@@ -24,6 +25,7 @@ export class GetStudentCourseLessonsUseCase {
         private readonly courseEnrollmentRepository: ICourseEnrollmentRepository,
         @Inject('IStudentLearningItemRepository')
         private readonly studentLearningItemRepository: IStudentLearningItemRepository,
+        private readonly studentClassLessonAccessService: StudentClassLessonAccessService,
     ) { }
     
     async execute(
@@ -53,7 +55,11 @@ export class GetStudentCourseLessonsUseCase {
         }
 
         // 4. Lấy tất cả lessons public với chapters và learningItems
-        const lessons = await this.lessonRepository.findByCourseForStudent(courseId)
+        const lessons = await this.filterLessonsForStudentClass(
+            await this.lessonRepository.findByCourseForStudent(courseId),
+            courseId,
+            studentId,
+        )
 
         // 5. Lấy tất cả learning item IDs từ lessons
         const learningItemIds: number[] = []
@@ -83,5 +89,24 @@ export class GetStudentCourseLessonsUseCase {
             message: 'Lấy danh sách bài học thành công',
             data: lessonResponses,
         }
+    }
+
+    private async filterLessonsForStudentClass(
+        lessons: any[],
+        courseId: number,
+        studentId: number,
+    ): Promise<any[]> {
+        const lessonOrderMap = await this.studentClassLessonAccessService.getVisibleLessonOrderMap(
+            courseId,
+            studentId,
+        )
+
+        return lessons
+            .filter((lesson) => lessonOrderMap.has(lesson.lessonId))
+            .sort((a, b) => {
+                const orderA = lessonOrderMap.get(a.lessonId) ?? a.orderInCourse
+                const orderB = lessonOrderMap.get(b.lessonId) ?? b.orderInCourse
+                return orderA - orderB || a.orderInCourse - b.orderInCourse
+            })
     }
 }

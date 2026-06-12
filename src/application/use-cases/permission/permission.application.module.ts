@@ -10,6 +10,7 @@ const PERMISSION_USE_CASES = [
   permissionUseCase.GetPermissionGroupsUseCase,
   permissionUseCase.UpdatePermissionUseCase,
   permissionUseCase.DeletePermissionUseCase,
+  permissionUseCase.SyncPermissionsFromCodesUseCase,
 ]
 
 @Module({

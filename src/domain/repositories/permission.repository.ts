@@ -38,6 +38,7 @@ export interface IPermissionRepository {
   findAllWithPagination(options: FindAllPermissionsOptions): Promise<FindAllPermissionsResult>
   findByGroup(group: string): Promise<Permission[]>
   getDistinctGroups(): Promise<string[]>
+  upsertByCode(data: CreatePermissionData): Promise<Permission>
   update(id: number, data: UpdatePermissionData): Promise<Permission>
   delete(id: number): Promise<void>
 }

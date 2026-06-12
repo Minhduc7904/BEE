@@ -12,6 +12,7 @@ import {
     ConflictException 
 } from '../../../shared/exceptions/custom-exceptions'
 import { Visibility } from '../../../shared/enums'
+import { StudentClassLessonAccessService } from 'src/application/services/student-class-lesson-access.service'
 
 @Injectable()
 export class GetStudentLessonByIdUseCase {
@@ -24,6 +25,7 @@ export class GetStudentLessonByIdUseCase {
         private readonly courseEnrollmentRepository: ICourseEnrollmentRepository,
         @Inject('IStudentLearningItemRepository')
         private readonly studentLearningItemRepository: IStudentLearningItemRepository,
+        private readonly studentClassLessonAccessService: StudentClassLessonAccessService,
     ) { }
     
     async execute(
@@ -57,6 +59,16 @@ export class GetStudentLessonByIdUseCase {
 
         if (!enrollment || !enrollment.isActive()) {
             throw new ForbiddenException('Bạn chưa đăng ký khóa học này')
+        }
+
+        const canViewLesson = await this.studentClassLessonAccessService.isLessonVisibleForStudent(
+            lesson.lessonId,
+            lesson.courseId,
+            studentId,
+        )
+
+        if (!canViewLesson) {
+            throw new NotFoundException('Không tìm thấy bài học')
         }
 
         // 5. Lấy tất cả learning item IDs từ lesson

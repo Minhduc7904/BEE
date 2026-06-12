@@ -9,6 +9,7 @@ import { ClassSessionApplicationModule } from './use-cases/class-session/class-s
 import { ClassStudentApplicationModule } from './use-cases/class-student/class-student.application.module'
 import { CourseApplicationModule } from './use-cases/course/course.application.module'
 import { CourseClassApplicationModule } from './use-cases/course-class/course-class.application.module'
+import { CourseClassLessonApplicationModule } from './use-cases/courseClassLesson/course-class-lesson.application.module'
 import { CourseEnrollmentApplicationModule } from './use-cases/course-enrollment/course-enrollment.application.module'
 
 import { EmailVerificationApplicationModule } from './use-cases/email-verification/email-verification.application.module'
@@ -85,6 +86,7 @@ const modules = [
   // Course & Learning
   CourseApplicationModule,
   CourseClassApplicationModule,
+  CourseClassLessonApplicationModule,
   CourseEnrollmentApplicationModule,
   SubjectApplicationModule,
   ChapterApplicationModule,

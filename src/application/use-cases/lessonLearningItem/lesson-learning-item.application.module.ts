@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 
 import * as lessonLearningItemUseCase from './'
 import { InfrastructureModule } from 'src/infrastructure/infrastructure.module'
+import { StudentClassLessonAccessService } from 'src/application/services/student-class-lesson-access.service'
 
 const LESSON_LEARNING_ITEM_USE_CASES = [
   lessonLearningItemUseCase.GetAllLessonLearningItemUseCase,
@@ -11,6 +12,7 @@ const LESSON_LEARNING_ITEM_USE_CASES = [
   lessonLearningItemUseCase.ReorderLessonLearningItemsUseCase,
   lessonLearningItemUseCase.GetStudentLessonLearningItemsUseCase,
   lessonLearningItemUseCase.GetStudentLessonLearningItemByIdUseCase,
+  StudentClassLessonAccessService,
 ]
 
 @Module({

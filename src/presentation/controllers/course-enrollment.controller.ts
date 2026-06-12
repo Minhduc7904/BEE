@@ -81,6 +81,59 @@ export class CourseEnrollmentController {
     })
   }
 
+  /**
+   * Export danh sách đăng ký khóa học ra file Excel.
+   *
+   * Endpoint:
+   * - Method: GET
+   * - Full path: /api/course-enrollments/export/excel
+   * - Controller path: /course-enrollments/export/excel
+   *
+   * Permission:
+   * - COURSE_ENROLLMENT.EXPORT_EXCEL
+   *
+   * Input:
+   * - Query params: ExportCourseEnrollmentListOptionDto
+   * - Filter/pagination params kế thừa từ CourseEnrollmentListQueryDto:
+   *   - page: number (optional, default: 1)
+   *   - limit: number (optional, DTO default: 10; export use case override thành 10000 bản ghi)
+   *   - search: string (optional)
+   *   - sortBy: enrollmentId | courseId | studentId | enrolledAt | status (optional, default: enrolledAt)
+   *   - sortOrder: asc | desc (optional, default: desc)
+   *   - courseId: number (optional)
+   *   - studentId: number (optional)
+   *   - status: ACTIVE | COMPLETED | CANCELLED | BLOCKED_UNPAID | TRIAL (optional)
+   *   - enrolledAtFrom: string YYYY-MM-DD (optional)
+   *   - enrolledAtTo: string YYYY-MM-DD (optional)
+   *   - courseVisibility: DRAFT | PRIVATE | PUBLISHED (optional)
+   * - Export column options:
+   *   - includeSchool: boolean (optional, default: true)
+   *   - includeGender: boolean (optional, default: true)
+   *   - includeDateOfBirth: boolean (optional, default: true)
+   *   - includeUsername: boolean (optional, default: true)
+   *   - includeParentPhone: boolean (optional, default: true)
+   *   - includeStudentPhone: boolean (optional, default: false)
+   *   - includeGrade: boolean (optional, default: true)
+   *   - includeHighSchoolGraduationYear: boolean (optional, default: true)
+   *   - includeEmail: boolean (optional, default: true)
+   *   - includeIsActive: boolean (optional, default: true; hiện cột Trạng thái luôn được export)
+   *   - includeCreatedAt: boolean (optional, default: true)
+   *
+   * Output:
+   * - HTTP 200 OK
+   * - Response body: StreamableFile chứa buffer file .xlsx
+   * - Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+   * - Content-Disposition: attachment; filename="<encoded filename>"
+   * - File name format: Danh_sach_hoc_sinh_dang_ky_khoa_hoc_<dd_MM_yyyy_HH_mm>.xlsx
+   * - Các cột luôn có: STT, Mã học sinh, Họ và tên, Trạng thái
+   * - Các cột tùy chọn phụ thuộc các flag include... ở trên.
+   *
+   * Error:
+   * - 404 Not Found nếu không có dữ liệu đăng ký khóa học để export.
+   *
+   * @example
+   * GET /api/course-enrollments/export/excel?courseId=1&status=ACTIVE&includeStudentPhone=true
+   */
   @Get('export/excel')
   @RequirePermission(PERMISSION_CODES.COURSE_ENROLLMENT.EXPORT_EXCEL)
   @HttpCode(HttpStatus.OK)

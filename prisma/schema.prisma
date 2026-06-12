@@ -1202,6 +1202,7 @@ model CourseClass {
   instructor    Admin?         @relation(fields: [instructorId], references: [adminId], onDelete: SetNull)
   classSessions ClassSession[]
   classStudents ClassStudent[]
+  classLessons  CourseClassLesson[]
 
   @@index([courseId], map: "idx_course_classes_course_id")
   @@map("courses_classes")
@@ -1314,6 +1315,7 @@ model Lesson {
   teacher        Admin?               @relation("LessonTeacher", fields: [teacherId], references: [adminId], onDelete: SetNull)
   learningItems  LessonLearningItem[]
   lessonChapters LessonChapter[]
+  classLessons   CourseClassLesson[]
 
   @@index([courseId], map: "idx_lessons_course_id")
   @@index([teacherId], map: "idx_lessons_teacher_id")
@@ -1333,6 +1335,25 @@ model LessonChapter {
   @@id([lessonId, chapterId])
   @@index([chapterId], map: "idx_lesson_chapters_chapter_id")
   @@map("lessons_chapters")
+}
+
+model CourseClassLesson {
+  classId        Int       @map("class_id")
+  lessonId       Int       @map("lesson_id")
+  displayOrder   Int?      @map("display_order")
+  isVisible      Boolean   @default(true) @map("is_visible")
+  availableFrom  DateTime? @map("available_from") @db.Timestamp(0)
+  availableUntil DateTime? @map("available_until") @db.Timestamp(0)
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  courseClass CourseClass @relation(fields: [classId], references: [classId], onDelete: Cascade)
+  lesson      Lesson      @relation(fields: [lessonId], references: [lessonId], onDelete: Cascade)
+
+  @@id([classId, lessonId])
+  @@index([lessonId], map: "idx_course_class_lessons_lesson_id")
+  @@index([classId, isVisible], map: "idx_course_class_lessons_class_visible")
+  @@map("course_class_lessons")
 }
 
 model LessonLearningItem {

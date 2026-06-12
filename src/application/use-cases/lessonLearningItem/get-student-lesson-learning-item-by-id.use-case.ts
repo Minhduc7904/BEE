@@ -4,10 +4,14 @@ import { StudentLessonLearningItemResponseDto } from '../../dtos/lessonLearningI
 import { PrismaService } from '../../../prisma/prisma.service'
 import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 import { CourseEnrollmentStatus, Visibility } from '../../../shared/enums'
+import { StudentClassLessonAccessService } from 'src/application/services/student-class-lesson-access.service'
 
 @Injectable()
 export class GetStudentLessonLearningItemByIdUseCase {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly studentClassLessonAccessService: StudentClassLessonAccessService,
+    ) { }
 
     async execute(
         lessonId: number,
@@ -49,6 +53,16 @@ export class GetStudentLessonLearningItemByIdUseCase {
         })
 
         if (!lessonLearningItem) {
+            throw new NotFoundException('Không tìm thấy mục học tập trong bài học')
+        }
+
+        const canViewLesson = await this.studentClassLessonAccessService.isLessonVisibleForStudent(
+            lessonId,
+            lessonLearningItem.lesson.courseId,
+            studentId,
+        )
+
+        if (!canViewLesson) {
             throw new NotFoundException('Không tìm thấy mục học tập trong bài học')
         }
 

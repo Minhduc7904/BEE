@@ -135,6 +135,27 @@ export class PrismaPermissionRepository implements IPermissionRepository {
     return result.map((item: any) => item.group).filter((group: string | null) => group !== null)
   }
 
+  async upsertByCode(data: CreatePermissionData): Promise<Permission> {
+    const permission = await this.prisma.permission.upsert({
+      where: { code: data.code },
+      update: {
+        name: data.name,
+        description: data.description,
+        group: data.group,
+        isSystem: data.isSystem ?? false,
+      },
+      create: {
+        code: data.code,
+        name: data.name,
+        description: data.description,
+        group: data.group,
+        isSystem: data.isSystem ?? false,
+      },
+    })
+
+    return PermissionMapper.toDomainPermission(permission)!
+  }
+
   async update(id: number, data: UpdatePermissionData): Promise<Permission> {
     const numericId = NumberUtil.ensureValidId(id, 'Permission ID')
 

@@ -8,8 +8,9 @@ import {
     StudentHomeworkListResponseDto,
     HomeworkContentWithStatusDto,
 } from '../../dtos/learningItem/student-homework.dto'
-import { CourseEnrollmentStatus, LearningItemType, Visibility } from 'src/shared/enums'
+import { CourseEnrollmentStatus, LearningItemType } from 'src/shared/enums'
 import { PrismaService } from 'src/prisma/prisma.service'
+import { StudentClassLessonAccessService } from 'src/application/services/student-class-lesson-access.service'
 
 @Injectable()
 export class GetStudentHomeworksUseCase {
@@ -19,6 +20,7 @@ export class GetStudentHomeworksUseCase {
         @Inject('IStudentLearningItemRepository')
         private readonly studentLearningItemRepository: IStudentLearningItemRepository,
         private readonly prisma: PrismaService,
+        private readonly studentClassLessonAccessService: StudentClassLessonAccessService,
     ) { }
 
     async execute(
@@ -50,23 +52,26 @@ export class GetStudentHomeworksUseCase {
             return new StudentHomeworkListResponseDto([], page, limit, 0)
         }
 
-        // 2. Build where clause — chỉ lấy learningItem thuộc lesson public trong khoá đang active enrollment
-        const lessonFilter: any = {
-            lesson: {
-                courseId: { in: enrolledCourseIds },
-                visibility: Visibility.PUBLISHED,
-            },
+        if (query.courseId) {
+            enrolledCourseIds.splice(0, enrolledCourseIds.length, query.courseId)
         }
 
-        // Thu hẹp thêm nếu client truyền courseId hoặc lessonId
+        const lessonAccessFilters =
+            await this.studentClassLessonAccessService.getLessonLearningItemAccessFilters(
+                enrolledCourseIds,
+                studentId,
+            )
+
+        if (lessonAccessFilters.length === 0) {
+            return new StudentHomeworkListResponseDto([], page, limit, 0)
+        }
+
+        const lessonFilter: any = lessonAccessFilters.length === 1
+            ? lessonAccessFilters[0]
+            : { OR: lessonAccessFilters }
+
         if (query.lessonId) {
             lessonFilter.lessonId = query.lessonId
-        }
-        if (query.courseId) {
-            lessonFilter.lesson = {
-                ...lessonFilter.lesson,
-                courseId: query.courseId, // override in → exact match
-            }
         }
 
         const where: any = {
@@ -100,10 +105,7 @@ export class GetStudentHomeworksUseCase {
                     },
                     lessons: {
                         where: {
-                            lesson: {
-                                courseId: { in: enrolledCourseIds },
-                                visibility: Visibility.PUBLISHED,
-                            },
+                            ...lessonFilter,
                         },
                         include: {
                             lesson: {

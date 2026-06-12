@@ -7,10 +7,14 @@ import {
 import { PrismaService } from '../../../prisma/prisma.service'
 import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 import { CourseEnrollmentStatus, Visibility } from '../../../shared/enums'
+import { StudentClassLessonAccessService } from 'src/application/services/student-class-lesson-access.service'
 
 @Injectable()
 export class GetStudentLessonLearningItemsUseCase {
-    constructor(private readonly prisma: PrismaService) { }
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly studentClassLessonAccessService: StudentClassLessonAccessService,
+    ) { }
 
     async execute(
         lessonId: number,
@@ -29,10 +33,23 @@ export class GetStudentLessonLearningItemsUseCase {
                     },
                 },
             },
-            select: { lessonId: true },
+            select: {
+                lessonId: true,
+                courseId: true,
+            },
         })
 
         if (!accessibleLesson) {
+            throw new NotFoundException('Không tìm thấy bài học')
+        }
+
+        const canViewLesson = await this.studentClassLessonAccessService.isLessonVisibleForStudent(
+            lessonId,
+            accessibleLesson.courseId,
+            studentId,
+        )
+
+        if (!canViewLesson) {
             throw new NotFoundException('Không tìm thấy bài học')
         }
 

@@ -114,6 +114,7 @@ export const PERMISSION_CODES = {
     CREATE: 'permission:create',
     UPDATE: 'permission:update',
     DELETE: 'permission:delete',
+    SYNC_FROM_CODES: 'permission:sync-from-codes',
   },
   USER: {
     TOGGLE_ACTIVATION: 'user:toggle-activation',
@@ -346,4 +347,280 @@ export const PERMISSION_CODES = {
     COMPETITIONS: 'admin:page:competitions',
     MY_COMPETITIONS: 'admin:page:my-competitions',
   },
+}
+
+export interface PermissionCodeDefinition {
+  code: string
+  name: string
+  description: string
+  group: string
+  isSystem: boolean
+}
+
+type PermissionCodeTree = string | { readonly [key: string]: PermissionCodeTree }
+export type PermissionCodeDefinitionTree =
+  | PermissionCodeDefinition
+  | { readonly [key: string]: PermissionCodeDefinitionTree }
+
+const PERMISSION_GROUPS_BY_KEY: Record<string, string> = {
+  EXAM: 'EXAM_MANAGEMENT',
+  COMPETITION: 'COMPETITION_MANAGEMENT',
+  COMPETITION_SUBMIT: 'COMPETITION_SUBMIT_MANAGEMENT',
+  QUESTION: 'QUESTION_MANAGEMENT',
+  SECTION: 'SECTION_MANAGEMENT',
+  STATEMENT: 'STATEMENT_MANAGEMENT',
+  COURSE: 'COURSE_MANAGEMENT',
+  STUDENT: 'STUDENT_MANAGEMENT',
+  SUBJECT: 'SUBJECT_MANAGEMENT',
+  LESSON: 'LESSON_MANAGEMENT',
+  CHAPTER: 'CHAPTER_MANAGEMENT',
+  ADMIN: 'ADMIN_MANAGEMENT',
+  ROLE: 'ROLE_MANAGEMENT',
+  PERMISSION: 'PERMISSION_MANAGEMENT',
+  USER: 'USER_MANAGEMENT',
+  MEDIA: 'MEDIA_MANAGEMENT',
+  ATTENDANCE: 'ATTENDANCE_MANAGEMENT',
+  CLASS_SESSION: 'CLASS_SESSION_MANAGEMENT',
+  COURSE_CLASS: 'COURSE_CLASS_MANAGEMENT',
+  COURSE_ENROLLMENT: 'COURSE_ENROLLMENT_MANAGEMENT',
+  NOTIFICATION: 'NOTIFICATION_MANAGEMENT',
+  MEDIA_FOLDER: 'MEDIA_FOLDER_MANAGEMENT',
+  MEDIA_USAGE: 'MEDIA_USAGE_MANAGEMENT',
+  SEO_MEDIA: 'SEO_MEDIA_MANAGEMENT',
+  LEARNING_ITEM: 'LEARNING_ITEM_MANAGEMENT',
+  TUITION_PAYMENT: 'TUITION_PAYMENT_MANAGEMENT',
+  MY_TUITION_PAYMENT_STATS: 'TUITION_PAYMENT_MANAGEMENT',
+  TEMP_EXAM: 'TEMP_EXAM_MANAGEMENT',
+  TEMP_SECTION: 'TEMP_SECTION_MANAGEMENT',
+  TEMP_QUESTION: 'TEMP_QUESTION_MANAGEMENT',
+  TEMP_STATEMENT: 'TEMP_STATEMENT_MANAGEMENT',
+  VIDEO_CONTENT: 'VIDEO_CONTENT_MANAGEMENT',
+  YOUTUBE_CONTENT: 'YOUTUBE_CONTENT_MANAGEMENT',
+  AUDIT_LOG: 'AUDIT_LOG_MANAGEMENT',
+  CLASS_STUDENT: 'CLASS_STUDENT_MANAGEMENT',
+  DOCUMENT_CONTENT: 'DOCUMENT_CONTENT_MANAGEMENT',
+  EXAM_IMPORT_SESSION: 'EXAM_IMPORT_SESSION_MANAGEMENT',
+  HOMEWORK_CONTENT: 'HOMEWORK_CONTENT_MANAGEMENT',
+  HOMEWORK_SUBMIT: 'HOMEWORK_SUBMIT_MANAGEMENT',
+  LESSON_LEARNING_ITEM: 'LESSON_LEARNING_ITEM_MANAGEMENT',
+  ADMIN_PAGE: 'ADMIN_PAGE_ACCESS',
+}
+
+const PERMISSION_RESOURCE_LABELS_BY_KEY: Record<string, string> = {
+  EXAM: 'exam',
+  COMPETITION: 'competition',
+  COMPETITION_SUBMIT: 'competition submission',
+  QUESTION: 'question',
+  SECTION: 'section',
+  STATEMENT: 'statement',
+  COURSE: 'course',
+  STUDENT: 'student',
+  SUBJECT: 'subject',
+  LESSON: 'lesson',
+  CHAPTER: 'chapter',
+  ADMIN: 'admin',
+  ROLE: 'role',
+  PERMISSION: 'permission',
+  USER: 'user',
+  MEDIA: 'media',
+  ATTENDANCE: 'attendance',
+  CLASS_SESSION: 'class session',
+  COURSE_CLASS: 'course class',
+  COURSE_ENROLLMENT: 'course enrollment',
+  NOTIFICATION: 'notification',
+  MEDIA_FOLDER: 'media folder',
+  MEDIA_USAGE: 'media usage',
+  SEO_MEDIA: 'SEO media',
+  LEARNING_ITEM: 'learning item',
+  TUITION_PAYMENT: 'tuition payment',
+  MY_TUITION_PAYMENT_STATS: 'my tuition payment stats',
+  TEMP_EXAM: 'temporary exam',
+  TEMP_SECTION: 'temporary section',
+  TEMP_QUESTION: 'temporary question',
+  TEMP_STATEMENT: 'temporary statement',
+  VIDEO_CONTENT: 'video content',
+  YOUTUBE_CONTENT: 'YouTube content',
+  AUDIT_LOG: 'audit log',
+  CLASS_STUDENT: 'class student',
+  DOCUMENT_CONTENT: 'document content',
+  EXAM_IMPORT_SESSION: 'exam import session',
+  HOMEWORK_CONTENT: 'homework content',
+  HOMEWORK_SUBMIT: 'homework submission',
+  LESSON_LEARNING_ITEM: 'lesson learning item',
+  ADMIN_PAGE: 'admin page',
+}
+
+const PERMISSION_ACTION_LABELS_BY_KEY: Record<string, string> = {
+  GET_ALL: 'View all',
+  GET_BY_ID: 'View detail',
+  GET_BY_EXAM: 'View by exam',
+  GET_BY_SESSION: 'View by session',
+  GET_BY_COURSE: 'View by course',
+  GET_BY_STUDENT: 'View by student',
+  GET_BY_USER_ID: 'View by user',
+  GET_BY_MEDIA: 'View by media',
+  GET_BY_ENTITY: 'View by entity',
+  GET_MY: 'View my',
+  GET_MY_EXAMS: 'View my exams',
+  GET_MY_COMPETITIONS: 'View my competitions',
+  GET_MY_HISTORY: 'View my history',
+  GET_MY_QUESTIONS: 'View my questions',
+  GET_MY_COURSES: 'View my courses',
+  GET_MY_CLASSES: 'View my classes',
+  GET_MY_MEDIA: 'View my media',
+  GET_MY_ATTENDANCES: 'View my attendance',
+  GET_MY_ENROLLMENTS: 'View my enrollments',
+  GET_MY_LEARNING_ITEMS: 'View my learning items',
+  SEARCH: 'Search',
+  CREATE: 'Create',
+  CREATE_BULK: 'Bulk create',
+  UPDATE: 'Update',
+  UPDATE_PRICING: 'Update pricing',
+  DELETE: 'Delete',
+  DELETE_MY: 'Delete my',
+  PERMANENT_DELETE: 'Permanent delete',
+  EXPORT_EXCEL: 'Export Excel',
+  IMPORT_EXCEL: 'Import Excel',
+  ASSIGN: 'Assign',
+  REMOVE_FROM_USER: 'Remove from user',
+  GET_USER_ROLES: 'View user roles',
+  TOGGLE_ROLE_PERMISSION: 'Toggle role permission',
+  GET_GROUPS: 'View groups',
+  TOGGLE_ACTIVATION: 'Toggle activation',
+  UPLOAD: 'Upload',
+  DOWNLOAD: 'Download',
+  DOWNLOAD_MY: 'Download my',
+  VIEW: 'View',
+  VIEW_MY: 'View my',
+  ADMIN_VIEW: 'Admin view',
+  ADMIN_DOWNLOAD: 'Admin download',
+  GET_BUCKETS: 'View buckets',
+  GET_STATISTICS_BUCKETS: 'View storage bucket statistics',
+  GET_ALL_BY_SESSION: 'View all by session',
+  GET_STUDENTS_ATTENDANCE: 'View students attendance',
+  MARK_READ: 'Mark read',
+  SEND: 'Send',
+  ATTACH: 'Attach',
+  DETACH: 'Detach',
+  UPLOAD_IMAGE: 'Upload image',
+  SLOT_CREATE: 'Create slot',
+  SLOT_VIEW: 'View slot',
+  SLOT_UPDATE: 'Update slot',
+  SLOT_DELETE: 'Delete slot',
+  ITEM_CREATE: 'Create item',
+  ITEM_VIEW: 'View item',
+  ITEM_UPDATE: 'Update item',
+  ITEM_DELETE: 'Delete item',
+  ITEM_REORDER: 'Reorder item',
+  STATS: 'View stats',
+  REGRADE: 'Regrade',
+  REORDER: 'Reorder',
+  ADD_TO_EXAM: 'Add to exam',
+  ADD_TO_SECTION: 'Add to section',
+  REMOVE_FROM_EXAM: 'Remove from exam',
+  GRADE: 'Grade',
+  ROLLBACK: 'Rollback',
+  SYNC_FROM_CODES: 'Sync from permission codes',
+}
+
+const ADMIN_PAGE_LABELS_BY_KEY: Record<string, string> = {
+  DASHBOARD: 'Dashboard',
+  ROLES: 'Roles',
+  ROLE_CREATE: 'Role create',
+  ROLE_EDIT: 'Role edit',
+  PERMISSIONS: 'Permissions',
+  AUDIT_LOGS: 'Audit logs',
+  MEDIA: 'Media',
+  MEDIA_FOLDERS: 'Media folders',
+  SEO_MEDIA: 'SEO media',
+  ADMINS: 'Admins',
+  ADMIN_DETAIL: 'Admin detail',
+  STUDENTS: 'Students',
+  STUDENT_DETAIL: 'Student detail',
+  CHAPTERS: 'Chapters',
+  SUBJECTS: 'Subjects',
+  COURSES: 'Courses',
+  COURSE_DETAIL: 'Course detail',
+  MY_COURSES: 'My courses',
+  CLASSES: 'Classes',
+  CLASS_DETAIL: 'Class detail',
+  MY_CLASSES: 'My classes',
+  BROADCAST_NOTIFICATIONS: 'Broadcast notifications',
+  TUITION_PAYMENTS: 'Tuition payments',
+  EXAM_IMPORT_SESSIONS: 'Exam import sessions',
+  QUESTIONS: 'Questions',
+  MY_QUESTIONS: 'My questions',
+  EXAMS: 'Exams',
+  MY_EXAMS: 'My exams',
+  COMPETITIONS: 'Competitions',
+  MY_COMPETITIONS: 'My competitions',
+}
+
+const SELF_CONTAINED_ACTION_KEYS = new Set([
+  'GET_MY_EXAMS',
+  'GET_MY_COMPETITIONS',
+  'GET_MY_HISTORY',
+  'GET_MY_QUESTIONS',
+  'GET_MY_COURSES',
+  'GET_MY_CLASSES',
+  'GET_MY_MEDIA',
+  'GET_MY_ATTENDANCES',
+  'GET_MY_ENROLLMENTS',
+  'GET_MY_LEARNING_ITEMS',
+  'GET_USER_ROLES',
+  'TOGGLE_ROLE_PERMISSION',
+  'GET_STATISTICS_BUCKETS',
+  'GET_STUDENTS_ATTENDANCE',
+  'SYNC_FROM_CODES',
+])
+
+export const PERMISSION_CODE_DEFINITIONS = buildPermissionCodeDefinitions(PERMISSION_CODES as PermissionCodeTree)
+
+function buildPermissionCodeDefinitions(node: PermissionCodeTree, path: string[] = []): PermissionCodeDefinitionTree {
+  if (typeof node === 'string') {
+    const name = buildPermissionName(path)
+
+    return {
+      code: node,
+      name,
+      description: buildPermissionDescription(name, node),
+      group: PERMISSION_GROUPS_BY_KEY[path[0]] || 'SYSTEM',
+      isSystem: true,
+    }
+  }
+
+  return Object.fromEntries(
+    Object.entries(node).map(([key, value]) => [key, buildPermissionCodeDefinitions(value, [...path, key])]),
+  )
+}
+
+function buildPermissionName(path: string[]): string {
+  const resourceKey = path[0]
+  const actionKey = path[path.length - 1]
+
+  if (resourceKey === 'ADMIN_PAGE') {
+    return `Access ${ADMIN_PAGE_LABELS_BY_KEY[actionKey] || toTitleCase(actionKey)} admin page`.slice(0, 100)
+  }
+
+  const actionLabel = PERMISSION_ACTION_LABELS_BY_KEY[actionKey] || toTitleCase(actionKey)
+  const resourceLabel = PERMISSION_RESOURCE_LABELS_BY_KEY[resourceKey] || toTitleCase(resourceKey)
+
+  if (SELF_CONTAINED_ACTION_KEYS.has(actionKey)) {
+    return actionLabel.slice(0, 100)
+  }
+
+  return `${actionLabel} ${resourceLabel}`.slice(0, 100)
+}
+
+function buildPermissionDescription(name: string, code: string): string {
+  return `Allows ${name.toLowerCase()} (${code}).`.slice(0, 255)
+}
+
+function toTitleCase(value: string): string {
+  return value
+    .toLowerCase()
+    .split('_')
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
 }
