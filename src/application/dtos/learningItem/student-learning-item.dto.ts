@@ -192,35 +192,51 @@ export class HomeworkProgressDto {
         isDone: boolean
         hasInProgressSubmit: boolean
     }): HomeworkStatus {
-        const { now, dueDate, startDate, endDate, attemptCount, maxAttempts, allowLateSubmit, isDone, hasInProgressSubmit } = params
+        const {
+            now,
+            dueDate,
+            startDate,
+            endDate,
+            attemptCount,
+            maxAttempts,
+            allowLateSubmit,
+            hasInProgressSubmit,
+        } = params
 
         // Nếu đang có lần thi IN_PROGRESS → ưu tiên cho làm tiếp trước mọi kiểm tra khác
         if (hasInProgressSubmit) {
             return HomeworkStatus.RESUME
         }
 
-        // Nếu đã đạt max attempts (chỉ tính các lần đã hoàn thành)
+        // Nếu đã đạt max attempts
         if (maxAttempts && attemptCount >= maxAttempts) {
             return HomeworkStatus.COMPLETED
         }
 
-        // Nếu có endDate và đã quá endDate → quá hạn (kể cả khi chưa đến startDate)
+        /**
+         * Nếu competition có endDate và đã quá endDate
+         * => hết hạn thật sự, không được nộp nữa.
+         */
         if (endDate && now > endDate) {
             return HomeworkStatus.OVERDUE
         }
 
-        // Nếu có dueDate và đã quá dueDate → kiểm tra nộp muộn (kể cả khi chưa đến startDate)
+        /**
+         * Nếu homework có dueDate và đã quá dueDate:
+         * - allowLateSubmit = true:
+         *   + Nếu có endDate thì do phía trên đã check chưa quá endDate => cho nộp muộn.
+         *   + Nếu không có endDate => cho nộp muộn vô thời hạn.
+         * - allowLateSubmit = false => quá hạn.
+         */
         if (dueDate && now > dueDate) {
-            if (allowLateSubmit && endDate && now <= endDate) {
+            if (allowLateSubmit) {
                 return HomeworkStatus.LATE_SUBMIT
             }
-            // Không có endDate hoặc không cho phép nộp muộn
-            if (!endDate) {
-                return HomeworkStatus.OVERDUE
-            }
+
+            return HomeworkStatus.OVERDUE
         }
 
-        // Chưa đến thời gian bắt đầu (và deadline chưa qua)
+        // Chưa đến thời gian bắt đầu
         if (startDate && now < startDate) {
             return HomeworkStatus.NOT_STARTED
         }
@@ -228,9 +244,9 @@ export class HomeworkProgressDto {
         // Còn trong thời hạn
         if (attemptCount > 0) {
             return HomeworkStatus.REDO
-        } else {
-            return HomeworkStatus.DO_NOW
         }
+
+        return HomeworkStatus.DO_NOW
     }
 }
 
