@@ -5,6 +5,68 @@ import { Visibility } from '../../../shared/enums'
 import { LearningItemResponseDto } from '../learningItem'
 import { ChapterResponseDto } from '../chapter/chapter.dto'
 
+export class LessonCourseClassLessonResponseDto {
+    classId: number
+    lessonId: number
+    displayOrder?: number
+    isVisible: boolean
+    availableFrom?: Date
+    availableUntil?: Date
+    createdAt?: Date
+    updatedAt?: Date
+    isBase?: boolean
+    courseClass?: {
+        classId: number
+        courseId: number
+        className: string
+        startDate?: Date | null
+        endDate?: Date | null
+        weeklySchedule?: string | null
+        room?: string | null
+        instructorId?: number | null
+    }
+
+    static fromPrisma(courseClassLesson: any): LessonCourseClassLessonResponseDto {
+        return {
+            classId: courseClassLesson.classId,
+            lessonId: courseClassLesson.lessonId,
+            displayOrder: courseClassLesson.displayOrder ?? undefined,
+            isVisible: courseClassLesson.isVisible,
+            availableFrom: courseClassLesson.availableFrom ?? undefined,
+            availableUntil: courseClassLesson.availableUntil ?? undefined,
+            createdAt: courseClassLesson.createdAt,
+            updatedAt: courseClassLesson.updatedAt,
+            isBase: false,
+            courseClass: courseClassLesson.courseClass
+                ? this.mapCourseClass(courseClassLesson.courseClass)
+                : undefined,
+        }
+    }
+
+    static baseFromCourseClass(courseClass: any, lessonId: number): LessonCourseClassLessonResponseDto {
+        return {
+            classId: courseClass.classId,
+            lessonId,
+            isVisible: true,
+            isBase: true,
+            courseClass: this.mapCourseClass(courseClass),
+        }
+    }
+
+    private static mapCourseClass(courseClass: any): LessonCourseClassLessonResponseDto['courseClass'] {
+        return {
+            classId: courseClass.classId,
+            courseId: courseClass.courseId,
+            className: courseClass.className,
+            startDate: courseClass.startDate ?? null,
+            endDate: courseClass.endDate ?? null,
+            weeklySchedule: courseClass.weeklySchedule ?? null,
+            room: courseClass.room ?? null,
+            instructorId: courseClass.instructorId ?? null,
+        }
+    }
+}
+
 export class LessonResponseDto {
     lessonId: number
     courseId: number
@@ -27,6 +89,7 @@ export class LessonResponseDto {
         type: string;
         order?: number;
     }[]
+    courseClassLessons?: LessonCourseClassLessonResponseDto[]
     learningItemsCount?: number
 
     // Computed fields
