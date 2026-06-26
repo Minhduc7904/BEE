@@ -1,6 +1,7 @@
 import { PaginationResponseDto } from '../pagination/pagination-response.dto'
 import { SeoMediaItemEntity } from 'src/domain/entities'
 import { toMinioPublicUrl } from 'src/shared/utils'
+import { MediaType } from 'src/shared/enums'
 
 export class SeoMediaSlotSummaryDto {
   slotId: number
@@ -17,9 +18,11 @@ export class SeoMediaItemResponseDto {
   publicUrl: string
   originalName: string
   mimeType: string
+  mediaType: MediaType
   fileSize: number
   width: number | null
   height: number | null
+  duration: number | null
   sortOrder: number
   alt: string | null
   linkUrl: string | null
@@ -36,9 +39,11 @@ export class SeoMediaItemResponseDto {
     dto.publicUrl = toMinioPublicUrl(entity.publicUrl)
     dto.originalName = entity.originalName
     dto.mimeType = entity.mimeType
+    dto.mediaType = entity.mediaType
     dto.fileSize = entity.fileSize
     dto.width = entity.width
     dto.height = entity.height
+    dto.duration = entity.duration
     dto.sortOrder = entity.sortOrder
     dto.alt = entity.alt
     dto.linkUrl = entity.linkUrl

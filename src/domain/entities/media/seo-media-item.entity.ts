@@ -1,4 +1,5 @@
 import { SeoMediaSlotEntity } from './seo-media-slot.entity'
+import { MediaType } from 'src/shared/enums'
 
 /**
  * SeoMediaItemEntity
@@ -12,9 +13,11 @@ export class SeoMediaItemEntity {
   publicUrl: string
   originalName: string
   mimeType: string
+  mediaType: MediaType
   fileSize: number
   width: number | null
   height: number | null
+  duration: number | null
   sortOrder: number
   alt: string | null
   linkUrl: string | null
@@ -30,9 +33,11 @@ export class SeoMediaItemEntity {
     publicUrl: string
     originalName: string
     mimeType: string
+    mediaType: MediaType
     fileSize: number
     width: number | null
     height: number | null
+    duration: number | null
     sortOrder: number
     alt: string | null
     linkUrl: string | null

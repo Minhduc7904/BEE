@@ -1,19 +1,11 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Inject,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common'
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common'
 import { BaseResponseDto } from 'src/application/dtos'
-import {
-  CreateSeoMediaItemDto,
-  SeoMediaItemResponseDto,
-} from 'src/application/dtos/seo-media'
+import { CreateSeoMediaItemDto, SeoMediaItemResponseDto } from 'src/application/dtos/seo-media'
 import type { ISeoMediaItemRepository } from 'src/domain/repositories/seo-media-item.repository'
 import type { ISeoMediaSlotRepository } from 'src/domain/repositories/seo-media-slot.repository'
 import { MinioService } from 'src/infrastructure/services/minio.service'
-import { buildPublicObjectPath } from 'src/shared/utils'
+import { buildPublicObjectPath, detectMediaType } from 'src/shared/utils'
+import { MediaType } from 'src/shared/enums'
 
 @Injectable()
 export class CreateSeoMediaItemUseCase {
@@ -33,13 +25,11 @@ export class CreateSeoMediaItemUseCase {
 
     const bucketName = this.getSeoBucketName(dto.bucketName)
     const objectKey = this.getSeoObjectKey(dto.objectKey)
+    const mediaType = this.getSeoMediaType(dto.mediaType, dto.mimeType, objectKey)
 
-    const duplicated = await this.seoMediaItemRepository.findBySlotAndObjectKey(
-      dto.slotId,
-      objectKey,
-    )
+    const duplicated = await this.seoMediaItemRepository.findBySlotAndObjectKey(dto.slotId, objectKey)
     if (duplicated) {
-      throw new ConflictException('Image already exists in this SEO slot')
+      throw new ConflictException('Media already exists in this SEO slot')
     }
 
     const item = await this.seoMediaItemRepository.create(
@@ -50,9 +40,11 @@ export class CreateSeoMediaItemUseCase {
         publicUrl: buildPublicObjectPath(bucketName, objectKey),
         originalName: dto.originalName.trim(),
         mimeType: dto.mimeType.trim(),
+        mediaType,
         fileSize: dto.fileSize,
         width: dto.width,
         height: dto.height,
+        duration: mediaType === MediaType.VIDEO ? (dto.duration ?? null) : null,
         sortOrder: dto.sortOrder,
         alt: dto.alt?.trim() || undefined,
         linkUrl: dto.linkUrl?.trim() || undefined,
@@ -62,10 +54,7 @@ export class CreateSeoMediaItemUseCase {
       },
     )
 
-    return BaseResponseDto.success(
-      'SEO media item created successfully',
-      SeoMediaItemResponseDto.fromEntity(item),
-    )
+    return BaseResponseDto.success('SEO media item created successfully', SeoMediaItemResponseDto.fromEntity(item))
   }
 
   private getSeoBucketName(inputBucketName?: string): string {
@@ -82,11 +71,30 @@ export class CreateSeoMediaItemUseCase {
   private getSeoObjectKey(inputObjectKey: string): string {
     const objectKey = this.normalizeSeoObjectKey(inputObjectKey)
 
-    if (!/^images\/\d{4}\/\d{2}\/.+/.test(objectKey)) {
+    if (!/^(images|videos)\/\d{4}\/\d{2}\/.+/.test(objectKey)) {
       throw new BadRequestException('SEO media objectKey must be uploaded by SEO media upload API')
     }
 
     return objectKey
+  }
+
+  private getSeoMediaType(inputMediaType: MediaType | undefined, mimeType: string, objectKey: string): MediaType {
+    const mediaType = inputMediaType ?? detectMediaType(mimeType)
+    const isSupported = [MediaType.IMAGE, MediaType.VIDEO].includes(mediaType)
+
+    if (!isSupported) {
+      throw new BadRequestException('SEO media item only supports image and video')
+    }
+
+    if (mediaType === MediaType.IMAGE && !objectKey.startsWith('images/')) {
+      throw new BadRequestException('IMAGE SEO media item must use objectKey from images/')
+    }
+
+    if (mediaType === MediaType.VIDEO && !objectKey.startsWith('videos/')) {
+      throw new BadRequestException('VIDEO SEO media item must use objectKey from videos/')
+    }
+
+    return mediaType
   }
 
   private normalizeSeoObjectKey(inputObjectKey: string): string {

@@ -3,8 +3,11 @@ import {
   IsRequiredNumber,
   IsRequiredString,
   IsOptionalString,
-  IsRequiredIdNumber
+  IsRequiredIdNumber,
+  IsOptionalEnumValue,
+  IsOptionalNumber,
 } from 'src/shared/decorators/validate'
+import { MediaType } from 'src/shared/enums'
 
 export class CreateSeoMediaItemDto {
   @IsRequiredIdNumber('ID slot')
@@ -25,6 +28,9 @@ export class CreateSeoMediaItemDto {
   @IsRequiredString('MIME type', 100)
   mimeType: string
 
+  @IsOptionalEnumValue(MediaType, 'Media type')
+  mediaType?: MediaType
+
   @IsRequiredNumber('File size', 1)
   fileSize: number
 
@@ -33,6 +39,9 @@ export class CreateSeoMediaItemDto {
 
   @IsOptionalInt('Height', 1)
   height?: number
+
+  @IsOptionalNumber('Duration', 0)
+  duration?: number
 
   @IsOptionalInt('Thứ tự hiển thị', 0)
   sortOrder?: number

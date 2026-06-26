@@ -14,7 +14,8 @@ const SEO_MEDIA_USE_CASES = [
   seoMediaUseCases.UpdateSeoMediaItemUseCase,
   seoMediaUseCases.DeleteSeoMediaItemUseCase,
   seoMediaUseCases.ReorderSeoMediaItemsUseCase,
-  seoMediaUseCases.UploadSeoMediaImageUseCase,
+  seoMediaUseCases.UploadSeoMediaUseCase,
+  seoMediaUseCases.GetSeoMediaBucketMediaUseCase,
   seoMediaUseCases.GetPublicSeoMediaItemsBySlotCodeUseCase,
 ]
 

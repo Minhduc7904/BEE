@@ -192,7 +192,9 @@ export const PERMISSION_CODES = {
     DETACH: 'media-usage:detach',
   },
   SEO_MEDIA: {
+    UPLOAD_MEDIA: 'seo-media:upload-media',
     UPLOAD_IMAGE: 'seo-media:upload-image',
+    BUCKET_MEDIA_VIEW: 'seo-media:bucket-media:view',
     SLOT_CREATE: 'seo-media:slot:create',
     SLOT_VIEW: 'seo-media:slot:view',
     SLOT_UPDATE: 'seo-media:slot:update',
@@ -503,6 +505,8 @@ const PERMISSION_ACTION_LABELS_BY_KEY: Record<string, string> = {
   ATTACH: 'Attach',
   DETACH: 'Detach',
   UPLOAD_IMAGE: 'Upload image',
+  UPLOAD_MEDIA: 'Upload media',
+  BUCKET_MEDIA_VIEW: 'View bucket media',
   SLOT_CREATE: 'Create slot',
   SLOT_VIEW: 'View slot',
   SLOT_UPDATE: 'Update slot',

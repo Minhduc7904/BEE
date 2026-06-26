@@ -18,18 +18,20 @@ import { BaseResponseDto } from 'src/application/dtos'
 import {
   CreateSeoMediaItemDto,
   CreateSeoMediaSlotDto,
+  GetSeoMediaBucketMediaListDto,
   GetSeoMediaItemListDto,
   GetSeoMediaSlotListDto,
   GetSeoMediaSlotDetailQueryDto,
   ReorderSeoMediaItemsDto,
+  SeoMediaBucketMediaListResponseDto,
   SeoMediaItemListResponseDto,
   SeoMediaItemResponseDto,
   SeoMediaSlotListResponseDto,
   SeoMediaSlotResponseDto,
-  SeoMediaUploadImageResponseDto,
+  SeoMediaUploadResponseDto,
   UpdateSeoMediaItemDto,
   UpdateSeoMediaSlotDto,
-  UploadSeoMediaImageDto,
+  UploadSeoMediaDto,
 } from 'src/application/dtos/seo-media'
 import {
   CreateSeoMediaItemUseCase,
@@ -40,9 +42,10 @@ import {
   GetSeoMediaItemsBySlotUseCase,
   GetSeoMediaSlotByCodeUseCase,
   GetSeoMediaSlotByIdUseCase,
+  GetSeoMediaBucketMediaUseCase,
   GetSeoMediaSlotListUseCase,
   ReorderSeoMediaItemsUseCase,
-  UploadSeoMediaImageUseCase,
+  UploadSeoMediaUseCase,
   UpdateSeoMediaItemUseCase,
   UpdateSeoMediaSlotUseCase,
 } from 'src/application/use-cases/seo-media'
@@ -69,7 +72,8 @@ export class SeoMediaController {
     private readonly updateSeoMediaItemUseCase: UpdateSeoMediaItemUseCase,
     private readonly deleteSeoMediaItemUseCase: DeleteSeoMediaItemUseCase,
     private readonly reorderSeoMediaItemsUseCase: ReorderSeoMediaItemsUseCase,
-    private readonly uploadSeoMediaImageUseCase: UploadSeoMediaImageUseCase,
+    private readonly uploadSeoMediaUseCase: UploadSeoMediaUseCase,
+    private readonly getSeoMediaBucketMediaUseCase: GetSeoMediaBucketMediaUseCase,
   ) {}
 
   /**
@@ -82,40 +86,133 @@ export class SeoMediaController {
     @Param('code') code: string,
     @Query() query: GetSeoMediaItemListDto,
   ): Promise<SeoMediaItemListResponseDto> {
-    return ExceptionHandler.execute(() =>
-      this.getPublicSeoMediaItemsBySlotCodeUseCase.execute(code, query),
-    )
+    return ExceptionHandler.execute(() => this.getPublicSeoMediaItemsBySlotCodeUseCase.execute(code, query))
   }
 
+  /**
+   * Upload anh hoac video SEO len public MinIO bucket.
+   *
+   * Endpoint:
+   * - Method: POST
+   * - Full path: /api/seo-media/upload-media
+   * - Controller path: /seo-media/upload-media
+   * - Content-Type: multipart/form-data
+   *
+   * Authentication/permission:
+   * - Yeu cau Bearer token hop le.
+   * - Yeu cau mot trong hai permission:
+   *   - SEO_MEDIA.UPLOAD_MEDIA (`seo-media:upload-media`).
+   *   - SEO_MEDIA.UPLOAD_IMAGE (`seo-media:upload-image`) de tuong thich role cu.
+   *
+   * Request:
+   * - Form-data field `file`: binary, required.
+   * - Chap nhan file co MIME type `image/*` hoac `video/*`.
+   * - Gioi han dung luong: admin 50 MB; student/role khac 5 MB.
+   * - UploadSeoMediaDto hien khong co them body field.
+   *
+   * Processing:
+   * - JPEG/PNG co the duoc resize toi da 2560x2560 va chuyen sang WebP neu file nho hon.
+   * - GIF va cac dinh dang anh khac duoc giu nguyen dinh dang.
+   * - Video co the duoc resize chieu rong toi da 1280px va chuyen sang MP4 H.264/AAC neu file nho hon.
+   * - File duoc upload vao bucket cau hinh `seoMedia`.
+   * - Object key bat dau bang `images/` voi anh hoac `videos/` voi video.
+   *
+   * Response (HTTP 201 Created, BaseResponseDto<SeoMediaUploadResponseDto>):
+   * - success: boolean
+   * - message: string
+   * - data.bucketName: string - Ten bucket MinIO.
+   * - data.objectKey: string - Duong dan object trong bucket.
+   * - data.publicUrl: string - URL public cua anh.
+   * - data.originalName: string - Ten file da duoc sanitize; extension co the thay doi sau toi uu.
+   * - data.mediaType: IMAGE | VIDEO - Loai media da upload.
+   * - data.mimeType: string - MIME type thuc te cua file sau toi uu.
+   * - data.fileSize: number - Dung luong file sau toi uu, tinh bang byte.
+   * - data.width: number | null - Chieu rong anh sau toi uu.
+   * - data.height: number | null - Chieu cao anh sau toi uu.
+   * - data.duration: number | null - Thoi luong video tinh bang giay; null voi anh/khong doc duoc metadata.
+   *
+   * Errors:
+   * - 400 Bad Request neu thieu file, file vuot qua gioi han hoac file khong phai anh/video.
+   *
+   * @example
+   * POST /api/seo-media/upload-media
+   * Authorization: Bearer <access-token>
+   * Content-Type: multipart/form-data
+   * form-data: file=<binary image or video>
+   */
   @UseInterceptors(FileInterceptor('file'), FileSizeByRoleInterceptor)
-  @Post('upload-image')
-  @RequirePermission(PERMISSION_CODES.SEO_MEDIA.UPLOAD_IMAGE)
+  @Post('upload-media')
+  @RequirePermission(PERMISSION_CODES.SEO_MEDIA.UPLOAD_MEDIA, PERMISSION_CODES.SEO_MEDIA.UPLOAD_IMAGE)
   @HttpCode(HttpStatus.CREATED)
-  async uploadSeoImage(
+  async uploadSeoMedia(
     @UploadedFile() file: Express.Multer.File,
-    @Body() dto: UploadSeoMediaImageDto,
+    @Body() dto: UploadSeoMediaDto,
     @CurrentUser('userId') userId: number,
-  ): Promise<BaseResponseDto<SeoMediaUploadImageResponseDto>> {
-    return ExceptionHandler.execute(() =>
-      this.uploadSeoMediaImageUseCase.execute(file, userId, dto),
-    )
+  ): Promise<BaseResponseDto<SeoMediaUploadResponseDto>> {
+    return ExceptionHandler.execute(() => this.uploadSeoMediaUseCase.execute(file, userId, dto))
+  }
+
+  /**
+   * Lay danh sach anh/video dang co trong MinIO bucket SEO media.
+   *
+   * Endpoint:
+   * - Method: GET
+   * - Full path: /api/seo-media/bucket/media
+   * - Controller path: /seo-media/bucket/media
+   *
+   * Authentication/permission:
+   * - Yeu cau Bearer token hop le.
+   * - Yeu cau permission SEO_MEDIA.BUCKET_MEDIA_VIEW (`seo-media:bucket-media:view`).
+   *
+   * Request:
+   * - Query `page`: number, optional, default 1.
+   * - Query `limit`: number, optional, default 10, max 1000.
+   * - Query `mediaType`: IMAGE | VIDEO, optional. Neu khong truyen se tra ca anh va video.
+   * - Query `prefix`: string, optional. Neu truyen `2026/06` kem `mediaType=VIDEO` se thanh `videos/2026/06/`.
+   * - Query `search`: string, optional, tim theo objectKey/file name.
+   * - Query `sortBy`: string, optional. Ho tro `lastModified`, `objectKey`, `fileName`, `fileSize`.
+   * - Query `sortOrder`: asc | desc, optional, default desc.
+   *
+   * Response (HTTP 200 OK, SeoMediaBucketMediaListResponseDto):
+   * - success: boolean
+   * - message: string
+   * - data[].bucketName: string - Ten bucket MinIO.
+   * - data[].objectKey: string - Duong dan object trong bucket.
+   * - data[].fileName: string - Ten file lay tu objectKey.
+   * - data[].originalName: string - Ten file co the dung de goi API tao SEO media item.
+   * - data[].publicUrl: string - URL public de render media truc tiep.
+   * - data[].mediaType: IMAGE | VIDEO - Loai media.
+   * - data[].mimeType: string - MIME type suy ra tu extension.
+   * - data[].fileSize: number - Dung luong file tinh bang byte.
+   * - data[].duration: number | null - Luon null khi chi list bucket; lay duration tu upload response neu can.
+   * - data[].etag: string | undefined - ETag cua object tren MinIO.
+   * - data[].lastModified: Date | undefined - Thoi diem object duoc cap nhat lan cuoi.
+   * - meta.page/meta.limit/meta.total/meta.totalPages/meta.hasPrevious/meta.hasNext: thong tin phan trang.
+   *
+   * @example
+   * GET /api/seo-media/bucket/media?page=1&limit=20&mediaType=VIDEO&prefix=2026/06&sortBy=lastModified&sortOrder=desc
+   * Authorization: Bearer <access-token>
+   */
+  @Get('bucket/media')
+  @RequirePermission(PERMISSION_CODES.SEO_MEDIA.BUCKET_MEDIA_VIEW)
+  @HttpCode(HttpStatus.OK)
+  async getSeoMediaBucketMedia(
+    @Query() query: GetSeoMediaBucketMediaListDto,
+  ): Promise<SeoMediaBucketMediaListResponseDto> {
+    return ExceptionHandler.execute(() => this.getSeoMediaBucketMediaUseCase.execute(query))
   }
 
   @Post('slots')
   @RequirePermission(PERMISSION_CODES.SEO_MEDIA.SLOT_CREATE)
   @HttpCode(HttpStatus.CREATED)
-  async createSlot(
-    @Body() dto: CreateSeoMediaSlotDto,
-  ): Promise<BaseResponseDto<SeoMediaSlotResponseDto>> {
+  async createSlot(@Body() dto: CreateSeoMediaSlotDto): Promise<BaseResponseDto<SeoMediaSlotResponseDto>> {
     return ExceptionHandler.execute(() => this.createSeoMediaSlotUseCase.execute(dto))
   }
 
   @Get('slots')
   @RequirePermission(PERMISSION_CODES.SEO_MEDIA.SLOT_VIEW)
   @HttpCode(HttpStatus.OK)
-  async getSlots(
-    @Query() dto: GetSeoMediaSlotListDto,
-  ): Promise<SeoMediaSlotListResponseDto> {
+  async getSlots(@Query() dto: GetSeoMediaSlotListDto): Promise<SeoMediaSlotListResponseDto> {
     return ExceptionHandler.execute(() => this.getSeoMediaSlotListUseCase.execute(dto))
   }
 
@@ -165,9 +262,7 @@ export class SeoMediaController {
   @Post('items')
   @RequirePermission(PERMISSION_CODES.SEO_MEDIA.ITEM_CREATE)
   @HttpCode(HttpStatus.CREATED)
-  async createItem(
-    @Body() dto: CreateSeoMediaItemDto,
-  ): Promise<BaseResponseDto<SeoMediaItemResponseDto>> {
+  async createItem(@Body() dto: CreateSeoMediaItemDto): Promise<BaseResponseDto<SeoMediaItemResponseDto>> {
     return ExceptionHandler.execute(() => this.createSeoMediaItemUseCase.execute(dto))
   }
 
@@ -178,9 +273,7 @@ export class SeoMediaController {
     @Param('slotId', ParseIntPipe) slotId: number,
     @Query() query: GetSeoMediaItemListDto,
   ): Promise<SeoMediaItemListResponseDto> {
-    return ExceptionHandler.execute(() =>
-      this.getSeoMediaItemsBySlotUseCase.execute(slotId, query),
-    )
+    return ExceptionHandler.execute(() => this.getSeoMediaItemsBySlotUseCase.execute(slotId, query))
   }
 
   @Put('items/:itemId')
@@ -526,25 +619,27 @@ SEO MEDIA API DOCUMENTATION
   }
 }
 
-12) Upload SEO image to public MinIO bucket
-- Purpose: upload image to public `seo-media` bucket and return metadata for API #7.
-- Endpoint: POST /seo-media/upload-image
+12) Upload SEO image/video to public MinIO bucket
+- Purpose: upload image or video to public `seo-media` bucket and return metadata for API #7.
+- Endpoint: POST /seo-media/upload-media
 - Content-Type: multipart/form-data
 - Request:
-  - file: binary (required, image only)
+  - file: binary (required, image or video)
 - Response:
 {
   "success": true,
-  "message": "SEO image uploaded successfully",
+  "message": "SEO media uploaded successfully",
   "data": {
     "bucketName": "seo-media",
-    "objectKey": "seo-media/2026/05/uuid.jpg",
-    "publicUrl": "/seo-media/2026/05/uuid.jpg",
-    "originalName": "banner_home.jpg",
-    "mimeType": "image/jpeg",
-    "fileSize": 345678,
-    "width": 1920,
-    "height": 1080
+    "objectKey": "videos/2026/05/uuid.mp4",
+    "publicUrl": "/seo-media/videos/2026/05/uuid.mp4",
+    "originalName": "home_intro.mp4",
+    "mediaType": "VIDEO",
+    "mimeType": "video/mp4",
+    "fileSize": 3456780,
+    "width": 1280,
+    "height": 720,
+    "duration": 32.5
   }
 }
 
@@ -580,6 +675,47 @@ SEO MEDIA API DOCUMENTATION
   "meta": {
     "page": 1,
     "limit": 10,
+    "total": 1,
+    "totalPages": 1,
+    "hasPrevious": false,
+    "hasNext": false
+  }
+}
+
+14) Get SEO media bucket media
+- Purpose: list image/video objects directly from public `seo-media` MinIO bucket for admin selection UI.
+- Endpoint: GET /seo-media/bucket/media?page=1&limit=20&mediaType=IMAGE&prefix=2026/06&search=home&sortBy=lastModified&sortOrder=desc
+- Request:
+  - Query params:
+    - page: number, optional, default 1
+    - limit: number, optional, default 10
+    - mediaType: `IMAGE` | `VIDEO`, optional. If omitted, returns both images and videos.
+    - prefix: string, optional. With `mediaType=IMAGE`, `2026/06` is normalized to `images/2026/06/`; with `mediaType=VIDEO`, it is normalized to `videos/2026/06/`.
+    - search: string, optional, filters by objectKey/file name
+    - sortBy: `lastModified` | `objectKey` | `fileName` | `fileSize`, optional
+    - sortOrder: `asc` | `desc`, optional
+- Response:
+{
+  "success": true,
+  "message": "SEO media bucket media retrieved successfully",
+  "data": [
+    {
+      "bucketName": "seo-media",
+      "objectKey": "images/2026/05/uuid.webp",
+      "fileName": "uuid.webp",
+      "originalName": "uuid.webp",
+      "publicUrl": "http://localhost:9000/seo-media/images/2026/05/uuid.webp",
+      "mediaType": "IMAGE",
+      "mimeType": "image/webp",
+      "fileSize": 123456,
+      "duration": null,
+      "etag": "9b2cf535f27731c974343645a3985328",
+      "lastModified": "2026-05-06T10:00:00.000Z"
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 20,
     "total": 1,
     "totalPages": 1,
     "hasPrevious": false,

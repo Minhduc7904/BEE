@@ -4,16 +4,13 @@ import { SeoMediaItemEntity } from '../../../domain/entities'
 import { ISeoMediaItemRepository } from '../../../domain/repositories/seo-media-item.repository'
 import { PrismaService } from '../../../prisma/prisma.service'
 import { SeoMediaItemMapper } from '../../mappers/media/seo-media-item.mapper'
+import { MediaType } from 'src/shared/enums'
 
 @Injectable()
 export class PrismaSeoMediaItemRepository implements ISeoMediaItemRepository {
-  constructor(
-    private readonly prisma: PrismaService | Prisma.TransactionClient,
-  ) {}
+  constructor(private readonly prisma: PrismaService | Prisma.TransactionClient) {}
 
-  private buildInclude(options?: {
-    includeSlot?: boolean
-  }) {
+  private buildInclude(options?: { includeSlot?: boolean }) {
     const include: Record<string, boolean> = {}
 
     if (options?.includeSlot) {
@@ -31,9 +28,11 @@ export class PrismaSeoMediaItemRepository implements ISeoMediaItemRepository {
       publicUrl: string
       originalName: string
       mimeType: string
+      mediaType: MediaType
       fileSize: number
       width?: number | null
       height?: number | null
+      duration?: number | null
       sortOrder?: number
       alt?: string | null
       linkUrl?: string | null
@@ -50,9 +49,11 @@ export class PrismaSeoMediaItemRepository implements ISeoMediaItemRepository {
         publicUrl: data.publicUrl,
         originalName: data.originalName,
         mimeType: data.mimeType,
+        mediaType: data.mediaType,
         fileSize: BigInt(data.fileSize),
         width: data.width ?? null,
         height: data.height ?? null,
+        duration: data.duration ?? null,
         sortOrder: data.sortOrder ?? 0,
         alt: data.alt ?? null,
         linkUrl: data.linkUrl ?? null,
@@ -124,9 +125,11 @@ export class PrismaSeoMediaItemRepository implements ISeoMediaItemRepository {
       publicUrl?: string
       originalName?: string
       mimeType?: string
+      mediaType?: MediaType
       fileSize?: number
       width?: number | null
       height?: number | null
+      duration?: number | null
       sortOrder?: number
       alt?: string | null
       linkUrl?: string | null
@@ -142,9 +145,11 @@ export class PrismaSeoMediaItemRepository implements ISeoMediaItemRepository {
       ...(data.publicUrl !== undefined && { publicUrl: data.publicUrl }),
       ...(data.originalName !== undefined && { originalName: data.originalName }),
       ...(data.mimeType !== undefined && { mimeType: data.mimeType }),
+      ...(data.mediaType !== undefined && { mediaType: data.mediaType }),
       ...(data.fileSize !== undefined && { fileSize: BigInt(data.fileSize) }),
       ...(data.width !== undefined && { width: data.width }),
       ...(data.height !== undefined && { height: data.height }),
+      ...(data.duration !== undefined && { duration: data.duration }),
       ...(data.sortOrder !== undefined && { sortOrder: data.sortOrder }),
       ...(data.alt !== undefined && { alt: data.alt }),
       ...(data.linkUrl !== undefined && { linkUrl: data.linkUrl }),

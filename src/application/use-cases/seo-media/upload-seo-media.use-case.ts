@@ -1,22 +1,14 @@
 import { BadRequestException, Injectable } from '@nestjs/common'
 import { Readable } from 'stream'
 import { BaseResponseDto } from 'src/application/dtos'
-import {
-  SeoMediaUploadImageResponseDto,
-  UploadSeoMediaImageDto,
-} from 'src/application/dtos/seo-media'
+import { SeoMediaUploadResponseDto, UploadSeoMediaDto } from 'src/application/dtos/seo-media'
 import { MediaType } from 'src/shared/enums'
 import { MediaProcessingService } from 'src/infrastructure/services/media-processing.service'
 import { MinioService } from 'src/infrastructure/services/minio.service'
-import {
-  buildPublicObjectPath,
-  detectMediaType,
-  generateObjectKey,
-  sanitizeFilename,
-} from 'src/shared/utils'
+import { buildPublicObjectPath, detectMediaType, generateObjectKey, sanitizeFilename } from 'src/shared/utils'
 
 @Injectable()
-export class UploadSeoMediaImageUseCase {
+export class UploadSeoMediaUseCase {
   constructor(
     private readonly minioService: MinioService,
     private readonly mediaProcessingService: MediaProcessingService,
@@ -25,8 +17,8 @@ export class UploadSeoMediaImageUseCase {
   async execute(
     file: Express.Multer.File,
     userId: number,
-    dto?: UploadSeoMediaImageDto,
-  ): Promise<BaseResponseDto<SeoMediaUploadImageResponseDto>> {
+    dto?: UploadSeoMediaDto,
+  ): Promise<BaseResponseDto<SeoMediaUploadResponseDto>> {
     void userId
     void dto
 
@@ -35,14 +27,16 @@ export class UploadSeoMediaImageUseCase {
     }
 
     const detectedMediaType = detectMediaType(file.mimetype)
-    if (detectedMediaType !== MediaType.IMAGE) {
-      throw new BadRequestException('SEO media upload only supports image files')
+    const isSupported = [MediaType.IMAGE, MediaType.VIDEO].includes(detectedMediaType)
+    if (!isSupported) {
+      throw new BadRequestException('SEO media upload only supports image and video files')
     }
 
     let uploadBuffer = file.buffer
     let uploadMimeType = file.mimetype
     let width: number | undefined
     let height: number | undefined
+    let duration: number | undefined
 
     const optimized = await this.mediaProcessingService.optimize({
       buffer: file.buffer,
@@ -55,14 +49,17 @@ export class UploadSeoMediaImageUseCase {
       uploadMimeType = optimized.mimeType
       width = optimized.width ?? undefined
       height = optimized.height ?? undefined
+      duration = optimized.duration ?? undefined
     }
 
+    const mediaDirectory = detectedMediaType === MediaType.IMAGE ? 'images' : 'videos'
+    const fallbackName = detectedMediaType === MediaType.IMAGE ? 'seo_image' : 'seo_video'
     const sanitizedOriginalName = sanitizeFilename(file.originalname, {
-      fallbackName: 'seo_image',
+      fallbackName,
       overrideExtension: optimized?.extension,
     })
 
-    const objectKey = generateObjectKey('images', sanitizedOriginalName)
+    const objectKey = generateObjectKey(mediaDirectory, sanitizedOriginalName)
     const bucketName = this.minioService.getBuckets().seoMedia
 
     const stream = Readable.from(uploadBuffer)
@@ -72,16 +69,18 @@ export class UploadSeoMediaImageUseCase {
     })
 
     return BaseResponseDto.success(
-      'SEO image uploaded successfully',
-      SeoMediaUploadImageResponseDto.fromData({
+      'SEO media uploaded successfully',
+      SeoMediaUploadResponseDto.fromData({
         bucketName,
         objectKey,
         publicUrl: buildPublicObjectPath(bucketName, objectKey),
         originalName: sanitizedOriginalName,
+        mediaType: detectedMediaType,
         mimeType: uploadMimeType,
         fileSize: uploadBuffer.length,
         width,
         height,
+        duration,
       }),
     )
   }

@@ -1,5 +1,6 @@
 import { SeoMediaItemEntity } from '../../../domain/entities'
 import { SeoMediaSlotMapper } from './seo-media-slot.mapper'
+import { MediaType } from 'src/shared/enums'
 
 export class SeoMediaItemMapper {
   static toDomain(
@@ -16,9 +17,11 @@ export class SeoMediaItemMapper {
       publicUrl: prismaItem.publicUrl,
       originalName: prismaItem.originalName,
       mimeType: prismaItem.mimeType,
+      mediaType: prismaItem.mediaType ?? MediaType.IMAGE,
       fileSize: Number(prismaItem.fileSize),
       width: prismaItem.width ?? null,
       height: prismaItem.height ?? null,
+      duration: prismaItem.duration ?? null,
       sortOrder: prismaItem.sortOrder ?? 0,
       alt: prismaItem.alt ?? null,
       linkUrl: prismaItem.linkUrl ?? null,

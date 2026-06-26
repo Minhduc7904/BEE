@@ -1,4 +1,5 @@
 import { SeoMediaItemEntity } from '../entities'
+import { MediaType } from 'src/shared/enums'
 
 export interface ISeoMediaItemRepository {
   create(
@@ -9,9 +10,11 @@ export interface ISeoMediaItemRepository {
       publicUrl: string
       originalName: string
       mimeType: string
+      mediaType: MediaType
       fileSize: number
       width?: number | null
       height?: number | null
+      duration?: number | null
       sortOrder?: number
       alt?: string | null
       linkUrl?: string | null
@@ -54,9 +57,11 @@ export interface ISeoMediaItemRepository {
       publicUrl?: string
       originalName?: string
       mimeType?: string
+      mediaType?: MediaType
       fileSize?: number
       width?: number | null
       height?: number | null
+      duration?: number | null
       sortOrder?: number
       alt?: string | null
       linkUrl?: string | null
@@ -70,8 +75,5 @@ export interface ISeoMediaItemRepository {
 
   deleteBySlotId(slotId: number): Promise<number>
 
-  count(filters?: {
-    slotId?: number
-    objectKey?: string
-  }): Promise<number>
+  count(filters?: { slotId?: number; objectKey?: string }): Promise<number>
 }
