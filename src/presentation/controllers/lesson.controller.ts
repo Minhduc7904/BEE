@@ -107,9 +107,10 @@ export class LessonController {
     @RequirePermission(PERMISSION_CODES.LESSON.GET_BY_ID)
     @HttpCode(HttpStatus.OK)
     async getLessonById(
-        @Param('id', ParseIntPipe) id: number
+        @Param('id', ParseIntPipe) id: number,
+        @Query('courseId', new ParseIntPipe({ optional: true })) courseId?: number,
     ): Promise<BaseResponseDto<LessonResponseDto>> {
-        return ExceptionHandler.execute(() => this.getLessonByIdUseCase.execute(id))
+        return ExceptionHandler.execute(() => this.getLessonByIdUseCase.execute(id, courseId))
     }
 
 
