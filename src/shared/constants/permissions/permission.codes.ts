@@ -24,6 +24,7 @@ export const PERMISSION_CODES = {
     DELETE: 'competition-submit:delete',
     GET_MY_HISTORY: 'competition-submit:get-my-history',
     REGRADE: 'competition-submit:regrade',
+    EXPORT_EXCEL: 'competition-submit:export-excel',
   },
   QUESTION: {
     GET_MY_QUESTIONS: 'question:get-my-questions',
@@ -312,7 +313,6 @@ export const PERMISSION_CODES = {
     UPDATE: 'lesson-learning-item:update',
     DELETE: 'lesson-learning-item:delete',
   },
-
 
   // ===================================
   // ADMIN PAGE PERMISSIONS

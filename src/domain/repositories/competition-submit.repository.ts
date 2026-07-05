@@ -3,168 +3,170 @@ import { CompetitionSubmit } from '../entities/exam/competition-submit.entity'
 import { CompetitionSubmitStatus } from '../../shared/enums/competition-submit-status.enum'
 
 export interface CreateCompetitionSubmitData {
-    competitionId: number
-    studentId: number
-    attemptNumber: number
-    status: CompetitionSubmitStatus
-    startedAt: Date
-    submittedAt?: Date | null
-    gradedAt?: Date | null
-    totalPoints?: number | null
-    maxPoints?: number | null
-    timeSpentSeconds?: number | null
-    graderId?: number | null
-    feedback?: string | null
-    metadata?: any
+  competitionId: number
+  studentId: number
+  attemptNumber: number
+  status: CompetitionSubmitStatus
+  startedAt: Date
+  submittedAt?: Date | null
+  gradedAt?: Date | null
+  totalPoints?: number | null
+  maxPoints?: number | null
+  timeSpentSeconds?: number | null
+  graderId?: number | null
+  feedback?: string | null
+  metadata?: any
 }
 
 export interface UpdateCompetitionSubmitData {
-    status?: CompetitionSubmitStatus
-    submittedAt?: Date | null
-    gradedAt?: Date | null
-    totalPoints?: number | null
-    maxPoints?: number | null
-    timeSpentSeconds?: number | null
-    graderId?: number | null
-    feedback?: string | null
-    metadata?: any
+  status?: CompetitionSubmitStatus
+  submittedAt?: Date | null
+  gradedAt?: Date | null
+  totalPoints?: number | null
+  maxPoints?: number | null
+  timeSpentSeconds?: number | null
+  graderId?: number | null
+  feedback?: string | null
+  metadata?: any
 }
 
 export interface GradeCompetitionSubmitData {
-    totalPoints: number
-    maxPoints: number
-    gradedAt: Date
-    metadata?: any
+  totalPoints: number
+  maxPoints: number
+  gradedAt: Date
+  metadata?: any
 }
 
 export interface CompetitionSubmitFilterOptions {
-    competitionId?: number
-    studentId?: number
-    search?: string
-    status?: CompetitionSubmitStatus
-    attemptNumber?: number
-    startedFrom?: Date
-    startedTo?: Date
-    submittedFrom?: Date
-    submittedTo?: Date
-    isGraded?: boolean
+  competitionId?: number
+  studentId?: number
+  search?: string
+  status?: CompetitionSubmitStatus
+  attemptNumber?: number
+  startedFrom?: Date
+  startedTo?: Date
+  submittedFrom?: Date
+  submittedTo?: Date
+  isGraded?: boolean
+  grade?: number
+  highSchoolGraduationYear?: number
+  isActive?: boolean
+  hasParentZaloId?: boolean
+  classIds?: number[]
 }
 
 export interface CompetitionSubmitPaginationOptions {
-    page?: number
-    limit?: number
-    sortBy?: string
-    sortOrder?: 'asc' | 'desc'
+  page?: number
+  limit?: number
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
 }
 
 export interface CompetitionSubmitListResult {
-    competitionSubmits: CompetitionSubmit[]
-    total: number
-    page: number
-    limit: number
-    totalPages: number
+  competitionSubmits: CompetitionSubmit[]
+  total: number
+  page: number
+  limit: number
+  totalPages: number
 }
 
 export interface DailyCompetitionSubmitCount {
-    date: string
-    count: number
+  date: string
+  count: number
+}
+
+export interface CompetitionSubmitScoreExportQuestion {
+  questionId: number
+  order: number
+}
+
+export interface CompetitionSubmitScoreExportResult {
+  competitionSubmits: any[]
+  questions: CompetitionSubmitScoreExportQuestion[]
 }
 
 export interface ICompetitionSubmitRepository {
-    create(data: CreateCompetitionSubmitData, txClient?: any): Promise<CompetitionSubmit>
-    findById(id: number, txClient?: any): Promise<CompetitionSubmit | null>
-    update(id: number, data: UpdateCompetitionSubmitData, txClient?: any): Promise<CompetitionSubmit>
-    delete(id: number, txClient?: any): Promise<void>
-    findAll(txClient?: any): Promise<CompetitionSubmit[]>
+  create(data: CreateCompetitionSubmitData, txClient?: any): Promise<CompetitionSubmit>
+  findById(id: number, txClient?: any): Promise<CompetitionSubmit | null>
+  update(id: number, data: UpdateCompetitionSubmitData, txClient?: any): Promise<CompetitionSubmit>
+  delete(id: number, txClient?: any): Promise<void>
+  findAll(txClient?: any): Promise<CompetitionSubmit[]>
 
-    // Pagination methods
-    findAllWithPagination(
-        pagination: CompetitionSubmitPaginationOptions,
-        filters?: CompetitionSubmitFilterOptions,
-        txClient?: any,
-    ): Promise<CompetitionSubmitListResult>
+  // Pagination methods
+  findAllWithPagination(
+    pagination: CompetitionSubmitPaginationOptions,
+    filters?: CompetitionSubmitFilterOptions,
+    txClient?: any,
+  ): Promise<CompetitionSubmitListResult>
 
-    // Filter methods
-    findByFilters(
-        filters: CompetitionSubmitFilterOptions,
-        pagination?: CompetitionSubmitPaginationOptions,
-        txClient?: any,
-    ): Promise<CompetitionSubmitListResult>
+  // Filter methods
+  findByFilters(
+    filters: CompetitionSubmitFilterOptions,
+    pagination?: CompetitionSubmitPaginationOptions,
+    txClient?: any,
+  ): Promise<CompetitionSubmitListResult>
 
-    findByCompetition(competitionId: number, txClient?: any): Promise<CompetitionSubmit[]>
-    findByStudent(studentId: number, txClient?: any): Promise<CompetitionSubmit[]>
-    findByCompetitionAndStudent(
-        competitionId: number,
-        studentId: number,
-        txClient?: any,
-    ): Promise<CompetitionSubmit[]>
+  findForScoreExport(
+    filters: CompetitionSubmitFilterOptions,
+    pagination?: CompetitionSubmitPaginationOptions,
+    txClient?: any,
+  ): Promise<CompetitionSubmitScoreExportResult>
 
-    findLatestAttempt(
-        competitionId: number,
-        studentId: number,
-        txClient?: any,
-    ): Promise<CompetitionSubmit | null>
+  findByCompetition(competitionId: number, txClient?: any): Promise<CompetitionSubmit[]>
+  findByStudent(studentId: number, txClient?: any): Promise<CompetitionSubmit[]>
+  findByCompetitionAndStudent(competitionId: number, studentId: number, txClient?: any): Promise<CompetitionSubmit[]>
 
-    findByAttempt(
-        competitionId: number,
-        studentId: number,
-        attemptNumber: number,
-        txClient?: any,
-    ): Promise<CompetitionSubmit | null>
+  findLatestAttempt(competitionId: number, studentId: number, txClient?: any): Promise<CompetitionSubmit | null>
 
-    // Admin detail — includes question + statements inside each answer
-    findByIdWithFullDetails(id: number, txClient?: any): Promise<CompetitionSubmit | null>
+  findByAttempt(
+    competitionId: number,
+    studentId: number,
+    attemptNumber: number,
+    txClient?: any,
+  ): Promise<CompetitionSubmit | null>
 
-    // Grade method
-    grade(id: number, data: GradeCompetitionSubmitData, txClient?: any): Promise<CompetitionSubmit>
+  // Admin detail — includes question + statements inside each answer
+  findByIdWithFullDetails(id: number, txClient?: any): Promise<CompetitionSubmit | null>
 
-    // Count methods
-    count(filters?: CompetitionSubmitFilterOptions, txClient?: any): Promise<number>
-    countByCompetition(competitionId: number, txClient?: any): Promise<number>
-    /** Đếm số lượt làm bài theo nhiều competitionId cùng lúc. */
-    countByCompetitions(competitionIds: number[], txClient?: any): Promise<Map<number, number>>
-    countByStudent(studentId: number, txClient?: any): Promise<number>
-    countByStatus(status: CompetitionSubmitStatus, competitionId?: number, txClient?: any): Promise<number>
-    countGradedSubmits(competitionId?: number, txClient?: any): Promise<number>
-    countUngradedSubmits(competitionId?: number, txClient?: any): Promise<number>
+  // Grade method
+  grade(id: number, data: GradeCompetitionSubmitData, txClient?: any): Promise<CompetitionSubmit>
 
-    // Student history (excludes IN_PROGRESS & ABANDONED)
-    findStudentHistory(
-        competitionId: number,
-        studentId: number,
-        pagination: CompetitionSubmitPaginationOptions,
-        txClient?: any,
-    ): Promise<CompetitionSubmitListResult>
+  // Count methods
+  count(filters?: CompetitionSubmitFilterOptions, txClient?: any): Promise<number>
+  countByCompetition(competitionId: number, txClient?: any): Promise<number>
+  /** Đếm số lượt làm bài theo nhiều competitionId cùng lúc. */
+  countByCompetitions(competitionIds: number[], txClient?: any): Promise<Map<number, number>>
+  countByStudent(studentId: number, txClient?: any): Promise<number>
+  countByStatus(status: CompetitionSubmitStatus, competitionId?: number, txClient?: any): Promise<number>
+  countGradedSubmits(competitionId?: number, txClient?: any): Promise<number>
+  countUngradedSubmits(competitionId?: number, txClient?: any): Promise<number>
 
-    findPublicStudentHistory(
-        studentId: number,
-        pagination: CompetitionSubmitPaginationOptions,
-        txClient?: any,
-    ): Promise<CompetitionSubmitListResult>
+  // Student history (excludes IN_PROGRESS & ABANDONED)
+  findStudentHistory(
+    competitionId: number,
+    studentId: number,
+    pagination: CompetitionSubmitPaginationOptions,
+    txClient?: any,
+  ): Promise<CompetitionSubmitListResult>
 
-    // Leaderboard
-    getLeaderboard(
-        competitionId: number,
-        limit?: number,
-        txClient?: any,
-    ): Promise<CompetitionSubmit[]>
-    
-    getPaginatedLeaderboard(
-        competitionId: number,
-        page: number,
-        limit: number,
-        txClient?: any,
-    ): Promise<{ submits: CompetitionSubmit[], total: number }>
+  findPublicStudentHistory(
+    studentId: number,
+    pagination: CompetitionSubmitPaginationOptions,
+    txClient?: any,
+  ): Promise<CompetitionSubmitListResult>
 
-    // Activity stats
-    countByStudentDailyInYear(
-        studentId: number,
-        year: number,
-        txClient?: any,
-    ): Promise<DailyCompetitionSubmitCount[]>
+  // Leaderboard
+  getLeaderboard(competitionId: number, limit?: number, txClient?: any): Promise<CompetitionSubmit[]>
 
-    getStudentActivityDatesVn(
-        studentId: number,
-        txClient?: any,
-    ): Promise<string[]>
+  getPaginatedLeaderboard(
+    competitionId: number,
+    page: number,
+    limit: number,
+    txClient?: any,
+  ): Promise<{ submits: CompetitionSubmit[]; total: number }>
+
+  // Activity stats
+  countByStudentDailyInYear(studentId: number, year: number, txClient?: any): Promise<DailyCompetitionSubmitCount[]>
+
+  getStudentActivityDatesVn(studentId: number, txClient?: any): Promise<string[]>
 }
