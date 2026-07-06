@@ -1,6 +1,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { createHmac } from 'crypto'
+import * as querystring from 'querystring'
 
 type VnpayQuery = Record<string, any>
 
@@ -118,7 +119,7 @@ export class VnpayService {
   private createSecureHash(params: Record<string, string>): string {
     const hashSecret = this.requireEnv('VNPAY_HASH_SECRET')
     const sortedParams = this.sortParams(params)
-    const signData = this.buildQueryString(sortedParams)
+    const signData = querystring.stringify(sortedParams, undefined, undefined, { encodeURIComponent: (value) => value })
 
     return createHmac('sha512', hashSecret).update(Buffer.from(signData, 'utf-8')).digest('hex')
   }
@@ -167,9 +168,9 @@ export class VnpayService {
 
   private requireEnv(key: string): string {
     const value = this.configService.get<string>(key)
-    if (!value) {
+    if (!value?.trim()) {
       throw new InternalServerErrorException(`Missing environment variable: ${key}`)
     }
-    return value
+    return value.trim()
   }
 }
