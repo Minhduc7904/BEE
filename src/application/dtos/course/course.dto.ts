@@ -24,22 +24,18 @@ export class CourseResponseDto {
   teacherId?: number
   teacherName?: string
   teacher?: AdminResponseDto
-  
+
   // ===== Subject =====
   subject?: SubjectResponseDto
 
   // ===== Pricing =====
   priceVND: number
   compareAtVND?: number
-  hasTuitionFee: boolean
-  paymentType: string
-  autoRenew: boolean
-  blockUnpaid: boolean
-  gracePeriodDays?: number
 
   // ===== State / config =====
   visibility: string
   isEnded: boolean
+  courseType: string
 
   // ===== Audit =====
   createdAt: Date
@@ -80,15 +76,11 @@ export class CourseResponseDto {
       // Pricing
       priceVND: course.priceVND,
       compareAtVND: course.compareAtVND ?? undefined,
-      hasTuitionFee: course.hasTuitionFee,
-      paymentType: course.paymentType,
-      autoRenew: course.autoRenew,
-      blockUnpaid: course.blockUnpaid,
-      gracePeriodDays: course.gracePeriodDays ?? undefined,
 
       // State / config
       visibility: course.visibility,
       isEnded: course.isEnded,
+      courseType: course.courseType,
 
       // Audit
       createdAt: course.createdAt,

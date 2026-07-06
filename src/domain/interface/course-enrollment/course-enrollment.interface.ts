@@ -4,10 +4,12 @@ export interface CreateCourseEnrollmentData {
   courseId: number;
   studentId: number;
   status?: CourseEnrollmentStatus;
+  isPaidFull?: boolean;
 }
 
 export interface UpdateCourseEnrollmentData {
   status?: CourseEnrollmentStatus;
+  isPaidFull?: boolean;
 }
 
 export interface CourseEnrollmentFilterOptions {

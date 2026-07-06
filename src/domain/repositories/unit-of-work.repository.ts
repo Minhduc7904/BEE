@@ -47,6 +47,9 @@ import { IDocumentRepository } from './document.repository'
 import { ITeacherProfileRepository } from './teacher-profile.repository'
 import { ITagRepository } from './tag.repository'
 import { IDocumentTagRepository } from './document-tag.repository'
+import { IOnlineCourseInvoiceRepository } from './online-course-invoice.repository'
+import { IOnlineCourseInvoiceItemRepository } from './online-course-invoice-item.repository'
+import { IOnlineCoursePaymentAttemptRepository } from './online-course-payment-attempt.repository'
 // src/domain/repositories/unit-of-work.repository.ts
 export interface UnitOfWorkRepos {
   userRepository: IUserRepository
@@ -97,6 +100,9 @@ export interface UnitOfWorkRepos {
   teacherProfileRepository: ITeacherProfileRepository
   tagRepository: ITagRepository
   documentTagRepository: IDocumentTagRepository
+  onlineCourseInvoiceRepository: IOnlineCourseInvoiceRepository
+  onlineCourseInvoiceItemRepository: IOnlineCourseInvoiceItemRepository
+  onlineCoursePaymentAttemptRepository: IOnlineCoursePaymentAttemptRepository
 }
 
 export interface IUnitOfWork {

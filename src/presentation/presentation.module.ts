@@ -68,6 +68,10 @@ import { QuestionChatMessageController } from './controllers/question-chat-messa
 import { DocumentController } from './controllers/document.controller'
 import { TeacherProfileController } from './controllers/teacher-profile.controller'
 import { TagController } from './controllers/tag.controller'
+import {
+  OnlineCourseInvoicePaymentStatusController,
+  OnlineCoursePaymentController,
+} from './controllers/online-course-payment.controller'
 @Module({
   imports: [
     ApplicationModule, // ✅ lấy toàn bộ UseCase đã export
@@ -134,6 +138,8 @@ import { TagController } from './controllers/tag.controller'
     ZaloController,
     QuestionChatController,
     QuestionChatMessageController,
+    OnlineCoursePaymentController,
+    OnlineCourseInvoicePaymentStatusController,
   ],
   providers: [
     // WebSocket Gateways
@@ -150,4 +156,4 @@ import { TagController } from './controllers/tag.controller'
     AttendanceGateway,
   ],
 })
-export class PresentationModule { }
+export class PresentationModule {}

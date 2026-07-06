@@ -2,107 +2,118 @@
 import { ListQueryDto } from '../pagination/list-query.dto'
 import { Trim, ToBoolean, ToNumber } from 'src/shared/decorators'
 import { VALIDATION_MESSAGES } from 'src/shared/constants'
-import { CourseVisibility } from 'src/shared/enums'
-import { IsOptionalInt, IsOptionalIdNumber, IsOptionalEnumValue, IsOptionalString, IsOptionalBoolean } from 'src/shared/decorators/validate'
+import { CourseType, CourseVisibility } from 'src/shared/enums'
+import {
+  IsOptionalInt,
+  IsOptionalIdNumber,
+  IsOptionalEnumValue,
+  IsOptionalString,
+  IsOptionalBoolean,
+} from 'src/shared/decorators/validate'
 
 /**
  * DTO truy vấn danh sách khóa học
  * @description Chứa các tham số lọc và phân trang cho danh sách khóa học
  */
 export class CourseListQueryDto extends ListQueryDto {
-    /**
-     * Khối lớp (1-12)
-     * @optional
-     * @example 10
-     */
-    @ToNumber()
-    @IsOptionalInt('Khối', 1, 12)
-    grade?: number
+  /**
+   * Khối lớp (1-12)
+   * @optional
+   * @example 10
+   */
+  @ToNumber()
+  @IsOptionalInt('Khối', 1, 12)
+  grade?: number
 
-    /**
-     * ID môn học
-     * @optional
-     * @example 5
-     */
-    @ToNumber()
-    @IsOptionalIdNumber('Môn học')
-    subjectId?: number
+  /**
+   * ID môn học
+   * @optional
+   * @example 5
+   */
+  @ToNumber()
+  @IsOptionalIdNumber('Môn học')
+  subjectId?: number
 
-    /**
-     * Trạng thái hiển thị
-     * @optional
-     * @example "PUBLIC"
-     */
-    @IsOptionalEnumValue(CourseVisibility, 'Trạng thái')
-    visibility?: CourseVisibility
+  /**
+   * Trạng thái hiển thị
+   * @optional
+   * @example "PUBLIC"
+   */
+  @IsOptionalEnumValue(CourseVisibility, 'Trạng thái')
+  visibility?: CourseVisibility
 
-    /**
-     * Khóa học đã kết thúc chưa
-     * @optional
-     * @example false
-     */
-    @ToBoolean()
-    @IsOptionalBoolean('Khóa học đã kết thúc')
-    isEnded?: boolean
+  /**
+   * Khóa học đã kết thúc chưa
+   * @optional
+   * @example false
+   */
+  @ToBoolean()
+  @IsOptionalBoolean('Khóa học đã kết thúc')
+  isEnded?: boolean
 
-    /**
-     * ID giáo viên
-     * @optional
-     * @example 3
-     */
-    @ToNumber()
-    @IsOptionalIdNumber('Giáo viên')
-    teacherId?: number
+  @IsOptionalEnumValue(CourseType, 'Loáº¡i khÃ³a há»c')
+  courseType?: CourseType
 
-    /**
-     * Năm học
-     * @optional
-     * @example "2024-2025"
-     */
-    @IsOptionalString('Năm học')
-    academicYear?: string
+  /**
+   * ID giáo viên
+   * @optional
+   * @example 3
+   */
+  @ToNumber()
+  @IsOptionalIdNumber('Giáo viên')
+  teacherId?: number
 
-    /**
-     * Chuyển đổi DTO thành filter options cho repository
-     */
-    toCourseFilterOptions() {
-        return {
-            grade: this.grade,
-            subjectId: this.subjectId,
-            visibility: this.visibility,
-            isEnded: this.isEnded,
-            teacherId: this.teacherId,
-            academicYear: this.academicYear,
-            search: this.search,
-        }
+  /**
+   * Năm học
+   * @optional
+   * @example "2024-2025"
+   */
+  @IsOptionalString('Năm học')
+  academicYear?: string
+
+  /**
+   * Chuyển đổi DTO thành filter options cho repository
+   */
+  toCourseFilterOptions() {
+    return {
+      grade: this.grade,
+      subjectId: this.subjectId,
+      visibility: this.visibility,
+      isEnded: this.isEnded,
+      courseType: this.courseType,
+      teacherId: this.teacherId,
+      academicYear: this.academicYear,
+      search: this.search,
     }
+  }
 
-    /**
-     * Chuyển đổi thành pagination options cho repository
-     */
-    toCoursePaginationOptions() {
-        const sortField = this.sortBy || 'createdAt'
-        const sortDirection = this.sortOrder || 'desc'
+  /**
+   * Chuyển đổi thành pagination options cho repository
+   */
+  toCoursePaginationOptions() {
+    const sortField = this.sortBy || 'createdAt'
+    const sortDirection = this.sortOrder || 'desc'
 
-        // Validate sort field
-        const allowedSortFields = [
-            'courseId',
-            'title',
-            'grade',
-            'priceVND',
-            'visibility',
-            'isEnded',
-            'createdAt',
-            'updatedAt',
-        ]
+    // Validate sort field
+    const allowedSortFields = [
+      'courseId',
+      'title',
+      'grade',
+      'priceVND',
+      'visibility',
+      'isEnded',
+      'courseType',
+      'createdAt',
+      'updatedAt',
+    ]
 
-        const validatedSortField = allowedSortFields.includes(sortField) ? sortField : 'createdAt'
+    const validatedSortField = allowedSortFields.includes(sortField) ? sortField : 'createdAt'
 
-        return {
-            page: this.page || 1,
-            limit: this.limit || 10,
-            sortBy: validatedSortField,
-            sortOrder: sortDirection as 'asc' | 'desc',
-        }
+    return {
+      page: this.page || 1,
+      limit: this.limit || 10,
+      sortBy: validatedSortField,
+      sortOrder: sortDirection as 'asc' | 'desc',
     }
+  }
 }

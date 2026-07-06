@@ -2,10 +2,7 @@
 import { Injectable } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
 import { PrismaService } from '../../prisma/prisma.service'
-import {
-  IUnitOfWork,
-  UnitOfWorkRepos,
-} from '../../domain/repositories/unit-of-work.repository'
+import { IUnitOfWork, UnitOfWorkRepos } from '../../domain/repositories/unit-of-work.repository'
 
 import * as Repositories from '../repositories'
 
@@ -13,7 +10,7 @@ type Prismaish = Prisma.TransactionClient | PrismaService // chỉ cần các de
 
 @Injectable()
 export class PrismaUnitOfWork implements IUnitOfWork {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   private buildRepos(client: Prismaish): UnitOfWorkRepos {
     // Simple factory pattern - balance giữa performance và simplicity
@@ -89,6 +86,9 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _tagRepository: any
     let _teacherProfileRepository: any
     let _documentTagRepository: any
+    let _onlineCourseInvoiceRepository: any
+    let _onlineCourseInvoiceItemRepository: any
+    let _onlineCoursePaymentAttemptRepository: any
 
     Object.defineProperty(repos, 'studentRepository', {
       get: () => (_studentRepository ??= new Repositories.PrismaStudentRepository(client)),
@@ -302,6 +302,23 @@ export class PrismaUnitOfWork implements IUnitOfWork {
 
     Object.defineProperty(repos, 'documentTagRepository', {
       get: () => (_documentTagRepository ??= new Repositories.PrismaDocumentTagRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'onlineCourseInvoiceRepository', {
+      get: () => (_onlineCourseInvoiceRepository ??= new Repositories.PrismaOnlineCourseInvoiceRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'onlineCourseInvoiceItemRepository', {
+      get: () =>
+        (_onlineCourseInvoiceItemRepository ??= new Repositories.PrismaOnlineCourseInvoiceItemRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'onlineCoursePaymentAttemptRepository', {
+      get: () =>
+        (_onlineCoursePaymentAttemptRepository ??= new Repositories.PrismaOnlineCoursePaymentAttemptRepository(client)),
       enumerable: true,
     })
 

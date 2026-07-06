@@ -22,6 +22,7 @@ export class PrismaCourseEnrollmentRepository implements ICourseEnrollmentReposi
                 courseId: data.courseId,
                 studentId: data.studentId,
                 status: data.status,
+                isPaidFull: data.isPaidFull,
             },
             include: {
                 course: true,

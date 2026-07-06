@@ -2,6 +2,7 @@
 
 import { Course } from '../../../domain/entities/course/course.entity'
 import { Subject } from '../../../domain/entities/subject/subject.entity'
+import { CourseType } from '../../../shared/enums'
 import { AdminMapper } from '../user/admin.mapper'
 import { LessonMapper } from '../lesson/lesson.mapper'
 
@@ -10,71 +11,59 @@ import { LessonMapper } from '../lesson/lesson.mapper'
  * sang Domain Course entity
  */
 export class CourseMapper {
-    /**
-     * Convert Prisma Course sang Domain Course
-     */
-    static toDomainCourse(prismaCourse: any): Course | undefined {
-        if (!prismaCourse) return undefined
+  /**
+   * Convert Prisma Course sang Domain Course
+   */
+  static toDomainCourse(prismaCourse: any): Course | undefined {
+    if (!prismaCourse) return undefined
 
-        return new Course({
-            courseId: prismaCourse.courseId,
-            code: prismaCourse.code,
-            title: prismaCourse.title,
-            priceVND: prismaCourse.priceVND,
-            visibility: prismaCourse.visibility,
-            isEnded: prismaCourse.isEnded ?? false,
-            hasTuitionFee: prismaCourse.hasTuitionFee ?? true,
-            paymentType: prismaCourse.paymentType,
-            autoRenew: prismaCourse.autoRenew ?? false,
-            blockUnpaid: prismaCourse.blockUnpaid ?? false,
+    return new Course({
+      courseId: prismaCourse.courseId,
+      code: prismaCourse.code,
+      title: prismaCourse.title,
+      priceVND: prismaCourse.priceVND,
+      visibility: prismaCourse.visibility,
+      isEnded: prismaCourse.isEnded ?? false,
+      courseType: prismaCourse.courseType ?? CourseType.OFFLINE,
 
-            createdAt: prismaCourse.createdAt,
-            updatedAt: prismaCourse.updatedAt,
+      createdAt: prismaCourse.createdAt,
+      updatedAt: prismaCourse.updatedAt,
 
-            subtitle: prismaCourse.subtitle ?? null,
-            academicYear: prismaCourse.academicYear ?? null,
-            grade: prismaCourse.grade ?? null,
-            subjectId: prismaCourse.subjectId ?? null,
-            description: prismaCourse.description ?? null,
-            compareAtVND: prismaCourse.compareAtVND ?? null,
-            teacherId: prismaCourse.teacherId ?? null,
-            gracePeriodDays: prismaCourse.gracePeriodDays ?? null,
+      subtitle: prismaCourse.subtitle ?? null,
+      academicYear: prismaCourse.academicYear ?? null,
+      grade: prismaCourse.grade ?? null,
+      subjectId: prismaCourse.subjectId ?? null,
+      description: prismaCourse.description ?? null,
+      compareAtVND: prismaCourse.compareAtVND ?? null,
+      teacherId: prismaCourse.teacherId ?? null,
 
-            subject: prismaCourse.subject
-                ? this.toDomainSubject(prismaCourse.subject)
-                : null,
+      subject: prismaCourse.subject ? this.toDomainSubject(prismaCourse.subject) : null,
 
-            teacher: prismaCourse.teacher
-                ? AdminMapper.toDomainAdmin(prismaCourse.teacher)
-                : null,
+      teacher: prismaCourse.teacher ? AdminMapper.toDomainAdmin(prismaCourse.teacher) : null,
 
-            lessons: prismaCourse.lessons
-                ? LessonMapper.toDomainLessons(prismaCourse.lessons)
-                : undefined,
-        })
-    }
+      lessons: prismaCourse.lessons ? LessonMapper.toDomainLessons(prismaCourse.lessons) : undefined,
+    })
+  }
 
-    /**
-     * Convert Prisma Subject sang Domain Subject
-     */
-    static toDomainSubject(prismaSubject: any): Subject | undefined {
-        if (!prismaSubject) return undefined
+  /**
+   * Convert Prisma Subject sang Domain Subject
+   */
+  static toDomainSubject(prismaSubject: any): Subject | undefined {
+    if (!prismaSubject) return undefined
 
-        return new Subject({
-            subjectId: prismaSubject.subjectId,
-            name: prismaSubject.name,
-            code: prismaSubject.code ?? undefined,
-        })
-    }
+    return new Subject({
+      subjectId: prismaSubject.subjectId,
+      name: prismaSubject.name,
+      code: prismaSubject.code ?? undefined,
+    })
+  }
 
-    /**
-     * Convert array Prisma Courses sang Domain Courses
-     */
-    static toDomainCourses(prismaCourses: any[] | null | undefined): Course[] {
-        if (!prismaCourses || prismaCourses.length === 0) return []
+  /**
+   * Convert array Prisma Courses sang Domain Courses
+   */
+  static toDomainCourses(prismaCourses: any[] | null | undefined): Course[] {
+    if (!prismaCourses || prismaCourses.length === 0) return []
 
-        return prismaCourses
-            .map((course) => this.toDomainCourse(course))
-            .filter(Boolean) as Course[]
-    }
+    return prismaCourses.map((course) => this.toDomainCourse(course)).filter(Boolean) as Course[]
+  }
 }

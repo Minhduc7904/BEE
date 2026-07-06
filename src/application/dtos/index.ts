@@ -55,6 +55,7 @@ export * from './pagination/list-query.dto'
 export * from './pagination/pagination-response.dto'
 
 export * from './tuition-payment'
+export * from './online-course-payment'
 
 // Competition DTOs
 export * from './competition'

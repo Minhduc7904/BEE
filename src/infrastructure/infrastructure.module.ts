@@ -60,6 +60,9 @@ import {
   PrismaTeacherProfileRepository,
   PrismaDocumentTagRepository,
   PrismaTagRepository,
+  PrismaOnlineCourseInvoiceRepository,
+  PrismaOnlineCourseInvoiceItemRepository,
+  PrismaOnlineCoursePaymentAttemptRepository,
 } from './repositories'
 import {
   PasswordService,
@@ -89,6 +92,7 @@ import { MarkdownRenderService } from './services/markdown-render.service'
 import { QuestionChapterClassificationService } from './services/question-chapter-classification.service'
 import { FileConverterService } from './services/file-converter.service'
 import { QuestionChatAIService } from './services/question-chat-ai.service'
+import { VnpayService } from './services/vnpay.service'
 import { GoogleAdminStrategy } from './strategies/google-admin.strategy'
 import { GoogleStudentStrategy } from './strategies/google-student.strategy'
 import jwtConfig from '../config/jwt.config'
@@ -150,7 +154,7 @@ import openaiConfig from '../config/openai.config'
     {
       provide: 'IPasswordResetTokenRepository',
       useFactory: (prisma: PrismaService) => new PrismaResetPasswordTokenRepository(prisma),
-      inject: [PrismaService]
+      inject: [PrismaService],
     },
     {
       provide: 'IZaloTokenRepository',
@@ -398,6 +402,21 @@ import openaiConfig from '../config/openai.config'
       inject: [PrismaService],
     },
     {
+      provide: 'IOnlineCourseInvoiceRepository',
+      useFactory: (prisma: PrismaService) => new PrismaOnlineCourseInvoiceRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IOnlineCourseInvoiceItemRepository',
+      useFactory: (prisma: PrismaService) => new PrismaOnlineCourseInvoiceItemRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IOnlineCoursePaymentAttemptRepository',
+      useFactory: (prisma: PrismaService) => new PrismaOnlineCoursePaymentAttemptRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
       provide: 'PASSWORD_SERVICE',
       useClass: PasswordService,
     },
@@ -446,6 +465,7 @@ import openaiConfig from '../config/openai.config'
     GoogleStudentStrategy,
     ImageExportService,
     QuestionChatAIService,
+    VnpayService,
   ],
   exports: [
     'UNIT_OF_WORK',
@@ -504,6 +524,9 @@ import openaiConfig from '../config/openai.config'
     'ITeacherProfileRepository',
     'ITagRepository',
     'IDocumentTagRepository',
+    'IOnlineCourseInvoiceRepository',
+    'IOnlineCourseInvoiceItemRepository',
+    'IOnlineCoursePaymentAttemptRepository',
     'PASSWORD_SERVICE',
     'JWT_TOKEN_SERVICE',
     'TOKEN_HASH_SERVICE',
@@ -530,7 +553,7 @@ import openaiConfig from '../config/openai.config'
     ZaloService,
     ImageExportService,
     QuestionChatAIService,
+    VnpayService,
   ],
 })
-
-export class InfrastructureModule { }
+export class InfrastructureModule {}

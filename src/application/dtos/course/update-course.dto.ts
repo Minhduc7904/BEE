@@ -1,141 +1,111 @@
-import { Trim } from '../../../shared/decorators'
+﻿import { Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
-import { CourseVisibility, PaymentType } from 'src/shared/enums'
-import { IsOptionalString, IsOptionalInt, IsOptionalIdNumber, IsOptionalEnumValue, IsOptionalNumber, IsOptionalBoolean } from 'src/shared/decorators/validate'
+import { CourseType, CourseVisibility } from 'src/shared/enums'
+import {
+  IsOptionalString,
+  IsOptionalInt,
+  IsOptionalIdNumber,
+  IsOptionalEnumValue,
+  IsOptionalNumber,
+  IsOptionalBoolean,
+} from 'src/shared/decorators/validate'
 
 /**
- * DTO cập nhật thông tin cơ bản khóa học
- * @description Chứa các trường thông tin cơ bản có thể cập nhật
+ * DTO cáº­p nháº­t thÃ´ng tin cÆ¡ báº£n khÃ³a há»c
+ * @description Chá»©a cÃ¡c trÆ°á»ng thÃ´ng tin cÆ¡ báº£n cÃ³ thá»ƒ cáº­p nháº­t
  */
 export class UpdateCourseBasicInfoDto {
   /**
-   * Tiêu đề khóa học (3-200 ký tự)
+   * TiÃªu Ä‘á» khÃ³a há»c (3-200 kÃ½ tá»±)
    * @optional
-   * @example "Toán học lớp 10"
+   * @example "ToÃ¡n há»c lá»›p 10"
    */
-  @IsOptionalString('Tiêu đề', 200, 3)
+  @IsOptionalString('TiÃªu Ä‘á»', 200, 3)
   title?: string
 
   /**
-   * Phụ đề khóa học (tối đa 255 ký tự)
+   * Phá»¥ Ä‘á» khÃ³a há»c (tá»‘i Ä‘a 255 kÃ½ tá»±)
    * @optional
-   * @example "Cơ bản và nâng cao"
+   * @example "CÆ¡ báº£n vÃ  nÃ¢ng cao"
    */
-  @IsOptionalString('Phụ đề', 255)
+  @IsOptionalString('Phá»¥ Ä‘á»', 255)
   subtitle?: string
 
   /**
-   * Năm học (tối đa 9 ký tự)
+   * NÄƒm há»c (tá»‘i Ä‘a 9 kÃ½ tá»±)
    * @optional
    * @example "2024-2025"
    */
-  @IsOptionalString('Năm học', 9)
+  @IsOptionalString('NÄƒm há»c', 9)
   academicYear?: string
 
   /**
-   * Khối lớp (1-12)
+   * Khá»‘i lá»›p (1-12)
    * @optional
    * @example 10
    */
-  @IsOptionalInt('Khối', 1, 12)
+  @IsOptionalInt('Khá»‘i', 1, 12)
   grade?: number
 
   /**
-   * ID môn học
+   * ID mÃ´n há»c
    * @optional
    * @example 5
    */
-  @IsOptionalIdNumber('Môn học')
+  @IsOptionalIdNumber('MÃ´n há»c')
   subjectId?: number
 
   /**
-   * Mô tả khóa học
+   * MÃ´ táº£ khÃ³a há»c
    * @optional
    */
-  @IsOptionalString('Mô tả')
+  @IsOptionalString('MÃ´ táº£')
   description?: string
 
   /**
-   * Trạng thái hiển thị
+   * Tráº¡ng thÃ¡i hiá»ƒn thá»‹
    * @optional
    */
-  @IsOptionalEnumValue(CourseVisibility, 'Trạng thái')
+  @IsOptionalEnumValue(CourseVisibility, 'Tráº¡ng thÃ¡i')
   visibility?: CourseVisibility
 
   /**
-   * ID giáo viên
+   * ID giÃ¡o viÃªn
    * @optional
    */
-  @IsOptionalIdNumber('Giáo viên')
+  @IsOptionalIdNumber('GiÃ¡o viÃªn')
   teacherId?: number
 
   /**
-   * Khóa học đã kết thúc chưa
+   * KhÃ³a há»c Ä‘Ã£ káº¿t thÃºc chÆ°a
    * @optional
    * @example false
    */
-  @IsOptionalBoolean('Khóa học đã kết thúc')
+  @IsOptionalBoolean('KhÃ³a há»c Ä‘Ã£ káº¿t thÃºc')
   isEnded?: boolean
+
+  @IsOptionalEnumValue(CourseType, 'LoÃ¡ÂºÂ¡i khÃƒÂ³a hÃ¡Â»Âc')
+  courseType?: CourseType
 }
 
 /**
- * DTO cập nhật thông tin giá cả khóa học
- * @description Chứa các trường về giá, thanh toán, học phí
+ * DTO cáº­p nháº­t thÃ´ng tin giÃ¡ cáº£ khÃ³a há»c
+ * @description Chá»©a cÃ¡c trÆ°á»ng vá» giÃ¡, thanh toÃ¡n, há»c phÃ­
  */
 export class UpdateCoursePricingDto {
   /**
-   * Giá khóa học (VNĐ)
+   * GiÃ¡ khÃ³a há»c (VNÄ)
    * @optional
    * @example 500000
    */
-  @IsOptionalNumber('Giá', 0)
+  @IsOptionalNumber('GiÃ¡', 0)
   priceVND?: number
 
   /**
-   * Giá gốc (VNĐ)
+   * GiÃ¡ gá»‘c (VNÄ)
    * @optional
    * @example 700000
    */
-  @IsOptionalNumber('Giá gốc', 0)
+  @IsOptionalNumber('GiÃ¡ gá»‘c', 0)
   compareAtVND?: number
-
-  /**
-   * Có thu học phí không
-   * @optional
-   * @example true
-   */
-  @IsOptionalBoolean('Có thu học phí')
-  hasTuitionFee?: boolean
-
-  /**
-   * Loại thanh toán
-   * @optional
-   * @example "MONTHLY"
-   */
-  @IsOptionalEnumValue(PaymentType, 'Loại thanh toán')
-  paymentType?: PaymentType
-
-  /**
-   * Tự động gia hạn
-   * @optional
-   * @example true
-   */
-  @IsOptionalBoolean('Tự động gia hạn')
-  autoRenew?: boolean
-
-  /**
-   * Chặn học khi chưa đóng phí
-   * @optional
-   * @example false
-   */
-  @IsOptionalBoolean('Chặn học khi chưa đóng phí')
-  blockUnpaid?: boolean
-
-  /**
-   * Số ngày ân hạn
-   * @optional
-   * @example 7
-   */
-  @IsOptionalNumber('Số ngày ân hạn', 0)
-  gracePeriodDays?: number | null
 }

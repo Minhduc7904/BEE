@@ -24,6 +24,7 @@ export * from './learningItem/video-content.entity'
 export * from './learningItem/youtube-content.entity'
 export * from './notification/notification.entity'
 export * from './tuition-payment'
+export * from './online-course-payment'
 export * from './job'
 
 export * from './question-chat'

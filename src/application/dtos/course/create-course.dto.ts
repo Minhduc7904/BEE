@@ -1,98 +1,110 @@
-// src/application/dtos/course/create-course.dto.ts
+﻿// src/application/dtos/course/create-course.dto.ts
 import { Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
-import { CourseVisibility } from 'src/shared/enums'
-import { IsRequiredString, IsOptionalString, IsOptionalInt, IsRequiredNumber, IsOptionalNumber, IsOptionalEnumValue, IsOptionalIdNumber, IsOptionalBoolean } from 'src/shared/decorators/validate'
+import { CourseType, CourseVisibility } from 'src/shared/enums'
+import {
+  IsRequiredString,
+  IsOptionalString,
+  IsOptionalInt,
+  IsRequiredNumber,
+  IsOptionalNumber,
+  IsOptionalEnumValue,
+  IsOptionalIdNumber,
+  IsOptionalBoolean,
+} from 'src/shared/decorators/validate'
 /**
- * DTO tạo khóa học mới
- * @description Chứa thông tin cơ bản để tạo khóa học mới
+ * DTO táº¡o khÃ³a há»c má»›i
+ * @description Chá»©a thÃ´ng tin cÆ¡ báº£n Ä‘á»ƒ táº¡o khÃ³a há»c má»›i
  */
 export class CreateCourseDto {
   /**
-   * Tiêu đề khóa học (3-200 ký tự)
+   * TiÃªu Ä‘á» khÃ³a há»c (3-200 kÃ½ tá»±)
    * @required
-   * @example "Toán học lớp 10"
+   * @example "ToÃ¡n há»c lá»›p 10"
    */
-  @IsRequiredString('Tiêu đề', 200, 3)
+  @IsRequiredString('TiÃªu Ä‘á»', 200, 3)
   title: string
 
   /**
-   * Phụ đề khóa học (tối đa 255 ký tự)
+   * Phá»¥ Ä‘á» khÃ³a há»c (tá»‘i Ä‘a 255 kÃ½ tá»±)
    * @optional
-   * @example "Cơ bản và nâng cao"
+   * @example "CÆ¡ báº£n vÃ  nÃ¢ng cao"
    */
-  @IsOptionalString('Phụ đề', 255)
+  @IsOptionalString('Phá»¥ Ä‘á»', 255)
   subtitle?: string
 
   /**
-   * Năm học (tối đa 9 ký tự, format: YYYY-YYYY)
+   * NÄƒm há»c (tá»‘i Ä‘a 9 kÃ½ tá»±, format: YYYY-YYYY)
    * @optional
    * @example "2024-2025"
    */
-  @IsOptionalString('Năm học', 9)
+  @IsOptionalString('NÄƒm há»c', 9)
   academicYear?: string
 
   /**
-   * Khối lớp (1-12)
+   * Khá»‘i lá»›p (1-12)
    * @optional
    * @example 10
    */
-  @IsOptionalInt('Khối', 1, 12)
+  @IsOptionalInt('Khá»‘i', 1, 12)
   grade?: number
 
   /**
-   * ID môn học
+   * ID mÃ´n há»c
    * @optional
    * @example 5
    */
-  @IsOptionalIdNumber('Môn học')
+  @IsOptionalIdNumber('MÃ´n há»c')
   subjectId?: number
 
   /**
-   * Mô tả khóa học
+   * MÃ´ táº£ khÃ³a há»c
    * @optional
-   * @example "Khóa học toán cơ bản và nâng cao cho học sinh lớp 10"
+   * @example "KhÃ³a há»c toÃ¡n cÆ¡ báº£n vÃ  nÃ¢ng cao cho há»c sinh lá»›p 10"
    */
-  @IsOptionalString('Mô tả')
+  @IsOptionalString('MÃ´ táº£')
   description?: string
 
   /**
-   * Giá khóa học (VNĐ, ≥ 0)
+   * GiÃ¡ khÃ³a há»c (VNÄ, â‰¥ 0)
    * @required
    * @example 500000
    */
-  @IsRequiredNumber('Giá', 0)
+  @IsRequiredNumber('GiÃ¡', 0)
   priceVND: number
 
   /**
-   * Giá gốc trước khi giảm (VNĐ, ≥ 0)
+   * GiÃ¡ gá»‘c trÆ°á»›c khi giáº£m (VNÄ, â‰¥ 0)
    * @optional
    * @example 700000
    */
-  @IsOptionalNumber('Giá gốc', 0)
+  @IsOptionalNumber('GiÃ¡ gá»‘c', 0)
   compareAtVND?: number
 
   /**
-   * Trạng thái hiển thị khóa học
+   * Tráº¡ng thÃ¡i hiá»ƒn thá»‹ khÃ³a há»c
    * @optional
    * @example "PUBLIC"
    */
-  @IsOptionalEnumValue(CourseVisibility, 'Trạng thái')
+  @IsOptionalEnumValue(CourseVisibility, 'Tráº¡ng thÃ¡i')
   visibility?: CourseVisibility
 
   /**
-   * Khóa học đã kết thúc chưa
+   * KhÃ³a há»c Ä‘Ã£ káº¿t thÃºc chÆ°a
    * @optional
    * @example false
    */
-  @IsOptionalBoolean('Khóa học đã kết thúc')
+  @IsOptionalBoolean('KhÃ³a há»c Ä‘Ã£ káº¿t thÃºc')
   isEnded?: boolean
 
+  @IsOptionalEnumValue(CourseType, 'LoÃ¡ÂºÂ¡i khÃƒÂ³a hÃ¡Â»Âc')
+  courseType?: CourseType
+
   /**
-   * ID giáo viên phụ trách
+   * ID giÃ¡o viÃªn phá»¥ trÃ¡ch
    * @optional
    * @example 3
    */
-  @IsOptionalIdNumber('Giáo viên')
+  @IsOptionalIdNumber('GiÃ¡o viÃªn')
   teacherId?: number
 }

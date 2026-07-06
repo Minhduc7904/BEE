@@ -39,11 +39,13 @@ export class UpdateCourseUseCase {
           title: course.title,
           visibility: course.visibility,
           isEnded: course.isEnded,
+          courseType: course.courseType,
         },
         {
           title: updatedCourse.title,
           visibility: updatedCourse.visibility,
           isEnded: updatedCourse.isEnded,
+          courseType: updatedCourse.courseType,
         },
       )
 

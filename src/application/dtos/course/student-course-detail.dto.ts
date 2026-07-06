@@ -26,8 +26,6 @@ export class StudentCourseDetailResponseDto {
   // ===== Pricing =====
   priceVND: number
   compareAtVND?: number
-  hasTuitionFee: boolean
-  paymentType: string
 
   // ===== Audit =====
   createdAt: Date
@@ -35,6 +33,7 @@ export class StudentCourseDetailResponseDto {
 
   // ===== State =====
   isEnded: boolean
+  courseType: string
 
   // ===== Computed =====
   isFree: boolean
@@ -54,7 +53,7 @@ export class StudentCourseDetailResponseDto {
       enrolledAt?: Date
       status?: string
       isPaidFull?: boolean
-    }
+    },
   ): StudentCourseDetailResponseDto {
     return {
       // Identity
@@ -83,8 +82,6 @@ export class StudentCourseDetailResponseDto {
       // Pricing
       priceVND: course.priceVND,
       compareAtVND: course.compareAtVND ?? undefined,
-      hasTuitionFee: course.hasTuitionFee,
-      paymentType: course.paymentType,
 
       // Audit
       createdAt: course.createdAt,
@@ -92,6 +89,7 @@ export class StudentCourseDetailResponseDto {
 
       // State
       isEnded: course.isEnded,
+      courseType: course.courseType,
 
       // Computed
       isFree: course.isFree(),

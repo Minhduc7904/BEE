@@ -12,72 +12,71 @@ import { CourseVisibility } from 'src/shared/enums'
 
 @Injectable()
 export class CreateCourseUseCase {
-    constructor(
-        @Inject('UNIT_OF_WORK')
-        private readonly unitOfWork: IUnitOfWork
-    ) { }
+  constructor(
+    @Inject('UNIT_OF_WORK')
+    private readonly unitOfWork: IUnitOfWork,
+  ) {}
 
-    async execute(
-        dto: CreateCourseDto,
-        adminId?: number,
-    ): Promise<BaseResponseDto<CourseResponseDto>> {
-        const result = await this.unitOfWork.executeInTransaction(async (repos) => {
-            const courseRepository = repos.courseRepository
-            const adminAuditLogRepository = repos.adminAuditLogRepository
+  async execute(dto: CreateCourseDto, adminId?: number): Promise<BaseResponseDto<CourseResponseDto>> {
+    const result = await this.unitOfWork.executeInTransaction(async (repos) => {
+      const courseRepository = repos.courseRepository
+      const adminAuditLogRepository = repos.adminAuditLogRepository
 
-            // Validate compareAt price
-            if (dto.compareAtVND && dto.compareAtVND <= dto.priceVND) {
-                if (adminId) {
-                    await adminAuditLogRepository.create({
-                        adminId,
-                        actionKey: ACTION_KEYS.COURSE.CREATE,
-                        status: AuditStatus.FAIL,
-                        resourceType: RESOURCE_TYPES.COURSE,
-                        errorMessage: 'Giá gốc phải lớn hơn giá bán',
-                    })
-                }
-                throw new ConflictException('Giá gốc phải lớn hơn giá bán')
-            }
-
-            const createData = {
-                title: dto.title,
-                subtitle: dto.subtitle,
-                academicYear: dto.academicYear,
-                grade: dto.grade,
-                subjectId: dto.subjectId,
-                description: dto.description,
-                priceVND: dto.priceVND,
-                compareAtVND: dto.compareAtVND,
-                visibility: dto.visibility || CourseVisibility.DRAFT,
-                isEnded: dto.isEnded,
-                teacherId: dto.teacherId,
-            }
-
-            const course = await courseRepository.create(createData)
-
-            if (adminId) {
-                await adminAuditLogRepository.create({
-                    adminId,
-                    actionKey: ACTION_KEYS.COURSE.CREATE,
-                    status: AuditStatus.SUCCESS,
-                    resourceType: RESOURCE_TYPES.COURSE,
-                    resourceId: course.courseId.toString(),
-                    afterData: {
-                        title: course.title,
-                        grade: course.grade,
-                        visibility: course.visibility,
-                        isEnded: course.isEnded,
-                    },
-                })
-            }
-
-            return CourseResponseDto.fromEntity(course)
-        })
-
-        return {
-            success: true,
-            message: 'Tạo khóa học thành công',
-            data: result,
+      // Validate compareAt price
+      if (dto.compareAtVND && dto.compareAtVND <= dto.priceVND) {
+        if (adminId) {
+          await adminAuditLogRepository.create({
+            adminId,
+            actionKey: ACTION_KEYS.COURSE.CREATE,
+            status: AuditStatus.FAIL,
+            resourceType: RESOURCE_TYPES.COURSE,
+            errorMessage: 'Giá gốc phải lớn hơn giá bán',
+          })
         }
+        throw new ConflictException('Giá gốc phải lớn hơn giá bán')
+      }
+
+      const createData = {
+        title: dto.title,
+        subtitle: dto.subtitle,
+        academicYear: dto.academicYear,
+        grade: dto.grade,
+        subjectId: dto.subjectId,
+        description: dto.description,
+        priceVND: dto.priceVND,
+        compareAtVND: dto.compareAtVND,
+        visibility: dto.visibility || CourseVisibility.DRAFT,
+        isEnded: dto.isEnded,
+        courseType: dto.courseType,
+        teacherId: dto.teacherId,
+      }
+
+      const course = await courseRepository.create(createData)
+
+      if (adminId) {
+        await adminAuditLogRepository.create({
+          adminId,
+          actionKey: ACTION_KEYS.COURSE.CREATE,
+          status: AuditStatus.SUCCESS,
+          resourceType: RESOURCE_TYPES.COURSE,
+          resourceId: course.courseId.toString(),
+          afterData: {
+            title: course.title,
+            grade: course.grade,
+            visibility: course.visibility,
+            isEnded: course.isEnded,
+            courseType: course.courseType,
+          },
+        })
+      }
+
+      return CourseResponseDto.fromEntity(course)
+    })
+
+    return {
+      success: true,
+      message: 'Tạo khóa học thành công',
+      data: result,
     }
+  }
 }

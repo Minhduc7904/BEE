@@ -1,14 +1,20 @@
 // src/shared/constants/enum.constants.ts
 import { StorageProvider, StorageProviderLabels } from '../enums/storage-provider.enum'
 import { AuditStatus, AuditStatusLabels } from '../enums/audit-status.enum'
+import { CourseType, CourseTypeLabels } from '../enums/course-type.enum'
 import { CourseVisibility, CourseVisibilityLabels } from '../enums/course-visibility.enum'
+import { OnlineCourseInvoiceStatus, OnlineCourseInvoiceStatusLabels } from '../enums/online-course-invoice-status.enum'
+import {
+  OnlinePaymentAttemptStatus,
+  OnlinePaymentAttemptStatusLabels,
+} from '../enums/online-payment-attempt-status.enum'
+import { OnlinePaymentProvider, OnlinePaymentProviderLabels } from '../enums/online-payment-provider.enum'
 import { Difficulty, DifficultyLabels } from '../enums/difficulty.enum'
 import { QuestionType, QuestionTypeLabels } from '../enums/question-type.enum'
 import { LearningItemType, LearningItemTypeLabels } from '../enums/learning-item-type.enum'
 import { Gender, GenderLabels } from '../enums/gender.enum'
 import { Visibility, VisibilityLabels } from '../enums/visibility.enum'
 import { PointType, PointTypeLabels } from '../enums/point-type.enum'
-import { PaymentType, PaymentTypeLabels } from '../enums/payment-type.enum'
 import { CourseEnrollmentStatus, CourseEnrollmentStatusLabels } from '../enums/course-enrollment-status.enum'
 import { AttendanceStatus, AttendanceStatusLabels } from '../enums/attendance-status.enum'
 import { MediaType, MediaTypeLabels } from '../enums/media-type.enum'
@@ -31,6 +37,22 @@ export const ENUM_VALUES = {
   COURSE_VISIBILITY: {
     values: Object.values(CourseVisibility),
     labels: CourseVisibilityLabels,
+  },
+  COURSE_TYPE: {
+    values: Object.values(CourseType),
+    labels: CourseTypeLabels,
+  },
+  ONLINE_COURSE_INVOICE_STATUS: {
+    values: Object.values(OnlineCourseInvoiceStatus),
+    labels: OnlineCourseInvoiceStatusLabels,
+  },
+  ONLINE_PAYMENT_PROVIDER: {
+    values: Object.values(OnlinePaymentProvider),
+    labels: OnlinePaymentProviderLabels,
+  },
+  ONLINE_PAYMENT_ATTEMPT_STATUS: {
+    values: Object.values(OnlinePaymentAttemptStatus),
+    labels: OnlinePaymentAttemptStatusLabels,
   },
   DIFFICULTY: {
     values: Object.values(Difficulty),
@@ -55,10 +77,6 @@ export const ENUM_VALUES = {
   POINT_TYPE: {
     values: Object.values(PointType),
     labels: PointTypeLabels,
-  },
-  PAYMENT_TYPE: {
-    values: Object.values(PaymentType),
-    labels: PaymentTypeLabels,
   },
   COURSE_ENROLLMENT_STATUS: {
     values: Object.values(CourseEnrollmentStatus),

@@ -56,6 +56,7 @@ import { QuestionChatMessageApplicationModule } from './use-cases/question-chat-
 import { DocumentApplicationModule } from './use-cases/document/document.application.module'
 import { TeacherProfileApplicationModule } from './use-cases/teacher-profile/teacher-profile.application.module'
 import { TagApplicationModule } from './use-cases/tag/tag.application.module'
+import { OnlineCoursePaymentApplicationModule } from './use-cases/online-course-payment/online-course-payment.application.module'
 
 const modules = [
   // Auth & Account
@@ -106,6 +107,7 @@ const modules = [
   NotificationApplicationModule,
   // Tuition Payment
   TuitionPaymentApplicationModule,
+  OnlineCoursePaymentApplicationModule,
   // Exam Import Session
   ExamImportSessionApplicationModule,
   TempExamApplicationModule,

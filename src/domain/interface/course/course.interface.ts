@@ -1,6 +1,6 @@
 // src/domain/interface/course/course.interface.ts
 import { Course } from '../../entities'
-import { CourseVisibility, PaymentType, AttendanceStatus } from 'src/shared/enums'
+import { CourseVisibility, AttendanceStatus, CourseType } from 'src/shared/enums'
 
 export interface CreateCourseData {
   title: string
@@ -13,6 +13,7 @@ export interface CreateCourseData {
   compareAtVND?: number
   visibility?: CourseVisibility
   isEnded?: boolean
+  courseType?: CourseType
   teacherId?: number
   isUpdatable?: boolean
 }
@@ -27,16 +28,12 @@ export interface UpdateCourseData {
   description?: string
   visibility?: CourseVisibility
   isEnded?: boolean
+  courseType?: CourseType
   teacherId?: number
 
   // ===== Pricing / payment =====
   priceVND?: number
   compareAtVND?: number
-  hasTuitionFee?: boolean
-  paymentType?: PaymentType
-  autoRenew?: boolean
-  blockUnpaid?: boolean
-  gracePeriodDays?: number | null
 }
 
 export interface CourseFilterOptions {
@@ -45,6 +42,7 @@ export interface CourseFilterOptions {
   visibility?: CourseVisibility
   excludeVisibility?: CourseVisibility
   isEnded?: boolean
+  courseType?: CourseType
   teacherId?: number
   academicYear?: string
   search?: string

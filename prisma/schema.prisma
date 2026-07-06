@@ -15,15 +15,15 @@ enum Gender {
 }
 
 enum AuditStatus {
-  SUCCESS // ✅ Thành công
-  FAIL // ❌ Thất bại
-  ROLLBACK // 🔄 Đã rollback
+  SUCCESS // âœ… ThÃ nh cÃ´ng
+  FAIL // âŒ Tháº¥t báº¡i
+  ROLLBACK // ðŸ”„ ÄÃ£ rollback
 }
 
 enum Visibility {
   DRAFT
-  PRIVATE // Riêng tư, chỉ người có link mới xem được
-  PUBLISHED // Công khai hiển thị ở nơi người dùng có thể thấy
+  PRIVATE // RiÃªng tÆ°, chá»‰ ngÆ°á»i cÃ³ link má»›i xem Ä‘Æ°á»£c
+  PUBLISHED // CÃ´ng khai hiá»ƒn thá»‹ á»Ÿ nÆ¡i ngÆ°á»i dÃ¹ng cÃ³ thá»ƒ tháº¥y
 }
 
 enum TagType {
@@ -38,48 +38,48 @@ enum TagType {
 }
 
 enum ExamVisibility {
-  DRAFT // Bản nháp, chưa công bố
-  PUBLISHED // Đã xuất bản, công khai
-  PRIVATE // Riêng tư, chỉ người có link mới xem được
-  ARCHIVED // Đã lưu trữ, không còn sử dụng
+  DRAFT // Báº£n nhÃ¡p, chÆ°a cÃ´ng bá»‘
+  PUBLISHED // ÄÃ£ xuáº¥t báº£n, cÃ´ng khai
+  PRIVATE // RiÃªng tÆ°, chá»‰ ngÆ°á»i cÃ³ link má»›i xem Ä‘Æ°á»£c
+  ARCHIVED // ÄÃ£ lÆ°u trá»¯, khÃ´ng cÃ²n sá»­ dá»¥ng
 }
 
 enum ImportStatus {
-  PENDING // Đang chờ xử lý
-  PROCESSING // Đang xử lý PDF
-  PARSED // Đã parse xong, chờ review
-  REVIEWING // Đang được review/chỉnh sửa
-  MIGRATING // Đang migrate sang bảng chính
-  APPROVED // Đã duyệt, sẵn sàng migrate
-  COMPLETED // Đã migrate sang bảng chính
-  REJECTED // Bị từ chối
-  FAILED // Xử lý thất bại
+  PENDING // Äang chá» xá»­ lÃ½
+  PROCESSING // Äang xá»­ lÃ½ PDF
+  PARSED // ÄÃ£ parse xong, chá» review
+  REVIEWING // Äang Ä‘Æ°á»£c review/chá»‰nh sá»­a
+  MIGRATING // Äang migrate sang báº£ng chÃ­nh
+  APPROVED // ÄÃ£ duyá»‡t, sáºµn sÃ ng migrate
+  COMPLETED // ÄÃ£ migrate sang báº£ng chÃ­nh
+  REJECTED // Bá»‹ tá»« chá»‘i
+  FAILED // Xá»­ lÃ½ tháº¥t báº¡i
 }
 
 enum JobStatus {
-  PENDING // Đang chờ xử lý
-  PROCESSING // Đang xử lý
-  COMPLETED // Hoàn thành
-  FAILED // Thất bại
-  CANCELLED // Đã hủy
-  RETRYING // Đang thử lại
+  PENDING // Äang chá» xá»­ lÃ½
+  PROCESSING // Äang xá»­ lÃ½
+  COMPLETED // HoÃ n thÃ nh
+  FAILED // Tháº¥t báº¡i
+  CANCELLED // ÄÃ£ há»§y
+  RETRYING // Äang thá»­ láº¡i
 }
 
 enum JobType {
-  AI_EXAM_PARSE // Parse đề thi bằng AI
-  AI_QUESTION_GENERATE // Tạo câu hỏi bằng AI
-  AI_CONTENT_GENERATE // Tạo nội dung bằng AI
-  AI_GRADING // Chấm bài tự động bằng AI
-  EMAIL_SEND // Gửi email
-  REPORT_GENERATE // Tạo báo cáo
-  DATA_EXPORT // Xuất dữ liệu
-  DATA_IMPORT // Import dữ liệu
+  AI_EXAM_PARSE // Parse Ä‘á» thi báº±ng AI
+  AI_QUESTION_GENERATE // Táº¡o cÃ¢u há»i báº±ng AI
+  AI_CONTENT_GENERATE // Táº¡o ná»™i dung báº±ng AI
+  AI_GRADING // Cháº¥m bÃ i tá»± Ä‘á»™ng báº±ng AI
+  EMAIL_SEND // Gá»­i email
+  REPORT_GENERATE // Táº¡o bÃ¡o cÃ¡o
+  DATA_EXPORT // Xuáº¥t dá»¯ liá»‡u
+  DATA_IMPORT // Import dá»¯ liá»‡u
 }
 
-enum PaymentType {
-  ONE_TIME // Đóng 1 lần cho toàn bộ khóa học
-  MONTHLY // Đóng theo tháng
-  LESSON // Đóng theo buổi học
+enum CourseType {
+  ONLINE
+  OFFLINE
+  ALL
 }
 
 enum QuestionType {
@@ -101,13 +101,13 @@ model User {
   userId       Int     @id @default(autoincrement()) @map("user_id")
   // oldUserId    Int?    @unique @map("old_user_id")
   username     String  @unique @db.VarChar(50)
-  email        String? @db.VarChar(120) // 1 user có thể có hoặc không có email
+  email        String? @db.VarChar(120) // 1 user cÃ³ thá»ƒ cÃ³ hoáº·c khÃ´ng cÃ³ email
   passwordHash String  @map("password_hash") @db.VarChar(255)
 
   firstName String @map("first_name") @db.VarChar(50)
   lastName  String @map("last_name") @db.VarChar(100)
 
-  // NEW: thêm giới tính và ngày sinh
+  // NEW: thÃªm giá»›i tÃ­nh vÃ  ngÃ y sinh
   gender      Gender?   @map("gender") // enum Gender
   dateOfBirth DateTime? @map("date_of_birth") @db.Date
 
@@ -117,7 +117,7 @@ model User {
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamp(0)
 
-  // NEW: trạng thái xác minh email
+  // NEW: tráº¡ng thÃ¡i xÃ¡c minh email
   isEmailVerified Boolean   @default(false) @map("is_email_verified")
   emailVerifiedAt DateTime? @map("email_verified_at") @db.Timestamp(0)
 
@@ -138,6 +138,7 @@ model User {
   updatedDocuments       Document[]               @relation("DocumentUpdater")
   createdTeacherProfiles TeacherProfile[]         @relation("TeacherProfileCreator")
   updatedTeacherProfiles TeacherProfile[]         @relation("TeacherProfileUpdater")
+  onlineCourseInvoices   OnlineCourseInvoice[]    @relation("OnlineCourseInvoiceBuyer")
 
   @@index([lastName, firstName], map: "idx_users_name")
   @@map("users")
@@ -163,26 +164,26 @@ enum NotificationLevel {
 model Notification {
   notificationId Int @id @default(autoincrement()) @map("notification_id")
 
-  // Người nhận
+  // NgÆ°á»i nháº­n
   userId Int  @map("user_id")
   user   User @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
-  // Nội dung
+  // Ná»™i dung
   title   String @db.VarChar(255)
   message String @db.Text
 
-  // Phân loại
+  // PhÃ¢n loáº¡i
   type  NotificationType  @default(SYSTEM)
   level NotificationLevel @default(INFO)
 
   // Metadata (link, entity, extra info)
   data Json? @map("data")
 
-  // Trạng thái
+  // Tráº¡ng thÃ¡i
   isRead Boolean   @default(false) @map("is_read")
   readAt DateTime? @map("read_at") @db.Timestamp(0)
 
-  // Thời gian
+  // Thá»i gian
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
 
   @@index([userId, isRead], map: "idx_notifications_user_read")
@@ -193,12 +194,12 @@ model Notification {
 model PasswordResetToken {
   id        Int      @id @default(autoincrement())
   userId    Int      @map("user_id")
-  tokenHash String   @db.VarChar(255) // UUID hoặc chuỗi random
-  expiresAt DateTime @map("expires_at") // thời điểm hết hạn
+  tokenHash String   @db.VarChar(255) // UUID hoáº·c chuá»—i random
+  expiresAt DateTime @map("expires_at") // thá»i Ä‘iá»ƒm háº¿t háº¡n
   isUsed    Boolean  @default(false) @map("is_used")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
 
-  // Quan hệ
+  // Quan há»‡
   user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   @@index([userId], map: "idx_password_reset_user_id")
@@ -208,14 +209,14 @@ model PasswordResetToken {
 model EmailVerificationToken {
   id         String    @id @default(uuid())
   userId     Int
-  tokenHash  String    @db.VarChar(255) // LƯU HASH thay vì raw token
+  tokenHash  String    @db.VarChar(255) // LÆ¯U HASH thay vÃ¬ raw token
   expiresAt  DateTime
   createdAt  DateTime  @default(now())
   consumedAt DateTime?
 
   user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
-  @@unique([userId]) // mỗi user chỉ có 1 token đang chờ (nếu muốn cho phép nhiều lần song song, bỏ unique này)
+  @@unique([userId]) // má»—i user chá»‰ cÃ³ 1 token Ä‘ang chá» (náº¿u muá»‘n cho phÃ©p nhiá»u láº§n song song, bá» unique nÃ y)
   @@map("email_verification_tokens")
 }
 
@@ -245,10 +246,11 @@ model Student {
   homeworkSubmits      HomeworkSubmit[]
   studentLearningItems StudentLearningItem[]
   tuitionPayments      TuitionPayment[]
+  onlineCourseInvoices OnlineCourseInvoice[]
   competitionSubmits   CompetitionSubmit[]
   examAttempts         ExamAttempt[]
 
-  // ✅ UNIQUE theo cặp studentPhone + parentPhone
+  // âœ… UNIQUE theo cáº·p studentPhone + parentPhone
   @@unique([studentPhone, parentPhone], map: "uq_student_studentPhone_parentPhone")
   @@index([grade, school], map: "idx_students_grade_school")
   @@map("students")
@@ -276,20 +278,20 @@ model StudentPointLog {
 model UserPointLog {
   pointLogId Int @id @default(autoincrement()) @map("point_log_id")
 
-  // Người dùng được cộng/trừ điểm
+  // NgÆ°á»i dÃ¹ng Ä‘Æ°á»£c cá»™ng/trá»« Ä‘iá»ƒm
   userId Int  @map("user_id")
   user   User @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
-  // Loại biến động điểm
-  type   PointType @map("type") // BONUS = cộng điểm, PENALTY = trừ điểm
-  points Int       @map("points") // luôn lưu số dương, chiều tăng/giảm dựa vào type
+  // Loáº¡i biáº¿n Ä‘á»™ng Ä‘iá»ƒm
+  type   PointType @map("type") // BONUS = cá»™ng Ä‘iá»ƒm, PENALTY = trá»« Ä‘iá»ƒm
+  points Int       @map("points") // luÃ´n lÆ°u sá»‘ dÆ°Æ¡ng, chiá»u tÄƒng/giáº£m dá»±a vÃ o type
 
-  // Nguồn phát sinh điểm: EXAM_ATTEMPT, CONTRIBUTION, CHECK_IN, ADMIN_ADJUST, ...
+  // Nguá»“n phÃ¡t sinh Ä‘iá»ƒm: EXAM_ATTEMPT, CONTRIBUTION, CHECK_IN, ADMIN_ADJUST, ...
   source String @map("source") @db.VarChar(50)
 
-  // Tham chiếu nghiệp vụ để truy vết
-  referenceType String? @map("reference_type") @db.VarChar(50) // ví dụ: "EXAM_ATTEMPT", "COURSE_COMPLETION", "ATTENDANCE", "TEACHER_REWARD"
-  referenceId   Int?    @map("reference_id") // ID của thực thể tham chiếu, ví dụ exam_attempt_id, course_id, attendance_id
+  // Tham chiáº¿u nghiá»‡p vá»¥ Ä‘á»ƒ truy váº¿t
+  referenceType String? @map("reference_type") @db.VarChar(50) // vÃ­ dá»¥: "EXAM_ATTEMPT", "COURSE_COMPLETION", "ATTENDANCE", "TEACHER_REWARD"
+  referenceId   Int?    @map("reference_id") // ID cá»§a thá»±c thá»ƒ tham chiáº¿u, vÃ­ dá»¥ exam_attempt_id, course_id, attendance_id
 
   note     String? @map("note") @db.VarChar(255)
   metadata Json?   @map("metadata")
@@ -347,24 +349,24 @@ model Role {
 model Permission {
   permissionId Int    @id @default(autoincrement()) @map("permission_id")
   code         String @unique @db.VarChar(100)
-  // ví dụ:
+  // vÃ­ dá»¥:
   // "student.view"
   // "student.update"
   // "exam.publish"
   // "role.assign.teacher"
 
   name String @db.VarChar(100)
-  // tên hiển thị cho UI
-  // "Xem học sinh", "Cập nhật học sinh", ...
+  // tÃªn hiá»ƒn thá»‹ cho UI
+  // "Xem há»c sinh", "Cáº­p nháº­t há»c sinh", ...
 
   description String? @db.VarChar(255)
 
   group String? @db.VarChar(50)
-  // nhóm permission cho UI / quản lý
+  // nhÃ³m permission cho UI / quáº£n lÃ½
   // "student", "exam", "role", "media"
 
   isSystem Boolean @default(false) @map("is_system")
-  // true = permission lõi, không cho xóa
+  // true = permission lÃµi, khÃ´ng cho xÃ³a
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
 
@@ -383,7 +385,7 @@ model RolePermission {
   role       Role       @relation(fields: [roleId], references: [roleId], onDelete: Cascade)
   permission Permission @relation(fields: [permissionId], references: [permissionId], onDelete: Cascade)
 
-  @@id([roleId, permissionId]) // khóa chính tổng hợp
+  @@id([roleId, permissionId]) // khÃ³a chÃ­nh tá»•ng há»£p
   @@index([permissionId], map: "idx_role_permissions_permission")
   @@map("role_permissions")
 }
@@ -392,8 +394,8 @@ model UserRole {
   userId     Int       @map("user_id")
   roleId     Int       @map("role_id")
   assignedAt DateTime  @default(now()) @map("assigned_at") @db.Timestamp(0)
-  expiresAt  DateTime? @map("expires_at") @db.Timestamp(0) // null = không hết hạn
-  assignedBy Int?      @map("assigned_by") // user nào cấp role này
+  expiresAt  DateTime? @map("expires_at") @db.Timestamp(0) // null = khÃ´ng háº¿t háº¡n
+  assignedBy Int?      @map("assigned_by") // user nÃ o cáº¥p role nÃ y
   isActive   Boolean   @default(true) @map("is_active")
 
   // Relations
@@ -401,7 +403,7 @@ model UserRole {
   role           Role  @relation(fields: [roleId], references: [roleId], onDelete: Cascade)
   assignedByUser User? @relation("UserRoleAssigner", fields: [assignedBy], references: [userId], onDelete: SetNull)
 
-  @@id([userId, roleId]) // khóa chính tổng hợp
+  @@id([userId, roleId]) // khÃ³a chÃ­nh tá»•ng há»£p
   @@index([roleId], map: "idx_user_roles_role_id")
   @@index([userId, isActive], map: "idx_user_roles_user_active")
   @@index([expiresAt], map: "idx_user_roles_expires")
@@ -424,7 +426,7 @@ model UserRefreshToken {
   ipAddress         String? @map("ip_address") @db.VarChar(45)
   deviceFingerprint String? @map("device_fingerprint") @db.VarChar(128)
 
-  // Quan hệ
+  // Quan há»‡
   user            User               @relation(fields: [userId], references: [userId], onDelete: Cascade)
   replacedByToken UserRefreshToken?  @relation("UserTokenReplace", fields: [replacedByTokenId], references: [tokenId])
   replaces        UserRefreshToken[] @relation("UserTokenReplace") // back-rel cho self-FK
@@ -467,7 +469,7 @@ model AdminAuditLog {
   afterData    Json?       @map("after_data")
   createdAt    DateTime    @default(now()) @map("created_at") @db.Timestamp(0)
 
-  // quan hệ
+  // quan há»‡
   admin Admin @relation(fields: [adminId], references: [adminId], onDelete: Cascade)
 
   // indexes
@@ -501,15 +503,15 @@ model Chapter {
   subjectId       Int     @map("subject_id")
   code            String? @unique
   name            String
-  slug            String  @unique // ví dụ: "ham-so", "dao-ham"
+  slug            String  @unique // vÃ­ dá»¥: "ham-so", "dao-ham"
   parentChapterId Int?    @map("parent_chapter_id") // self-FK
-  // Thứ tự chỉ trong cùng 1 cha (không nên unique toàn bảng)
+  // Thá»© tá»± chá»‰ trong cÃ¹ng 1 cha (khÃ´ng nÃªn unique toÃ n báº£ng)
   orderInParent   Int     @map("order_in_parent")
 
-  // Tuỳ chọn: cấp độ để hiển thị nhanh (0=root, 1=con của root, ...)
+  // Tuá»³ chá»n: cáº¥p Ä‘á»™ Ä‘á»ƒ hiá»ƒn thá»‹ nhanh (0=root, 1=con cá»§a root, ...)
   level Int @default(0)
 
-  // Quan hệ
+  // Quan há»‡
   subject              Subject               @relation("SubjectChapters", fields: [subjectId], references: [subjectId], onDelete: Cascade)
   parent               Chapter?              @relation("ChapterToChildren", fields: [parentChapterId], references: [chapterId], onDelete: Cascade)
   children             Chapter[]             @relation("ChapterToChildren")
@@ -517,23 +519,23 @@ model Chapter {
   tempQuestionChapters TempQuestionChapter[]
   lessonChapters       LessonChapter[]
 
-  @@unique([subjectId, name, parentChapterId]) // tên chương không trùng trong cùng 1 cha của 1 môn
-  @@unique([subjectId, parentChapterId, orderInParent]) // đảm bảo thứ tự duy nhất trong nhóm anh/chị em
+  @@unique([subjectId, name, parentChapterId]) // tÃªn chÆ°Æ¡ng khÃ´ng trÃ¹ng trong cÃ¹ng 1 cha cá»§a 1 mÃ´n
+  @@unique([subjectId, parentChapterId, orderInParent]) // Ä‘áº£m báº£o thá»© tá»± duy nháº¥t trong nhÃ³m anh/chá»‹ em
   @@index([subjectId], map: "idx_chapters_subject_id")
   @@index([parentChapterId], map: "idx_chapters_parent_id")
   @@map("chapters")
 }
 
 enum TypeOfExam {
-  CK1 // cuối kỳ 1
-  TSA // đánh giá tư duy
-  THPT // THPT quốc gia
-  OTTHPT // ôn tập THPT
-  OT // ôn tập
-  CK2 // cuối kỳ 2
-  GK1 // giữa kỳ 1
-  GK2 // giữa kỳ 2
-  HSA // đánh giá năng lực
+  CK1 // cuá»‘i ká»³ 1
+  TSA // Ä‘Ã¡nh giÃ¡ tÆ° duy
+  THPT // THPT quá»‘c gia
+  OTTHPT // Ã´n táº­p THPT
+  OT // Ã´n táº­p
+  CK2 // cuá»‘i ká»³ 2
+  GK1 // giá»¯a ká»³ 1
+  GK2 // giá»¯a ká»³ 2
+  HSA // Ä‘Ã¡nh giÃ¡ nÄƒng lá»±c
   OTHS
 }
 
@@ -549,7 +551,7 @@ model Exam {
   solutionYoutubeUrl String?        @map("solution_youtube_url") @db.VarChar(500)
   createdAt          DateTime       @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt          DateTime       @updatedAt @map("updated_at") @db.Timestamp(0)
-  typeOfExam         TypeOfExam?    @map("type_of_exam") // ví dụ: "15 phút", "1 tiết", "học kỳ", "tuyển sinh"
+  typeOfExam         TypeOfExam?    @map("type_of_exam") // vÃ­ dá»¥: "15 phÃºt", "1 tiáº¿t", "há»c ká»³", "tuyá»ƒn sinh"
 
   // Relations
   subject      Subject?       @relation("ExamSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
@@ -582,12 +584,12 @@ model ExamAttempt {
   endAt       DateTime?         @map("end_at") @db.Timestamp(0)
   gradedAt    DateTime?         @map("graded_at") @db.Timestamp(0)
   status      ExamAttemptStatus @map("status") // IN_PROGRESS, SUBMITTED
-  duration    Int?              @map("duration") // thời gian làm bài (phút)
-  points      Decimal?          @map("points") @db.Decimal(10, 2) // điểm đạt được
-  maxPoints   Decimal?          @map("max_points") @db.Decimal(10, 2) // điểm tối đa của bài thi           
-  questionIds Json?             @map("question_ids") // array ID các câu hỏi được chọn làm 
-  graderId    Int?              @map("grader_id") // admin/giáo viên chấm bài
-  feedback    String?           @map("feedback") @db.Text // nhận xét của giáo viên
+  duration    Int?              @map("duration") // thá»i gian lÃ m bÃ i (phÃºt)
+  points      Decimal?          @map("points") @db.Decimal(10, 2) // Ä‘iá»ƒm Ä‘áº¡t Ä‘Æ°á»£c
+  maxPoints   Decimal?          @map("max_points") @db.Decimal(10, 2) // Ä‘iá»ƒm tá»‘i Ä‘a cá»§a bÃ i thi           
+  questionIds Json?             @map("question_ids") // array ID cÃ¡c cÃ¢u há»i Ä‘Æ°á»£c chá»n lÃ m 
+  graderId    Int?              @map("grader_id") // admin/giÃ¡o viÃªn cháº¥m bÃ i
+  feedback    String?           @map("feedback") @db.Text // nháº­n xÃ©t cá»§a giÃ¡o viÃªn
 
   // Relations
   exam            Exam             @relation(fields: [examId], references: [examId], onDelete: Cascade)
@@ -608,12 +610,12 @@ model QuestionAnswer {
   questionId       Int  @map("question_id")
 
   answer               String? @map("answer") @db.Text
-  selectedStatementIds Json?   @map("selected_statement_ids") // array ID các câu trả lời đã chọn (cho SINGLE_CHOICE, MULTIPLE_CHOICE, TRUE_FALSE)
+  selectedStatementIds Json?   @map("selected_statement_ids") // array ID cÃ¡c cÃ¢u tráº£ lá»i Ä‘Ã£ chá»n (cho SINGLE_CHOICE, MULTIPLE_CHOICE, TRUE_FALSE)
 
-  isCorrect        Boolean? @map("is_correct") // đúng hay sai (null nếu chưa chấm)
-  points           Decimal? @map("points") @db.Decimal(10, 2) // điểm đạt được
-  maxPoints        Decimal? @map("max_points") @db.Decimal(10, 2) // điểm tối đa của câu này
-  timeSpentSeconds Int?     @map("time_spent_seconds") // thời gian làm câu này (giây)
+  isCorrect        Boolean? @map("is_correct") // Ä‘Ãºng hay sai (null náº¿u chÆ°a cháº¥m)
+  points           Decimal? @map("points") @db.Decimal(10, 2) // Ä‘iá»ƒm Ä‘áº¡t Ä‘Æ°á»£c
+  maxPoints        Decimal? @map("max_points") @db.Decimal(10, 2) // Ä‘iá»ƒm tá»‘i Ä‘a cá»§a cÃ¢u nÃ y
+  timeSpentSeconds Int?     @map("time_spent_seconds") // thá»i gian lÃ m cÃ¢u nÃ y (giÃ¢y)
 
   // Relations
   examAttempt ExamAttempt? @relation(fields: [attemptId], references: [attemptId], onDelete: SetNull)
@@ -629,7 +631,7 @@ model Section {
   examId      Int      @map("exam_id")
   title       String   @map("title") @db.VarChar(255)
   description String?  @map("description") @db.Text
-  order       Int      @map("order") // thứ tự section trong đề thi
+  order       Int      @map("order") // thá»© tá»± section trong Ä‘á» thi
   createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
@@ -646,18 +648,18 @@ model Section {
 model Question {
   questionId         Int          @id @default(autoincrement()) @map("question_id")
   content            String       @map("content") @db.LongText
-  searchableContent  String?      @map("searchable_content") @db.Text // Nội dung đã strip markdown
+  searchableContent  String?      @map("searchable_content") @db.Text // Ná»™i dung Ä‘Ã£ strip markdown
   slug               String       @unique @db.VarChar(255)
   type               QuestionType @map("type")
   correctAnswer      String?      @map("correct_answer") @db.Text
   solution           String?      @map("solution") @db.Text
-  difficulty         Difficulty?  @map("difficulty") // độ khó (nullable nếu AI không phân loại được)
+  difficulty         Difficulty?  @map("difficulty") // Ä‘á»™ khÃ³ (nullable náº¿u AI khÃ´ng phÃ¢n loáº¡i Ä‘Æ°á»£c)
   solutionYoutubeUrl String?      @map("solution_youtube_url") @db.VarChar(500)
-  grade              Int?         @map("grade") @db.TinyInt // cấp lớp của câu hỏi (nullable nếu AI không phân loại được)
+  grade              Int?         @map("grade") @db.TinyInt // cáº¥p lá»›p cá»§a cÃ¢u há»i (nullable náº¿u AI khÃ´ng phÃ¢n loáº¡i Ä‘Æ°á»£c)
   subjectId          Int?         @map("subject_id")
-  pointsOrigin       Int?         @map("points_origin") // điểm gốc của câu hỏi
-  visibility         Visibility   @default(DRAFT) @map("visibility") // trạng thái công khai của câu hỏi
-  createdBy          Int?         @map("created_by") // admin tạo câu hỏi
+  pointsOrigin       Int?         @map("points_origin") // Ä‘iá»ƒm gá»‘c cá»§a cÃ¢u há»i
+  visibility         Visibility   @default(DRAFT) @map("visibility") // tráº¡ng thÃ¡i cÃ´ng khai cá»§a cÃ¢u há»i
+  createdBy          Int?         @map("created_by") // admin táº¡o cÃ¢u há»i
   createdAt          DateTime     @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt          DateTime     @updatedAt @map("updated_at") @db.Timestamp(0)
 
@@ -690,12 +692,12 @@ model Question {
 model ExamImportSession {
   sessionId   Int          @id @default(autoincrement()) @map("session_id")
   status      ImportStatus @default(PENDING) @map("status")
-  rawContent  String?      @map("raw_content") @db.LongText // nội dung text đã parse từ PDF
-  metadata    Json?        @map("metadata") // metadata bổ sung (AI model used, confidence score, etc)
+  rawContent  String?      @map("raw_content") @db.LongText // ná»™i dung text Ä‘Ã£ parse tá»« PDF
+  metadata    Json?        @map("metadata") // metadata bá»• sung (AI model used, confidence score, etc)
   createdBy   Int          @map("created_by")
-  approvedBy  Int?         @map("approved_by") // admin duyệt
+  approvedBy  Int?         @map("approved_by") // admin duyá»‡t
   approvedAt  DateTime?    @map("approved_at") @db.Timestamp(0)
-  completedAt DateTime?    @map("completed_at") @db.Timestamp(0) // thời điểm migrate sang bảng chính
+  completedAt DateTime?    @map("completed_at") @db.Timestamp(0) // thá»i Ä‘iá»ƒm migrate sang báº£ng chÃ­nh
   createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt   DateTime     @updatedAt @map("updated_at") @db.Timestamp(0)
 
@@ -720,8 +722,8 @@ model TempExam {
   typeOfExam         TypeOfExam?    @map("type_of_exam")
   visibility         ExamVisibility @default(DRAFT) @map("visibility")
   solutionYoutubeUrl String?        @map("solution_youtube_url") @db.VarChar(500)
-  metadata           Json?          @map("metadata") // dữ liệu bổ sung từ AI parsing
-  examId             Int?           @unique @map("exam_id") // ID của exam chính sau khi migrate
+  metadata           Json?          @map("metadata") // dá»¯ liá»‡u bá»• sung tá»« AI parsing
+  examId             Int?           @unique @map("exam_id") // ID cá»§a exam chÃ­nh sau khi migrate
   createdAt          DateTime       @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt          DateTime       @updatedAt @map("updated_at") @db.Timestamp(0)
 
@@ -744,7 +746,7 @@ model TempSection {
   description   String?  @map("description") @db.Text
   order         Int      @map("order")
   metadata      Json?    @map("metadata")
-  sectionId     Int?     @unique @map("section_id") // ID của section chính sau khi migrate
+  sectionId     Int?     @unique @map("section_id") // ID cá»§a section chÃ­nh sau khi migrate
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
@@ -772,9 +774,9 @@ model TempQuestion {
   grade              Int?         @map("grade") @db.TinyInt
   subjectId          Int?         @map("subject_id")
   pointsOrigin       Int?         @map("points_origin")
-  order              Int          @map("order") // thứ tự câu hỏi trong section/exam
+  order              Int          @map("order") // thá»© tá»± cÃ¢u há»i trong section/exam
   metadata           Json?        @map("metadata") // confidence score, AI notes, etc
-  questionId         Int?         @unique @map("question_id") // ID của question chính sau khi migrate
+  questionId         Int?         @unique @map("question_id") // ID cá»§a question chÃ­nh sau khi migrate
   createdAt          DateTime     @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt          DateTime     @updatedAt @map("updated_at") @db.Timestamp(0)
 
@@ -800,7 +802,7 @@ model TempStatement {
   order           Int?        @map("order")
   difficulty      Difficulty? @map("difficulty")
   metadata        Json?       @map("metadata")
-  statementId     Int?        @unique @map("statement_id") // ID của statement chính sau khi migrate
+  statementId     Int?        @unique @map("statement_id") // ID cá»§a statement chÃ­nh sau khi migrate
   createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt       DateTime    @updatedAt @map("updated_at") @db.Timestamp(0)
 
@@ -860,9 +862,9 @@ model Statement {
 model QuestionExam {
   questionId Int      @map("question_id")
   examId     Int      @map("exam_id")
-  sectionId  Int?     @map("section_id") // câu hỏi thuộc section nào (nullable để tương thích với dữ liệu cũ)
-  order      Int      @map("order") // thứ tự câu hỏi trong section hoặc trong đề thi
-  points     Int?     @map("points") // điểm số riêng cho câu hỏi này 
+  sectionId  Int?     @map("section_id") // cÃ¢u há»i thuá»™c section nÃ o (nullable Ä‘á»ƒ tÆ°Æ¡ng thÃ­ch vá»›i dá»¯ liá»‡u cÅ©)
+  order      Int      @map("order") // thá»© tá»± cÃ¢u há»i trong section hoáº·c trong Ä‘á» thi
+  points     Int?     @map("points") // Ä‘iá»ƒm sá»‘ riÃªng cho cÃ¢u há»i nÃ y 
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp(0)
 
   // Relations
@@ -888,15 +890,15 @@ model Competition {
   createdBy     Int        @map("created_by")
   visibility    Visibility @default(DRAFT) @map("visibility")
 
-  durationMinutes             Int?    @map("duration_minutes") // Thời lượng làm bài
-  maxAttempts                 Int?    @map("max_attempts") // số lần được làm, null = không giới hạn
-  showResultDetail            Boolean @default(false) @map("show_result_detail") // có xem chi tiết bài làm của người dùng không
-  allowLeaderboard            Boolean @default(false) @map("allow_leaderboard") // có hiển thị bảng xếp hạng không
-  allowViewScore              Boolean @default(true) @map("allow_view_score") // có được xem điểm của mình không
-  allowViewAnswer             Boolean @default(false) @map("allow_view_answer") // thi xong có được xem đáp án không
-  enableAntiCheating          Boolean @default(false) @map("enable_anti_cheating") // bật tính năng chống gian lận (như chụp hình, chuyển tab)
-  allowViewSolutionYoutubeUrl Boolean @default(false) @map("allow_view_solution_youtube_url") // có được xem video giải chi tiết trên youtube không
-  allowViewExamContent        Boolean @default(false) @map("allow_view_exam_content") // có được xem nội dung đề thi trước khi thi không
+  durationMinutes             Int?    @map("duration_minutes") // Thá»i lÆ°á»£ng lÃ m bÃ i
+  maxAttempts                 Int?    @map("max_attempts") // sá»‘ láº§n Ä‘Æ°á»£c lÃ m, null = khÃ´ng giá»›i háº¡n
+  showResultDetail            Boolean @default(false) @map("show_result_detail") // cÃ³ xem chi tiáº¿t bÃ i lÃ m cá»§a ngÆ°á»i dÃ¹ng khÃ´ng
+  allowLeaderboard            Boolean @default(false) @map("allow_leaderboard") // cÃ³ hiá»ƒn thá»‹ báº£ng xáº¿p háº¡ng khÃ´ng
+  allowViewScore              Boolean @default(true) @map("allow_view_score") // cÃ³ Ä‘Æ°á»£c xem Ä‘iá»ƒm cá»§a mÃ¬nh khÃ´ng
+  allowViewAnswer             Boolean @default(false) @map("allow_view_answer") // thi xong cÃ³ Ä‘Æ°á»£c xem Ä‘Ã¡p Ã¡n khÃ´ng
+  enableAntiCheating          Boolean @default(false) @map("enable_anti_cheating") // báº­t tÃ­nh nÄƒng chá»‘ng gian láº­n (nhÆ° chá»¥p hÃ¬nh, chuyá»ƒn tab)
+  allowViewSolutionYoutubeUrl Boolean @default(false) @map("allow_view_solution_youtube_url") // cÃ³ Ä‘Æ°á»£c xem video giáº£i chi tiáº¿t trÃªn youtube khÃ´ng
+  allowViewExamContent        Boolean @default(false) @map("allow_view_exam_content") // cÃ³ Ä‘Æ°á»£c xem ná»™i dung Ä‘á» thi trÆ°á»›c khi thi khÃ´ng
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
@@ -915,30 +917,30 @@ model Competition {
 }
 
 enum CompetitionSubmitStatus {
-  IN_PROGRESS // Đang làm bài
-  SUBMITTED // Đã nộp bài, chờ chấm
-  GRADED // Đã chấm xong
-  ABANDONED // Bỏ dở (hết giờ mà chưa nộp)
+  IN_PROGRESS // Äang lÃ m bÃ i
+  SUBMITTED // ÄÃ£ ná»™p bÃ i, chá» cháº¥m
+  GRADED // ÄÃ£ cháº¥m xong
+  ABANDONED // Bá» dá»Ÿ (háº¿t giá» mÃ  chÆ°a ná»™p)
 }
 
 model CompetitionSubmit {
   competitionSubmitId Int                     @id @default(autoincrement()) @map("competition_submit_id")
   competitionId       Int                     @map("competition_id")
   studentId           Int                     @map("student_id")
-  attemptNumber       Int                     @default(1) @map("attempt_number") // lần làm thứ mấy
+  attemptNumber       Int                     @default(1) @map("attempt_number") // láº§n lÃ m thá»© máº¥y
   status              CompetitionSubmitStatus @default(IN_PROGRESS) @map("status")
 
   startedAt   DateTime  @default(now()) @map("started_at") @db.Timestamp(0)
   submittedAt DateTime? @map("submitted_at") @db.Timestamp(0)
   gradedAt    DateTime? @map("graded_at") @db.Timestamp(0)
 
-  totalPoints      Decimal? @map("total_points") @db.Decimal(10, 2) // điểm đạt được
-  maxPoints        Decimal? @map("max_points") @db.Decimal(10, 2) // điểm tối đa
-  timeSpentSeconds Int?     @map("time_spent_seconds") // thời gian làm bài (giây)
-  graderId         Int?     @map("grader_id") // admin/giáo viên chấm bài
-  feedback         String?  @map("feedback") @db.Text // nhận xét của giáo viên
+  totalPoints      Decimal? @map("total_points") @db.Decimal(10, 2) // Ä‘iá»ƒm Ä‘áº¡t Ä‘Æ°á»£c
+  maxPoints        Decimal? @map("max_points") @db.Decimal(10, 2) // Ä‘iá»ƒm tá»‘i Ä‘a
+  timeSpentSeconds Int?     @map("time_spent_seconds") // thá»i gian lÃ m bÃ i (giÃ¢y)
+  graderId         Int?     @map("grader_id") // admin/giÃ¡o viÃªn cháº¥m bÃ i
+  feedback         String?  @map("feedback") @db.Text // nháº­n xÃ©t cá»§a giÃ¡o viÃªn
 
-  metadata Json? @map("metadata") // lưu IP, device, anti-cheating logs, etc.
+  metadata Json? @map("metadata") // lÆ°u IP, device, anti-cheating logs, etc.
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
@@ -964,13 +966,13 @@ model CompetitionAnswer {
   competitionSubmitId Int @map("competition_submit_id")
   questionId          Int @map("question_id")
 
-  answer               String? @map("answer") @db.Text // câu trả lời dạng text (cho SHORT_ANSWER, ESSAY)
-  selectedStatementIds Json?   @map("selected_statement_ids") // array ID các câu trả lời đã chọn (cho SINGLE_CHOICE, MULTIPLE_CHOICE, TRUE_FALSE)
+  answer               String? @map("answer") @db.Text // cÃ¢u tráº£ lá»i dáº¡ng text (cho SHORT_ANSWER, ESSAY)
+  selectedStatementIds Json?   @map("selected_statement_ids") // array ID cÃ¡c cÃ¢u tráº£ lá»i Ä‘Ã£ chá»n (cho SINGLE_CHOICE, MULTIPLE_CHOICE, TRUE_FALSE)
 
-  isCorrect        Boolean? @map("is_correct") // đúng hay sai (null nếu chưa chấm)
-  points           Decimal? @map("points") @db.Decimal(10, 2) // điểm đạt được
-  maxPoints        Decimal? @map("max_points") @db.Decimal(10, 2) // điểm tối đa của câu này
-  timeSpentSeconds Int?     @map("time_spent_seconds") // thời gian làm câu này (giây)
+  isCorrect        Boolean? @map("is_correct") // Ä‘Ãºng hay sai (null náº¿u chÆ°a cháº¥m)
+  points           Decimal? @map("points") @db.Decimal(10, 2) // Ä‘iá»ƒm Ä‘áº¡t Ä‘Æ°á»£c
+  maxPoints        Decimal? @map("max_points") @db.Decimal(10, 2) // Ä‘iá»ƒm tá»‘i Ä‘a cá»§a cÃ¢u nÃ y
+  timeSpentSeconds Int?     @map("time_spent_seconds") // thá»i gian lÃ m cÃ¢u nÃ y (giÃ¢y)
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
@@ -1020,12 +1022,12 @@ model HomeworkContent {
   homeworkContentId        Int       @id @default(autoincrement()) @map("homework_content_id")
   learningItemId           Int       @map("learning_item_id")
   content                  String    @map("content") @db.Text
-  dueDate                  DateTime? @map("due_date") @db.Timestamp(0) // hạn nộp bài 
-  competitionId            Int?      @map("competition_id") // nếu bài tập là 1 cuộc thi
+  dueDate                  DateTime? @map("due_date") @db.Timestamp(0) // háº¡n ná»™p bÃ i 
+  competitionId            Int?      @map("competition_id") // náº¿u bÃ i táº­p lÃ  1 cuá»™c thi
   allowLateSubmit          Boolean   @default(false) @map("allow_late_submit")
-  updatePointsOnLateSubmit Boolean   @default(false) @map("update_points_on_late_submit") // có cập nhật điểm nếu nộp muộn không
-  updatePointsOnReSubmit   Boolean   @default(false) @map("update_points_on_re_submit") // có cập nhật điểm nếu nộp lại không
-  updateMaxPoints          Boolean   @default(false) @map("update_max_points") // nếu cập nhật điểm thì có chỉ cập nhật khi điểm mới cao hơn không
+  updatePointsOnLateSubmit Boolean   @default(false) @map("update_points_on_late_submit") // cÃ³ cáº­p nháº­t Ä‘iá»ƒm náº¿u ná»™p muá»™n khÃ´ng
+  updatePointsOnReSubmit   Boolean   @default(false) @map("update_points_on_re_submit") // cÃ³ cáº­p nháº­t Ä‘iá»ƒm náº¿u ná»™p láº¡i khÃ´ng
+  updateMaxPoints          Boolean   @default(false) @map("update_max_points") // náº¿u cáº­p nháº­t Ä‘iá»ƒm thÃ¬ cÃ³ chá»‰ cáº­p nháº­t khi Ä‘iá»ƒm má»›i cao hÆ¡n khÃ´ng
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
@@ -1044,13 +1046,13 @@ model HomeworkSubmit {
   homeworkSubmitId    Int                @id @default(autoincrement()) @map("homework_submit_id")
   homeworkContentId   Int                @map("homework_content_id")
   studentId           Int                @map("student_id")
-  competitionSubmitId Int?               @unique @map("competition_submit_id") // liên kết bài nộp với lần thi cụ thể
+  competitionSubmitId Int?               @unique @map("competition_submit_id") // liÃªn káº¿t bÃ i ná»™p vá»›i láº§n thi cá»¥ thá»ƒ
   submitAt            DateTime           @default(now()) @map("submit_at") @db.Timestamp(0)
-  content             String             @map("content") @db.Text // nội dung bài làm
-  points              Float?             @map("points") // điểm số bài làm
-  gradedAt            DateTime?          @map("graded_at") @db.Timestamp(0) // thời điểm chấm điểm
-  graderId            Int?               @map("grader_id") // admin/giáo viên chấm bài
-  feedback            String?            @map("feedback") @db.Text // nhận xét của giáo viên
+  content             String             @map("content") @db.Text // ná»™i dung bÃ i lÃ m
+  points              Float?             @map("points") // Ä‘iá»ƒm sá»‘ bÃ i lÃ m
+  gradedAt            DateTime?          @map("graded_at") @db.Timestamp(0) // thá»i Ä‘iá»ƒm cháº¥m Ä‘iá»ƒm
+  graderId            Int?               @map("grader_id") // admin/giÃ¡o viÃªn cháº¥m bÃ i
+  feedback            String?            @map("feedback") @db.Text // nháº­n xÃ©t cá»§a giÃ¡o viÃªn
   createdAt           DateTime           @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt           DateTime           @updatedAt @map("updated_at") @db.Timestamp(0)
   // Relations
@@ -1068,8 +1070,8 @@ model HomeworkSubmit {
 model DocumentContent {
   documentContentId Int      @id @default(autoincrement()) @map("document_content_id")
   learningItemId    Int      @map("learning_item_id")
-  content           String   @map("content") @db.Text // nội dung tài liệu
-  orderInDocument   Int?     @map("order_in_document") // thứ tự trong tài liệu
+  content           String   @map("content") @db.Text // ná»™i dung tÃ i liá»‡u
+  orderInDocument   Int?     @map("order_in_document") // thá»© tá»± trong tÃ i liá»‡u
   createdAt         DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
@@ -1083,7 +1085,7 @@ model DocumentContent {
 model YoutubeContent {
   youtubeContentId Int      @id @default(autoincrement()) @map("youtube_content_id")
   learningItemId   Int      @map("learning_item_id")
-  content          String   @map("content") @db.Text // mô tả video
+  content          String   @map("content") @db.Text // mÃ´ táº£ video
   youtubeUrl       String   @map("youtube_url") @db.VarChar(500)
   createdAt        DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt        DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
@@ -1098,7 +1100,7 @@ model YoutubeContent {
 model VideoContent {
   videoContentId Int          @id @default(autoincrement()) @map("video_content_id")
   learningItemId Int          @map("learning_item_id")
-  content        String       @map("content") @db.Text // mô tả video
+  content        String       @map("content") @db.Text // mÃ´ táº£ video
   createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt      DateTime     @updatedAt @map("updated_at") @db.Timestamp(0)
   // Relations
@@ -1128,7 +1130,7 @@ model CourseAssistant {
   courseAssistantId Int @id @default(autoincrement()) @map("course_assistant_id")
 
   courseId Int @map("course_id")
-  adminId  Int @map("admin_id") // trợ giảng
+  adminId  Int @map("admin_id") // trá»£ giáº£ng
 
   joinedAt  DateTime @default(now()) @map("joined_at")
   createdAt DateTime @default(now()) @map("created_at")
@@ -1137,49 +1139,47 @@ model CourseAssistant {
   course Course @relation(fields: [courseId], references: [courseId], onDelete: Cascade)
   admin  Admin  @relation(fields: [adminId], references: [adminId], onDelete: Cascade)
 
-  @@unique([courseId, adminId]) // 1 admin không được làm TA 2 lần trong 1 course
+  @@unique([courseId, adminId]) // 1 admin khÃ´ng Ä‘Æ°á»£c lÃ m TA 2 láº§n trong 1 course
   @@index([courseId])
   @@index([adminId])
   @@map("course_assistants")
 }
 
 model Course {
-  courseId        Int         @id @default(autoincrement()) @map("course_id")
-  code            String      @unique @map("code") @db.VarChar(50) // mã khoá học dùng để đăng ký, ví dụ: "TOAN10A", "VAN11NC"
-  title           String      @map("title") @db.VarChar(200) // tên khoá học
-  subtitle        String?     @map("subtitle") @db.VarChar(255) // mô tả ngắn gọn
-  academicYear    String?     @map("academic_year") @db.VarChar(9) // ví dụ '2024-2025'
-  grade           Int?        @map("grade") @db.Int // ví dụ 10, 11, 12
-  subjectId       Int?        @map("subject_id") // FK tới subjects
-  description     String?     @map("description") @db.Text // mô tả chi tiết về khoá học
-  priceVND        Int         @default(0) @map("price_vnd") // giá khoá học (đơn vị: VND)
-  compareAtVND    Int?        @map("compare_at_vnd") // giá gốc (nếu có) để hiển thị giá khuyến mãi
-  visibility      Visibility  @default(DRAFT) @map("visibility") // trạng thái khoá học
-  isEnded         Boolean     @default(false) @map("is_ended") // khoa hoc da ket thuc hay chua
-  teacherId       Int?        @map("teacher_id") // FK tới admin_users nếu admin là giáo viên
-  hasTuitionFee   Boolean     @default(true) @map("has_tuition_fee") // khoá học có thu học phí hay không
-  paymentType     PaymentType @default(MONTHLY) @map("payment_type") // loại thanh toán: 1 lần hoặc theo tháng
-  autoRenew       Boolean     @default(false) @map("auto_renew") // có tự động gia hạn thanh toán không
-  blockUnpaid     Boolean     @default(false) @map("block_unpaid") // chặn học nếu chưa đóng học phí
-  gracePeriodDays Int?        @map("grace_period_days") @db.SmallInt // số ngày ân hạn trước khi chặn (null = chặn ngay)
+  courseId     Int        @id @default(autoincrement()) @map("course_id")
+  code         String     @unique @map("code") @db.VarChar(50) // mÃ£ khoÃ¡ há»c dÃ¹ng Ä‘á»ƒ Ä‘Äƒng kÃ½, vÃ­ dá»¥: "TOAN10A", "VAN11NC"
+  title        String     @map("title") @db.VarChar(200) // tÃªn khoÃ¡ há»c
+  subtitle     String?    @map("subtitle") @db.VarChar(255) // mÃ´ táº£ ngáº¯n gá»n
+  academicYear String?    @map("academic_year") @db.VarChar(9) // vÃ­ dá»¥ '2024-2025'
+  grade        Int?       @map("grade") @db.Int // vÃ­ dá»¥ 10, 11, 12
+  subjectId    Int?       @map("subject_id") // FK tá»›i subjects
+  description  String?    @map("description") @db.Text // mÃ´ táº£ chi tiáº¿t vá» khoÃ¡ há»c
+  priceVND     Int        @default(0) @map("price_vnd") // giÃ¡ khoÃ¡ há»c (Ä‘Æ¡n vá»‹: VND)
+  compareAtVND Int?       @map("compare_at_vnd") // giÃ¡ gá»‘c (náº¿u cÃ³) Ä‘á»ƒ hiá»ƒn thá»‹ giÃ¡ khuyáº¿n mÃ£i
+  visibility   Visibility @default(DRAFT) @map("visibility") // tráº¡ng thÃ¡i khoÃ¡ há»c
+  isEnded      Boolean    @default(false) @map("is_ended") // khoa hoc da ket thuc hay chua
+  teacherId    Int?       @map("teacher_id") // FK tá»›i admin_users náº¿u admin lÃ  giÃ¡o viÃªn
+  courseType   CourseType @default(OFFLINE) @map("course_type") // Loáº¡i khÃ³a há»c: online, offline hoáº·c cáº£ hai
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
-  subject           Subject?           @relation("CourseSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
-  teacher           Admin?             @relation("CourseTeacher", fields: [teacherId], references: [adminId], onDelete: SetNull)
-  lessons           Lesson[]
-  courseClasses     CourseClass[]
-  courseEnrollments CourseEnrollment[]
-  tuitionPayments   TuitionPayment[]
-  courseAssistants  CourseAssistant[]
+  subject            Subject?                  @relation("CourseSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
+  teacher            Admin?                    @relation("CourseTeacher", fields: [teacherId], references: [adminId], onDelete: SetNull)
+  lessons            Lesson[]
+  courseClasses      CourseClass[]
+  courseEnrollments  CourseEnrollment[]
+  tuitionPayments    TuitionPayment[]
+  onlineInvoiceItems OnlineCourseInvoiceItem[]
+  courseAssistants   CourseAssistant[]
 
   @@unique([code], map: "unique_course_code")
   @@index([visibility], map: "idx_courses_visibility")
   @@index([grade, subjectId], map: "idx_courses_grade_subject")
   @@index([subjectId], map: "idx_courses_subject_id")
   @@index([teacherId], map: "idx_courses_teacher_id")
+  @@index([courseType], map: "idx_courses_course_type")
   @@index([createdAt], map: "idx_courses_created_at")
   @@map("courses")
 }
@@ -1187,10 +1187,10 @@ model Course {
 model CourseClass {
   classId        Int       @id @default(autoincrement()) @map("class_id")
   courseId       Int       @map("course_id")
-  className      String    @map("class_name") @db.VarChar(100) // tên lớp học, ví dụ: "Lớp A1", "Lớp Toán nâng cao"
-  startDate      DateTime? @map("start_date") @db.Date // ngày bắt đầu lớp học
-  endDate        DateTime? @map("end_date") @db.Date // ngày kết thúc lớp học
-  weeklySchedule String?   @map("weekly_schedule") @db.VarChar(255) // lịch học trong tuần, ví dụ: "Thứ 2, 4, 6 - 18:30"
+  className      String    @map("class_name") @db.VarChar(100) // tÃªn lá»›p há»c, vÃ­ dá»¥: "Lá»›p A1", "Lá»›p ToÃ¡n nÃ¢ng cao"
+  startDate      DateTime? @map("start_date") @db.Date // ngÃ y báº¯t Ä‘áº§u lá»›p há»c
+  endDate        DateTime? @map("end_date") @db.Date // ngÃ y káº¿t thÃºc lá»›p há»c
+  weeklySchedule String?   @map("weekly_schedule") @db.VarChar(255) // lá»‹ch há»c trong tuáº§n, vÃ­ dá»¥: "Thá»© 2, 4, 6 - 18:30"
   room           String?   @map("room") @db.VarChar(100)
   instructorId   Int?
 
@@ -1210,13 +1210,13 @@ model CourseClass {
 
 model ClassSession {
   sessionId   Int      @id @default(autoincrement()) @map("session_id")
-  name        String   @map("name") @db.VarChar(200) // tên buổi học
-  makeupNote  String?  @map("makeup_note") @db.Text // ghi chú các buổi có thể đi học bù thay cho buổi này (nếu có)
+  name        String   @map("name") @db.VarChar(200) // tÃªn buá»•i há»c
+  makeupNote  String?  @map("makeup_note") @db.Text // ghi chÃº cÃ¡c buá»•i cÃ³ thá»ƒ Ä‘i há»c bÃ¹ thay cho buá»•i nÃ y (náº¿u cÃ³)
   classId     Int      @map("class_id")
   homeworkId  Int?     @map("homework_id")
-  sessionDate DateTime @map("session_date") @db.Date // ngày tổ chức buổi học
-  startTime   DateTime @map("start_time") @db.Time // giờ bắt đầu
-  endTime     DateTime @map("end_time") @db.Time // giờ kết thúc
+  sessionDate DateTime @map("session_date") @db.Date // ngÃ y tá»• chá»©c buá»•i há»c
+  startTime   DateTime @map("start_time") @db.Time // giá» báº¯t Ä‘áº§u
+  endTime     DateTime @map("end_time") @db.Time // giá» káº¿t thÃºc
 
   // Relations
   courseClass     CourseClass      @relation(fields: [classId], references: [classId], onDelete: Cascade)
@@ -1246,8 +1246,8 @@ enum CourseEnrollmentStatus {
   ACTIVE
   COMPLETED
   CANCELLED
-  BLOCKED_UNPAID // Bị chặn do chưa đóng học phí
-  TRIAL // Học thử
+  BLOCKED_UNPAID // Bá»‹ cháº·n do chÆ°a Ä‘Ã³ng há»c phÃ­
+  TRIAL // Há»c thá»­
 }
 
 model CourseEnrollment {
@@ -1255,18 +1255,171 @@ model CourseEnrollment {
   courseId     Int @map("course_id")
   studentId    Int @map("student_id")
 
-  enrolledAt DateTime               @default(now()) @map("enrolled_at") @db.Timestamp(0) // ngày đăng ký khoá học
+  enrolledAt DateTime               @default(now()) @map("enrolled_at") @db.Timestamp(0) // ngày đăng ký khóa học
   status     CourseEnrollmentStatus @map("status")
   isPaidFull Boolean                @default(false) @map("is_paid_full") // đã thanh toán đủ học phí hay chưa
 
   // Relations
-  course  Course  @relation(fields: [courseId], references: [courseId], onDelete: Cascade)
-  student Student @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  course             Course                    @relation(fields: [courseId], references: [courseId], onDelete: Cascade)
+  student            Student                   @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  onlineInvoiceItems OnlineCourseInvoiceItem[]
 
   @@unique([courseId, studentId], map: "unique_course_enrollment")
   @@index([studentId], map: "idx_course_enrollments_student_id")
   @@index([enrolledAt], map: "idx_course_enrollments_enrolled_at")
   @@map("courses_enrollments")
+}
+
+enum OnlineCourseInvoiceStatus {
+  PENDING_PAYMENT
+  PAID
+  PAYMENT_FAILED
+  CANCELLED
+  EXPIRED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum OnlinePaymentProvider {
+  VNPAY
+  MOMO
+  ZALOPAY
+  PAYOS
+  STRIPE
+  BANK_TRANSFER
+  OTHER
+}
+
+enum OnlinePaymentAttemptStatus {
+  PENDING
+  PROCESSING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+  EXPIRED
+}
+
+model OnlineCourseInvoice {
+  invoiceId   Int    @id @default(autoincrement()) @map("invoice_id")
+  invoiceCode String @unique @map("invoice_code") @db.VarChar(50)
+
+  buyerUserId Int @map("buyer_user_id")
+  studentId   Int @map("student_id")
+
+  status OnlineCourseInvoiceStatus @default(PENDING_PAYMENT) @map("status")
+
+  currency       String @default("VND") @map("currency") @db.VarChar(3)
+  subtotalAmount Int    @default(0) @map("subtotal_amount")
+  discountAmount Int    @default(0) @map("discount_amount")
+  totalAmount    Int    @default(0) @map("total_amount")
+  paidAmount     Int    @default(0) @map("paid_amount")
+  refundedAmount Int    @default(0) @map("refunded_amount")
+
+  paymentProvider OnlinePaymentProvider? @map("payment_provider")
+  providerOrderId String?                @map("provider_order_id") @db.VarChar(120)
+  checkoutUrl     String?                @map("checkout_url") @db.Text
+  qrCodeUrl       String?                @map("qr_code_url") @db.Text
+
+  expiresAt  DateTime? @map("expires_at") @db.Timestamp(0)
+  paidAt     DateTime? @map("paid_at") @db.Timestamp(0)
+  canceledAt DateTime? @map("canceled_at") @db.Timestamp(0)
+  refundedAt DateTime? @map("refunded_at") @db.Timestamp(0)
+
+  cancelReason String? @map("cancel_reason") @db.VarChar(255)
+  notes        String? @map("notes") @db.Text
+  metadata     Json?   @map("metadata")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  buyerUser       User                         @relation("OnlineCourseInvoiceBuyer", fields: [buyerUserId], references: [userId], onDelete: Restrict)
+  student         Student                      @relation(fields: [studentId], references: [studentId], onDelete: Restrict)
+  items           OnlineCourseInvoiceItem[]
+  paymentAttempts OnlineCoursePaymentAttempt[]
+
+  @@index([buyerUserId, status], map: "idx_online_course_invoices_buyer_status")
+  @@index([studentId, status], map: "idx_online_course_invoices_student_status")
+  @@index([status, createdAt], map: "idx_online_course_invoices_status_created")
+  @@index([providerOrderId], map: "idx_online_course_invoices_provider_order")
+  @@map("online_course_invoices")
+}
+
+model OnlineCourseInvoiceItem {
+  invoiceItemId Int  @id @default(autoincrement()) @map("invoice_item_id")
+  invoiceId     Int  @map("invoice_id")
+  courseId      Int? @map("course_id")
+  enrollmentId  Int? @map("enrollment_id")
+
+  courseCode  String? @map("course_code") @db.VarChar(50)
+  courseTitle String  @map("course_title") @db.VarChar(200)
+
+  unitPriceAmount Int @default(0) @map("unit_price_amount")
+  quantity        Int @default(1) @map("quantity")
+  discountAmount  Int @default(0) @map("discount_amount")
+  totalAmount     Int @default(0) @map("total_amount")
+
+  metadata Json? @map("metadata")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  invoice          OnlineCourseInvoice @relation(fields: [invoiceId], references: [invoiceId], onDelete: Cascade)
+  course           Course?             @relation(fields: [courseId], references: [courseId], onDelete: SetNull)
+  courseEnrollment CourseEnrollment?   @relation(fields: [enrollmentId], references: [enrollmentId], onDelete: SetNull)
+
+  @@index([invoiceId], map: "idx_online_course_invoice_items_invoice")
+  @@index([courseId], map: "idx_online_course_invoice_items_course")
+  @@index([enrollmentId], map: "idx_online_course_invoice_items_enrollment")
+  @@map("online_course_invoice_items")
+}
+
+model OnlineCoursePaymentAttempt {
+  attemptId   Int    @id @default(autoincrement()) @map("attempt_id")
+  attemptCode String @unique @map("attempt_code") @db.VarChar(80)
+
+  invoiceId Int @map("invoice_id")
+
+  provider OnlinePaymentProvider      @map("provider")
+  status   OnlinePaymentAttemptStatus @default(PENDING) @map("status")
+
+  amount   Int    @map("amount")
+  currency String @default("VND") @map("currency") @db.VarChar(3)
+
+  qrContent String? @map("qr_content") @db.Text
+
+  providerOrderId       String  @map("provider_order_id") @db.VarChar(120)
+  providerTransactionId String? @map("provider_transaction_id") @db.VarChar(120)
+  providerResponseCode  String? @map("provider_response_code") @db.VarChar(50)
+  providerMessage       String? @map("provider_message") @db.VarChar(255)
+
+  providerBankCode   String? @map("provider_bank_code") @db.VarChar(50)
+  providerBankTranNo String? @map("provider_bank_tran_no") @db.VarChar(120)
+  providerCardType   String? @map("provider_card_type") @db.VarChar(50)
+  providerPayDate    String? @map("provider_pay_date") @db.VarChar(14)
+
+  checkoutUrl String? @map("checkout_url") @db.Text
+  qrCodeUrl   String? @map("qr_code_url") @db.Text
+
+  requestPayload  Json? @map("request_payload")
+  responsePayload Json? @map("response_payload")
+  callbackPayload Json? @map("callback_payload")
+
+  paidAt     DateTime? @map("paid_at") @db.Timestamp(0)
+  failedAt   DateTime? @map("failed_at") @db.Timestamp(0)
+  canceledAt DateTime? @map("canceled_at") @db.Timestamp(0)
+  expiredAt  DateTime? @map("expired_at") @db.Timestamp(0)
+
+  cancelReason String? @map("cancel_reason") @db.VarChar(255)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  invoice OnlineCourseInvoice @relation(fields: [invoiceId], references: [invoiceId], onDelete: Cascade)
+
+  @@unique([provider, providerOrderId], map: "uq_online_payment_attempts_provider_order")
+  @@index([invoiceId, status], map: "idx_online_payment_attempts_invoice_status")
+  @@index([providerTransactionId], map: "idx_online_payment_attempts_provider_txn")
+  @@map("online_course_payment_attempts")
 }
 
 enum AttendanceStatus {
@@ -1285,7 +1438,7 @@ model Attendance {
   notes          String?          @map("notes") @db.Text
   updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamp(0)
   markerId       Int?             @map("marker") // admin/teacher who marked attendance
-  parentNotified Boolean          @default(false) @map("parent_notified") // đã gửi phiếu cho phụ huynh hay chưa
+  parentNotified Boolean          @default(false) @map("parent_notified") // Ä‘Ã£ gá»­i phiáº¿u cho phá»¥ huynh hay chÆ°a
   // Relations
   classSession   ClassSession     @relation(fields: [sessionId], references: [sessionId], onDelete: Cascade)
   student        Student          @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
@@ -1303,10 +1456,10 @@ model Lesson {
   title         String     @map("title") @db.VarChar(200)
   description   String?    @map("description") @db.Text
   visibility    Visibility @default(DRAFT) @map("visibility")
-  orderInCourse Int        @map("order_in_course") // thứ tự bài học trong khoá học
-  teacherId     Int?       @map("teacher_id") // nếu bài học do GV khác dạy
-  allowTrial    Boolean    @default(false) @map("allow_trial") // bài học có cho phép học thử không
-  // scheduledAt DateTime? @map("scheduled_at") @db.DateTime // nếu bạn muốn gắn ngày/giờ cụ thể
+  orderInCourse Int        @map("order_in_course") // thá»© tá»± bÃ i há»c trong khoÃ¡ há»c
+  teacherId     Int?       @map("teacher_id") // náº¿u bÃ i há»c do GV khÃ¡c dáº¡y
+  allowTrial    Boolean    @default(false) @map("allow_trial") // bÃ i há»c cÃ³ cho phÃ©p há»c thá»­ khÃ´ng
+  // scheduledAt DateTime? @map("scheduled_at") @db.DateTime // náº¿u báº¡n muá»‘n gáº¯n ngÃ y/giá» cá»¥ thá»ƒ
   createdAt     DateTime   @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt     DateTime   @updatedAt @map("updated_at") @db.Timestamp(0)
 
@@ -1392,9 +1545,9 @@ enum MediaStatus {
 }
 
 enum MediaVisibility {
-  PUBLIC // ai cũng xem được
-  PRIVATE // chỉ owner / admin
-  PROTECTED // cần login / permission
+  PUBLIC // ai cÅ©ng xem Ä‘Æ°á»£c
+  PRIVATE // chá»‰ owner / admin
+  PROTECTED // cáº§n login / permission
 }
 
 model MediaFolder {
@@ -1434,7 +1587,7 @@ model Media {
   // Metadata
   width    Int? @map("width") // cho image/video
   height   Int? @map("height") // cho image/video
-  duration Int? @map("duration") // giây, cho video/audio
+  duration Int? @map("duration") // giÃ¢y, cho video/audio
 
   // Organization
   folderId    Int?    @map("folder_id")
@@ -1471,8 +1624,8 @@ model MediaUsage {
   entityType String          @map("entity_type") @db.VarChar(50) // "USER", "COURSE", "QUESTION", "LESSON", "DOCUMENT", etc
   entityId   Int             @map("entity_id")
   fieldName  String?         @map("field_name") @db.VarChar(100) // "avatar", "thumbnail", "banner", "content_image", etc
-  usedBy     Int?            @map("used_by") // user nào sử dụng media này
-  visibility MediaVisibility @default(PRIVATE) @map("visibility") // phạm vi sử dụng
+  usedBy     Int?            @map("used_by") // user nÃ o sá»­ dá»¥ng media nÃ y
+  visibility MediaVisibility @default(PRIVATE) @map("visibility") // pháº¡m vi sá»­ dá»¥ng
   createdAt  DateTime        @default(now()) @map("created_at") @db.Timestamp(0)
 
   // Relations
@@ -1801,8 +1954,8 @@ model SeoMediaItem {
 }
 
 enum TuitionPaymentStatus {
-  UNPAID // Chưa nộp
-  PAID // Đã nộp
+  UNPAID // ChÆ°a ná»™p
+  PAID // ÄÃ£ ná»™p
 }
 
 model TuitionPayment {
@@ -1815,7 +1968,7 @@ model TuitionPayment {
 
   // REQUIRED
   studentId Int  @map("student_id")
-  amount    Int? @map("amount") // số tiền phải đóng (VND), null = chưa xác định, 0 = miễn phí
+  amount    Int? @map("amount") // sá»‘ tiá»n pháº£i Ä‘Ã³ng (VND), null = chÆ°a xÃ¡c Ä‘á»‹nh, 0 = miá»…n phÃ­
 
   status TuitionPaymentStatus @default(UNPAID) @map("status")
   paidAt DateTime?            @map("paid_at") @db.Timestamp(0)
@@ -1824,7 +1977,7 @@ model TuitionPayment {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
-  // 🔑 RELATIONS (OPTIONAL PHẢI ĐI KÈM)
+  // ðŸ”‘ RELATIONS (OPTIONAL PHáº¢I ÄI KÃˆM)
   course  Course? @relation(fields: [courseId], references: [courseId], onDelete: SetNull)
   student Student @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
 
@@ -1838,7 +1991,7 @@ model TuitionPayment {
 }
 
 // ============================================
-// QUESTION AI CHAT - Đoạn chat giữa người dùng và AI về câu hỏi
+// QUESTION AI CHAT - Äoáº¡n chat giá»¯a ngÆ°á»i dÃ¹ng vÃ  AI vá» cÃ¢u há»i
 // ============================================
 
 enum QuestionChatRole {
@@ -1850,7 +2003,7 @@ model QuestionChat {
   chatId     Int      @id @default(autoincrement()) @map("chat_id")
   userId     Int      @map("user_id")
   questionId Int      @map("question_id")
-  title      String?  @map("title") @db.VarChar(255) // tiêu đề tóm tắt cuộc hội thoại (optional)
+  title      String?  @map("title") @db.VarChar(255) // tiÃªu Ä‘á» tÃ³m táº¯t cuá»™c há»™i thoáº¡i (optional)
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
@@ -1868,8 +2021,8 @@ model QuestionChat {
 model QuestionChatMessage {
   messageId Int              @id @default(autoincrement()) @map("message_id")
   chatId    Int              @map("chat_id")
-  role      QuestionChatRole @map("role") // USER hoặc AI
-  content   String           @map("content") @db.LongText // nội dung tin nhắn
+  role      QuestionChatRole @map("role") // USER hoáº·c AI
+  content   String           @map("content") @db.LongText // ná»™i dung tin nháº¯n
   metadata  Json?            @map("metadata") // token usage, model info, etc.
   createdAt DateTime         @default(now()) @map("created_at") @db.Timestamp(0)
 
@@ -1881,37 +2034,37 @@ model QuestionChatMessage {
 }
 
 // ============================================
-// JOB QUEUE - Hàng đợi xử lý tác vụ bất đồng bộ
+// JOB QUEUE - HÃ ng Ä‘á»£i xá»­ lÃ½ tÃ¡c vá»¥ báº¥t Ä‘á»“ng bá»™
 // ============================================
 
 model Job {
   jobId    Int       @id @default(autoincrement()) @map("job_id")
-  type     JobType   @map("type") // Loại job
-  status   JobStatus @default(PENDING) @map("status") // Trạng thái job
-  priority Int       @default(0) @map("priority") // Độ ưu tiên (số càng cao càng ưu tiên)
+  type     JobType   @map("type") // Loáº¡i job
+  status   JobStatus @default(PENDING) @map("status") // Tráº¡ng thÃ¡i job
+  priority Int       @default(0) @map("priority") // Äá»™ Æ°u tiÃªn (sá»‘ cÃ ng cao cÃ ng Æ°u tiÃªn)
 
-  // Dữ liệu
-  payload Json? @map("payload") // Dữ liệu đầu vào (params, file path, etc)
-  result  Json? @map("result") // Kết quả đầu ra
+  // Dá»¯ liá»‡u
+  payload Json? @map("payload") // Dá»¯ liá»‡u Ä‘áº§u vÃ o (params, file path, etc)
+  result  Json? @map("result") // Káº¿t quáº£ Ä‘áº§u ra
 
-  // Thông tin lỗi
+  // ThÃ´ng tin lá»—i
   errorMessage String? @map("error_message") @db.Text
   errorStack   String? @map("error_stack") @db.Text
 
   // Retry logic
-  retryCount Int @default(0) @map("retry_count") // Số lần đã thử lại
-  maxRetries Int @default(3) @map("max_retries") // Số lần thử lại tối đa
+  retryCount Int @default(0) @map("retry_count") // Sá»‘ láº§n Ä‘Ã£ thá»­ láº¡i
+  maxRetries Int @default(3) @map("max_retries") // Sá»‘ láº§n thá»­ láº¡i tá»‘i Ä‘a
 
-  // Thời gian
-  scheduledAt DateTime? @map("scheduled_at") @db.Timestamp(0) // Thời gian dự kiến chạy
-  startedAt   DateTime? @map("started_at") @db.Timestamp(0) // Thời gian bắt đầu xử lý
-  completedAt DateTime? @map("completed_at") @db.Timestamp(0) // Thời gian hoàn thành
+  // Thá»i gian
+  scheduledAt DateTime? @map("scheduled_at") @db.Timestamp(0) // Thá»i gian dá»± kiáº¿n cháº¡y
+  startedAt   DateTime? @map("started_at") @db.Timestamp(0) // Thá»i gian báº¯t Ä‘áº§u xá»­ lÃ½
+  completedAt DateTime? @map("completed_at") @db.Timestamp(0) // Thá»i gian hoÃ n thÃ nh
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Metadata
-  createdBy Int?  @map("created_by") // User tạo job
-  metadata  Json? @map("metadata") // Thông tin bổ sung (progress, logs, etc)
+  createdBy Int?  @map("created_by") // User táº¡o job
+  metadata  Json? @map("metadata") // ThÃ´ng tin bá»• sung (progress, logs, etc)
 
   // Relations
   creator User? @relation("JobCreator", fields: [createdBy], references: [userId], onDelete: SetNull)
