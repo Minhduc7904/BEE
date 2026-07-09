@@ -23,6 +23,14 @@ import {
   CourseListResponseDto,
   CourseResponseDto,
 } from '../../application/dtos/course/course.dto'
+import {
+  CourseMediaResponseDto,
+  UpdateCourseMediaDto,
+} from '../../application/dtos/course/course-media.dto'
+import {
+  PublicSeoCourseDetailDto,
+  PublicSeoCourseListResponseDto,
+} from '../../application/dtos/course/public-seo-course.dto'
 import { StudentCourseDetailResponseDto } from '../../application/dtos/course/student-course-detail.dto'
 import {
   CourseSearchQueryDto,
@@ -45,6 +53,10 @@ import {
   ExportCourseStudentsAttendanceUseCase,
   SearchCoursesUseCase,
   GetStudentCourseDetailUseCase,
+  GetStudentAvailableOnlineCoursesUseCase,
+  GetPublicSeoOnlineCoursesUseCase,
+  GetPublicSeoCourseDetailUseCase,
+  UpdateCourseMediaUseCase,
 } from '../../application/use-cases/course'
 import { Injectable } from '@nestjs/common'
 
@@ -61,6 +73,10 @@ export class CourseController {
     private readonly exportCourseStudentsAttendanceUseCase: ExportCourseStudentsAttendanceUseCase,
     private readonly searchCoursesUseCase: SearchCoursesUseCase,
     private readonly getStudentCourseDetailUseCase: GetStudentCourseDetailUseCase,
+    private readonly getStudentAvailableOnlineCoursesUseCase: GetStudentAvailableOnlineCoursesUseCase,
+    private readonly getPublicSeoOnlineCoursesUseCase: GetPublicSeoOnlineCoursesUseCase,
+    private readonly getPublicSeoCourseDetailUseCase: GetPublicSeoCourseDetailUseCase,
+    private readonly updateCourseMediaUseCase: UpdateCourseMediaUseCase,
   ) { }
 
   @Get()
@@ -103,6 +119,94 @@ export class CourseController {
   }
 
   /**
+   * Endpoint: GET /api/courses/student/online-not-enrolled
+   *
+   * Request:
+   * - Header: Authorization: Bearer <JWT>
+   * - Query: CourseListQueryDto
+   *   page, limit, search, grade, subjectId, teacherId, academicYear, sortBy, sortOrder
+   *
+   * Response:
+   * - Danh sach khoa hoc PUBLISHED, chua ket thuc, co courseType ONLINE hoac ALL,
+   *   va hoc sinh hien tai chua co enrollment ACTIVE.
+   */
+  @Get('student/online-not-enrolled')
+  @RequirePermission()
+  @HttpCode(HttpStatus.OK)
+  async getStudentOnlineNotEnrolledCourses(
+    @Query() query: CourseListQueryDto,
+    @CurrentUser('studentId') studentId: number,
+  ): Promise<CourseListResponseDto> {
+    return ExceptionHandler.execute(() =>
+      this.getStudentAvailableOnlineCoursesUseCase.execute(query, studentId),
+    )
+  }
+
+  /**
+   * API lấy danh sách khóa học public online cho trang SEO.
+   *
+   * Rule:
+   * - Không yêu cầu đăng nhập.
+   * - Chỉ lấy khóa học có visibility = PUBLISHED.
+   * - Chỉ lấy khóa học chưa kết thúc: isEnded = false.
+   * - Chỉ lấy khóa học có courseType = ONLINE hoặc ALL.
+   * - Hỗ trợ lọc theo page, limit, search, grade, subjectId, teacherId, academicYear.
+   * - Hỗ trợ sắp xếp theo courseId, code, title, grade, priceVND, createdAt, updatedAt.
+   *
+   * Input:
+   * - Query page?: number.
+   * - Query limit?: number.
+   * - Query search?: string.
+   * - Query grade?: number.
+   * - Query subjectId?: number.
+   * - Query teacherId?: number.
+   * - Query academicYear?: string.
+   * - Query sortBy?: string.
+   * - Query sortOrder?: asc | desc.
+   *
+   * Output:
+   * - Danh sách khóa học public online kèm subject, teacher, số buổi học public,
+   *   số buổi học thử và số lượt ghi danh.
+   */
+  @Get('public/seo')
+  @HttpCode(HttpStatus.OK)
+  async getPublicSeoOnlineCourses(
+    @Query() query: CourseListQueryDto,
+  ): Promise<PublicSeoCourseListResponseDto> {
+    return ExceptionHandler.execute(() => this.getPublicSeoOnlineCoursesUseCase.execute(query))
+  }
+
+  /**
+   * API lấy chi tiết khóa học public online cho trang SEO.
+   *
+   * Rule:
+   * - Không yêu cầu đăng nhập.
+   * - Tham số courseIdOrCode nhận courseId dạng số hoặc code khóa học.
+   * - Chỉ trả khóa học có visibility = PUBLISHED, isEnded = false,
+   *   và courseType = ONLINE hoặc ALL.
+   * - Chỉ trả các buổi học có visibility = PUBLISHED.
+   * - Luôn trả danh sách buổi học public trong khóa học.
+   * - Nếu buổi học có allowTrial = true thì trả learning item của buổi học đó, trừ HOMEWORK.
+   * - Nếu buổi học có allowTrial = false thì learningItems = [] để không lộ nội dung học thử.
+   * - Với DOCUMENT, trả media READY giống GET /document-contents trong documentContents[].mediaFiles[].
+   * - Với VIDEO_CONTENT, chỉ trả media đã READY và media usage PUBLIC.
+   *
+   * Input:
+   * - Path courseIdOrCode: number | string.
+   *
+   * Output:
+   * - Thông tin khóa học public online, subject, teacher, lớp, trợ giảng,
+   *   buổi học public, chương của buổi học và learning item của các buổi học thử.
+   */
+  @Get('public/seo/:courseIdOrCode')
+  @HttpCode(HttpStatus.OK)
+  async getPublicSeoCourseDetail(
+    @Param('courseIdOrCode') courseIdOrCode: string,
+  ): Promise<BaseResponseDto<PublicSeoCourseDetailDto>> {
+    return ExceptionHandler.execute(() => this.getPublicSeoCourseDetailUseCase.execute(courseIdOrCode))
+  }
+
+  /**
    * Get course detail for student
    * GET /courses/student/:id
    * 
@@ -133,6 +237,40 @@ export class CourseController {
   @HttpCode(HttpStatus.OK)
   async getCourseById(@Param('id', ParseIntPipe) id: number): Promise<BaseResponseDto<CourseResponseDto>> {
     return ExceptionHandler.execute(() => this.getCourseByIdUseCase.execute(id))
+  }
+
+  /**
+   * API cập nhật media cho khóa học.
+   *
+   * Rule:
+   * - Yêu cầu quyền cập nhật khóa học.
+   * - thumbnailMediaId, bannerMediaId và galleryMediaIds phải là media loại IMAGE.
+   * - introVideoMediaId phải là media loại VIDEO.
+   * - Tất cả media truyền vào phải có status = READY.
+   * - Các field đơn thumbnail, banner, introVideo sẽ thay thế media cũ của field đó.
+   * - galleryMediaIds sẽ thay thế toàn bộ gallery hiện tại; truyền [] để xóa gallery.
+   * - Mặc định visibility = PUBLIC nếu không truyền.
+   *
+   * Input:
+   * - Path id: courseId.
+   * - Body thumbnailMediaId?: number.
+   * - Body bannerMediaId?: number.
+   * - Body introVideoMediaId?: number.
+   * - Body galleryMediaIds?: number[].
+   * - Body visibility?: PUBLIC | PRIVATE | PROTECTED.
+   *
+   * Output:
+   * - Danh sách media hiện tại của khóa học gồm thumbnail, banner, introVideo, gallery.
+   */
+  @Put(':id/media')
+  @RequirePermission(PERMISSION_CODES.COURSE.UPDATE)
+  @HttpCode(HttpStatus.OK)
+  async updateCourseMedia(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateCourseMediaDto,
+    @CurrentUser('userId') userId?: number,
+  ): Promise<BaseResponseDto<CourseMediaResponseDto>> {
+    return ExceptionHandler.execute(() => this.updateCourseMediaUseCase.execute(id, dto, userId))
   }
 
   @Post()

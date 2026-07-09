@@ -11,6 +11,7 @@ export class CourseEnrollment {
     studentId: number
     enrolledAt: Date
     status: CourseEnrollmentStatus
+    isPaidFull: boolean
     createdAt: Date
     updatedAt: Date
 
@@ -24,6 +25,7 @@ export class CourseEnrollment {
         studentId: number
         enrolledAt: Date
         status: CourseEnrollmentStatus
+        isPaidFull?: boolean
         createdAt?: Date
         updatedAt?: Date
         course?: Course
@@ -34,6 +36,7 @@ export class CourseEnrollment {
         this.studentId = data.studentId
         this.enrolledAt = data.enrolledAt
         this.status = data.status
+        this.isPaidFull = data.isPaidFull ?? false
         this.createdAt = data.createdAt || new Date()
         this.updatedAt = data.updatedAt || new Date()
         this.course = data.course
@@ -134,6 +137,7 @@ export class CourseEnrollment {
             studentId: this.studentId,
             enrolledAt: this.enrolledAt,
             status: this.status,
+            isPaidFull: this.isPaidFull,
             createdAt: this.createdAt,
             updatedAt: this.updatedAt,
         }
@@ -146,6 +150,7 @@ export class CourseEnrollment {
             studentId: this.studentId,
             enrolledAt: this.enrolledAt,
             status: this.status,
+            isPaidFull: this.isPaidFull,
             createdAt: this.createdAt,
             updatedAt: this.updatedAt,
             course: this.course,

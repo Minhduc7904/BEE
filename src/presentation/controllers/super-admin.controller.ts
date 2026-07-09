@@ -22,6 +22,7 @@ import { GenerateMissingExamSlugsUseCase } from 'src/application/use-cases/exam/
 import { RegenerateQuestionSlugsUseCase } from 'src/application/use-cases/question/regenerate-question-slugs.use-case'
 import { SeedDefaultTagsUseCase } from 'src/application/use-cases/tag'
 import { SyncPermissionsFromCodesUseCase } from 'src/application/use-cases/permission'
+import { SyncSeoMediaSlotsFromPageSlotsUseCase } from 'src/application/use-cases/seo-media'
 
 interface ExchangeFacebookTokenDto {
   appId: string
@@ -43,6 +44,7 @@ export class AdminStudentController {
     private readonly regenerateQuestionSlugsUseCase: RegenerateQuestionSlugsUseCase,
     private readonly seedDefaultTagsUseCase: SeedDefaultTagsUseCase,
     private readonly syncPermissionsFromCodesUseCase: SyncPermissionsFromCodesUseCase,
+    private readonly syncSeoMediaSlotsFromPageSlotsUseCase: SyncSeoMediaSlotsFromPageSlotsUseCase,
   ) {}
 
   /**
@@ -306,6 +308,47 @@ export class AdminStudentController {
   @HttpCode(HttpStatus.OK)
   async syncPermissionsFromCodes(@CurrentUser('adminId') _adminId?: number): Promise<BaseResponseDto<any>> {
     return ExceptionHandler.execute(() => this.syncPermissionsFromCodesUseCase.execute())
+  }
+
+  /**
+   * Upsert SEO media slots from src/shared/constants/page-slots.ts into DB.
+   * POST /api/super-admin/seo-media/slots/sync-from-page-slots
+   *
+   * Input:
+   * - No body/query params.
+   *
+   * Source:
+   * - PAGE_SEO_MEDIA_SLOTS in src/shared/constants/page-slots.ts
+   * - Moi entry duoc flatten theo pageKey.slotKey, vi du:
+   *   home.hero -> code = home_hero, pageKey = home
+   *
+   * Upsert data:
+   * - code: slot code from PAGE_SEO_MEDIA_SLOTS
+   * - name: generated display name, vi du "Home - Hero"
+   * - pageKey: page key from PAGE_SEO_MEDIA_SLOTS
+   * - type: inferred from slot key/code: gallery, carousel, video, banner, or image
+   * - description: generated description for admin
+   * - isActive: true
+   * - minItems: 0
+   * - maxItems: null
+   * - recommendedWidth/recommendedHeight: null
+   * - metadata: { source, sourceKey, pageKey, slotKey }
+   *
+   * Output:
+   * - source: source constant file path
+   * - totalFromSource: total slot entries read from PAGE_SEO_MEDIA_SLOTS
+   * - totalUnique: total unique slot codes upserted by code
+   * - createdCount: number of newly inserted slots
+   * - updatedCount: number of existing slots whose metadata was changed
+   * - unchangedCount: number of existing slots already matching the source
+   * - duplicateCodes: duplicate code report if the source contains duplicate values
+   * - slots: sync result for each unique slot code
+   */
+  @Post('seo-media/slots/sync-from-page-slots')
+  @RequirePermission(PERMISSION_CODES.SEO_MEDIA.SLOT_CREATE, PERMISSION_CODES.SEO_MEDIA.SLOT_UPDATE)
+  @HttpCode(HttpStatus.OK)
+  async syncSeoMediaSlotsFromPageSlots(@CurrentUser('adminId') _adminId?: number): Promise<BaseResponseDto<any>> {
+    return ExceptionHandler.execute(() => this.syncSeoMediaSlotsFromPageSlotsUseCase.execute())
   }
 
   /**

@@ -20,6 +20,7 @@ export class CourseEnrollmentMapper {
             studentId: prismaEnrollment.studentId,
             enrolledAt: prismaEnrollment.enrolledAt,
             status: prismaEnrollment.status as CourseEnrollmentStatus,
+            isPaidFull: prismaEnrollment.isPaidFull ?? false,
             createdAt: prismaEnrollment.createdAt ?? undefined,
             updatedAt: prismaEnrollment.updatedAt ?? undefined,
             course: prismaEnrollment.course

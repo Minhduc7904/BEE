@@ -207,6 +207,19 @@ export class PrismaCourseRepository implements ICourseRepository {
       where.courseType = filters.courseType
     }
 
+    if (filters?.courseTypes?.length) {
+      where.courseType = { in: filters.courseTypes }
+    }
+
+    if (filters?.excludeActiveEnrollmentStudentId !== undefined) {
+      where.courseEnrollments = {
+        none: {
+          studentId: filters.excludeActiveEnrollmentStudentId,
+          status: 'ACTIVE',
+        },
+      }
+    }
+
     if (filters?.excludeVisibility) {
       where.visibility = { not: filters.excludeVisibility }
     }
@@ -346,6 +359,19 @@ export class PrismaCourseRepository implements ICourseRepository {
 
     if (filters?.courseType) {
       where.courseType = filters.courseType
+    }
+
+    if (filters?.courseTypes?.length) {
+      where.courseType = { in: filters.courseTypes }
+    }
+
+    if (filters?.excludeActiveEnrollmentStudentId !== undefined) {
+      where.courseEnrollments = {
+        none: {
+          studentId: filters.excludeActiveEnrollmentStudentId,
+          status: 'ACTIVE',
+        },
+      }
     }
 
     if (filters?.teacherId !== undefined) {

@@ -7,6 +7,9 @@ import { CourseSearchQueryDto } from '../../dtos/course/course-search-query.dto'
 import { CourseVisibility } from '../../../shared/enums'
 import { PERMISSION_CODES } from '../../../shared/constants/permissions/permission.codes'
 import { CourseFilterOptions } from '../../../domain/interface/course/course.interface'
+import type { IMediaUsageRepository } from '../../../domain/repositories/media-usage.repository'
+import { attachThumbnailsToCourseResponses } from './course-media.helper'
+import { MinioService } from '../../../infrastructure/services/minio.service'
 
 interface SearchContext {
     user?: {
@@ -20,7 +23,10 @@ interface SearchContext {
 export class SearchCoursesUseCase {
     constructor(
         @Inject('ICourseRepository')
-        private readonly courseRepository: ICourseRepository
+        private readonly courseRepository: ICourseRepository,
+        @Inject('IMediaUsageRepository')
+        private readonly mediaUsageRepository: IMediaUsageRepository,
+        private readonly minioService: MinioService,
     ) { }
 
     async execute(query: CourseSearchQueryDto, context?: SearchContext): Promise<CourseListResponseDto> {
@@ -35,6 +41,7 @@ export class SearchCoursesUseCase {
         )
 
         const courseResponses = CourseResponseDto.fromEntities(nonDraftCourses)
+        await attachThumbnailsToCourseResponses(courseResponses, this.mediaUsageRepository, this.minioService)
 
         return new CourseListResponseDto(
             courseResponses,

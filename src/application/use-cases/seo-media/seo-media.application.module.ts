@@ -17,6 +17,7 @@ const SEO_MEDIA_USE_CASES = [
   seoMediaUseCases.UploadSeoMediaUseCase,
   seoMediaUseCases.GetSeoMediaBucketMediaUseCase,
   seoMediaUseCases.GetPublicSeoMediaItemsBySlotCodeUseCase,
+  seoMediaUseCases.SyncSeoMediaSlotsFromPageSlotsUseCase,
 ]
 
 @Module({

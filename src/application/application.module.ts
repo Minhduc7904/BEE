@@ -57,6 +57,7 @@ import { DocumentApplicationModule } from './use-cases/document/document.applica
 import { TeacherProfileApplicationModule } from './use-cases/teacher-profile/teacher-profile.application.module'
 import { TagApplicationModule } from './use-cases/tag/tag.application.module'
 import { OnlineCoursePaymentApplicationModule } from './use-cases/online-course-payment/online-course-payment.application.module'
+import { AchievementApplicationModule } from './use-cases/achievement/achievement.application.module'
 
 const modules = [
   // Auth & Account
@@ -83,6 +84,7 @@ const modules = [
   DocumentApplicationModule,
   TeacherProfileApplicationModule,
   TagApplicationModule,
+  AchievementApplicationModule,
 
   // Course & Learning
   CourseApplicationModule,

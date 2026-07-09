@@ -57,6 +57,53 @@ export class PrismaSeoMediaSlotRepository implements ISeoMediaSlotRepository {
     return SeoMediaSlotMapper.toDomain(slot)
   }
 
+  async upsertByCode(data: {
+    code: string
+    name: string
+    pageKey?: string | null
+    type?: string
+    description?: string | null
+    isActive?: boolean
+    minItems?: number
+    maxItems?: number | null
+    recommendedWidth?: number | null
+    recommendedHeight?: number | null
+    metadata?: unknown | null
+  }): Promise<SeoMediaSlotEntity> {
+    const normalizedData = {
+      code: data.code,
+      name: data.name,
+      pageKey: data.pageKey ?? null,
+      type: data.type ?? 'image',
+      description: data.description ?? null,
+      isActive: data.isActive ?? true,
+      minItems: data.minItems ?? 0,
+      maxItems: data.maxItems ?? null,
+      recommendedWidth: data.recommendedWidth ?? null,
+      recommendedHeight: data.recommendedHeight ?? null,
+      metadata: data.metadata === undefined ? undefined : data.metadata as Prisma.InputJsonValue,
+    }
+
+    const slot = await this.prisma.seoMediaSlot.upsert({
+      where: { code: data.code },
+      create: normalizedData,
+      update: {
+        name: normalizedData.name,
+        pageKey: normalizedData.pageKey,
+        type: normalizedData.type,
+        description: normalizedData.description,
+        isActive: normalizedData.isActive,
+        minItems: normalizedData.minItems,
+        maxItems: normalizedData.maxItems,
+        recommendedWidth: normalizedData.recommendedWidth,
+        recommendedHeight: normalizedData.recommendedHeight,
+        ...(normalizedData.metadata !== undefined && { metadata: normalizedData.metadata }),
+      },
+    })
+
+    return SeoMediaSlotMapper.toDomain(slot)
+  }
+
   async findById(
     slotId: number,
     options?: {

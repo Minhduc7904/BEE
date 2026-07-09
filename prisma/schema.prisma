@@ -1953,6 +1953,68 @@ model SeoMediaItem {
   @@map("seo_media_items")
 }
 
+model AchievementBoard {
+  achievementBoardId Int    @id @default(autoincrement()) @map("achievement_board_id")
+  title              String @map("title") @db.VarChar(255)
+  slug               String @unique @map("slug") @db.VarChar(255)
+
+  competitionName  String  @map("competition_name") @db.VarChar(255)
+  academicYear     String? @map("academic_year") @db.VarChar(50)
+  description      String? @map("description") @db.Text
+  shortDescription String? @map("short_description") @db.VarChar(500)
+
+  targetKeyword   String? @map("target_keyword") @db.VarChar(255)
+  keywordText     String? @map("keyword_text") @db.Text
+  metaTitle       String? @map("meta_title") @db.VarChar(255)
+  metaDescription String? @map("meta_description") @db.VarChar(500)
+  ogTitle         String? @map("og_title") @db.VarChar(255)
+  ogDescription   String? @map("og_description") @db.VarChar(500)
+  searchIntent    String? @map("search_intent") @db.VarChar(100)
+  seoScore        Int?    @map("seo_score")
+
+  visibility Visibility @default(DRAFT) @map("visibility")
+  isFeatured Boolean    @default(false) @map("is_featured")
+  viewCount  Int        @default(0) @map("view_count")
+  sortOrder  Int        @default(0) @map("sort_order")
+
+  createdBy Int? @map("created_by")
+  updatedBy Int? @map("updated_by")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  rows AchievementRow[]
+
+  @@index([visibility], map: "idx_achievement_boards_visibility")
+  @@index([competitionName], map: "idx_achievement_boards_competition")
+  @@index([academicYear], map: "idx_achievement_boards_academic_year")
+  @@index([isFeatured, visibility], map: "idx_achievement_boards_featured_visibility")
+  @@index([sortOrder], map: "idx_achievement_boards_sort_order")
+  @@fulltext([title, competitionName, academicYear, description, shortDescription, targetKeyword, keywordText, metaTitle, metaDescription], map: "ft_achievement_boards_seo")
+  @@map("achievement_boards")
+}
+
+model AchievementRow {
+  achievementRowId   Int @id @default(autoincrement()) @map("achievement_row_id")
+  achievementBoardId Int @map("achievement_board_id")
+
+  studentName String   @map("student_name") @db.VarChar(255)
+  schoolName  String?  @map("school_name") @db.VarChar(255)
+  grade       Int?     @map("grade") @db.TinyInt
+  score       Decimal? @map("score") @db.Decimal(10, 2)
+  sortOrder   Int      @default(0) @map("sort_order")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  board AchievementBoard @relation(fields: [achievementBoardId], references: [achievementBoardId], onDelete: Cascade)
+
+  @@index([achievementBoardId, sortOrder], map: "idx_achievement_rows_board_order")
+  @@index([schoolName], map: "idx_achievement_rows_school")
+  @@index([grade], map: "idx_achievement_rows_grade")
+  @@map("achievement_rows")
+}
+
 enum TuitionPaymentStatus {
   UNPAID // ChÆ°a ná»™p
   PAID // ÄÃ£ ná»™p

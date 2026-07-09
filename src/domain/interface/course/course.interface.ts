@@ -43,9 +43,11 @@ export interface CourseFilterOptions {
   excludeVisibility?: CourseVisibility
   isEnded?: boolean
   courseType?: CourseType
+  courseTypes?: CourseType[]
   teacherId?: number
   academicYear?: string
   search?: string
+  excludeActiveEnrollmentStudentId?: number
 }
 
 export interface CoursePaginationOptions {

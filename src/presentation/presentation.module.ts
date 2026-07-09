@@ -72,6 +72,7 @@ import {
   OnlineCourseInvoicePaymentStatusController,
   OnlineCoursePaymentController,
 } from './controllers/online-course-payment.controller'
+import { AchievementBoardController } from './controllers/achievement-board.controller'
 @Module({
   imports: [
     ApplicationModule, // ✅ lấy toàn bộ UseCase đã export
@@ -140,6 +141,7 @@ import {
     QuestionChatMessageController,
     OnlineCoursePaymentController,
     OnlineCourseInvoicePaymentStatusController,
+    AchievementBoardController,
   ],
   providers: [
     // WebSocket Gateways

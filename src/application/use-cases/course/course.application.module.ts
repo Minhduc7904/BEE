@@ -13,6 +13,10 @@ const COURSE_USE_CASES = [
   courseUseCase.ExportCourseStudentsAttendanceUseCase,
   courseUseCase.SearchCoursesUseCase,
   courseUseCase.GetStudentCourseDetailUseCase,
+  courseUseCase.GetStudentAvailableOnlineCoursesUseCase,
+  courseUseCase.GetPublicSeoOnlineCoursesUseCase,
+  courseUseCase.GetPublicSeoCourseDetailUseCase,
+  courseUseCase.UpdateCourseMediaUseCase,
 ]
 
 @Module({

@@ -15,6 +15,20 @@ export interface ISeoMediaSlotRepository {
     metadata?: unknown | null
   }): Promise<SeoMediaSlotEntity>
 
+  upsertByCode(data: {
+    code: string
+    name: string
+    pageKey?: string | null
+    type?: string
+    description?: string | null
+    isActive?: boolean
+    minItems?: number
+    maxItems?: number | null
+    recommendedWidth?: number | null
+    recommendedHeight?: number | null
+    metadata?: unknown | null
+  }): Promise<SeoMediaSlotEntity>
+
   findById(
     slotId: number,
     options?: {

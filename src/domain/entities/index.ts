@@ -26,5 +26,6 @@ export * from './notification/notification.entity'
 export * from './tuition-payment'
 export * from './online-course-payment'
 export * from './job'
+export * from './achievement'
 
 export * from './question-chat'

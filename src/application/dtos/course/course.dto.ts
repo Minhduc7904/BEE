@@ -3,6 +3,7 @@ import { Course } from '../../../domain/entities'
 import { PaginationResponseDto } from '../pagination/pagination-response.dto'
 import { AdminResponseDto } from '../admin'
 import { SubjectResponseDto } from '../subject/subject.dto'
+import { CourseMediaFileDto, CourseMediaResponseDto } from './course-media.dto'
 
 export class CourseResponseDto {
   // ===== Identity =====
@@ -45,6 +46,11 @@ export class CourseResponseDto {
   isFree: boolean
   hasDiscount: boolean
   discountPercentage?: number
+
+  // ===== Media =====
+  // List APIs only hydrate thumbnail. Detail APIs hydrate full media.
+  thumbnail?: CourseMediaFileDto
+  media?: CourseMediaResponseDto
 
   static fromEntity(course: Course): CourseResponseDto {
     return {

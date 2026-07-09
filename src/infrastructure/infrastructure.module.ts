@@ -63,6 +63,7 @@ import {
   PrismaOnlineCourseInvoiceRepository,
   PrismaOnlineCourseInvoiceItemRepository,
   PrismaOnlineCoursePaymentAttemptRepository,
+  PrismaAchievementBoardRepository,
 } from './repositories'
 import {
   PasswordService,
@@ -79,6 +80,7 @@ import {
   DocumentContentExtractionService,
   DocumentSeoAiService,
   TeacherProfileSeoAiService,
+  AchievementBoardSeoAiService,
   DocumentMediaAltTextAiService,
   ExcelService,
 } from './services'
@@ -417,6 +419,11 @@ import openaiConfig from '../config/openai.config'
       inject: [PrismaService],
     },
     {
+      provide: 'IAchievementBoardRepository',
+      useFactory: (prisma: PrismaService) => new PrismaAchievementBoardRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
       provide: 'PASSWORD_SERVICE',
       useClass: PasswordService,
     },
@@ -450,6 +457,7 @@ import openaiConfig from '../config/openai.config'
     DocumentContentExtractionService,
     DocumentSeoAiService,
     TeacherProfileSeoAiService,
+    AchievementBoardSeoAiService,
     DocumentMediaAltTextAiService,
     ExcelService,
     MistralService,
@@ -527,6 +535,7 @@ import openaiConfig from '../config/openai.config'
     'IOnlineCourseInvoiceRepository',
     'IOnlineCourseInvoiceItemRepository',
     'IOnlineCoursePaymentAttemptRepository',
+    'IAchievementBoardRepository',
     'PASSWORD_SERVICE',
     'JWT_TOKEN_SERVICE',
     'TOKEN_HASH_SERVICE',
@@ -540,6 +549,7 @@ import openaiConfig from '../config/openai.config'
     DocumentContentExtractionService,
     DocumentSeoAiService,
     TeacherProfileSeoAiService,
+    AchievementBoardSeoAiService,
     DocumentMediaAltTextAiService,
     ExcelService,
     MistralService,
