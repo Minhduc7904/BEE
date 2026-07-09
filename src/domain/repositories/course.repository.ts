@@ -15,6 +15,7 @@ import { CourseVisibility } from 'src/shared/enums'
 export interface ICourseRepository {
     create(data: CreateCourseData): Promise<Course>
     findById(id: number): Promise<Course | null>
+    findByCode(code: string): Promise<Course | null>
     update(id: number, data: UpdateCourseData): Promise<Course>
     delete(id: number): Promise<boolean>
     findAll(): Promise<Course[]>

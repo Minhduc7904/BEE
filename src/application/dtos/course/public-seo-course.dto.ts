@@ -1,5 +1,12 @@
 import { BaseResponseDto } from '../common/base-response.dto'
 import { PaginationResponseDto } from '../pagination/pagination-response.dto'
+import {
+  IsOptionalEmail,
+  IsOptionalString,
+  IsRequiredIdNumber,
+  IsRequiredString,
+} from 'src/shared/decorators/validate'
+import type { OnlineCourseInvoiceStatus, OnlinePaymentProvider } from 'src/shared/enums'
 
 export interface PublicSeoCourseTeacherDto {
   adminId: number
@@ -186,3 +193,71 @@ export class PublicSeoCourseListResponseDto extends PaginationResponseDto<Public
 }
 
 export class PublicSeoCourseDetailResponseDto extends BaseResponseDto<PublicSeoCourseDetailDto> {}
+
+export class PublicSeoCourseManualInvoiceWithCredentialDto {
+  @IsOptionalString('Ten dang nhap', 50)
+  username?: string
+
+  @IsOptionalEmail('Email', 120)
+  email?: string
+
+  @IsRequiredString('Mat khau', 100, 6)
+  password: string
+}
+
+export class PublicSeoCourseManualInvoiceStatusWithCredentialDto extends PublicSeoCourseManualInvoiceWithCredentialDto {
+  @IsRequiredIdNumber('ID hoa don')
+  invoiceId: number
+}
+
+export interface PublicSeoCourseManualInvoiceItemDto {
+  invoiceItemId: number
+  courseId?: number | null
+  courseCode?: string | null
+  courseTitle: string
+  unitPriceAmount: number
+  quantity: number
+  discountAmount: number
+  totalAmount: number
+  enrollmentId?: number | null
+}
+
+export interface PublicSeoCourseManualInvoiceResponseDto {
+  invoiceId: number
+  invoiceCode: string
+  buyerUserId: number
+  studentId: number
+  status: OnlineCourseInvoiceStatus
+  currency: string
+  subtotalAmount: number
+  discountAmount: number
+  totalAmount: number
+  paidAmount: number
+  paymentProvider?: OnlinePaymentProvider | null
+  providerOrderId?: string | null
+  items: PublicSeoCourseManualInvoiceItemDto[]
+  alreadyHasEnrollment: boolean
+  reusedPendingInvoice: boolean
+  message: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+export class PublicSeoCourseManualInvoiceBaseResponseDto extends BaseResponseDto<PublicSeoCourseManualInvoiceResponseDto> {}
+
+export interface PublicSeoCourseManualInvoiceStatusResponseDto {
+  invoiceId: number
+  invoiceCode: string
+  status: OnlineCourseInvoiceStatus
+  paidAt?: Date | null
+  paidAmount: number
+  paymentProvider?: OnlinePaymentProvider | null
+  latestAttempt?: {
+    attemptCode: string
+    status: string
+    provider: string
+  } | null
+  enrollmentCreated: boolean
+}
+
+export class PublicSeoCourseManualInvoiceStatusBaseResponseDto extends BaseResponseDto<PublicSeoCourseManualInvoiceStatusResponseDto> {}

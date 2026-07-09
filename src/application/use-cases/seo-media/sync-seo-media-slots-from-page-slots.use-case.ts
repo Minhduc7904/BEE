@@ -83,12 +83,14 @@ export class SyncSeoMediaSlotsFromPageSlotsUseCase {
   }
 
   private flattenPageSlots(): FlattenedPageSlot[] {
-    return Object.entries(PAGE_SEO_MEDIA_SLOTS).flatMap(([pageKey, slots]) =>
+    return Object.entries(PAGE_SEO_MEDIA_SLOTS).flatMap(([rawPageKey, slots]) =>
       Object.entries(slots).map(([slotKey, code]) => {
+        const pageKey = this.normalizePageKey(rawPageKey)
+        const sourceKey = `${rawPageKey}.${slotKey}`
         const type = this.inferSlotType(slotKey, String(code))
 
         return {
-          sourceKey: `${pageKey}.${slotKey}`,
+          sourceKey,
           pageKey,
           slotKey,
           code: String(code).trim(),
@@ -102,13 +104,21 @@ export class SyncSeoMediaSlotsFromPageSlotsUseCase {
           recommendedHeight: null,
           metadata: {
             source: 'page-slots.ts',
-            sourceKey: `${pageKey}.${slotKey}`,
+            sourceKey,
+            constantPageKey: rawPageKey,
             pageKey,
             slotKey,
           },
         }
       }),
     )
+  }
+
+  private normalizePageKey(pageKey: string): string {
+    return pageKey
+      .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+      .replace(/[-\s]+/g, '_')
+      .toLowerCase()
   }
 
   private inferSlotType(slotKey: string, code: string): string {

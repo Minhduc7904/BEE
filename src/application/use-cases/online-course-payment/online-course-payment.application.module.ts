@@ -1,7 +1,10 @@
 import { Module } from '@nestjs/common'
 import { InfrastructureModule } from 'src/infrastructure/infrastructure.module'
 import {
+  ConfirmManualBankTransferPaymentUseCase,
   CreateVnpayQrPaymentUseCase,
+  GetAdminOnlineCourseInvoiceDetailUseCase,
+  GetAdminOnlineCourseInvoicesUseCase,
   GetOnlineCourseInvoicePaymentStatusUseCase,
   HandleVnpayIpnUseCase,
   VerifyVnpayReturnUseCase,
@@ -12,6 +15,9 @@ const ONLINE_COURSE_PAYMENT_USE_CASES = [
   HandleVnpayIpnUseCase,
   GetOnlineCourseInvoicePaymentStatusUseCase,
   VerifyVnpayReturnUseCase,
+  GetAdminOnlineCourseInvoicesUseCase,
+  GetAdminOnlineCourseInvoiceDetailUseCase,
+  ConfirmManualBankTransferPaymentUseCase,
 ]
 
 @Module({

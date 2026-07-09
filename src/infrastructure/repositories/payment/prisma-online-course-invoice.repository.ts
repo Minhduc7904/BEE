@@ -1,6 +1,8 @@
 import type {
   CreateOnlineCourseInvoiceData,
   IOnlineCourseInvoiceRepository,
+  OnlineCourseInvoiceListOptions,
+  OnlineCourseInvoiceListResult,
   UpdateOnlineCourseInvoiceData,
 } from '../../../domain/repositories/online-course-invoice.repository'
 import { OnlineCourseInvoice } from '../../../domain/entities/online-course-payment'
@@ -54,6 +56,42 @@ export class PrismaOnlineCourseInvoiceRepository implements IOnlineCourseInvoice
     return OnlineCoursePaymentMapper.toDomainInvoice(invoice)
   }
 
+  async findLatestByStudentAndCourse(studentId: number, courseId: number): Promise<OnlineCourseInvoice | null> {
+    const invoice = await this.prisma.onlineCourseInvoice.findFirst({
+      where: {
+        studentId,
+        items: {
+          some: { courseId },
+        },
+      },
+      include: this.defaultInclude(),
+      orderBy: { createdAt: 'desc' },
+    })
+
+    return OnlineCoursePaymentMapper.toDomainInvoice(invoice)
+  }
+
+  async findAllWithPagination(options: OnlineCourseInvoiceListOptions): Promise<OnlineCourseInvoiceListResult> {
+    const where = this.buildWhere(options)
+    const orderBy = this.buildOrderBy(options.sortBy, options.sortOrder)
+
+    const [data, total] = await Promise.all([
+      this.prisma.onlineCourseInvoice.findMany({
+        where,
+        include: this.defaultInclude(),
+        orderBy,
+        skip: options.skip,
+        take: options.take,
+      }),
+      this.prisma.onlineCourseInvoice.count({ where }),
+    ])
+
+    return {
+      data: OnlineCoursePaymentMapper.toDomainInvoices(data),
+      total,
+    }
+  }
+
   async update(invoiceId: number, data: UpdateOnlineCourseInvoiceData): Promise<OnlineCourseInvoice> {
     const updated = await this.prisma.onlineCourseInvoice.update({
       where: { invoiceId },
@@ -84,5 +122,66 @@ export class PrismaOnlineCourseInvoiceRepository implements IOnlineCourseInvoice
       items: true,
       paymentAttempts: true,
     }
+  }
+
+  private buildWhere(options: OnlineCourseInvoiceListOptions): any {
+    const where: any = {}
+
+    if (options.status) where.status = options.status
+    if (options.paymentProvider) where.paymentProvider = options.paymentProvider
+    if (options.studentId) where.studentId = options.studentId
+    if (options.buyerUserId) where.buyerUserId = options.buyerUserId
+
+    if (options.invoiceCode) {
+      where.invoiceCode = {
+        contains: options.invoiceCode,
+      }
+    }
+
+    if (options.fromDate || options.toDate) {
+      where.createdAt = {}
+      if (options.fromDate) where.createdAt.gte = options.fromDate
+      if (options.toDate) where.createdAt.lte = options.toDate
+    }
+
+    if (options.search) {
+      where.OR = [
+        { invoiceCode: { contains: options.search } },
+        { providerOrderId: { contains: options.search } },
+        { notes: { contains: options.search } },
+        {
+          items: {
+            some: {
+              OR: [
+                { courseTitle: { contains: options.search } },
+                { courseCode: { contains: options.search } },
+              ],
+            },
+          },
+        },
+      ]
+    }
+
+    return where
+  }
+
+  private buildOrderBy(sortBy?: string, sortOrder: 'asc' | 'desc' = 'desc'): any {
+    const allowedFields = new Set([
+      'invoiceId',
+      'invoiceCode',
+      'status',
+      'subtotalAmount',
+      'discountAmount',
+      'totalAmount',
+      'paidAmount',
+      'paymentProvider',
+      'createdAt',
+      'updatedAt',
+      'paidAt',
+      'expiresAt',
+    ])
+    const field = sortBy && allowedFields.has(sortBy) ? sortBy : 'createdAt'
+
+    return { [field]: sortOrder }
   }
 }

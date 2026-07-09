@@ -104,6 +104,23 @@ export class PrismaCourseRepository implements ICourseRepository {
     return CourseMapper.toDomainCourse(prismaCourse)!
   }
 
+  async findByCode(code: string): Promise<Course | null> {
+    const prismaCourse = await this.prisma.course.findUnique({
+      where: { code },
+      include: {
+        subject: true,
+        teacher: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    })
+
+    if (!prismaCourse) return null
+    return CourseMapper.toDomainCourse(prismaCourse)!
+  }
+
   async findByIds(ids: number[]): Promise<Course[]> {
     const numericIds = ids.map((id) => NumberUtil.ensureValidId(id, 'Course ID'))
     const prismaCourses = await this.prisma.course.findMany({

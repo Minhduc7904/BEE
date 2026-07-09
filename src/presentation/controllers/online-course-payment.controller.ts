@@ -11,13 +11,21 @@ import {
     Req,
 } from '@nestjs/common'
 import type { Request } from 'express'
-import { CreateVnpayQrPaymentDto } from 'src/application/dtos/online-course-payment'
 import {
+    AdminOnlineCourseInvoiceListQueryDto,
+    ConfirmManualBankTransferPaymentDto,
+    CreateVnpayQrPaymentDto,
+} from 'src/application/dtos/online-course-payment'
+import {
+    ConfirmManualBankTransferPaymentUseCase,
     CreateVnpayQrPaymentUseCase,
+    GetAdminOnlineCourseInvoiceDetailUseCase,
+    GetAdminOnlineCourseInvoicesUseCase,
     GetOnlineCourseInvoicePaymentStatusUseCase,
     HandleVnpayIpnUseCase,
     VerifyVnpayReturnUseCase,
 } from 'src/application/use-cases/online-course-payment'
+import { PERMISSION_CODES } from 'src/shared/constants/permissions/permission.codes'
 import { CurrentUser } from 'src/shared/decorators/current-user.decorator'
 import { RequirePermission } from 'src/shared/decorators/permissions.decorator'
 import { ExceptionHandler } from 'src/shared/utils/exception-handler.util'
@@ -150,7 +158,161 @@ export class OnlineCoursePaymentController {
 export class OnlineCourseInvoicePaymentStatusController {
     constructor(
         private readonly getOnlineCourseInvoicePaymentStatusUseCase: GetOnlineCourseInvoicePaymentStatusUseCase,
+        private readonly getAdminOnlineCourseInvoicesUseCase: GetAdminOnlineCourseInvoicesUseCase,
+        private readonly getAdminOnlineCourseInvoiceDetailUseCase: GetAdminOnlineCourseInvoiceDetailUseCase,
+        private readonly confirmManualBankTransferPaymentUseCase: ConfirmManualBankTransferPaymentUseCase,
     ) { }
+
+    /**
+     * Endpoint: GET /api/online-course-invoices/admin
+     *
+     * Request:
+     * - Header: Authorization: Bearer <JWT admin>
+     * - Permission: online-course-invoice:get-all
+     * - Query:
+     *   page?: number = 1
+     *   limit?: number = 10
+     *   search?: string
+     *   sortBy?: "invoiceId" | "invoiceCode" | "status" | "totalAmount" | "paidAmount" | "paymentProvider" | "createdAt" | "updatedAt" | "paidAt" | "expiresAt"
+     *   sortOrder?: "asc" | "desc"
+     *   status?: "PENDING_PAYMENT" | "PAID" | "PAYMENT_FAILED" | "CANCELLED" | "EXPIRED" | "REFUNDED" | "PARTIALLY_REFUNDED"
+     *   paymentProvider?: "VNPAY" | "BANK_TRANSFER" | "MOMO" | "ZALOPAY" | "PAYOS" | "STRIPE" | "OTHER"
+     *   studentId?: number
+     *   buyerUserId?: number
+     *   invoiceCode?: string
+     *   fromDate?: ISO date string
+     *   toDate?: ISO date string
+     *
+     * Response:
+     * {
+     *   "success": true,
+     *   "message": "Lay danh sach hoa don mua khoa hoc online thanh cong",
+     *   "data": [
+     *     {
+     *       "invoiceId": 123,
+     *       "invoiceCode": "INV...",
+     *       "buyerUserId": 10,
+     *       "studentId": 5,
+     *       "status": "PENDING_PAYMENT",
+     *       "currency": "VND",
+     *       "subtotalAmount": 299000,
+     *       "discountAmount": 0,
+     *       "totalAmount": 299000,
+     *       "paidAmount": 0,
+     *       "paymentProvider": null,
+     *       "items": [{ "courseId": 64, "courseTitle": "Khoa hoc online", "enrollmentId": null }],
+     *       "paymentAttempts": [],
+     *       "latestAttempt": null,
+     *       "enrollmentCreated": false
+     *     }
+     *   ],
+     *   "meta": { "page": 1, "limit": 10, "total": 1, "totalPages": 1 }
+     * }
+     */
+    @Get('admin')
+    @RequirePermission(PERMISSION_CODES.ONLINE_COURSE_INVOICE.GET_ALL)
+    @HttpCode(HttpStatus.OK)
+    async getAdminOnlineCourseInvoices(@Query() query: AdminOnlineCourseInvoiceListQueryDto) {
+        return ExceptionHandler.execute(() => this.getAdminOnlineCourseInvoicesUseCase.execute(query))
+    }
+
+    /**
+     * Endpoint: GET /api/online-course-invoices/admin/:invoiceId
+     *
+     * Request:
+     * - Header: Authorization: Bearer <JWT admin>
+     * - Permission: online-course-invoice:get-by-id
+     * - Param:
+     *   invoiceId: number
+     *
+     * Response:
+     * {
+     *   "success": true,
+     *   "message": "Lay chi tiet hoa don mua khoa hoc online thanh cong",
+     *   "data": {
+     *     "invoiceId": 123,
+     *     "invoiceCode": "INV...",
+     *     "buyerUserId": 10,
+     *     "studentId": 5,
+     *     "status": "PENDING_PAYMENT",
+     *     "totalAmount": 299000,
+     *     "paidAmount": 0,
+     *     "paymentProvider": null,
+     *     "items": [{ "invoiceItemId": 1, "courseId": 64, "courseTitle": "Khoa hoc online", "enrollmentId": null }],
+     *     "paymentAttempts": [],
+     *     "latestAttempt": null,
+     *     "enrollmentCreated": false
+     *   }
+     * }
+     */
+    @Get('admin/:invoiceId')
+    @RequirePermission(PERMISSION_CODES.ONLINE_COURSE_INVOICE.GET_BY_ID)
+    @HttpCode(HttpStatus.OK)
+    async getAdminOnlineCourseInvoiceDetail(@Param('invoiceId', ParseIntPipe) invoiceId: number) {
+        return ExceptionHandler.execute(() => this.getAdminOnlineCourseInvoiceDetailUseCase.execute(invoiceId))
+    }
+
+    /**
+     * Endpoint: POST /api/online-course-invoices/admin/:invoiceId/confirm-bank-transfer
+     *
+     * Request:
+     * - Header: Authorization: Bearer <JWT admin>
+     * - Permission: online-course-invoice:confirm-manual-payment
+     * - Param:
+     *   invoiceId: number
+     * - Body:
+     *   {
+     *     "paidAmount": 299000,
+     *     "paidAt": "2026-07-09T10:00:00.000Z",
+     *     "bankCode": "VCB",
+     *     "bankTranNo": "FT251234567",
+     *     "transactionId": "BANK_TXN_001",
+     *     "note": "Admin da doi soat tai khoan ngan hang",
+     *     "metadata": { "bankAccount": "0123456789" }
+     *   }
+     *
+     * Response:
+     * {
+     *   "success": true,
+     *   "message": "Xac nhan chuyen khoan va kich hoat khoa hoc thanh cong",
+     *   "data": {
+     *     "invoice": {
+     *       "invoiceId": 123,
+     *       "invoiceCode": "INV...",
+     *       "status": "PAID",
+     *       "paidAmount": 299000,
+     *       "paymentProvider": "BANK_TRANSFER",
+     *       "items": [{ "courseId": 64, "enrollmentId": 99, "courseTitle": "Khoa hoc online" }],
+     *       "enrollmentCreated": true
+     *     },
+     *     "attempt": {
+     *       "attemptCode": "BANK_123_...",
+     *       "provider": "BANK_TRANSFER",
+     *       "status": "SUCCEEDED",
+     *       "amount": 299000
+     *     },
+     *     "alreadyPaid": false,
+     *     "enrollmentCreated": true
+     *   }
+     * }
+     *
+     * Luu y:
+     * - API nay chi dung cho luong admin kiem tra sao ke ngan hang roi xac nhan thu cong.
+     * - Neu invoice da PAID, API khong tao enrollment trung va tra alreadyPaid = true.
+     * - paidAmount neu truyen vao phai bang totalAmount cua invoice de mo khoa course.
+     */
+    @Post('admin/:invoiceId/confirm-bank-transfer')
+    @RequirePermission(PERMISSION_CODES.ONLINE_COURSE_INVOICE.CONFIRM_MANUAL_PAYMENT)
+    @HttpCode(HttpStatus.OK)
+    async confirmManualBankTransferPayment(
+        @Param('invoiceId', ParseIntPipe) invoiceId: number,
+        @Body() body: ConfirmManualBankTransferPaymentDto,
+        @CurrentUser('userId') adminUserId: number,
+    ) {
+        return ExceptionHandler.execute(() =>
+            this.confirmManualBankTransferPaymentUseCase.execute(invoiceId, body, adminUserId),
+        )
+    }
 
     /**
      * Endpoint: GET /api/online-course-invoices/:invoiceId/payment-status

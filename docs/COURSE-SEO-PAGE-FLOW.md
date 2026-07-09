@@ -478,11 +478,233 @@ Voi learning item:
 4. Trang detail goi `GET /api/courses/public/seo/TOAN12-ONLINE`.
 5. Render hero, gia, teacher, classes, lesson outline va noi dung hoc thu.
 6. Nut CTA:
-   - Neu khoa hoc mien phi: hien "Vao hoc" hoac "Dang ky hoc".
+   - Neu khoa hoc mien phi: hien "Dang ky hoc mien phi".
    - Neu co gia: hien "Thanh toan" hoac "Mua khoa hoc".
-7. Sau khi user dang nhap/mua khoa hoc, frontend di tiep theo flow invoice/VNPay cua online course.
+7. Voi luong chuyen khoan thu cong, frontend tao invoice bang API o muc 7 ben duoi.
+8. Sau khi admin xac nhan chuyen khoan, nut CTA doi thanh "Vao hoc".
 
-## 7. Goi API Bang Axios
+## 7. Tao Hoa Don Chuyen Khoan Thu Cong Tu Trang SEO
+
+Hien tai luong SEO dang dung thanh toan thu cong, chua dung VNPay tu dong.
+
+- Course co phi: backend tao invoice `PENDING_PAYMENT`, `paymentProvider=BANK_TRANSFER`. Admin se doi soat ngan hang va xac nhan invoice thanh `PAID`, sau do backend tao `CourseEnrollment`.
+- Course mien phi: frontend van goi cung API tao invoice. Backend tao invoice `PAID`, `paymentProvider=OTHER`, `paidAmount=0`, tao attempt `FREE_*` thanh cong va tao `CourseEnrollment` ngay.
+
+### 7.1. User Chua Dang Nhap
+
+`POST /api/courses/public/seo/:courseIdOrCode/register-manual-invoice`
+
+Request:
+
+```json
+{
+  "username": "student01",
+  "password": "123456"
+}
+```
+
+Hoac:
+
+```json
+{
+  "email": "student@example.com",
+  "password": "123456"
+}
+```
+
+Chi truyen `username` hoac `email`, khong truyen ca hai.
+
+Response:
+
+```json
+{
+  "success": true,
+  "message": "Tao hoa don chuyen khoan thu cong thanh cong",
+  "data": {
+    "invoiceId": 123,
+    "invoiceCode": "OC1783594800000645ABC123",
+    "buyerUserId": 10,
+    "studentId": 5,
+    "status": "PENDING_PAYMENT",
+    "currency": "VND",
+    "subtotalAmount": 299000,
+    "discountAmount": 0,
+    "totalAmount": 299000,
+    "paidAmount": 0,
+    "paymentProvider": "BANK_TRANSFER",
+    "items": [
+      {
+        "invoiceItemId": 1,
+        "courseId": 64,
+        "courseCode": "TOAN12",
+        "courseTitle": "Khoa hoc online",
+        "unitPriceAmount": 299000,
+        "quantity": 1,
+        "discountAmount": 0,
+        "totalAmount": 299000,
+        "enrollmentId": null
+      }
+    ],
+    "alreadyHasEnrollment": false,
+    "reusedPendingInvoice": false,
+    "message": "Tao hoa don chuyen khoan thu cong thanh cong"
+  }
+}
+```
+
+Response voi course mien phi:
+
+```json
+{
+  "success": true,
+  "message": "Khoa hoc mien phi da duoc kich hoat thanh cong",
+  "data": {
+    "invoiceId": 124,
+    "invoiceCode": "OC1783594800000645FREE01",
+    "buyerUserId": 10,
+    "studentId": 5,
+    "status": "PAID",
+    "currency": "VND",
+    "subtotalAmount": 0,
+    "discountAmount": 0,
+    "totalAmount": 0,
+    "paidAmount": 0,
+    "paymentProvider": "OTHER",
+    "items": [
+      {
+        "invoiceItemId": 2,
+        "courseId": 64,
+        "courseCode": "TOAN12",
+        "courseTitle": "Khoa hoc mien phi",
+        "unitPriceAmount": 0,
+        "quantity": 1,
+        "discountAmount": 0,
+        "totalAmount": 0,
+        "enrollmentId": 99
+      }
+    ],
+    "alreadyHasEnrollment": true,
+    "reusedPendingInvoice": false,
+    "message": "Khoa hoc mien phi da duoc kich hoat thanh cong"
+  }
+}
+```
+
+### 7.2. User Da Dang Nhap
+
+`POST /api/courses/public/seo/:courseIdOrCode/register-manual-invoice/me`
+
+Header:
+
+```http
+Authorization: Bearer <student_jwt>
+```
+
+Body khong can truyen gi.
+
+Response giong API public, khac o cho backend lay user/student tu JWT.
+
+### 7.3. Check Admin Da Xac Nhan Hoa Don Hay Chua
+
+Sau khi tao invoice, frontend can luu `invoiceId`. Khi admin xac nhan chuyen khoan, invoice se doi tu `PENDING_PAYMENT` sang `PAID` va backend tao `CourseEnrollment`.
+
+Neu user chua dang nhap va dang o flow username/password:
+
+`POST /api/courses/public/seo/:courseIdOrCode/manual-invoice-status`
+
+Request:
+
+```json
+{
+  "invoiceId": 123,
+  "username": "student01",
+  "password": "123456"
+}
+```
+
+Hoac:
+
+```json
+{
+  "invoiceId": 123,
+  "email": "student@example.com",
+  "password": "123456"
+}
+```
+
+Response:
+
+```json
+{
+  "success": true,
+  "message": "Lay trang thai hoa don chuyen khoan thu cong thanh cong",
+  "data": {
+    "invoiceId": 123,
+    "invoiceCode": "OC1783594800000645ABC123",
+    "status": "PAID",
+    "paidAt": "2026-07-09T10:00:00.000Z",
+    "paidAmount": 299000,
+    "paymentProvider": "BANK_TRANSFER",
+    "latestAttempt": {
+      "attemptCode": "BANK_123_1783594800000",
+      "status": "SUCCEEDED",
+      "provider": "BANK_TRANSFER"
+    },
+    "enrollmentCreated": true
+  }
+}
+```
+
+Neu user da dang nhap:
+
+`GET /api/online-course-invoices/:invoiceId/payment-status`
+
+Header:
+
+```http
+Authorization: Bearer <student_jwt>
+```
+
+Response:
+
+```json
+{
+  "invoiceId": 123,
+  "invoiceCode": "OC1783594800000645ABC123",
+  "status": "PAID",
+  "paidAt": "2026-07-09T10:00:00.000Z",
+  "paidAmount": 299000,
+  "latestAttempt": {
+    "attemptCode": "BANK_123_1783594800000",
+    "status": "SUCCEEDED",
+    "provider": "BANK_TRANSFER"
+  },
+  "enrollmentCreated": true
+}
+```
+
+Frontend nen poll moi 2-5 giay sau khi hien thong tin chuyen khoan. Khi `status=PAID` va `enrollmentCreated=true`, dung poll, hien thanh cong va doi nut thanh **Vao hoc**.
+
+Voi course mien phi, response tao invoice da la `status=PAID`. Frontend co the doi nut thanh **Vao hoc** ngay, khong can cho admin xac nhan.
+
+### 7.4. Co Tao Duoc 2 Hoa Don Cho 1 Khoa Khong?
+
+Khong tao them invoice `PENDING_PAYMENT` thu hai cho cung `studentId + courseId`.
+
+Rule hien tai:
+
+- Neu hoc sinh da co `CourseEnrollment ACTIVE`: API bao hoc sinh da duoc kich hoat khoa hoc, khong tao invoice.
+- Neu hoc sinh da co invoice `PENDING_PAYMENT` cho khoa do: API tra lai invoice cu va `reusedPendingInvoice=true`.
+- Neu invoice cu da `CANCELLED`, `EXPIRED` hoac `PAYMENT_FAILED`: co the tao invoice moi.
+- Neu admin da xac nhan thanh toan va invoice `PAID`: enrollment se duoc tao/active; lan sau API se chan bang enrollment `ACTIVE`.
+
+Frontend nen xu ly:
+
+- `reusedPendingInvoice=false`: hien thong tin chuyen khoan cho invoice moi.
+- `reusedPendingInvoice=true`: hien lai thong tin chuyen khoan cho invoice dang cho thanh toan, khong tao don moi.
+- Loi da co enrollment active: doi nut thanh "Vao hoc".
+
+## 8. Goi API Bang Axios
 
 Danh sach:
 
@@ -505,6 +727,59 @@ Chi tiet:
 
 ```ts
 const response = await axios.get('/api/courses/public/seo/TOAN12-ONLINE')
+```
+
+Tao invoice khi chua dang nhap:
+
+```ts
+const response = await axios.post(
+  '/api/courses/public/seo/TOAN12-ONLINE/register-manual-invoice',
+  {
+    username: 'student01',
+    password: '123456',
+  },
+)
+```
+
+Tao invoice khi da dang nhap:
+
+```ts
+const response = await axios.post(
+  '/api/courses/public/seo/TOAN12-ONLINE/register-manual-invoice/me',
+  {},
+  {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  },
+)
+```
+
+Check status khi chua dang nhap:
+
+```ts
+const response = await axios.post(
+  '/api/courses/public/seo/TOAN12-ONLINE/manual-invoice-status',
+  {
+    invoiceId: 123,
+    username: 'student01',
+    password: '123456',
+  },
+)
+
+if (response.data.status === 'PAID' && response.data.enrollmentCreated) {
+  // doi nut thanh "Vao hoc"
+}
+```
+
+Check status khi da dang nhap:
+
+```ts
+const response = await axios.get('/api/online-course-invoices/123/payment-status', {
+  headers: {
+    Authorization: `Bearer ${accessToken}`,
+  },
+})
 ```
 
 Dung `viewUrl` cho anh/video:

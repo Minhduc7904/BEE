@@ -46,11 +46,33 @@ export interface UpdateOnlineCourseInvoiceData {
   metadata?: any
 }
 
+export interface OnlineCourseInvoiceListOptions {
+  skip: number
+  take: number
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+  search?: string
+  status?: OnlineCourseInvoiceStatus
+  paymentProvider?: OnlinePaymentProvider
+  studentId?: number
+  buyerUserId?: number
+  invoiceCode?: string
+  fromDate?: Date
+  toDate?: Date
+}
+
+export interface OnlineCourseInvoiceListResult {
+  data: OnlineCourseInvoice[]
+  total: number
+}
+
 export interface IOnlineCourseInvoiceRepository {
   create(data: CreateOnlineCourseInvoiceData): Promise<OnlineCourseInvoice>
   findById(invoiceId: number): Promise<OnlineCourseInvoice | null>
   findByCode(invoiceCode: string): Promise<OnlineCourseInvoice | null>
   findPendingByStudentAndCourse(studentId: number, courseId: number): Promise<OnlineCourseInvoice | null>
+  findLatestByStudentAndCourse(studentId: number, courseId: number): Promise<OnlineCourseInvoice | null>
+  findAllWithPagination(options: OnlineCourseInvoiceListOptions): Promise<OnlineCourseInvoiceListResult>
   update(invoiceId: number, data: UpdateOnlineCourseInvoiceData): Promise<OnlineCourseInvoice>
   markPaid(invoiceId: number, paidAmount: number, paidAt?: Date): Promise<OnlineCourseInvoice>
   markPaymentFailed(invoiceId: number, reason?: string): Promise<OnlineCourseInvoice>

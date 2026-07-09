@@ -30,6 +30,10 @@ import {
 import {
   PublicSeoCourseDetailDto,
   PublicSeoCourseListResponseDto,
+  PublicSeoCourseManualInvoiceBaseResponseDto,
+  PublicSeoCourseManualInvoiceStatusBaseResponseDto,
+  PublicSeoCourseManualInvoiceStatusWithCredentialDto,
+  PublicSeoCourseManualInvoiceWithCredentialDto,
 } from '../../application/dtos/course/public-seo-course.dto'
 import { StudentCourseDetailResponseDto } from '../../application/dtos/course/student-course-detail.dto'
 import {
@@ -57,6 +61,7 @@ import {
   GetPublicSeoOnlineCoursesUseCase,
   GetPublicSeoCourseDetailUseCase,
   UpdateCourseMediaUseCase,
+  CreatePublicSeoCourseManualInvoiceUseCase,
 } from '../../application/use-cases/course'
 import { Injectable } from '@nestjs/common'
 
@@ -77,6 +82,7 @@ export class CourseController {
     private readonly getPublicSeoOnlineCoursesUseCase: GetPublicSeoOnlineCoursesUseCase,
     private readonly getPublicSeoCourseDetailUseCase: GetPublicSeoCourseDetailUseCase,
     private readonly updateCourseMediaUseCase: UpdateCourseMediaUseCase,
+    private readonly createPublicSeoCourseManualInvoiceUseCase: CreatePublicSeoCourseManualInvoiceUseCase,
   ) { }
 
   @Get()
@@ -198,6 +204,156 @@ export class CourseController {
    * - Thông tin khóa học public online, subject, teacher, lớp, trợ giảng,
    *   buổi học public, chương của buổi học và learning item của các buổi học thử.
    */
+  /**
+   * Endpoint: POST /api/courses/public/seo/:courseIdOrCode/register-manual-invoice
+   *
+   * Request:
+   * - Khong can JWT.
+   * - Param:
+   *   courseIdOrCode: number | string
+   * - Body:
+   *   { "username": "student01", "password": "123456" }
+   *   hoac { "email": "student@example.com", "password": "123456" }
+   *
+   * Rule:
+   * - Chi truyen username hoac email, khong truyen ca hai.
+   * - Backend verify tai khoan hoc sinh va mat khau, khong tao access token moi.
+   * - Chi tao invoice cho course PUBLISHED, chua ket thuc, courseType ONLINE hoac ALL.
+   * - Neu hoc sinh da co CourseEnrollment ACTIVE thi tra loi da mua/kich hoat khoa hoc.
+   * - Neu da co invoice PENDING_PAYMENT cho cung hoc sinh + course thi tra lai invoice cu, khong tao invoice thu hai.
+   * - Course co phi: invoice paymentProvider = BANK_TRANSFER, status = PENDING_PAYMENT de admin doi soat.
+   * - Course mien phi: invoice paymentProvider = OTHER, status = PAID va tao CourseEnrollment ngay.
+   *
+   * Response:
+   * {
+   *   "success": true,
+   *   "message": "Tao hoa don chuyen khoan thu cong thanh cong",
+   *   "data": {
+   *     "invoiceId": 123,
+   *     "invoiceCode": "OC...",
+   *     "buyerUserId": 10,
+   *     "studentId": 5,
+   *     "status": "PENDING_PAYMENT",
+   *     "currency": "VND",
+   *     "totalAmount": 299000,
+   *     "paidAmount": 0,
+   *     "paymentProvider": "BANK_TRANSFER",
+   *     "items": [{ "courseId": 64, "courseTitle": "Khoa hoc online", "totalAmount": 299000 }],
+   *     "alreadyHasEnrollment": false,
+   *     "reusedPendingInvoice": false
+   *   }
+   * }
+   */
+  @Post('public/seo/:courseIdOrCode/register-manual-invoice')
+  @HttpCode(HttpStatus.OK)
+  async createPublicSeoManualInvoiceWithCredential(
+    @Param('courseIdOrCode') courseIdOrCode: string,
+    @Body() body: PublicSeoCourseManualInvoiceWithCredentialDto,
+  ): Promise<PublicSeoCourseManualInvoiceBaseResponseDto> {
+    return ExceptionHandler.execute(() =>
+      this.createPublicSeoCourseManualInvoiceUseCase.executeWithCredential(courseIdOrCode, body),
+    )
+  }
+
+  /**
+   * Endpoint: POST /api/courses/public/seo/:courseIdOrCode/manual-invoice-status
+   *
+   * Request:
+   * - Khong can JWT.
+   * - Param:
+   *   courseIdOrCode: number | string
+   * - Body:
+   *   {
+   *     "invoiceId": 123,
+   *     "username": "student01",
+   *     "password": "123456"
+   *   }
+   *   hoac:
+   *   {
+   *     "invoiceId": 123,
+   *     "email": "student@example.com",
+   *     "password": "123456"
+   *   }
+   *
+   * Response:
+   * {
+   *   "success": true,
+   *   "message": "Lay trang thai hoa don chuyen khoan thu cong thanh cong",
+   *   "data": {
+   *     "invoiceId": 123,
+   *     "invoiceCode": "OC...",
+   *     "status": "PAID",
+   *     "paidAt": "2026-07-09T10:00:00.000Z",
+   *     "paidAmount": 299000,
+   *     "paymentProvider": "BANK_TRANSFER",
+   *     "latestAttempt": {
+   *       "attemptCode": "BANK_123_...",
+   *       "status": "SUCCEEDED",
+   *       "provider": "BANK_TRANSFER"
+   *     },
+   *     "enrollmentCreated": true
+   *   }
+   * }
+   *
+   * Frontend:
+   * - Poll API nay neu user tao invoice khi chua dang nhap.
+   * - Khi status = PAID va enrollmentCreated = true thi hien thanh cong va doi nut thanh "Vao hoc".
+   */
+  @Post('public/seo/:courseIdOrCode/manual-invoice-status')
+  @HttpCode(HttpStatus.OK)
+  async getPublicSeoManualInvoiceStatusWithCredential(
+    @Param('courseIdOrCode') courseIdOrCode: string,
+    @Body() body: PublicSeoCourseManualInvoiceStatusWithCredentialDto,
+  ): Promise<PublicSeoCourseManualInvoiceStatusBaseResponseDto> {
+    return ExceptionHandler.execute(() =>
+      this.createPublicSeoCourseManualInvoiceUseCase.executeStatusWithCredential(courseIdOrCode, body),
+    )
+  }
+
+  /**
+   * Endpoint: POST /api/courses/public/seo/:courseIdOrCode/register-manual-invoice/me
+   *
+   * Request:
+   * - Header: Authorization: Bearer <JWT student>
+   * - Param:
+   *   courseIdOrCode: number | string
+   * - Body: khong can truyen gi.
+   *
+   * Rule:
+   * - Backend lay user/student hien tai tu JWT.
+   * - Chi tao invoice cho course PUBLISHED, chua ket thuc, courseType ONLINE hoac ALL.
+   * - Neu hoc sinh da co CourseEnrollment ACTIVE thi tra loi da mua/kich hoat khoa hoc.
+   * - Neu da co invoice PENDING_PAYMENT cho cung hoc sinh + course thi tra lai invoice cu, khong tao invoice thu hai.
+   * - Course co phi: invoice paymentProvider = BANK_TRANSFER, status = PENDING_PAYMENT de admin doi soat.
+   * - Course mien phi: invoice paymentProvider = OTHER, status = PAID va tao CourseEnrollment ngay.
+   *
+   * Response:
+   * {
+   *   "success": true,
+   *   "message": "Tao hoa don chuyen khoan thu cong thanh cong",
+   *   "data": {
+   *     "invoiceId": 123,
+   *     "invoiceCode": "OC...",
+   *     "studentId": 5,
+   *     "status": "PENDING_PAYMENT",
+   *     "totalAmount": 299000,
+   *     "paymentProvider": "BANK_TRANSFER",
+   *     "reusedPendingInvoice": false
+   *   }
+   * }
+   */
+  @Post('public/seo/:courseIdOrCode/register-manual-invoice/me')
+  @RequirePermission()
+  @HttpCode(HttpStatus.OK)
+  async createPublicSeoManualInvoiceForLoggedInUser(
+    @Param('courseIdOrCode') courseIdOrCode: string,
+    @CurrentUser('userId') userId: number,
+  ): Promise<PublicSeoCourseManualInvoiceBaseResponseDto> {
+    return ExceptionHandler.execute(() =>
+      this.createPublicSeoCourseManualInvoiceUseCase.executeForLoggedInUser(courseIdOrCode, userId),
+    )
+  }
+
   @Get('public/seo/:courseIdOrCode')
   @HttpCode(HttpStatus.OK)
   async getPublicSeoCourseDetail(

@@ -321,18 +321,20 @@ export class AdminStudentController {
    * - PAGE_SEO_MEDIA_SLOTS in src/shared/constants/page-slots.ts
    * - Moi entry duoc flatten theo pageKey.slotKey, vi du:
    *   home.hero -> code = home_hero, pageKey = home
+   * - pageKey duoc normalize ve snake_case truoc khi luu DB:
+   *   onlineCourse -> online_course, offlineCourse -> offline_course
    *
    * Upsert data:
    * - code: slot code from PAGE_SEO_MEDIA_SLOTS
    * - name: generated display name, vi du "Home - Hero"
-   * - pageKey: page key from PAGE_SEO_MEDIA_SLOTS
+   * - pageKey: normalized snake_case page key from PAGE_SEO_MEDIA_SLOTS
    * - type: inferred from slot key/code: gallery, carousel, video, banner, or image
    * - description: generated description for admin
    * - isActive: true
    * - minItems: 0
    * - maxItems: null
    * - recommendedWidth/recommendedHeight: null
-   * - metadata: { source, sourceKey, pageKey, slotKey }
+   * - metadata: { source, sourceKey, constantPageKey, pageKey, slotKey }
    *
    * Output:
    * - source: source constant file path

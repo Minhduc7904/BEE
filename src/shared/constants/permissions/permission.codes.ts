@@ -228,6 +228,11 @@ export const PERMISSION_CODES = {
     EXPORT_EXCEL: 'tuition-payment:export-excel',
     IMPORT_EXCEL: 'tuition-payment:import-excel',
   },
+  ONLINE_COURSE_INVOICE: {
+    GET_ALL: 'online-course-invoice:get-all',
+    GET_BY_ID: 'online-course-invoice:get-by-id',
+    CONFIRM_MANUAL_PAYMENT: 'online-course-invoice:confirm-manual-payment',
+  },
   MY_TUITION_PAYMENT_STATS: 'my-tuition-payment:stats',
   TEMP_EXAM: {
     GET_BY_SESSION: 'temp-exam:get-by-session',
@@ -391,6 +396,7 @@ const PERMISSION_GROUPS_BY_KEY: Record<string, string> = {
   SEO_MEDIA: 'SEO_MEDIA_MANAGEMENT',
   LEARNING_ITEM: 'LEARNING_ITEM_MANAGEMENT',
   TUITION_PAYMENT: 'TUITION_PAYMENT_MANAGEMENT',
+  ONLINE_COURSE_INVOICE: 'ONLINE_COURSE_INVOICE_MANAGEMENT',
   MY_TUITION_PAYMENT_STATS: 'TUITION_PAYMENT_MANAGEMENT',
   TEMP_EXAM: 'TEMP_EXAM_MANAGEMENT',
   TEMP_SECTION: 'TEMP_SECTION_MANAGEMENT',
@@ -435,6 +441,7 @@ const PERMISSION_RESOURCE_LABELS_BY_KEY: Record<string, string> = {
   SEO_MEDIA: 'SEO media',
   LEARNING_ITEM: 'learning item',
   TUITION_PAYMENT: 'tuition payment',
+  ONLINE_COURSE_INVOICE: 'online course invoice',
   MY_TUITION_PAYMENT_STATS: 'my tuition payment stats',
   TEMP_EXAM: 'temporary exam',
   TEMP_SECTION: 'temporary section',
@@ -525,6 +532,7 @@ const PERMISSION_ACTION_LABELS_BY_KEY: Record<string, string> = {
   GRADE: 'Grade',
   ROLLBACK: 'Rollback',
   SYNC_FROM_CODES: 'Sync from permission codes',
+  CONFIRM_MANUAL_PAYMENT: 'Confirm manual payment',
 }
 
 const ADMIN_PAGE_LABELS_BY_KEY: Record<string, string> = {
