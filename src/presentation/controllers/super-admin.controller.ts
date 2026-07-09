@@ -322,7 +322,7 @@ export class AdminStudentController {
    * - Moi entry duoc flatten theo pageKey.slotKey, vi du:
    *   home.hero -> code = home_hero, pageKey = home
    * - pageKey duoc normalize ve snake_case truoc khi luu DB:
-   *   onlineCourse -> online_course, offlineCourse -> offline_course
+   *   onlineCourse -> online_courses, offlineCourse -> offline_courses
    *
    * Upsert data:
    * - code: slot code from PAGE_SEO_MEDIA_SLOTS

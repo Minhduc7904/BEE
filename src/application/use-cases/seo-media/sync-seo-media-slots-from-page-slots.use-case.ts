@@ -115,6 +115,15 @@ export class SyncSeoMediaSlotsFromPageSlotsUseCase {
   }
 
   private normalizePageKey(pageKey: string): string {
+    const normalizedPageKeys: Record<string, string> = {
+      onlineCourse: 'online_courses',
+      offlineCourse: 'offline_courses',
+    }
+
+    if (normalizedPageKeys[pageKey]) {
+      return normalizedPageKeys[pageKey]
+    }
+
     return pageKey
       .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
       .replace(/[-\s]+/g, '_')
