@@ -11,7 +11,6 @@ export class User {
   firstName: string
   lastName: string
   isActive: boolean
-  totalPoint: number
   isEmailVerified: boolean
   createdAt: Date
 
@@ -33,7 +32,6 @@ export class User {
     firstName: string
     lastName: string
     isActive?: boolean
-    totalPoint?: number
     isEmailVerified?: boolean
     createdAt?: Date
 
@@ -52,7 +50,6 @@ export class User {
     this.firstName = data.firstName
     this.lastName = data.lastName
     this.isActive = data.isActive ?? true
-    this.totalPoint = data.totalPoint ?? 0
     this.isEmailVerified = data.isEmailVerified ?? false
     this.createdAt = data.createdAt || new Date()
 
@@ -133,7 +130,6 @@ export class User {
       gender: this.gender,
       dateOfBirth: this.dateOfBirth,
       isActive: this.isActive,
-      totalPoint: this.totalPoint,
       isEmailVerified: this.isEmailVerified,
       emailVerifiedAt: this.emailVerifiedAt,
       lastLoginAt: this.lastLoginAt,
@@ -150,7 +146,6 @@ export class User {
       firstName: this.firstName,
       lastName: this.lastName,
       isActive: this.isActive,
-      totalPoint: this.totalPoint,
       isEmailVerified: this.isEmailVerified,
       createdAt: this.createdAt,
 

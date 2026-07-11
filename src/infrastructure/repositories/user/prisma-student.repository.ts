@@ -92,6 +92,7 @@ export class PrismaStudentRepository implements IStudentRepository {
         studentZaloId: data.studentZaloId,
         parentZaloId: data.parentZaloId,
         grade: data.grade,
+        totalPoint: data.totalPoint ?? 0,
         school: data.school,
         highSchoolGraduationYear: data.highSchoolGraduationYear,
       },
@@ -677,7 +678,7 @@ export class PrismaStudentRepository implements IStudentRepository {
                 u.first_name as user_firstName,
                 u.last_name as user_lastName,
                 u.is_active as user_isActive,
-                u.total_point as user_totalPoint,
+                s.total_point as totalPoint,
                 u.created_at as user_createdAt,
                 u.updated_at as user_updatedAt,
                 u.last_login_at as user_lastLoginAt
@@ -714,11 +715,11 @@ export class PrismaStudentRepository implements IStudentRepository {
         firstName: row.user_firstName,
         lastName: row.user_lastName,
         isActive: Boolean(row.user_isActive),
-        totalPoint: Number(row.user_totalPoint ?? 0),
         createdAt: row.user_createdAt,
         updatedAt: row.user_updatedAt,
         lastLoginAt: row.user_lastLoginAt,
       },
+      totalPoint: Number(row.totalPoint ?? 0),
     }))
 
     return PaginationMapper.toDomainDataWithPagination(students, {

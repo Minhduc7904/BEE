@@ -15,6 +15,7 @@ import { AuditStatus } from '../../../shared/enums/audit-status.enum'
 import { RESOURCE_TYPES } from '../../../shared/constants/resource-type.constants'
 import { CreateAndNotifyManyUseCase } from '../notification/create-and-notify-many.use-case'
 import { SendBulkAttendanceToParentUseCase } from './send-bulk-attendance-to-parent.use-case'
+import { StudentPointService } from 'src/application/services/student-point.service'
 
 @Injectable()
 export class CreateBulkAttendanceBySessionUseCase {
@@ -28,6 +29,7 @@ Nếu con đăng ký nhầm lớp, hãy chọn "Liên hệ hỗ trợ" để tr�
     private readonly unitOfWork: IUnitOfWork,
     private readonly createAndNotifyMany: CreateAndNotifyManyUseCase,
     private readonly sendBulkAttendanceToParentUseCase: SendBulkAttendanceToParentUseCase,
+    private readonly studentPointService: StudentPointService,
   ) { }
 
   async execute(
@@ -120,6 +122,16 @@ Nếu con đăng ký nhầm lớp, hãy chọn "Liên hệ hỗ trợ" để tr�
          */
         const createdAttendances =
           await attendanceRepository.createBulk(bulkData)
+        await Promise.all(
+          createdAttendances.map((attendance) =>
+            this.studentPointService.awardAttendancePoints(repos, {
+              studentId: attendance.studentId,
+              attendanceId: attendance.attendanceId,
+              status: attendance.status,
+              sessionId: attendance.sessionId,
+            }),
+          ),
+        )
 
         /**
          * =========================

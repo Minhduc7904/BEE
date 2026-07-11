@@ -84,6 +84,11 @@ export const TEACHER_PROFILE_MEDIA_FIELDS = {
   CLASSROOM_IMAGE: 'CLASSROOM_IMAGE',
 } as const
 
+export const NEWS_ARTICLE_MEDIA_FIELDS = {
+  THUMBNAIL: 'THUMBNAIL',
+  CONTENT: 'CONTENT',
+} as const
+
 export const VIDEO_MEDIA_FIELDS = {
   VIDEO_FILE: 'VIDEO_FILE',
 } as const

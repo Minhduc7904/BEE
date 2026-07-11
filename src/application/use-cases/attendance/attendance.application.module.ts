@@ -3,6 +3,7 @@ import * as attendanceUseCases from './'
 import { InfrastructureModule } from 'src/infrastructure/infrastructure.module'
 import { NotificationApplicationModule } from '../notification/notification.application.module'
 import { GetValidZaloAccessTokenUseCase } from '../zalo/get-valid-zalo-access-token.use-case'
+import { StudentPointService } from 'src/application/services/student-point.service'
 
 const ATTENDANCE_USE_CASES = [
   attendanceUseCases.CreateAttendanceUseCase,
@@ -20,6 +21,7 @@ const ATTENDANCE_USE_CASES = [
   attendanceUseCases.UpdateAttendanceUseCase,
   attendanceUseCases.ToggleParentNotifiedUseCase,
   GetValidZaloAccessTokenUseCase,
+  StudentPointService,
 ]
 
 @Module({

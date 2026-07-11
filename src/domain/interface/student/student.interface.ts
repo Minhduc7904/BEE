@@ -8,6 +8,7 @@ export interface CreateStudentData {
   studentZaloId?: string
   parentZaloId?: string
   grade: number
+  totalPoint?: number
   school?: string
   highSchoolGraduationYear?: number
 }

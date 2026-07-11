@@ -10,6 +10,7 @@ import {
   PrismaRoleRepository,
   PrismaPermissionRepository,
   PrismaStudentRepository,
+  PrismaStudentPointLogRepository,
   PrismaEmailVerificationTokenRepository,
   PrismaAdminRepository,
   PrismaResetPasswordTokenRepository,
@@ -64,6 +65,7 @@ import {
   PrismaOnlineCourseInvoiceItemRepository,
   PrismaOnlineCoursePaymentAttemptRepository,
   PrismaAchievementBoardRepository,
+  PrismaNewsArticleRepository,
 } from './repositories'
 import {
   PasswordService,
@@ -81,6 +83,7 @@ import {
   DocumentSeoAiService,
   TeacherProfileSeoAiService,
   AchievementBoardSeoAiService,
+  NewsArticleSeoAiService,
   DocumentMediaAltTextAiService,
   ExcelService,
 } from './services'
@@ -419,8 +422,18 @@ import openaiConfig from '../config/openai.config'
       inject: [PrismaService],
     },
     {
+      provide: 'IStudentPointLogRepository',
+      useFactory: (prisma: PrismaService) => new PrismaStudentPointLogRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
       provide: 'IAchievementBoardRepository',
       useFactory: (prisma: PrismaService) => new PrismaAchievementBoardRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'INewsArticleRepository',
+      useFactory: (prisma: PrismaService) => new PrismaNewsArticleRepository(prisma),
       inject: [PrismaService],
     },
     {
@@ -458,6 +471,7 @@ import openaiConfig from '../config/openai.config'
     DocumentSeoAiService,
     TeacherProfileSeoAiService,
     AchievementBoardSeoAiService,
+    NewsArticleSeoAiService,
     DocumentMediaAltTextAiService,
     ExcelService,
     MistralService,
@@ -535,7 +549,9 @@ import openaiConfig from '../config/openai.config'
     'IOnlineCourseInvoiceRepository',
     'IOnlineCourseInvoiceItemRepository',
     'IOnlineCoursePaymentAttemptRepository',
+    'IStudentPointLogRepository',
     'IAchievementBoardRepository',
+    'INewsArticleRepository',
     'PASSWORD_SERVICE',
     'JWT_TOKEN_SERVICE',
     'TOKEN_HASH_SERVICE',
@@ -550,6 +566,7 @@ import openaiConfig from '../config/openai.config'
     DocumentSeoAiService,
     TeacherProfileSeoAiService,
     AchievementBoardSeoAiService,
+    NewsArticleSeoAiService,
     DocumentMediaAltTextAiService,
     ExcelService,
     MistralService,

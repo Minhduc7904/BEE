@@ -23,6 +23,7 @@ import {
 } from './index'
 import { ProcessContentWithPresignedUrlsUseCase } from '../media/process-content-with-presigned-urls.use-case'
 import { ProcessContentWithPresignedUrlsAndRenderHtmlUseCase } from '../media/process-content-with-presigned-urls-and-render-html.use-case'
+import { StudentPointService } from '../../services/student-point.service'
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { ProcessContentWithPresignedUrlsAndRenderHtmlUseCase } from '../media/pr
     ExportCompetitionSubmitScoreListUseCase,
     ProcessContentWithPresignedUrlsUseCase,
     ProcessContentWithPresignedUrlsAndRenderHtmlUseCase,
+    StudentPointService,
   ],
   exports: [
     GetCompetitionRemainingTimeUseCase,

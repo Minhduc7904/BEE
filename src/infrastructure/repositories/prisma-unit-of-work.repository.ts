@@ -44,6 +44,7 @@ export class PrismaUnitOfWork implements IUnitOfWork {
 
     // Các repositories ít dùng - lazy load với cache
     let _studentRepository: any
+    let _studentPointLogRepository: any
     let _documentRepository: any
     let _userRefreshTokenRepository: any
     let _mediaRepository: any
@@ -58,6 +59,7 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _courseClassRepository: any
     let _courseEnrollmentRepository: any
     let _learningItemRepository: any
+    let _studentLearningItemRepository: any
     let _lessonLearningItemRepository: any
     let _documentContentRepository: any
     let _homeworkContentRepository: any
@@ -89,9 +91,15 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _onlineCourseInvoiceRepository: any
     let _onlineCourseInvoiceItemRepository: any
     let _onlineCoursePaymentAttemptRepository: any
+    let _newsArticleRepository: any
 
     Object.defineProperty(repos, 'studentRepository', {
       get: () => (_studentRepository ??= new Repositories.PrismaStudentRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'studentPointLogRepository', {
+      get: () => (_studentPointLogRepository ??= new Repositories.PrismaStudentPointLogRepository(client)),
       enumerable: true,
     })
 
@@ -157,6 +165,11 @@ export class PrismaUnitOfWork implements IUnitOfWork {
 
     Object.defineProperty(repos, 'learningItemRepository', {
       get: () => (_learningItemRepository ??= new Repositories.PrismaLearningItemRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'studentLearningItemRepository', {
+      get: () => (_studentLearningItemRepository ??= new Repositories.PrismaStudentLearningItemRepository(client)),
       enumerable: true,
     })
 
@@ -319,6 +332,11 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     Object.defineProperty(repos, 'onlineCoursePaymentAttemptRepository', {
       get: () =>
         (_onlineCoursePaymentAttemptRepository ??= new Repositories.PrismaOnlineCoursePaymentAttemptRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'newsArticleRepository', {
+      get: () => (_newsArticleRepository ??= new Repositories.PrismaNewsArticleRepository(client)),
       enumerable: true,
     })
 

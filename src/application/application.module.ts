@@ -17,6 +17,7 @@ import { LessonApplicationModule } from './use-cases/lesson/lesson.application.m
 import { LearningItemApplicationModule } from './use-cases/learningItem/learning-item.application.module'
 import { LessonLearningItemApplicationModule } from './use-cases/lessonLearningItem/lesson-learning-item.application.module'
 import { StudentLearningItemApplicationModule } from './use-cases/studentLearningItem/student-learning-item.application.module'
+import { StudentPointLogApplicationModule } from './use-cases/studentPointLog/student-point-log.application.module'
 import { AuditLogApplicationModule } from './use-cases/log/audit-log.application.module'
 import { MediaApplicationModule } from './use-cases/media/media.application.module'
 import { MediaFolderApplicationModule } from './use-cases/media-folder/media-folder.application.module'
@@ -58,6 +59,7 @@ import { TeacherProfileApplicationModule } from './use-cases/teacher-profile/tea
 import { TagApplicationModule } from './use-cases/tag/tag.application.module'
 import { OnlineCoursePaymentApplicationModule } from './use-cases/online-course-payment/online-course-payment.application.module'
 import { AchievementApplicationModule } from './use-cases/achievement/achievement.application.module'
+import { NewsApplicationModule } from './use-cases/news/news.application.module'
 
 const modules = [
   // Auth & Account
@@ -68,6 +70,7 @@ const modules = [
   // User & Profile
   UserApplicationModule,
   StudentApplicationModule,
+  StudentPointLogApplicationModule,
   AdminProfileApplicationModule,
   StudentProfileApplicationModule,
   AdminApplicationModule,
@@ -85,6 +88,7 @@ const modules = [
   TeacherProfileApplicationModule,
   TagApplicationModule,
   AchievementApplicationModule,
+  NewsApplicationModule,
 
   // Course & Learning
   CourseApplicationModule,

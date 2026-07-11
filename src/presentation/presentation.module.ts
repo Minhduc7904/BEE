@@ -15,6 +15,7 @@ import { GoogleAuthAdminController } from './controllers/google-auth-admin.contr
 import { GoogleAuthStudentController } from './controllers/google-auth-student.controller'
 import { AdminAuditLogController } from './controllers/admin-audit-log.controller'
 import { StudentController } from './controllers/student.controller'
+import { StudentPointLogController } from './controllers/student-point-log.controller'
 import { UserController } from './controllers/user.controller'
 import { EmailVerificationController } from './controllers/email-verification.controller'
 import { EmailResetPasswordController } from './controllers/email-reset-password.controller'
@@ -73,6 +74,7 @@ import {
   OnlineCoursePaymentController,
 } from './controllers/online-course-payment.controller'
 import { AchievementBoardController } from './controllers/achievement-board.controller'
+import { NewsArticleController } from './controllers/news-article.controller'
 @Module({
   imports: [
     ApplicationModule, // ✅ lấy toàn bộ UseCase đã export
@@ -84,6 +86,7 @@ import { AchievementBoardController } from './controllers/achievement-board.cont
     RoleController,
     AdminAuditLogController,
     StudentController,
+    StudentPointLogController,
     UserController,
     GoogleAuthAdminController,
     GoogleAuthStudentController,
@@ -142,6 +145,7 @@ import { AchievementBoardController } from './controllers/achievement-board.cont
     OnlineCoursePaymentController,
     OnlineCourseInvoicePaymentStatusController,
     AchievementBoardController,
+    NewsArticleController,
   ],
   providers: [
     // WebSocket Gateways

@@ -70,6 +70,12 @@ export const PERMISSION_CODES = {
     UPDATE: 'student:update',
     EXPORT_EXCEL: 'student:export-excel',
   },
+  STUDENT_POINT_LOG: {
+    GET_BY_STUDENT: 'student-point-log:get-by-student',
+    CREATE: 'student-point-log:create',
+    UPDATE: 'student-point-log:update',
+    DELETE: 'student-point-log:delete',
+  },
   SUBJECT: {
     GET_ALL: 'subject:get-all',
     GET_BY_ID: 'subject:get-by-id',
@@ -205,6 +211,13 @@ export const PERMISSION_CODES = {
     ITEM_UPDATE: 'seo-media:item:update',
     ITEM_DELETE: 'seo-media:item:delete',
     ITEM_REORDER: 'seo-media:item:reorder',
+  },
+  NEWS_ARTICLE: {
+    GET_ALL: 'news-article:get-all',
+    GET_BY_ID: 'news-article:get-by-id',
+    CREATE: 'news-article:create',
+    UPDATE: 'news-article:update',
+    DELETE: 'news-article:delete',
   },
   LEARNING_ITEM: {
     GET_ALL: 'learning-item:get-all',
@@ -394,6 +407,7 @@ const PERMISSION_GROUPS_BY_KEY: Record<string, string> = {
   MEDIA_FOLDER: 'MEDIA_FOLDER_MANAGEMENT',
   MEDIA_USAGE: 'MEDIA_USAGE_MANAGEMENT',
   SEO_MEDIA: 'SEO_MEDIA_MANAGEMENT',
+  NEWS_ARTICLE: 'NEWS_ARTICLE_MANAGEMENT',
   LEARNING_ITEM: 'LEARNING_ITEM_MANAGEMENT',
   TUITION_PAYMENT: 'TUITION_PAYMENT_MANAGEMENT',
   ONLINE_COURSE_INVOICE: 'ONLINE_COURSE_INVOICE_MANAGEMENT',
@@ -439,6 +453,7 @@ const PERMISSION_RESOURCE_LABELS_BY_KEY: Record<string, string> = {
   MEDIA_FOLDER: 'media folder',
   MEDIA_USAGE: 'media usage',
   SEO_MEDIA: 'SEO media',
+  NEWS_ARTICLE: 'news article',
   LEARNING_ITEM: 'learning item',
   TUITION_PAYMENT: 'tuition payment',
   ONLINE_COURSE_INVOICE: 'online course invoice',

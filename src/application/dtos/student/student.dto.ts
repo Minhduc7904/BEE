@@ -21,6 +21,8 @@ export class StudentResponseDto extends UserResponseDto {
 
   grade: number
 
+  totalPoint: number
+
   school?: string
 
   highSchoolGraduationYear?: number
@@ -60,6 +62,7 @@ export class StudentResponseDto extends UserResponseDto {
       parentPhone: student.parentPhone,
       parentZaloId: student.parentZaloId,
       grade: student.grade,
+      totalPoint: student.totalPoint ?? 0,
       school: student.school,
       highSchoolGraduationYear: student.highSchoolGraduationYear,
       hasParentZaloId: student.parentZaloId ? true : false,

@@ -26,8 +26,6 @@ export class UserResponseDto {
 
   isActive: boolean
 
-  totalPoint: number
-
   isEmailVerified: boolean
 
   avatarUrl?: string
@@ -60,7 +58,6 @@ export class UserResponseDto {
       gender: user.gender,
       dateOfBirth: user.dateOfBirth,
       isActive: user.isActive,
-      totalPoint: user.totalPoint,
       isEmailVerified: user.isEmailVerified,
       emailVerifiedAt: user.emailVerifiedAt,
       lastLoginAt: user.lastLoginAt,

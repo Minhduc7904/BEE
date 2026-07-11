@@ -28,6 +28,7 @@ export * from './permission/permission-list-query.dto'
 // Student DTOs
 export * from './student/student.dto'
 export * from './student/student-list-query.dto'
+export * from './student/student-point-log.dto'
 
 // Subject DTOs
 export * from './subject/subject.dto'
@@ -57,6 +58,7 @@ export * from './pagination/pagination-response.dto'
 export * from './tuition-payment'
 export * from './online-course-payment'
 export * from './achievement'
+export * from './news'
 
 // Competition DTOs
 export * from './competition'

@@ -11,6 +11,7 @@ import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
 import { CreateAndNotifyOneUseCase } from '../notification/create-and-notify-one.use-case'
 import { NotificationType, NotificationLevel, AttendanceStatusLabels } from 'src/shared/enums'
 import { SendAttendanceToParentUseCase } from './send-attendance-to-parent.use-case'
+import { StudentPointService } from 'src/application/services/student-point.service'
 
 @Injectable()
 export class UpdateAttendanceUseCase {
@@ -19,6 +20,7 @@ export class UpdateAttendanceUseCase {
     private readonly unitOfWork: IUnitOfWork,
     private readonly createAndNotifyOne: CreateAndNotifyOneUseCase,
     private readonly sendAttendanceToParentUseCase: SendAttendanceToParentUseCase,
+    private readonly studentPointService: StudentPointService,
   ) { }
 
   async execute(
@@ -91,6 +93,12 @@ export class UpdateAttendanceUseCase {
       }
 
       const attendance = await attendanceRepository.update(attendanceId, data)
+      await this.studentPointService.awardAttendancePoints(repos, {
+        studentId: attendance.studentId,
+        attendanceId: attendance.attendanceId,
+        status: attendance.status,
+        sessionId: attendance.sessionId,
+      })
 
       if (adminId) {
         await adminAuditLogRepository.create({

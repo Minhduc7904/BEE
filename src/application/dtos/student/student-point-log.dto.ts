@@ -1,92 +1,187 @@
-import { IsRequiredIdNumber, IsRequiredEnumValue, IsRequiredNumber, IsRequiredString, IsOptionalEnumValue, IsOptionalNumber, IsOptionalString } from 'src/shared/decorators/validate'
+import { IsObject, IsOptional } from 'class-validator'
+import { ListQueryDto } from '../pagination/list-query.dto'
+import { PaginationMetaDto, PaginationResponseDto } from '../pagination/pagination-response.dto'
+import {
+  IsOptionalEnumValue,
+  IsOptionalNumber,
+  IsOptionalString,
+  IsRequiredEnumValue,
+  IsRequiredIdNumber,
+  IsRequiredNumber,
+  IsRequiredString,
+} from 'src/shared/decorators/validate'
+import type {
+  StudentPointLogFilterOptions,
+  StudentPointLogPaginationOptions,
+} from 'src/domain/repositories/student-point-log.repository'
+import { StudentPointLog } from 'src/domain/entities'
+import { PointType } from 'src/shared/enums'
+import { StudentResponseDto } from './student.dto'
 
-export enum PointType {
-  BONUS = 'BONUS',
-  PENALTY = 'PENALTY',
-}
-
-/**
- * DTO for creating student point log
- * 
- * @description Used to record bonus or penalty points for a student
- */
-export class CreateStudentPointLogDto {
-  /**
-   * Student ID
-   * @required
-   * @example 10
-   */
-  @IsRequiredIdNumber('ID học sinh')
-  studentId: number
-
-  /**
-   * Point type (bonus or penalty)
-   * @required
-   * @example PointType.BONUS
-   */
-  @IsRequiredEnumValue(PointType, 'Loại điểm')
-  type: PointType
-
-  /**
-   * Points amount (minimum 0)
-   * @required
-   * @example 10
-   */
-  @IsRequiredNumber('Điểm số', 0)
-  points: number
-
-  /**
-   * Point source/reason
-   * @required
-   * @example 'Excellent behavior in class'
-   */
-  @IsRequiredString('Nguồn điểm', 255)
-  source: string
-
-  /**
-   * Additional notes
-   * @optional
-   * @example 'Helped other students'
-   */
-  @IsOptionalString('Ghi chú', 500)
-  note?: string
-}
-
-/**
- * DTO for updating student point log
- * 
- * @description Used to update an existing point log entry
- */
-export class UpdateStudentPointLogDto {
-  /**
-   * Point type (bonus or penalty)
-   * @optional
-   * @example PointType.PENALTY
-   */
-  @IsOptionalEnumValue(PointType, 'Loại điểm')
+export class StudentPointLogListQueryDto extends ListQueryDto {
+  @IsOptionalEnumValue(PointType, 'Loai diem')
   type?: PointType
 
-  /**
-   * Points amount (minimum 0)
-   * @optional
-   * @example 5
-   */
-  @IsOptionalNumber('Điểm số', 0)
-  points?: number
-
-  /**
-   * Point source/reason
-   * @optional
-   * @example 'Late to class'
-   */
-  @IsOptionalString('Nguồn điểm', 255)
+  @IsOptionalString('Nguon diem', 50)
   source?: string
 
-  /**
-   * Additional notes
-   * @optional
-   * @example 'Updated reason'
-   */
-  @IsOptionalString('Ghi chú', 500)
+  @IsOptionalString('Loai tham chieu', 50)
+  referenceType?: string
+
+  @IsOptionalNumber('ID tham chieu', 1)
+  referenceId?: number
+
+  toFilterOptions(studentId: number): StudentPointLogFilterOptions {
+    return {
+      studentId,
+      type: this.type,
+      source: this.source,
+      referenceType: this.referenceType,
+      referenceId: this.referenceId,
+      search: this.search,
+      fromDate: this.fromDate,
+      toDate: this.toDate,
+    }
+  }
+
+  toPaginationOptions(): StudentPointLogPaginationOptions {
+    const allowedSortFields = ['pointLogId', 'points', 'type', 'source', 'createdAt']
+    const sortBy = allowedSortFields.includes(this.sortBy || '') ? this.sortBy : 'createdAt'
+
+    return {
+      page: this.page || 1,
+      limit: this.limit || 10,
+      sortBy,
+      sortOrder: this.sortOrder,
+    }
+  }
+}
+
+export class CreateStudentPointLogDto {
+  @IsRequiredIdNumber('ID hoc sinh')
+  studentId: number
+
+  @IsRequiredEnumValue(PointType, 'Loai diem')
+  type: PointType
+
+  @IsRequiredNumber('Diem so', 0)
+  points: number
+
+  @IsRequiredString('Nguon diem', 50)
+  source: string
+
+  @IsOptionalString('Loai tham chieu', 50)
+  referenceType?: string
+
+  @IsOptionalNumber('ID tham chieu', 1)
+  referenceId?: number
+
+  @IsOptionalString('Ghi chu', 255)
   note?: string
+
+  @IsOptional()
+  @IsObject({ message: 'Metadata phai la object' })
+  metadata?: Record<string, any>
+}
+
+export class UpdateStudentPointLogDto {
+  @IsOptionalEnumValue(PointType, 'Loai diem')
+  type?: PointType
+
+  @IsOptionalNumber('Diem so', 0)
+  points?: number
+
+  @IsOptionalString('Nguon diem', 50)
+  source?: string
+
+  @IsOptionalString('Loai tham chieu', 50)
+  referenceType?: string
+
+  @IsOptionalNumber('ID tham chieu', 1)
+  referenceId?: number
+
+  @IsOptionalString('Ghi chu', 255)
+  note?: string
+
+  @IsOptional()
+  @IsObject({ message: 'Metadata phai la object' })
+  metadata?: Record<string, any>
+}
+
+export class StudentPointLogResponseDto {
+  pointLogId: number
+  studentId: number
+  type: PointType
+  points: number
+  signedPoints: number
+  source: string
+  referenceType?: string
+  referenceId?: number
+  note?: string
+  metadata?: Record<string, any>
+  createdAt: Date
+  student?: StudentResponseDto | null
+
+  static fromEntity(entity: StudentPointLog): StudentPointLogResponseDto {
+    const dto = new StudentPointLogResponseDto()
+    dto.pointLogId = entity.pointLogId
+    dto.studentId = entity.studentId
+    dto.type = entity.type
+    dto.points = entity.points
+    dto.signedPoints = entity.getSignedPoints()
+    dto.source = entity.source
+    dto.referenceType = entity.referenceType
+    dto.referenceId = entity.referenceId
+    dto.note = entity.note
+    dto.metadata = entity.metadata
+    dto.createdAt = entity.createdAt
+    dto.student = entity.student ? StudentResponseDto.fromStudentEntity(entity.student) : null
+    return dto
+  }
+
+  static fromEntities(entities: StudentPointLog[]): StudentPointLogResponseDto[] {
+    return entities.map((entity) => StudentPointLogResponseDto.fromEntity(entity))
+  }
+}
+
+export class StudentPointLogMutationResponseDto {
+  pointLog: StudentPointLogResponseDto
+  totalPoint: number
+
+  constructor(pointLog: StudentPointLog, totalPoint: number) {
+    this.pointLog = StudentPointLogResponseDto.fromEntity(pointLog)
+    this.totalPoint = totalPoint
+  }
+}
+
+export class DeleteStudentPointLogResponseDto {
+  deleted: boolean
+  deletedPointLog: StudentPointLogResponseDto
+  totalPoint: number
+
+  constructor(deletedPointLog: StudentPointLog, totalPoint: number) {
+    this.deleted = true
+    this.deletedPointLog = StudentPointLogResponseDto.fromEntity(deletedPointLog)
+    this.totalPoint = totalPoint
+  }
+}
+
+export class StudentPointLogListResponseDto extends PaginationResponseDto<StudentPointLogResponseDto> {
+  totalPoint: number
+
+  constructor(
+    logs: StudentPointLog[],
+    page: number,
+    limit: number,
+    total: number,
+    totalPoint: number,
+  ) {
+    super(
+      true,
+      'Lay danh sach log diem thanh cong',
+      StudentPointLogResponseDto.fromEntities(logs),
+      new PaginationMetaDto(page, limit, total),
+    )
+    this.totalPoint = totalPoint
+  }
 }

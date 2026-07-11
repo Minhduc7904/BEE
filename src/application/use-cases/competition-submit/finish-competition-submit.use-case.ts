@@ -1,6 +1,6 @@
 // src/application/use-cases/competition-submit/finish-competition-submit.use-case.ts
 import { Inject, Injectable, Logger } from '@nestjs/common'
-import type { ICompetitionRepository, IExamRepository } from '../../../domain/repositories'
+import type { ICompetitionRepository, IExamRepository, IUnitOfWork } from '../../../domain/repositories'
 import type { ICompetitionSubmitRepository } from '../../../domain/repositories/competition-submit.repository'
 import type { ICompetitionAnswerRepository } from '../../../domain/repositories/competition-answer.repository'
 import type { IHomeworkContentRepository } from '../../../domain/repositories/homework-content.repository'
@@ -15,6 +15,7 @@ import {
     calcTrueFalsePoints,
     parseNumericAnswer,
 } from '../../../shared/constants/grading-rules.constants'
+import { StudentPointService } from '../../services/student-point.service'
 
 interface GradeResult {
     isCorrect: boolean | null
@@ -50,6 +51,9 @@ export class FinishCompetitionSubmitUseCase {
         private readonly homeworkContentRepository: IHomeworkContentRepository,
         @Inject('IHomeworkSubmitRepository')
         private readonly homeworkSubmitRepository: IHomeworkSubmitRepository,
+        @Inject('UNIT_OF_WORK')
+        private readonly unitOfWork: IUnitOfWork,
+        private readonly studentPointService: StudentPointService,
         private readonly handleHomeworkSubmitByCompetitionUseCase: HandleHomeworkSubmitByCompetitionUseCase,
     ) { }
 
@@ -364,6 +368,16 @@ export class FinishCompetitionSubmitUseCase {
             ? Math.round((totalPoints / maxPoints) * 10000) / 100  // round 2 decimal
             : 0
 
+        const studentPointLog = await this.unitOfWork.executeInTransaction((repos) =>
+            this.studentPointService.awardCompetitionSubmitPoints(repos, {
+                studentId,
+                competitionSubmitId: submitId,
+                totalPoints,
+                maxPoints,
+                scorePercentage,
+            }),
+        )
+
         const allowViewSolutionYoutubeUrl = competition.allowViewSolutionYoutubeUrl
 
         return BaseResponseDto.success('Nộp bài thành công', {
@@ -381,6 +395,7 @@ export class FinishCompetitionSubmitUseCase {
             solutionYoutubeUrl: allowViewSolutionYoutubeUrl ? (exam.solutionYoutubeUrl ?? null) : null,
             answersGradedOnFinish: gradingUpdates.length,
             homeworkSubmit: homeworkSubmitResult,
+            studentPointLog: studentPointLog ? studentPointLog.toJSON() : null,
             feedback: homeworkFeedback ?? competitionFeedback,
             feedbackSource: homeworkFeedback ? 'homework_submit' : competitionFeedback ? 'competition_submit' : null,
         })

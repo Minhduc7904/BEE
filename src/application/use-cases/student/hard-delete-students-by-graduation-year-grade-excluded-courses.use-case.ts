@@ -159,6 +159,7 @@ export class HardDeleteStudentsByGraduationYearGradeExcludedCoursesUseCase {
           select: {
             studentId: true,
             userId: true,
+            totalPoint: true,
             studentPhone: true,
             parentPhone: true,
             studentZaloId: true,
@@ -178,7 +179,6 @@ export class HardDeleteStudentsByGraduationYearGradeExcludedCoursesUseCase {
                 gender: true,
                 dateOfBirth: true,
                 isActive: true,
-                totalPoint: true,
                 lastLoginAt: true,
                 createdAt: true,
                 updatedAt: true,

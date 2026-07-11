@@ -27,5 +27,6 @@ export * from './tuition-payment'
 export * from './online-course-payment'
 export * from './job'
 export * from './achievement'
+export * from './news'
 
 export * from './question-chat'

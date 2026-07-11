@@ -1,6 +1,6 @@
 // src/application/use-cases/competition-submit/regrade-competition-submit.use-case.ts
 import { Inject, Injectable } from '@nestjs/common'
-import type { ICompetitionRepository, IExamRepository } from '../../../domain/repositories'
+import type { ICompetitionRepository, IExamRepository, IUnitOfWork } from '../../../domain/repositories'
 import type { ICompetitionSubmitRepository } from '../../../domain/repositories/competition-submit.repository'
 import type { ICompetitionAnswerRepository } from '../../../domain/repositories/competition-answer.repository'
 import type { IHomeworkSubmitRepository } from '../../../domain/repositories/homework-submit.repository'
@@ -13,6 +13,7 @@ import {
     calcTrueFalsePoints,
     parseNumericAnswer,
 } from '../../../shared/constants/grading-rules.constants'
+import { StudentPointService } from '../../services/student-point.service'
 
 interface GradeResult {
     isCorrect: boolean | null
@@ -42,6 +43,9 @@ export class RegradeCompetitionSubmitUseCase {
         private readonly examRepository: IExamRepository,
         @Inject('IHomeworkSubmitRepository')
         private readonly homeworkSubmitRepository: IHomeworkSubmitRepository,
+        @Inject('UNIT_OF_WORK')
+        private readonly unitOfWork: IUnitOfWork,
+        private readonly studentPointService: StudentPointService,
     ) { }
 
     async execute(submitId: number): Promise<BaseResponseDto<any>> {
@@ -205,6 +209,16 @@ export class RegradeCompetitionSubmitUseCase {
             ? Math.round((totalPoints / maxPoints) * 10000) / 100
             : 0
 
+        const studentPointLog = await this.unitOfWork.executeInTransaction((repos) =>
+            this.studentPointService.awardCompetitionSubmitPoints(repos, {
+                studentId: submit.studentId,
+                competitionSubmitId: submitId,
+                totalPoints,
+                maxPoints,
+                scorePercentage,
+            }),
+        )
+
         // 10. Cập nhật điểm HomeworkSubmit liên kết (nếu có)
         let homeworkSubmitUpdated: { homeworkSubmitId: number; points: number } | null = null
         const linkedHomeworkSubmit = await this.homeworkSubmitRepository.findByCompetitionSubmitId(submitId)
@@ -231,6 +245,7 @@ export class RegradeCompetitionSubmitUseCase {
             answersRegraded: gradingUpdates.length,
             totalAnswers: answers.length,
             homeworkSubmitUpdated,
+            studentPointLog: studentPointLog ? studentPointLog.toJSON() : null,
         })
     }
 

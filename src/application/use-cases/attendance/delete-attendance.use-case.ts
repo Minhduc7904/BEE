@@ -7,6 +7,7 @@ import { AuditStatus } from 'src/shared/enums/audit-status.enum'
 import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
 import { CreateAndNotifyOneUseCase } from '../notification/create-and-notify-one.use-case'
 import { NotificationType, NotificationLevel } from 'src/shared/enums'
+import { StudentPointService } from 'src/application/services/student-point.service'
 
 @Injectable()
 export class DeleteAttendanceUseCase {
@@ -14,6 +15,7 @@ export class DeleteAttendanceUseCase {
     @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
     private readonly createAndNotifyOne: CreateAndNotifyOneUseCase,
+    private readonly studentPointService: StudentPointService,
   ) {}
 
   async execute(
@@ -39,6 +41,13 @@ export class DeleteAttendanceUseCase {
         }
         throw new NotFoundException(`Điểm danh với ID ${attendanceId} không tồn tại`)
       }
+
+      await this.studentPointService.removeAttendancePoints(repos, {
+        studentId: existing.studentId,
+        attendanceId: existing.attendanceId,
+        status: existing.status,
+        sessionId: existing.sessionId,
+      })
 
       const deleted = await attendanceRepository.delete(attendanceId)
 

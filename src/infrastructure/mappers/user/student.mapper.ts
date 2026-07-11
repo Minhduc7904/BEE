@@ -17,6 +17,7 @@ export class StudentMapper {
       studentId: prismaStudent.studentId,
       userId: prismaStudent.userId,
       grade: prismaStudent.grade,
+      totalPoint: prismaStudent.totalPoint ?? 0,
       studentPhone: prismaStudent.studentPhone ?? undefined,
       parentPhone: prismaStudent.parentPhone ?? undefined,
       studentZaloId: prismaStudent.studentZaloId ?? undefined,
@@ -50,13 +51,16 @@ export class StudentPointLogMapper {
     if (!prismaLog) return undefined
 
     return new StudentPointLog({
-      id: prismaLog.id,
+      pointLogId: prismaLog.pointLogId,
       studentId: prismaLog.studentId,
       type: prismaLog.type as PointType,
       points: prismaLog.points,
       source: prismaLog.source,
       createdAt: prismaLog.createdAt,
+      referenceType: prismaLog.referenceType ?? undefined,
+      referenceId: prismaLog.referenceId ?? undefined,
       note: prismaLog.note ?? undefined,
+      metadata: prismaLog.metadata ?? undefined,
       student: prismaLog.student ? StudentMapper.toDomainStudent(prismaLog.student) : undefined,
     })
   }

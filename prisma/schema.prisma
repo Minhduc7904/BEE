@@ -82,6 +82,16 @@ enum CourseType {
   ALL
 }
 
+// Phan loai bai viet tin tuc de hien thi, loc va tao sitemap phu hop.
+enum NewsArticleType {
+  NEWS
+  ANNOUNCEMENT
+  GUIDE
+  EVENT
+  LEARNING
+  COURSE_MEMORY
+}
+
 enum QuestionType {
   SINGLE_CHOICE
   MULTIPLE_CHOICE
@@ -112,7 +122,6 @@ model User {
   dateOfBirth DateTime? @map("date_of_birth") @db.Date
 
   isActive    Boolean   @default(true) @map("is_active")
-  totalPoint  Int       @default(0) @map("total_point")
   lastLoginAt DateTime? @map("last_login_at") @db.Timestamp(0)
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamp(0)
@@ -131,7 +140,6 @@ model User {
   EmailVerificationToken EmailVerificationToken[]
   PasswordResetToken     PasswordResetToken[]
   notifications          Notification[]
-  userPointLogs          UserPointLog[]
   createdJobs            Job[]                    @relation("JobCreator")
   questionChats          QuestionChat[]
   createdDocuments       Document[]               @relation("DocumentCreator")
@@ -236,6 +244,7 @@ model Student {
   grade                    Int              @db.TinyInt
   school                   String?          @map("school") @db.VarChar(120)
   highSchoolGraduationYear Int?             @map("high_school_graduation_year") @db.SmallInt
+  totalPoint               Int              @default(0) @map("total_point")
   conversationMode         ConversationMode @default(BOT) @map("conversation_mode")
   lastAdminReplyAt         DateTime?        @map("last_admin_reply_at") @db.Timestamp(0)
 
@@ -262,25 +271,11 @@ enum PointType {
 }
 
 model StudentPointLog {
-  id        Int     @id @default(autoincrement())
-  studentId Int
-  student   Student @relation(fields: [studentId], references: [studentId])
-
-  type      PointType
-  points    Int
-  source    String // "OLP", "Attendance", "TeacherReward"
-  note      String?
-  createdAt DateTime  @default(now())
-
-  @@index([studentId, type])
-}
-
-model UserPointLog {
   pointLogId Int @id @default(autoincrement()) @map("point_log_id")
 
-  // NgÆ°á»i dÃ¹ng Ä‘Æ°á»£c cá»™ng/trá»« Ä‘iá»ƒm
-  userId Int  @map("user_id")
-  user   User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  // Student duoc cong/tru diem
+  studentId Int     @map("student_id")
+  student   Student @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
 
   // Loáº¡i biáº¿n Ä‘á»™ng Ä‘iá»ƒm
   type   PointType @map("type") // BONUS = cá»™ng Ä‘iá»ƒm, PENALTY = trá»« Ä‘iá»ƒm
@@ -298,11 +293,12 @@ model UserPointLog {
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
 
-  @@index([userId, createdAt], map: "idx_user_point_logs_user_created")
-  @@index([userId, type], map: "idx_user_point_logs_user_type")
-  @@index([source], map: "idx_user_point_logs_source")
-  @@index([referenceType, referenceId], map: "idx_user_point_logs_ref")
-  @@map("user_point_logs")
+  @@unique([studentId, source, referenceType, referenceId], map: "uq_student_point_logs_student_source_ref")
+  @@index([studentId, createdAt], map: "idx_student_point_logs_student_created")
+  @@index([studentId, type], map: "idx_student_point_logs_student_type")
+  @@index([source], map: "idx_student_point_logs_source")
+  @@index([referenceType, referenceId], map: "idx_student_point_logs_ref")
+  @@map("student_point_logs")
 }
 
 model Admin {
@@ -2013,6 +2009,63 @@ model AchievementRow {
   @@index([schoolName], map: "idx_achievement_rows_school")
   @@index([grade], map: "idx_achievement_rows_grade")
   @@map("achievement_rows")
+}
+
+// Bai viet tin tuc phuc vu trang SEO.
+// Media khong luu truc tiep trong bang nay. Gan qua MediaUsage voi
+// entityType = "NEWS_ARTICLE", entityId = newsArticleId va fieldName nhu
+// "cover", "thumbnail", "og_image" hoac "content_image".
+model NewsArticle {
+  newsArticleId Int             @id @default(autoincrement()) @map("news_article_id")
+  type          NewsArticleType @default(NEWS) @map("type")
+
+  // Noi dung hien thi va URL SEO.
+  title   String  @map("title") @db.VarChar(255)
+  slug    String  @unique @map("slug") @db.VarChar(255)
+  excerpt String? @map("excerpt") @db.VarChar(500)
+
+  // contentJson la JSON goc cua Tiptap de FE mo lai va chinh sua.
+  // contentHtml la HTML da render tu contentJson de SSR/crawler doc duoc.
+  // contentText la text thuong da trich xuat, dung cho tim kiem va tinh read time.
+  contentJson Json?   @map("content_json")
+  contentHtml String? @map("content_html") @db.LongText
+  contentText String? @map("content_text") @db.LongText
+
+  authorName  String?   @map("author_name") @db.VarChar(255)
+  publishedAt DateTime? @map("published_at") @db.Timestamp(0)
+
+  // SEO on-page va social sharing.
+  targetKeyword   String? @map("target_keyword") @db.VarChar(255)
+  keywordText     String? @map("keyword_text") @db.Text
+  metaTitle       String? @map("meta_title") @db.VarChar(255)
+  metaDescription String? @map("meta_description") @db.VarChar(500)
+  ogTitle         String? @map("og_title") @db.VarChar(255)
+  ogDescription   String? @map("og_description") @db.VarChar(500)
+  canonicalUrl    String? @map("canonical_url") @db.VarChar(1000)
+  searchIntent    String? @map("search_intent") @db.VarChar(100)
+  seoScore        Int?    @map("seo_score") @db.TinyInt
+  // JSON-LD da duoc kiem duyet, vi du NewsArticle, BreadcrumbList, FAQPage.
+  structuredData  Json?   @map("structured_data")
+
+  visibility  Visibility @default(DRAFT) @map("visibility")
+  isFeatured  Boolean    @default(false) @map("is_featured")
+  viewCount   Int        @default(0) @map("view_count")
+  readingTime Int?       @map("reading_time")
+  sortOrder   Int        @default(0) @map("sort_order")
+
+  createdBy Int?     @map("created_by")
+  updatedBy Int?     @map("updated_by")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@index([visibility, publishedAt], map: "idx_news_articles_visibility_published_at")
+  @@index([type, visibility, publishedAt], map: "idx_news_articles_type_visibility_published_at")
+  @@index([isFeatured, visibility], map: "idx_news_articles_featured_visibility")
+  @@index([sortOrder], map: "idx_news_articles_sort_order")
+  @@index([createdBy], map: "idx_news_articles_created_by")
+  @@index([updatedBy], map: "idx_news_articles_updated_by")
+  @@fulltext([title, excerpt, contentText, authorName, targetKeyword, keywordText, metaTitle, metaDescription], map: "ft_news_articles_seo")
+  @@map("news_articles")
 }
 
 enum TuitionPaymentStatus {

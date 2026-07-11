@@ -9,6 +9,7 @@ export class Student {
   userId: number
 
   grade: number
+  totalPoint: number
 
   // Optional properties
   studentPhone?: string
@@ -28,6 +29,7 @@ export class Student {
     studentId: number
     userId: number
     grade: number
+    totalPoint?: number
     studentPhone?: string
     parentPhone?: string
     studentZaloId?: string
@@ -41,6 +43,7 @@ export class Student {
     this.studentId = data.studentId
     this.userId = data.userId
     this.grade = data.grade
+    this.totalPoint = data.totalPoint ?? 0
     this.studentPhone = data.studentPhone
     this.parentPhone = data.parentPhone
     this.studentZaloId = data.studentZaloId
@@ -91,6 +94,7 @@ export class Student {
       studentId: this.studentId,
       userId: this.userId,
       grade: this.grade,
+      totalPoint: this.totalPoint,
       studentPhone: this.studentPhone,
       parentPhone: this.parentPhone,
       studentZaloId: this.studentZaloId,
@@ -110,6 +114,7 @@ export class Student {
       studentId: this.studentId,
       userId: this.userId,
       grade: this.grade,
+      totalPoint: this.totalPoint,
       studentPhone: this.studentPhone,
       parentPhone: this.parentPhone,
       studentZaloId: this.studentZaloId,

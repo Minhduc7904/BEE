@@ -2,6 +2,7 @@
 import { IUserRepository } from './user.repository'
 import { IAdminRepository } from './admin.repository'
 import { IStudentRepository } from './student.repository'
+import { IStudentPointLogRepository } from './student-point-log.repository'
 import { IUserRefreshTokenRepository } from './user-refresh-token.repository'
 import { IRoleRepository } from './role.repository'
 import { IPermissionRepository } from './permission.repository'
@@ -16,6 +17,7 @@ import { ICourseRepository } from './course.repository'
 import { ICourseClassRepository } from './course-class.repository'
 import { ICourseEnrollmentRepository } from './course-enrollment.repository'
 import { ILearningItemRepository } from './learning-item.repository'
+import { IStudentLearningItemRepository } from './student-learning-item.repository'
 import { ILessonLearningItemRepository } from './lesson-learning-item.repository'
 import { IDocumentContentRepository } from './document-content.repository'
 import { IHomeworkContentRepository } from './homework-content.repository'
@@ -50,11 +52,13 @@ import { IDocumentTagRepository } from './document-tag.repository'
 import { IOnlineCourseInvoiceRepository } from './online-course-invoice.repository'
 import { IOnlineCourseInvoiceItemRepository } from './online-course-invoice-item.repository'
 import { IOnlineCoursePaymentAttemptRepository } from './online-course-payment-attempt.repository'
+import { INewsArticleRepository } from './news-article.repository'
 // src/domain/repositories/unit-of-work.repository.ts
 export interface UnitOfWorkRepos {
   userRepository: IUserRepository
   adminRepository: IAdminRepository
   studentRepository: IStudentRepository
+  studentPointLogRepository: IStudentPointLogRepository
   userRefreshTokenRepository: IUserRefreshTokenRepository
   roleRepository: IRoleRepository
   permissionRepository: IPermissionRepository
@@ -71,6 +75,7 @@ export interface UnitOfWorkRepos {
   courseClassRepository: ICourseClassRepository
   courseEnrollmentRepository: ICourseEnrollmentRepository
   learningItemRepository: ILearningItemRepository
+  studentLearningItemRepository: IStudentLearningItemRepository
   lessonLearningItemRepository: ILessonLearningItemRepository
   documentContentRepository: IDocumentContentRepository
   homeworkContentRepository: IHomeworkContentRepository
@@ -103,6 +108,7 @@ export interface UnitOfWorkRepos {
   onlineCourseInvoiceRepository: IOnlineCourseInvoiceRepository
   onlineCourseInvoiceItemRepository: IOnlineCourseInvoiceItemRepository
   onlineCoursePaymentAttemptRepository: IOnlineCoursePaymentAttemptRepository
+  newsArticleRepository: INewsArticleRepository
 }
 
 export interface IUnitOfWork {

@@ -5,7 +5,7 @@ import { PointType } from '../../../shared/enums/point-type.enum'
 
 export class StudentPointLog {
   // Required properties
-  id: number
+  pointLogId: number
   studentId: number
   type: PointType
   points: number
@@ -13,29 +13,38 @@ export class StudentPointLog {
   createdAt: Date
 
   // Optional properties
+  referenceType?: string
+  referenceId?: number
   note?: string
+  metadata?: any
 
   // Navigation properties
   student?: Student
 
   constructor(data: {
-    id: number
+    pointLogId: number
     studentId: number
     type: PointType
     points: number
     source: string
     createdAt?: Date
+    referenceType?: string
+    referenceId?: number
     note?: string
+    metadata?: any
     student?: Student
   }) {
-    this.id = data.id
+    this.pointLogId = data.pointLogId
     this.studentId = data.studentId
     this.type = data.type
     this.points = data.points
     this.source = data.source
     this.createdAt = data.createdAt || new Date()
 
+    this.referenceType = data.referenceType
+    this.referenceId = data.referenceId
     this.note = data.note
+    this.metadata = data.metadata
     this.student = data.student
   }
 
@@ -94,29 +103,35 @@ export class StudentPointLog {
   }
 
   equals(other: StudentPointLog): boolean {
-    return this.id === other.id
+    return this.pointLogId === other.pointLogId
   }
 
   toJSON() {
     return {
-      id: this.id,
+      pointLogId: this.pointLogId,
       studentId: this.studentId,
       type: this.type,
       points: this.points,
       source: this.source,
+      referenceType: this.referenceType,
+      referenceId: this.referenceId,
       note: this.note,
+      metadata: this.metadata,
       createdAt: this.createdAt,
     }
   }
 
   clone(): StudentPointLog {
     return new StudentPointLog({
-      id: this.id,
+      pointLogId: this.pointLogId,
       studentId: this.studentId,
       type: this.type,
       points: this.points,
       source: this.source,
+      referenceType: this.referenceType,
+      referenceId: this.referenceId,
       note: this.note,
+      metadata: this.metadata,
       createdAt: this.createdAt,
       student: this.student,
     })
