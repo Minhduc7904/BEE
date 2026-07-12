@@ -12,6 +12,7 @@ const NEWS_USE_CASES = [
   newsUseCases.GetPublicSeoNewsArticleBySlugUseCase,
   newsUseCases.GetPublicSeoFeaturedNewsArticlesUseCase,
   newsUseCases.GetPublicSeoLatestNewsArticlesUseCase,
+  newsUseCases.GetPublicSeoNewsSitemapUseCase,
 ]
 
 @Module({

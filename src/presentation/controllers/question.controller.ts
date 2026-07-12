@@ -19,6 +19,8 @@ import {
   CreateQuestionDto,
   UpdateQuestionDto,
   QuestionListQueryDto,
+  QuestionSitemapQueryDto,
+  QuestionSitemapResponseDto,
   ReorderQuestionsDto,
   RemoveQuestionFromExamDto,
   AddQuestionToSectionDto,
@@ -48,6 +50,7 @@ import {
   GetPublicSeoQuestionBySlugUseCase,
   GetRelatedPublicSeoQuestionsBySlugUseCase,
   GetRelatedPublicStudentQuestionsUseCase,
+  GetPublicQuestionSitemapUseCase,
 } from '../../application/use-cases/question'
 
 @Injectable()
@@ -68,6 +71,7 @@ export class QuestionController {
     private readonly getPublicSeoQuestionBySlugUseCase: GetPublicSeoQuestionBySlugUseCase,
     private readonly getRelatedPublicSeoQuestionsBySlugUseCase: GetRelatedPublicSeoQuestionsBySlugUseCase,
     private readonly getRelatedPublicStudentQuestionsUseCase: GetRelatedPublicStudentQuestionsUseCase,
+    private readonly getPublicQuestionSitemapUseCase: GetPublicQuestionSitemapUseCase,
   ) { }
 
   /**
@@ -195,6 +199,14 @@ export class QuestionController {
     return ExceptionHandler.execute(() =>
       this.searchPublicStudentQuestionsUseCase.execute(query),
     )
+  }
+
+  @Get('public/seo/sitemap')
+  @HttpCode(HttpStatus.OK)
+  async getPublicQuestionSitemap(
+    @Query() query: QuestionSitemapQueryDto,
+  ): Promise<QuestionSitemapResponseDto> {
+    return ExceptionHandler.execute(() => this.getPublicQuestionSitemapUseCase.execute(query))
   }
 
   /**

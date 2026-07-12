@@ -18,6 +18,8 @@ import {
   TeacherProfileListQueryDto,
   TeacherProfileResponseDto,
   UpdateTeacherProfileDto,
+  PublicSeoSitemapQueryDto,
+  PublicSeoSitemapResponseDto,
 } from 'src/application/dtos'
 import {
   CreateTeacherProfileUseCase,
@@ -28,6 +30,7 @@ import {
   GetTeacherProfilesUseCase,
   IncrementPublicTeacherProfileViewCountUseCase,
   UpdateTeacherProfileUseCase,
+  GetPublicSeoTeacherSitemapUseCase,
 } from 'src/application/use-cases/teacher-profile'
 import { CurrentUser } from 'src/shared/decorators'
 import { RequirePermission } from 'src/shared/decorators/permissions.decorator'
@@ -45,6 +48,7 @@ export class TeacherProfileController {
     private readonly incrementPublicTeacherProfileViewCountUseCase: IncrementPublicTeacherProfileViewCountUseCase,
     private readonly updateTeacherProfileUseCase: UpdateTeacherProfileUseCase,
     private readonly deleteTeacherProfileUseCase: DeleteTeacherProfileUseCase,
+    private readonly getPublicSeoTeacherSitemapUseCase: GetPublicSeoTeacherSitemapUseCase,
   ) {}
 
   @Post()
@@ -73,6 +77,12 @@ export class TeacherProfileController {
   ): Promise<PaginationResponseDto<TeacherProfileResponseDto>> {
     query.visibility = Visibility.PUBLISHED
     return ExceptionHandler.execute(() => this.getTeacherProfilesUseCase.execute(query))
+  }
+
+  @Get('public/seo/sitemap')
+  @HttpCode(HttpStatus.OK)
+  async getPublicSeoSitemap(@Query() query: PublicSeoSitemapQueryDto): Promise<PublicSeoSitemapResponseDto> {
+    return ExceptionHandler.execute(() => this.getPublicSeoTeacherSitemapUseCase.execute(query))
   }
 
   @Post('public/seo/:slug/view')

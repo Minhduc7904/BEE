@@ -43,6 +43,7 @@ import { CourseStudentsAttendanceQueryDto } from '../../application/dtos/course/
 import { ExportCourseStudentsAttendanceQueryDto } from '../../application/dtos/course/export-course-students-attendance-query.dto'
 import { CourseStudentsAttendanceListResponseDto } from '../../application/dtos/course/course-student-attendance.dto'
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
+import { PublicSeoSitemapQueryDto, PublicSeoSitemapResponseDto } from '../../application/dtos/seo/public-seo-sitemap.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
 import { CurrentUser } from '../../shared/decorators/current-user.decorator'
@@ -62,6 +63,7 @@ import {
   GetPublicSeoCourseDetailUseCase,
   UpdateCourseMediaUseCase,
   CreatePublicSeoCourseManualInvoiceUseCase,
+  GetPublicSeoCourseSitemapUseCase,
 } from '../../application/use-cases/course'
 import { Injectable } from '@nestjs/common'
 
@@ -83,6 +85,7 @@ export class CourseController {
     private readonly getPublicSeoCourseDetailUseCase: GetPublicSeoCourseDetailUseCase,
     private readonly updateCourseMediaUseCase: UpdateCourseMediaUseCase,
     private readonly createPublicSeoCourseManualInvoiceUseCase: CreatePublicSeoCourseManualInvoiceUseCase,
+    private readonly getPublicSeoCourseSitemapUseCase: GetPublicSeoCourseSitemapUseCase,
   ) { }
 
   @Get()
@@ -154,7 +157,7 @@ export class CourseController {
    * Rule:
    * - Không yêu cầu đăng nhập.
    * - Chỉ lấy khóa học có visibility = PUBLISHED.
-   * - Chỉ lấy khóa học chưa kết thúc: isEnded = false.
+   * - Bao gồm cả khóa học đã kết thúc để phục vụ SEO.
    * - Chỉ lấy khóa học có courseType = ONLINE hoặc ALL.
    * - Hỗ trợ lọc theo page, limit, search, grade, subjectId, teacherId, academicYear.
    * - Hỗ trợ sắp xếp theo courseId, code, title, grade, priceVND, createdAt, updatedAt.
@@ -182,13 +185,19 @@ export class CourseController {
     return ExceptionHandler.execute(() => this.getPublicSeoOnlineCoursesUseCase.execute(query))
   }
 
+  @Get('public/seo/sitemap')
+  @HttpCode(HttpStatus.OK)
+  async getPublicSeoSitemap(@Query() query: PublicSeoSitemapQueryDto): Promise<PublicSeoSitemapResponseDto> {
+    return ExceptionHandler.execute(() => this.getPublicSeoCourseSitemapUseCase.execute(query))
+  }
+
   /**
    * API lấy chi tiết khóa học public online cho trang SEO.
    *
    * Rule:
    * - Không yêu cầu đăng nhập.
    * - Tham số courseIdOrCode nhận courseId dạng số hoặc code khóa học.
-   * - Chỉ trả khóa học có visibility = PUBLISHED, isEnded = false,
+   * - Chỉ trả khóa học có visibility = PUBLISHED,
    *   và courseType = ONLINE hoặc ALL.
    * - Chỉ trả các buổi học có visibility = PUBLISHED.
    * - Luôn trả danh sách buổi học public trong khóa học.

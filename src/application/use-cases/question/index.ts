@@ -15,3 +15,4 @@ export { GetRelatedPublicStudentQuestionsUseCase } from './get-related-public-st
 export { GetPublicSeoQuestionBySlugUseCase } from './get-public-seo-question-by-slug.use-case'
 export { RegenerateQuestionSlugsUseCase } from './regenerate-question-slugs.use-case'
 export { GetRelatedPublicSeoQuestionsBySlugUseCase } from './get-related-public-seo-questions-by-slug.use-case'
+export { GetPublicQuestionSitemapUseCase } from './get-public-question-sitemap.use-case'

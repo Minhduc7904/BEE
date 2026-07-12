@@ -31,7 +31,6 @@ export class GetPublicSeoCourseDetailUseCase {
       where: {
         ...courseIdentifier,
         visibility: Visibility.PUBLISHED,
-        isEnded: false,
         courseType: {
           in: [CourseType.ONLINE, CourseType.ALL],
         },

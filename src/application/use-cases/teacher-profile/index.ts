@@ -1,6 +1,7 @@
 export * from './create-teacher-profile.use-case'
 export * from './delete-teacher-profile.use-case'
 export * from './get-public-seo-teacher-profile-by-slug.use-case'
+export * from './get-public-seo-teacher-sitemap.use-case'
 export * from './get-teacher-profile-by-id.use-case'
 export * from './get-teacher-profile-by-slug.use-case'
 export * from './get-teacher-profiles.use-case'

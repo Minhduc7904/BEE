@@ -8,6 +8,7 @@ const TEACHER_PROFILE_USE_CASES = [
   teacherProfileUseCases.GetTeacherProfileByIdUseCase,
   teacherProfileUseCases.GetTeacherProfileBySlugUseCase,
   teacherProfileUseCases.GetPublicSeoTeacherProfileBySlugUseCase,
+  teacherProfileUseCases.GetPublicSeoTeacherSitemapUseCase,
   teacherProfileUseCases.IncrementPublicTeacherProfileViewCountUseCase,
   teacherProfileUseCases.UpdateTeacherProfileUseCase,
   teacherProfileUseCases.DeleteTeacherProfileUseCase,

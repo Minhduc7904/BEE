@@ -48,10 +48,12 @@ import {
   GetPublicStudentExamContentUseCase,
   GetPublicSeoRelatedExamsBySlugUseCase,
   GetPublicSeoLatestExamsUseCase,
+  GetPublicSeoExamSitemapUseCase,
 } from '../../application/use-cases/exam'
 import { GetQuestionsByExamUseCase } from '../../application/use-cases/question'
 import { GetSectionsByExamUseCase } from '../../application/use-cases/section'
 import { ExamVisibility } from 'src/shared/enums'
+import { PublicSeoSitemapQueryDto, PublicSeoSitemapResponseDto } from 'src/application/dtos/seo/public-seo-sitemap.dto'
 
 @Injectable()
 @Controller('exams')
@@ -70,6 +72,7 @@ export class ExamController {
     private readonly getPublicStudentExamContentUseCase: GetPublicStudentExamContentUseCase,
     private readonly getPublicSeoRelatedExamsBySlugUseCase: GetPublicSeoRelatedExamsBySlugUseCase,
     private readonly getPublicSeoLatestExamsUseCase: GetPublicSeoLatestExamsUseCase,
+    private readonly getPublicSeoExamSitemapUseCase: GetPublicSeoExamSitemapUseCase,
     private readonly getQuestionsByExamUseCase: GetQuestionsByExamUseCase,
     private readonly getSectionsByExamUseCase: GetSectionsByExamUseCase,
   ) { }
@@ -310,6 +313,12 @@ export class ExamController {
       }
       return response
     })
+  }
+
+  @Get('public/seo/sitemap')
+  @HttpCode(HttpStatus.OK)
+  async getPublicSeoSitemap(@Query() query: PublicSeoSitemapQueryDto): Promise<PublicSeoSitemapResponseDto> {
+    return ExceptionHandler.execute(() => this.getPublicSeoExamSitemapUseCase.execute(query))
   }
 
   @Get('public/seo/:slug/related')

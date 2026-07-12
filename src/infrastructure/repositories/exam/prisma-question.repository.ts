@@ -8,11 +8,13 @@ import {
     QuestionPaginationOptions,
     QuestionListResult,
     QuestionSlugCandidate,
+    QuestionSitemapResult,
 } from '../../../domain/repositories/question.repository'
 import { PrismaService } from '../../../prisma/prisma.service'
 import { QuestionMapper } from '../../mappers/exam/question.mapper'
 import { TextSearchUtil } from '../../../shared/utils/text-search.util'
 import { ExamVisibility } from '../../../shared/enums/exam-visibility.enum'
+import { Visibility } from '../../../shared/enums'
 
 @Injectable()
 export class PrismaQuestionRepository implements IQuestionRepository {
@@ -438,6 +440,40 @@ export class PrismaQuestionRepository implements IQuestionRepository {
             page,
             limit,
             totalPages,
+        }
+    }
+
+    async findSitemapEntriesExcludingDraft(
+        pagination: QuestionPaginationOptions,
+        txClient?: any,
+    ): Promise<QuestionSitemapResult> {
+        const client = txClient || this.prisma
+        const page = pagination.page || 1
+        const limit = pagination.limit || 1000
+        const sortOrder = pagination.sortOrder || 'desc'
+        const skip = (page - 1) * limit
+        const where = { visibility: { not: Visibility.DRAFT } }
+
+        const [entries, total] = await Promise.all([
+            client.question.findMany({
+                where,
+                skip,
+                take: limit,
+                orderBy: [{ updatedAt: sortOrder }, { slug: 'asc' }],
+                select: {
+                    slug: true,
+                    updatedAt: true,
+                },
+            }),
+            client.question.count({ where }),
+        ])
+
+        return {
+            entries,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit),
         }
     }
 }

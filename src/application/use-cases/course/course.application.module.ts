@@ -16,6 +16,7 @@ const COURSE_USE_CASES = [
   courseUseCase.GetStudentAvailableOnlineCoursesUseCase,
   courseUseCase.GetPublicSeoOnlineCoursesUseCase,
   courseUseCase.GetPublicSeoCourseDetailUseCase,
+  courseUseCase.GetPublicSeoCourseSitemapUseCase,
   courseUseCase.UpdateCourseMediaUseCase,
   courseUseCase.CreatePublicSeoCourseManualInvoiceUseCase,
 ]

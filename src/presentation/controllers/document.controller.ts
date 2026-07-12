@@ -21,6 +21,8 @@ import {
   DocumentSeoLevelResponseDto,
   PaginationResponseDto,
   UpdateDocumentDto,
+  PublicSeoSitemapQueryDto,
+  PublicSeoSitemapResponseDto,
 } from 'src/application/dtos'
 import {
   CreateDocumentUseCase,
@@ -37,6 +39,7 @@ import {
   IncrementPublicDocumentDownloadCountUseCase,
   IncrementPublicDocumentViewCountUseCase,
   UpdateDocumentUseCase,
+  GetPublicSeoDocumentSitemapUseCase,
 } from 'src/application/use-cases/document'
 import { CurrentUser } from 'src/shared/decorators'
 import { RequirePermission } from 'src/shared/decorators/permissions.decorator'
@@ -60,6 +63,7 @@ export class DocumentController {
     private readonly incrementPublicDocumentDownloadCountUseCase: IncrementPublicDocumentDownloadCountUseCase,
     private readonly updateDocumentUseCase: UpdateDocumentUseCase,
     private readonly deleteDocumentUseCase: DeleteDocumentUseCase,
+    private readonly getPublicSeoDocumentSitemapUseCase: GetPublicSeoDocumentSitemapUseCase,
   ) {}
 
   @Post()
@@ -86,6 +90,12 @@ export class DocumentController {
   ): Promise<PaginationResponseDto<DocumentResponseDto>> {
     query.visibility = Visibility.PUBLISHED
     return ExceptionHandler.execute(() => this.getDocumentsUseCase.execute(query))
+  }
+
+  @Get('public/seo/sitemap')
+  @HttpCode(HttpStatus.OK)
+  async getPublicSeoSitemap(@Query() query: PublicSeoSitemapQueryDto): Promise<PublicSeoSitemapResponseDto> {
+    return ExceptionHandler.execute(() => this.getPublicSeoDocumentSitemapUseCase.execute(query))
   }
 
   @Get('public/seo/latest')

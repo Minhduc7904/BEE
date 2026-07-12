@@ -27,7 +27,6 @@ export class GetPublicSeoOnlineCoursesUseCase {
 
     const where = {
       visibility: Visibility.PUBLISHED,
-      isEnded: false,
       courseType: {
         in: [CourseType.ONLINE, CourseType.ALL],
       },

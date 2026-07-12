@@ -15,6 +15,7 @@ const DOCUMENT_USE_CASES = [
   documentUseCases.GetPublicSeoLatestDocumentsUseCase,
   documentUseCases.GetPublicSeoDocumentBySlugUseCase,
   documentUseCases.GetPublicSeoRelatedDocumentsBySlugUseCase,
+  documentUseCases.GetPublicSeoDocumentSitemapUseCase,
   documentUseCases.IncrementPublicDocumentViewCountUseCase,
   documentUseCases.IncrementPublicDocumentDownloadCountUseCase,
   documentUseCases.DownloadPublicDocumentUseCase,

@@ -54,6 +54,19 @@ export interface QuestionSlugCandidate {
   slug: string
 }
 
+export interface QuestionSitemapEntry {
+  slug: string
+  updatedAt: Date
+}
+
+export interface QuestionSitemapResult {
+  entries: QuestionSitemapEntry[]
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+}
+
 export interface IQuestionRepository {
   create(data: CreateQuestionData, txClient?: any): Promise<Question>
   createMany(dataArray: CreateQuestionData[], txClient?: any): Promise<number>
@@ -69,4 +82,8 @@ export interface IQuestionRepository {
     filters?: QuestionFilterOptions,
     txClient?: any,
   ): Promise<QuestionListResult>
+  findSitemapEntriesExcludingDraft(
+    pagination: QuestionPaginationOptions,
+    txClient?: any,
+  ): Promise<QuestionSitemapResult>
 }

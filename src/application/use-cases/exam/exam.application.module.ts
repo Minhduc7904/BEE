@@ -22,6 +22,7 @@ const EXAM_USE_CASES = [
   examUseCase.GenerateMissingExamSlugsUseCase,
   examUseCase.GetPublicSeoRelatedExamsBySlugUseCase,
   examUseCase.GetPublicSeoLatestExamsUseCase,
+  examUseCase.GetPublicSeoExamSitemapUseCase,
   AttachMediaFromContentUseCase,
   ProcessContentWithPresignedUrlsUseCase,
   ProcessContentWithPresignedUrlsAndRenderHtmlUseCase,

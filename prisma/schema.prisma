@@ -569,6 +569,7 @@ model Exam {
   @@index([subjectId], map: "idx_exams_subject_id")
   @@index([createdBy], map: "idx_exams_created_by")
   @@index([createdAt], map: "idx_exams_created_at")
+  @@index([visibility, updatedAt, slug], map: "idx_exams_sitemap_published")
   @@map("exams")
 }
 
@@ -684,6 +685,7 @@ model Question {
   @@index([createdBy], map: "idx_questions_created_by")
   @@index([createdAt], map: "idx_questions_created_at")
   @@index([grade, visibility], map: "idx_questions_grade_visibility")
+  @@index([visibility, updatedAt, slug], map: "idx_questions_sitemap_published")
   @@fulltext([searchableContent, content, solution, correctAnswer], map: "ft_idx_questions_search")
   @@map("questions")
 }
@@ -1184,6 +1186,7 @@ model Course {
   @@index([teacherId], map: "idx_courses_teacher_id")
   @@index([courseType], map: "idx_courses_course_type")
   @@index([createdAt], map: "idx_courses_created_at")
+  @@index([visibility, courseType, updatedAt, code], map: "idx_courses_sitemap_online")
   @@map("courses")
 }
 
@@ -1712,6 +1715,7 @@ model Document {
   @@index([isFeatured, visibility], map: "idx_documents_featured_visibility")
   @@index([createdBy], map: "idx_documents_created_by")
   @@index([updatedBy], map: "idx_documents_updated_by")
+  @@index([visibility, updatedAt, slug], map: "idx_documents_sitemap_published")
   @@fulltext([title, shortDescription, content, targetKeyword, keywordText, metaTitle, metaDescription], map: "ft_documents_seo")
   @@map("documents")
 }
@@ -1826,6 +1830,7 @@ model TeacherProfile {
   @@index([targetKeyword], map: "idx_teacher_profiles_target_keyword")
   @@index([isFeatured, visibility], map: "idx_teacher_profiles_featured_visibility")
   @@index([sortOrder], map: "idx_teacher_profiles_sort_order")
+  @@index([visibility, updatedAt, slug], map: "idx_teacher_profiles_sitemap_published")
   @@index([createdBy], map: "idx_teacher_profiles_created_by")
   @@index([updatedBy], map: "idx_teacher_profiles_updated_by")
   @@fulltext([displayName, headline, shortDescription, bio, expertise, teachingSubjects, teachingMethods, targetKeyword, keywordText, metaTitle, metaDescription], map: "ft_teacher_profiles_seo")
@@ -2071,6 +2076,7 @@ model NewsArticle {
   @@index([sortOrder], map: "idx_news_articles_sort_order")
   @@index([createdBy], map: "idx_news_articles_created_by")
   @@index([updatedBy], map: "idx_news_articles_updated_by")
+  @@index([visibility, updatedAt, slug], map: "idx_news_articles_sitemap_published")
   @@fulltext([title, excerpt, contentText, authorName, targetKeyword, keywordText, metaTitle, metaDescription], map: "ft_news_articles_seo")
   @@map("news_articles")
 }

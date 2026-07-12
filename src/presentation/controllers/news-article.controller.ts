@@ -6,6 +6,8 @@ import {
   NewsArticleResponseDto,
   PaginationResponseDto,
   UpdateNewsArticleDto,
+  PublicSeoSitemapQueryDto,
+  PublicSeoSitemapResponseDto,
 } from 'src/application/dtos'
 import {
   CreateNewsArticleUseCase,
@@ -17,6 +19,7 @@ import {
   GetPublicSeoNewsArticleBySlugUseCase,
   IncrementPublicNewsArticleViewCountUseCase,
   UpdateNewsArticleUseCase,
+  GetPublicSeoNewsSitemapUseCase,
 } from 'src/application/use-cases/news'
 import { CurrentUser } from 'src/shared/decorators'
 import { RequirePermission } from 'src/shared/decorators/permissions.decorator'
@@ -36,6 +39,7 @@ export class NewsArticleController {
     private readonly getPublicSeoNewsArticleBySlugUseCase: GetPublicSeoNewsArticleBySlugUseCase,
     private readonly getPublicSeoFeaturedNewsArticlesUseCase: GetPublicSeoFeaturedNewsArticlesUseCase,
     private readonly getPublicSeoLatestNewsArticlesUseCase: GetPublicSeoLatestNewsArticlesUseCase,
+    private readonly getPublicSeoNewsSitemapUseCase: GetPublicSeoNewsSitemapUseCase,
   ) {}
 
   /**
@@ -95,6 +99,12 @@ export class NewsArticleController {
   ): Promise<PaginationResponseDto<NewsArticleResponseDto>> {
     query.visibility = Visibility.PUBLISHED
     return ExceptionHandler.execute(() => this.getNewsArticlesUseCase.execute(query))
+  }
+
+  @Get('public/seo/sitemap')
+  @HttpCode(HttpStatus.OK)
+  async getPublicSeoSitemap(@Query() query: PublicSeoSitemapQueryDto): Promise<PublicSeoSitemapResponseDto> {
+    return ExceptionHandler.execute(() => this.getPublicSeoNewsSitemapUseCase.execute(query))
   }
 
   /**

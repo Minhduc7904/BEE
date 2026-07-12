@@ -24,6 +24,7 @@ const QUESTION_USE_CASES = [
   questionUseCase.GetPublicSeoQuestionBySlugUseCase,
   questionUseCase.RegenerateQuestionSlugsUseCase,
   questionUseCase.GetRelatedPublicSeoQuestionsBySlugUseCase,
+  questionUseCase.GetPublicQuestionSitemapUseCase,
   AttachMediaFromContentUseCase,
   ProcessContentWithPresignedUrlsUseCase,
   ProcessContentWithPresignedUrlsAndRenderHtmlUseCase,

@@ -12,4 +12,5 @@ export { GetPublicStudentExamBySlugUseCase } from './get-public-student-exam-by-
 export { GetPublicStudentExamContentUseCase } from './get-public-student-exam-content.use-case'
 export { GenerateMissingExamSlugsUseCase } from './generate-missing-exam-slugs.use-case'
 export { GetPublicSeoRelatedExamsBySlugUseCase } from './get-public-seo-related-exams-by-slug.use-case'
+export { GetPublicSeoExamSitemapUseCase } from './get-public-seo-exam-sitemap.use-case'
 export { GetPublicSeoLatestExamsUseCase } from './get-public-seo-latest-exams.use-case'
