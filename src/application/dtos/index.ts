@@ -27,6 +27,7 @@ export * from './permission/permission-list-query.dto'
 
 // Student DTOs
 export * from './student/student.dto'
+export * from './student/create-student.dto'
 export * from './student/student-list-query.dto'
 export * from './student/student-point-log.dto'
 

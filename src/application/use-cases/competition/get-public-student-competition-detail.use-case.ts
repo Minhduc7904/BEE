@@ -36,7 +36,9 @@ export class GetPublicStudentCompetitionDetailUseCase {
                 competitionId,
                 studentId,
             )
-            attemptedCount = submits.length
+            attemptedCount = submits.filter(
+                (submit) => submit.status !== CompetitionSubmitStatus.IN_PROGRESS,
+            ).length
             hasInProgress = submits.some((submit) => submit.status === CompetitionSubmitStatus.IN_PROGRESS)
 
             if (competition.allowViewScore) {

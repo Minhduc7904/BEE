@@ -2,7 +2,7 @@
 import { Injectable, Inject } from '@nestjs/common'
 import type { IUnitOfWork } from '../../../domain/repositories'
 import {
-    RegisterStudentDto,
+    CreateStudentDto,
     StudentResponseDto,
     BaseResponseDto
 } from '../../dtos'
@@ -10,8 +10,7 @@ import { ConflictException } from '../../../shared/exceptions/custom-exceptions'
 import { PasswordService } from '../../../infrastructure/services'
 import { ACTION_KEYS } from 'src/shared/constants'
 import { AuditStatus } from 'src/shared/enums/audit-status.enum'
-import { CourseEnrollmentStatus } from 'src/shared/enums'
-import { AttendanceStatus } from 'src/shared/enums'
+import { AttendanceStatus, CourseEnrollmentStatus, StudentType } from 'src/shared/enums'
 
 @Injectable()
 export class CreateStudentUseCase {
@@ -20,7 +19,7 @@ export class CreateStudentUseCase {
         @Inject('PASSWORD_SERVICE') private readonly passwordService: PasswordService,
     ) { }
 
-    async execute(dto: RegisterStudentDto, createdBy: number): Promise<BaseResponseDto<StudentResponseDto>> {
+    async execute(dto: CreateStudentDto, createdBy: number): Promise<BaseResponseDto<StudentResponseDto>> {
         return this.unitOfWork.executeInTransaction(async (repos) => {
             const userRepository = repos.userRepository;
             const studentRepository = repos.studentRepository;
@@ -116,6 +115,7 @@ export class CreateStudentUseCase {
                 grade: dto.grade,
                 school: dto.school,
                 highSchoolGraduationYear: dto.highSchoolGraduationYear,
+                studentType: dto.studentType ?? StudentType.OFFLINE,
             })
 
             if (dto.courseIds && dto.courseIds.length > 0) {

@@ -7,6 +7,8 @@ import { IsOptionalBoolean, IsOptionalInt } from 'src/shared/decorators/validate
 import { SortOrder } from 'src/shared/enums/sort-order.enum'
 import { Transform } from 'class-transformer'
 import { IsArray, IsInt, IsOptional } from 'class-validator'
+import { IsOptionalEnumValue } from 'src/shared/decorators/validate'
+import { StudentType } from 'src/shared/enums'
 /**
  * DTO truy vấn danh sách học sinh
  * @description Chứa các tham số lọc và phân trang cho danh sách học sinh
@@ -29,6 +31,9 @@ export class StudentListQueryDto extends ListQueryDto {
   @ToNumber()
   @IsOptionalInt('Năm tốt nghiệp cấp 3', 1900, 2100)
   highSchoolGraduationYear?: number
+
+  @IsOptionalEnumValue(StudentType, 'Loại học sinh')
+  studentType?: StudentType
 
   /**
    * Trạng thái hoạt động
@@ -71,6 +76,7 @@ export class StudentListQueryDto extends ListQueryDto {
     return {
       grade: this.grade,
       highSchoolGraduationYear: this.highSchoolGraduationYear,
+      studentType: this.studentType,
       isActive: this.isActive,
       hasParentZaloId: this.hasParentZaloId,
       search: this.search, // Sử dụng flat property từ ListQueryDto
@@ -94,6 +100,7 @@ export class StudentListQueryDto extends ListQueryDto {
       'grade',
       'school',
       'highSchoolGraduationYear',
+      'studentType',
       'username',
       'email',
       'firstName',
@@ -125,6 +132,7 @@ export class StudentListQueryDto extends ListQueryDto {
       'grade',
       'school',
       'highSchoolGraduationYear',
+      'studentType',
       'username',
       'email',
       'firstName',

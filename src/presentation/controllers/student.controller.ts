@@ -11,7 +11,7 @@ import {
   StudentGradeStatsListResponseDto,
   StudentStatsResponseDto
 } from 'src/application/dtos/student/student-stats-response.dto'
-import { RegisterStudentDto } from 'src/application/dtos/auth/register.dto'
+import { CreateStudentDto } from 'src/application/dtos/student/create-student.dto'
 import { ExportStudentListOptionDto } from 'src/application/dtos/student/export-student-list-option.dto'
 
 import { ExceptionHandler } from 'src/shared/utils/exception-handler.util'
@@ -79,7 +79,7 @@ export class StudentController {
   @RequirePermission(PERMISSION_CODES.STUDENT.CREATE)
   @HttpCode(HttpStatus.CREATED)
   async createStudent(
-    @Body() dto: RegisterStudentDto,
+    @Body() dto: CreateStudentDto,
     @CurrentUser('adminId') adminId: number,
   ): Promise<BaseResponseDto<StudentResponseDto>> {
     return ExceptionHandler.execute(() => this.createStudentUseCase.execute(dto, adminId))
@@ -108,7 +108,7 @@ export class StudentController {
     @Body() body: UpdateStudentDto,
     @CurrentUser('studentId') studentId: number
   ): Promise<BaseResponseDto<StudentResponseDto>> {
-    return ExceptionHandler.execute(() => this.updateStudentUseCase.execute(studentId, body))
+    return ExceptionHandler.execute(() => this.updateStudentUseCase.execute(studentId, body, false))
   }
 
   @Get(':studentId')
@@ -128,7 +128,7 @@ export class StudentController {
     @Param('studentId', ParseIntPipe) studentId: number,
     @Body() body: UpdateStudentDto
   ): Promise<BaseResponseDto<StudentResponseDto>> {
-    return ExceptionHandler.execute(() => this.updateStudentUseCase.execute(studentId, body))
+    return ExceptionHandler.execute(() => this.updateStudentUseCase.execute(studentId, body, true))
   }
 
   @Get('export/excel')

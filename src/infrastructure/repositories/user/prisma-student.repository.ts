@@ -95,6 +95,7 @@ export class PrismaStudentRepository implements IStudentRepository {
         totalPoint: data.totalPoint ?? 0,
         school: data.school,
         highSchoolGraduationYear: data.highSchoolGraduationYear,
+        studentType: data.studentType,
       },
     })
 
@@ -290,6 +291,7 @@ export class PrismaStudentRepository implements IStudentRepository {
         grade: data.grade,
         school: data.school,
         highSchoolGraduationYear: data.highSchoolGraduationYear,
+        studentType: data.studentType,
         conversationMode: data.conversationMode,
         lastAdminReplyAt: data.lastAdminReplyAt,
       },
@@ -524,6 +526,12 @@ export class PrismaStudentRepository implements IStudentRepository {
       paramIndex++
     }
 
+    if (filters.studentType !== undefined) {
+      conditions.push(`s.student_type = ?`)
+      params.push(filters.studentType)
+      paramIndex++
+    }
+
     if (filters.studentPhone) {
       conditions.push(`s.student_phone LIKE ?`)
       params.push(`%${filters.studentPhone}%`)
@@ -627,10 +635,11 @@ export class PrismaStudentRepository implements IStudentRepository {
 
     if (sortBy) {
       const { field, direction } = sortBy
-      if (['studentId', 'grade', 'school', 'highSchoolGraduationYear'].includes(field)) {
+      if (['studentId', 'grade', 'school', 'highSchoolGraduationYear', 'studentType'].includes(field)) {
         const columnMap: { [key: string]: string } = {
           studentId: 'student_id',
           highSchoolGraduationYear: 'high_school_graduation_year',
+          studentType: 'student_type',
         }
         const column = columnMap[field] || field
         orderByClause = `ORDER BY s.${column} ${direction}`
@@ -672,6 +681,7 @@ export class PrismaStudentRepository implements IStudentRepository {
                 s.grade,
                 s.school,
                 s.high_school_graduation_year as highSchoolGraduationYear,
+                s.student_type as studentType,
                 u.user_id as user_userId,
                 u.username as user_username,
                 u.email as user_email,
@@ -708,6 +718,7 @@ export class PrismaStudentRepository implements IStudentRepository {
       grade: row.grade,
       school: row.school,
       highSchoolGraduationYear: row.highSchoolGraduationYear,
+      studentType: row.studentType,
       user: {
         userId: row.user_userId,
         username: row.user_username,
@@ -863,6 +874,10 @@ export class PrismaStudentRepository implements IStudentRepository {
       where.highSchoolGraduationYear = filters.highSchoolGraduationYear
     }
 
+    if (filters.studentType !== undefined) {
+      where.studentType = filters.studentType
+    }
+
     // ===== attach user =====
     if (Object.keys(userFilters).length > 0) {
       where.user = userFilters
@@ -908,6 +923,11 @@ export class PrismaStudentRepository implements IStudentRepository {
     if (filters?.highSchoolGraduationYear !== undefined) {
       conditions.push(`s.high_school_graduation_year = ?`)
       params.push(filters.highSchoolGraduationYear)
+    }
+
+    if (filters?.studentType !== undefined) {
+      conditions.push(`s.student_type = ?`)
+      params.push(filters.studentType)
     }
 
     if (filters?.isActive !== undefined) {
@@ -973,6 +993,11 @@ export class PrismaStudentRepository implements IStudentRepository {
       params.push(filters.highSchoolGraduationYear)
     }
 
+    if (filters?.studentType !== undefined) {
+      conditions.push(`s.student_type = ?`)
+      params.push(filters.studentType)
+    }
+
     // ===== user active filter (nếu có) =====
     if (filters?.isActive !== undefined) {
       conditions.push(`u.is_active = ?`)
@@ -1019,7 +1044,7 @@ export class PrismaStudentRepository implements IStudentRepository {
     const { field, direction } = sortBy
 
     // Student fields
-    if (['studentId', 'grade', 'school', 'highSchoolGraduationYear'].includes(field)) {
+    if (['studentId', 'grade', 'school', 'highSchoolGraduationYear', 'studentType'].includes(field)) {
       return { [field]: direction }
     }
 

@@ -7,6 +7,7 @@ import {
   NotFoundException,
   ConflictException,
   BusinessLogicException,
+  ForbiddenException,
 } from '../../../shared/exceptions/custom-exceptions'
 import { BaseResponseDto } from 'src/application/dtos'
 import { PasswordService } from '../../../infrastructure/services'
@@ -18,7 +19,15 @@ export class UpdateStudentUseCase {
     @Inject('PASSWORD_SERVICE') private readonly passwordService: PasswordService,
   ) { }
 
-  async execute(studentId: number, dto: UpdateStudentDto): Promise<BaseResponseDto<StudentResponseDto>> {
+  async execute(
+    studentId: number,
+    dto: UpdateStudentDto,
+    canUpdateStudentType = false,
+  ): Promise<BaseResponseDto<StudentResponseDto>> {
+    if (dto.studentType !== undefined && !canUpdateStudentType) {
+      throw new ForbiddenException('Chỉ quản trị viên mới được thay đổi loại học sinh')
+    }
+
     const result = await this.unitOfWork.executeInTransaction(async (repos) => {
       // 1. Tìm student với thông tin user
       const student = await repos.studentRepository.findById(studentId)
@@ -58,6 +67,7 @@ export class UpdateStudentUseCase {
       if (dto.highSchoolGraduationYear !== undefined) {
         studentUpdateData.highSchoolGraduationYear = dto.highSchoolGraduationYear
       }
+      if (canUpdateStudentType && dto.studentType !== undefined) studentUpdateData.studentType = dto.studentType
 
       // 4. Kiểm tra xem có thay đổi thực sự không
       const hasUserChanges = this.hasRealChanges(student.user, userUpdateData)

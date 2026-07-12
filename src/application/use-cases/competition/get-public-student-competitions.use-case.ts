@@ -54,12 +54,14 @@ export class GetPublicStudentCompetitionsUseCase {
 
             for (const submit of studentSubmits) {
                 if (!competitionIds.has(submit.competitionId)) continue
-                const current = attemptCountByCompetitionId.get(submit.competitionId) ?? 0
-                attemptCountByCompetitionId.set(submit.competitionId, current + 1)
 
                 if (submit.status === CompetitionSubmitStatus.IN_PROGRESS) {
                     inProgressByCompetitionId.set(submit.competitionId, true)
+                    continue
                 }
+
+                const current = attemptCountByCompetitionId.get(submit.competitionId) ?? 0
+                attemptCountByCompetitionId.set(submit.competitionId, current + 1)
             }
         }
 

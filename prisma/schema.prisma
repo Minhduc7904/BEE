@@ -233,6 +233,11 @@ enum ConversationMode {
   HUMAN
 }
 
+enum StudentType {
+  OFFLINE
+  ONLINE
+}
+
 model Student {
   studentId                Int              @id @default(autoincrement()) @map("student_id")
   userId                   Int              @unique @map("user_id")
@@ -244,6 +249,7 @@ model Student {
   grade                    Int              @db.TinyInt
   school                   String?          @map("school") @db.VarChar(120)
   highSchoolGraduationYear Int?             @map("high_school_graduation_year") @db.SmallInt
+  studentType              StudentType      @default(OFFLINE) @map("student_type")
   totalPoint               Int              @default(0) @map("total_point")
   conversationMode         ConversationMode @default(BOT) @map("conversation_mode")
   lastAdminReplyAt         DateTime?        @map("last_admin_reply_at") @db.Timestamp(0)
@@ -262,6 +268,7 @@ model Student {
   // âœ… UNIQUE theo cáº·p studentPhone + parentPhone
   @@unique([studentPhone, parentPhone], map: "uq_student_studentPhone_parentPhone")
   @@index([grade, school], map: "idx_students_grade_school")
+  @@index([studentType], map: "idx_students_student_type")
   @@map("students")
 }
 

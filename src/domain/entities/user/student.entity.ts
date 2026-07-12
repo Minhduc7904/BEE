@@ -1,7 +1,7 @@
 // src/domain/entities/student.entity.ts
 
 import { User } from './user.entity'
-import { ConversationMode } from '../../../shared/enums'
+import { ConversationMode, StudentType } from '../../../shared/enums'
 
 export class Student {
   // Required properties
@@ -10,6 +10,7 @@ export class Student {
 
   grade: number
   totalPoint: number
+  studentType: StudentType
 
   // Optional properties
   studentPhone?: string
@@ -30,6 +31,7 @@ export class Student {
     userId: number
     grade: number
     totalPoint?: number
+    studentType?: StudentType
     studentPhone?: string
     parentPhone?: string
     studentZaloId?: string
@@ -44,6 +46,7 @@ export class Student {
     this.userId = data.userId
     this.grade = data.grade
     this.totalPoint = data.totalPoint ?? 0
+    this.studentType = data.studentType ?? StudentType.OFFLINE
     this.studentPhone = data.studentPhone
     this.parentPhone = data.parentPhone
     this.studentZaloId = data.studentZaloId
@@ -95,6 +98,7 @@ export class Student {
       userId: this.userId,
       grade: this.grade,
       totalPoint: this.totalPoint,
+      studentType: this.studentType,
       studentPhone: this.studentPhone,
       parentPhone: this.parentPhone,
       studentZaloId: this.studentZaloId,
@@ -115,6 +119,7 @@ export class Student {
       userId: this.userId,
       grade: this.grade,
       totalPoint: this.totalPoint,
+      studentType: this.studentType,
       studentPhone: this.studentPhone,
       parentPhone: this.parentPhone,
       studentZaloId: this.studentZaloId,

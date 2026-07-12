@@ -16,8 +16,7 @@ import {
   ConflictException,
   UnauthorizedException,
 } from '../../../../shared/exceptions/custom-exceptions'
-import { StorageProvider } from '../../../../shared/enums'
-import { MediaType, MediaStatus } from 'src/shared/enums'
+import { MediaStatus, MediaType, StorageProvider, StudentType } from '../../../../shared/enums'
 import { v4 as uuidv4 } from 'uuid'
 import { ROLE_IDS } from 'src/shared/constants'
 import { detectMediaType, generateObjectKey, sanitizeFilename } from 'src/shared/utils'
@@ -124,6 +123,7 @@ export class GoogleOAuthStudentUseCase {
           school: undefined,
           studentPhone: undefined,
           parentPhone: undefined,
+          studentType: StudentType.ONLINE,
         })
 
         studentId = student.studentId

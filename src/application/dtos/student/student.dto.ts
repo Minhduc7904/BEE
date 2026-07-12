@@ -4,9 +4,10 @@ import { PaginationResponseDto } from '../pagination/pagination-response.dto'
 import { RoleResponseDto } from '../role/role.dto'
 import { Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
-import { IsOptionalInt, IsOptionalPhoneVN, IsOptionalString } from 'src/shared/decorators/validate'
+import { IsOptionalEnumValue, IsOptionalInt, IsOptionalPhoneVN, IsOptionalString } from 'src/shared/decorators/validate'
 import { CourseEnrollmentResponseDto } from '../course-enrollment/course-enrollment.dto'
 import { ClassStudentResponseDto } from '../class-student/class-student.dto'
+import { StudentType } from '../../../shared/enums'
 
 export class StudentResponseDto extends UserResponseDto {
   studentId: number
@@ -22,6 +23,8 @@ export class StudentResponseDto extends UserResponseDto {
   grade: number
 
   totalPoint: number
+
+  studentType: StudentType
 
   school?: string
 
@@ -63,6 +66,7 @@ export class StudentResponseDto extends UserResponseDto {
       parentZaloId: student.parentZaloId,
       grade: student.grade,
       totalPoint: student.totalPoint ?? 0,
+      studentType: student.studentType,
       school: student.school,
       highSchoolGraduationYear: student.highSchoolGraduationYear,
       hasParentZaloId: student.parentZaloId ? true : false,
@@ -146,4 +150,7 @@ export class UpdateStudentDto extends UpdateUserDto {
    */
   @IsOptionalInt('Năm tốt nghiệp cấp 3', 1900, 2100)
   highSchoolGraduationYear?: number
+
+  @IsOptionalEnumValue(StudentType, 'Loại học sinh')
+  studentType?: StudentType
 }

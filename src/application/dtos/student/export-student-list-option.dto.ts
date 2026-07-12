@@ -67,6 +67,13 @@ export class ExportStudentListOptionDto extends StudentListQueryDto {
     includeGrade?: boolean = true
 
     /**
+     * Include student type field
+     * @default true
+     */
+    @IsOptionalBoolean('Bao gồm loại học sinh')
+    includeStudentType?: boolean = true
+
+    /**
      * Include high school graduation year field
      * @default true
      */

@@ -8,6 +8,7 @@ import {
 } from '../../../dtos'
 import { ConflictException } from '../../../../shared/exceptions/custom-exceptions'
 import { PasswordService } from '../../../../infrastructure/services'
+import { StudentType } from '../../../../shared/enums'
 
 @Injectable()
 export class RegisterStudentUseCase {
@@ -52,6 +53,7 @@ export class RegisterStudentUseCase {
         grade: dto.grade,
         school: dto.school,
         highSchoolGraduationYear: dto.highSchoolGraduationYear,
+        studentType: StudentType.ONLINE,
       })
 
       return BaseResponseDto.success(

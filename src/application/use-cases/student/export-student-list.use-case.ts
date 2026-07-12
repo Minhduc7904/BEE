@@ -3,7 +3,7 @@ import type { IStudentRepository } from 'src/domain/repositories'
 import { ExcelService, ExcelColumn } from '../../../infrastructure/services/excel.service'
 import { ExportStudentListOptionDto } from '../../dtos/student/export-student-list-option.dto'
 import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
-import { Gender } from 'src/shared/enums'
+import { Gender, StudentType } from 'src/shared/enums'
 
 @Injectable()
 export class ExportStudentListUseCase {
@@ -66,6 +66,7 @@ export class ExportStudentListUseCase {
                 parentPhone: student.parentPhone || '',
                 studentPhone: student.studentPhone || '',
                 grade: student.grade || '',
+                studentType: student.studentType === StudentType.ONLINE ? 'Học sinh online' : 'Học sinh offline',
                 highSchoolGraduationYear: student.highSchoolGraduationYear || '',
                 email: student.user.email || '',
                 isActive: student.user.isActive ? 'Hoạt động' : 'Không hoạt động',
@@ -149,6 +150,10 @@ export class ExportStudentListUseCase {
 
         if (options.includeGrade !== false) {
             columns.push({ header: 'Khối', key: 'grade', width: 10 })
+        }
+
+        if (options.includeStudentType !== false) {
+            columns.push({ header: 'Loại học sinh', key: 'studentType', width: 20 })
         }
 
         if (options.includeHighSchoolGraduationYear !== false) {

@@ -1,4 +1,5 @@
 import { PaginationOptions, PaginationResult, BaseFilterOptions, SortOptions } from '../common/pagination.interface'
+import { StudentType } from '../../../shared/enums'
 // Note: Import Student entity when needed, avoiding circular dependency
 
 export interface CreateStudentData {
@@ -9,6 +10,7 @@ export interface CreateStudentData {
   parentZaloId?: string
   grade: number
   totalPoint?: number
+  studentType?: StudentType
   school?: string
   highSchoolGraduationYear?: number
 }
@@ -20,6 +22,7 @@ export type StudentSortField =
   | 'grade'
   | 'school'
   | 'highSchoolGraduationYear'
+  | 'studentType'
   | 'username'
   | 'email'
   | 'firstName'
@@ -37,6 +40,7 @@ export interface StudentFilterOptions extends BaseFilterOptions {
   grade?: number
   school?: string
   highSchoolGraduationYear?: number
+  studentType?: StudentType
   studentPhone?: string
   parentPhone?: string
 

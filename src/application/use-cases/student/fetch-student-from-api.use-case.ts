@@ -7,6 +7,7 @@ import { HttpClientService } from 'src/infrastructure/services/http-client.servi
 import { PasswordService } from 'src/infrastructure/services/password.service'
 import type { IRoleRepository } from 'src/domain/repositories/role.repository'
 import { ROLE_IDS } from 'src/shared/constants/roles.constant'
+import { StudentType } from 'src/shared/enums'
 import type { ApiUserData, ApiResponse, ApiRequestOptions } from '../../../domain/interface/api'
 
 @Injectable()
@@ -126,6 +127,7 @@ export class FetchStudentFromApiUseCase {
           grade: parseInt(apiData.class), // class -> grade
           school: apiData.highSchool, // highSchool -> school
           highSchoolGraduationYear: apiData.graduationYear,
+          studentType: StudentType.OFFLINE,
         })
 
         this.logger.debug(`Created student for user ID: ${user.userId}`)

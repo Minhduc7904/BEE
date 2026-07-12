@@ -1,6 +1,6 @@
 // src/infrastructure/mappers/student.mapper.ts
 import { Student, StudentPointLog } from '../../../domain/entities'
-import { PointType, ConversationMode } from '../../../shared/enums'
+import { PointType, ConversationMode, StudentType } from '../../../shared/enums'
 import { UserMapper } from '..'
 
 /**
@@ -18,6 +18,7 @@ export class StudentMapper {
       userId: prismaStudent.userId,
       grade: prismaStudent.grade,
       totalPoint: prismaStudent.totalPoint ?? 0,
+      studentType: prismaStudent.studentType as StudentType,
       studentPhone: prismaStudent.studentPhone ?? undefined,
       parentPhone: prismaStudent.parentPhone ?? undefined,
       studentZaloId: prismaStudent.studentZaloId ?? undefined,
