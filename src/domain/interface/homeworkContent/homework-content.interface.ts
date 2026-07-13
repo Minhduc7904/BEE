@@ -1,8 +1,10 @@
 // src/domain/interface/homeworkContent/homework-content.interface.ts
 import { HomeworkContent } from '../../entities'
+import { HomeworkContentType } from '../../../shared/enums'
 
 export interface CreateHomeworkContentData {
   learningItemId: number
+  type?: HomeworkContentType
   content: string
   dueDate?: Date
   competitionId?: number
@@ -13,6 +15,7 @@ export interface CreateHomeworkContentData {
 }
 
 export interface UpdateHomeworkContentData {
+  type?: HomeworkContentType
   content?: string
   dueDate?: Date
   competitionId?: number

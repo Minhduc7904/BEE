@@ -47,6 +47,7 @@ import { CompetitionApplicationModule } from './use-cases/competition/competitio
 import { CompetitionSubmitApplicationModule } from './use-cases/competition-submit/competition-submit.application.module'
 import { SectionApplicationModule } from './use-cases/section/section.application.module'
 import { HomeworkContentApplicationModule } from './use-cases/homeworkContent/homework-content.application.module'
+import { HomeworkSubmitApplicationModule } from './use-cases/homeworkSubmit/homework-submit.application.module'
 import { YoutubeContentApplicationModule } from './use-cases/youtubeContent/youtube-content.application.module'
 import { VideoContentApplicationModule } from './use-cases/videoContent/video-content.application.module'
 import { DocumentContentApplicationModule } from './use-cases/documentContent/document-content.application.module'
@@ -130,6 +131,7 @@ const modules = [
   SectionApplicationModule,
 
   HomeworkContentApplicationModule,
+  HomeworkSubmitApplicationModule,
   YoutubeContentApplicationModule,
   VideoContentApplicationModule,
   DocumentContentApplicationModule,

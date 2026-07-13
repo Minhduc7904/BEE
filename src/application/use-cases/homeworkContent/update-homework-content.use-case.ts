@@ -8,7 +8,7 @@ import { NotFoundException, ConflictException } from '../../../shared/exceptions
 import { ACTION_KEYS } from 'src/shared/constants/action-key.constants'
 import { AuditStatus } from 'src/shared/enums/audit-status.enum'
 import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
-import { Visibility } from 'src/shared/enums'
+import { HomeworkContentType, Visibility } from 'src/shared/enums'
 
 @Injectable()
 export class UpdateHomeworkContentUseCase {
@@ -30,6 +30,12 @@ export class UpdateHomeworkContentUseCase {
 
             // Build update data với chỉ các giá trị thay đổi
             const updateData: any = {}
+
+            if (dto.type !== undefined && dto.type !== existingHomeworkContent.type) {
+                updateData.type = dto.type
+            }
+
+            const finalType = dto.type ?? existingHomeworkContent.type
             
             if (dto.content !== undefined && dto.content !== existingHomeworkContent.content) {
                 updateData.content = dto.content
@@ -51,16 +57,28 @@ export class UpdateHomeworkContentUseCase {
                 updateData.allowLateSubmit = dto.allowLateSubmit
             }
 
-            if (dto.updatePointsOnLateSubmit !== undefined && dto.updatePointsOnLateSubmit !== existingHomeworkContent.updatePointsOnLateSubmit) {
-                updateData.updatePointsOnLateSubmit = dto.updatePointsOnLateSubmit
-            }
+            if (finalType === HomeworkContentType.COMPETITION) {
+                if (dto.updatePointsOnLateSubmit !== undefined && dto.updatePointsOnLateSubmit !== existingHomeworkContent.updatePointsOnLateSubmit) {
+                    updateData.updatePointsOnLateSubmit = dto.updatePointsOnLateSubmit
+                }
 
-            if (dto.updatePointsOnReSubmit !== undefined && dto.updatePointsOnReSubmit !== existingHomeworkContent.updatePointsOnReSubmit) {
-                updateData.updatePointsOnReSubmit = dto.updatePointsOnReSubmit
-            }
+                if (dto.updatePointsOnReSubmit !== undefined && dto.updatePointsOnReSubmit !== existingHomeworkContent.updatePointsOnReSubmit) {
+                    updateData.updatePointsOnReSubmit = dto.updatePointsOnReSubmit
+                }
 
-            if (dto.updateMaxPoints !== undefined && dto.updateMaxPoints !== existingHomeworkContent.updateMaxPoints) {
-                updateData.updateMaxPoints = dto.updateMaxPoints
+                if (dto.updateMaxPoints !== undefined && dto.updateMaxPoints !== existingHomeworkContent.updateMaxPoints) {
+                    updateData.updateMaxPoints = dto.updateMaxPoints
+                }
+            } else {
+                if (existingHomeworkContent.updatePointsOnLateSubmit) {
+                    updateData.updatePointsOnLateSubmit = false
+                }
+                if (existingHomeworkContent.updatePointsOnReSubmit) {
+                    updateData.updatePointsOnReSubmit = false
+                }
+                if (existingHomeworkContent.updateMaxPoints) {
+                    updateData.updateMaxPoints = false
+                }
             }
 
             // Nếu không có gì thay đổi, trả về dữ liệu hiện tại
@@ -69,12 +87,16 @@ export class UpdateHomeworkContentUseCase {
             }
 
             // Validate competition nếu có thay đổi liên quan đến competitionId hoặc dueDate
-            if (updateData.competitionId !== undefined) {
+            if (finalType === HomeworkContentType.COMPETITION && updateData.competitionId !== undefined) {
                 const finalDueDate = updateData.dueDate !== undefined ? updateData.dueDate : existingHomeworkContent.dueDate
                 await this.validateCompetition(updateData.competitionId, finalDueDate, competitionRepository)
             }
             // Nếu chỉ cập nhật dueDate và có competition hiện tại
-            else if (updateData.dueDate !== undefined && existingHomeworkContent.competitionId) {
+            else if (
+                finalType === HomeworkContentType.COMPETITION &&
+                updateData.dueDate !== undefined &&
+                existingHomeworkContent.competitionId
+            ) {
                 await this.validateCompetition(existingHomeworkContent.competitionId, updateData.dueDate, competitionRepository)
             }
 
@@ -88,6 +110,7 @@ export class UpdateHomeworkContentUseCase {
                     resourceType: RESOURCE_TYPES.HOMEWORK_CONTENT,
                     resourceId: homeworkContent.homeworkContentId.toString(),
                     beforeData: {
+                        type: existingHomeworkContent.type,
                         content: existingHomeworkContent.content,
                         dueDate: existingHomeworkContent.dueDate,
                         competitionId: existingHomeworkContent.competitionId,
@@ -97,6 +120,7 @@ export class UpdateHomeworkContentUseCase {
                         updateMaxPoints: existingHomeworkContent.updateMaxPoints,
                     },
                     afterData: {
+                        type: homeworkContent.type,
                         content: homeworkContent.content,
                         dueDate: homeworkContent.dueDate,
                         competitionId: homeworkContent.competitionId,

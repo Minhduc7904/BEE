@@ -1,5 +1,5 @@
 // src/application/dtos/homeworkSubmit/grade-homework-submit.dto.ts
-import { IsRequiredInt, IsRequiredIdNumber, IsOptionalString } from 'src/shared/decorators/validate'
+import { IsRequiredNumber, IsRequiredIdNumber, IsOptionalString } from 'src/shared/decorators/validate'
 
 /**
  * DTO for grading homework submission
@@ -12,7 +12,7 @@ export class GradeHomeworkSubmitDto {
      * @required
      * @example 85
      */
-    @IsRequiredInt('Điểm số', 0, 100)
+    @IsRequiredNumber('Điểm số', 0, 100)
     points: number
 
     /**

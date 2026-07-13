@@ -2,6 +2,9 @@
 import { Module } from '@nestjs/common'
 import { PrismaModule } from '../../../prisma/prisma.module'
 import { InfrastructureModule } from '../../../infrastructure/infrastructure.module'
+import { MediaApplicationModule } from '../media/media.application.module'
+import { LearningItemApplicationModule } from '../learningItem/learning-item.application.module'
+import { CompetitionSubmitApplicationModule } from '../competition-submit/competition-submit.application.module'
 import {
     GetAllHomeworkSubmitUseCase,
     GetHomeworkSubmitByIdUseCase,
@@ -9,10 +12,24 @@ import {
     UpdateHomeworkSubmitUseCase,
     DeleteHomeworkSubmitUseCase,
     GradeHomeworkSubmitUseCase,
+    StudentFileHomeworkAccessService,
+    UploadStudentHomeworkFilesUseCase,
+    SubmitStudentFileHomeworkUseCase,
+    GetAdminHomeworkSubmitDetailUseCase,
+    GradeStudentFileHomeworkUseCase,
+    GetMyHomeworkSubmitsUseCase,
+    UpdateHomeworkSubmitImageAltUseCase,
+    UngradeStudentFileHomeworkUseCase,
 } from './index'
 
 @Module({
-    imports: [PrismaModule, InfrastructureModule],
+    imports: [
+        PrismaModule,
+        InfrastructureModule,
+        MediaApplicationModule,
+        LearningItemApplicationModule,
+        CompetitionSubmitApplicationModule,
+    ],
     providers: [
         GetAllHomeworkSubmitUseCase,
         GetHomeworkSubmitByIdUseCase,
@@ -20,6 +37,14 @@ import {
         UpdateHomeworkSubmitUseCase,
         DeleteHomeworkSubmitUseCase,
         GradeHomeworkSubmitUseCase,
+        StudentFileHomeworkAccessService,
+        UploadStudentHomeworkFilesUseCase,
+        SubmitStudentFileHomeworkUseCase,
+        GetAdminHomeworkSubmitDetailUseCase,
+        GradeStudentFileHomeworkUseCase,
+        GetMyHomeworkSubmitsUseCase,
+        UpdateHomeworkSubmitImageAltUseCase,
+        UngradeStudentFileHomeworkUseCase,
     ],
     exports: [
         GetAllHomeworkSubmitUseCase,
@@ -28,6 +53,13 @@ import {
         UpdateHomeworkSubmitUseCase,
         DeleteHomeworkSubmitUseCase,
         GradeHomeworkSubmitUseCase,
+        UploadStudentHomeworkFilesUseCase,
+        SubmitStudentFileHomeworkUseCase,
+        GetAdminHomeworkSubmitDetailUseCase,
+        GradeStudentFileHomeworkUseCase,
+        GetMyHomeworkSubmitsUseCase,
+        UpdateHomeworkSubmitImageAltUseCase,
+        UngradeStudentFileHomeworkUseCase,
     ],
 })
 export class HomeworkSubmitApplicationModule { }

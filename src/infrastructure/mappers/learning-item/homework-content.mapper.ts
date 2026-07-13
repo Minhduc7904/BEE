@@ -18,6 +18,7 @@ export class HomeworkContentMapper {
         return new HomeworkContent({
             homeworkContentId: prismaHomeworkContent.homeworkContentId,
             learningItemId: prismaHomeworkContent.learningItemId,
+            type: prismaHomeworkContent.type,
             content: prismaHomeworkContent.content,
             dueDate: prismaHomeworkContent.dueDate ?? undefined,
             competitionId: prismaHomeworkContent.competitionId ?? undefined,

@@ -8,7 +8,7 @@ import { ACTION_KEYS } from 'src/shared/constants/action-key.constants'
 import { AuditStatus } from 'src/shared/enums/audit-status.enum'
 import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
 import { NotFoundException, ConflictException } from 'src/shared/exceptions/custom-exceptions'
-import { Visibility } from 'src/shared/enums'
+import { HomeworkContentType, Visibility } from 'src/shared/enums'
 
 @Injectable()
 export class CreateHomeworkContentUseCase {
@@ -23,20 +23,29 @@ export class CreateHomeworkContentUseCase {
             const competitionRepository = repos.competitionRepository
             const adminAuditLogRepository = repos.adminAuditLogRepository
 
-            // Validate competition if competitionId is provided
-            if (dto.competitionId) {
+            const type = dto.type ?? HomeworkContentType.COMPETITION
+
+            // Competition only applies to homework completed through a competition.
+            if (type === HomeworkContentType.COMPETITION && dto.competitionId) {
                 await this.validateCompetition(dto.competitionId, dto.dueDate, competitionRepository)
             }
 
             const homeworkContent = await homeworkContentRepository.create({
                 learningItemId: dto.learningItemId,
+                type,
                 content: dto.content,
                 dueDate: dto.dueDate ? new Date(dto.dueDate) : undefined,
                 competitionId: dto.competitionId,
                 allowLateSubmit: dto.allowLateSubmit,
-                updatePointsOnLateSubmit: dto.updatePointsOnLateSubmit,
-                updatePointsOnReSubmit: dto.updatePointsOnReSubmit,
-                updateMaxPoints: dto.updateMaxPoints,
+                updatePointsOnLateSubmit: type === HomeworkContentType.COMPETITION
+                    ? dto.updatePointsOnLateSubmit
+                    : false,
+                updatePointsOnReSubmit: type === HomeworkContentType.COMPETITION
+                    ? dto.updatePointsOnReSubmit
+                    : false,
+                updateMaxPoints: type === HomeworkContentType.COMPETITION
+                    ? dto.updateMaxPoints
+                    : false,
             })
 
             if (adminId) {
@@ -48,6 +57,7 @@ export class CreateHomeworkContentUseCase {
                     resourceId: homeworkContent.homeworkContentId.toString(),
                     afterData: {
                         learningItemId: homeworkContent.learningItemId,
+                        type: homeworkContent.type,
                         content: homeworkContent.content,
                         dueDate: homeworkContent.dueDate,
                         competitionId: homeworkContent.competitionId,

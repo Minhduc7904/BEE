@@ -10,9 +10,11 @@ export interface CreateHomeworkSubmitData {
 
 export interface UpdateHomeworkSubmitData {
   content?: string
-  points?: number
-  graderId?: number
-  feedback?: string
+  submitAt?: Date
+  points?: number | null
+  gradedAt?: Date | null
+  graderId?: number | null
+  feedback?: string | null
   competitionSubmitId?: number
 }
 

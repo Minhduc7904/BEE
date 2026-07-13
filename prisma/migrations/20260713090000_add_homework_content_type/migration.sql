@@ -1,0 +1,2 @@
+ALTER TABLE `homework_contents`
+  ADD COLUMN `type` ENUM('COMPETITION', 'FILE_UPLOAD') NOT NULL DEFAULT 'COMPETITION' AFTER `learning_item_id`;

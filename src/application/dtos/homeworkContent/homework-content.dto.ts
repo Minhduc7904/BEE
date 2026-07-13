@@ -1,7 +1,7 @@
 // src/application/dtos/homeworkContent/homework-content.dto.ts
 import { HomeworkContent } from '../../../domain/entities'
 import { BaseResponseDto } from '../common/base-response.dto'
-import { Visibility } from '../../../shared/enums'
+import { HomeworkContentType, Visibility } from '../../../shared/enums'
 import { HomeworkProgressDto } from '../learningItem/student-learning-item.dto'
 import { LearningItemResponseDto } from '../learningItem/learning-item.dto'
 
@@ -33,6 +33,7 @@ export class CompetitionBasicDto {
 export class HomeworkContentResponseDto {
     homeworkContentId: number
     learningItemId: number
+    type: HomeworkContentType
     content: string
     dueDate?: Date
     competitionId?: number
@@ -57,6 +58,7 @@ export class HomeworkContentResponseDto {
         const dto = new HomeworkContentResponseDto()
         dto.homeworkContentId = homeworkContent.homeworkContentId
         dto.learningItemId = homeworkContent.learningItemId
+        dto.type = homeworkContent.type
         dto.content = homeworkContent.content
         dto.dueDate = homeworkContent.dueDate ?? undefined
         dto.competitionId = homeworkContent.competitionId ?? undefined

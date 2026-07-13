@@ -19,6 +19,7 @@ export class PrismaHomeworkContentRepository implements IHomeworkContentReposito
         const prismaHomeworkContent = await this.prisma.homeworkContent.create({
             data: {
                 learningItemId: data.learningItemId,
+                type: data.type,
                 content: data.content,
                 dueDate: data.dueDate,
                 competitionId: data.competitionId,

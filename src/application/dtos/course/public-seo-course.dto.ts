@@ -92,6 +92,7 @@ export interface PublicSeoVideoContentDto {
 export interface PublicSeoHomeworkContentDto {
   homeworkContentId: number
   learningItemId: number
+  type: string
   content: string
   dueDate?: Date | null
   competitionId?: number | null

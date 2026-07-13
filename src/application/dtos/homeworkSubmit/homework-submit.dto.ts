@@ -3,6 +3,8 @@ import { HomeworkSubmit } from '../../../domain/entities'
 import { BaseResponseDto } from '../common/base-response.dto'
 import { StudentResponseDto } from '../student/student.dto'
 import { AdminResponseDto } from '../admin/admin.dto'
+import { MediaUsageEntity } from '../../../domain/entities'
+import { MediaUsageResponseDto } from '../media-usage/media-usage-response.dto'
 
 export class HomeworkSubmitResponseDto {
     homeworkSubmitId: number
@@ -15,12 +17,17 @@ export class HomeworkSubmitResponseDto {
     gradedAt?: Date
     graderId?: number
     feedback?: string
+    mediaIds?: number[]
+    attachments?: MediaUsageResponseDto[]
     createdAt: Date
     updatedAt: Date
     student?: StudentResponseDto
     grader?: AdminResponseDto
 
-    static fromEntity(homeworkSubmit: HomeworkSubmit): HomeworkSubmitResponseDto {
+    static fromEntity(
+        homeworkSubmit: HomeworkSubmit,
+        attachments?: MediaUsageEntity[],
+    ): HomeworkSubmitResponseDto {
         const dto = new HomeworkSubmitResponseDto()
         dto.homeworkSubmitId = homeworkSubmit.homeworkSubmitId
         dto.homeworkContentId = homeworkSubmit.homeworkContentId
@@ -32,6 +39,8 @@ export class HomeworkSubmitResponseDto {
         dto.gradedAt = homeworkSubmit.gradedAt ?? undefined
         dto.graderId = homeworkSubmit.graderId ?? undefined
         dto.feedback = homeworkSubmit.feedback ?? undefined
+        dto.mediaIds = attachments?.map((attachment) => attachment.mediaId)
+        dto.attachments = attachments?.map(MediaUsageResponseDto.fromEntity)
         dto.createdAt = homeworkSubmit.createdAt
         dto.updatedAt = homeworkSubmit.updatedAt
 

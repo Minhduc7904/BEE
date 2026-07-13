@@ -1,5 +1,6 @@
 // src/application/dtos/homeworkContent/create-homework-content.dto.ts
-import { IsRequiredIdNumber, IsRequiredString, IsOptionalDate, IsOptionalIdNumber, IsOptionalBoolean } from 'src/shared/decorators/validate'
+import { IsRequiredIdNumber, IsRequiredString, IsOptionalDate, IsOptionalIdNumber, IsOptionalBoolean, IsOptionalEnumValue } from 'src/shared/decorators/validate'
+import { HomeworkContentType } from 'src/shared/enums'
 
 /**
  * DTO for creating homework content
@@ -14,6 +15,14 @@ export class CreateHomeworkContentDto {
      */
     @IsRequiredIdNumber('ID mục học')
     learningItemId: number
+
+    /**
+     * Homework completion type. Defaults to COMPETITION.
+     * @optional
+     * @example 'COMPETITION'
+     */
+    @IsOptionalEnumValue(HomeworkContentType, 'Loại bài tập')
+    type?: HomeworkContentType
 
     /**
      * Homework content description

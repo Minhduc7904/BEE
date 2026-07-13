@@ -1,5 +1,6 @@
 // src/application/dtos/homeworkContent/update-homework-content.dto.ts
-import { IsOptionalString, IsOptionalDate, IsOptionalIdNumber, IsOptionalBoolean } from 'src/shared/decorators/validate'
+import { IsOptionalString, IsOptionalDate, IsOptionalIdNumber, IsOptionalBoolean, IsOptionalEnumValue } from 'src/shared/decorators/validate'
+import { HomeworkContentType } from 'src/shared/enums'
 
 /**
  * DTO for updating homework content
@@ -7,6 +8,14 @@ import { IsOptionalString, IsOptionalDate, IsOptionalIdNumber, IsOptionalBoolean
  * @description Used to update an existing homework content item
  */
 export class UpdateHomeworkContentDto {
+    /**
+     * Homework completion type.
+     * @optional
+     * @example 'FILE_UPLOAD'
+     */
+    @IsOptionalEnumValue(HomeworkContentType, 'Loại bài tập')
+    type?: HomeworkContentType
+
     /**
      * Homework content description
      * @optional

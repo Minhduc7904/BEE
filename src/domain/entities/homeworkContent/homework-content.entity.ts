@@ -3,11 +3,13 @@
 import { LearningItem } from '../learningItem/learning-item.entity'
 import { HomeworkSubmit } from '../homeworkSubmit/homework-submit.entity'
 import { Competition } from '../exam/competition.entity'
+import { HomeworkContentType } from '../../../shared/enums'
 
 export class HomeworkContent {
   // Required properties
   homeworkContentId: number
   learningItemId: number
+  type: HomeworkContentType
   content: string
   allowLateSubmit: boolean
   updatePointsOnLateSubmit: boolean
@@ -28,6 +30,7 @@ export class HomeworkContent {
   constructor(data: {
     homeworkContentId: number
     learningItemId: number
+    type?: HomeworkContentType
     content: string
     allowLateSubmit?: boolean
     updatePointsOnLateSubmit?: boolean
@@ -43,6 +46,7 @@ export class HomeworkContent {
   }) {
     this.homeworkContentId = data.homeworkContentId
     this.learningItemId = data.learningItemId
+    this.type = data.type ?? HomeworkContentType.COMPETITION
     this.content = data.content
     this.allowLateSubmit = data.allowLateSubmit ?? false
     this.updatePointsOnLateSubmit = data.updatePointsOnLateSubmit ?? false

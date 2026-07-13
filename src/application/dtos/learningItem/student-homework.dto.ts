@@ -2,9 +2,11 @@
 import { LearningItem } from 'src/domain/entities'
 import { PaginationResponseDto } from '../pagination/pagination-response.dto'
 import { StudentLearningItemStateResponseDto } from '../studentLearningItem'
+import { HomeworkContentType } from 'src/shared/enums'
 
 export class HomeworkContentWithStatusDto {
     homeworkContentId: number
+    type: HomeworkContentType
     content: string
     dueDate?: Date
     allowLateSubmit: boolean
@@ -23,6 +25,7 @@ export class HomeworkContentWithStatusDto {
         homeworkSubmit?: any
     }) {
         this.homeworkContentId = data.homeworkContent.homeworkContentId
+        this.type = data.homeworkContent.type
         this.content = data.homeworkContent.content
         this.dueDate = data.homeworkContent.dueDate
         this.allowLateSubmit = data.homeworkContent.allowLateSubmit

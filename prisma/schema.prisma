@@ -82,6 +82,11 @@ enum CourseType {
   ALL
 }
 
+enum HomeworkContentType {
+  COMPETITION
+  FILE_UPLOAD
+}
+
 // Phan loai bai viet tin tuc de hien thi, loc va tao sitemap phu hop.
 enum NewsArticleType {
   NEWS
@@ -1024,15 +1029,16 @@ model LearningItem {
 }
 
 model HomeworkContent {
-  homeworkContentId        Int       @id @default(autoincrement()) @map("homework_content_id")
-  learningItemId           Int       @map("learning_item_id")
-  content                  String    @map("content") @db.Text
-  dueDate                  DateTime? @map("due_date") @db.Timestamp(0) // háº¡n ná»™p bÃ i 
-  competitionId            Int?      @map("competition_id") // náº¿u bÃ i táº­p lÃ  1 cuá»™c thi
-  allowLateSubmit          Boolean   @default(false) @map("allow_late_submit")
-  updatePointsOnLateSubmit Boolean   @default(false) @map("update_points_on_late_submit") // cÃ³ cáº­p nháº­t Ä‘iá»ƒm náº¿u ná»™p muá»™n khÃ´ng
-  updatePointsOnReSubmit   Boolean   @default(false) @map("update_points_on_re_submit") // cÃ³ cáº­p nháº­t Ä‘iá»ƒm náº¿u ná»™p láº¡i khÃ´ng
-  updateMaxPoints          Boolean   @default(false) @map("update_max_points") // náº¿u cáº­p nháº­t Ä‘iá»ƒm thÃ¬ cÃ³ chá»‰ cáº­p nháº­t khi Ä‘iá»ƒm má»›i cao hÆ¡n khÃ´ng
+  homeworkContentId        Int                 @id @default(autoincrement()) @map("homework_content_id")
+  learningItemId           Int                 @map("learning_item_id")
+  type                     HomeworkContentType @default(COMPETITION) @map("type")
+  content                  String              @map("content") @db.Text
+  dueDate                  DateTime?           @map("due_date") @db.Timestamp(0) // Hạn nộp bài
+  competitionId            Int?                @map("competition_id") // náº¿u bÃ i táº­p lÃ  1 cuá»™c thi
+  allowLateSubmit          Boolean             @default(false) @map("allow_late_submit")
+  updatePointsOnLateSubmit Boolean             @default(false) @map("update_points_on_late_submit") // cÃ³ cáº­p nháº­t Ä‘iá»ƒm náº¿u ná»™p muá»™n khÃ´ng
+  updatePointsOnReSubmit   Boolean             @default(false) @map("update_points_on_re_submit") // cÃ³ cáº­p nháº­t Ä‘iá»ƒm náº¿u ná»™p láº¡i khÃ´ng
+  updateMaxPoints          Boolean             @default(false) @map("update_max_points") // náº¿u cáº­p nháº­t Ä‘iá»ƒm thÃ¬ cÃ³ chá»‰ cáº­p nháº­t khi Ä‘iá»ƒm má»›i cao hÆ¡n khÃ´ng
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)

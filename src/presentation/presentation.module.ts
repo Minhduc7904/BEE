@@ -8,7 +8,6 @@ import { NotificationGateway } from './gateways/notification.gateway'
 import { StatusGateway } from './gateways/status.gateway'
 import { LessonGateway } from './gateways/lesson.gateway'
 import { AttendanceGateway } from './gateways/attendance.gateway'
-
 import { AuthController } from './controllers/auth.controller'
 import { RoleController } from './controllers/role.controller'
 import { GoogleAuthAdminController } from './controllers/google-auth-admin.controller'
@@ -58,6 +57,9 @@ import { CompetitionSubmitController } from './controllers/competition-submit.co
 import { DoCompetitionController } from './controllers/do-competition.controller'
 import { SectionController } from './controllers/section.controller'
 import { HomeworkContentController } from './controllers/homework-content.controller'
+import { HomeworkSubmitController } from './controllers/homework-submit.controller'
+import { StudentHomeworkSubmitController } from './controllers/student-homework-submit.controller'
+import { AdminHomeworkSubmitController } from './controllers/admin-homework-submit.controller'
 import { YoutubeContentController } from './controllers/youtube-content.controller'
 import { VideoContentController } from './controllers/video-content.controller'
 import { DocumentContentController } from './controllers/document-content.controller'
@@ -134,6 +136,9 @@ import { NewsArticleController } from './controllers/news-article.controller'
     DoCompetitionController,
     SectionController,
     HomeworkContentController,
+    HomeworkSubmitController,
+    StudentHomeworkSubmitController,
+    AdminHomeworkSubmitController,
     YoutubeContentController,
     VideoContentController,
     DocumentContentController,

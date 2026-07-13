@@ -93,6 +93,10 @@ export const VIDEO_MEDIA_FIELDS = {
   VIDEO_FILE: 'VIDEO_FILE',
 } as const
 
+export const HOMEWORK_SUBMIT_MEDIA_FIELDS = {
+  ATTACHMENTS: 'ATTACHMENTS',
+} as const
+
 /**
  * Media field names for TempExam
  */
