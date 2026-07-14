@@ -83,6 +83,13 @@ jobs:
         run: |
           set -euo pipefail
 
+          VPS_HOST="$(printf '%s' "$VPS_HOST" | tr -d '\r\n' | xargs)"
+          VPS_PORT="$(printf '%s' "$VPS_PORT" | tr -d '\r\n' | xargs)"
+          VPS_USER="$(printf '%s' "$VPS_USER" | tr -d '\r\n' | xargs)"
+          VPS_BEE_DIR="$(printf '%s' "$VPS_BEE_DIR" | tr -d '\r\n' | xargs)"
+          VPS_CONFIG_DIR="$(printf '%s' "$VPS_CONFIG_DIR" | tr -d '\r\n' | xargs)"
+          REMOTE_SCRIPT="$VPS_CONFIG_DIR/scripts/deploy-bee.sh"
+
           ssh \
             -p "$VPS_PORT" \
             -o BatchMode=yes \
@@ -111,6 +118,6 @@ jobs:
             -o ServerAliveInterval=30 \
             -o ServerAliveCountMax=10 \
             "$VPS_USER@$VPS_HOST" \
-            "BEE_DIR='$VPS_BEE_DIR' \
-            VPS_DIR='$VPS_CONFIG_DIR' \
-            bash '$VPS_CONFIG_DIR/scripts/deploy-bee.sh' '$REVISION'"
+            "test -f '$REMOTE_SCRIPT' && \
+            BEE_DIR='$VPS_BEE_DIR' VPS_DIR='$VPS_CONFIG_DIR' \
+            bash '$REMOTE_SCRIPT' '$REVISION'"
