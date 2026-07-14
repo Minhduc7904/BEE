@@ -86,9 +86,6 @@ jobs:
           VPS_HOST="$(printf '%s' "$VPS_HOST" | tr -d '\r\n' | xargs)"
           VPS_PORT="$(printf '%s' "$VPS_PORT" | tr -d '\r\n' | xargs)"
           VPS_USER="$(printf '%s' "$VPS_USER" | tr -d '\r\n' | xargs)"
-          VPS_BEE_DIR="$(printf '%s' "$VPS_BEE_DIR" | tr -d '\r\n' | xargs)"
-          VPS_CONFIG_DIR="$(printf '%s' "$VPS_CONFIG_DIR" | tr -d '\r\n' | xargs)"
-          REMOTE_SCRIPT="$VPS_CONFIG_DIR/scripts/deploy-bee.sh"
 
           ssh \
             -p "$VPS_PORT" \
@@ -109,6 +106,13 @@ jobs:
           REVISION: ${{ github.sha }}
         run: |
           set -euo pipefail
+
+          VPS_HOST="$(printf '%s' "$VPS_HOST" | tr -d '\r\n' | xargs)"
+          VPS_PORT="$(printf '%s' "$VPS_PORT" | tr -d '\r\n' | xargs)"
+          VPS_USER="$(printf '%s' "$VPS_USER" | tr -d '\r\n' | xargs)"
+          VPS_BEE_DIR="$(printf '%s' "$VPS_BEE_DIR" | tr -d '\r\n' | xargs)"
+          VPS_CONFIG_DIR="$(printf '%s' "$VPS_CONFIG_DIR" | tr -d '\r\n' | xargs)"
+          REMOTE_SCRIPT="$VPS_CONFIG_DIR/scripts/deploy-bee.sh"
 
           ssh \
             -p "$VPS_PORT" \
