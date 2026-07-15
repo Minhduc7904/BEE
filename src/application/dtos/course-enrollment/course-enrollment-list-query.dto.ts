@@ -6,7 +6,7 @@ import {
 } from 'src/domain/interface/course-enrollment/course-enrollment.interface'
 import { CourseEnrollmentStatus, Visibility } from 'src/shared/enums'
 import { ToNumber } from 'src/shared/decorators'
-import { IsOptionalIdNumber, IsOptionalString, IsOptionalDate } from 'src/shared/decorators/validate'
+import { IsOptionalIdNumber, IsOptionalString, IsOptionalDate, IsOptionalInt } from 'src/shared/decorators/validate'
 
 /**
  * DTO truy vấn danh sách đăng ký khóa học
@@ -63,6 +63,24 @@ export class CourseEnrollmentListQueryDto extends ListQueryDto {
   @IsOptionalString('Trạng thái hiển thị khóa học')
   courseVisibility?: Visibility
 
+  /**
+   * Khối lớp của khóa học
+   * @optional
+   * @example 12
+   */
+  @ToNumber()
+  @IsOptionalInt('Khối', 1, 12)
+  grade?: number
+
+  /**
+   * ID môn học của khóa học
+   * @optional
+   * @example 1
+   */
+  @ToNumber()
+  @IsOptionalIdNumber('Môn học')
+  subjectId?: number
+
   toCourseEnrollmentFilterOptions(): CourseEnrollmentFilterOptions {
     return {
       courseId: this.courseId,
@@ -72,6 +90,8 @@ export class CourseEnrollmentListQueryDto extends ListQueryDto {
       enrolledAtFrom: this.enrolledAtFrom ? new Date(this.enrolledAtFrom) : undefined,
       enrolledAtTo: this.enrolledAtTo ? new Date(this.enrolledAtTo) : undefined,
       courseVisibility: this.courseVisibility,
+      grade: this.grade,
+      subjectId: this.subjectId,
     };
   }
 

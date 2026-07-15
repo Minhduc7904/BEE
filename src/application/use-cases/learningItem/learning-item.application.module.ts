@@ -19,7 +19,7 @@ const LEARNING_ITEM_USE_CASES = [
 @Module({
   imports: [
     InfrastructureModule, // 🔥 BẮT BUỘC
-  ],    
+  ],
   providers: LEARNING_ITEM_USE_CASES,
   exports: LEARNING_ITEM_USE_CASES,
 })

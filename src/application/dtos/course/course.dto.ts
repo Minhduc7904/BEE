@@ -24,6 +24,7 @@ export class CourseResponseDto {
   // ===== Teacher =====
   teacherId?: number
   teacherName?: string
+  teacherAvatarUrl?: string
   teacher?: AdminResponseDto
 
   // ===== Subject =====

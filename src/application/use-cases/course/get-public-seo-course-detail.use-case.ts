@@ -16,6 +16,7 @@ import {
 } from './get-public-seo-online-courses.use-case'
 import { COURSE_MEDIA_FIELDS, DOCUMENT_MEDIA_FIELDS, VIDEO_MEDIA_FIELDS } from '../../../shared/constants'
 import { MinioService } from '../../../infrastructure/services/minio.service'
+import { getTeacherAvatarUrls } from './course-teacher-avatar.util'
 
 @Injectable()
 export class GetPublicSeoCourseDetailUseCase {
@@ -136,9 +137,19 @@ export class GetPublicSeoCourseDetailUseCase {
     const trialLessonsCount = course.lessons.filter((lesson) => lesson.allowTrial).length
     const media = await this.getPublicCourseMedia(course.courseId)
     const summary = mapPublicSeoCourseSummary(course, lessonsCount, trialLessonsCount, media.thumbnail)
+    const teacherUserId = course.teacher?.userId ?? course.teacher?.user?.userId
+    const teacherAvatarUrl = teacherUserId
+      ? (await getTeacherAvatarUrls(this.prisma, this.minioService, [teacherUserId])).get(teacherUserId)
+      : undefined
 
     return BaseResponseDto.success('Lấy chi tiết khóa học public online cho trang SEO thành công', {
       ...summary,
+      teacher: summary.teacher
+        ? {
+          ...summary.teacher,
+          avatarUrl: teacherAvatarUrl,
+        }
+        : summary.teacher,
       media,
       classes: course.courseClasses.map((courseClass) => ({
         classId: courseClass.classId,

@@ -131,13 +131,108 @@ export class CourseController {
    * Endpoint: GET /api/courses/student/online-not-enrolled
    *
    * Request:
-   * - Header: Authorization: Bearer <JWT>
-   * - Query: CourseListQueryDto
-   *   page, limit, search, grade, subjectId, teacherId, academicYear, sortBy, sortOrder
+   * - Header bắt buộc:
+   *   Authorization: Bearer <JWT của học sinh>
+   * - Không truyền studentId. Backend lấy studentId từ JWT.
+   * - Query optional:
+   *   - page: number, mặc định 1, từ 1 đến 1000.
+   *   - limit: number, mặc định 10, từ 1 đến 1000.
+   *   - search: string, tìm trong title, subtitle hoặc description.
+   *   - grade: number, từ 1 đến 12.
+   *   - subjectId: number.
+   *   - teacherId: number.
+   *   - academicYear: string, ví dụ "2025-2026".
+   *   - sortBy: courseId | title | grade | priceVND | visibility |
+   *     isEnded | courseType | createdAt | updatedAt. Mặc định createdAt.
+   *   - sortOrder: asc | desc, mặc định desc.
    *
-   * Response:
-   * - Danh sach khoa hoc PUBLISHED, chua ket thuc, co courseType ONLINE hoac ALL,
-   *   va hoc sinh hien tai chua co enrollment ACTIVE.
+   * Ví dụ request:
+   * GET /api/courses/student/online-not-enrolled?page=1&limit=12&grade=12&sortBy=createdAt&sortOrder=desc
+   *
+   * Rule:
+   * - Luôn ép visibility = PUBLISHED.
+   * - Luôn ép isEnded = false.
+   * - Chỉ lấy courseType = ONLINE hoặc ALL.
+   * - Loại course mà học sinh hiện tại đã có enrollment ACTIVE.
+   * - thumbnail chỉ lấy media READY, không lọc media visibility.
+   * - avatar giáo viên lấy từ MediaUsage USER/avatar có media READY,
+   *   không lọc visibility; URL có thời hạn 24 giờ.
+   *
+   * Response 200:
+   * {
+   *   "success": true,
+   *   "message": "Lấy danh sách khóa học thành công",
+   *   "data": [
+   *     {
+   *       "courseId": 80,
+   *       "code": "TOAN12",
+   *       "title": "Toán 12 online",
+   *       "subtitle": "Ôn thi THPT",
+   *       "academicYear": "2025-2026",
+   *       "grade": 12,
+   *       "description": "Nội dung khóa học",
+   *       "subjectId": 1,
+   *       "subjectName": "Toán",
+   *       "teacherId": 3,
+   *       "teacherName": "Nguyễn Văn A",
+   *       "teacherAvatarUrl": "https://minio.example.com/presigned-avatar",
+   *       "teacher": {
+   *         "adminId": 3,
+   *         "userId": 10,
+   *         "firstName": "Văn A",
+   *         "lastName": "Nguyễn",
+   *         "fullName": "Nguyễn Văn A",
+   *         "email": "teacher@example.com",
+   *         "avatarUrl": "https://minio.example.com/presigned-avatar"
+   *       },
+   *       "subject": {
+   *         "subjectId": 1,
+   *         "name": "Toán",
+   *         "code": "MATH"
+   *       },
+   *       "priceVND": 299000,
+   *       "compareAtVND": 499000,
+   *       "visibility": "PUBLISHED",
+   *       "isEnded": false,
+   *       "courseType": "ONLINE",
+   *       "isFree": false,
+   *       "hasDiscount": true,
+   *       "discountPercentage": 40,
+   *       "thumbnail": {
+   *         "usageId": 501,
+   *         "mediaId": 301,
+   *         "fieldName": "THUMBNAIL",
+   *         "visibility": "PUBLIC",
+   *         "fileName": "course-thumbnail.webp",
+   *         "originalName": "thumbnail.webp",
+   *         "mimeType": "image/webp",
+   *         "fileSize": 152340,
+   *         "type": "IMAGE",
+   *         "viewUrl": "https://minio.example.com/presigned-thumbnail",
+   *         "expiresAt": "2026-07-15T11:00:00.000Z",
+   *         "expirySeconds": 3600,
+   *         "width": 1280,
+   *         "height": 720,
+   *         "createdAt": "2026-07-15T08:00:00.000Z"
+   *       },
+   *       "createdAt": "2026-07-15T08:00:00.000Z",
+   *       "updatedAt": "2026-07-15T08:00:00.000Z"
+   *     }
+   *   ],
+   *   "meta": {
+   *     "page": 1,
+   *     "limit": 12,
+   *     "total": 1,
+   *     "totalPages": 1,
+   *     "hasPrevious": false,
+   *     "hasNext": false
+   *   }
+   * }
+   *
+   * Ghi chú response:
+   * - teacher, teacherName và teacherAvatarUrl không có nếu course chưa gán giáo viên.
+   * - teacherAvatarUrl và teacher.avatarUrl không có nếu giáo viên chưa có avatar READY.
+   * - thumbnail không có nếu course chưa có thumbnail READY.
    */
   @Get('student/online-not-enrolled')
   @RequirePermission()

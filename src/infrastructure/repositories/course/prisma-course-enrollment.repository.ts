@@ -186,6 +186,20 @@ export class PrismaCourseEnrollmentRepository implements ICourseEnrollmentReposi
             }
         }
 
+        if (filters?.grade !== undefined) {
+            where.course = {
+                ...where.course,
+                grade: filters.grade,
+            }
+        }
+
+        if (filters?.subjectId !== undefined) {
+            where.course = {
+                ...where.course,
+                subjectId: filters.subjectId,
+            }
+        }
+
         // Chỉ lấy enrollment của học sinh có user active
         where.student = { user: { isActive: true } }
 
@@ -411,6 +425,16 @@ export class PrismaCourseEnrollmentRepository implements ICourseEnrollmentReposi
         if (filters.excludeVisibilities && filters.excludeVisibilities.length > 0) {
             conditions.push(`c.visibility NOT IN (${filters.excludeVisibilities.map(() => '?').join(',')})`)
             params.push(...filters.excludeVisibilities)
+        }
+
+        if (filters.grade !== undefined) {
+            conditions.push('c.grade = ?')
+            params.push(filters.grade)
+        }
+
+        if (filters.subjectId !== undefined) {
+            conditions.push('c.subject_id = ?')
+            params.push(filters.subjectId)
         }
 
         if (filters.search) {

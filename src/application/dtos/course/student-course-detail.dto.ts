@@ -23,6 +23,7 @@ export class StudentCourseDetailResponseDto {
   teacherFirstName?: string
   teacherLastName?: string
   teacherEmail?: string
+  teacherAvatarUrl?: string
 
   // ===== Pricing =====
   priceVND: number
@@ -58,6 +59,7 @@ export class StudentCourseDetailResponseDto {
       status?: string
       isPaidFull?: boolean
       media: PublicSeoCourseMediaDto
+      teacherAvatarUrl?: string
     },
   ): StudentCourseDetailResponseDto {
     return {
@@ -83,6 +85,7 @@ export class StudentCourseDetailResponseDto {
       teacherFirstName: course.teacher?.user?.firstName,
       teacherLastName: course.teacher?.user?.lastName,
       teacherEmail: course.teacher?.user?.email ?? undefined,
+      teacherAvatarUrl: enrollmentInfo?.teacherAvatarUrl,
 
       // Pricing
       priceVND: course.priceVND,

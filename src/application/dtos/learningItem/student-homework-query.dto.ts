@@ -1,51 +1,52 @@
-// src/application/dtos/learningItem/student-homework-query.dto.ts
-import { IsOptional, IsInt, Min, Max, IsEnum, IsString } from 'class-validator'
-import { ToNumber } from 'src/shared/decorators'
+import { HomeworkContentType } from 'src/shared/enums'
+import { SortOrder } from 'src/shared/enums/sort-order.enum'
+import {
+  IsOptionalEnumValue,
+  IsOptionalIdNumber,
+  IsOptionalInt,
+  IsOptionalString,
+} from 'src/shared/decorators/validate'
 
 export enum HomeworkStatus {
-    ALL = 'ALL',
-    INCOMPLETE = 'INCOMPLETE', // Chưa làm
-    COMPLETED = 'COMPLETED', // Đã hoàn thành
-    OVERDUE = 'OVERDUE', // Quá hạn
+  ALL = 'ALL',
+  INCOMPLETE = 'INCOMPLETE',
+  COMPLETED = 'COMPLETED',
+  OVERDUE = 'OVERDUE',
 }
 
+export enum StudentHomeworkSortBy {
+  CREATED_AT = 'createdAt',
+  UPDATED_AT = 'updatedAt',
+  TITLE = 'title',
+}
+
+/** Query của GET /learning-items/student/my-homeworks. */
 export class StudentHomeworkQueryDto {
-    @IsOptional()
-    @IsInt()
-    @Min(1)
-    @ToNumber()
-    page?: number = 1
+  @IsOptionalInt('Trang', 1)
+  page?: number = 1
 
-    @IsOptional()
-    @IsInt()
-    @Min(1)
-    @Max(100)
-    @ToNumber()
-    limit?: number = 10
+  @IsOptionalInt('Số phần tử mỗi trang', 1, 100)
+  limit?: number = 10
 
-    @IsOptional()
-    @IsString()
-    sortBy?: string = 'createdAt'
+  @IsOptionalEnumValue(StudentHomeworkSortBy, 'Trường sắp xếp')
+  sortBy?: StudentHomeworkSortBy = StudentHomeworkSortBy.CREATED_AT
 
-    @IsOptional()
-    @IsEnum(['asc', 'desc'])
-    sortOrder?: 'asc' | 'desc' = 'desc'
+  @IsOptionalEnumValue(SortOrder, 'Thứ tự sắp xếp')
+  sortOrder?: SortOrder = SortOrder.DESC
 
-    @IsOptional()
-    @IsEnum(HomeworkStatus)
-    status?: HomeworkStatus = HomeworkStatus.ALL
+  @IsOptionalEnumValue(HomeworkStatus, 'Trạng thái bài tập')
+  status?: HomeworkStatus = HomeworkStatus.ALL
 
-    @IsOptional()
-    @IsString()
-    search?: string
+  @IsOptionalString('Từ khóa tìm kiếm', 255)
+  search?: string
 
-    @IsOptional()
-    @IsInt()
-    @ToNumber()
-    courseId?: number
+  @IsOptionalIdNumber('ID khóa học')
+  courseId?: number
 
-    @IsOptional()
-    @IsInt()
-    @ToNumber()
-    lessonId?: number
+  @IsOptionalIdNumber('ID bài học')
+  lessonId?: number
+
+  /** Lọc loại nội dung bài tập; bỏ trống để lấy cả COMPETITION và FILE_UPLOAD. */
+  @IsOptionalEnumValue(HomeworkContentType, 'Loại nội dung bài tập')
+  homeworkType?: HomeworkContentType
 }

@@ -68,6 +68,28 @@ export class CourseEnrollmentController {
     })
   }
 
+  /**
+   * Endpoint: GET /api/course-enrollments/student/my
+   *
+   * Header:
+   * - Authorization: Bearer <JWT của học sinh>
+   *
+   * Query thường dùng:
+   * - page?: number, mặc định 1.
+   * - limit?: number, mặc định 10.
+   * - search?: string, tìm theo tên khóa học hoặc thông tin học sinh.
+   * - grade?: number, lọc khối từ 1 đến 12.
+   * - subjectId?: number, lọc theo ID môn học.
+   * - status?: ACTIVE | COMPLETED | CANCELLED | BLOCKED_UNPAID | TRIAL.
+   * - sortBy?: enrollmentId | courseId | studentId | enrolledAt | status.
+   * - sortOrder?: asc | desc.
+   *
+   * Ví dụ:
+   * GET /api/course-enrollments/student/my?search=toán&grade=12&subjectId=1&page=1&limit=10
+   *
+   * Backend luôn lấy studentId từ JWT và loại các course DRAFT.
+   * Response gồm course, completionPercentage, thumbnail, teacherName và teacherAvatarUrl.
+   */
   @Get('student/my')
   // @RequirePermission(PERMISSION_CODES.COURSE_ENROLLMENT.GET_MY_ENROLLMENTS)
   @RequirePermission()
@@ -78,6 +100,46 @@ export class CourseEnrollmentController {
   ): Promise<CourseEnrollmentListResponseDto> {
     return ExceptionHandler.execute(() => {
       return this.getStudentCourseEnrollmentsUseCase.execute(user.studentId, query)
+    })
+  }
+
+  /**
+   * Endpoint: GET /api/course-enrollments/student/my/by-progress
+   *
+   * Header:
+   * - Authorization: Bearer <JWT của học sinh>
+   *
+   * Query:
+   * - page?: number, mặc định 1.
+   * - limit?: number, mặc định 10.
+   * - search?: string, tìm theo tên khóa học hoặc thông tin học sinh.
+   * - grade?: number, lọc khối từ 1 đến 12.
+   * - subjectId?: number, lọc theo ID môn học.
+   * - status?: ACTIVE | COMPLETED | CANCELLED | BLOCKED_UNPAID | TRIAL.
+   * - sortOrder?: asc | desc, mặc định desc.
+   *   - desc: tiến độ cao đến thấp.
+   *   - asc: tiến độ thấp đến cao.
+   * - sortBy không được sử dụng vì endpoint luôn sắp xếp theo completionPercentage.
+   *
+   * Ví dụ:
+   * GET /api/course-enrollments/student/my/by-progress?grade=12&subjectId=1&sortOrder=desc&page=1&limit=10
+   *
+   * Response giống GET /api/course-enrollments/student/my, gồm course,
+   * completionPercentage, thumbnail, teacherName và teacherAvatarUrl.
+   * Backend lọc toàn bộ kết quả trước, tính tiến độ, sắp xếp rồi mới phân trang.
+   */
+  @Get('student/my/by-progress')
+  @RequirePermission()
+  @HttpCode(HttpStatus.OK)
+  async getMyEnrollmentsSortedByProgress(
+    @CurrentUser() user: any,
+    @Query() query: CourseEnrollmentListQueryDto,
+  ): Promise<CourseEnrollmentListResponseDto> {
+    return ExceptionHandler.execute(() => {
+      return this.getStudentCourseEnrollmentsUseCase.executeSortedByProgress(
+        user.studentId,
+        query,
+      )
     })
   }
 

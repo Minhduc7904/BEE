@@ -17,6 +17,7 @@ import { COURSE_MEDIA_FIELDS } from '../../../shared/constants'
 import { EntityType } from '../../../shared/constants/entity-type.constants'
 import type { PublicSeoCourseMediaDto } from '../../dtos/course/public-seo-course.dto'
 import { mapPublicSeoMediaFile } from './get-public-seo-online-courses.use-case'
+import { getTeacherAvatarUrls } from './course-teacher-avatar.util'
 
 @Injectable()
 export class GetStudentCourseDetailUseCase {
@@ -48,6 +49,10 @@ export class GetStudentCourseDetailUseCase {
     }
 
     const media = await this.getPublicCourseMedia(course.courseId)
+    const teacherUserId = course.teacher?.userId ?? course.teacher?.user?.userId
+    const teacherAvatarUrl = teacherUserId
+      ? (await getTeacherAvatarUrls(this.prisma, this.minioService, [teacherUserId])).get(teacherUserId)
+      : undefined
 
     const courseResponse = StudentCourseDetailResponseDto.fromEntity(course, {
       isEnrolled: isActiveEnrollment,
@@ -55,6 +60,7 @@ export class GetStudentCourseDetailUseCase {
       status: isActiveEnrollment ? enrollment?.status : undefined,
       isPaidFull: isActiveEnrollment ? enrollment?.isPaidFull : undefined,
       media,
+      teacherAvatarUrl,
     })
 
     return {

@@ -13,6 +13,16 @@ import {
 import { CourseEnrollmentListQueryDto } from '../../dtos/course-enrollment/course-enrollment-list-query.dto'
 import { CourseVisibility } from 'src/shared/enums'
 import { ValidationException } from 'src/shared/exceptions/custom-exceptions'
+import { MediaStatus } from '@prisma/client'
+import { PrismaService } from 'src/prisma/prisma.service'
+import { MinioService } from 'src/infrastructure/services/minio.service'
+import { EntityType } from 'src/shared/constants/entity-type.constants'
+import { COURSE_MEDIA_FIELDS } from 'src/shared/constants'
+import type { PublicSeoMediaFileDto } from '../../dtos/course/public-seo-course.dto'
+import { mapPublicSeoMediaFile } from '../course/get-public-seo-online-courses.use-case'
+import { getTeacherAvatarUrls } from '../course/course-teacher-avatar.util'
+import type { CourseEnrollment } from 'src/domain/entities/course-enrollment/course-enrollment.entity'
+
 @Injectable()
 export class GetStudentCourseEnrollmentsUseCase {
     constructor(
@@ -20,22 +30,15 @@ export class GetStudentCourseEnrollmentsUseCase {
         private readonly courseEnrollmentRepository: ICourseEnrollmentRepository,
         @Inject('IStudentLearningItemRepository')
         private readonly studentLearningItemRepository: IStudentLearningItemRepository,
+        private readonly prisma: PrismaService,
+        private readonly minioService: MinioService,
     ) { }
 
     async execute(
         studentId: number,
         query: CourseEnrollmentListQueryDto,
     ): Promise<CourseEnrollmentListResponseDto> {
-        // Force student filter
-        if (!studentId) {
-            throw new ValidationException('Student ID is required to get enrollments')
-        }
-        query.studentId = studentId
-
-        const filterOptions: CourseEnrollmentFilterOptions = query.toCourseEnrollmentFilterOptions()
-        // Exclude draft courses from repository query
-        filterOptions.excludeVisibilities = [CourseVisibility.DRAFT]
-
+        const filterOptions = this.buildStudentFilterOptions(studentId, query)
         const paginationOptions: CourseEnrollmentPaginationOptions = query.toCourseEnrollmentPaginationOptions()
 
         const { data, total } =
@@ -44,18 +47,7 @@ export class GetStudentCourseEnrollmentsUseCase {
                 filterOptions,
             )
 
-        // Calculate completion percentage for each enrollment
-        const enrollmentDtos = await Promise.all(
-            data.map(async (enrollment) => {
-                const completionPercentage = await this.calculateCompletionPercentage(
-                    studentId,
-                    enrollment.courseId,
-                    enrollment.course,
-                )
-
-                return new StudentCourseEnrollmentResponseDto(enrollment, completionPercentage)
-            }),
-        )
+        const enrollmentDtos = await this.toStudentEnrollmentDtos(data, studentId)
 
         return new CourseEnrollmentListResponseDto(
             enrollmentDtos,
@@ -63,6 +55,164 @@ export class GetStudentCourseEnrollmentsUseCase {
             paginationOptions.limit,
             total,
         )
+    }
+
+    /**
+     * Sắp xếp trên toàn bộ kết quả đã lọc trước khi phân trang vì
+     * completionPercentage là dữ liệu tính toán, không phải cột trong database.
+     */
+    async executeSortedByProgress(
+        studentId: number,
+        query: CourseEnrollmentListQueryDto,
+    ): Promise<CourseEnrollmentListResponseDto> {
+        const filterOptions = this.buildStudentFilterOptions(studentId, query)
+        const paginationOptions = query.toCourseEnrollmentPaginationOptions()
+        const enrollments = await this.findAllMatchingEnrollments(filterOptions)
+        const enrollmentDtos = await this.toStudentEnrollmentDtos(enrollments, studentId)
+        const progressSortDirection = paginationOptions.sortOrder === 'asc' ? 1 : -1
+
+        enrollmentDtos.sort((first, second) => {
+            const progressDifference =
+                first.completionPercentage - second.completionPercentage
+
+            if (progressDifference !== 0) {
+                return progressDifference * progressSortDirection
+            }
+
+            // Giữ thứ tự ổn định khi hai khóa học có cùng tiến độ.
+            return second.enrolledAt.getTime() - first.enrolledAt.getTime()
+        })
+
+        const startIndex = (paginationOptions.page - 1) * paginationOptions.limit
+        const paginatedDtos = enrollmentDtos.slice(
+            startIndex,
+            startIndex + paginationOptions.limit,
+        )
+
+        return new CourseEnrollmentListResponseDto(
+            paginatedDtos,
+            paginationOptions.page,
+            paginationOptions.limit,
+            enrollmentDtos.length,
+        )
+    }
+
+    private buildStudentFilterOptions(
+        studentId: number,
+        query: CourseEnrollmentListQueryDto,
+    ): CourseEnrollmentFilterOptions {
+        if (!studentId) {
+            throw new ValidationException('Student ID is required to get enrollments')
+        }
+
+        query.studentId = studentId
+        const filterOptions = query.toCourseEnrollmentFilterOptions()
+        filterOptions.excludeVisibilities = [CourseVisibility.DRAFT]
+
+        return filterOptions
+    }
+
+    private async findAllMatchingEnrollments(
+        filterOptions: CourseEnrollmentFilterOptions,
+    ): Promise<CourseEnrollment[]> {
+        const batchSize = 1000
+        const enrollments: CourseEnrollment[] = []
+        let page = 1
+        let total = 0
+
+        do {
+            const result = await this.courseEnrollmentRepository.findAllWithPagination(
+                {
+                    page,
+                    limit: batchSize,
+                    sortBy: 'enrolledAt',
+                    sortOrder: 'desc',
+                },
+                filterOptions,
+            )
+
+            total = result.total
+            enrollments.push(...result.data)
+
+            if (result.data.length === 0) {
+                break
+            }
+
+            page += 1
+        } while (enrollments.length < total)
+
+        return enrollments
+    }
+
+    private async toStudentEnrollmentDtos(
+        enrollments: CourseEnrollment[],
+        studentId: number,
+    ): Promise<StudentCourseEnrollmentResponseDto[]> {
+        const teacherUserIds = enrollments
+            .map((enrollment) => enrollment.course?.teacher?.userId ?? enrollment.course?.teacher?.user?.userId)
+            .filter((userId): userId is number => userId !== undefined)
+
+        const [thumbnailByCourseId, teacherAvatarUrlByUserId] = await Promise.all([
+            this.getCourseThumbnails(enrollments.map((enrollment) => enrollment.courseId)),
+            getTeacherAvatarUrls(this.prisma, this.minioService, teacherUserIds),
+        ])
+
+        return Promise.all(
+            enrollments.map(async (enrollment) => {
+                const completionPercentage = await this.calculateCompletionPercentage(
+                    studentId,
+                    enrollment.courseId,
+                    enrollment.course,
+                )
+
+                return new StudentCourseEnrollmentResponseDto(
+                    enrollment,
+                    completionPercentage,
+                    thumbnailByCourseId.get(enrollment.courseId),
+                    teacherAvatarUrlByUserId.get(
+                        enrollment.course?.teacher?.userId ?? enrollment.course?.teacher?.user?.userId ?? 0,
+                    ),
+                )
+            }),
+        )
+    }
+
+    private async getCourseThumbnails(
+        courseIds: number[],
+    ): Promise<Map<number, PublicSeoMediaFileDto>> {
+        const thumbnailByCourseId = new Map<number, PublicSeoMediaFileDto>()
+
+        if (courseIds.length === 0) {
+            return thumbnailByCourseId
+        }
+
+        const usages = await this.prisma.mediaUsage.findMany({
+            where: {
+                entityType: EntityType.COURSE,
+                entityId: {
+                    in: [...new Set(courseIds)],
+                },
+                fieldName: COURSE_MEDIA_FIELDS.THUMBNAIL,
+                media: {
+                    status: MediaStatus.READY,
+                },
+            },
+            include: {
+                media: true,
+            },
+            orderBy: {
+                createdAt: 'asc',
+            },
+        })
+
+        for (const usage of usages) {
+            thumbnailByCourseId.set(
+                usage.entityId,
+                await mapPublicSeoMediaFile(usage, this.minioService),
+            )
+        }
+
+        return thumbnailByCourseId
     }
 
     /**

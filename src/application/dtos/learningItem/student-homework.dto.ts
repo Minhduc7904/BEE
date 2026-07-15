@@ -1,128 +1,229 @@
-// src/application/dtos/learningItem/student-homework.dto.ts
-import { LearningItem } from 'src/domain/entities'
+import { HomeworkContentType, LearningItemType, Visibility } from 'src/shared/enums'
 import { PaginationResponseDto } from '../pagination/pagination-response.dto'
-import { StudentLearningItemStateResponseDto } from '../studentLearningItem'
-import { HomeworkContentType } from 'src/shared/enums'
+
+type StudentHomeworkSubmitSource = {
+  homeworkSubmitId: number
+  homeworkContentId: number
+  competitionSubmitId: number | null
+  submitAt: Date
+  content: string
+  points: number | null
+  gradedAt: Date | null
+  graderId: number | null
+  feedback: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+type StudentHomeworkCompetitionSource = {
+  competitionId: number
+  title: string
+  subtitle: string | null
+  startDate: Date | null
+  endDate: Date | null
+  durationMinutes: number | null
+  maxAttempts: number | null
+  examId: number | null
+  visibility: `${Visibility}`
+  showResultDetail: boolean
+  allowLeaderboard: boolean
+  allowViewScore: boolean
+  allowViewAnswer: boolean
+  enableAntiCheating: boolean
+  allowViewSolutionYoutubeUrl: boolean
+  allowViewExamContent: boolean
+}
+
+type StudentHomeworkContentSource = {
+  homeworkContentId: number
+  type: `${HomeworkContentType}`
+  content: string
+  dueDate: Date | null
+  allowLateSubmit: boolean
+  competitionId: number | null
+  competition: StudentHomeworkCompetitionSource | null
+}
+
+type StudentLearningItemSource = {
+  isLearned: boolean
+  learnedAt: Date | null
+}
+
+type StudentHomeworkLessonSource = {
+  lessonId: number
+  title: string
+  courseId: number
+}
+
+type StudentHomeworkLearningItemSource = {
+  learningItemId: number
+  title: string
+  description: string | null
+  type: `${LearningItemType}`
+  createdAt: Date
+  updatedAt: Date
+}
+
+export class StudentHomeworkCompetitionDto {
+  competitionId: number
+  title: string
+  subtitle: string | null
+  startDate: Date | null
+  endDate: Date | null
+  durationMinutes: number | null
+  maxAttempts: number | null
+  examId: number | null
+  visibility: Visibility
+  showResultDetail: boolean
+  allowLeaderboard: boolean
+  allowViewScore: boolean
+  allowViewAnswer: boolean
+  enableAntiCheating: boolean
+  allowViewSolutionYoutubeUrl: boolean
+  allowViewExamContent: boolean
+
+  static fromPrisma(competition: StudentHomeworkCompetitionSource): StudentHomeworkCompetitionDto {
+    const dto = new StudentHomeworkCompetitionDto()
+    Object.assign(dto, competition, {
+      visibility: competition.visibility as Visibility,
+    })
+    return dto
+  }
+}
+
+export class StudentHomeworkSubmitDto {
+  homeworkSubmitId: number
+  homeworkContentId: number
+  competitionSubmitId: number | null
+  submitAt: Date
+  content: string
+  points: number | null
+  gradedAt: Date | null
+  graderId: number | null
+  feedback: string | null
+  createdAt: Date
+  updatedAt: Date
+
+  static fromPrisma(homeworkSubmit: StudentHomeworkSubmitSource): StudentHomeworkSubmitDto {
+    const dto = new StudentHomeworkSubmitDto()
+    dto.homeworkSubmitId = homeworkSubmit.homeworkSubmitId
+    dto.homeworkContentId = homeworkSubmit.homeworkContentId
+    dto.competitionSubmitId = homeworkSubmit.competitionSubmitId
+    dto.submitAt = homeworkSubmit.submitAt
+    dto.content = homeworkSubmit.content
+    dto.points = homeworkSubmit.points
+    dto.gradedAt = homeworkSubmit.gradedAt
+    dto.graderId = homeworkSubmit.graderId
+    dto.feedback = homeworkSubmit.feedback
+    dto.createdAt = homeworkSubmit.createdAt
+    dto.updatedAt = homeworkSubmit.updatedAt
+    return dto
+  }
+}
 
 export class HomeworkContentWithStatusDto {
-    homeworkContentId: number
-    type: HomeworkContentType
-    content: string
-    dueDate?: Date
-    allowLateSubmit: boolean
-    competitionId?: number
-    competition?: any
+  homeworkContentId: number
+  type: HomeworkContentType
+  content: string
+  dueDate: Date | null
+  allowLateSubmit: boolean
+  competitionId: number | null
+  competition: StudentHomeworkCompetitionDto | null
+  isSubmitted: boolean
+  submittedAt: Date | null
+  isGraded: boolean
+  points: number | null
+  feedback: string | null
+  homeworkSubmit: StudentHomeworkSubmitDto | null
+  isOverdue: boolean
+  canSubmit: boolean
 
-    // Status của học sinh với homeworkContent này
-    isSubmitted: boolean
-    submittedAt?: Date
-    points?: number
-    feedback?: string
-    isOverdue: boolean
+  constructor(data: {
+    homeworkContent: StudentHomeworkContentSource
+    homeworkSubmit: StudentHomeworkSubmitDto | null
+  }) {
+    const { homeworkContent, homeworkSubmit } = data
 
-    constructor(data: {
-        homeworkContent: any
-        homeworkSubmit?: any
-    }) {
-        this.homeworkContentId = data.homeworkContent.homeworkContentId
-        this.type = data.homeworkContent.type
-        this.content = data.homeworkContent.content
-        this.dueDate = data.homeworkContent.dueDate
-        this.allowLateSubmit = data.homeworkContent.allowLateSubmit
-        this.competitionId = data.homeworkContent.competitionId
-        this.competition = data.homeworkContent.competition
+    this.homeworkContentId = homeworkContent.homeworkContentId
+    this.type = homeworkContent.type as HomeworkContentType
+    this.content = homeworkContent.content
+    this.dueDate = homeworkContent.dueDate
+    this.allowLateSubmit = homeworkContent.allowLateSubmit
+    this.competitionId = homeworkContent.competitionId
+    this.competition = homeworkContent.competition
+      ? StudentHomeworkCompetitionDto.fromPrisma(homeworkContent.competition)
+      : null
 
-        // Homework submit
-        this.isSubmitted = !!data.homeworkSubmit
-        if (data.homeworkSubmit) {
-            this.submittedAt = data.homeworkSubmit.submitAt
-            this.points = data.homeworkSubmit.points
-            this.feedback = data.homeworkSubmit.feedback
-        }
+    this.homeworkSubmit = homeworkSubmit
+    this.isSubmitted = homeworkSubmit !== null
+    this.submittedAt = homeworkSubmit?.submitAt ?? null
+    this.isGraded = Boolean(homeworkSubmit && (homeworkSubmit.points !== null || homeworkSubmit.gradedAt !== null))
+    this.points = homeworkSubmit?.points ?? null
+    this.feedback = homeworkSubmit?.feedback ?? null
+    const now = Date.now()
+    const isHomeworkDeadlineExpired = Boolean(this.dueDate && this.dueDate.getTime() < now)
+    const isCompetitionDeadlineExpired = Boolean(
+      this.type === HomeworkContentType.COMPETITION &&
+        this.competition?.endDate &&
+        this.competition.endDate.getTime() < now,
+    )
 
-        // Check if overdue
-        this.isOverdue = false
-        if (this.dueDate && !this.isSubmitted && !this.allowLateSubmit) {
-            this.isOverdue = new Date() > new Date(this.dueDate)
-        }
-    }
+    this.isOverdue = isHomeworkDeadlineExpired || isCompetitionDeadlineExpired
+    this.canSubmit =
+      !this.isSubmitted && !isCompetitionDeadlineExpired && (!isHomeworkDeadlineExpired || this.allowLateSubmit)
+  }
 }
 
 export class StudentHomeworkResponseDto {
-    learningItem: any
-    learningItemId: number
-    title: string
-    description?: string
-    type: string
-    createdAt: Date
+  learningItemId: number
+  title: string
+  description: string | null
+  type: LearningItemType
+  createdAt: Date
+  updatedAt: Date
+  homeworkContents: HomeworkContentWithStatusDto[]
+  isLearned: boolean
+  learnedAt: Date | null
+  lessonId: number | null
+  courseId: number | null
+  lessonTitle: string | null
 
-    // Mảng homework contents với status của từng content
+  constructor(data: {
+    learningItem: StudentHomeworkLearningItemSource
     homeworkContents: HomeworkContentWithStatusDto[]
-
-    // Student progress
-    isLearned: boolean
-    learnedAt?: Date
-    studentLearningItem: StudentLearningItemStateResponseDto | null
-
-    // Lesson info
-    lessonId?: number
-    courseId?: number
-    lessonTitle?: string
-
-    constructor(data: {
-        learningItem: LearningItem
-        homeworkContents?: HomeworkContentWithStatusDto[]
-        studentLearningItem?: any
-        lesson?: any
-    }) {
-        this.learningItem = data.learningItem
-        this.learningItemId = data.learningItem.learningItemId
-        this.title = data.learningItem.title
-        this.description = data.learningItem.description ? data.learningItem.description : undefined
-        this.type = data.learningItem.type
-        this.createdAt = data.learningItem.createdAt
-
-        // Homework contents với status
-        this.homeworkContents = data.homeworkContents || []
-
-        // Student progress
-        this.isLearned = data.studentLearningItem?.isLearned ?? false
-        this.learnedAt = data.studentLearningItem?.learnedAt
-        this.studentLearningItem = StudentLearningItemStateResponseDto.fromPrisma(data.studentLearningItem)
-
-        // Lesson info
-        if (data.lesson) {
-            this.lessonId = data.lesson.lessonId
-            this.lessonTitle = data.lesson.title
-            this.courseId = data.lesson.courseId
-        }
-    }
+    studentLearningItem?: StudentLearningItemSource
+    lesson?: StudentHomeworkLessonSource
+  }) {
+    this.learningItemId = data.learningItem.learningItemId
+    this.title = data.learningItem.title
+    this.description = data.learningItem.description ?? null
+    this.type = data.learningItem.type as LearningItemType
+    this.createdAt = data.learningItem.createdAt
+    this.updatedAt = data.learningItem.updatedAt
+    this.homeworkContents = data.homeworkContents
+    this.isLearned = data.studentLearningItem?.isLearned ?? false
+    this.learnedAt = data.studentLearningItem?.learnedAt ?? null
+    this.lessonId = data.lesson?.lessonId ?? null
+    this.lessonTitle = data.lesson?.title ?? null
+    this.courseId = data.lesson?.courseId ?? null
+  }
 }
 
 export class StudentHomeworkListResponseDto extends PaginationResponseDto<StudentHomeworkResponseDto> {
-    constructor(
-        data: StudentHomeworkResponseDto[],
-        page: number,
-        limit: number,
-        total: number,
-    ) {
-        const totalPages = Math.ceil(total / limit)
-        const hasPrevious = page > 1
-        const hasNext = page < totalPages
-        const previousPage = hasPrevious ? page - 1 : undefined
-        const nextPage = hasNext ? page + 1 : undefined
+  constructor(data: StudentHomeworkResponseDto[], page: number, limit: number, total: number) {
+    const totalPages = Math.ceil(total / limit)
+    const hasPrevious = page > 1
+    const hasNext = page < totalPages
 
-        const meta = {
-            page,
-            limit,
-            total,
-            totalPages,
-            hasPrevious,
-            hasNext,
-            previousPage,
-            nextPage,
-        }
-
-        super(true, 'Lấy danh sách bài tập thành công', data, meta)
-    }
+    super(true, 'Lấy danh sách bài tập thành công', data, {
+      page,
+      limit,
+      total,
+      totalPages,
+      hasPrevious,
+      hasNext,
+      previousPage: hasPrevious ? page - 1 : undefined,
+      nextPage: hasNext ? page + 1 : undefined,
+    })
+  }
 }
