@@ -4,7 +4,7 @@ import type { IUnitOfWork } from '../../../domain/repositories'
 import {
   TokenHashService,
   JwtTokenService
-} from '../../../infrastructure/services'
+} from 'src/application/interfaces'
 import {
   LogoutRequestDto,
   LogoutResponseDto,

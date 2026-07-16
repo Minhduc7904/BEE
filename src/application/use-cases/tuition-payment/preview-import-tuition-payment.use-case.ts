@@ -1,5 +1,5 @@
 import { Injectable, Inject } from '@nestjs/common'
-import { ExcelService } from 'src/infrastructure/services'
+import { ExcelService } from 'src/application/interfaces'
 import {
   BaseResponseDto,
   TuitionPaymentImportPreviewResponse,

@@ -2,7 +2,7 @@
 import { Injectable, Inject } from '@nestjs/common'
 import type { ITempQuestionRepository } from '../../../domain/repositories/temp-question.repository'
 import type { IMediaRepository } from '../../../domain/repositories/media.repository'
-import { MinioService } from '../../../infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 import { TempQuestionResponseDto } from '../../dtos/temp-question'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 import { extractMediaIdsFromAlt } from '../../../shared/utils'

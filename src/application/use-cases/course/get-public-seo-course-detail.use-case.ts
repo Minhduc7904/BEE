@@ -15,7 +15,7 @@ import {
   mapPublicSeoTeacher,
 } from './get-public-seo-online-courses.use-case'
 import { COURSE_MEDIA_FIELDS, DOCUMENT_MEDIA_FIELDS, VIDEO_MEDIA_FIELDS } from '../../../shared/constants'
-import { MinioService } from '../../../infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 import { getTeacherAvatarUrls } from './course-teacher-avatar.util'
 
 @Injectable()

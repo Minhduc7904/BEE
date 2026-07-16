@@ -6,7 +6,7 @@ import { CourseResponseDto } from '../../dtos/course/course.dto'
 import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 import type { IMediaUsageRepository } from '../../../domain/repositories/media-usage.repository'
 import { attachMediaToCourseResponse } from './course-media.helper'
-import { MinioService } from '../../../infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 
 @Injectable()
 export class GetCourseByIdUseCase {

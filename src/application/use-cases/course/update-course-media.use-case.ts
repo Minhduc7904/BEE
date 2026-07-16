@@ -7,7 +7,7 @@ import { BusinessLogicException, NotFoundException, ValidationException } from '
 import { COURSE_MEDIA_FIELDS, CourseMediaField } from '../../../shared/constants'
 import { EntityType } from '../../../shared/constants/entity-type.constants'
 import { MediaStatus, MediaType, MediaVisibility } from '../../../shared/enums'
-import { MinioService } from '../../../infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 
 @Injectable()
 export class UpdateCourseMediaUseCase {

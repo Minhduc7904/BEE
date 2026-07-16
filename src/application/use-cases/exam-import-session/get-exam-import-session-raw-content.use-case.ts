@@ -2,7 +2,7 @@
 import { Injectable, Inject } from '@nestjs/common'
 import type { IExamImportSessionRepository } from '../../../domain/repositories/exam-import-session.repository'
 import type { IMediaRepository } from '../../../domain/repositories/media.repository'
-import { MinioService } from '../../../infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 import { MediaRawContentResponseDto } from '../../dtos/media/media-raw-content-response.dto'
 import { extractMediaIdsFromAlt } from '../../../shared/utils'

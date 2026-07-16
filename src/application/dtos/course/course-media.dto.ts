@@ -3,7 +3,7 @@ import { IsOptionalEnumValue, IsOptionalIdNumber } from '../../../shared/decorat
 import { COURSE_MEDIA_FIELDS } from '../../../shared/constants'
 import { MediaType, MediaVisibility } from '../../../shared/enums'
 import { IsArray, IsInt, IsOptional, IsPositive } from 'class-validator'
-import { MinioService } from '../../../infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 
 export class UpdateCourseMediaDto {
   @IsOptionalIdNumber('Ảnh đại diện khóa học')

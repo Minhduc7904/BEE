@@ -7,7 +7,7 @@ import {
   BaseResponseDto
 } from '../../../dtos'
 import { ConflictException } from '../../../../shared/exceptions/custom-exceptions'
-import { PasswordService } from '../../../../infrastructure/services'
+import { PasswordService } from 'src/application/interfaces'
 import { StudentType } from '../../../../shared/enums'
 
 @Injectable()

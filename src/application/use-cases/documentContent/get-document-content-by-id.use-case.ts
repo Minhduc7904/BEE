@@ -4,7 +4,7 @@ import type { IDocumentContentRepository, IMediaUsageRepository } from '../../..
 import { DocumentContentResponseDto, MediaFileDto } from '../../dtos/documentContent/document-content.dto'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
-import { MinioService } from '../../../infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 import { EntityType } from 'src/shared/constants/entity-type.constants'
 import { DOCUMENT_MEDIA_FIELDS } from 'src/shared/constants'
 import { MediaStatus } from 'src/shared/enums'

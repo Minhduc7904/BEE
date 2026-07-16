@@ -6,7 +6,7 @@ import type { CourseFilterOptions } from '../../../domain/interface'
 import { CourseType, CourseVisibility } from 'src/shared/enums'
 import type { IMediaUsageRepository } from '../../../domain/repositories/media-usage.repository'
 import { attachThumbnailsToCourseResponses } from './course-media.helper'
-import { MinioService } from '../../../infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 import { PrismaService } from '../../../prisma/prisma.service'
 import { getTeacherAvatarUrls } from './course-teacher-avatar.util'
 

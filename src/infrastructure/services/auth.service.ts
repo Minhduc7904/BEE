@@ -1,3 +1,4 @@
+import type { AuthService as AuthServicePort } from 'src/application/interfaces/auth.interface'
 import { Injectable, Inject, UnauthorizedException } from '@nestjs/common'
 import { JwtTokenService } from './jwt.service'
 import type { IRoleRepository } from '../../domain/repositories/role.repository'

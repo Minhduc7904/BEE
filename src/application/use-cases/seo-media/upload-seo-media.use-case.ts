@@ -3,8 +3,8 @@ import { Readable } from 'stream'
 import { BaseResponseDto } from 'src/application/dtos'
 import { SeoMediaUploadResponseDto, UploadSeoMediaDto } from 'src/application/dtos/seo-media'
 import { MediaType } from 'src/shared/enums'
-import { MediaProcessingService } from 'src/infrastructure/services/media-processing.service'
-import { MinioService } from 'src/infrastructure/services/minio.service'
+import { MediaProcessingService } from 'src/application/interfaces'
+import { MinioService } from 'src/application/interfaces'
 import { buildPublicObjectPath, detectMediaType, generateObjectKey, sanitizeFilename } from 'src/shared/utils'
 
 @Injectable()

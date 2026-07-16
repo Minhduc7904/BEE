@@ -8,7 +8,7 @@ import type {
     IUnitOfWork,
     IMediaRepository,
 } from 'src/domain/repositories'
-import { SplitQuestion } from '../../../infrastructure/services/exam-split.service'
+import { SplitQuestion } from 'src/application/interfaces'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 import { extractAllMediaIds } from '../../../shared/utils'
 import { EntityType } from '../../../shared/constants/entity-type.constants'

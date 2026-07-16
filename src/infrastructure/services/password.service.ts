@@ -1,3 +1,4 @@
+import type { PasswordService as PasswordServicePort } from 'src/application/interfaces/password.interface'
 // src/infrastructure/services/password.service.ts
 
 import { Injectable } from '@nestjs/common'

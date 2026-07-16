@@ -1,3 +1,4 @@
+import type { NotificationRealtimeService as NotificationRealtimeServicePort } from 'src/application/interfaces/notification-realtime.interface'
 // src/infrastructure/services/notification/notification-realtime.service.ts
 import { Injectable } from '@nestjs/common'
 import { SocketService } from '../socket/socket.service'

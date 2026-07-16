@@ -3,7 +3,7 @@ import { Injectable, Inject } from '@nestjs/common'
 import type { INotificationRepository } from '../../../domain/repositories/notification.repository'
 import type { CreateNotificationData } from '../../../domain/interface/notification/notification.interface'
 import { Notification } from '../../../domain/entities'
-import { NotificationRealtimeService } from 'src/infrastructure/services/notification/notification-realtime.service'
+import { NotificationRealtimeService } from 'src/application/interfaces'
 
 /**
  * CreateAndNotifyManyUseCase

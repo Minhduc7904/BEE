@@ -4,7 +4,7 @@ import { Readable } from 'stream'
 import type { ILearningItemRepository, IMediaUsageRepository, IMediaRepository } from '../../../domain/repositories'
 import type { IStudentLearningItemRepository } from '../../../domain/repositories/student-learning-item.repository'
 import { NotFoundException, ForbiddenException } from '../../../shared/exceptions/custom-exceptions'
-import { MinioService } from '../../../infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 import { MediaStatus } from '../../../shared/enums'
 import { StudentClassLessonAccessService } from 'src/application/services/student-class-lesson-access.service'
 

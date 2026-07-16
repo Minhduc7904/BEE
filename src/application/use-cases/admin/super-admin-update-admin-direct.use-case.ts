@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import type { IUnitOfWork } from 'src/domain/repositories'
-import { PasswordService } from 'src/infrastructure/services'
+import { PasswordService } from 'src/application/interfaces'
 import { BaseResponseDto } from 'src/application/dtos/common/base-response.dto'
 import { AdminResponseDto } from 'src/application/dtos/admin/admin.dto'
 import { UpdateAdminDirectDto } from 'src/application/dtos/admin/update-admin-direct.dto'

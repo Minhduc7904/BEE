@@ -12,7 +12,7 @@ import {
 import { CourseType, CourseVisibility } from 'src/shared/enums'
 import { MediaStatus } from '@prisma/client'
 import { PrismaService } from '../../../prisma/prisma.service'
-import { MinioService } from '../../../infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 import { COURSE_MEDIA_FIELDS } from '../../../shared/constants'
 import { EntityType } from '../../../shared/constants/entity-type.constants'
 import type { PublicSeoCourseMediaDto } from '../../dtos/course/public-seo-course.dto'

@@ -3,7 +3,6 @@ import { Module } from '@nestjs/common'
 import * as notification from './'
 import { InfrastructureModule } from 'src/infrastructure/infrastructure.module'
 import { SocketModule } from 'src/infrastructure/socket.module'
-import { NotificationRealtimeService } from 'src/infrastructure/services/notification/notification-realtime.service'
 
 const NOTIFICATION_USE_CASES = [
     notification.DeleteNotificationUseCase,
@@ -24,11 +23,9 @@ const NOTIFICATION_USE_CASES = [
     ],
     providers: [
         ...NOTIFICATION_USE_CASES,
-        NotificationRealtimeService,
     ],
     exports: [
         ...NOTIFICATION_USE_CASES,
-        NotificationRealtimeService,
     ],
 })
 export class NotificationApplicationModule { }

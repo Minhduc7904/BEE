@@ -5,7 +5,7 @@ import { NotFoundException } from 'src/shared/exceptions/custom-exceptions'
 import { EntityType } from 'src/shared/constants/entity-type.constants'
 import { DOCUMENT_MEDIA_FIELDS } from 'src/shared/constants'
 import { MediaStatus } from 'src/shared/enums'
-import { MinioService } from 'src/infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 
 const DOCUMENT_MEDIA_URL_EXPIRY_SECONDS = 3600 * 24
 

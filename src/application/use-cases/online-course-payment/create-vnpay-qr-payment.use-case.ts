@@ -1,6 +1,6 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common'
 import type { IUnitOfWork } from 'src/domain/repositories'
-import { VnpayService } from 'src/infrastructure/services'
+import { VnpayService } from 'src/application/interfaces'
 import {
   OnlineCourseInvoiceStatus,
   OnlinePaymentAttemptStatus,

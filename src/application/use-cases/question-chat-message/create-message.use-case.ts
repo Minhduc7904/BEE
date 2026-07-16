@@ -4,8 +4,8 @@ import { Injectable, Inject } from '@nestjs/common'
 import { BaseResponseDto, CreateQuestionChatMessageDto, QuestionChatMessageResponseDto } from '../../dtos'
 import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 import { QuestionChatRole } from '../../../shared/enums'
-import { QuestionChatAIService } from '../../../infrastructure/services/question-chat-ai.service'
-import { MarkdownRenderService } from '../../../infrastructure/services/markdown-render.service'
+import { QuestionChatAIService } from 'src/application/interfaces'
+import { MarkdownRenderService } from 'src/application/interfaces'
 import type { IUnitOfWork } from '../../../domain/repositories'
 
 @Injectable()

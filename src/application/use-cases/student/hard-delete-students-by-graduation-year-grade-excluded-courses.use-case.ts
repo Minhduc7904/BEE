@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common'
 import { PrismaService } from 'src/prisma/prisma.service'
-import { MinioService } from 'src/infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 import { BaseResponseDto } from 'src/application/dtos/common/base-response.dto'
 import { HardDeleteStudentsByGraduationYearGradeExcludedCoursesDto } from 'src/application/dtos/student/hard-delete-students-by-graduation-year-grade-excluded-courses.dto'
 import { EntityType } from 'src/shared/constants/entity-type.constants'

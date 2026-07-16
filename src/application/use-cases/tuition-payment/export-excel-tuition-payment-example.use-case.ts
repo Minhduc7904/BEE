@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { ExcelService, ExcelColumn } from 'src/infrastructure/services/excel.service'
+import { ExcelService, ExcelColumn } from 'src/application/interfaces'
 import { ExportExcelTuitionPaymentExampleQueryDto } from '../../dtos/tuition-payment/export-excel-tuition-payment-example-query.dto'
 
 @Injectable()

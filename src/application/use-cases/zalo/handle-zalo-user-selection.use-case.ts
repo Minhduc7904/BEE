@@ -2,7 +2,7 @@ import { Inject, Injectable, InternalServerErrorException } from '@nestjs/common
 import type { IUnitOfWork } from 'src/domain/repositories'
 import { ExportAttendanceImageOptionsDto } from 'src/application/dtos/attendance/export-attendance-image-options.dto'
 import { GetAttendanceImageDataUseCase } from 'src/application/use-cases/attendance'
-import { ZaloService } from 'src/infrastructure/services'
+import { ZaloService } from 'src/application/interfaces'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 
 interface HandleZaloUserSelectionInput {

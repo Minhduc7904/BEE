@@ -1,7 +1,7 @@
 import { NewsArticleResponseDto } from 'src/application/dtos'
 import type { MediaEntity } from 'src/domain/entities'
 import type { IUnitOfWork, UnitOfWorkRepos } from 'src/domain/repositories'
-import { MinioService } from 'src/infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 import { NEWS_ARTICLE_MEDIA_FIELDS } from 'src/shared/constants'
 import { EntityType } from 'src/shared/constants/entity-type.constants'
 import { MediaStatus, MediaVisibility } from 'src/shared/enums'

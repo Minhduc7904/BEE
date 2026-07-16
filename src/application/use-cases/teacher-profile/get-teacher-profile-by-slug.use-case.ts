@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { BaseResponseDto, TeacherProfileResponseDto } from 'src/application/dtos'
 import type { IUnitOfWork } from 'src/domain/repositories'
-import { MinioService } from 'src/infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 import { NotFoundException } from 'src/shared/exceptions/custom-exceptions'
 import { attachTeacherProfileDetailMediaUrls } from './teacher-profile-media.util'
 

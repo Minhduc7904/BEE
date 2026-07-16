@@ -2,7 +2,7 @@
 import { Injectable, Inject } from '@nestjs/common'
 import type { IUserRepository } from '../../../domain/repositories/user.repository'
 import type { IEmailVerificationTokenRepository } from '../../../domain/repositories/email-verification-token.repository'
-import { TokenService } from '../../../infrastructure/services/token.service'
+import { TokenService } from 'src/application/interfaces'
 import {
   NotFoundException,
   BusinessLogicException,

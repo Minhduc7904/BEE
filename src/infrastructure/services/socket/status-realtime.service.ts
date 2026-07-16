@@ -1,3 +1,4 @@
+import type { StatusRealtimeService as StatusRealtimeServicePort } from 'src/application/interfaces/status-realtime.interface'
 // src/infrastructure/services/socket/status-realtime.service.ts
 import { Injectable } from '@nestjs/common'
 import { SocketService } from './socket.service'

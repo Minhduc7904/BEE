@@ -1,3 +1,4 @@
+import type { ExcelService as ExcelServicePort } from 'src/application/interfaces/excel.interface'
 import { Injectable, Logger, BadRequestException, InternalServerErrorException } from '@nestjs/common'
 import * as ExcelJS from 'exceljs'
 import { Readable } from 'stream'

@@ -1,4 +1,4 @@
-import { SplitQuestion } from '../../../infrastructure/services/exam-split.service'
+import { SplitQuestion } from 'src/application/interfaces'
 
 /**
  * DTO response cho API tách câu hỏi

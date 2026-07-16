@@ -1,3 +1,4 @@
+import type { SocketAuthService as SocketAuthServicePort } from 'src/application/interfaces/socket-auth.interface'
 // src/infrastructure/services/socket/socket-auth.service.ts
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { JwtTokenService } from '../jwt.service'

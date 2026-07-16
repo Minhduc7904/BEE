@@ -1,7 +1,7 @@
 // src/application/use-cases/media/process-content-with-presigned-urls.use-case.ts
 import { Inject, Injectable } from '@nestjs/common'
 import type { IMediaRepository } from '../../../domain/repositories'
-import { MinioService } from '../../../infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 import { extractMediaIdsFromAlt } from '../../../shared/utils'
 
 export interface ContentField {

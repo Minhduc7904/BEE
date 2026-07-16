@@ -1,3 +1,4 @@
+import type { SupabaseStorageService as SupabaseStorageServicePort } from 'src/application/interfaces/supabase-storage.interface'
 // src/infrastructure/services/supabase-storage.service.ts
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'

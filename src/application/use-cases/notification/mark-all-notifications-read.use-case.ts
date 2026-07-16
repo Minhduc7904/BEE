@@ -2,7 +2,7 @@
 import { Injectable, Inject } from '@nestjs/common'
 import type { INotificationRepository } from '../../../domain/repositories/notification.repository'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
-import { NotificationRealtimeService } from 'src/infrastructure/services/notification/notification-realtime.service'
+import { NotificationRealtimeService } from 'src/application/interfaces'
 
 @Injectable()
 export class MarkAllNotificationsReadUseCase {

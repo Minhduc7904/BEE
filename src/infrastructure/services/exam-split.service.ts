@@ -1,3 +1,4 @@
+import type { ExamSplitService as ExamSplitServicePort } from 'src/application/interfaces/exam-split.interface'
 import { Injectable, Logger } from '@nestjs/common'
 import { OpenAIService } from './openai.service'
 import { QuestionType, Difficulty } from 'src/shared/enums'

@@ -3,7 +3,7 @@ import { studentPointConfig } from 'src/config'
 import type { CreateStudentPointLogData, UnitOfWorkRepos } from 'src/domain/repositories'
 import { AttendanceStatus, NotificationLevel, NotificationType, PointType } from 'src/shared/enums'
 import type { StudentPointLog } from 'src/domain/entities'
-import { NotificationRealtimeService } from 'src/infrastructure/services/notification/notification-realtime.service'
+import { NotificationRealtimeService } from 'src/application/interfaces'
 
 interface AwardStudentPointsInput {
   studentId: number

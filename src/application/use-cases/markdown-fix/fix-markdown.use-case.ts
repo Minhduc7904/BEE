@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { MarkdownFixService } from '../../../infrastructure/services/markdown-fix.service'
+import { MarkdownFixService } from 'src/application/interfaces'
 import { FixMarkdownRequestDto } from '../../dtos/markdown-fix/fix-markdown-request.dto'
 import { FixMarkdownResponseDto } from '../../dtos/markdown-fix/fix-markdown-response.dto'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'

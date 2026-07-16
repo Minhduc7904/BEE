@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import type { IAttendanceRepository } from 'src/domain/repositories/attendance.repository'
-import { ExcelService, ExcelColumn } from '../../../infrastructure/services/excel.service'
+import { ExcelService, ExcelColumn } from 'src/application/interfaces'
 import { NotFoundException } from '@nestjs/common'
 import { ExportAttendanceOptionsDto } from '../../dtos/attendance/export-attendance-options.dto'
 

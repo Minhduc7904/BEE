@@ -1,3 +1,4 @@
+import type { ZaloService as ZaloServicePort } from 'src/application/interfaces/zalo.interface'
 import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import axios from 'axios'
 import type { AttendanceImageTemplateData } from '../templates/attendance-image.template'

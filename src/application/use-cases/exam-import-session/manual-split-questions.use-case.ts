@@ -13,7 +13,7 @@ import { RESOURCE_TYPES } from '../../../shared/constants/resource-type.constant
 import { AuditStatus } from '../../../shared/enums/audit-status.enum'
 import { QuestionType } from '../../../shared/enums/question-type.enum'
 import { TempSection } from '../../../domain/entities/exam-import/temp-section.entity'
-import { SplitQuestion } from '../../../infrastructure/services/exam-split.service'
+import { SplitQuestion } from 'src/application/interfaces'
 import { SaveSplitResultToTempUseCase } from './save-split-result-to-temp.use-case'
 
 /**

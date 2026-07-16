@@ -1,3 +1,4 @@
+import type { TokenHashService as TokenHashServicePort } from 'src/application/interfaces/token-hash.interface'
 // src/infrastructure/services/token-hash.service.ts
 import { Injectable } from '@nestjs/common'
 import * as bcrypt from 'bcrypt'
