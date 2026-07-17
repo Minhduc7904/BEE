@@ -92,13 +92,16 @@ export class GetCompetitionAnswersUseCase {
         }
 
         // 5. Lấy các câu trả lời hiện có của submit
+        // Keep one question per attempt even if the exam payload repeats it.
+        const uniqueQuestions = [...new Map(allQuestions.map(question => [question.questionId, question])).values()]
+
         const existingAnswers = await this.competitionAnswerRepository.findByCompetitionSubmit(submitId)
 
         // Tạo map: questionId → CompetitionAnswer để tra cứu nhanh
         const answerMap = new Map(existingAnswers.map(a => [a.questionId, a]))
 
         // 6. Tìm những câu hỏi chưa có answer → tạo hàng loạt vào DB
-        const missingQuestions = allQuestions.filter(q => !answerMap.has(q.questionId))
+        const missingQuestions = uniqueQuestions.filter(q => !answerMap.has(q.questionId))
 
         if (missingQuestions.length > 0) {
             const newAnswers = await this.competitionAnswerRepository.createMany(
@@ -130,7 +133,7 @@ export class GetCompetitionAnswersUseCase {
         }
 
         // 7. Trả về đúng thứ tự của exam
-        const result: StudentAnswerDto[] = allQuestions.map(q => {
+        const result: StudentAnswerDto[] = uniqueQuestions.map(q => {
             const answer = answerMap.get(q.questionId)!
             return StudentAnswerDto.fromExistingAnswer(answer, q.type, q.allStatementIds)
         })

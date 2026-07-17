@@ -2,6 +2,8 @@
 import { Controller, Get, Post, Put, Delete, Patch, Query, Param, Body, HttpCode, HttpStatus, ParseIntPipe } from '@nestjs/common'
 import { HomeworkSubmitListQueryDto } from '../../application/dtos/homeworkSubmit/homework-submit-list-query.dto'
 import { CreateHomeworkSubmitDto } from '../../application/dtos/homeworkSubmit/create-homework-submit.dto'
+import { CreateHomeworkSubmitFromCompetitionDto } from '../../application/dtos/homeworkSubmit/create-homework-submit-from-competition.dto'
+import { UpdateHomeworkSubmitCompetitionDto } from '../../application/dtos/homeworkSubmit/update-homework-submit-competition.dto'
 import { UpdateHomeworkSubmitDto } from '../../application/dtos/homeworkSubmit/update-homework-submit.dto'
 import { GradeHomeworkSubmitDto } from '../../application/dtos/homeworkSubmit/grade-homework-submit.dto'
 import { HomeworkSubmitListResponseDto, HomeworkSubmitResponseDto } from '../../application/dtos/homeworkSubmit/homework-submit.dto'
@@ -13,6 +15,9 @@ import {
     GetAllHomeworkSubmitUseCase,
     GetHomeworkSubmitByIdUseCase,
     CreateHomeworkSubmitUseCase,
+    CreateHomeworkSubmitFromCompetitionUseCase,
+    GetSubmittedCompetitionAttemptsByStudentUseCase,
+    UpdateHomeworkSubmitCompetitionUseCase,
     UpdateHomeworkSubmitUseCase,
     DeleteHomeworkSubmitUseCase,
     GradeHomeworkSubmitUseCase,
@@ -27,6 +32,9 @@ export class HomeworkSubmitController {
         private readonly getAllHomeworkSubmitUseCase: GetAllHomeworkSubmitUseCase,
         private readonly getHomeworkSubmitByIdUseCase: GetHomeworkSubmitByIdUseCase,
         private readonly createHomeworkSubmitUseCase: CreateHomeworkSubmitUseCase,
+        private readonly createHomeworkSubmitFromCompetitionUseCase: CreateHomeworkSubmitFromCompetitionUseCase,
+        private readonly getSubmittedCompetitionAttemptsByStudentUseCase: GetSubmittedCompetitionAttemptsByStudentUseCase,
+        private readonly updateHomeworkSubmitCompetitionUseCase: UpdateHomeworkSubmitCompetitionUseCase,
         private readonly updateHomeworkSubmitUseCase: UpdateHomeworkSubmitUseCase,
         private readonly deleteHomeworkSubmitUseCase: DeleteHomeworkSubmitUseCase,
         private readonly gradeHomeworkSubmitUseCase: GradeHomeworkSubmitUseCase,
@@ -37,6 +45,15 @@ export class HomeworkSubmitController {
     @HttpCode(HttpStatus.OK)
     async getAllHomeworkSubmits(@Query() query: HomeworkSubmitListQueryDto): Promise<HomeworkSubmitListResponseDto> {
         return ExceptionHandler.execute(() => this.getAllHomeworkSubmitUseCase.execute(query))
+    }
+
+    @Get('students/:studentId/competition-attempts')
+    @RequirePermission(PERMISSION_CODES.COMPETITION_SUBMIT.GET_ALL)
+    @HttpCode(HttpStatus.OK)
+    async getSubmittedCompetitionAttemptsByStudent(
+        @Param('studentId', ParseIntPipe) studentId: number,
+    ): Promise<BaseResponseDto<any>> {
+        return ExceptionHandler.execute(() => this.getSubmittedCompetitionAttemptsByStudentUseCase.execute(studentId))
     }
 
     @Get(':id')
@@ -56,6 +73,25 @@ export class HomeworkSubmitController {
         @CurrentUser('adminId') adminId: number,
     ): Promise<BaseResponseDto<HomeworkSubmitResponseDto>> {
         return ExceptionHandler.execute(() => this.createHomeworkSubmitUseCase.execute(dto, adminId))
+    }
+
+    @Post('from-competition')
+    @RequirePermission(PERMISSION_CODES.HOMEWORK_SUBMIT.CREATE)
+    @HttpCode(HttpStatus.CREATED)
+    async createHomeworkSubmitFromCompetition(
+        @Body() dto: CreateHomeworkSubmitFromCompetitionDto,
+    ): Promise<BaseResponseDto<any>> {
+        return ExceptionHandler.execute(() => this.createHomeworkSubmitFromCompetitionUseCase.execute(dto))
+    }
+
+    @Patch(':id/competition-submit')
+    @RequirePermission(PERMISSION_CODES.HOMEWORK_SUBMIT.UPDATE)
+    @HttpCode(HttpStatus.OK)
+    async updateHomeworkSubmitCompetition(
+        @Param('id', ParseIntPipe) id: number,
+        @Body() dto: UpdateHomeworkSubmitCompetitionDto,
+    ): Promise<BaseResponseDto<any>> {
+        return ExceptionHandler.execute(() => this.updateHomeworkSubmitCompetitionUseCase.execute(id, dto))
     }
 
     @Put(':id')

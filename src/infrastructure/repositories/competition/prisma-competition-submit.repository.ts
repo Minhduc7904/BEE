@@ -206,6 +206,24 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
     return submits.map((s: any) => CompetitionSubmitMapper.toDomainCompetitionSubmit(s)).filter(Boolean)
   }
 
+  async findAllInProgressWithCompetition(txClient?: any): Promise<CompetitionSubmit[]> {
+    const client = txClient || this.prisma
+
+    const submits = await client.competitionSubmit.findMany({
+      where: { status: CompetitionSubmitStatus.IN_PROGRESS },
+      include: {
+        competition: true,
+        student: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    })
+
+    return submits.map((submit: any) => CompetitionSubmitMapper.toDomainCompetitionSubmit(submit)).filter(Boolean)
+  }
+
   async findAllWithPagination(
     pagination: CompetitionSubmitPaginationOptions,
     filters?: CompetitionSubmitFilterOptions,

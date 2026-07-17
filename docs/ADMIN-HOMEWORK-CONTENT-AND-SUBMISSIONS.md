@@ -93,12 +93,23 @@ Ví dụ file submission:
 
 Quyền: `homework-submit:grade`.
 
-Chỉ chấm được HomeworkSubmit có `HomeworkContent.type = FILE_UPLOAD`. Backend lấy `adminId` từ token, không nhận `graderId` từ request.
+Backend lấy `adminId` từ token, không nhận `graderId` từ request.
+
+- Với `HomeworkContent.type = FILE_UPLOAD`, request bắt buộc có `points`; `feedback` là tùy chọn. Backend lưu `points`, `feedback`, `graderId`, `gradedAt`.
+- Với `HomeworkContent.type = COMPETITION`, request chỉ được có `feedback` không rỗng. Backend chỉ cập nhật `feedback`, không thay đổi điểm Competition, `graderId` hay `gradedAt`.
 
 ```json
 {
   "points": 85,
   "feedback": "Trình bày tốt, cần bổ sung câu 3."
+}
+```
+
+Ví dụ cập nhật nhận xét thủ công cho bài `COMPETITION`:
+
+```json
+{
+  "feedback": "Phần giải thích câu 3 cần rõ ràng hơn."
 }
 ```
 

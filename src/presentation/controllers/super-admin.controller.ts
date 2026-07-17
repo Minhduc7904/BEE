@@ -23,6 +23,7 @@ import { RegenerateQuestionSlugsUseCase } from 'src/application/use-cases/questi
 import { SeedDefaultTagsUseCase } from 'src/application/use-cases/tag'
 import { SyncPermissionsFromCodesUseCase } from 'src/application/use-cases/permission'
 import { SyncSeoMediaSlotsFromPageSlotsUseCase } from 'src/application/use-cases/seo-media'
+import { AutoSubmitExpiredCompetitionAttemptsUseCase } from 'src/application/use-cases/competition-submit'
 
 interface ExchangeFacebookTokenDto {
   appId: string
@@ -45,7 +46,20 @@ export class AdminStudentController {
     private readonly seedDefaultTagsUseCase: SeedDefaultTagsUseCase,
     private readonly syncPermissionsFromCodesUseCase: SyncPermissionsFromCodesUseCase,
     private readonly syncSeoMediaSlotsFromPageSlotsUseCase: SyncSeoMediaSlotsFromPageSlotsUseCase,
+    private readonly autoSubmitExpiredCompetitionAttemptsUseCase: AutoSubmitExpiredCompetitionAttemptsUseCase,
   ) {}
+
+  /**
+   * Tự động nộp tất cả lượt thi đang IN_PROGRESS đã hết durationMinutes hoặc
+   * đã qua endDate của cuộc thi. durationMinutes = null nghĩa là vô thời hạn.
+   * POST /super-admin/competitions/auto-submit-expired-attempts
+   */
+  @Post('competitions/auto-submit-expired-attempts')
+  @RequirePermission(PERMISSION_CODES.COMPETITION_SUBMIT.UPDATE)
+  @HttpCode(HttpStatus.OK)
+  async autoSubmitExpiredCompetitionAttempts(): Promise<BaseResponseDto<any>> {
+    return ExceptionHandler.execute(() => this.autoSubmitExpiredCompetitionAttemptsUseCase.execute())
+  }
 
   /**
    * Reset password học sinh theo khoảng thời gian tạo tài khoản.
