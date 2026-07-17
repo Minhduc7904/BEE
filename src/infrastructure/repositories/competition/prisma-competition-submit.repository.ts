@@ -776,6 +776,50 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
     return submits.map((s: any) => CompetitionSubmitMapper.toDomainCompetitionSubmit(s)).filter(Boolean)
   }
 
+  async findSubmittedBasicByStudent(studentId: number, txClient?: any): Promise<CompetitionSubmit[]> {
+    const client = txClient || this.prisma
+
+    const submits = await client.competitionSubmit.findMany({
+      where: {
+        studentId,
+        status: CompetitionSubmitStatus.SUBMITTED,
+      },
+      select: {
+        competitionSubmitId: true,
+        competitionId: true,
+        studentId: true,
+        attemptNumber: true,
+        status: true,
+        startedAt: true,
+        submittedAt: true,
+        totalPoints: true,
+        maxPoints: true,
+        timeSpentSeconds: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: [{ submittedAt: 'desc' }, { competitionSubmitId: 'desc' }],
+    })
+
+    return submits.map(
+      (submit: any) =>
+        new CompetitionSubmit({
+          competitionSubmitId: submit.competitionSubmitId,
+          competitionId: submit.competitionId,
+          studentId: submit.studentId,
+          attemptNumber: submit.attemptNumber,
+          status: submit.status,
+          startedAt: submit.startedAt,
+          submittedAt: submit.submittedAt,
+          totalPoints: submit.totalPoints === null ? null : Number(submit.totalPoints),
+          maxPoints: submit.maxPoints === null ? null : Number(submit.maxPoints),
+          timeSpentSeconds: submit.timeSpentSeconds,
+          createdAt: submit.createdAt,
+          updatedAt: submit.updatedAt,
+        }),
+    )
+  }
+
   async findByCompetitionAndStudent(
     competitionId: number,
     studentId: number,

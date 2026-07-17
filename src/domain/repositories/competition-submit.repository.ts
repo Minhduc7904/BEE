@@ -115,6 +115,7 @@ export interface ICompetitionSubmitRepository {
 
   findByCompetition(competitionId: number, txClient?: any): Promise<CompetitionSubmit[]>
   findByStudent(studentId: number, txClient?: any): Promise<CompetitionSubmit[]>
+  findSubmittedBasicByStudent(studentId: number, txClient?: any): Promise<CompetitionSubmit[]>
   findByCompetitionAndStudent(competitionId: number, studentId: number, txClient?: any): Promise<CompetitionSubmit[]>
 
   findLatestAttempt(competitionId: number, studentId: number, txClient?: any): Promise<CompetitionSubmit | null>

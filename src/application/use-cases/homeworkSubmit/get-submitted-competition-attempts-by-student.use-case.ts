@@ -1,8 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common'
 import type { ICompetitionSubmitRepository } from '../../../domain/repositories/competition-submit.repository'
-import { CompetitionSubmitStatus } from '../../../shared/enums/competition-submit-status.enum'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
-import { CompetitionSubmitResponseDto } from '../../dtos/competition-submit/competition-submit.dto'
+import {
+  SubmittedCompetitionAttemptBasicDto,
+  SubmittedCompetitionAttemptsByStudentResponseDto,
+} from '../../dtos/competition-submit/submitted-competition-attempt-basic.dto'
 
 @Injectable()
 export class GetSubmittedCompetitionAttemptsByStudentUseCase {
@@ -11,19 +13,15 @@ export class GetSubmittedCompetitionAttemptsByStudentUseCase {
     private readonly competitionSubmitRepository: ICompetitionSubmitRepository,
   ) {}
 
-  async execute(studentId: number): Promise<BaseResponseDto<any>> {
-    const competitionSubmits = (await this.competitionSubmitRepository.findByStudent(studentId))
-      .filter((attempt) => attempt.status === CompetitionSubmitStatus.SUBMITTED)
-      .sort(
-        (left, right) =>
-          new Date(right.submittedAt ?? right.createdAt).getTime() -
-          new Date(left.submittedAt ?? left.createdAt).getTime(),
-      )
+  async execute(
+    studentId: number,
+  ): Promise<BaseResponseDto<SubmittedCompetitionAttemptsByStudentResponseDto>> {
+    const competitionSubmits = await this.competitionSubmitRepository.findSubmittedBasicByStudent(studentId)
 
     return BaseResponseDto.success('Lấy danh sách lượt thi đã nộp thành công', {
       studentId,
       total: competitionSubmits.length,
-      competitionSubmits: competitionSubmits.map(CompetitionSubmitResponseDto.fromEntity),
+      competitionSubmits: competitionSubmits.map(SubmittedCompetitionAttemptBasicDto.fromEntity),
     })
   }
 }

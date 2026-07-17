@@ -123,7 +123,7 @@ Ví dụ chọn một lượt cụ thể và không chạy AI:
 
 Quyền yêu cầu: `competition-submit:get-all`.
 
-API trả về toàn bộ lượt Competition của học sinh có trạng thái `SUBMITTED`, sắp xếp theo thời gian nộp giảm dần. API này phù hợp để frontend hiển thị danh sách trước khi gọi API tạo/cập nhật với `selection = SPECIFIC`.
+API trả về toàn bộ lượt Competition của học sinh có trạng thái `SUBMITTED`, sắp xếp theo thời gian nộp giảm dần. Query chỉ đọc các cột cơ bản của `CompetitionSubmit`, không join Competition, Student, đáp án hoặc bảng quan hệ khác. API này phù hợp để frontend hiển thị danh sách trước khi gọi API tạo/cập nhật với `selection = SPECIFIC`.
 
 ### Path parameter
 
@@ -151,14 +151,7 @@ API trả về toàn bộ lượt Competition của học sinh có trạng thái
         "submittedAt": "2026-07-17T15:20:00.000Z",
         "timeSpentSeconds": 1200,
         "totalPoints": 85,
-        "maxPoints": 100,
-        "isInProgress": false,
-        "isSubmitted": true,
-        "isAbandoned": false,
-        "isGraded": false,
-        "hasScore": true,
-        "scorePercentage": 85,
-        "timeSpentDisplay": "20 phút"
+        "maxPoints": 100
       }
     ]
   }
