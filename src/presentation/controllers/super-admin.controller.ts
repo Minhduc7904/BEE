@@ -50,8 +50,9 @@ export class AdminStudentController {
   ) {}
 
   /**
-   * Tự động nộp tất cả lượt thi đang IN_PROGRESS đã hết durationMinutes hoặc
-   * đã qua endDate của cuộc thi. durationMinutes = null nghĩa là vô thời hạn.
+   * Chuyển status trực tiếp sang SUBMITTED cho tất cả lượt thi IN_PROGRESS đã hết
+   * durationMinutes hoặc đã qua endDate của cuộc thi; không chạy lại quy trình nộp/chấm bài.
+   * durationMinutes = null nghĩa là vô thời hạn.
    * POST /super-admin/competitions/auto-submit-expired-attempts
    */
   @Post('competitions/auto-submit-expired-attempts')
