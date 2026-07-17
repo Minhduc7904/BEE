@@ -1,3 +1,4 @@
+import type { MarkdownFixService as MarkdownFixServicePort } from 'src/application/interfaces/markdown-fix.interface'
 import { Injectable, Logger } from '@nestjs/common'
 import { OpenAIService } from './openai.service'
 

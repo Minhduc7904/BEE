@@ -5,7 +5,7 @@ import {
   SeoMediaBucketMediaResponseDto,
 } from 'src/application/dtos/seo-media'
 import { PaginationResponseDto } from 'src/application/dtos/pagination/pagination-response.dto'
-import { MinioService } from 'src/infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 import { MediaType } from 'src/shared/enums'
 import { SortOrder } from 'src/shared/enums/sort-order.enum'
 

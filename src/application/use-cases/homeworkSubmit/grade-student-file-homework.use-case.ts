@@ -1,7 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common'
 import type { IUnitOfWork } from 'src/domain/repositories'
 import { HomeworkContentType } from 'src/shared/enums'
-import { ConflictException, NotFoundException } from 'src/shared/exceptions/custom-exceptions'
+import {
+  ConflictException,
+  NotFoundException,
+  ValidationException,
+} from 'src/shared/exceptions/custom-exceptions'
 import { GradeStudentFileHomeworkDto } from '../../dtos/homeworkSubmit/grade-student-file-homework.dto'
 import { HomeworkSubmitResponseDto } from '../../dtos/homeworkSubmit/homework-submit.dto'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
@@ -27,8 +31,45 @@ export class GradeStudentFileHomeworkUseCase {
         throw new NotFoundException('Không tìm thấy bài nộp bài tập')
       }
 
-      if (existingSubmit.homeworkContent.type !== HomeworkContentType.FILE_UPLOAD) {
-        throw new ConflictException('API này chỉ chấm bài tập có type FILE_UPLOAD')
+      const isFileHomework = existingSubmit.homeworkContent.type === HomeworkContentType.FILE_UPLOAD
+      const isCompetitionHomework = existingSubmit.homeworkContent.type === HomeworkContentType.COMPETITION
+
+      if (!isFileHomework && !isCompetitionHomework) {
+        throw new ConflictException('Loại bài tập không được hỗ trợ chấm qua API này')
+      }
+
+      if (isCompetitionHomework) {
+        if (dto.points !== undefined && dto.points !== null) {
+          throw new ValidationException('Bài tập COMPETITION chỉ nhận feedback, không được truyền points')
+        }
+
+        if (!dto.feedback?.trim()) {
+          throw new ValidationException('feedback là bắt buộc khi cập nhật bài tập COMPETITION')
+        }
+
+        const homeworkSubmit = await repos.homeworkSubmitRepository.update(homeworkSubmitId, {
+          feedback: dto.feedback.trim(),
+        })
+
+        await repos.adminAuditLogRepository.create({
+          adminId,
+          actionKey: ACTION_KEYS.HOMEWORK_SUBMIT.UPDATE,
+          status: AuditStatus.SUCCESS,
+          resourceType: RESOURCE_TYPES.HOMEWORK_SUBMIT,
+          resourceId: homeworkSubmit.homeworkSubmitId.toString(),
+          beforeData: {
+            feedback: existingSubmit.feedback,
+          },
+          afterData: {
+            feedback: homeworkSubmit.feedback,
+          },
+        })
+
+        return HomeworkSubmitResponseDto.fromEntity(homeworkSubmit)
+      }
+
+      if (dto.points === undefined || dto.points === null) {
+        throw new ValidationException('points là bắt buộc khi chấm bài tập FILE_UPLOAD')
       }
 
       const homeworkSubmit = await repos.homeworkSubmitRepository.grade(homeworkSubmitId, {
@@ -59,6 +100,6 @@ export class GradeStudentFileHomeworkUseCase {
       return HomeworkSubmitResponseDto.fromEntity(homeworkSubmit)
     })
 
-    return BaseResponseDto.success('Chấm bài tập thành công', result)
+    return BaseResponseDto.success('Cập nhật chấm bài tập thành công', result)
   }
 }

@@ -3,7 +3,7 @@ import { BaseResponseDto } from 'src/application/dtos'
 import { CreateSeoMediaItemDto, SeoMediaItemResponseDto } from 'src/application/dtos/seo-media'
 import type { ISeoMediaItemRepository } from 'src/domain/repositories/seo-media-item.repository'
 import type { ISeoMediaSlotRepository } from 'src/domain/repositories/seo-media-slot.repository'
-import { MinioService } from 'src/infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 import { buildPublicObjectPath, detectMediaType } from 'src/shared/utils'
 import { MediaType } from 'src/shared/enums'
 

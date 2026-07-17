@@ -72,13 +72,26 @@ export class FinishCompetitionSubmitUseCase {
         if (submit.studentId !== studentId) {
             throw new ForbiddenException('Bạn không có quyền nộp bài làm này')
         }
+        if (
+            submit.status === CompetitionSubmitStatus.SUBMITTED ||
+            submit.status === CompetitionSubmitStatus.GRADED
+        ) {
+            return {
+                success: false,
+                message: 'Bài thi này đã được nộp',
+                data: { code: 'ATTEMPT_ALREADY_SUBMITTED' } as any,
+            }
+        }
         if (submit.status !== CompetitionSubmitStatus.IN_PROGRESS) {
             return {
                 success: false,
-                message: 'Bài thi này đã được nộp hoặc đã kết thúc',
-                data: null as any,
+                message: 'Lần làm bài này không còn hiệu lực để nộp',
+                data: { code: 'ATTEMPT_NOT_ACTIVE' } as any,
             }
         }
+
+        // Do not reject a valid IN_PROGRESS attempt based on the competition's end time
+        // or the attempt duration. The student must still be able to submit it.
 
         // 2. Lấy toàn bộ câu trả lời của lần làm bài này
         const answers = await this.competitionAnswerRepository.findByCompetitionSubmit(submitId)

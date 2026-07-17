@@ -1,3 +1,4 @@
+import type { MinioService as MinioServicePort } from 'src/application/interfaces/minio.interface'
 import { Injectable, Logger, OnModuleInit, NotFoundException, InternalServerErrorException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import * as Minio from 'minio'

@@ -10,7 +10,7 @@ import {
 import type { Course, Student, User } from 'src/domain/entities'
 import type { OnlineCourseInvoice } from 'src/domain/entities/online-course-payment'
 import type { IUnitOfWork, UnitOfWorkRepos } from 'src/domain/repositories'
-import { PasswordService } from 'src/infrastructure/services'
+import { PasswordService } from 'src/application/interfaces'
 import { createEnrollmentsForPaidOnlineCourseInvoice } from '../online-course-payment/online-course-invoice-enrollment.helper'
 import {
   CourseEnrollmentStatus,

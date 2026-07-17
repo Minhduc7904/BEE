@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import type { IMediaRepository, IMediaUsageRepository } from '../../../domain/repositories'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
-import { MinioService } from '../../../infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 
 interface CleanupUnusedMediaResultItem {
   mediaId: number

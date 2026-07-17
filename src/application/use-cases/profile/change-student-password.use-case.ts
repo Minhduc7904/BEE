@@ -3,7 +3,7 @@ import { Injectable, Inject } from '@nestjs/common'
 import type { IUserRepository } from '../../../domain/repositories'
 import { BaseResponseDto } from '../../dtos'
 import { ChangePasswordDto } from '../../dtos/profile/change-password.dto'
-import { PasswordService } from '../../../infrastructure/services/password.service'
+import { PasswordService } from 'src/application/interfaces'
 import {
     NotFoundException,
     UnauthorizedException,

@@ -2,7 +2,7 @@
 import { Injectable, Inject } from '@nestjs/common'
 import type { IResetPasswordTokenRepository, IUserRepository } from '../../../domain/repositories'
 import type { IEmailService } from '../../../infrastructure/interfaces/email.interface'
-import { TokenService } from '../../../infrastructure/services'
+import { TokenService } from 'src/application/interfaces'
 import {
     NotFoundException,
     ConflictException,

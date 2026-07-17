@@ -16,7 +16,7 @@ import {
     calcTrueFalsePoints,
     parseNumericAnswer,
 } from '../../../shared/constants/grading-rules.constants'
-import { CompetitionSubmitFeedbackAiService, type CompetitionSubmitStatsForAi } from 'src/infrastructure/services/competition-submit-feedback-ai.service'
+import { CompetitionSubmitFeedbackAiService, type CompetitionSubmitStatsForAi } from 'src/application/interfaces'
 import { StudentExamAttemptDetailDto } from '../../dtos/exam-attempt'
 import { QuestionTypeLabels } from '../../../shared/enums'
 

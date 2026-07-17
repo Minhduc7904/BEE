@@ -1,5 +1,5 @@
 import { PrismaService } from '../../../prisma/prisma.service'
-import { MinioService } from '../../../infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 import { EntityType } from '../../../shared/constants/entity-type.constants'
 import { USER_MEDIA_FIELDS } from '../../../shared/constants'
 import { MediaStatus } from '../../../shared/enums'

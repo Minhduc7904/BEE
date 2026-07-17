@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 import { RenderMarkdownRequestDto } from '../../dtos/markdown-fix/render-markdown-request.dto'
 import { RenderMarkdownResponseDto } from '../../dtos/markdown-fix/render-markdown-response.dto'
-import { MarkdownRenderService } from '../../../infrastructure/services/markdown-render.service'
+import { MarkdownRenderService } from 'src/application/interfaces'
 
 @Injectable()
 export class RenderMarkdownUseCase {

@@ -52,8 +52,61 @@ export class PrismaCompetitionAnswerRepository implements ICompetitionAnswerRepo
     async createMany(data: CreateCompetitionAnswerData[], txClient?: any): Promise<CompetitionAnswer[]> {
         const client = txClient || this.prisma
 
+        // A request can repeat a question and reconnecting clients can invoke this
+        // method concurrently. Keep one payload per unique database key.
+        const uniqueAnswers = [
+            ...new Map(
+                data.map((answerData) => [
+                    `${answerData.competitionSubmitId}:${answerData.questionId}`,
+                    answerData,
+                ]),
+            ).values(),
+        ]
+
+        // MySQL INSERT IGNORE is used by Prisma for skipDuplicates. This avoids
+        // the P2002 race that can still occur when two sockets upsert the same key.
+        await client.competitionAnswer.createMany({
+            data: uniqueAnswers.map((answerData) => ({
+                competitionSubmitId: answerData.competitionSubmitId,
+                questionId: answerData.questionId,
+                answer: answerData.answer ?? null,
+                selectedStatementIds: answerData.selectedStatementIds
+                    ? JSON.stringify(answerData.selectedStatementIds)
+                    : null,
+                isCorrect: answerData.isCorrect ?? null,
+                points: answerData.points ?? null,
+                maxPoints: answerData.maxPoints ?? null,
+                timeSpentSeconds: answerData.timeSpentSeconds ?? null,
+            })),
+            skipDuplicates: true,
+        })
+
         const answers = await Promise.all(
-            data.map((answerData) => this.create(answerData, client)),
+            uniqueAnswers.map(async (answerData) => {
+                const answer = await client.competitionAnswer.findUnique({
+                    where: {
+                        competitionSubmitId_questionId: {
+                            competitionSubmitId: answerData.competitionSubmitId,
+                            questionId: answerData.questionId,
+                        },
+                    },
+                    include: {
+                        competitionSubmit: {
+                            include: {
+                                competition: true,
+                                student: { include: { user: true } },
+                            },
+                        },
+                        question: true,
+                    },
+                })
+
+                if (!answer) {
+                    throw new Error('Không thể tải đáp án cuộc thi sau khi khởi tạo')
+                }
+
+                return CompetitionAnswerMapper.toDomainCompetitionAnswer(answer)!
+            }),
         )
 
         return answers

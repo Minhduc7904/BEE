@@ -8,6 +8,7 @@ import { NotificationGateway } from './gateways/notification.gateway'
 import { StatusGateway } from './gateways/status.gateway'
 import { LessonGateway } from './gateways/lesson.gateway'
 import { AttendanceGateway } from './gateways/attendance.gateway'
+import { CompetitionGateway } from './gateways/competition.gateway'
 import { AuthController } from './controllers/auth.controller'
 import { RoleController } from './controllers/role.controller'
 import { GoogleAuthAdminController } from './controllers/google-auth-admin.controller'
@@ -158,6 +159,7 @@ import { NewsArticleController } from './controllers/news-article.controller'
     StatusGateway,
     LessonGateway,
     AttendanceGateway,
+    CompetitionGateway,
   ],
   exports: [
     // Export gateways for use cases to inject
@@ -165,6 +167,7 @@ import { NewsArticleController } from './controllers/news-article.controller'
     StatusGateway,
     LessonGateway,
     AttendanceGateway,
+    CompetitionGateway,
   ],
 })
 export class PresentationModule {}

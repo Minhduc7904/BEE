@@ -2,7 +2,7 @@ import { Injectable, Inject } from '@nestjs/common'
 import type { IMediaRepository } from '../../../domain/repositories/media.repository'
 import { PaginationResponseDto } from '../../dtos/pagination/pagination-response.dto'
 import { GetMediaListDto, MediaResponseDto } from '../../dtos/media'
-import { MinioService } from '../../../infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 import { MediaType, MediaStatus } from 'src/shared/enums'
 
 @Injectable()

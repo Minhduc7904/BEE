@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { PaginationResponseDto, TeacherProfileListQueryDto, TeacherProfileResponseDto } from 'src/application/dtos'
 import type { IUnitOfWork } from 'src/domain/repositories'
-import { MinioService } from 'src/infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 import { attachProfileImageUrlsToTeacherProfiles } from './teacher-profile-media.util'
 
 @Injectable()

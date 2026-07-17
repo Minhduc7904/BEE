@@ -91,6 +91,7 @@ export interface ICompetitionSubmitRepository {
   update(id: number, data: UpdateCompetitionSubmitData, txClient?: any): Promise<CompetitionSubmit>
   delete(id: number, txClient?: any): Promise<void>
   findAll(txClient?: any): Promise<CompetitionSubmit[]>
+  findAllInProgressWithCompetition(txClient?: any): Promise<CompetitionSubmit[]>
 
   // Pagination methods
   findAllWithPagination(
@@ -114,6 +115,7 @@ export interface ICompetitionSubmitRepository {
 
   findByCompetition(competitionId: number, txClient?: any): Promise<CompetitionSubmit[]>
   findByStudent(studentId: number, txClient?: any): Promise<CompetitionSubmit[]>
+  findSubmittedBasicByStudent(studentId: number, txClient?: any): Promise<CompetitionSubmit[]>
   findByCompetitionAndStudent(competitionId: number, studentId: number, txClient?: any): Promise<CompetitionSubmit[]>
 
   findLatestAttempt(competitionId: number, studentId: number, txClient?: any): Promise<CompetitionSubmit | null>

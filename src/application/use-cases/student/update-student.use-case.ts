@@ -10,7 +10,7 @@ import {
   ForbiddenException,
 } from '../../../shared/exceptions/custom-exceptions'
 import { BaseResponseDto } from 'src/application/dtos'
-import { PasswordService } from '../../../infrastructure/services'
+import { PasswordService } from 'src/application/interfaces'
 
 @Injectable()
 export class UpdateStudentUseCase {

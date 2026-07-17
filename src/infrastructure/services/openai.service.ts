@@ -1,3 +1,4 @@
+import type { OpenAIService as OpenAIServicePort } from 'src/application/interfaces/openai.interface'
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import OpenAI from 'openai'

@@ -1,6 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common'
 import type { IUnitOfWork } from '../../../domain/repositories/unit-of-work.repository'
-import { MinioService } from '../../../infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 import { UpdateAvatarResponseDto } from '../../dtos/user/update-avatar.dto'
 import {

@@ -9,7 +9,7 @@ import {
 import { ExamVisibility, MediaStatus } from '../../../shared/enums'
 import { EntityType } from '../../../shared/constants/entity-type.constants'
 import { EXAM_CONTENT_FIELDS, EXAM_MEDIA_FIELDS } from '../../../shared/constants/media-field-name.constants'
-import { MinioService } from '../../../infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 import { ProcessContentWithPresignedUrlsAndRenderHtmlUseCase } from '../media/process-content-with-presigned-urls-and-render-html.use-case'
 import { type ContentField } from '../media/process-content-with-presigned-urls.use-case'
 

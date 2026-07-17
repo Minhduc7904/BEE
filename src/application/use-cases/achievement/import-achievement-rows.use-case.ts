@@ -5,7 +5,7 @@ import {
   BaseResponseDto,
 } from 'src/application/dtos'
 import type { IAchievementBoardRepository } from 'src/domain/repositories'
-import { ExcelService } from 'src/infrastructure/services'
+import { ExcelService } from 'src/application/interfaces'
 import { NotFoundException } from 'src/shared/exceptions/custom-exceptions'
 import { ACHIEVEMENT_ROW_EXCEL_HEADERS } from './achievement-excel.constants'
 

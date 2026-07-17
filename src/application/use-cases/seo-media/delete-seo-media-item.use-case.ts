@@ -1,7 +1,7 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common'
 import { BaseResponseDto } from 'src/application/dtos'
 import type { ISeoMediaItemRepository } from 'src/domain/repositories/seo-media-item.repository'
-import { MinioService } from 'src/infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 
 @Injectable()
 export class DeleteSeoMediaItemUseCase {

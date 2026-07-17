@@ -1,3 +1,4 @@
+import type { CompetitionSubmitFeedbackAiService as CompetitionSubmitFeedbackAiServicePort } from 'src/application/interfaces/competition-submit-feedback-ai.interface'
 import { Injectable, Logger } from '@nestjs/common'
 import { OpenAIService } from './openai.service'
 

@@ -9,6 +9,7 @@ import { SocketRoomService } from './services/socket/socket-room.service'
 import { JwtTokenService } from './services/jwt.service'
 import { NotificationRealtimeService } from './services/notification/notification-realtime.service'
 import { StatusRealtimeService } from './services/socket/status-realtime.service'
+import { NotificationRealtimeService as NotificationRealtimeServicePort } from 'src/application/interfaces'
 /**
  * SocketModule
  * 
@@ -39,12 +40,14 @@ import { StatusRealtimeService } from './services/socket/status-realtime.service
         JwtTokenService, // Required for token validation
         NotificationRealtimeService, // Real-time notification service
         StatusRealtimeService, // Real-time status service
+        { provide: NotificationRealtimeServicePort, useExisting: NotificationRealtimeService },
     ],
     exports: [
         SocketService,
         SocketAuthService,
         SocketRoomService,
         NotificationRealtimeService,
+        NotificationRealtimeServicePort,
         StatusRealtimeService,
     ],
 })

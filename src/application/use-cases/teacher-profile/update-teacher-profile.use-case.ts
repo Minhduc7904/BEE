@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { BaseResponseDto, TeacherProfileResponseDto, UpdateTeacherProfileDto } from 'src/application/dtos'
 import type { IUnitOfWork, UnitOfWorkRepos } from 'src/domain/repositories'
-import { MinioService } from 'src/infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 import { TEACHER_PROFILE_MEDIA_FIELDS } from 'src/shared/constants'
 import { EntityType } from 'src/shared/constants/entity-type.constants'
 import { MediaStatus, MediaType, MediaVisibility } from 'src/shared/enums'

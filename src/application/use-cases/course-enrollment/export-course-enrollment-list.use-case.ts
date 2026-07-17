@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import type { ICourseEnrollmentRepository } from 'src/domain/repositories/course-enrollment.repository'
-import { ExcelColumn, ExcelService } from '../../../infrastructure/services/excel.service'
+import { ExcelColumn, ExcelService } from 'src/application/interfaces'
 import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 import { Gender } from '../../../shared/enums'
 import { ExportCourseEnrollmentListOptionDto } from '../../dtos/course-enrollment/export-course-enrollment-list-option.dto'

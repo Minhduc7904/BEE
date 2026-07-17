@@ -1,3 +1,4 @@
+import type { NewsArticleSeoAiService as NewsArticleSeoAiServicePort } from 'src/application/interfaces/news-article-seo-ai.interface'
 import { Injectable } from '@nestjs/common'
 import { OpenAIService } from './openai.service'
 import { TextSearchUtil } from 'src/shared/utils/text-search.util'

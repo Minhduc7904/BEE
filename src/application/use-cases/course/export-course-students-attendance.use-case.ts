@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import type { ICourseRepository } from '../../../domain/repositories/course.repository'
-import { ExcelService, ExcelColumn } from '../../../infrastructure/services/excel.service'
+import { ExcelService, ExcelColumn } from 'src/application/interfaces'
 import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 import { ExportCourseStudentsAttendanceOptionsDto } from '../../dtos/course/export-course-students-attendance-options.dto'
 import { CourseStudentsAttendanceQueryDto } from '../../dtos/course/course-students-attendance-query.dto'

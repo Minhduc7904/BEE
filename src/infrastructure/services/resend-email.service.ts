@@ -1,3 +1,4 @@
+import type { ResendEmailService as ResendEmailServicePort } from 'src/application/interfaces/resend-email.interface'
 // src/infrastructure/services/resend-email.service.ts
 import { Injectable, Inject, Logger } from '@nestjs/common'
 import type { ConfigType } from '@nestjs/config'

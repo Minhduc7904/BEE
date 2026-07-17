@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { ExcelService } from 'src/infrastructure/services'
+import { ExcelService } from 'src/application/interfaces'
 import { ACHIEVEMENT_ROW_EXCEL_COLUMNS } from './achievement-excel.constants'
 
 @Injectable()

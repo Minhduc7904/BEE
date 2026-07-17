@@ -1,3 +1,4 @@
+import type { FileConverterService as FileConverterServicePort } from 'src/application/interfaces/file-converter.interface'
 import { Injectable, Logger, BadRequestException } from '@nestjs/common'
 import { promises as fs } from 'fs'
 import { Readable } from 'stream'

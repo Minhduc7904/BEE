@@ -1,7 +1,7 @@
 import { Injectable, Inject, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common'
 import type { IMediaRepository } from '../../../domain/repositories/media.repository'
 import type { IMediaUsageRepository } from '../../../domain/repositories/media-usage.repository'
-import { MinioService } from '../../../infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 import { MediaStatus, MediaVisibility } from 'src/shared/enums'
 import { BaseResponseDto } from '../../dtos'
 import { MediaViewRequestDto, MediaDownloadResponseDto } from '../../dtos/media'

@@ -1,3 +1,4 @@
+import type { TeacherProfileSeoAiService as TeacherProfileSeoAiServicePort } from 'src/application/interfaces/teacher-profile-seo-ai.interface'
 import { Injectable } from '@nestjs/common'
 import { OpenAIService } from './openai.service'
 import { TextSearchUtil } from 'src/shared/utils/text-search.util'

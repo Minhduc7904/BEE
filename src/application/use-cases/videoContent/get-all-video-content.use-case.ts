@@ -4,7 +4,7 @@ import type { IVideoContentRepository, IMediaUsageRepository } from '../../../do
 import { VideoContentListQueryDto } from '../../dtos/videoContent/video-content-list-query.dto'
 import { VideoContentListResponseDto, VideoContentResponseDto, MediaFileDto } from '../../dtos/videoContent/video-content.dto'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
-import { MinioService } from '../../../infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 import { EntityType } from 'src/shared/constants/entity-type.constants'
 import { VIDEO_MEDIA_FIELDS } from 'src/shared/constants'
 import { MediaStatus } from 'src/shared/enums'

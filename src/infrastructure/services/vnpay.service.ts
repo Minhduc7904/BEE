@@ -1,3 +1,4 @@
+import type { VnpayService as VnpayServicePort } from 'src/application/interfaces/vnpay.interface'
 import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { createHmac } from 'crypto'

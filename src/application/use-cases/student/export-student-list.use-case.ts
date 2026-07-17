@@ -1,6 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common'
 import type { IStudentRepository } from 'src/domain/repositories'
-import { ExcelService, ExcelColumn } from '../../../infrastructure/services/excel.service'
+import { ExcelService, ExcelColumn } from 'src/application/interfaces'
 import { ExportStudentListOptionDto } from '../../dtos/student/export-student-list-option.dto'
 import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 import { Gender, StudentType } from 'src/shared/enums'

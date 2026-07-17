@@ -1,6 +1,6 @@
 import { Injectable, Inject, BadRequestException } from '@nestjs/common'
 import type { IMediaRepository } from '../../../domain/repositories/media.repository'
-import { MinioService } from '../../../infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 import { MediaType, MediaStatus } from '../../../shared/enums'
 import { BaseResponseDto } from '../../dtos'
 import { CreatePresignedUploadDto } from '../../dtos/media/create-presigned-upload.dto'

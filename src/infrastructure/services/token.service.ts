@@ -1,3 +1,4 @@
+import type { TokenService as TokenServicePort } from 'src/application/interfaces/token.interface'
 // src/infrastructure/services/email-verification-token.service.ts
 import { Injectable } from '@nestjs/common'
 import { randomBytes, createHash } from 'crypto'

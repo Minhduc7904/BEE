@@ -1,3 +1,4 @@
+import type { DocumentThumbnailService as DocumentThumbnailServicePort } from 'src/application/interfaces/document-thumbnail.interface'
 import { Injectable } from '@nestjs/common'
 import { createCanvas } from 'canvas'
 import { join } from 'path'

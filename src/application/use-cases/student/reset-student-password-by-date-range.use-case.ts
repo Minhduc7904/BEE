@@ -1,7 +1,7 @@
 import { Inject, Injectable, BadRequestException } from '@nestjs/common'
 import type { IUnitOfWork } from 'src/domain/repositories'
 import { BaseResponseDto } from 'src/application/dtos/common/base-response.dto'
-import { PasswordService } from 'src/infrastructure/services'
+import { PasswordService } from 'src/application/interfaces'
 import { ResetStudentPasswordByDateRangeDto } from 'src/application/dtos/student/reset-student-password-by-date-range.dto'
 import { SortOrder } from 'src/shared/enums/sort-order.enum'
 
