@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common'
 import type { ICompetitionSubmitRepository } from '../../../domain/repositories/competition-submit.repository'
 import { CompetitionSubmit } from '../../../domain/entities/exam/competition-submit.entity'
+import { CompetitionSubmitStatus } from '../../../shared/enums/competition-submit-status.enum'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
-import { FinishCompetitionSubmitUseCase } from './finish-competition-submit.use-case'
 
 type AutoSubmitReason = 'ATTEMPT_TIME_EXPIRED' | 'COMPETITION_ENDED'
 
@@ -17,7 +17,6 @@ export class AutoSubmitExpiredCompetitionAttemptsUseCase {
   constructor(
     @Inject('ICompetitionSubmitRepository')
     private readonly competitionSubmitRepository: ICompetitionSubmitRepository,
-    private readonly finishCompetitionSubmitUseCase: FinishCompetitionSubmitUseCase,
   ) {}
 
   async execute(now = new Date()): Promise<BaseResponseDto<any>> {
@@ -31,7 +30,6 @@ export class AutoSubmitExpiredCompetitionAttemptsUseCase {
       )
 
     const submitted: AutoSubmitResultItem[] = []
-    const skipped: Array<AutoSubmitResultItem & { reasonMessage: string }> = []
     const failed: Array<AutoSubmitResultItem & { reasonMessage: string }> = []
 
     for (const { submit, reason } of candidates) {
@@ -42,16 +40,10 @@ export class AutoSubmitExpiredCompetitionAttemptsUseCase {
       }
 
       try {
-        const result = await this.finishCompetitionSubmitUseCase.execute(
-          submit.competitionSubmitId,
-          submit.studentId,
-        )
-
-        if (result.success) {
-          submitted.push(item)
-        } else {
-          skipped.push({ ...item, reasonMessage: result.message })
-        }
+        await this.competitionSubmitRepository.update(submit.competitionSubmitId, {
+          status: CompetitionSubmitStatus.SUBMITTED,
+        })
+        submitted.push(item)
       } catch (error) {
         failed.push({
           ...item,
@@ -60,15 +52,13 @@ export class AutoSubmitExpiredCompetitionAttemptsUseCase {
       }
     }
 
-    return BaseResponseDto.success('Đã kiểm tra và tự động nộp các bài thi quá hạn', {
+    return BaseResponseDto.success('Đã chuyển trạng thái SUBMITTED cho các lượt thi quá hạn', {
       checkedAt: now.toISOString(),
       inProgressCount: inProgressSubmits.length,
       eligibleCount: candidates.length,
       submittedCount: submitted.length,
-      skippedCount: skipped.length,
       failedCount: failed.length,
       submitted,
-      skipped,
       failed,
     })
   }
