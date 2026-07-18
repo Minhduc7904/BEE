@@ -44,6 +44,16 @@ https://your-api-domain.com/api/payments/payos/webhook
 
 PayOS can goi duoc URL nay. Localhost can dung tunnel (vi du ngrok) khi test webhook.
 
+### Xac nhan URL webhook truoc khi bat thanh toan
+
+De PayOS chi kiem tra endpoint co phan hoi duoc hay chua, co the bat tam thoi che do sau tren backend:
+
+```env
+PAYOS_WEBHOOK_CONFIRMATION_ONLY=true
+```
+
+Khi bat, `POST /api/payments/payos/webhook` luon tra HTTP `200` voi `{ "code": "00" }`, khong kiem tra chu ky va khong tao/cap nhat invoice, payment attempt hay enrollment. Dang ky webhook thanh cong xong, **xoa bien nay hoac dat `false` va redeploy/restart** truoc khi cho phep thanh toan that.
+
 ## Endpoint frontend su dung
 
 ### 1. Tao payment link

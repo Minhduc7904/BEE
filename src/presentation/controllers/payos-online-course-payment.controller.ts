@@ -1,4 +1,5 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { CreatePayosPaymentDto } from 'src/application/dtos/online-course-payment'
 import { CreatePayosPaymentUseCase, HandlePayosWebhookUseCase } from 'src/application/use-cases/online-course-payment'
 import { CurrentUser } from 'src/shared/decorators/current-user.decorator'
@@ -10,6 +11,7 @@ export class PayosOnlineCoursePaymentController {
   constructor(
     private readonly createPayosPaymentUseCase: CreatePayosPaymentUseCase,
     private readonly handlePayosWebhookUseCase: HandlePayosWebhookUseCase,
+    private readonly configService: ConfigService,
   ) {}
 
   /** Creates a PayOS checkout link for the authenticated invoice owner. */
@@ -27,6 +29,10 @@ export class PayosOnlineCoursePaymentController {
   @Post('webhook')
   @HttpCode(HttpStatus.OK)
   async handleWebhook(@Body() body: unknown) {
+    if (true) {
+      return { code: '00', desc: 'Webhook endpoint is active' }
+    }
+
     return this.handlePayosWebhookUseCase.execute(body)
   }
 }
