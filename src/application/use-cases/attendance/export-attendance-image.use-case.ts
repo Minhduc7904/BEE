@@ -1,6 +1,6 @@
 // src/application/use-cases/attendance/export-attendance-image.use-case.ts
 import { Injectable } from '@nestjs/common'
-import { ImageExportService } from '../../../infrastructure/services/image-export.service'
+import { ImageExportService } from 'src/application/interfaces'
 import { ExportAttendanceImageOptionsDto } from '../../dtos/attendance/export-attendance-image-options.dto'
 import { AttendanceImageTemplate } from '../../../infrastructure/templates/attendance-image.template'
 import { formatVnDateISO } from '../../../shared/utils/vietnam-date.util'

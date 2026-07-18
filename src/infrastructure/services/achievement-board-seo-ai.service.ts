@@ -1,3 +1,4 @@
+import type { AchievementBoardSeoAiService as AchievementBoardSeoAiServicePort } from 'src/application/interfaces/achievement-board-seo-ai.interface'
 import { Injectable } from '@nestjs/common'
 import { OpenAIService } from './openai.service'
 import { TextSearchUtil } from 'src/shared/utils/text-search.util'

@@ -3,6 +3,7 @@ import { PaginationResponseDto } from '../pagination/pagination-response.dto';
 import { CourseResponseDto } from '../course/course.dto';
 import { StudentResponseDto } from '../student/student.dto';
 import { CourseEnrollmentStatus } from 'src/shared/enums';
+import type { PublicSeoMediaFileDto } from '../course/public-seo-course.dto';
 
 export class CourseEnrollmentResponseDto {
     enrollmentId: number;
@@ -41,10 +42,25 @@ export class CourseEnrollmentResponseDto {
 
 export class StudentCourseEnrollmentResponseDto extends CourseEnrollmentResponseDto {
     completionPercentage: number;
+    thumbnail?: PublicSeoMediaFileDto;
+    teacherName?: string;
+    teacherAvatarUrl?: string;
 
-    constructor(enrollment: CourseEnrollment, completionPercentage: number) {
+    constructor(
+        enrollment: CourseEnrollment,
+        completionPercentage: number,
+        thumbnail?: PublicSeoMediaFileDto,
+        teacherAvatarUrl?: string,
+    ) {
         super(enrollment);
         this.completionPercentage = completionPercentage;
+        this.thumbnail = thumbnail;
+        this.teacherName = this.course?.teacherName;
+        this.teacherAvatarUrl = teacherAvatarUrl;
+
+        if (this.course?.teacher) {
+            this.course.teacher.avatarUrl = teacherAvatarUrl;
+        }
     }
 }
 

@@ -1,3 +1,4 @@
+import type { DocumentContentExtractionService as DocumentContentExtractionServicePort } from 'src/application/interfaces/document-content-extraction.interface'
 import { BadRequestException, Inject, Injectable } from '@nestjs/common'
 import { PDFDocument } from 'pdf-lib'
 import type { IMediaRepository, IMediaUsageRepository } from 'src/domain/repositories'

@@ -5,11 +5,7 @@ import type { ICourseEnrollmentRepository } from '../../../domain/repositories/c
 import type { IStudentLearningItemRepository } from '../../../domain/repositories/student-learning-item.repository'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 import { StudentLessonResponseDto } from '../../dtos/lesson/student-lesson.dto'
-import {
-  ConflictException,
-  ForbiddenException,
-  NotFoundException,
-} from '../../../shared/exceptions/custom-exceptions'
+import { ConflictException, ForbiddenException, NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 import { CourseType, CourseVisibility } from 'src/shared/enums'
 import { StudentClassLessonAccessService } from 'src/application/services/student-class-lesson-access.service'
 
@@ -49,9 +45,7 @@ export class GetStudentCourseLessonsUseCase {
     }
 
     const publicLessons = await this.lessonRepository.findByCourseForStudent(courseId)
-    const lessons = isActiveEnrollment
-      ? await this.filterLessonsForStudentClass(publicLessons, courseId, studentId)
-      : publicLessons
+    const lessons = await this.filterLessonsForStudentClass(publicLessons, courseId, studentId)
 
     const learningItemIds: number[] = []
     lessons.forEach((lesson) => {
@@ -67,9 +61,7 @@ export class GetStudentCourseLessonsUseCase {
         ? await this.studentLearningItemRepository.findByStudentAndItems(studentId, learningItemIds)
         : []
 
-    const studentLearningItemsMap = new Map(
-      studentLearningItemsList.map((sli) => [sli.learningItemId, sli]),
-    )
+    const studentLearningItemsMap = new Map(studentLearningItemsList.map((sli) => [sli.learningItemId, sli]))
 
     return {
       success: true,
@@ -78,11 +70,7 @@ export class GetStudentCourseLessonsUseCase {
     }
   }
 
-  private async filterLessonsForStudentClass(
-    lessons: any[],
-    courseId: number,
-    studentId: number,
-  ): Promise<any[]> {
+  private async filterLessonsForStudentClass(lessons: any[], courseId: number, studentId: number): Promise<any[]> {
     const lessonOrderMap = await this.studentClassLessonAccessService.getVisibleLessonOrderMap(courseId, studentId)
 
     return lessons

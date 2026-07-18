@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { BaseResponseDto, CreateAchievementBoardDto, AchievementBoardResponseDto } from 'src/application/dtos'
 import type { IAchievementBoardRepository } from 'src/domain/repositories'
-import { AchievementBoardSeoAiService } from 'src/infrastructure/services'
+import { AchievementBoardSeoAiService } from 'src/application/interfaces'
 import { generateUniqueAchievementBoardSlug } from './achievement-board-slug.util'
 
 @Injectable()

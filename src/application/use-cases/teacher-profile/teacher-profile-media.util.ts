@@ -1,7 +1,7 @@
 import { TeacherProfileResponseDto } from 'src/application/dtos'
 import type { MediaEntity } from 'src/domain/entities'
 import type { IUnitOfWork } from 'src/domain/repositories'
-import { MinioService } from 'src/infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 import { TEACHER_PROFILE_MEDIA_FIELDS } from 'src/shared/constants'
 import { EntityType } from 'src/shared/constants/entity-type.constants'
 import { MediaStatus } from 'src/shared/enums'

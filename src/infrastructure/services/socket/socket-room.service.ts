@@ -1,3 +1,4 @@
+import type { SocketRoomService as SocketRoomServicePort } from 'src/application/interfaces/socket-room.interface'
 // src/infrastructure/services/socket/socket-room.service.ts
 import { Injectable, Logger } from '@nestjs/common'
 import { Socket } from 'socket.io'

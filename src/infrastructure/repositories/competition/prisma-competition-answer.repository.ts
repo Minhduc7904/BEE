@@ -19,6 +19,7 @@ export class PrismaCompetitionAnswerRepository implements ICompetitionAnswerRepo
 
     async create(data: CreateCompetitionAnswerData, txClient?: any): Promise<CompetitionAnswer> {
         const client = txClient || this.prisma
+        const includeRelations = true
 
         const created = await client.competitionAnswer.create({
             data: {
@@ -31,19 +32,23 @@ export class PrismaCompetitionAnswerRepository implements ICompetitionAnswerRepo
                 maxPoints: data.maxPoints ?? null,
                 timeSpentSeconds: data.timeSpentSeconds ?? null,
             },
-            include: {
-                competitionSubmit: {
+            ...(includeRelations
+                ? {
                     include: {
-                        competition: true,
-                        student: {
+                        competitionSubmit: {
                             include: {
-                                user: true,
+                                competition: true,
+                                student: {
+                                    include: {
+                                        user: true,
+                                    },
+                                },
                             },
                         },
+                        question: true,
                     },
-                },
-                question: true,
-            },
+                }
+                : {}),
         })
 
         return CompetitionAnswerMapper.toDomainCompetitionAnswer(created)!
@@ -52,15 +57,76 @@ export class PrismaCompetitionAnswerRepository implements ICompetitionAnswerRepo
     async createMany(data: CreateCompetitionAnswerData[], txClient?: any): Promise<CompetitionAnswer[]> {
         const client = txClient || this.prisma
 
+        // A request can repeat a question and reconnecting clients can invoke this
+        // method concurrently. Keep one payload per unique database key.
+        const uniqueAnswers = [
+            ...new Map(
+                data.map((answerData) => [
+                    `${answerData.competitionSubmitId}:${answerData.questionId}`,
+                    answerData,
+                ]),
+            ).values(),
+        ]
+
+        // MySQL INSERT IGNORE is used by Prisma for skipDuplicates. This avoids
+        // the P2002 race that can still occur when two sockets upsert the same key.
+        await client.competitionAnswer.createMany({
+            data: uniqueAnswers.map((answerData) => ({
+                competitionSubmitId: answerData.competitionSubmitId,
+                questionId: answerData.questionId,
+                answer: answerData.answer ?? null,
+                selectedStatementIds: answerData.selectedStatementIds
+                    ? JSON.stringify(answerData.selectedStatementIds)
+                    : null,
+                isCorrect: answerData.isCorrect ?? null,
+                points: answerData.points ?? null,
+                maxPoints: answerData.maxPoints ?? null,
+                timeSpentSeconds: answerData.timeSpentSeconds ?? null,
+            })),
+            skipDuplicates: true,
+        })
+
         const answers = await Promise.all(
-            data.map((answerData) => this.create(answerData, client)),
+            uniqueAnswers.map(async (answerData) => {
+                const answer = await client.competitionAnswer.findUnique({
+                    where: {
+                        competitionSubmitId_questionId: {
+                            competitionSubmitId: answerData.competitionSubmitId,
+                            questionId: answerData.questionId,
+                        },
+                    },
+                    include: {
+                        competitionSubmit: {
+                            include: {
+                                competition: true,
+                                student: { include: { user: true } },
+                            },
+                        },
+                        question: true,
+                    },
+                })
+
+                if (!answer) {
+                    throw new Error('Không thể tải đáp án cuộc thi sau khi khởi tạo')
+                }
+
+                return CompetitionAnswerMapper.toDomainCompetitionAnswer(answer)!
+            }),
         )
 
         return answers
     }
 
-    async findById(id: number, txClient?: any): Promise<CompetitionAnswer | null> {
+    async findById(id: number, txClient?: any, options?: { includeRelations?: boolean }): Promise<CompetitionAnswer | null> {
         const client = txClient || this.prisma
+        const includeRelations = options?.includeRelations !== false
+
+        if (!includeRelations) {
+            const answer = await client.competitionAnswer.findUnique({
+                where: { competitionAnswerId: id },
+            })
+            return answer ? CompetitionAnswerMapper.toDomainCompetitionAnswer(answer) : null
+        }
 
         const answer = await client.competitionAnswer.findUnique({
             where: { competitionAnswerId: id },
@@ -84,8 +150,9 @@ export class PrismaCompetitionAnswerRepository implements ICompetitionAnswerRepo
         return CompetitionAnswerMapper.toDomainCompetitionAnswer(answer)
     }
 
-    async update(id: number, data: UpdateCompetitionAnswerData, txClient?: any): Promise<CompetitionAnswer> {
+    async update(id: number, data: UpdateCompetitionAnswerData, txClient?: any, options?: { includeRelations?: boolean }): Promise<CompetitionAnswer> {
         const client = txClient || this.prisma
+        const includeRelations = options?.includeRelations !== false
 
         const updateData: any = {}
 
@@ -103,19 +170,66 @@ export class PrismaCompetitionAnswerRepository implements ICompetitionAnswerRepo
         const updated = await client.competitionAnswer.update({
             where: { competitionAnswerId: id },
             data: updateData,
-            include: {
-                competitionSubmit: {
+            ...(includeRelations
+                ? {
                     include: {
-                        competition: true,
-                        student: {
+                        competitionSubmit: {
                             include: {
-                                user: true,
+                                competition: true,
+                                student: {
+                                    include: {
+                                        user: true,
+                                    },
+                                },
                             },
                         },
+                        question: true,
                     },
-                },
-                question: true,
+                }
+                : {}),
+        })
+
+        return CompetitionAnswerMapper.toDomainCompetitionAnswer(updated)!
+    }
+
+    async incrementTimeSpentSeconds(id: number, seconds: number, txClient?: any, options?: { includeRelations?: boolean }): Promise<CompetitionAnswer> {
+        const client = txClient || this.prisma
+        const includeRelations = options?.includeRelations !== false
+
+        await client.competitionAnswer.updateMany({
+            where: {
+                competitionAnswerId: id,
+                timeSpentSeconds: null,
             },
+            data: {
+                timeSpentSeconds: 0,
+            },
+        })
+
+        const updated = await client.competitionAnswer.update({
+            where: { competitionAnswerId: id },
+            data: {
+                timeSpentSeconds: {
+                    increment: seconds,
+                },
+            },
+            ...(includeRelations
+                ? {
+                    include: {
+                        competitionSubmit: {
+                            include: {
+                                competition: true,
+                                student: {
+                                    include: {
+                                        user: true,
+                                    },
+                                },
+                            },
+                        },
+                        question: true,
+                    },
+                }
+                : {}),
         })
 
         return CompetitionAnswerMapper.toDomainCompetitionAnswer(updated)!
@@ -124,11 +238,12 @@ export class PrismaCompetitionAnswerRepository implements ICompetitionAnswerRepo
     async updateMany(
         updates: { id: number; data: UpdateCompetitionAnswerData }[],
         txClient?: any,
+        options?: { includeRelations?: boolean },
     ): Promise<CompetitionAnswer[]> {
         const client = txClient || this.prisma
 
         const updatedAnswers = await Promise.all(
-            updates.map((update) => this.update(update.id, update.data, client)),
+            updates.map((update) => this.update(update.id, update.data, client, options)),
         )
 
         return updatedAnswers
@@ -220,14 +335,13 @@ export class PrismaCompetitionAnswerRepository implements ICompetitionAnswerRepo
         return this.findAllWithPagination(pagination || {}, filters, txClient)
     }
 
-    async findByCompetitionSubmit(competitionSubmitId: number, txClient?: any): Promise<CompetitionAnswer[]> {
+    async findByCompetitionSubmit(competitionSubmitId: number, txClient?: any, options?: { includeRelations?: boolean }): Promise<CompetitionAnswer[]> {
         const client = txClient || this.prisma
+        const includeRelations = options?.includeRelations !== false
 
         const answers = await client.competitionAnswer.findMany({
             where: { competitionSubmitId },
-            include: {
-                question: true,
-            },
+            ...(includeRelations ? { include: { question: true } } : {}),
             orderBy: { createdAt: 'asc' },
         })
 

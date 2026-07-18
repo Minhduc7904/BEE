@@ -1,4 +1,4 @@
-import { ExcelColumn } from 'src/infrastructure/services/excel.service'
+import { ExcelColumn } from 'src/application/interfaces'
 
 export const ACHIEVEMENT_ROW_EXCEL_HEADERS = ['Ten hoc sinh', 'Truong', 'Khoi', 'Diem']
 

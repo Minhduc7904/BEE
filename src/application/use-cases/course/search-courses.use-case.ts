@@ -9,7 +9,7 @@ import { PERMISSION_CODES } from '../../../shared/constants/permissions/permissi
 import { CourseFilterOptions } from '../../../domain/interface/course/course.interface'
 import type { IMediaUsageRepository } from '../../../domain/repositories/media-usage.repository'
 import { attachThumbnailsToCourseResponses } from './course-media.helper'
-import { MinioService } from '../../../infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 
 interface SearchContext {
     user?: {

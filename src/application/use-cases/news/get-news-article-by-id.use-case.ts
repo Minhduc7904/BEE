@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { BaseResponseDto, NewsArticleResponseDto } from 'src/application/dtos'
 import type { INewsArticleRepository, IUnitOfWork } from 'src/domain/repositories'
-import { MinioService } from 'src/infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 import { NotFoundException } from 'src/shared/exceptions/custom-exceptions'
 import { attachNewsArticleMediaUrls } from './news-article-media.util'
 

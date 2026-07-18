@@ -6,7 +6,9 @@ import type { CourseFilterOptions } from '../../../domain/interface'
 import { CourseType, CourseVisibility } from 'src/shared/enums'
 import type { IMediaUsageRepository } from '../../../domain/repositories/media-usage.repository'
 import { attachThumbnailsToCourseResponses } from './course-media.helper'
-import { MinioService } from '../../../infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
+import { PrismaService } from '../../../prisma/prisma.service'
+import { getTeacherAvatarUrls } from './course-teacher-avatar.util'
 
 @Injectable()
 export class GetStudentAvailableOnlineCoursesUseCase {
@@ -16,6 +18,7 @@ export class GetStudentAvailableOnlineCoursesUseCase {
     @Inject('IMediaUsageRepository')
     private readonly mediaUsageRepository: IMediaUsageRepository,
     private readonly minioService: MinioService,
+    private readonly prisma: PrismaService,
   ) {}
 
   async execute(query: CourseListQueryDto, studentId: number): Promise<CourseListResponseDto> {
@@ -29,7 +32,26 @@ export class GetStudentAvailableOnlineCoursesUseCase {
     const pagination = query.toCoursePaginationOptions()
     const result = await this.courseRepository.findAllWithPagination(pagination, filters)
     const courseResponses = CourseResponseDto.fromEntities(result.courses)
-    await attachThumbnailsToCourseResponses(courseResponses, this.mediaUsageRepository, this.minioService)
+    const teacherUserIds = courseResponses
+      .map((course) => course.teacher?.userId)
+      .filter((userId): userId is number => userId !== undefined)
+
+    const [, teacherAvatarUrlByUserId] = await Promise.all([
+      attachThumbnailsToCourseResponses(courseResponses, this.mediaUsageRepository, this.minioService),
+      getTeacherAvatarUrls(this.prisma, this.minioService, teacherUserIds),
+    ])
+
+    for (const course of courseResponses) {
+      const teacherUserId = course.teacher?.userId
+      const teacherAvatarUrl = teacherUserId
+        ? teacherAvatarUrlByUserId.get(teacherUserId)
+        : undefined
+
+      course.teacherAvatarUrl = teacherAvatarUrl
+      if (course.teacher) {
+        course.teacher.avatarUrl = teacherAvatarUrl
+      }
+    }
 
     return new CourseListResponseDto(
       courseResponses,

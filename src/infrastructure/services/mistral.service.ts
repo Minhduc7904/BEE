@@ -1,3 +1,4 @@
+import type { MistralService as MistralServicePort } from 'src/application/interfaces/mistral.interface'
 import { Injectable, Logger } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { Mistral } from '@mistralai/mistralai'

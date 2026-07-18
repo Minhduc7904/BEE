@@ -1,5 +1,7 @@
 # Course SEO Page Flow
 
+> Tài liệu này dành cho trang public SEO. Luồng dành cho học sinh đã đăng nhập nằm tại [COURSE-STUDENT-PAGE-FLOW.md](./COURSE-STUDENT-PAGE-FLOW.md).
+
 Tai lieu nay dung cho frontend trang SEO/public hien thi khoa hoc online.
 
 Base URL hien tai:
@@ -208,7 +210,8 @@ Response:
       "firstName": "Van A",
       "lastName": "Nguyen",
       "fullName": "Van A Nguyen",
-      "email": "teacher@example.com"
+      "email": "teacher@example.com",
+      "avatarUrl": "https://api-domain.com/media/presigned-avatar-url"
     },
     "lessonsCount": 20,
     "trialLessonsCount": 2,

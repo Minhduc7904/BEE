@@ -7,7 +7,7 @@ import {
     BaseResponseDto
 } from '../../dtos'
 import { ConflictException } from '../../../shared/exceptions/custom-exceptions'
-import { PasswordService } from '../../../infrastructure/services'
+import { PasswordService } from 'src/application/interfaces'
 import { ACTION_KEYS } from 'src/shared/constants'
 import { AuditStatus } from 'src/shared/enums/audit-status.enum'
 import { AttendanceStatus, CourseEnrollmentStatus, StudentType } from 'src/shared/enums'

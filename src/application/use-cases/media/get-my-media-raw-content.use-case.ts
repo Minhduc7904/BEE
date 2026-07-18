@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, ForbiddenException, Inject } from '@nest
 import type { IMediaRepository } from '../../../domain/repositories'
 import { BaseResponseDto } from '../../dtos'
 import { MediaRawContentResponseDto } from '../../dtos/media'
-import { MinioService } from '../../../infrastructure/services'
+import { MinioService } from 'src/application/interfaces'
 
 @Injectable()
 export class GetMyMediaRawContentUseCase {

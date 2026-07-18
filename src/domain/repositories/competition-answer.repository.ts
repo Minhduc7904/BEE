@@ -49,12 +49,17 @@ export interface CompetitionAnswerListResult {
     totalPages: number
 }
 
+export interface CompetitionAnswerRelationOptions {
+    includeRelations?: boolean
+}
+
 export interface ICompetitionAnswerRepository {
     create(data: CreateCompetitionAnswerData, txClient?: any): Promise<CompetitionAnswer>
     createMany(data: CreateCompetitionAnswerData[], txClient?: any): Promise<CompetitionAnswer[]>
-    findById(id: number, txClient?: any): Promise<CompetitionAnswer | null>
-    update(id: number, data: UpdateCompetitionAnswerData, txClient?: any): Promise<CompetitionAnswer>
-    updateMany(updates: { id: number; data: UpdateCompetitionAnswerData }[], txClient?: any): Promise<CompetitionAnswer[]>
+    findById(id: number, txClient?: any, options?: CompetitionAnswerRelationOptions): Promise<CompetitionAnswer | null>
+    update(id: number, data: UpdateCompetitionAnswerData, txClient?: any, options?: CompetitionAnswerRelationOptions): Promise<CompetitionAnswer>
+    incrementTimeSpentSeconds(id: number, seconds: number, txClient?: any, options?: CompetitionAnswerRelationOptions): Promise<CompetitionAnswer>
+    updateMany(updates: { id: number; data: UpdateCompetitionAnswerData }[], txClient?: any, options?: CompetitionAnswerRelationOptions): Promise<CompetitionAnswer[]>
     delete(id: number, txClient?: any): Promise<void>
     deleteMany(ids: number[], txClient?: any): Promise<void>
     findAll(txClient?: any): Promise<CompetitionAnswer[]>
@@ -73,7 +78,7 @@ export interface ICompetitionAnswerRepository {
         txClient?: any,
     ): Promise<CompetitionAnswerListResult>
 
-    findByCompetitionSubmit(competitionSubmitId: number, txClient?: any): Promise<CompetitionAnswer[]>
+    findByCompetitionSubmit(competitionSubmitId: number, txClient?: any, options?: CompetitionAnswerRelationOptions): Promise<CompetitionAnswer[]>
     findByQuestion(questionId: number, txClient?: any): Promise<CompetitionAnswer[]>
     findBySubmitAndQuestion(
         competitionSubmitId: number,

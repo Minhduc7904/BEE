@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common'
-import { MinioService } from '../../../infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 import { BaseResponseDto } from '../../dtos'
 import { BucketStatisticsResponseDto, BucketItemDto } from '../../dtos/media-folder'
 

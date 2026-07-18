@@ -2,7 +2,7 @@
 import { Injectable, Inject } from '@nestjs/common'
 import type { IUserRepository } from '../../../domain/repositories/user.repository'
 import type { IResetPasswordTokenRepository } from '../../../domain/repositories'
-import { TokenService, PasswordService } from '../../../infrastructure/services'
+import { TokenService, PasswordService } from 'src/application/interfaces'
 import {
   NotFoundException,
   BusinessLogicException,

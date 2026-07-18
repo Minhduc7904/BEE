@@ -3,7 +3,7 @@ import { CourseMediaResponseDto } from '../../dtos/course/course-media.dto'
 import { CourseResponseDto } from '../../dtos/course/course.dto'
 import { COURSE_MEDIA_FIELDS } from '../../../shared/constants'
 import { EntityType } from '../../../shared/constants/entity-type.constants'
-import { MinioService } from '../../../infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 
 export async function attachThumbnailsToCourseResponses(
   courseResponses: CourseResponseDto[],

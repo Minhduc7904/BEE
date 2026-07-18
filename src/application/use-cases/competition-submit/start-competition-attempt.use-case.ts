@@ -23,6 +23,17 @@ export class StartCompetitionAttemptUseCase {
       throw new NotFoundException(`Cuộc thi với ID ${competitionId} không tồn tại`)
     }
 
+    const existingAttempts = await this.competitionSubmitRepository.findByCompetitionAndStudent(
+      competitionId,
+      studentId,
+    )
+    const latestSubmittedAttempt = existingAttempts
+      .filter(
+        (attempt) =>
+          attempt.status === CompetitionSubmitStatus.SUBMITTED || attempt.status === CompetitionSubmitStatus.GRADED,
+      )
+      .sort((left, right) => right.competitionSubmitId - left.competitionSubmitId)[0]
+
     // 2. Check if competition is ongoing (optional - based on startDate/endDate)
     const now = new Date()
 
@@ -30,7 +41,7 @@ export class StartCompetitionAttemptUseCase {
       return {
         success: false,
         message: `Cuộc thi chưa bắt đầu. Thời gian bắt đầu: ${competition.startDate.toISOString()}`,
-        data: null as any,
+        data: { code: 'COMPETITION_NOT_STARTED' } as any,
       }
     }
 
@@ -38,15 +49,31 @@ export class StartCompetitionAttemptUseCase {
       return {
         success: false,
         message: `Cuộc thi đã kết thúc. Thời gian kết thúc: ${competition.endDate.toISOString()}`,
-        data: null as any,
+        data: {
+          code: 'COMPETITION_ENDED',
+          competitionSubmitId: latestSubmittedAttempt?.competitionSubmitId,
+        } as any,
       }
     }
 
     // 3. Check if there's already an IN_PROGRESS attempt
-    const existingAttempts = await this.competitionSubmitRepository.findByCompetitionAndStudent(
-      competitionId,
-      studentId,
-    )
+    const expiredInProgressAttempt = existingAttempts.find((attempt) => {
+      if (attempt.status !== CompetitionSubmitStatus.IN_PROGRESS || !competition.durationMinutes) return false
+
+      const elapsedMs = now.getTime() - attempt.startedAt.getTime()
+      return elapsedMs >= competition.durationMinutes * 60 * 1000
+    })
+
+    if (expiredInProgressAttempt) {
+      return {
+        success: false,
+        message: 'Đã hết thời gian làm bài cho lần thi này',
+        data: {
+          code: 'ATTEMPT_TIME_EXPIRED',
+          competitionSubmitId: expiredInProgressAttempt.competitionSubmitId,
+        } as any,
+      }
+    }
 
     // Find IN_PROGRESS attempt that has not exceeded durationMinutes
     const inProgressAttempt = existingAttempts.find((attempt) => {
@@ -77,7 +104,10 @@ export class StartCompetitionAttemptUseCase {
         return {
           success: false,
           message: `Bạn đã vượt quá số lần làm bài cho phép (${competition.maxAttempts} lần)`,
-          data: null as any,
+          data: {
+            code: 'MAX_ATTEMPTS_REACHED',
+            competitionSubmitId: latestSubmittedAttempt?.competitionSubmitId,
+          } as any,
         }
       }
     }
@@ -91,6 +121,7 @@ export class StartCompetitionAttemptUseCase {
       attemptNumber,
       status: CompetitionSubmitStatus.IN_PROGRESS,
       startedAt: new Date(),
+      timeSpentSeconds: 0,
       metadata: {
         startedAt: new Date().toISOString(),
         userAgent: 'web', // TODO: Get from request headers if needed

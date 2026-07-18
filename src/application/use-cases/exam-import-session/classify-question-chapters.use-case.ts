@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common'
 import type { IExamImportSessionRepository, IAdminAuditLogRepository, ITempQuestionRepository, ITempQuestionChapterRepository } from 'src/domain/repositories'
 import { Inject } from '@nestjs/common'
-import { QuestionChapterClassificationService, QuestionToClassify } from '../../../infrastructure/services/question-chapter-classification.service'
+import { QuestionChapterClassificationService, QuestionToClassify } from 'src/application/interfaces'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 import { ACTION_KEYS } from '../../../shared/constants/action-key.constants'
 import { RESOURCE_TYPES } from '../../../shared/constants/resource-type.constants'

@@ -65,29 +65,48 @@ export class FinishCompetitionSubmitUseCase {
         const hasHomeworkContext = homeworkContentId !== undefined && homeworkContentId !== null
 
         // 1. Tìm submit và kiểm tra quyền
-        const submit = await this.competitionSubmitRepository.findById(submitId)
+        const submit = await this.competitionSubmitRepository.findById(submitId, undefined, {
+            includeRelations: false,
+        })
         if (!submit) {
             throw new NotFoundException(`Lần làm bài với ID ${submitId} không tồn tại`)
         }
         if (submit.studentId !== studentId) {
             throw new ForbiddenException('Bạn không có quyền nộp bài làm này')
         }
+        if (
+            submit.status === CompetitionSubmitStatus.SUBMITTED ||
+            submit.status === CompetitionSubmitStatus.GRADED
+        ) {
+            return {
+                success: false,
+                message: 'Bài thi này đã được nộp',
+                data: { code: 'ATTEMPT_ALREADY_SUBMITTED' } as any,
+            }
+        }
         if (submit.status !== CompetitionSubmitStatus.IN_PROGRESS) {
             return {
                 success: false,
-                message: 'Bài thi này đã được nộp hoặc đã kết thúc',
-                data: null as any,
+                message: 'Lần làm bài này không còn hiệu lực để nộp',
+                data: { code: 'ATTEMPT_NOT_ACTIVE' } as any,
             }
         }
 
+        // Do not reject a valid IN_PROGRESS attempt based on the competition's end time
+        // or the attempt duration. The student must still be able to submit it.
+
         // 2. Lấy toàn bộ câu trả lời của lần làm bài này
-        const answers = await this.competitionAnswerRepository.findByCompetitionSubmit(submitId)
+        const answers = await this.competitionAnswerRepository.findByCompetitionSubmit(submitId, undefined, {
+            includeRelations: false,
+        })
         // console.log(`Found ${answers.length} answers for submit ID ${submitId}`)
         // for (const a of answers) {
         //     console.log(`Answer ${a.competitionAnswerId}: questionId=${a.questionId}, points=${a.points}, maxPoints=${a.maxPoints}`)
         // }
         // 3. Tải đề thi để lấy câu hỏi + statements cho việc chấm điểm
-        const competition = await this.competitionRepository.findById(submit.competitionId)
+        const competition = await this.competitionRepository.findById(submit.competitionId, undefined, {
+            includeRelations: false,
+        })
         if (!competition) {
             throw new NotFoundException('Cuộc thi không tồn tại')
         }
@@ -220,7 +239,9 @@ export class FinishCompetitionSubmitUseCase {
 
         // 6. Ghi kết quả chấm vào DB (batch update)
         if (gradingUpdates.length > 0) {
-            await this.competitionAnswerRepository.updateMany(gradingUpdates)
+            await this.competitionAnswerRepository.updateMany(gradingUpdates, undefined, {
+                includeRelations: false,
+            })
         }
 
         // 7. Tính tổng điểm và điểm tối đa
@@ -238,7 +259,7 @@ export class FinishCompetitionSubmitUseCase {
             totalPoints,
             maxPoints,
             timeSpentSeconds,
-        })
+        }, undefined, { includeRelations: false })
 
         console.log(`Submit ID ${submitId} updated: totalPoints=${totalPoints}, maxPoints=${maxPoints}, timeSpentSeconds=${timeSpentSeconds}`)
 

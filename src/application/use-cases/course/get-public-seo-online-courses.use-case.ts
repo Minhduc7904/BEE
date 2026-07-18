@@ -9,7 +9,7 @@ import {
 } from '../../dtos/course/public-seo-course.dto'
 import { COURSE_MEDIA_FIELDS } from '../../../shared/constants'
 import { EntityType } from '../../../shared/constants/entity-type.constants'
-import { MinioService } from '../../../infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 
 @Injectable()
 export class GetPublicSeoOnlineCoursesUseCase {

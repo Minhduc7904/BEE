@@ -1,3 +1,4 @@
+import type { ImageExportService as ImageExportServicePort } from 'src/application/interfaces/image-export.interface'
 import { Injectable, Logger, InternalServerErrorException } from '@nestjs/common'
 import { chromium, Browser, Page } from 'playwright'
 

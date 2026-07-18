@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { ZaloService } from 'src/infrastructure/services'
+import { ZaloService } from 'src/application/interfaces'
 import { TuitionPaymentParentMessageTemplate } from 'src/infrastructure/templates/tuition-payment-parent-message.template'
 import { GetValidZaloAccessTokenUseCase } from '../zalo/get-valid-zalo-access-token.use-case'
 import type { IUnitOfWork } from 'src/domain/repositories'

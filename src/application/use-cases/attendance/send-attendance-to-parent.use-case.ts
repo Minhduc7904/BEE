@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common'
 import type { IUnitOfWork } from 'src/domain/repositories'
 import { AttendanceStatusLabels, AttendanceStatus } from 'src/shared/enums'
 import { formatVnDate, formatVnDateTime, formatVnTime } from 'src/shared/utils/vietnam-date.util'
-import { ZaloService } from 'src/infrastructure/services'
+import { ZaloService } from 'src/application/interfaces'
 import { AttendanceParentMessageTemplate } from 'src/infrastructure/templates/attendance-parent-message.template'
 import { GetValidZaloAccessTokenUseCase } from '../zalo/get-valid-zalo-access-token.use-case'
 

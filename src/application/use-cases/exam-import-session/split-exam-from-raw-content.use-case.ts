@@ -1,6 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { ExamSplitService } from '../../../infrastructure/services/exam-split.service'
+import { ExamSplitService } from 'src/application/interfaces'
 import { SplitExamResponseDto } from '../../dtos/exam-import-session/split-exam-response.dto'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 import type { IAdminAuditLogRepository, IExamImportSessionRepository } from 'src/domain/repositories'

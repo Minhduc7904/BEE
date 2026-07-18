@@ -7,7 +7,7 @@ import {
   RegisterAdminDto
 } from '../../../dtos'
 import { ConflictException } from '../../../../shared/exceptions/custom-exceptions'
-import { PasswordService } from '../../../../infrastructure/services'
+import { PasswordService } from 'src/application/interfaces'
 import { ACTION_KEYS, ROLE_IDS } from 'src/shared/constants'
 import { AuditStatus } from 'src/shared/enums'
 

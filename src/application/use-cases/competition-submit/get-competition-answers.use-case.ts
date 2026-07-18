@@ -3,7 +3,7 @@ import { Inject, Injectable } from '@nestjs/common'
 import type { ICompetitionRepository, IExamRepository } from '../../../domain/repositories'
 import type { ICompetitionSubmitRepository } from '../../../domain/repositories/competition-submit.repository'
 import type { ICompetitionAnswerRepository } from '../../../domain/repositories/competition-answer.repository'
-import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
+import { ForbiddenException, NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 import { CompetitionAnswersResponseDto, StudentAnswerDto } from '../../dtos/competition-submit/competition-exam.dto'
 import { QuestionType } from '../../../shared/enums'
 import { DEFAULT_QUESTION_POINTS } from '../../../shared/constants/grading-rules.constants'
@@ -19,6 +19,11 @@ interface QuestionInfo {
     allStatementIds: number[]
 }
 
+interface GetCompetitionAnswersOptions {
+    /** False for socket reconnects: return existing rows without initializing them. */
+    initializeMissingAnswers?: boolean
+}
+
 @Injectable()
 export class GetCompetitionAnswersUseCase {
     constructor(
@@ -32,11 +37,20 @@ export class GetCompetitionAnswersUseCase {
         private readonly competitionAnswerRepository: ICompetitionAnswerRepository,
     ) { }
 
-    async execute(submitId: number, studentId: number): Promise<CompetitionAnswersResponseDto> {
+    async execute(
+        submitId: number,
+        studentId: number,
+        options: GetCompetitionAnswersOptions = {},
+    ): Promise<CompetitionAnswersResponseDto> {
+        const initializeMissingAnswers = options.initializeMissingAnswers !== false
         // 1. Tìm submit
         const submit = await this.competitionSubmitRepository.findById(submitId)
         if (!submit) {
             throw new NotFoundException(`Lần làm bài với ID ${submitId} không tồn tại`)
+        }
+
+        if (submit.studentId !== studentId) {
+            throw new ForbiddenException('Bạn không có quyền xem bài làm này')
         }
 
         // 2. Tìm competition
@@ -92,15 +106,18 @@ export class GetCompetitionAnswersUseCase {
         }
 
         // 5. Lấy các câu trả lời hiện có của submit
+        // Keep one question per attempt even if the exam payload repeats it.
+        const uniqueQuestions = [...new Map(allQuestions.map(question => [question.questionId, question])).values()]
+
         const existingAnswers = await this.competitionAnswerRepository.findByCompetitionSubmit(submitId)
 
         // Tạo map: questionId → CompetitionAnswer để tra cứu nhanh
         const answerMap = new Map(existingAnswers.map(a => [a.questionId, a]))
 
         // 6. Tìm những câu hỏi chưa có answer → tạo hàng loạt vào DB
-        const missingQuestions = allQuestions.filter(q => !answerMap.has(q.questionId))
+        const missingQuestions = uniqueQuestions.filter(q => !answerMap.has(q.questionId))
 
-        if (missingQuestions.length > 0) {
+        if (initializeMissingAnswers && missingQuestions.length > 0) {
             const newAnswers = await this.competitionAnswerRepository.createMany(
                 missingQuestions.map(q => {
                     const examPoints =
@@ -118,6 +135,7 @@ export class GetCompetitionAnswersUseCase {
                         questionId: q.questionId,
                         answer: null,
                         selectedStatementIds: null,
+                        timeSpentSeconds: 0,
                         maxPoints:
                             examPoints ??
                             originPoints ??
@@ -130,9 +148,11 @@ export class GetCompetitionAnswersUseCase {
         }
 
         // 7. Trả về đúng thứ tự của exam
-        const result: StudentAnswerDto[] = allQuestions.map(q => {
-            const answer = answerMap.get(q.questionId)!
-            return StudentAnswerDto.fromExistingAnswer(answer, q.type, q.allStatementIds)
+        const result: StudentAnswerDto[] = uniqueQuestions.map(q => {
+            const answer = answerMap.get(q.questionId)
+            return answer
+                ? StudentAnswerDto.fromExistingAnswer(answer, q.type, q.allStatementIds)
+                : StudentAnswerDto.createDefault(submitId, q.questionId, q.type)
         })
 
         return CompetitionAnswersResponseDto.fromAnswers(result)

@@ -5,7 +5,7 @@ import {
   TokenHashService,
   JwtTokenService,
   PasswordService
-} from '../../../../infrastructure/services'
+} from 'src/application/interfaces'
 import {
   LoginResponseDto,
   BaseResponseDto,

@@ -3,7 +3,7 @@ import { Injectable, NotFoundException, ForbiddenException, Inject, forwardRef }
 import type { INotificationRepository } from '../../../domain/repositories/notification.repository'
 import { NotificationResponseDto } from '../../dtos/notification/notification.dto'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
-import { NotificationRealtimeService } from 'src/infrastructure/services/notification/notification-realtime.service'
+import { NotificationRealtimeService } from 'src/application/interfaces'
 
 @Injectable()
 export class MarkNotificationReadUseCase {

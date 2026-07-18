@@ -101,33 +101,38 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
     return CompetitionSubmitMapper.toDomainCompetitionSubmit(created)!
   }
 
-  async findById(id: number, txClient?: any): Promise<CompetitionSubmit | null> {
+  async findById(id: number, txClient?: any, options?: { includeRelations?: boolean }): Promise<CompetitionSubmit | null> {
     const client = txClient || this.prisma
+    const includeRelations = options?.includeRelations !== false
 
     const submit = await client.competitionSubmit.findUnique({
       where: { competitionSubmitId: id },
-      include: {
-        competition: {
-          include: {
-            exam: true,
-            admin: {
-              include: {
-                user: true,
+      ...(includeRelations
+        ? {
+            include: {
+              competition: {
+                include: {
+                  exam: true,
+                  admin: {
+                    include: {
+                      user: true,
+                    },
+                  },
+                },
+              },
+              student: {
+                include: {
+                  user: true,
+                },
+              },
+              competitionAnswers: {
+                include: {
+                  question: true,
+                },
               },
             },
-          },
-        },
-        student: {
-          include: {
-            user: true,
-          },
-        },
-        competitionAnswers: {
-          include: {
-            question: true,
-          },
-        },
-      },
+          }
+        : {}),
     })
 
     if (!submit) return null
@@ -135,8 +140,9 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
     return CompetitionSubmitMapper.toDomainCompetitionSubmit(submit)
   }
 
-  async update(id: number, data: UpdateCompetitionSubmitData, txClient?: any): Promise<CompetitionSubmit> {
+  async update(id: number, data: UpdateCompetitionSubmitData, txClient?: any, options?: { includeRelations?: boolean }): Promise<CompetitionSubmit> {
     const client = txClient || this.prisma
+    const includeRelations = options?.includeRelations !== false
 
     const updateData: any = {}
 
@@ -149,6 +155,14 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
     if (data.graderId !== undefined) updateData.graderId = data.graderId
     if (data.feedback !== undefined) updateData.feedback = data.feedback
     if (data.metadata !== undefined) updateData.metadata = data.metadata
+
+    if (!includeRelations) {
+      const updated = await client.competitionSubmit.update({
+        where: { competitionSubmitId: id },
+        data: updateData,
+      })
+      return CompetitionSubmitMapper.toDomainCompetitionSubmit(updated)!
+    }
 
     const updated = await client.competitionSubmit.update({
       where: { competitionSubmitId: id },
@@ -180,6 +194,58 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
     return CompetitionSubmitMapper.toDomainCompetitionSubmit(updated)!
   }
 
+  async incrementTimeSpentSeconds(id: number, seconds: number, txClient?: any, options?: { includeRelations?: boolean }): Promise<CompetitionSubmit> {
+    const client = txClient || this.prisma
+    const includeRelations = options?.includeRelations !== false
+
+    await client.competitionSubmit.updateMany({
+      where: {
+        competitionSubmitId: id,
+        timeSpentSeconds: null,
+      },
+      data: {
+        timeSpentSeconds: 0,
+      },
+    })
+
+    const updated = await client.competitionSubmit.update({
+      where: { competitionSubmitId: id },
+      data: {
+        timeSpentSeconds: {
+          increment: seconds,
+        },
+      },
+      ...(includeRelations
+        ? {
+            include: {
+              competition: {
+                include: {
+                  exam: true,
+                  admin: {
+                    include: {
+                      user: true,
+                    },
+                  },
+                },
+              },
+              student: {
+                include: {
+                  user: true,
+                },
+              },
+              competitionAnswers: {
+                include: {
+                  question: true,
+                },
+              },
+            },
+          }
+        : {}),
+    })
+
+    return CompetitionSubmitMapper.toDomainCompetitionSubmit(updated)!
+  }
+
   async delete(id: number, txClient?: any): Promise<void> {
     const client = txClient || this.prisma
 
@@ -204,6 +270,24 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
     })
 
     return submits.map((s: any) => CompetitionSubmitMapper.toDomainCompetitionSubmit(s)).filter(Boolean)
+  }
+
+  async findAllInProgressWithCompetition(txClient?: any): Promise<CompetitionSubmit[]> {
+    const client = txClient || this.prisma
+
+    const submits = await client.competitionSubmit.findMany({
+      where: { status: CompetitionSubmitStatus.IN_PROGRESS },
+      include: {
+        competition: true,
+        student: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    })
+
+    return submits.map((submit: any) => CompetitionSubmitMapper.toDomainCompetitionSubmit(submit)).filter(Boolean)
   }
 
   async findAllWithPagination(
@@ -758,6 +842,50 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
     return submits.map((s: any) => CompetitionSubmitMapper.toDomainCompetitionSubmit(s)).filter(Boolean)
   }
 
+  async findSubmittedBasicByStudent(studentId: number, txClient?: any): Promise<CompetitionSubmit[]> {
+    const client = txClient || this.prisma
+
+    const submits = await client.competitionSubmit.findMany({
+      where: {
+        studentId,
+        status: CompetitionSubmitStatus.SUBMITTED,
+      },
+      select: {
+        competitionSubmitId: true,
+        competitionId: true,
+        studentId: true,
+        attemptNumber: true,
+        status: true,
+        startedAt: true,
+        submittedAt: true,
+        totalPoints: true,
+        maxPoints: true,
+        timeSpentSeconds: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      orderBy: [{ submittedAt: 'desc' }, { competitionSubmitId: 'desc' }],
+    })
+
+    return submits.map(
+      (submit: any) =>
+        new CompetitionSubmit({
+          competitionSubmitId: submit.competitionSubmitId,
+          competitionId: submit.competitionId,
+          studentId: submit.studentId,
+          attemptNumber: submit.attemptNumber,
+          status: submit.status,
+          startedAt: submit.startedAt,
+          submittedAt: submit.submittedAt,
+          totalPoints: submit.totalPoints === null ? null : Number(submit.totalPoints),
+          maxPoints: submit.maxPoints === null ? null : Number(submit.maxPoints),
+          timeSpentSeconds: submit.timeSpentSeconds,
+          createdAt: submit.createdAt,
+          updatedAt: submit.updatedAt,
+        }),
+    )
+  }
+
   async findByCompetitionAndStudent(
     competitionId: number,
     studentId: number,
@@ -790,8 +918,14 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
     return submits.map((s: any) => CompetitionSubmitMapper.toDomainCompetitionSubmit(s)).filter(Boolean)
   }
 
-  async findLatestAttempt(competitionId: number, studentId: number, txClient?: any): Promise<CompetitionSubmit | null> {
+  async findLatestAttempt(
+    competitionId: number,
+    studentId: number,
+    txClient?: any,
+    options?: { includeRelations?: boolean },
+  ): Promise<CompetitionSubmit | null> {
     const client = txClient || this.prisma
+    const includeRelations = options?.includeRelations !== false
 
     const submit = await client.competitionSubmit.findFirst({
       where: {
@@ -799,19 +933,23 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
         studentId,
         student: { user: { isActive: true } },
       },
-      include: {
-        competition: true,
-        student: {
-          include: {
-            user: true,
-          },
-        },
-        competitionAnswers: {
-          include: {
-            question: true,
-          },
-        },
-      },
+      ...(includeRelations
+        ? {
+            include: {
+              competition: true,
+              student: {
+                include: {
+                  user: true,
+                },
+              },
+              competitionAnswers: {
+                include: {
+                  question: true,
+                },
+              },
+            },
+          }
+        : {}),
       orderBy: { attemptNumber: 'desc' },
     })
 
@@ -827,6 +965,7 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
     txClient?: any,
   ): Promise<CompetitionSubmit | null> {
     const client = txClient || this.prisma
+    const includeRelations = true
 
     const submit = await client.competitionSubmit.findUnique({
       where: {
@@ -836,28 +975,32 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
           attemptNumber,
         },
       },
-      include: {
-        competition: {
-          include: {
-            exam: true,
-            admin: {
-              include: {
-                user: true,
+      ...(includeRelations
+        ? {
+            include: {
+              competition: {
+                include: {
+                  exam: true,
+                  admin: {
+                    include: {
+                      user: true,
+                    },
+                  },
+                },
+              },
+              student: {
+                include: {
+                  user: true,
+                },
+              },
+              competitionAnswers: {
+                include: {
+                  question: true,
+                },
               },
             },
-          },
-        },
-        student: {
-          include: {
-            user: true,
-          },
-        },
-        competitionAnswers: {
-          include: {
-            question: true,
-          },
-        },
-      },
+          }
+        : {}),
     })
 
     if (!submit) return null
@@ -1079,6 +1222,14 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
               include: {
                 statements: {
                   orderBy: { order: 'asc' },
+                },
+                questionChapters: {
+                  include: {
+                    chapter: true,
+                  },
+                  orderBy: {
+                    chapterId: 'asc',
+                  },
                 },
               },
             },

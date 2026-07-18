@@ -7,7 +7,7 @@ import {
   QuestionChatMessageListQueryDto,
 } from '../../dtos'
 import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
-import { MarkdownRenderService } from '../../../infrastructure/services/markdown-render.service'
+import { MarkdownRenderService } from 'src/application/interfaces'
 import { QuestionChatRole } from '../../../shared/enums'
 import type { IUnitOfWork } from '../../../domain/repositories'
 

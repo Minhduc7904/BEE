@@ -1,6 +1,6 @@
 import { Injectable, Inject } from '@nestjs/common'
 import type { ITuitionPaymentRepository } from '../../../domain/repositories/tuition-payment.repository'
-import { ExcelService, ExcelColumn } from '../../../infrastructure/services/excel.service'
+import { ExcelService, ExcelColumn } from 'src/application/interfaces'
 import { ExportTuitionPaymentListOptionDto } from '../../dtos/tuition-payment/export-tuition-payment-list-option.dto'
 import { TuitionPaymentStatus } from '@prisma/client'
 import { SortOrder } from 'src/shared/enums/sort-order.enum'

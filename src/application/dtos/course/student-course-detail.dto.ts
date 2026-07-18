@@ -1,5 +1,6 @@
 // src/application/dtos/course/student-course-detail.dto.ts
 import { Course } from '../../../domain/entities'
+import type { PublicSeoCourseMediaDto } from './public-seo-course.dto'
 
 export class StudentCourseDetailResponseDto {
   // ===== Identity =====
@@ -22,6 +23,7 @@ export class StudentCourseDetailResponseDto {
   teacherFirstName?: string
   teacherLastName?: string
   teacherEmail?: string
+  teacherAvatarUrl?: string
 
   // ===== Pricing =====
   priceVND: number
@@ -40,6 +42,9 @@ export class StudentCourseDetailResponseDto {
   hasDiscount: boolean
   discountPercentage?: number
 
+  // ===== Media =====
+  media: PublicSeoCourseMediaDto
+
   // ===== Enrollment info =====
   isEnrolled: boolean
   enrolledAt?: Date
@@ -53,6 +58,8 @@ export class StudentCourseDetailResponseDto {
       enrolledAt?: Date
       status?: string
       isPaidFull?: boolean
+      media: PublicSeoCourseMediaDto
+      teacherAvatarUrl?: string
     },
   ): StudentCourseDetailResponseDto {
     return {
@@ -78,6 +85,7 @@ export class StudentCourseDetailResponseDto {
       teacherFirstName: course.teacher?.user?.firstName,
       teacherLastName: course.teacher?.user?.lastName,
       teacherEmail: course.teacher?.user?.email ?? undefined,
+      teacherAvatarUrl: enrollmentInfo?.teacherAvatarUrl,
 
       // Pricing
       priceVND: course.priceVND,
@@ -95,6 +103,9 @@ export class StudentCourseDetailResponseDto {
       isFree: course.isFree(),
       hasDiscount: course.hasDiscount(),
       discountPercentage: course.getDiscountPercentage(),
+
+      // Media
+      media: enrollmentInfo?.media ?? { gallery: [] },
 
       // Enrollment info
       isEnrolled: enrollmentInfo?.isEnrolled ?? false,

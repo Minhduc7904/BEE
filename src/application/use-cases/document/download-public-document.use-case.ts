@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import type { IUnitOfWork } from 'src/domain/repositories'
-import { MinioService } from 'src/infrastructure/services/minio.service'
+import { MinioService } from 'src/application/interfaces'
 import { DOCUMENT_MEDIA_FIELDS } from 'src/shared/constants'
 import { EntityType } from 'src/shared/constants/entity-type.constants'
 import { MediaStatus, Visibility } from 'src/shared/enums'

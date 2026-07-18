@@ -96,9 +96,39 @@ export class DoCompetitionController {
         @Param('competitionId', ParseIntPipe) competitionId: number,
         @CurrentUser('studentId') studentId: number,
     ): Promise<BaseResponseDto<any>> {
-        return ExceptionHandler.execute(() =>
-            this.startCompetitionAttemptUseCase.execute(competitionId, studentId),
-        )
+        return ExceptionHandler.execute(async () => {
+            const startResult = await this.startCompetitionAttemptUseCase.execute(competitionId, studentId)
+            const errorData = startResult.data as
+                | { code?: string; competitionSubmitId?: number }
+                | undefined
+
+            // REST start is the only entry point that initializes answer rows.
+            // Socket subscribe/reconnect only joins a room and reads the clock.
+            if (startResult.success && startResult.data) {
+                await this.getCompetitionAnswersUseCase.execute(
+                    startResult.data.competitionSubmitId,
+                    studentId,
+                )
+                return startResult
+            }
+
+            if (errorData?.code !== 'ATTEMPT_TIME_EXPIRED' || !errorData.competitionSubmitId) {
+                return startResult
+            }
+
+            const finishResult = await this.finishCompetitionSubmitUseCase.execute(
+                errorData.competitionSubmitId,
+                studentId,
+            )
+
+            if (!finishResult.success) return finishResult
+
+            return BaseResponseDto.success('Bài thi đã được nộp tự động vì đã hết thời gian làm bài', {
+                autoSubmitted: true,
+                competitionSubmitId: errorData.competitionSubmitId,
+                submission: finishResult.data,
+            })
+        })
     }
 
     /**
@@ -245,7 +275,7 @@ export class DoCompetitionController {
         @CurrentUser('studentId') studentId: number,
     ): Promise<BaseResponseDto<any>> {
         return ExceptionHandler.execute(() =>
-            this.getCompetitionRemainingTimeUseCase.execute(submitId),
+            this.getCompetitionRemainingTimeUseCase.execute(submitId, studentId),
         )
     }
 

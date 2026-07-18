@@ -4,7 +4,7 @@ import {
   type ContentField,
   type ProcessedContentField,
 } from './process-content-with-presigned-urls.use-case'
-import { MarkdownRenderService } from '../../../infrastructure/services/markdown-render.service'
+import { MarkdownRenderService } from 'src/application/interfaces'
 
 @Injectable()
 export class ProcessContentWithPresignedUrlsAndRenderHtmlUseCase {

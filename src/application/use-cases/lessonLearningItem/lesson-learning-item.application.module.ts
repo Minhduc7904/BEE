@@ -11,6 +11,7 @@ const LESSON_LEARNING_ITEM_USE_CASES = [
   lessonLearningItemUseCase.DeleteLessonLearningItemUseCase,
   lessonLearningItemUseCase.ReorderLessonLearningItemsUseCase,
   lessonLearningItemUseCase.GetStudentLessonLearningItemsUseCase,
+  lessonLearningItemUseCase.GetStudentLearnedLearningItemsUseCase,
   lessonLearningItemUseCase.GetStudentLessonLearningItemByIdUseCase,
   StudentClassLessonAccessService,
 ]

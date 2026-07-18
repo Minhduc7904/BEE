@@ -15,6 +15,7 @@ export interface PublicSeoCourseTeacherDto {
   lastName?: string
   fullName?: string
   email?: string
+  avatarUrl?: string
 }
 
 export interface PublicSeoCourseSubjectDto {

@@ -1,3 +1,4 @@
+import type { JwtTokenService as JwtTokenServicePort } from 'src/application/interfaces/jwt-token.interface'
 // src/infrastructure/services/jwt.service.ts
 
 import { Injectable, Inject } from '@nestjs/common'

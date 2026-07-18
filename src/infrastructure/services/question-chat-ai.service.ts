@@ -1,3 +1,4 @@
+import type { QuestionChatAIService as QuestionChatAIServicePort } from 'src/application/interfaces/question-chat-ai.interface'
 // src/infrastructure/services/question-chat-ai.service.ts
 
 import { Injectable, Logger } from '@nestjs/common'

@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import type { ICompetitionSubmitRepository } from 'src/domain/repositories/competition-submit.repository'
-import { ExcelColumn, ExcelService } from 'src/infrastructure/services/excel.service'
+import { ExcelColumn, ExcelService } from 'src/application/interfaces'
 import { Gender } from 'src/shared/enums'
 import { NotFoundException } from 'src/shared/exceptions/custom-exceptions'
 import { ExportCompetitionSubmitScoreListOptionDto } from '../../dtos/competition-submit'

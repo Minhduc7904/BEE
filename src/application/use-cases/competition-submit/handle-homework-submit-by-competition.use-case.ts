@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import type { IHomeworkSubmitRepository } from '../../../domain/repositories/homework-submit.repository'
-import { CompetitionSubmitFeedbackAiService } from 'src/infrastructure/services/competition-submit-feedback-ai.service'
+import { CompetitionSubmitFeedbackAiService } from 'src/application/interfaces'
 import { GetCompetitionSubmitQuestionStatisticsUseCase } from './get-competition-submit-question-statistics.use-case'
 
 interface ExecuteCreateHomeworkSubmitInput {

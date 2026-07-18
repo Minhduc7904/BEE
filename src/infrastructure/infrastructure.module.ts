@@ -98,6 +98,7 @@ import { QuestionChapterClassificationService } from './services/question-chapte
 import { FileConverterService } from './services/file-converter.service'
 import { QuestionChatAIService } from './services/question-chat-ai.service'
 import { VnpayService } from './services/vnpay.service'
+import { PayosService } from './services/payos.service'
 import { GoogleAdminStrategy } from './strategies/google-admin.strategy'
 import { GoogleStudentStrategy } from './strategies/google-student.strategy'
 import jwtConfig from '../config/jwt.config'
@@ -107,6 +108,36 @@ import httpClientConfig from '../config/http-client.config'
 import supabaseConfig from '../config/supabase.config'
 import mistralConfig from '../config/mistral.config'
 import openaiConfig from '../config/openai.config'
+import payosConfig from '../config/payos.config'
+import {
+  AchievementBoardSeoAiService as AchievementBoardSeoAiServicePort,
+  AuthService as AuthServicePort,
+  CompetitionSubmitFeedbackAiService as CompetitionSubmitFeedbackAiServicePort,
+  DocumentContentExtractionService as DocumentContentExtractionServicePort,
+  DocumentMediaAltTextAiService as DocumentMediaAltTextAiServicePort,
+  DocumentSeoAiService as DocumentSeoAiServicePort,
+  DocumentThumbnailService as DocumentThumbnailServicePort,
+  ExamSplitService as ExamSplitServicePort,
+  ExcelService as ExcelServicePort,
+  FileConverterService as FileConverterServicePort,
+  HttpClientService as HttpClientServicePort,
+  ImageExportService as ImageExportServicePort,
+  JwtTokenService as JwtTokenServicePort,
+  MarkdownFixService as MarkdownFixServicePort,
+  MarkdownRenderService as MarkdownRenderServicePort,
+  MediaProcessingService as MediaProcessingServicePort,
+  MistralService as MistralServicePort,
+  NewsArticleSeoAiService as NewsArticleSeoAiServicePort,
+  PasswordService as PasswordServicePort,
+  PayosService as PayosServicePort,
+  QuestionChapterClassificationService as QuestionChapterClassificationServicePort,
+  QuestionChatAIService as QuestionChatAIServicePort,
+  TeacherProfileSeoAiService as TeacherProfileSeoAiServicePort,
+  TokenHashService as TokenHashServicePort,
+  TokenService as TokenServicePort,
+  VnpayService as VnpayServicePort,
+  ZaloService as ZaloServicePort,
+} from 'src/application/interfaces'
 
 @Module({
   imports: [
@@ -118,10 +149,38 @@ import openaiConfig from '../config/openai.config'
     ConfigModule.forFeature(httpClientConfig),
     ConfigModule.forFeature(mistralConfig),
     ConfigModule.forFeature(openaiConfig),
+    ConfigModule.forFeature(payosConfig),
     // ConfigModule.forFeature(supabaseConfig), // Disabled: not using Supabase anymore
     JwtModule.register({}), // Empty config, sẽ override trong service
   ],
   providers: [
+    { provide: AchievementBoardSeoAiServicePort, useExisting: AchievementBoardSeoAiService },
+    { provide: AuthServicePort, useExisting: 'AUTH_SERVICE' },
+    { provide: CompetitionSubmitFeedbackAiServicePort, useExisting: CompetitionSubmitFeedbackAiService },
+    { provide: DocumentContentExtractionServicePort, useExisting: DocumentContentExtractionService },
+    { provide: DocumentMediaAltTextAiServicePort, useExisting: DocumentMediaAltTextAiService },
+    { provide: DocumentSeoAiServicePort, useExisting: DocumentSeoAiService },
+    { provide: DocumentThumbnailServicePort, useExisting: DocumentThumbnailService },
+    { provide: ExamSplitServicePort, useExisting: ExamSplitService },
+    { provide: ExcelServicePort, useExisting: ExcelService },
+    { provide: FileConverterServicePort, useExisting: FileConverterService },
+    { provide: HttpClientServicePort, useExisting: 'HTTP_CLIENT_SERVICE' },
+    { provide: ImageExportServicePort, useExisting: ImageExportService },
+    { provide: JwtTokenServicePort, useExisting: 'JWT_TOKEN_SERVICE' },
+    { provide: MarkdownFixServicePort, useExisting: MarkdownFixService },
+    { provide: MarkdownRenderServicePort, useExisting: MarkdownRenderService },
+    { provide: MediaProcessingServicePort, useExisting: MediaProcessingService },
+    { provide: MistralServicePort, useExisting: MistralService },
+    { provide: NewsArticleSeoAiServicePort, useExisting: NewsArticleSeoAiService },
+    { provide: PasswordServicePort, useExisting: 'PASSWORD_SERVICE' },
+    { provide: PayosServicePort, useExisting: PayosService },
+    { provide: QuestionChapterClassificationServicePort, useExisting: QuestionChapterClassificationService },
+    { provide: QuestionChatAIServicePort, useExisting: QuestionChatAIService },
+    { provide: TeacherProfileSeoAiServicePort, useExisting: TeacherProfileSeoAiService },
+    { provide: TokenHashServicePort, useExisting: 'TOKEN_HASH_SERVICE' },
+    { provide: TokenServicePort, useExisting: TokenService },
+    { provide: VnpayServicePort, useExisting: VnpayService },
+    { provide: ZaloServicePort, useExisting: ZaloService },
     {
       provide: 'UNIT_OF_WORK',
       useClass: PrismaUnitOfWork,
@@ -488,8 +547,36 @@ import openaiConfig from '../config/openai.config'
     ImageExportService,
     QuestionChatAIService,
     VnpayService,
+    PayosService,
   ],
   exports: [
+    AchievementBoardSeoAiServicePort,
+    AuthServicePort,
+    CompetitionSubmitFeedbackAiServicePort,
+    DocumentContentExtractionServicePort,
+    DocumentMediaAltTextAiServicePort,
+    DocumentSeoAiServicePort,
+    DocumentThumbnailServicePort,
+    ExamSplitServicePort,
+    ExcelServicePort,
+    FileConverterServicePort,
+    HttpClientServicePort,
+    ImageExportServicePort,
+    JwtTokenServicePort,
+    MarkdownFixServicePort,
+    MarkdownRenderServicePort,
+    MediaProcessingServicePort,
+    MistralServicePort,
+    NewsArticleSeoAiServicePort,
+    PasswordServicePort,
+    PayosServicePort,
+    QuestionChapterClassificationServicePort,
+    QuestionChatAIServicePort,
+    TeacherProfileSeoAiServicePort,
+    TokenHashServicePort,
+    TokenServicePort,
+    VnpayServicePort,
+    ZaloServicePort,
     'UNIT_OF_WORK',
     'IUserRepository',
     'IAdminRepository',
@@ -581,6 +668,7 @@ import openaiConfig from '../config/openai.config'
     ImageExportService,
     QuestionChatAIService,
     VnpayService,
+    PayosService,
   ],
 })
 export class InfrastructureModule {}

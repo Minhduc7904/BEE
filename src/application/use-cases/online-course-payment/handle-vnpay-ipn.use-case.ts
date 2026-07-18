@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
 import type { IUnitOfWork } from 'src/domain/repositories'
-import { VnpayService } from 'src/infrastructure/services'
+import { VnpayService } from 'src/application/interfaces'
 import {
   OnlineCourseInvoiceStatus,
   OnlinePaymentAttemptStatus,

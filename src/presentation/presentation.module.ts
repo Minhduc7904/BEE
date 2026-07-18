@@ -8,6 +8,7 @@ import { NotificationGateway } from './gateways/notification.gateway'
 import { StatusGateway } from './gateways/status.gateway'
 import { LessonGateway } from './gateways/lesson.gateway'
 import { AttendanceGateway } from './gateways/attendance.gateway'
+import { CompetitionGateway } from './gateways/competition.gateway'
 import { AuthController } from './controllers/auth.controller'
 import { RoleController } from './controllers/role.controller'
 import { GoogleAuthAdminController } from './controllers/google-auth-admin.controller'
@@ -77,6 +78,7 @@ import {
 } from './controllers/online-course-payment.controller'
 import { AchievementBoardController } from './controllers/achievement-board.controller'
 import { NewsArticleController } from './controllers/news-article.controller'
+import { PayosOnlineCoursePaymentController } from './controllers/payos-online-course-payment.controller'
 @Module({
   imports: [
     ApplicationModule, // ✅ lấy toàn bộ UseCase đã export
@@ -148,6 +150,7 @@ import { NewsArticleController } from './controllers/news-article.controller'
     QuestionChatController,
     QuestionChatMessageController,
     OnlineCoursePaymentController,
+    PayosOnlineCoursePaymentController,
     OnlineCourseInvoicePaymentStatusController,
     AchievementBoardController,
     NewsArticleController,
@@ -158,6 +161,7 @@ import { NewsArticleController } from './controllers/news-article.controller'
     StatusGateway,
     LessonGateway,
     AttendanceGateway,
+    CompetitionGateway,
   ],
   exports: [
     // Export gateways for use cases to inject
@@ -165,6 +169,7 @@ import { NewsArticleController } from './controllers/news-article.controller'
     StatusGateway,
     LessonGateway,
     AttendanceGateway,
+    CompetitionGateway,
   ],
 })
 export class PresentationModule {}

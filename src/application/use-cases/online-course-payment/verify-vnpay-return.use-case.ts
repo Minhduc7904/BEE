@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { VnpayService } from 'src/infrastructure/services'
+import { VnpayService } from 'src/application/interfaces'
 import type { VnpayReturnResponseDto } from 'src/application/dtos/online-course-payment'
 
 @Injectable()

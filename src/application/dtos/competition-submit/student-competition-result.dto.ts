@@ -41,6 +41,17 @@ export class StudentQuestionResultDto {
     /** Chỉ có khi allowViewAnswer = true && allowViewSolutionYoutubeUrl = true */
     solutionYoutubeUrl?: string | null
     statements: StudentStatementResultDto[]
+    chapters: StudentQuestionChapterResultDto[]
+}
+
+export class StudentQuestionChapterResultDto {
+    chapterId: number
+    subjectId: number
+    name: string
+    slug: string
+    parentChapterId?: number | null
+    orderInParent: number
+    level: number
 }
 
 // ─── Answer (Rule 2) ────────────────────────────────────────────────────────
@@ -52,6 +63,7 @@ export class StudentAnswerResultDto {
     answer?: string | null
     /** ID các statement đã chọn */
     selectedStatementIds?: number[] | null
+    timeSpentSeconds?: number | null
     /** Chỉ có khi allowViewScore = true */
     isCorrect?: boolean | null
     /** Chỉ có khi allowViewScore = true */
@@ -184,6 +196,7 @@ export class StudentCompetitionResultDto {
                 aDto.questionId = ans.questionId
                 aDto.answer = ans.answer ?? null
                 aDto.selectedStatementIds = ans.selectedStatementIds ?? null
+                aDto.timeSpentSeconds = ans.timeSpentSeconds ?? null
                 aDto.createdAt = ans.createdAt
 
                 // ─── Rule 2 + Rule 1: điểm từng câu ────────────────────────
@@ -230,6 +243,19 @@ export class StudentCompetitionResultDto {
                         }
                         return sDto
                     })
+
+                    qDto.chapters = (q.questionChapters ?? [])
+                        .map((questionChapter) => questionChapter.chapter)
+                        .filter((chapter): chapter is NonNullable<typeof chapter> => Boolean(chapter))
+                        .map((chapter) => ({
+                            chapterId: chapter.chapterId,
+                            subjectId: chapter.subjectId,
+                            name: chapter.name,
+                            slug: chapter.slug,
+                            parentChapterId: chapter.parentChapterId ?? null,
+                            orderInParent: chapter.orderInParent,
+                            level: chapter.level,
+                        }))
 
                     aDto.question = qDto
                 }

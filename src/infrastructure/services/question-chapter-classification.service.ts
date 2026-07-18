@@ -1,3 +1,4 @@
+import type { QuestionChapterClassificationService as QuestionChapterClassificationServicePort } from 'src/application/interfaces/question-chapter-classification.interface'
 import { Injectable, Logger } from '@nestjs/common'
 import { OpenAIService } from './openai.service'
 import { CHAPTERS, getChaptersBySubject } from 'src/shared/constants/chapters.constant'

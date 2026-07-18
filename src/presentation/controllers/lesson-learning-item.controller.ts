@@ -7,6 +7,9 @@ import {
     StudentLessonLearningItemListResponseDto,
     StudentLessonLearningItemResponseDto,
 } from '../../application/dtos/lessonLearningItem'
+import { StudentLearnedLearningItemsQueryDto } from '../../application/dtos/lessonLearningItem/student-learned-learning-items-query.dto'
+import { StudentLearnedLearningItemResponseDto } from '../../application/dtos/lessonLearningItem/student-learned-learning-item.dto'
+import { PaginationResponseDto } from '../../application/dtos/pagination/pagination-response.dto'
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
@@ -19,6 +22,7 @@ import {
     DeleteLessonLearningItemUseCase,
     ReorderLessonLearningItemsUseCase,
     GetStudentLessonLearningItemsUseCase,
+    GetStudentLearnedLearningItemsUseCase,
     GetStudentLessonLearningItemByIdUseCase,
 } from '../../application/use-cases/lessonLearningItem'
 import { Injectable } from '@nestjs/common'
@@ -33,6 +37,7 @@ export class LessonLearningItemController {
         private readonly deleteLessonLearningItemUseCase: DeleteLessonLearningItemUseCase,
         private readonly reorderLessonLearningItemsUseCase: ReorderLessonLearningItemsUseCase,
         private readonly getStudentLessonLearningItemsUseCase: GetStudentLessonLearningItemsUseCase,
+        private readonly getStudentLearnedLearningItemsUseCase: GetStudentLearnedLearningItemsUseCase,
         private readonly getStudentLessonLearningItemByIdUseCase: GetStudentLessonLearningItemByIdUseCase,
     ) { }
 
@@ -69,6 +74,22 @@ export class LessonLearningItemController {
     ): Promise<StudentLessonLearningItemListResponseDto> {
         return ExceptionHandler.execute(() =>
             this.getStudentLessonLearningItemsUseCase.execute(lessonId, studentId),
+        )
+    }
+
+    /**
+     * Learning items marked as learned by the current student and visible via class access.
+     * GET /lesson-learning-items/student/learned
+     */
+    @Get('student/learned')
+    @RequirePermission()
+    @HttpCode(HttpStatus.OK)
+    async getStudentLearnedLearningItems(
+        @Query() query: StudentLearnedLearningItemsQueryDto,
+        @CurrentUser('studentId') studentId: number,
+    ): Promise<PaginationResponseDto<StudentLearnedLearningItemResponseDto>> {
+        return ExceptionHandler.execute(() =>
+            this.getStudentLearnedLearningItemsUseCase.execute(studentId, query),
         )
     }
 

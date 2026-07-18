@@ -1,6 +1,6 @@
 // src/application/use-cases/auth/verify-access-token.use-case.ts
 import { Injectable, Inject } from '@nestjs/common'
-import { AuthService, AuthenticatedUser } from '../../../infrastructure/services/auth.service'
+import { AuthService, AuthenticatedUser } from 'src/application/interfaces'
 
 /**
  * VerifyAccessTokenUseCase

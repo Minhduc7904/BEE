@@ -1,3 +1,4 @@
+import type { HttpClientService as HttpClientServicePort } from 'src/application/interfaces/http-client.interface'
 import { Injectable, Logger, Inject } from '@nestjs/common'
 import type { ConfigType } from '@nestjs/config'
 import axios from 'axios'

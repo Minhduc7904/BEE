@@ -12,6 +12,7 @@ const LESSON_USE_CASES = [
   lessonUseCase.UpdateLessonUseCase,
   lessonUseCase.DeleteLessonUseCase,
   lessonUseCase.GetStudentCourseLessonsUseCase,
+  lessonUseCase.GetStudentLatestLessonsUseCase,
   lessonUseCase.GetStudentLessonByIdUseCase,
   LessonCourseClassLessonsService,
   StudentClassLessonAccessService,

@@ -85,13 +85,6 @@ export class StudentController {
     return ExceptionHandler.execute(() => this.createStudentUseCase.execute(dto, adminId))
   }
 
-  // @Get('fetch-from-api')
-  // @HttpCode(HttpStatus.OK)
-  // @RequirePermission('student.fetchFromApi')
-  // async fetchStudentFromApi(@Query('limit') limit?: number): Promise<{ processed: number; errors: number }> {
-  //   return ExceptionHandler.execute(() => this.fetchStudentFromApiUseCase.execute(limit))
-  // }
-
   @Get('me')
   @HttpCode(HttpStatus.OK)
   @StudentOnly()

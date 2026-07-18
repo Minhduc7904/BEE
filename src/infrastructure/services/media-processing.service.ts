@@ -1,3 +1,4 @@
+import type { MediaProcessingService as MediaProcessingServicePort } from 'src/application/interfaces/media-processing.interface'
 import { Injectable, Logger } from '@nestjs/common'
 import { MediaType } from 'src/shared/enums'
 import ffmpeg from 'fluent-ffmpeg'

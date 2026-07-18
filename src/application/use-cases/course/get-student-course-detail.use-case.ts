@@ -10,6 +10,14 @@ import {
   NotFoundException,
 } from '../../../shared/exceptions/custom-exceptions'
 import { CourseType, CourseVisibility } from 'src/shared/enums'
+import { MediaStatus } from '@prisma/client'
+import { PrismaService } from '../../../prisma/prisma.service'
+import { MinioService } from 'src/application/interfaces'
+import { COURSE_MEDIA_FIELDS } from '../../../shared/constants'
+import { EntityType } from '../../../shared/constants/entity-type.constants'
+import type { PublicSeoCourseMediaDto } from '../../dtos/course/public-seo-course.dto'
+import { mapPublicSeoMediaFile } from './get-public-seo-online-courses.use-case'
+import { getTeacherAvatarUrls } from './course-teacher-avatar.util'
 
 @Injectable()
 export class GetStudentCourseDetailUseCase {
@@ -18,6 +26,8 @@ export class GetStudentCourseDetailUseCase {
     private readonly courseRepository: ICourseRepository,
     @Inject('ICourseEnrollmentRepository')
     private readonly courseEnrollmentRepository: ICourseEnrollmentRepository,
+    private readonly prisma: PrismaService,
+    private readonly minioService: MinioService,
   ) {}
 
   async execute(courseId: number, studentId: number): Promise<BaseResponseDto<StudentCourseDetailResponseDto>> {
@@ -38,11 +48,19 @@ export class GetStudentCourseDetailUseCase {
       throw new ForbiddenException('Ban chua dang ky khoa hoc nay')
     }
 
+    const media = await this.getPublicCourseMedia(course.courseId)
+    const teacherUserId = course.teacher?.userId ?? course.teacher?.user?.userId
+    const teacherAvatarUrl = teacherUserId
+      ? (await getTeacherAvatarUrls(this.prisma, this.minioService, [teacherUserId])).get(teacherUserId)
+      : undefined
+
     const courseResponse = StudentCourseDetailResponseDto.fromEntity(course, {
       isEnrolled: isActiveEnrollment,
       enrolledAt: isActiveEnrollment ? enrollment?.enrolledAt : undefined,
       status: isActiveEnrollment ? enrollment?.status : undefined,
       isPaidFull: isActiveEnrollment ? enrollment?.isPaidFull : undefined,
+      media,
+      teacherAvatarUrl,
     })
 
     return {
@@ -50,5 +68,43 @@ export class GetStudentCourseDetailUseCase {
       message: 'Lay thong tin khoa hoc thanh cong',
       data: courseResponse,
     }
+  }
+
+  private async getPublicCourseMedia(courseId: number): Promise<PublicSeoCourseMediaDto> {
+    const media: PublicSeoCourseMediaDto = { gallery: [] }
+    const usages = await this.prisma.mediaUsage.findMany({
+      where: {
+        entityType: EntityType.COURSE,
+        entityId: courseId,
+        fieldName: {
+          in: [
+            COURSE_MEDIA_FIELDS.THUMBNAIL,
+            COURSE_MEDIA_FIELDS.BANNER,
+            COURSE_MEDIA_FIELDS.INTRO_VIDEO,
+            COURSE_MEDIA_FIELDS.GALLERY,
+          ],
+        },
+        media: {
+          status: MediaStatus.READY,
+        },
+      },
+      include: {
+        media: true,
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    })
+
+    for (const usage of usages) {
+      const mediaFile = await mapPublicSeoMediaFile(usage, this.minioService)
+
+      if (usage.fieldName === COURSE_MEDIA_FIELDS.THUMBNAIL) media.thumbnail = mediaFile
+      if (usage.fieldName === COURSE_MEDIA_FIELDS.BANNER) media.banner = mediaFile
+      if (usage.fieldName === COURSE_MEDIA_FIELDS.INTRO_VIDEO) media.introVideo = mediaFile
+      if (usage.fieldName === COURSE_MEDIA_FIELDS.GALLERY) media.gallery.push(mediaFile)
+    }
+
+    return media
   }
 }

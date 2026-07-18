@@ -6,96 +6,86 @@ import type { ICourseEnrollmentRepository } from '../../../domain/repositories/c
 import type { IStudentLearningItemRepository } from '../../../domain/repositories/student-learning-item.repository'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 import { StudentLessonResponseDto } from '../../dtos/lesson/student-lesson.dto'
-import { 
-    NotFoundException, 
-    ForbiddenException,
-    ConflictException 
-} from '../../../shared/exceptions/custom-exceptions'
+import { NotFoundException, ForbiddenException, ConflictException } from '../../../shared/exceptions/custom-exceptions'
 import { Visibility } from '../../../shared/enums'
 import { StudentClassLessonAccessService } from 'src/application/services/student-class-lesson-access.service'
 
 @Injectable()
 export class GetStudentLessonByIdUseCase {
-    constructor(
-        @Inject('ILessonRepository')
-        private readonly lessonRepository: ILessonRepository,
-        @Inject('ICourseRepository')
-        private readonly courseRepository: ICourseRepository,
-        @Inject('ICourseEnrollmentRepository')
-        private readonly courseEnrollmentRepository: ICourseEnrollmentRepository,
-        @Inject('IStudentLearningItemRepository')
-        private readonly studentLearningItemRepository: IStudentLearningItemRepository,
-        private readonly studentClassLessonAccessService: StudentClassLessonAccessService,
-    ) { }
-    
-    async execute(
-        lessonId: number, 
-        studentId: number
-    ): Promise<BaseResponseDto<StudentLessonResponseDto>> {
-        // 1. Kiểm tra lesson có tồn tại không
-        const lesson = await this.lessonRepository.findById(lessonId)
+  constructor(
+    @Inject('ILessonRepository')
+    private readonly lessonRepository: ILessonRepository,
+    @Inject('ICourseRepository')
+    private readonly courseRepository: ICourseRepository,
+    @Inject('ICourseEnrollmentRepository')
+    private readonly courseEnrollmentRepository: ICourseEnrollmentRepository,
+    @Inject('IStudentLearningItemRepository')
+    private readonly studentLearningItemRepository: IStudentLearningItemRepository,
+    private readonly studentClassLessonAccessService: StudentClassLessonAccessService,
+  ) {}
 
-        if (!lesson) {
-            throw new NotFoundException('Không tìm thấy bài học')
-        }
+  async execute(lessonId: number, studentId: number): Promise<BaseResponseDto<StudentLessonResponseDto>> {
+    // 1. Kiểm tra lesson có tồn tại không
+    const lesson = await this.lessonRepository.findById(lessonId)
 
-        // 2. Chỉ cho học sinh xem lesson đã public
-        if (lesson.visibility !== Visibility.PUBLISHED) {
-            throw new ConflictException('Bài học này chưa được công bố')
-        }
-
-        // 3. Kiểm tra course có tồn tại không
-        const course = await this.courseRepository.findById(lesson.courseId)
-
-        if (!course) {
-            throw new NotFoundException('Không tìm thấy khóa học')
-        }
-
-        // 4. Kiểm tra student đã enroll vào course chưa
-        const enrollment = await this.courseEnrollmentRepository.findByCourseAndStudent(
-            lesson.courseId, 
-            studentId
-        )
-
-        if (!enrollment || !enrollment.isActive()) {
-            throw new ForbiddenException('Bạn chưa đăng ký khóa học này')
-        }
-
-        const canViewLesson = await this.studentClassLessonAccessService.isLessonVisibleForStudent(
-            lesson.lessonId,
-            lesson.courseId,
-            studentId,
-        )
-
-        if (!canViewLesson) {
-            throw new NotFoundException('Không tìm thấy bài học')
-        }
-
-        // 5. Lấy tất cả learning item IDs từ lesson
-        const learningItemIds: number[] = []
-        lesson.learningItems?.forEach(li => {
-            if (li.learningItem?.learningItemId) {
-                learningItemIds.push(li.learningItem.learningItemId)
-            }
-        })
-
-        // 6. Lấy student learning items progress
-        const studentLearningItemsList = learningItemIds.length > 0
-            ? await this.studentLearningItemRepository.findByStudentAndItems(studentId, learningItemIds)
-            : []
-
-        // 7. Tạo Map để tra cứu nhanh
-        const studentLearningItemsMap = new Map(
-            studentLearningItemsList.map(sli => [sli.learningItemId, sli])
-        )
-
-        // 8. Map to response DTO với progress
-        const lessonResponse = StudentLessonResponseDto.fromEntity(lesson, studentLearningItemsMap)
-
-        return {
-            success: true,
-            message: 'Lấy thông tin bài học thành công',
-            data: lessonResponse,
-        }
+    if (!lesson) {
+      throw new NotFoundException('Không tìm thấy bài học')
     }
+
+    // 2. Chỉ cho học sinh xem lesson đã public
+    if (lesson.visibility !== Visibility.PUBLISHED) {
+      throw new ConflictException('Bài học này chưa được công bố')
+    }
+
+    // 3. Kiểm tra course có tồn tại không
+    const course = await this.courseRepository.findById(lesson.courseId)
+
+    if (!course) {
+      throw new NotFoundException('Không tìm thấy khóa học')
+    }
+
+    // 4. Kiểm tra student đã enroll vào course chưa
+    const enrollment = await this.courseEnrollmentRepository.findByCourseAndStudent(lesson.courseId, studentId)
+
+    if (!enrollment || !enrollment.isActive()) {
+      throw new ForbiddenException('Bạn chưa đăng ký khóa học này')
+    }
+
+    // Dùng cùng nguồn quyền xem với GetStudentCourseLessonsUseCase để
+    // API danh sách, latest và chi tiết luôn trả kết quả nhất quán.
+    const visibleLessonOrderMap = await this.studentClassLessonAccessService.getVisibleLessonOrderMap(
+      lesson.courseId,
+      studentId,
+    )
+
+    if (!visibleLessonOrderMap.has(lesson.lessonId)) {
+      throw new NotFoundException('Không tìm thấy bài học')
+    }
+
+    // 5. Lấy tất cả learning item IDs từ lesson
+    const learningItemIds: number[] = []
+    lesson.learningItems?.forEach((li) => {
+      if (li.learningItem?.learningItemId) {
+        learningItemIds.push(li.learningItem.learningItemId)
+      }
+    })
+
+    // 6. Lấy student learning items progress
+    const studentLearningItemsList =
+      learningItemIds.length > 0
+        ? await this.studentLearningItemRepository.findByStudentAndItems(studentId, learningItemIds)
+        : []
+
+    // 7. Tạo Map để tra cứu nhanh
+    const studentLearningItemsMap = new Map(studentLearningItemsList.map((sli) => [sli.learningItemId, sli]))
+
+    // 8. Map to response DTO với progress
+    const lessonResponse = StudentLessonResponseDto.fromEntity(lesson, studentLearningItemsMap)
+
+    return {
+      success: true,
+      message: 'Lấy thông tin bài học thành công',
+      data: lessonResponse,
+    }
+  }
 }

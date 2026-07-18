@@ -1,3 +1,4 @@
+import type { MarkdownRenderService as MarkdownRenderServicePort } from 'src/application/interfaces/markdown-render.interface'
 import { Injectable, Logger } from '@nestjs/common'
 import MarkdownIt from 'markdown-it'
 import texmath from 'markdown-it-texmath'

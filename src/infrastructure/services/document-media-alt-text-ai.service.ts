@@ -1,3 +1,4 @@
+import type { DocumentMediaAltTextAiService as DocumentMediaAltTextAiServicePort } from 'src/application/interfaces/document-media-alt-text-ai.interface'
 import { Injectable, Logger } from '@nestjs/common'
 import { TextSearchUtil } from 'src/shared/utils/text-search.util'
 import { OpenAIService } from './openai.service'

@@ -1,3 +1,4 @@
+import type { DocumentSeoAiService as DocumentSeoAiServicePort } from 'src/application/interfaces/document-seo-ai.interface'
 import { Injectable } from '@nestjs/common'
 import { OpenAIService } from './openai.service'
 import { TextSearchUtil } from 'src/shared/utils/text-search.util'

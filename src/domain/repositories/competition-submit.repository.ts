@@ -85,12 +85,18 @@ export interface CompetitionSubmitScoreExportResult {
   questions: CompetitionSubmitScoreExportQuestion[]
 }
 
+export interface CompetitionSubmitRelationOptions {
+  includeRelations?: boolean
+}
+
 export interface ICompetitionSubmitRepository {
-  create(data: CreateCompetitionSubmitData, txClient?: any): Promise<CompetitionSubmit>
-  findById(id: number, txClient?: any): Promise<CompetitionSubmit | null>
-  update(id: number, data: UpdateCompetitionSubmitData, txClient?: any): Promise<CompetitionSubmit>
+    create(data: CreateCompetitionSubmitData, txClient?: any): Promise<CompetitionSubmit>
+    findById(id: number, txClient?: any, options?: CompetitionSubmitRelationOptions): Promise<CompetitionSubmit | null>
+    update(id: number, data: UpdateCompetitionSubmitData, txClient?: any, options?: CompetitionSubmitRelationOptions): Promise<CompetitionSubmit>
+    incrementTimeSpentSeconds(id: number, seconds: number, txClient?: any, options?: CompetitionSubmitRelationOptions): Promise<CompetitionSubmit>
   delete(id: number, txClient?: any): Promise<void>
   findAll(txClient?: any): Promise<CompetitionSubmit[]>
+  findAllInProgressWithCompetition(txClient?: any): Promise<CompetitionSubmit[]>
 
   // Pagination methods
   findAllWithPagination(
@@ -114,9 +120,15 @@ export interface ICompetitionSubmitRepository {
 
   findByCompetition(competitionId: number, txClient?: any): Promise<CompetitionSubmit[]>
   findByStudent(studentId: number, txClient?: any): Promise<CompetitionSubmit[]>
+  findSubmittedBasicByStudent(studentId: number, txClient?: any): Promise<CompetitionSubmit[]>
   findByCompetitionAndStudent(competitionId: number, studentId: number, txClient?: any): Promise<CompetitionSubmit[]>
 
-  findLatestAttempt(competitionId: number, studentId: number, txClient?: any): Promise<CompetitionSubmit | null>
+  findLatestAttempt(
+    competitionId: number,
+    studentId: number,
+    txClient?: any,
+    options?: CompetitionSubmitRelationOptions,
+  ): Promise<CompetitionSubmit | null>
 
   findByAttempt(
     competitionId: number,
