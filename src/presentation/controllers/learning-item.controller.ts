@@ -141,13 +141,92 @@ export class LearningItemController {
    * - Learning item chỉ thuộc lesson DRAFT hoặc PRIVATE sẽ không được trả về.
    *
    * Input:
-   * - id: ID của learning item cần lấy chi tiết.
-   * - studentId: ID của student lấy từ token đăng nhập.
+   * - Request: `GET /api/learning-items/6667/student`.
+   * - Header: `Authorization: Bearer <student-jwt>`.
+   * - Path param `id`: ID learning item, ví dụ `6667`.
+   * - Không có request body. `studentId` luôn lấy từ JWT, không nhận từ client.
    *
    * Output:
+   * - Response trả về `BaseResponseDto<StudentLearningItemResponseDto>`:
+   * ```json
+   * {
+   *   "success": true,
+   *   "message": "Lấy thông tin learning item thành công",
+   *   "data": {
+   *     "learningItemId": 6667,
+   *     "type": "HOMEWORK",
+   *     "title": "Bài tập tuần 1",
+   *     "description": "Hoàn thành bài thi được giao",
+   *     "createdAt": "2026-07-18T08:00:00.000Z",
+   *     "updatedAt": "2026-07-18T08:00:00.000Z",
+   *     "studentLearningItem": null,
+   *     "homeworkContents": [
+   *       {
+   *         "homeworkContentId": 91,
+   *         "learningItemId": 6667,
+   *         "type": "COMPETITION",
+   *         "content": "Làm bài thi Toán",
+   *         "dueDate": "2026-07-20T16:59:59.000Z",
+   *         "allowLateSubmit": true,
+   *         "competitionId": 15,
+   *         "competition": {
+   *           "competitionId": 15,
+   *           "title": "Thi thử Toán",
+   *           "startDate": "2026-07-15T00:00:00.000Z",
+   *           "endDate": null,
+   *           "durationMinutes": 60,
+   *           "maxAttempts": 3,
+   *           "allowViewScore": true
+   *         },
+   *         "homeworkSubmit": {
+   *           "homeworkSubmitId": 45,
+   *           "isDone": true,
+   *           "submitAt": "2026-07-18T09:30:00.000Z",
+   *           "competitionSubmitId": 120
+   *         },
+   *         "progress": {
+   *           "isLearned": false,
+   *           "isDone": true,
+   *           "competitionSubmit": {
+   *             "competitionSubmitId": 120,
+   *             "attemptNumber": 2,
+   *             "status": "SUBMITTED",
+   *             "submittedAt": "2026-07-18T09:30:00.000Z",
+   *             "totalPoints": 8,
+   *             "maxPoints": 10
+   *           },
+   *           "attemptCount": 2,
+   *           "maxAttempts": 3,
+   *           "questionCount": 20,
+   *           "dueDate": "2026-07-20T16:59:59.000Z",
+   *           "deadline": "2026-07-20T16:59:59.000Z",
+   *           "remainingTimeSeconds": 180000,
+   *           "status": "REDO",
+   *           "canAttempt": true
+   *         }
+   *       }
+   *     ]
+   *   }
+   * }
+   * ```
+   * - `progress.competitionSubmit` có thể không xuất hiện khi học sinh chưa có lượt làm.
+   *   API không trả `competitionSubmits[]` hoặc answer của các lượt cũ.
    * - Thông tin chi tiết learning item.
    * - Content tùy theo type (homework, document, youtube, video).
-   * - Progress của student (isLearned, learnedAt).
+   * - Progress của student (isLearned, learnedAt). Với homework competition,
+   *   `progress.competitionSubmit` chỉ là lượt làm gần nhất; API không trả mảng lịch sử lượt làm.
+   * - Với HOMEWORK, `homeworkContents[].progress.status` được xác định theo thứ tự ưu tiên:
+   *   1. `RESUME`: còn lượt thi `IN_PROGRESS` — luôn cho làm tiếp trước các rule deadline.
+   *   2. `COMPLETED`: đã dùng hết `maxAttempts`.
+   *   3. `OVERDUE`: đã qua `competition.endDate`, hoặc qua `dueDate` khi `allowLateSubmit = false`.
+   *   4. Quá `dueDate`, còn trong `endDate` (hoặc competition không có `endDate`) và `allowLateSubmit = true`:
+   *      - `LATE_SUBMIT`: chưa có bài nộp/lượt thi trước đó.
+   *      - `LATE_REDO`: đã có bài nộp hoặc lượt thi trước đó, vẫn còn lượt làm.
+   *   5. `NOT_STARTED`: chưa tới `competition.startDate`.
+   *   6. `REDO`: còn hạn, đã có lượt nộp trước đó và vẫn còn lượt.
+   *   7. `DO_NOW`: còn hạn, chưa có lượt nộp.
+   * - `canAttempt` chỉ true cho `DO_NOW`, `RESUME`, `REDO`, `LATE_SUBMIT`, `LATE_REDO`
+   *   và khi còn lượt. `endDate = null` nghĩa là không có hạn cuối của competition.
    */
   @Get(':id/student')
   @RequirePermission()

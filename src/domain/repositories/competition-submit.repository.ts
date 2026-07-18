@@ -123,7 +123,12 @@ export interface ICompetitionSubmitRepository {
   findSubmittedBasicByStudent(studentId: number, txClient?: any): Promise<CompetitionSubmit[]>
   findByCompetitionAndStudent(competitionId: number, studentId: number, txClient?: any): Promise<CompetitionSubmit[]>
 
-  findLatestAttempt(competitionId: number, studentId: number, txClient?: any): Promise<CompetitionSubmit | null>
+  findLatestAttempt(
+    competitionId: number,
+    studentId: number,
+    txClient?: any,
+    options?: CompetitionSubmitRelationOptions,
+  ): Promise<CompetitionSubmit | null>
 
   findByAttempt(
     competitionId: number,

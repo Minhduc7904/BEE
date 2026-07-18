@@ -14,9 +14,10 @@ export enum HomeworkStatus {
     DO_NOW = 'DO_NOW',              // Làm ngay (còn hạn, chưa làm hoặc có thể làm lại)
     RESUME = 'RESUME',              // Làm tiếp (đang có lần thi còn dở, chưa nộp)
     REDO = 'REDO',                  // Làm lại (còn hạn, đã làm nhưng chưa đạt max attempts)
-    LATE_SUBMIT = 'LATE_SUBMIT',    // Làm muộn (quá dueDate nhưng còn endDate và cho phép nộp muộn)
+    LATE_SUBMIT = 'LATE_SUBMIT',    // Chưa từng nộp, đã quá dueDate nhưng được nộp muộn
+    LATE_REDO = 'LATE_REDO',        // Đã nộp/làm trước đó, còn lượt và được làm lại muộn
     OVERDUE = 'OVERDUE',            // Quá hạn (không thể làm nữa)
-    COMPLETED = 'COMPLETED',        // Đã hoàn thành (đạt max attempts hoặc đã nộp)
+    COMPLETED = 'COMPLETED',        // Đã dùng hết số lượt làm được phép
     NOT_STARTED = 'NOT_STARTED',    // Chưa đến thời gian bắt đầu
 }
 
@@ -82,8 +83,8 @@ export class HomeworkProgressDto {
     homeworkSubmit?: HomeworkSubmitDto
     isDone: boolean
 
-    // Từ CompetitionSubmit
-    competitionSubmits?: CompetitionSubmitDto[]
+    // Submit gần nhất của competition; không trả toàn bộ lịch sử lượt làm ở API chi tiết learning item.
+    competitionSubmit?: CompetitionSubmitDto
     attemptCount: number
     maxAttempts?: number
 
@@ -98,14 +99,15 @@ export class HomeworkProgressDto {
     static create(params: {
         studentLearningItem: StudentLearningItem | null
         homeworkSubmit: HomeworkSubmit | null
-        competitionSubmits: CompetitionSubmit[]
+        latestCompetitionSubmit: CompetitionSubmit | null
+        submittedAttemptCount: number
         questionCount?: number
         dueDate?: Date
         startDate?: Date
         endDate?: Date
         maxAttempts?: number
         allowLateSubmit: boolean
-        /** Nếu false → ẩn điểm khỏi homeworkSubmit và competitionSubmits */
+        /** Nếu false → ẩn điểm khỏi homeworkSubmit và competitionSubmit */
         allowViewScore?: boolean
     }): HomeworkProgressDto {
         const dto = new HomeworkProgressDto()
@@ -122,20 +124,20 @@ export class HomeworkProgressDto {
         }
         dto.isDone = params.homeworkSubmit !== null
 
-        // CompetitionSubmits
-        dto.competitionSubmits = params.competitionSubmits.map(s => {
-            const submitDto = CompetitionSubmitDto.fromEntity(s)
+        // Chỉ trả lượt competition gần nhất để tránh lặp toàn bộ lịch sử trong response.
+        dto.competitionSubmit = params.latestCompetitionSubmit
+            ? CompetitionSubmitDto.fromEntity(params.latestCompetitionSubmit)
+            : undefined
+        if (dto.competitionSubmit) {
             if (!canViewScore) {
-                submitDto.totalPoints = undefined
-                submitDto.maxPoints = undefined
+                dto.competitionSubmit.totalPoints = undefined
+                dto.competitionSubmit.maxPoints = undefined
             }
-            return submitDto
-        })
-        // Chỉ đếm các lần đã SUBMITTED để kiểm tra giới hạn lượt làm
-        const submittedSubmits = params.competitionSubmits.filter(s => s.status === 'SUBMITTED')
-        dto.attemptCount = submittedSubmits.length
+        }
+        // Số lượt đã nộp được lấy bằng COUNT ở use case, không tải toàn bộ lịch sử submit.
+        dto.attemptCount = params.submittedAttemptCount
         dto.maxAttempts = params.maxAttempts
-        const hasInProgressSubmit = params.competitionSubmits.some(s => s.status === 'IN_PROGRESS')
+        const hasInProgressSubmit = params.latestCompetitionSubmit?.status === 'IN_PROGRESS'
 
         // Question count
         dto.questionCount = params.questionCount
@@ -170,6 +172,7 @@ export class HomeworkProgressDto {
             HomeworkStatus.RESUME,
             HomeworkStatus.REDO,
             HomeworkStatus.LATE_SUBMIT,
+            HomeworkStatus.LATE_REDO,
         ].includes(dto.status)
         const hasAttemptsRemaining =
             dto.maxAttempts === undefined
@@ -200,6 +203,7 @@ export class HomeworkProgressDto {
             attemptCount,
             maxAttempts,
             allowLateSubmit,
+            isDone,
             hasInProgressSubmit,
         } = params
 
@@ -226,11 +230,14 @@ export class HomeworkProgressDto {
          * - allowLateSubmit = true:
          *   + Nếu có endDate thì do phía trên đã check chưa quá endDate => cho nộp muộn.
          *   + Nếu không có endDate => cho nộp muộn vô thời hạn.
+         *   + Đã có bài nộp/lượt thi trước đó => LATE_REDO; ngược lại => LATE_SUBMIT.
          * - allowLateSubmit = false => quá hạn.
          */
         if (dueDate && now > dueDate) {
             if (allowLateSubmit) {
-                return HomeworkStatus.LATE_SUBMIT
+                return isDone || attemptCount > 0
+                    ? HomeworkStatus.LATE_REDO
+                    : HomeworkStatus.LATE_SUBMIT
             }
 
             return HomeworkStatus.OVERDUE

@@ -8,6 +8,7 @@ import type {
     IExamRepository,
 } from '../../../domain/repositories'
 import type { IStudentLearningItemRepository } from '../../../domain/repositories/student-learning-item.repository'
+import type { CompetitionSubmit } from '../../../domain/entities'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 import { StudentLearningItemResponseDto, HomeworkProgressDto } from '../../dtos/learningItem/student-learning-item.dto'
 import { MediaFileDto } from '../../dtos/documentContent/document-content.dto'
@@ -15,7 +16,7 @@ import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 import { MinioService } from 'src/application/interfaces'
 import { EntityType } from '../../../shared/constants/entity-type.constants'
 import { DOCUMENT_MEDIA_FIELDS, VIDEO_MEDIA_FIELDS } from '../../../shared/constants'
-import { LearningItemType, MediaStatus } from '../../../shared/enums'
+import { CompetitionSubmitStatus, LearningItemType, MediaStatus } from '../../../shared/enums'
 import { StudentClassLessonAccessService } from 'src/application/services/student-class-lesson-access.service'
 
 @Injectable()
@@ -77,7 +78,8 @@ export class GetStudentLearningItemByIdUseCase {
                 )
 
                 // Khởi tạo các biến
-                let competitionSubmits: any[] = []
+                let latestCompetitionSubmit: CompetitionSubmit | null = null
+                let submittedAttemptCount = 0
                 let questionCount: number | undefined
                 let startDate: Date | undefined
                 let endDate: Date | undefined
@@ -85,24 +87,33 @@ export class GetStudentLearningItemByIdUseCase {
 
                 // Nếu có competition, lấy thêm thông tin
                 if (homeworkContent.competitionId) {
-                    // Lấy competition submits
-                    competitionSubmits = await this.competitionSubmitRepository.findByCompetitionAndStudent(
-                        homeworkContent.competitionId,
-                        studentId,
-                    )
+                    // Chỉ tải submit mới nhất (không include answers/relations) và COUNT lượt đã nộp.
+                    // Trước đây API tải toàn bộ lịch sử submit kèm answers nên response bị lặp và chậm.
+                    const [latestSubmit, attemptCount, competitionQuestionCount] = await Promise.all([
+                        this.competitionSubmitRepository.findLatestAttempt(
+                            homeworkContent.competitionId,
+                            studentId,
+                            undefined,
+                            { includeRelations: false },
+                        ),
+                        this.competitionSubmitRepository.count({
+                            competitionId: homeworkContent.competitionId,
+                            studentId,
+                            status: CompetitionSubmitStatus.SUBMITTED,
+                        }),
+                        homeworkContent.competition?.examId
+                            ? this.examRepository.countQuestionsByExamId(homeworkContent.competition.examId)
+                            : Promise.resolve(undefined),
+                    ])
+                    latestCompetitionSubmit = latestSubmit
+                    submittedAttemptCount = attemptCount
+                    questionCount = competitionQuestionCount
 
-                    // Lấy thông tin competition và đếm số câu hỏi
+                    // Lấy cấu hình competition đã được nạp cùng homework content.
                     if (homeworkContent.competition) {
                         startDate = homeworkContent.competition.startDate ?? undefined
                         endDate = homeworkContent.competition.endDate ?? undefined
                         maxAttempts = homeworkContent.competition.maxAttempts ?? undefined
-
-                        // Đếm số câu hỏi trong exam
-                        if (homeworkContent.competition.examId) {
-                            questionCount = await this.examRepository.countQuestionsByExamId(
-                                homeworkContent.competition.examId,
-                            )
-                        }
                     }
                 }
 
@@ -110,7 +121,8 @@ export class GetStudentLearningItemByIdUseCase {
                 const progress = HomeworkProgressDto.create({
                     studentLearningItem,
                     homeworkSubmit,
-                    competitionSubmits,
+                    latestCompetitionSubmit,
+                    submittedAttemptCount,
                     questionCount,
                     dueDate: homeworkContent.dueDate ?? undefined,
                     startDate,

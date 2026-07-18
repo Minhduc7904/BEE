@@ -918,8 +918,14 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
     return submits.map((s: any) => CompetitionSubmitMapper.toDomainCompetitionSubmit(s)).filter(Boolean)
   }
 
-  async findLatestAttempt(competitionId: number, studentId: number, txClient?: any): Promise<CompetitionSubmit | null> {
+  async findLatestAttempt(
+    competitionId: number,
+    studentId: number,
+    txClient?: any,
+    options?: { includeRelations?: boolean },
+  ): Promise<CompetitionSubmit | null> {
     const client = txClient || this.prisma
+    const includeRelations = options?.includeRelations !== false
 
     const submit = await client.competitionSubmit.findFirst({
       where: {
@@ -927,19 +933,23 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
         studentId,
         student: { user: { isActive: true } },
       },
-      include: {
-        competition: true,
-        student: {
-          include: {
-            user: true,
-          },
-        },
-        competitionAnswers: {
-          include: {
-            question: true,
-          },
-        },
-      },
+      ...(includeRelations
+        ? {
+            include: {
+              competition: true,
+              student: {
+                include: {
+                  user: true,
+                },
+              },
+              competitionAnswers: {
+                include: {
+                  question: true,
+                },
+              },
+            },
+          }
+        : {}),
       orderBy: { attemptNumber: 'desc' },
     })
 
