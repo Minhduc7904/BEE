@@ -108,6 +108,7 @@ import httpClientConfig from '../config/http-client.config'
 import supabaseConfig from '../config/supabase.config'
 import mistralConfig from '../config/mistral.config'
 import openaiConfig from '../config/openai.config'
+import payosConfig from '../config/payos.config'
 import {
   AchievementBoardSeoAiService as AchievementBoardSeoAiServicePort,
   AuthService as AuthServicePort,
@@ -148,6 +149,7 @@ import {
     ConfigModule.forFeature(httpClientConfig),
     ConfigModule.forFeature(mistralConfig),
     ConfigModule.forFeature(openaiConfig),
+    ConfigModule.forFeature(payosConfig),
     // ConfigModule.forFeature(supabaseConfig), // Disabled: not using Supabase anymore
     JwtModule.register({}), // Empty config, sẽ override trong service
   ],

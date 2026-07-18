@@ -113,6 +113,16 @@ export class HandlePayosWebhookUseCase {
       return this.response('00', 'OK')
     }
 
+    const providerPayDate = this.normalizeProviderPayDate(webhook.data.transactionDateTime)
+    if (webhook.data.transactionDateTime && !providerPayDate) {
+      this.logger.warn(
+        `[PayOS webhook] provider_pay_date_ignored ${JSON.stringify({
+          orderCode: webhook.data.orderCode,
+          sourceLength: webhook.data.transactionDateTime.length,
+        })}`,
+      )
+    }
+
     try {
       await this.unitOfWork.executeInTransaction(
         async (repos) => {
@@ -146,7 +156,7 @@ export class HandlePayosWebhookUseCase {
             providerMessage: webhook.data.desc || webhook.desc,
             providerBankCode: webhook.data.counterAccountBankId,
             providerBankTranNo: webhook.data.reference,
-            providerPayDate: webhook.data.transactionDateTime,
+            providerPayDate,
             callbackPayload: payload,
             paidAt: new Date(),
           })
@@ -184,6 +194,14 @@ export class HandlePayosWebhookUseCase {
 
   private response(code: string, desc: string): PayosWebhookResponseDto {
     return { code, desc }
+  }
+
+  /** The shared provider_pay_date column stores payment dates as yyyyMMddHHmmss (14 characters). */
+  private normalizeProviderPayDate(transactionDateTime?: string): string | undefined {
+    if (!transactionDateTime) return undefined
+
+    const digits = transactionDateTime.replace(/\D/g, '')
+    return digits.length >= 14 ? digits.slice(0, 14) : undefined
   }
 
   private log(event: string, context: Record<string, unknown>): void {

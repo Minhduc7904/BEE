@@ -1,5 +1,11 @@
-import { BadGatewayException, BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common'
-import { ConfigService } from '@nestjs/config'
+import {
+  BadGatewayException,
+  BadRequestException,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common'
+import type { ConfigType } from '@nestjs/config'
 import axios from 'axios'
 import { createHmac, timingSafeEqual } from 'crypto'
 import type {
@@ -9,6 +15,7 @@ import type {
   PayosWebhookData,
   PayosWebhookEvent,
 } from 'src/application/interfaces/payos.interface'
+import { PayosConfig } from 'src/config/payos.config'
 
 type PayosEnvelope<T> = {
   code: string
@@ -21,7 +28,10 @@ type PayosWebhookPayload = PayosWebhookEvent & { signature: string }
 
 @Injectable()
 export class PayosService implements PayosServicePort {
-  constructor(private readonly configService: ConfigService) {}
+  constructor(
+    @Inject(PayosConfig.KEY)
+    private readonly payosConfig: ConfigType<typeof PayosConfig>,
+  ) {}
 
   async createPaymentLink(input: CreatePayosPaymentLinkInput): Promise<PayosPaymentLink> {
     const payload = {
@@ -29,8 +39,8 @@ export class PayosService implements PayosServicePort {
       amount: input.amount,
       description: input.description,
       items: input.items,
-      cancelUrl: this.getRedirectUrl('PAYOS_CANCEL_URL', '/student/payment/payos-cancel'),
-      returnUrl: this.getRedirectUrl('PAYOS_RETURN_URL', '/student/payment/payos-return'),
+      cancelUrl: this.requireConfig(this.payosConfig.cancelUrl, 'PAYOS_CANCEL_URL or APP_URL'),
+      returnUrl: this.requireConfig(this.payosConfig.returnUrl, 'PAYOS_RETURN_URL or APP_URL'),
       expiredAt: input.expiredAt,
     }
     const signature = this.signPaymentRequest(payload)
@@ -42,8 +52,8 @@ export class PayosService implements PayosServicePort {
         {
           headers: {
             'Content-Type': 'application/json',
-            'x-client-id': this.requireEnv('CLIENT_ID_PAYOS'),
-            'x-api-key': this.requireEnv('API_KEY_PAYOS'),
+            'x-client-id': this.requireConfig(this.payosConfig.clientId, 'CLIENT_ID_PAYOS'),
+            'x-api-key': this.requireConfig(this.payosConfig.apiKey, 'API_KEY_PAYOS'),
           },
           timeout: 15_000,
         },
@@ -116,7 +126,7 @@ export class PayosService implements PayosServicePort {
   }
 
   private createSignature(data: Record<string, unknown>): string {
-    return createHmac('sha256', this.requireEnv('CHECKSUM_KEY_PAYOS'))
+    return createHmac('sha256', this.requireConfig(this.payosConfig.checksumKey, 'CHECKSUM_KEY_PAYOS'))
       .update(this.toSignatureData(data), 'utf8')
       .digest('hex')
   }
@@ -168,23 +178,12 @@ export class PayosService implements PayosServicePort {
   }
 
   private getApiUrl(): string {
-    return (this.configService.get<string>('PAYOS_API_URL') || 'https://api-merchant.payos.vn').replace(/\/$/, '')
+    return this.payosConfig.apiUrl
   }
 
-  private getRedirectUrl(key: string, fallbackPath: string): string {
-    const configuredUrl = this.configService.get<string>(key)?.trim()
-    if (configuredUrl) return configuredUrl
-
-    const appUrl = this.configService.get<string>('APP_URL')?.trim().replace(/\/$/, '')
-    if (appUrl) return `${appUrl}${fallbackPath}`
-
-    throw new InternalServerErrorException(`Missing environment variable: ${key} or APP_URL`)
-  }
-
-  private requireEnv(key: string): string {
-    const value = this.configService.get<string>(key)
+  private requireConfig(value: string | undefined, key: string): string {
     if (!value?.trim()) {
-      throw new InternalServerErrorException(`Missing environment variable: ${key}`)
+      throw new InternalServerErrorException(`Missing PayOS configuration: ${key}`)
     }
     return value.trim()
   }

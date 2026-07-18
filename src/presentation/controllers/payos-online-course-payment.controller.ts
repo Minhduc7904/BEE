@@ -32,7 +32,7 @@ export class PayosOnlineCoursePaymentController {
   @HttpCode(HttpStatus.OK)
   async handleWebhook(@Body() body: unknown) {
     this.logger.log('[PayOS webhook] request_forwarded_to_handler')
-    if (false) {
+    if (this.configService.get<boolean>('payos.webhookConfirmationOnly')) {
       this.logger.warn('[PayOS webhook] confirmation_only_mode: returning 200 without payment processing')
       return { code: '00', desc: 'Webhook endpoint is active' }
     }
