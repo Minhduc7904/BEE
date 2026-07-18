@@ -121,6 +121,7 @@ export class GetCompetitionAnswersUseCase {
                         questionId: q.questionId,
                         answer: null,
                         selectedStatementIds: null,
+                        timeSpentSeconds: 0,
                         maxPoints:
                             examPoints ??
                             originPoints ??

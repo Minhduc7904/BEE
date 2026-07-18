@@ -67,10 +67,15 @@ export interface QuestionSitemapResult {
   totalPages: number
 }
 
+export interface QuestionRelationOptions {
+  includeRelations?: boolean
+  includeStatements?: boolean
+}
+
 export interface IQuestionRepository {
   create(data: CreateQuestionData, txClient?: any): Promise<Question>
   createMany(dataArray: CreateQuestionData[], txClient?: any): Promise<number>
-  findById(id: number, txClient?: any): Promise<Question | null>
+  findById(id: number, txClient?: any, options?: QuestionRelationOptions): Promise<Question | null>
   findBySlug(slug: string, txClient?: any): Promise<Question | null>
   findByIds(ids: number[], txClient?: any): Promise<Question[]>
   update(id: number, data: Partial<CreateQuestionData>, txClient?: any): Promise<Question>

@@ -121,6 +121,7 @@ export class StartCompetitionAttemptUseCase {
       attemptNumber,
       status: CompetitionSubmitStatus.IN_PROGRESS,
       startedAt: new Date(),
+      timeSpentSeconds: 0,
       metadata: {
         startedAt: new Date().toISOString(),
         userAgent: 'web', // TODO: Get from request headers if needed

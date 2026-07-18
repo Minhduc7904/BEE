@@ -19,6 +19,7 @@ export class PrismaCompetitionAnswerRepository implements ICompetitionAnswerRepo
 
     async create(data: CreateCompetitionAnswerData, txClient?: any): Promise<CompetitionAnswer> {
         const client = txClient || this.prisma
+        const includeRelations = true
 
         const created = await client.competitionAnswer.create({
             data: {
@@ -31,19 +32,23 @@ export class PrismaCompetitionAnswerRepository implements ICompetitionAnswerRepo
                 maxPoints: data.maxPoints ?? null,
                 timeSpentSeconds: data.timeSpentSeconds ?? null,
             },
-            include: {
-                competitionSubmit: {
+            ...(includeRelations
+                ? {
                     include: {
-                        competition: true,
-                        student: {
+                        competitionSubmit: {
                             include: {
-                                user: true,
+                                competition: true,
+                                student: {
+                                    include: {
+                                        user: true,
+                                    },
+                                },
                             },
                         },
+                        question: true,
                     },
-                },
-                question: true,
-            },
+                }
+                : {}),
         })
 
         return CompetitionAnswerMapper.toDomainCompetitionAnswer(created)!
@@ -112,8 +117,16 @@ export class PrismaCompetitionAnswerRepository implements ICompetitionAnswerRepo
         return answers
     }
 
-    async findById(id: number, txClient?: any): Promise<CompetitionAnswer | null> {
+    async findById(id: number, txClient?: any, options?: { includeRelations?: boolean }): Promise<CompetitionAnswer | null> {
         const client = txClient || this.prisma
+        const includeRelations = options?.includeRelations !== false
+
+        if (!includeRelations) {
+            const answer = await client.competitionAnswer.findUnique({
+                where: { competitionAnswerId: id },
+            })
+            return answer ? CompetitionAnswerMapper.toDomainCompetitionAnswer(answer) : null
+        }
 
         const answer = await client.competitionAnswer.findUnique({
             where: { competitionAnswerId: id },
@@ -137,8 +150,9 @@ export class PrismaCompetitionAnswerRepository implements ICompetitionAnswerRepo
         return CompetitionAnswerMapper.toDomainCompetitionAnswer(answer)
     }
 
-    async update(id: number, data: UpdateCompetitionAnswerData, txClient?: any): Promise<CompetitionAnswer> {
+    async update(id: number, data: UpdateCompetitionAnswerData, txClient?: any, options?: { includeRelations?: boolean }): Promise<CompetitionAnswer> {
         const client = txClient || this.prisma
+        const includeRelations = options?.includeRelations !== false
 
         const updateData: any = {}
 
@@ -156,19 +170,66 @@ export class PrismaCompetitionAnswerRepository implements ICompetitionAnswerRepo
         const updated = await client.competitionAnswer.update({
             where: { competitionAnswerId: id },
             data: updateData,
-            include: {
-                competitionSubmit: {
+            ...(includeRelations
+                ? {
                     include: {
-                        competition: true,
-                        student: {
+                        competitionSubmit: {
                             include: {
-                                user: true,
+                                competition: true,
+                                student: {
+                                    include: {
+                                        user: true,
+                                    },
+                                },
                             },
                         },
+                        question: true,
                     },
-                },
-                question: true,
+                }
+                : {}),
+        })
+
+        return CompetitionAnswerMapper.toDomainCompetitionAnswer(updated)!
+    }
+
+    async incrementTimeSpentSeconds(id: number, seconds: number, txClient?: any, options?: { includeRelations?: boolean }): Promise<CompetitionAnswer> {
+        const client = txClient || this.prisma
+        const includeRelations = options?.includeRelations !== false
+
+        await client.competitionAnswer.updateMany({
+            where: {
+                competitionAnswerId: id,
+                timeSpentSeconds: null,
             },
+            data: {
+                timeSpentSeconds: 0,
+            },
+        })
+
+        const updated = await client.competitionAnswer.update({
+            where: { competitionAnswerId: id },
+            data: {
+                timeSpentSeconds: {
+                    increment: seconds,
+                },
+            },
+            ...(includeRelations
+                ? {
+                    include: {
+                        competitionSubmit: {
+                            include: {
+                                competition: true,
+                                student: {
+                                    include: {
+                                        user: true,
+                                    },
+                                },
+                            },
+                        },
+                        question: true,
+                    },
+                }
+                : {}),
         })
 
         return CompetitionAnswerMapper.toDomainCompetitionAnswer(updated)!
@@ -177,11 +238,12 @@ export class PrismaCompetitionAnswerRepository implements ICompetitionAnswerRepo
     async updateMany(
         updates: { id: number; data: UpdateCompetitionAnswerData }[],
         txClient?: any,
+        options?: { includeRelations?: boolean },
     ): Promise<CompetitionAnswer[]> {
         const client = txClient || this.prisma
 
         const updatedAnswers = await Promise.all(
-            updates.map((update) => this.update(update.id, update.data, client)),
+            updates.map((update) => this.update(update.id, update.data, client, options)),
         )
 
         return updatedAnswers
@@ -273,14 +335,13 @@ export class PrismaCompetitionAnswerRepository implements ICompetitionAnswerRepo
         return this.findAllWithPagination(pagination || {}, filters, txClient)
     }
 
-    async findByCompetitionSubmit(competitionSubmitId: number, txClient?: any): Promise<CompetitionAnswer[]> {
+    async findByCompetitionSubmit(competitionSubmitId: number, txClient?: any, options?: { includeRelations?: boolean }): Promise<CompetitionAnswer[]> {
         const client = txClient || this.prisma
+        const includeRelations = options?.includeRelations !== false
 
         const answers = await client.competitionAnswer.findMany({
             where: { competitionSubmitId },
-            include: {
-                question: true,
-            },
+            ...(includeRelations ? { include: { question: true } } : {}),
             orderBy: { createdAt: 'asc' },
         })
 

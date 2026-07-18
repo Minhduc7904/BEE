@@ -80,7 +80,8 @@ export class SubmitCompetitionAnswerDto {
     trueFalseAnswers?: TrueFalseAnswerDto[]
 
     /**
-     * Time spent on this question in seconds (optional, for analytics)
+     * Số giây tăng thêm kể từ lần save trước. Backend cộng dồn vào thời gian
+     * của câu hỏi và tổng thời gian của CompetitionSubmit.
      * @optional
      * @min 0
      * @max 86400 (24 hours)

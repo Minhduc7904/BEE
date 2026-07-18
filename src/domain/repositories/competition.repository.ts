@@ -51,9 +51,13 @@ export interface CompetitionListResult {
     totalPages: number
 }
 
+export interface CompetitionRelationOptions {
+  includeRelations?: boolean
+}
+
 export interface ICompetitionRepository {
     create(data: CreateCompetitionData, txClient?: any): Promise<Competition>
-    findById(id: number, txClient?: any): Promise<Competition | null>
+    findById(id: number, txClient?: any, options?: CompetitionRelationOptions): Promise<Competition | null>
     update(id: number, data: Partial<CreateCompetitionData>, txClient?: any): Promise<Competition>
     delete(id: number, txClient?: any): Promise<void>
     findAllWithPagination(

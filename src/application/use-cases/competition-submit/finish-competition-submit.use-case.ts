@@ -65,7 +65,9 @@ export class FinishCompetitionSubmitUseCase {
         const hasHomeworkContext = homeworkContentId !== undefined && homeworkContentId !== null
 
         // 1. Tìm submit và kiểm tra quyền
-        const submit = await this.competitionSubmitRepository.findById(submitId)
+        const submit = await this.competitionSubmitRepository.findById(submitId, undefined, {
+            includeRelations: false,
+        })
         if (!submit) {
             throw new NotFoundException(`Lần làm bài với ID ${submitId} không tồn tại`)
         }
@@ -94,13 +96,17 @@ export class FinishCompetitionSubmitUseCase {
         // or the attempt duration. The student must still be able to submit it.
 
         // 2. Lấy toàn bộ câu trả lời của lần làm bài này
-        const answers = await this.competitionAnswerRepository.findByCompetitionSubmit(submitId)
+        const answers = await this.competitionAnswerRepository.findByCompetitionSubmit(submitId, undefined, {
+            includeRelations: false,
+        })
         // console.log(`Found ${answers.length} answers for submit ID ${submitId}`)
         // for (const a of answers) {
         //     console.log(`Answer ${a.competitionAnswerId}: questionId=${a.questionId}, points=${a.points}, maxPoints=${a.maxPoints}`)
         // }
         // 3. Tải đề thi để lấy câu hỏi + statements cho việc chấm điểm
-        const competition = await this.competitionRepository.findById(submit.competitionId)
+        const competition = await this.competitionRepository.findById(submit.competitionId, undefined, {
+            includeRelations: false,
+        })
         if (!competition) {
             throw new NotFoundException('Cuộc thi không tồn tại')
         }
@@ -233,7 +239,9 @@ export class FinishCompetitionSubmitUseCase {
 
         // 6. Ghi kết quả chấm vào DB (batch update)
         if (gradingUpdates.length > 0) {
-            await this.competitionAnswerRepository.updateMany(gradingUpdates)
+            await this.competitionAnswerRepository.updateMany(gradingUpdates, undefined, {
+                includeRelations: false,
+            })
         }
 
         // 7. Tính tổng điểm và điểm tối đa
@@ -251,7 +259,7 @@ export class FinishCompetitionSubmitUseCase {
             totalPoints,
             maxPoints,
             timeSpentSeconds,
-        })
+        }, undefined, { includeRelations: false })
 
         console.log(`Submit ID ${submitId} updated: totalPoints=${totalPoints}, maxPoints=${maxPoints}, timeSpentSeconds=${timeSpentSeconds}`)
 

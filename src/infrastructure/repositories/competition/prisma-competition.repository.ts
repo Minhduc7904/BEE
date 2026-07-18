@@ -50,19 +50,24 @@ export class PrismaCompetitionRepository implements ICompetitionRepository {
         return CompetitionMapper.toDomainCompetition(created)!
     }
 
-    async findById(id: number, txClient?: any): Promise<Competition | null> {
+    async findById(id: number, txClient?: any, options?: { includeRelations?: boolean }): Promise<Competition | null> {
         const client = txClient || this.prisma
+        const includeRelations = options?.includeRelations !== false
 
         const competition = await client.competition.findUnique({
             where: { competitionId: id },
-            include: {
-                exam: true,
-                admin: {
+            ...(includeRelations
+                ? {
                     include: {
-                        user: true,
+                        exam: true,
+                        admin: {
+                            include: {
+                                user: true,
+                            },
+                        },
                     },
-                },
-            },
+                }
+                : {}),
         })
 
         if (!competition) return null

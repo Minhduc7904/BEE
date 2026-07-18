@@ -103,29 +103,49 @@ export class PrismaQuestionRepository implements IQuestionRepository {
         return result.count
     }
 
-    async findById(id: number, txClient?: any): Promise<Question | null> {
+    async findById(
+        id: number,
+        txClient?: any,
+        options?: { includeRelations?: boolean; includeStatements?: boolean },
+    ): Promise<Question | null> {
         const client = txClient || this.prisma
+        const includeRelations = options?.includeRelations !== false
+        const includeStatements = includeRelations || options?.includeStatements === true
 
         const question = await client.question.findUnique({
             where: { questionId: id },
-            include: {
-                subject: true,
-                admin: {
+            ...(includeRelations
+                ? {
                     include: {
-                        user: true,
+                        subject: true,
+                        admin: {
+                            include: {
+                                user: true,
+                            },
+                        },
+                        statements: {
+                            orderBy: {
+                                order: 'asc',
+                            },
+                        },
+                        questionChapters: {
+                            include: {
+                                chapter: true,
+                            },
+                        },
                     },
-                },
-                statements: {
-                    orderBy: {
-                        order: 'asc',
-                    },
-                },
-                questionChapters: {
-                    include: {
-                        chapter: true,
-                    },
-                },
-            },
+                }
+                : includeStatements
+                    ? {
+                        include: {
+                            statements: {
+                                orderBy: {
+                                    order: 'asc',
+                                },
+                            },
+                        },
+                    }
+                    : {}),
         })
 
         if (!question) return null

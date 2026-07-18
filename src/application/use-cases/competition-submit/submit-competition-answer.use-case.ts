@@ -1,6 +1,6 @@
 // src/application/use-cases/competition-submit/submit-competition-answer.use-case.ts
 import { Inject, Injectable } from '@nestjs/common'
-import type { IQuestionRepository } from '../../../domain/repositories'
+import type { ICompetitionRepository, IQuestionRepository } from '../../../domain/repositories'
 import type { ICompetitionSubmitRepository } from '../../../domain/repositories/competition-submit.repository'
 import type { ICompetitionAnswerRepository } from '../../../domain/repositories/competition-answer.repository'
 import { NotFoundException, ForbiddenException } from '../../../shared/exceptions/custom-exceptions'
@@ -27,6 +27,8 @@ export class SubmitCompetitionAnswerUseCase {
         private readonly competitionSubmitRepository: ICompetitionSubmitRepository,
         @Inject('ICompetitionAnswerRepository')
         private readonly competitionAnswerRepository: ICompetitionAnswerRepository,
+        @Inject('ICompetitionRepository')
+        private readonly competitionRepository: ICompetitionRepository,
         @Inject('IQuestionRepository')
         private readonly questionRepository: IQuestionRepository,
     ) { }
@@ -38,7 +40,9 @@ export class SubmitCompetitionAnswerUseCase {
         studentId: number,
     ): Promise<BaseResponseDto<StudentAnswerDto>> {
         // 1. Tìm submit và kiểm tra quyền
-        const submit = await this.competitionSubmitRepository.findById(submitId)
+        const submit = await this.competitionSubmitRepository.findById(submitId, undefined, {
+            includeRelations: false,
+        })
         if (!submit) {
             throw new NotFoundException(`Lần làm bài với ID ${submitId} không tồn tại`)
         }
@@ -54,7 +58,13 @@ export class SubmitCompetitionAnswerUseCase {
         }
 
         // 1b. Kiểm tra thời gian làm bài (nếu competition có durationMinutes)
-        const durationMinutes = submit.competition?.durationMinutes ?? null
+        const competition = await this.competitionRepository.findById(submit.competitionId, undefined, {
+            includeRelations: false,
+        })
+        if (!competition) {
+            throw new NotFoundException(`Không tìm thấy cuộc thi với ID ${submit.competitionId}`)
+        }
+        const durationMinutes = competition.durationMinutes ?? null
         if (durationMinutes && submit.startedAt) {
             const elapsedMs = Date.now() - new Date(submit.startedAt).getTime()
             const elapsedMinutes = elapsedMs / 60000
@@ -68,7 +78,9 @@ export class SubmitCompetitionAnswerUseCase {
         }
 
         // 2. Tìm answer và kiểm tra thuộc về submit này
-        const existingAnswer = await this.competitionAnswerRepository.findById(answerId)
+        const existingAnswer = await this.competitionAnswerRepository.findById(answerId, undefined, {
+            includeRelations: false,
+        })
         if (!existingAnswer) {
             throw new NotFoundException(`Câu trả lời với ID ${answerId} không tồn tại`)
         }
@@ -77,7 +89,10 @@ export class SubmitCompetitionAnswerUseCase {
         }
 
         // 3. Lấy câu hỏi với statements để chấm điểm
-        const question = await this.questionRepository.findById(existingAnswer.questionId)
+        const question = await this.questionRepository.findById(existingAnswer.questionId, undefined, {
+            includeRelations: false,
+            includeStatements: true,
+        })
         if (!question) {
             throw new NotFoundException(`Câu hỏi với ID ${existingAnswer.questionId} không tồn tại`)
         }
@@ -138,15 +153,31 @@ export class SubmitCompetitionAnswerUseCase {
         // Nếu gửi answer: "" thì vẫn lưu empty string vào DB (isAnswered = false)
         const answerText = trueFalseAnswerJson
             ?? ('answer' in body ? body.answer : existingAnswer.answer)
-        const updatedAnswer = await this.competitionAnswerRepository.update(answerId, {
+        const savedAnswer = await this.competitionAnswerRepository.update(answerId, {
             // TRUE_FALSE: lưu JSON map, các loại khác: lưu text
             answer: answerText,
             selectedStatementIds,
             isCorrect: gradeResult.isCorrect,
             points: gradeResult.points,
             maxPoints: effectiveMaxPoints,
-            timeSpentSeconds: body.timeSpentSeconds ?? existingAnswer.timeSpentSeconds,
-        })
+        }, undefined, { includeRelations: false })
+        const timeDeltaSeconds = body.timeSpentSeconds ?? 0
+        const updatedAnswer =
+            timeDeltaSeconds > 0
+                ? await this.competitionAnswerRepository.incrementTimeSpentSeconds(answerId, timeDeltaSeconds, undefined, {
+                    includeRelations: false,
+                })
+                : savedAnswer
+
+        if (!updatedAnswer) {
+            throw new NotFoundException(`KhÃ´ng thá»ƒ táº£i câu trả lời với ID ${answerId} sau khi cập nhật`)
+        }
+
+        if (timeDeltaSeconds > 0) {
+            await this.competitionSubmitRepository.incrementTimeSpentSeconds(submitId, timeDeltaSeconds, undefined, {
+                includeRelations: false,
+            })
+        }
         // console.log(`Updated answer: ${JSON.stringify(updatedAnswer)}`)
 
         // 9. Tính delta điểm và cập nhật CompetitionSubmit
@@ -159,7 +190,7 @@ export class SubmitCompetitionAnswerUseCase {
             const currentTotal = Number(submit.totalPoints ?? 0)
             await this.competitionSubmitRepository.update(submitId, {
                 totalPoints: currentTotal + delta,
-            })
+            }, undefined, { includeRelations: false })
         }
 
         return BaseResponseDto.success(

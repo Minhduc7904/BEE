@@ -52,6 +52,7 @@ export class StudentAnswerResultDto {
     answer?: string | null
     /** ID các statement đã chọn */
     selectedStatementIds?: number[] | null
+    timeSpentSeconds?: number | null
     /** Chỉ có khi allowViewScore = true */
     isCorrect?: boolean | null
     /** Chỉ có khi allowViewScore = true */
@@ -184,6 +185,7 @@ export class StudentCompetitionResultDto {
                 aDto.questionId = ans.questionId
                 aDto.answer = ans.answer ?? null
                 aDto.selectedStatementIds = ans.selectedStatementIds ?? null
+                aDto.timeSpentSeconds = ans.timeSpentSeconds ?? null
                 aDto.createdAt = ans.createdAt
 
                 // ─── Rule 2 + Rule 1: điểm từng câu ────────────────────────
