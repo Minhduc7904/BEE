@@ -41,6 +41,17 @@ export class StudentQuestionResultDto {
     /** Chỉ có khi allowViewAnswer = true && allowViewSolutionYoutubeUrl = true */
     solutionYoutubeUrl?: string | null
     statements: StudentStatementResultDto[]
+    chapters: StudentQuestionChapterResultDto[]
+}
+
+export class StudentQuestionChapterResultDto {
+    chapterId: number
+    subjectId: number
+    name: string
+    slug: string
+    parentChapterId?: number | null
+    orderInParent: number
+    level: number
 }
 
 // ─── Answer (Rule 2) ────────────────────────────────────────────────────────
@@ -232,6 +243,19 @@ export class StudentCompetitionResultDto {
                         }
                         return sDto
                     })
+
+                    qDto.chapters = (q.questionChapters ?? [])
+                        .map((questionChapter) => questionChapter.chapter)
+                        .filter((chapter): chapter is NonNullable<typeof chapter> => Boolean(chapter))
+                        .map((chapter) => ({
+                            chapterId: chapter.chapterId,
+                            subjectId: chapter.subjectId,
+                            name: chapter.name,
+                            slug: chapter.slug,
+                            parentChapterId: chapter.parentChapterId ?? null,
+                            orderInParent: chapter.orderInParent,
+                            level: chapter.level,
+                        }))
 
                     aDto.question = qDto
                 }

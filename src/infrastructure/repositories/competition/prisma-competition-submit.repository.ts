@@ -1213,6 +1213,14 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
                 statements: {
                   orderBy: { order: 'asc' },
                 },
+                questionChapters: {
+                  include: {
+                    chapter: true,
+                  },
+                  orderBy: {
+                    chapterId: 'asc',
+                  },
+                },
               },
             },
           },
