@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common'
+import { Body, Controller, HttpCode, HttpStatus, Logger, Post } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { CreatePayosPaymentDto } from 'src/application/dtos/online-course-payment'
 import { CreatePayosPaymentUseCase, HandlePayosWebhookUseCase } from 'src/application/use-cases/online-course-payment'
@@ -8,6 +8,8 @@ import { ExceptionHandler } from 'src/shared/utils/exception-handler.util'
 
 @Controller('payments/payos')
 export class PayosOnlineCoursePaymentController {
+  private readonly logger = new Logger(PayosOnlineCoursePaymentController.name)
+
   constructor(
     private readonly createPayosPaymentUseCase: CreatePayosPaymentUseCase,
     private readonly handlePayosWebhookUseCase: HandlePayosWebhookUseCase,
@@ -29,7 +31,9 @@ export class PayosOnlineCoursePaymentController {
   @Post('webhook')
   @HttpCode(HttpStatus.OK)
   async handleWebhook(@Body() body: unknown) {
+    this.logger.log('[PayOS webhook] request_forwarded_to_handler')
     if (false) {
+      this.logger.warn('[PayOS webhook] confirmation_only_mode: returning 200 without payment processing')
       return { code: '00', desc: 'Webhook endpoint is active' }
     }
 
