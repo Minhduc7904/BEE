@@ -29,7 +29,7 @@ export class PayosOnlineCoursePaymentController {
   @Post('webhook')
   @HttpCode(HttpStatus.OK)
   async handleWebhook(@Body() body: unknown) {
-    if (true) {
+    if (false) {
       return { code: '00', desc: 'Webhook endpoint is active' }
     }
 
