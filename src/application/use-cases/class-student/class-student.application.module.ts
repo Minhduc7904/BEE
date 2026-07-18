@@ -7,6 +7,7 @@ const CLASS_STUDENT_USE_CASES = [
   classStudentUseCase.GetAllClassStudentUseCase,
   classStudentUseCase.CreateClassStudentUseCase,
   classStudentUseCase.DeleteClassStudentUseCase,
+  classStudentUseCase.ExportClassStudentListUseCase,
 ]
 
 @Module({

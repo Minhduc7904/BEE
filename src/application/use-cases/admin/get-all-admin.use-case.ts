@@ -36,6 +36,7 @@ export class GetAllAdminUseCase {
             skip: query.offset,
             take: query.limit,
             search: query.search,
+            isActive: query.isActive,
             sortBy: query.sortBy,
             sortOrder: query.sortOrder,
         }

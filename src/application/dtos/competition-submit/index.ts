@@ -1,6 +1,7 @@
 // src/application/dtos/competition-submit/index.ts
 export * from './competition-submit.dto'
 export * from './competition-submit-list-query.dto'
+export * from './student-competition-submit-list-query.dto'
 export * from './competition-answer.dto'
 export * from './start-competition.dto'
 export * from './submit-competition-answer.dto'

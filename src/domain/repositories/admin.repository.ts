@@ -5,6 +5,7 @@ export interface FindAllAdminsOptions {
   skip?: number
   take?: number
   search?: string
+  isActive?: boolean
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
 }

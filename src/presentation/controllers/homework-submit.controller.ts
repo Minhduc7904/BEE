@@ -11,6 +11,7 @@ import { RequirePermission } from '../../shared/decorators/permissions.decorator
 import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 import {
     GetAllHomeworkSubmitUseCase,
+    GetStudentHomeworkSubmitsUseCase,
     GetHomeworkSubmitByIdUseCase,
     CreateHomeworkSubmitUseCase,
     UpdateHomeworkSubmitUseCase,
@@ -19,12 +20,14 @@ import {
 } from '../../application/use-cases/homeworkSubmit'
 import { Injectable } from '@nestjs/common'
 import { CurrentUser } from 'src/shared/decorators'
+import { StudentHomeworkSubmitListQueryDto } from '../../application/dtos/homeworkSubmit/student-homework-submit-list-query.dto'
 
 @Injectable()
 @Controller('homework-submits')
 export class HomeworkSubmitController {
     constructor(
         private readonly getAllHomeworkSubmitUseCase: GetAllHomeworkSubmitUseCase,
+        private readonly getStudentHomeworkSubmitsUseCase: GetStudentHomeworkSubmitsUseCase,
         private readonly getHomeworkSubmitByIdUseCase: GetHomeworkSubmitByIdUseCase,
         private readonly createHomeworkSubmitUseCase: CreateHomeworkSubmitUseCase,
         private readonly updateHomeworkSubmitUseCase: UpdateHomeworkSubmitUseCase,
@@ -37,6 +40,48 @@ export class HomeworkSubmitController {
     @HttpCode(HttpStatus.OK)
     async getAllHomeworkSubmits(@Query() query: HomeworkSubmitListQueryDto): Promise<HomeworkSubmitListResponseDto> {
         return ExceptionHandler.execute(() => this.getAllHomeworkSubmitUseCase.execute(query))
+    }
+
+    /**
+     * Get a paginated homework-submit list for one student.
+     *
+     * Request:
+     *   GET /api/homework-submits/student/25?page=1&limit=20&isGraded=true&competitionId=8&sortBy=gradedAt&sortOrder=desc
+     *
+     * Supported filters:
+     * - homeworkContentId, competitionId, graderId, isGraded.
+     * - submittedFrom and submittedTo as ISO dates (YYYY-MM-DD is accepted).
+     * - search matches submission content, feedback, homework title, or competition title.
+     * - sortBy: submitAt | gradedAt | points | createdAt | updatedAt.
+     * - sortOrder: asc | desc.
+     *
+     * Performance contract:
+     * - Uses a narrow Prisma select and only returns competitionId/title.
+     * - Does not load CompetitionSubmit.answers, Questions, Statements, or media attachments.
+     *
+     * Example response:
+     * {
+     *   "success": true,
+     *   "data": {
+     *     "student": { "studentId": 25, "fullName": "Nguyen Van A" },
+     *     "homeworkSubmits": [{
+     *       "homeworkSubmitId": 99,
+     *       "points": 8.5,
+     *       "competition": { "competitionId": 8, "title": "Kiem tra chuong 1" },
+     *       "homeworkContent": { "homeworkContentId": 12, "learningItem": { "learningItemId": 34, "title": "Bai tap 1" } }
+     *     }],
+     *     "pagination": { "total": 1, "page": 1, "limit": 20, "totalPages": 1 }
+     *   }
+     * }
+     */
+    @Get('student/:studentId')
+    @RequirePermission(PERMISSION_CODES.HOMEWORK_SUBMIT.GET_BY_STUDENT)
+    @HttpCode(HttpStatus.OK)
+    async getStudentHomeworkSubmits(
+        @Param('studentId', ParseIntPipe) studentId: number,
+        @Query() query: StudentHomeworkSubmitListQueryDto,
+    ): Promise<BaseResponseDto<any>> {
+        return ExceptionHandler.execute(() => this.getStudentHomeworkSubmitsUseCase.execute(studentId, query))
     }
 
     @Get(':id')

@@ -1,7 +1,8 @@
 // src/presentation/controllers/class-student.controller.ts
-import { Controller, Get, Post, Delete, Query, Param, Body, HttpCode, HttpStatus, ParseIntPipe } from '@nestjs/common'
+import { Controller, Get, Post, Delete, Query, Param, Body, HttpCode, HttpStatus, ParseIntPipe, Res, StreamableFile } from '@nestjs/common'
 import { ClassStudentListQueryDto } from '../../application/dtos/class-student/class-student-list-query.dto'
 import { CreateClassStudentDto } from '../../application/dtos/class-student/create-class-student.dto'
+import { ExportClassStudentListOptionDto } from '../../application/dtos/class-student/export-class-student-list-option.dto'
 import {
   ClassStudentListResponseDto,
   ClassStudentResponseDto,
@@ -11,12 +12,14 @@ import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
 import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 import {
-  GetAllClassStudentUseCase,
-  CreateClassStudentUseCase,
-  DeleteClassStudentUseCase,
+    GetAllClassStudentUseCase,
+    CreateClassStudentUseCase,
+    DeleteClassStudentUseCase,
+    ExportClassStudentListUseCase,
 } from '../../application/use-cases/class-student'
 import { Injectable } from '@nestjs/common'
 import { CurrentUser } from 'src/shared/decorators'
+import type { Response } from 'express'
 
 @Injectable()
 @Controller('class-students')
@@ -25,6 +28,7 @@ export class ClassStudentController {
     private readonly getAllClassStudentUseCase: GetAllClassStudentUseCase,
     private readonly createClassStudentUseCase: CreateClassStudentUseCase,
     private readonly deleteClassStudentUseCase: DeleteClassStudentUseCase,
+    private readonly exportClassStudentListUseCase: ExportClassStudentListUseCase,
   ) { }
 
   @Get()
@@ -51,6 +55,42 @@ export class ClassStudentController {
   ): Promise<ClassStudentListResponseDto> {
     query.studentId = studentId
     return ExceptionHandler.execute(() => this.getAllClassStudentUseCase.execute(query))
+  }
+
+  /**
+   * Export active students of one class as an Excel workbook.
+   *
+   * Request:
+   *   GET /api/class-students/export/excel?classId=12&includeStudentPhone=true
+   *
+   * Optional query flags:
+   * - includeStudentPhone, includeParentPhone, includeSchool,
+   *   includeGender, includeDateOfBirth, includeEmail.
+   *
+   * Response:
+   * - HTTP 200, Content-Type:
+   *   application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+   * - Content-Disposition attachment with a filename such as
+   *   Danh_sach_hoc_sinh_lop_12_18_07_2026_09_30.xlsx.
+   * - The binary response is an .xlsx file with class, course, and student columns.
+   */
+  @Get('export/excel')
+  @RequirePermission(PERMISSION_CODES.CLASS_STUDENT.EXPORT_EXCEL)
+  @HttpCode(HttpStatus.OK)
+  async exportClassStudentList(
+    @Query() options: ExportClassStudentListOptionDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<StreamableFile> {
+    return ExceptionHandler.execute(async () => {
+      const { buffer, filename } = await this.exportClassStudentListUseCase.execute(options)
+
+      res.set({
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Disposition': `attachment; filename="${encodeURIComponent(filename)}"`,
+      })
+
+      return new StreamableFile(buffer)
+    })
   }
 
   @Post()
