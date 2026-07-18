@@ -74,6 +74,7 @@ export interface IOnlineCourseInvoiceRepository {
   findLatestByStudentAndCourse(studentId: number, courseId: number): Promise<OnlineCourseInvoice | null>
   findAllWithPagination(options: OnlineCourseInvoiceListOptions): Promise<OnlineCourseInvoiceListResult>
   update(invoiceId: number, data: UpdateOnlineCourseInvoiceData): Promise<OnlineCourseInvoice>
+  delete(invoiceId: number): Promise<void>
   markPaid(invoiceId: number, paidAmount: number, paidAt?: Date): Promise<OnlineCourseInvoice>
   markPaymentFailed(invoiceId: number, reason?: string): Promise<OnlineCourseInvoice>
 }

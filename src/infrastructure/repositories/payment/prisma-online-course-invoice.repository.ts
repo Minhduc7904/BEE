@@ -102,6 +102,12 @@ export class PrismaOnlineCourseInvoiceRepository implements IOnlineCourseInvoice
     return OnlineCoursePaymentMapper.toDomainInvoice(updated)!
   }
 
+  async delete(invoiceId: number): Promise<void> {
+    await this.prisma.onlineCourseInvoice.delete({
+      where: { invoiceId },
+    })
+  }
+
   async markPaid(invoiceId: number, paidAmount: number, paidAt: Date = new Date()): Promise<OnlineCourseInvoice> {
     return this.update(invoiceId, {
       status: OnlineCourseInvoiceStatus.PAID,
@@ -152,10 +158,7 @@ export class PrismaOnlineCourseInvoiceRepository implements IOnlineCourseInvoice
         {
           items: {
             some: {
-              OR: [
-                { courseTitle: { contains: options.search } },
-                { courseCode: { contains: options.search } },
-              ],
+              OR: [{ courseTitle: { contains: options.search } }, { courseCode: { contains: options.search } }],
             },
           },
         },

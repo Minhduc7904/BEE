@@ -4,6 +4,7 @@ import {
   ConfirmManualBankTransferPaymentUseCase,
   CreatePayosPaymentUseCase,
   CreateVnpayQrPaymentUseCase,
+  DeleteOnlineCourseInvoiceUseCase,
   GetAdminOnlineCourseInvoiceDetailUseCase,
   GetAdminOnlineCourseInvoicesUseCase,
   GetOnlineCourseInvoicePaymentStatusUseCase,
@@ -22,6 +23,7 @@ const ONLINE_COURSE_PAYMENT_USE_CASES = [
   GetAdminOnlineCourseInvoicesUseCase,
   GetAdminOnlineCourseInvoiceDetailUseCase,
   ConfirmManualBankTransferPaymentUseCase,
+  DeleteOnlineCourseInvoiceUseCase,
 ]
 
 @Module({
