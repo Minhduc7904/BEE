@@ -29,8 +29,8 @@ export class PayosService implements PayosServicePort {
       amount: input.amount,
       description: input.description,
       items: input.items,
-      cancelUrl: this.getRedirectUrl('PAYOS_CANCEL_URL', '/payment/payos-cancel'),
-      returnUrl: this.getRedirectUrl('PAYOS_RETURN_URL', '/payment/payos-return'),
+      cancelUrl: this.getRedirectUrl('PAYOS_CANCEL_URL', '/student/payos/cancel'),
+      returnUrl: this.getRedirectUrl('PAYOS_RETURN_URL', '/student/payos/return'),
       expiredAt: input.expiredAt,
     }
     const signature = this.signPaymentRequest(payload)

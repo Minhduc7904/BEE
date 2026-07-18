@@ -25,15 +25,15 @@ Backend dung `APP_URL` lam goc frontend va tu tao hai URL sau:
 
 ```env
 APP_URL=https://your-frontend-domain.com
-# return: https://your-frontend-domain.com/payment/payos-return
-# cancel: https://your-frontend-domain.com/payment/payos-cancel
+# return: https://your-frontend-domain.com/student/payos/return
+# cancel: https://your-frontend-domain.com/student/payos/cancel
 ```
 
 Neu hai route khac, set rieng:
 
 ```env
-PAYOS_RETURN_URL=https://your-frontend-domain.com/payment/payos-return
-PAYOS_CANCEL_URL=https://your-frontend-domain.com/payment/payos-cancel
+PAYOS_RETURN_URL=https://your-frontend-domain.com/student/payos/return
+PAYOS_CANCEL_URL=https://your-frontend-domain.com/student/payos/cancel
 ```
 
 Trong cong quan tri PayOS, dang ky webhook public HTTPS:
@@ -113,8 +113,8 @@ Dung lai endpoint chung da co, can JWT:
 
 PayOS redirect trinh duyet ve `returnUrl` khi thanh toan va `cancelUrl` khi user huy. Query co the co `code`, `id`, `cancel`, `status`, `orderCode`.
 
-- `/payment/payos-return`: hien “Dang xac nhan thanh toan...”, lay `invoiceId` tu state/local storage va poll payment status.
-- `/payment/payos-cancel`: hien “Ban da huy thanh toan”; khong cap nhat invoice dua tren query va cho user thanh toan lai.
+- `/student/payos/return`: hien “Dang xac nhan thanh toan...”, lay `invoiceId` tu state/local storage va poll payment status.
+- `/student/payos/cancel`: hien “Ban da huy thanh toan”; khong cap nhat invoice dua tren query va cho user thanh toan lai.
 - Du `status=PAID` tren URL, chi hien **Vao hoc** khi API payment status tra `PAID` va `enrollmentCreated=true`.
 
 ## Luong end-to-end
@@ -153,7 +153,7 @@ function startPayosStatusPolling(invoiceId: number) {
 
 - [ ] Dien ba secret PayOS vao environment cua backend, khong commit secret.
 - [ ] Cau hinh `APP_URL`, hoac ca `PAYOS_RETURN_URL` va `PAYOS_CANCEL_URL`.
-- [ ] Tao hai route frontend `/payment/payos-return`, `/payment/payos-cancel`.
+- [ ] Tao hai route frontend `/student/payos/return`, `/student/payos/cancel`.
 - [ ] Dang ky va test webhook HTTPS `/api/payments/payos/webhook` trong PayOS.
 - [ ] Test thanh toan thanh cong, callback lap lai, sai signature va sai so tien.
 - [ ] Xac nhan frontend chi mo khoa hoc khi `PAID + enrollmentCreated`.
