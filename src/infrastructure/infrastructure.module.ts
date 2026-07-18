@@ -98,6 +98,7 @@ import { QuestionChapterClassificationService } from './services/question-chapte
 import { FileConverterService } from './services/file-converter.service'
 import { QuestionChatAIService } from './services/question-chat-ai.service'
 import { VnpayService } from './services/vnpay.service'
+import { PayosService } from './services/payos.service'
 import { GoogleAdminStrategy } from './strategies/google-admin.strategy'
 import { GoogleStudentStrategy } from './strategies/google-student.strategy'
 import jwtConfig from '../config/jwt.config'
@@ -127,6 +128,7 @@ import {
   MistralService as MistralServicePort,
   NewsArticleSeoAiService as NewsArticleSeoAiServicePort,
   PasswordService as PasswordServicePort,
+  PayosService as PayosServicePort,
   QuestionChapterClassificationService as QuestionChapterClassificationServicePort,
   QuestionChatAIService as QuestionChatAIServicePort,
   TeacherProfileSeoAiService as TeacherProfileSeoAiServicePort,
@@ -169,6 +171,7 @@ import {
     { provide: MistralServicePort, useExisting: MistralService },
     { provide: NewsArticleSeoAiServicePort, useExisting: NewsArticleSeoAiService },
     { provide: PasswordServicePort, useExisting: 'PASSWORD_SERVICE' },
+    { provide: PayosServicePort, useExisting: PayosService },
     { provide: QuestionChapterClassificationServicePort, useExisting: QuestionChapterClassificationService },
     { provide: QuestionChatAIServicePort, useExisting: QuestionChatAIService },
     { provide: TeacherProfileSeoAiServicePort, useExisting: TeacherProfileSeoAiService },
@@ -542,6 +545,7 @@ import {
     ImageExportService,
     QuestionChatAIService,
     VnpayService,
+    PayosService,
   ],
   exports: [
     AchievementBoardSeoAiServicePort,
@@ -563,6 +567,7 @@ import {
     MistralServicePort,
     NewsArticleSeoAiServicePort,
     PasswordServicePort,
+    PayosServicePort,
     QuestionChapterClassificationServicePort,
     QuestionChatAIServicePort,
     TeacherProfileSeoAiServicePort,
@@ -661,6 +666,7 @@ import {
     ImageExportService,
     QuestionChatAIService,
     VnpayService,
+    PayosService,
   ],
 })
 export class InfrastructureModule {}

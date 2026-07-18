@@ -2,16 +2,20 @@ import { Module } from '@nestjs/common'
 import { InfrastructureModule } from 'src/infrastructure/infrastructure.module'
 import {
   ConfirmManualBankTransferPaymentUseCase,
+  CreatePayosPaymentUseCase,
   CreateVnpayQrPaymentUseCase,
   GetAdminOnlineCourseInvoiceDetailUseCase,
   GetAdminOnlineCourseInvoicesUseCase,
   GetOnlineCourseInvoicePaymentStatusUseCase,
   HandleVnpayIpnUseCase,
+  HandlePayosWebhookUseCase,
   VerifyVnpayReturnUseCase,
 } from './'
 
 const ONLINE_COURSE_PAYMENT_USE_CASES = [
+  CreatePayosPaymentUseCase,
   CreateVnpayQrPaymentUseCase,
+  HandlePayosWebhookUseCase,
   HandleVnpayIpnUseCase,
   GetOnlineCourseInvoicePaymentStatusUseCase,
   VerifyVnpayReturnUseCase,

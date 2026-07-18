@@ -78,6 +78,7 @@ import {
 } from './controllers/online-course-payment.controller'
 import { AchievementBoardController } from './controllers/achievement-board.controller'
 import { NewsArticleController } from './controllers/news-article.controller'
+import { PayosOnlineCoursePaymentController } from './controllers/payos-online-course-payment.controller'
 @Module({
   imports: [
     ApplicationModule, // ✅ lấy toàn bộ UseCase đã export
@@ -149,6 +150,7 @@ import { NewsArticleController } from './controllers/news-article.controller'
     QuestionChatController,
     QuestionChatMessageController,
     OnlineCoursePaymentController,
+    PayosOnlineCoursePaymentController,
     OnlineCourseInvoicePaymentStatusController,
     AchievementBoardController,
     NewsArticleController,
