@@ -4,7 +4,7 @@ import { Inject, Injectable } from '@nestjs/common'
 import type { ICompetitionSubmitRepository } from '../../../domain/repositories'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 import { CompetitionSubmitRemainingTimeDto } from '../../dtos/competition-submit/competition-submit-remaining-time.dto'
-import { NotFoundException, ValidationException } from '../../../shared/exceptions/custom-exceptions'
+import { ForbiddenException, NotFoundException, ValidationException } from '../../../shared/exceptions/custom-exceptions'
 
 @Injectable()
 export class GetCompetitionRemainingTimeUseCase {
@@ -13,11 +13,18 @@ export class GetCompetitionRemainingTimeUseCase {
     private readonly competitionSubmitRepository: ICompetitionSubmitRepository,
   ) {}
 
-  async execute(competitionSubmitId: number): Promise<BaseResponseDto<CompetitionSubmitRemainingTimeDto>> {
+  async execute(
+    competitionSubmitId: number,
+    studentId?: number,
+  ): Promise<BaseResponseDto<CompetitionSubmitRemainingTimeDto>> {
     const competitionSubmit = await this.competitionSubmitRepository.findById(competitionSubmitId)
 
     if (!competitionSubmit) {
       throw new NotFoundException(`Competition submit với ID ${competitionSubmitId} không tồn tại`)
+    }
+
+    if (studentId !== undefined && competitionSubmit.studentId !== studentId) {
+      throw new ForbiddenException('Bạn không có quyền xem thời gian của bài làm này')
     }
 
     if (!competitionSubmit.competition) {

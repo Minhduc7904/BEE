@@ -102,11 +102,17 @@ export class DoCompetitionController {
                 | { code?: string; competitionSubmitId?: number }
                 | undefined
 
-            if (
-                startResult.success ||
-                errorData?.code !== 'ATTEMPT_TIME_EXPIRED' ||
-                !errorData.competitionSubmitId
-            ) {
+            // REST start is the only entry point that initializes answer rows.
+            // Socket subscribe/reconnect only joins a room and reads the clock.
+            if (startResult.success && startResult.data) {
+                await this.getCompetitionAnswersUseCase.execute(
+                    startResult.data.competitionSubmitId,
+                    studentId,
+                )
+                return startResult
+            }
+
+            if (errorData?.code !== 'ATTEMPT_TIME_EXPIRED' || !errorData.competitionSubmitId) {
                 return startResult
             }
 
@@ -269,7 +275,7 @@ export class DoCompetitionController {
         @CurrentUser('studentId') studentId: number,
     ): Promise<BaseResponseDto<any>> {
         return ExceptionHandler.execute(() =>
-            this.getCompetitionRemainingTimeUseCase.execute(submitId),
+            this.getCompetitionRemainingTimeUseCase.execute(submitId, studentId),
         )
     }
 

@@ -107,9 +107,12 @@ export class CompetitionGateway extends BaseGateway {
     if (!studentId || !payload?.submitId) return
 
     try {
-      // Getting answers verifies that the attempt belongs to this student before joining its room.
-      const answers = await this.getCompetitionAnswersUseCase.execute(payload.submitId, studentId)
-      const time = await this.getCompetitionRemainingTimeUseCase.execute(payload.submitId)
+      // This event only joins the private room. It may read an answer snapshot,
+      // but answer rows are initialized only by POST /do-competition/:competitionId/start.
+      const answers = await this.getCompetitionAnswersUseCase.execute(payload.submitId, studentId, {
+        initializeMissingAnswers: false,
+      })
+      const time = await this.getCompetitionRemainingTimeUseCase.execute(payload.submitId, studentId)
 
       this.joinSubmitRoom(client, payload.submitId)
       this.emitSuccess(client, SOCKET_EVENTS.COMPETITION.ATTEMPT_SUBSCRIBED, {
@@ -164,9 +167,7 @@ export class CompetitionGateway extends BaseGateway {
     if (!studentId || !payload?.submitId) return
 
     try {
-      // Ownership is checked first through the existing answer query.
-      await this.getCompetitionAnswersUseCase.execute(payload.submitId, studentId)
-      const time = await this.getCompetitionRemainingTimeUseCase.execute(payload.submitId)
+      const time = await this.getCompetitionRemainingTimeUseCase.execute(payload.submitId, studentId)
       this.emitSuccess(client, SOCKET_EVENTS.COMPETITION.TIME_SYNC, {
         submitId: payload.submitId,
         time: time.data,

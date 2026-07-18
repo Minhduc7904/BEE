@@ -13,6 +13,8 @@ Mọi dữ liệu riêng tư chỉ đi theo một trong hai room sau:
 
 `BaseGateway` vẫn xác thực JWT từ handshake và lấy `studentId` từ `client.data.user`. Client không gửi `studentId` trong bất kỳ event nào.
 
+Khởi tạo câu trả lời chỉ do REST `POST /do-competition/:competitionId/start` thực hiện. Sau khi gọi REST thành công, frontend **không được** phát thêm `competition:attempt:start` cho cùng thao tác; chỉ phát `competition:attempt:subscribe` để vào room riêng (nếu cần socket đồng bộ).
+
 ## Ký hiệu chiều event
 
 - `C → S`: client gửi command vào server.
@@ -24,12 +26,16 @@ Mọi dữ liệu riêng tư chỉ đi theo một trong hai room sau:
 ```mermaid
 sequenceDiagram
   participant C as Student client
+  participant A as REST API
   participant G as CompetitionGateway
   participant U as Existing use cases
 
-  C->>G: competition:attempt:start
-  G->>U: StartCompetitionAttemptUseCase
-  G-->>C: competition:attempt:started
+  C->>A: POST /do-competition/:competitionId/start
+  A->>U: StartCompetitionAttemptUseCase + GetCompetitionAnswersUseCase
+  A-->>C: competitionSubmitId
+  C->>G: competition:attempt:subscribe
+  G->>U: Read answers + remaining time (no initialization)
+  G-->>C: competition:attempt:subscribed
   C->>G: competition:exam:get
   G->>U: GetCompetitionExamUseCase
   G-->>C: competition:exam:loaded
@@ -45,13 +51,13 @@ sequenceDiagram
 
 ## Event chi tiết
 
-### 1. Bắt đầu hoặc tiếp tục lượt làm bài
+### 1. Bắt đầu hoặc tiếp tục lượt làm bài (legacy socket event)
 
 | Thuộc tính | Giá trị |
 | --- | --- |
 | Chiều | `C → S` |
 | Input event | `competition:attempt:start` |
-| Mục đích | Tạo lượt `IN_PROGRESS`, hoặc trả lại lượt đang làm dở còn hiệu lực. Sau khi thành công, socket join `competition-submit:<submitId>`. |
+| Mục đích | Tạo lượt `IN_PROGRESS`, hoặc trả lại lượt đang làm dở còn hiệu lực. Sau khi thành công, socket join `competition-submit:<submitId>`. Frontend mới không gọi event này sau REST start. |
 | Use case | `StartCompetitionAttemptUseCase` |
 
 ```ts
@@ -122,8 +128,8 @@ Lỗi: `STUDENT_REQUIRED`, `EXAM_LOAD_FAILED`.
 | --- | --- |
 | Chiều | `C → S` |
 | Input event | `competition:attempt:subscribe` |
-| Mục đích | Dùng khi reload/reconnect hoặc mở thêm tab. Server xác minh ownership qua danh sách đáp án, join room riêng của submit, rồi trả snapshot đáp án và thời gian. |
-| Use case | `GetCompetitionAnswersUseCase`, `GetCompetitionRemainingTimeUseCase` |
+| Mục đích | Dùng khi reload/reconnect hoặc mở thêm tab. Server xác minh ownership, join room riêng của submit, rồi trả snapshot answer hiện có và thời gian. Event này không tạo `CompetitionAnswer`. |
+| Use case | `GetCompetitionAnswersUseCase` (chế độ chỉ đọc), `GetCompetitionRemainingTimeUseCase` |
 
 ```ts
 // input
@@ -180,7 +186,7 @@ Lỗi: `STUDENT_REQUIRED`, `ANSWER_SAVE_FAILED`.
 | Chiều | `C → S`, sau đó `S → C` |
 | Input event | `competition:attempt:time:get` |
 | Mục đích | Frontend lấy thời gian server-authoritative khi mở lại tab, reconnect hoặc cần hiệu chỉnh countdown cục bộ. |
-| Use case | `GetCompetitionAnswersUseCase` để xác minh owner, sau đó `GetCompetitionRemainingTimeUseCase` |
+| Use case | `GetCompetitionRemainingTimeUseCase` xác minh owner và tính thời gian còn lại; không tạo `CompetitionAnswer`. |
 
 ```ts
 // input
@@ -239,8 +245,8 @@ Lượt `IN_PROGRESS` vẫn được nộp ngay cả khi cuộc thi đã qua `en
 
 ## Quy tắc frontend
 
-1. Kết nối Socket với JWT handshake trước khi gọi event competition.
-2. Gọi `competition:attempt:start`, sau đó `competition:exam:get`. Khi nhận `ATTEMPT_TIME_EXPIRED`, yêu cầu học sinh nộp bài thay vì tạo lượt mới; khi nhận `COMPETITION_ENDED`, không cho bắt đầu lượt mới.
+1. Gọi `POST /do-competition/:competitionId/start` đúng một lần để tạo/tiếp tục lượt và khởi tạo `CompetitionAnswer`; không gọi thêm `competition:attempt:start` cho cùng hành động.
+2. Kết nối Socket với JWT handshake, sau đó gọi `competition:attempt:subscribe` với `submitId` từ REST để vào room riêng. Gọi `competition:exam:get` để tải đề. Khi nhận `ATTEMPT_TIME_EXPIRED`, yêu cầu học sinh nộp bài thay vì tạo lượt mới; khi nhận `COMPETITION_ENDED`, không cho bắt đầu lượt mới.
 3. Khi refresh/reconnect, gọi `competition:attempt:subscribe` bằng `submitId` đã lưu cục bộ.
 4. Debounce `competition:attempt:answer:save`; chỉ update UI sau event `competition:attempt:answer:saved`.
 5. Countdown hiển thị ở client nhưng phải đồng bộ lại bằng `competition:attempt:time:get`; server là nguồn thời gian quyết định.
