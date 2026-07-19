@@ -162,6 +162,12 @@ export const PERMISSION_CODES = {
     UPDATE: 'class-session:update',
     DELETE: 'class-session:delete',
   },
+  REPORT: {
+    GET_ALL: 'report:get-all',
+    GET_BY_ID: 'report:get-by-id',
+    UPDATE: 'report:update',
+    DELETE: 'report:delete',
+  },
   COURSE_CLASS: {
     GET_ALL: 'course-class:get-all',
     SEARCH: 'course-class:search',
@@ -406,6 +412,7 @@ const PERMISSION_GROUPS_BY_KEY: Record<string, string> = {
   MEDIA: 'MEDIA_MANAGEMENT',
   ATTENDANCE: 'ATTENDANCE_MANAGEMENT',
   CLASS_SESSION: 'CLASS_SESSION_MANAGEMENT',
+  REPORT: 'REPORT_MANAGEMENT',
   COURSE_CLASS: 'COURSE_CLASS_MANAGEMENT',
   COURSE_ENROLLMENT: 'COURSE_ENROLLMENT_MANAGEMENT',
   NOTIFICATION: 'NOTIFICATION_MANAGEMENT',
@@ -452,6 +459,7 @@ const PERMISSION_RESOURCE_LABELS_BY_KEY: Record<string, string> = {
   MEDIA: 'media',
   ATTENDANCE: 'attendance',
   CLASS_SESSION: 'class session',
+  REPORT: 'report',
   COURSE_CLASS: 'course class',
   COURSE_ENROLLMENT: 'course enrollment',
   NOTIFICATION: 'notification',

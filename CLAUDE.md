@@ -41,3 +41,20 @@ This project is indexed by GitNexus as **BEE** (21981 symbols, 68305 relationshi
 | Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
 
 <!-- gitnexus:end -->
+
+# Project Skills
+
+At the start of every task, before exploring or editing the codebase, read both files completely:
+
+1. `.agent/skills/shared/architecture.md`
+2. `.agent/skills/shared/clean-architecture-rules.md`
+
+Use them as the project baseline. Then inspect the nearest existing module before implementing a new feature so its DTOs, use cases, repositories, mappers, dependency injection, and controller conventions stay consistent.
+
+For every database schema request (table, column, enum, relation, index, or Prisma migration), read `.agent/skills/database-schema-changes/SKILL.md` completely before exploring or editing the change.
+
+For every business behavior request (ownership, validation, state transition, policy, or business error), read `.agent/skills/business-rules/SKILL.md` completely before designing or changing the behavior.
+
+For every API/application implementation request (DTO, use case, repository, mapper, controller, pagination, or DI), read `.agent/skills/create-application-use-case/SKILL.md` completely before editing.
+
+When a non-empty task-specific skill exists under `.agent/skills/`, read its `SKILL.md` completely before doing work in that skill's scope. Do not treat blank placeholder skills as instructions.

@@ -802,6 +802,38 @@ export const PERMISSIONS = [
     },
 
     // ===================================
+    // REPORT MANAGEMENT
+    // ===================================
+    {
+        code: 'report:get-all',
+        name: 'Xem tất cả báo cáo',
+        description: 'Xem danh sách báo cáo của người dùng',
+        group: 'REPORT_MANAGEMENT',
+        isSystem: true,
+    },
+    {
+        code: 'report:get-by-id',
+        name: 'Xem chi tiết báo cáo',
+        description: 'Xem chi tiết một báo cáo',
+        group: 'REPORT_MANAGEMENT',
+        isSystem: true,
+    },
+    {
+        code: 'report:update',
+        name: 'Cập nhật báo cáo',
+        description: 'Cập nhật trạng thái và kết quả xử lý báo cáo',
+        group: 'REPORT_MANAGEMENT',
+        isSystem: true,
+    },
+    {
+        code: 'report:delete',
+        name: 'Xóa báo cáo',
+        description: 'Xóa báo cáo khỏi hệ thống',
+        group: 'REPORT_MANAGEMENT',
+        isSystem: true,
+    },
+
+    // ===================================
     // COURSE CLASS MANAGEMENT
     // ===================================
     {

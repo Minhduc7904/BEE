@@ -112,6 +112,34 @@ enum Difficulty {
   VDC
 }
 
+// Đối tượng được người dùng báo cáo.
+enum ReportTargetType {
+  ADMIN
+  QUESTION
+  EXAM
+  CLASS
+  CLASS_SESSION
+  WEBSITE
+}
+
+// Lý do phân loại để hỗ trợ lọc, thống kê và ưu tiên xử lý báo cáo.
+enum ReportReason {
+  INCORRECT_TEACHING
+  INCORRECT_CONTENT
+  INAPPROPRIATE_BEHAVIOR
+  CLASS_ISSUE
+  TECHNICAL_ISSUE
+  WEBSITE_ISSUE
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  IN_REVIEW
+  RESOLVED
+  REJECTED
+}
+
 model User {
   userId       Int     @id @default(autoincrement()) @map("user_id")
   // oldUserId    Int?    @unique @map("old_user_id")
@@ -152,6 +180,7 @@ model User {
   createdTeacherProfiles TeacherProfile[]         @relation("TeacherProfileCreator")
   updatedTeacherProfiles TeacherProfile[]         @relation("TeacherProfileUpdater")
   onlineCourseInvoices   OnlineCourseInvoice[]    @relation("OnlineCourseInvoiceBuyer")
+  submittedReports       Report[]                 @relation("ReportReporter")
 
   @@index([lastName, firstName], map: "idx_users_name")
   @@map("users")
@@ -335,6 +364,8 @@ model Admin {
   gradedExamAttempts       ExamAttempt[]       @relation("ExamAttemptGrader")
   gradedCompetitionSubmits CompetitionSubmit[] @relation("CompetitionSubmitGrader")
   courseAssistants         CourseAssistant[]
+  reportsAbout             Report[]            @relation("ReportTargetAdmin")
+  handledReports           Report[]            @relation("ReportHandler")
 
   @@index([subjectId], map: "idx_admins_subject_id")
   @@map("admins")
@@ -569,6 +600,7 @@ model Exam {
   questions    QuestionExam[]
   tempExam     TempExam?      @relation("TempExamFinal")
   examAttempts ExamAttempt[]
+  reports      Report[]
 
   @@index([grade, subjectId], map: "idx_exams_grade_subject")
   @@index([subjectId], map: "idx_exams_subject_id")
@@ -682,6 +714,7 @@ model Question {
   competitionAnswers CompetitionAnswer[]
   questionAnswers    QuestionAnswer[]
   questionChats      QuestionChat[]
+  reports            Report[]
 
   @@index([subjectId, grade], map: "idx_questions_subject_grade")
   @@index([subjectId], map: "idx_questions_subject_id")
@@ -1215,9 +1248,56 @@ model CourseClass {
   classSessions ClassSession[]
   classStudents ClassStudent[]
   classLessons  CourseClassLesson[]
+  reports       Report[]
 
   @@index([courseId], map: "idx_course_classes_course_id")
   @@map("courses_classes")
+}
+
+// Báo cáo do người dùng gửi về giáo viên/trợ giảng, câu hỏi, đề thi, lớp học,
+// buổi học hoặc lỗi trên trang web. Theo targetType, chỉ một target ID tương ứng
+// (hoặc pageUrl cho WEBSITE) được phép có giá trị; tầng service phải xác thực điều này.
+model Report {
+  reportId Int @id @default(autoincrement()) @map("report_id")
+
+  reporterId  Int?             @map("reporter_id")
+  targetType  ReportTargetType @map("target_type")
+  reason      ReportReason     @map("reason")
+  description String?          @map("description") @db.Text
+  status      ReportStatus     @default(PENDING) @map("status")
+
+  // Đối tượng bị báo cáo. Dùng trường tương ứng với targetType.
+  reportedAdminId Int?    @map("reported_admin_id")
+  questionId      Int?    @map("question_id")
+  examId          Int?    @map("exam_id")
+  classId         Int?    @map("class_id")
+  sessionId       Int?    @map("session_id")
+  pageUrl         String? @map("page_url") @db.VarChar(1000)
+
+  // Admin tiếp nhận/xử lý báo cáo và kết quả xử lý.
+  handledById    Int?      @map("handled_by_id")
+  handledAt      DateTime? @map("handled_at") @db.Timestamp(0)
+  resolutionNote String?   @map("resolution_note") @db.Text
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  reporter      User?         @relation("ReportReporter", fields: [reporterId], references: [userId], onDelete: SetNull)
+  reportedAdmin Admin?        @relation("ReportTargetAdmin", fields: [reportedAdminId], references: [adminId], onDelete: SetNull)
+  question      Question?     @relation(fields: [questionId], references: [questionId], onDelete: SetNull)
+  exam          Exam?         @relation(fields: [examId], references: [examId], onDelete: SetNull)
+  courseClass   CourseClass?  @relation(fields: [classId], references: [classId], onDelete: SetNull)
+  classSession  ClassSession? @relation(fields: [sessionId], references: [sessionId], onDelete: SetNull)
+  handledBy     Admin?        @relation("ReportHandler", fields: [handledById], references: [adminId], onDelete: SetNull)
+
+  @@index([reporterId, createdAt], map: "idx_reports_reporter_created")
+  @@index([targetType, status, createdAt], map: "idx_reports_target_status_created")
+  @@index([reportedAdminId], map: "idx_reports_reported_admin")
+  @@index([questionId], map: "idx_reports_question")
+  @@index([examId], map: "idx_reports_exam")
+  @@index([classId], map: "idx_reports_class")
+  @@index([sessionId], map: "idx_reports_session")
+  @@index([handledById, status], map: "idx_reports_handler_status")
+  @@map("reports")
 }
 
 model ClassSession {
@@ -1234,6 +1314,7 @@ model ClassSession {
   courseClass     CourseClass      @relation(fields: [classId], references: [classId], onDelete: Cascade)
   homeworkContent HomeworkContent? @relation(fields: [homeworkId], references: [homeworkContentId], onDelete: SetNull)
   attendances     Attendance[]
+  reports         Report[]
 
   @@index([classId], map: "idx_class_sessions_class_id")
   @@index([homeworkId], map: "idx_class_sessions_homework_id")

@@ -79,6 +79,7 @@ import {
 import { AchievementBoardController } from './controllers/achievement-board.controller'
 import { NewsArticleController } from './controllers/news-article.controller'
 import { PayosOnlineCoursePaymentController } from './controllers/payos-online-course-payment.controller'
+import { ReportController } from './controllers/report.controller'
 @Module({
   imports: [
     ApplicationModule, // ✅ lấy toàn bộ UseCase đã export
@@ -154,6 +155,7 @@ import { PayosOnlineCoursePaymentController } from './controllers/payos-online-c
     OnlineCourseInvoicePaymentStatusController,
     AchievementBoardController,
     NewsArticleController,
+    ReportController,
   ],
   providers: [
     // WebSocket Gateways

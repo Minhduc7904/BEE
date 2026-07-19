@@ -61,6 +61,7 @@ import { TagApplicationModule } from './use-cases/tag/tag.application.module'
 import { OnlineCoursePaymentApplicationModule } from './use-cases/online-course-payment/online-course-payment.application.module'
 import { AchievementApplicationModule } from './use-cases/achievement/achievement.application.module'
 import { NewsApplicationModule } from './use-cases/news/news.application.module'
+import { ReportApplicationModule } from './use-cases/report/report.application.module'
 
 const modules = [
   // Auth & Account
@@ -90,6 +91,7 @@ const modules = [
   TagApplicationModule,
   AchievementApplicationModule,
   NewsApplicationModule,
+  ReportApplicationModule,
 
   // Course & Learning
   CourseApplicationModule,

@@ -66,6 +66,7 @@ import {
   PrismaOnlineCoursePaymentAttemptRepository,
   PrismaAchievementBoardRepository,
   PrismaNewsArticleRepository,
+  PrismaReportRepository,
 } from './repositories'
 import {
   PasswordService,
@@ -496,6 +497,11 @@ import {
       inject: [PrismaService],
     },
     {
+      provide: 'IReportRepository',
+      useFactory: (prisma: PrismaService) => new PrismaReportRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
       provide: 'PASSWORD_SERVICE',
       useClass: PasswordService,
     },
@@ -639,6 +645,7 @@ import {
     'IStudentPointLogRepository',
     'IAchievementBoardRepository',
     'INewsArticleRepository',
+    'IReportRepository',
     'PASSWORD_SERVICE',
     'JWT_TOKEN_SERVICE',
     'TOKEN_HASH_SERVICE',
