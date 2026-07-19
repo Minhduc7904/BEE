@@ -23,6 +23,7 @@ import { CurrentUser } from '../../shared/decorators/current-user.decorator'
 import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 import {
   GetAllCompetitionSubmitsUseCase,
+  GetStudentCompetitionSubmitsUseCase,
   GetCompetitionSubmitByIdUseCase,
   DeleteCompetitionSubmitUseCase,
   GetAdminCompetitionSubmitDetailUseCase,
@@ -32,6 +33,7 @@ import {
 } from '../../application/use-cases/competition-submit'
 import {
   CompetitionSubmitListQueryDto,
+  StudentCompetitionSubmitListQueryDto,
   CompetitionSubmitResponseDto,
   CompetitionSubmitListResponseDto,
   AdminCompetitionSubmitDetailDto,
@@ -62,6 +64,7 @@ import {
 export class CompetitionSubmitController {
   constructor(
     private readonly getAllCompetitionSubmitsUseCase: GetAllCompetitionSubmitsUseCase,
+    private readonly getStudentCompetitionSubmitsUseCase: GetStudentCompetitionSubmitsUseCase,
     private readonly getCompetitionSubmitByIdUseCase: GetCompetitionSubmitByIdUseCase,
     private readonly deleteCompetitionSubmitUseCase: DeleteCompetitionSubmitUseCase,
     private readonly getAdminCompetitionSubmitDetailUseCase: GetAdminCompetitionSubmitDetailUseCase,
@@ -172,6 +175,50 @@ export class CompetitionSubmitController {
 
       return new StreamableFile(buffer)
     })
+  }
+
+  /**
+   * Get the competition-submit list of one student for administration screens.
+   *
+   * Request example:
+   *   GET /api/competition-submits/student/25?page=1&limit=20&competitionId=8&isGraded=true&sortBy=gradedAt&sortOrder=desc
+   *
+   * Supported filters:
+   * - competitionId, graderId, status, isGraded.
+   * - startedFrom/startedTo and submittedFrom/submittedTo as ISO dates.
+   * - search matches the competition title or grader feedback.
+   * - sortBy: startedAt | submittedAt | gradedAt | totalPoints | maxPoints |
+   *   timeSpentSeconds | attemptNumber | createdAt | updatedAt.
+   *
+   * Performance contract:
+   * - Returns only the competition id/title and compact grader information.
+   * - Does not query CompetitionAnswer, Question, Statement, or exam content.
+   *
+   * Response example:
+   * {
+   *   "success": true,
+   *   "data": {
+   *     "student": { "studentId": 25, "fullName": "Nguyen Van A" },
+   *     "competitionSubmits": [{
+   *       "competitionSubmitId": 99,
+   *       "status": "GRADED",
+   *       "totalPoints": 8.5,
+   *       "maxPoints": 10,
+   *       "competition": { "competitionId": 8, "title": "Kiem tra chuong 1" },
+   *       "grader": { "adminId": 3, "fullName": "Tran Thi B" }
+   *     }],
+   *     "pagination": { "total": 1, "page": 1, "limit": 20, "totalPages": 1 }
+   *   }
+   * }
+   */
+  @Get('student/:studentId')
+  @RequirePermission(PERMISSION_CODES.COMPETITION_SUBMIT.GET_BY_STUDENT)
+  @HttpCode(HttpStatus.OK)
+  async getStudentCompetitionSubmits(
+    @Param('studentId', ParseIntPipe) studentId: number,
+    @Query() query: StudentCompetitionSubmitListQueryDto,
+  ): Promise<BaseResponseDto<any>> {
+    return ExceptionHandler.execute(() => this.getStudentCompetitionSubmitsUseCase.execute(studentId, query))
   }
 
   /**

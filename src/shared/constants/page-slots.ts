@@ -2,6 +2,7 @@ export const PAGE_SEO_MEDIA_SLOTS = {
     home: {
         hero: "home_hero",
         gallery: "home_gallery",
+        featuredStudents: "home_featured_students",
         learningEnvironment: "home_learning_environment",
         studentReviews: "home_student_reviews",
         teacherTeam: "home_teacher_team",

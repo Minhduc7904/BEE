@@ -461,6 +461,13 @@ export const PERMISSIONS = [
         group: 'ADMIN_MANAGEMENT',
         isSystem: true,
     },
+    {
+        code: 'admin:delete',
+        name: 'Xóa admin',
+        description: 'Xóa vĩnh viễn admin và dữ liệu phụ thuộc',
+        group: 'ADMIN_MANAGEMENT',
+        isSystem: true,
+    },
 
     // ===================================
     // ROLE MANAGEMENT
@@ -1495,6 +1502,13 @@ export const PERMISSIONS = [
         group: 'CLASS_STUDENT_MANAGEMENT',
         isSystem: true,
     },
+    {
+        code: 'class-student:export-excel',
+        name: 'Xuất Excel học viên trong lớp',
+        description: 'Xuất danh sách học viên theo lớp học ra file Excel',
+        group: 'CLASS_STUDENT_MANAGEMENT',
+        isSystem: true,
+    },
 
     // ===================================
     // DOCUMENT CONTENT MANAGEMENT
@@ -1613,6 +1627,13 @@ export const PERMISSIONS = [
         code: 'homework-submit:get-by-id',
         name: 'Xem chi tiết bài nộp',
         description: 'Xem chi tiết thông tin bài nộp',
+        group: 'HOMEWORK_SUBMIT_MANAGEMENT',
+        isSystem: true,
+    },
+    {
+        code: 'homework-submit:get-by-student',
+        name: 'Xem bài nộp theo học sinh',
+        description: 'Xem danh sách bài nộp của một học sinh',
         group: 'HOMEWORK_SUBMIT_MANAGEMENT',
         isSystem: true,
     },

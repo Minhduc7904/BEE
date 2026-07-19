@@ -19,11 +19,10 @@ export class UpdateRoleUseCase {
       const roleRepository = repos.roleRepository
       const adminAuditLogRepository = repos.adminAuditLogRepository
 
-      // Kiểm tra role có tồn tại không
       const existingRole = await roleRepository.findById(roleId)
       if (!existingRole) {
         await adminAuditLogRepository.create({
-          adminId: adminId,
+          adminId,
           actionKey: ACTION_KEYS.ROLE.UPDATE,
           status: AuditStatus.FAIL,
           resourceType: RESOURCE_TYPES.ROLE,
@@ -33,52 +32,29 @@ export class UpdateRoleUseCase {
         throw new NotFoundException('Role not found')
       }
 
-      // Nếu update roleName, kiểm tra tên mới có bị trùng không
       if (dto.roleName && dto.roleName !== existingRole.roleName) {
         const roleWithSameName = await roleRepository.findByName(dto.roleName)
         if (roleWithSameName) {
           await adminAuditLogRepository.create({
-            adminId: adminId,
+            adminId,
             actionKey: ACTION_KEYS.ROLE.UPDATE,
             status: AuditStatus.FAIL,
             resourceType: RESOURCE_TYPES.ROLE,
             resourceId: roleId.toString(),
-            errorMessage: `Role với tên '${dto.roleName}' đã tồn tại`,
+            errorMessage: `Role with name '${dto.roleName}' already exists`,
           })
-          throw new ConflictException(`Role với tên '${dto.roleName}' đã tồn tại`)
+          throw new ConflictException(`Role with name '${dto.roleName}' already exists`)
         }
       }
 
-      // Update role
       const updatedRole = await roleRepository.update(roleId, {
         roleName: dto.roleName,
         description: dto.description,
         isAssignable: dto.isAssignable,
       })
 
-      // Cập nhật permissions nếu có
-      if (dto.permissionIds !== undefined) {
-        // Lấy permissions hiện tại
-        const currentPermissions = existingRole.rolePermissions || []
-        const currentPermissionIds = currentPermissions.map(rp => rp.permissionId)
-        const newPermissionIds = dto.permissionIds
-
-        // Xóa permissions không còn trong danh sách mới
-        for (const permissionId of currentPermissionIds) {
-          if (!newPermissionIds.includes(permissionId)) {
-            await roleRepository.removePermission(roleId, permissionId)
-          }
-        }
-
-        // Thêm permissions mới
-        for (const permissionId of newPermissionIds) {
-          if (!currentPermissionIds.includes(permissionId)) {
-            await roleRepository.addPermission(roleId, permissionId)
-          }
-        }
-      }
-
-      // Load lại role với permissions
+      // PUT /roles/:id updates role metadata only. permissionIds is deliberately
+      // ignored so permission changes can only happen through dedicated APIs.
       const roleWithPermissions = await roleRepository.findByIdWithPermissions(roleId)
       if (!roleWithPermissions) {
         throw new Error('Failed to load updated role')
@@ -95,7 +71,7 @@ export class UpdateRoleUseCase {
       }
 
       await adminAuditLogRepository.create({
-        adminId: adminId,
+        adminId,
         actionKey: ACTION_KEYS.ROLE.UPDATE,
         status: AuditStatus.SUCCESS,
         resourceType: RESOURCE_TYPES.ROLE,

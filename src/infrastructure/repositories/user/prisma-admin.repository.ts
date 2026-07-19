@@ -110,6 +110,14 @@ export class PrismaAdminRepository implements IAdminRepository {
       ]
     }
 
+    // Admin activity is stored on the related User row, not on Admin itself.
+    // Keeping it in `where` makes findMany and count use the same filter.
+    if (options.isActive !== undefined) {
+      where.user = {
+        isActive: options.isActive,
+      }
+    }
+
     const sortableFields = ['adminId', 'createdAt', 'updatedAt'] as const
     const isValidSortField = (
       field: string

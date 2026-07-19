@@ -21,6 +21,7 @@ import {
     GetAdminHomeworkSubmitDetailUseCase,
     GradeStudentFileHomeworkUseCase,
     GetMyHomeworkSubmitsUseCase,
+    GetStudentHomeworkSubmitsUseCase,
     UpdateHomeworkSubmitImageAltUseCase,
     UngradeStudentFileHomeworkUseCase,
 } from './index'
@@ -49,6 +50,7 @@ import {
         GetAdminHomeworkSubmitDetailUseCase,
         GradeStudentFileHomeworkUseCase,
         GetMyHomeworkSubmitsUseCase,
+        GetStudentHomeworkSubmitsUseCase,
         UpdateHomeworkSubmitImageAltUseCase,
         UngradeStudentFileHomeworkUseCase,
     ],
@@ -67,6 +69,7 @@ import {
         GetAdminHomeworkSubmitDetailUseCase,
         GradeStudentFileHomeworkUseCase,
         GetMyHomeworkSubmitsUseCase,
+        GetStudentHomeworkSubmitsUseCase,
         UpdateHomeworkSubmitImageAltUseCase,
         UngradeStudentFileHomeworkUseCase,
     ],

@@ -9,6 +9,7 @@ const ADMIN_USE_CASES = [
   adminUseCases.SuperAdminUpdateAdminDirectUseCase,
   adminUseCases.GetAllAdminUseCase,
   adminUseCases.SearchAdminUseCase,
+  adminUseCases.HardDeleteAdminUseCase,
 ]
 
 @Module({

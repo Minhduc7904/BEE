@@ -19,6 +19,7 @@ export const PERMISSION_CODES = {
   },
   COMPETITION_SUBMIT: {
     GET_ALL: 'competition-submit:get-all',
+    GET_BY_STUDENT: 'competition-submit:get-by-student',
     GET_BY_ID: 'competition-submit:get-by-id',
     UPDATE: 'competition-submit:update',
     DELETE: 'competition-submit:delete',
@@ -102,6 +103,7 @@ export const PERMISSION_CODES = {
     SEARCH: 'admin:search',
     GET_BY_ID: 'admin:get-by-id',
     CREATE: 'admin:create',
+    DELETE: 'admin:delete',
   },
   ROLE: {
     GET_ALL: 'role:get-all',
@@ -297,6 +299,7 @@ export const PERMISSION_CODES = {
     GET_MY_CLASSES: 'class-student:get-my-classes',
     CREATE: 'class-student:create',
     DELETE: 'class-student:delete',
+    EXPORT_EXCEL: 'class-student:export-excel',
   },
   DOCUMENT_CONTENT: {
     GET_ALL: 'document-content:get-all',
@@ -320,6 +323,7 @@ export const PERMISSION_CODES = {
   HOMEWORK_SUBMIT: {
     GET_ALL: 'homework-submit:get-all',
     GET_BY_ID: 'homework-submit:get-by-id',
+    GET_BY_STUDENT: 'homework-submit:get-by-student',
     CREATE: 'homework-submit:create',
     UPDATE: 'homework-submit:update',
     GRADE: 'homework-submit:grade',
