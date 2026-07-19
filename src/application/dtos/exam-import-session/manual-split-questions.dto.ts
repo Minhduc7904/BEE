@@ -1,6 +1,6 @@
 // src/application/dtos/exam-import-session/manual-split-questions.dto.ts
 import { IsEnum } from 'class-validator'
-import { IsOptionalString, IsRequiredString } from 'src/shared/decorators/validate'
+import { IsOptionalString, IsRequiredNumber, IsRequiredString } from 'src/shared/decorators/validate'
 import { QuestionType } from '../../../shared/enums/question-type.enum'
 
 /**
@@ -25,6 +25,9 @@ export class ManualSplitQuestionsDto {
    */
   @IsEnum(QuestionType)
   questionType: QuestionType
+
+  @IsRequiredNumber('Diem goc', 0)
+  pointsOrigin: number
 
   /**
    * Chuỗi đáp án cách nhau bởi dấu cách, tương ứng thứ tự từng câu hỏi.

@@ -1,6 +1,6 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common'
 import axios from 'axios'
-import { CurrentUser } from 'src/shared/decorators'
+import { CurrentUser, RequireRoles } from 'src/shared/decorators'
 import { RequirePermission } from 'src/shared/decorators/permissions.decorator'
 import { PERMISSION_CODES } from 'src/shared/constants/permissions/permission.codes'
 import { ExceptionHandler } from 'src/shared/utils/exception-handler.util'
@@ -24,6 +24,8 @@ import { SeedDefaultTagsUseCase } from 'src/application/use-cases/tag'
 import { SyncPermissionsFromCodesUseCase } from 'src/application/use-cases/permission'
 import { SyncSeoMediaSlotsFromPageSlotsUseCase } from 'src/application/use-cases/seo-media'
 import { AutoSubmitExpiredCompetitionAttemptsUseCase } from 'src/application/use-cases/competition-submit'
+import { BackfillQuestionDefaultPointsUseCase } from 'src/application/use-cases/question'
+import { ROLE_NAMES } from 'src/shared/constants/roles.constant'
 
 interface ExchangeFacebookTokenDto {
   appId: string
@@ -47,6 +49,7 @@ export class AdminStudentController {
     private readonly syncPermissionsFromCodesUseCase: SyncPermissionsFromCodesUseCase,
     private readonly syncSeoMediaSlotsFromPageSlotsUseCase: SyncSeoMediaSlotsFromPageSlotsUseCase,
     private readonly autoSubmitExpiredCompetitionAttemptsUseCase: AutoSubmitExpiredCompetitionAttemptsUseCase,
+    private readonly backfillQuestionDefaultPointsUseCase: BackfillQuestionDefaultPointsUseCase,
   ) {}
 
   /**
@@ -282,6 +285,18 @@ export class AdminStudentController {
   @HttpCode(HttpStatus.OK)
   async regenerateQuestionSlugs(@CurrentUser('adminId') _adminId?: number): Promise<BaseResponseDto<any>> {
     return ExceptionHandler.execute(() => this.regenerateQuestionSlugsUseCase.execute())
+  }
+
+  /**
+   * Gan diem mac dinh cho cac cau hoi chua co diem hoac co diem bang 0.
+   * POST /super-admin/questions/backfill-default-points
+   */
+  @Post('questions/backfill-default-points')
+  @RequireRoles(ROLE_NAMES.SUPER_ADMIN)
+  @RequirePermission(PERMISSION_CODES.QUESTION.UPDATE)
+  @HttpCode(HttpStatus.OK)
+  async backfillQuestionDefaultPoints(): Promise<BaseResponseDto<any>> {
+    return ExceptionHandler.execute(() => this.backfillQuestionDefaultPointsUseCase.execute())
   }
 
   /**

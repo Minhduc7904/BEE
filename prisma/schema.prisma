@@ -666,7 +666,7 @@ model Question {
   solutionYoutubeUrl String?      @map("solution_youtube_url") @db.VarChar(500)
   grade              Int?         @map("grade") @db.TinyInt // cáº¥p lá»›p cá»§a cÃ¢u há»i (nullable náº¿u AI khÃ´ng phÃ¢n loáº¡i Ä‘Æ°á»£c)
   subjectId          Int?         @map("subject_id")
-  pointsOrigin       Int?         @map("points_origin") // Ä‘iá»ƒm gá»‘c cá»§a cÃ¢u há»i
+  pointsOrigin       Decimal?     @map("points_origin") @db.Decimal(10, 2) // Ä‘iá»ƒm gá»‘c cá»§a cÃ¢u há»i
   visibility         Visibility   @default(DRAFT) @map("visibility") // tráº¡ng thÃ¡i cÃ´ng khai cá»§a cÃ¢u há»i
   createdBy          Int?         @map("created_by") // admin táº¡o cÃ¢u há»i
   createdAt          DateTime     @default(now()) @map("created_at") @db.Timestamp(0)
@@ -783,7 +783,7 @@ model TempQuestion {
   solutionYoutubeUrl String?      @map("solution_youtube_url") @db.VarChar(500)
   grade              Int?         @map("grade") @db.TinyInt
   subjectId          Int?         @map("subject_id")
-  pointsOrigin       Int?         @map("points_origin")
+  pointsOrigin       Decimal?     @map("points_origin") @db.Decimal(10, 2)
   order              Int          @map("order") // thá»© tá»± cÃ¢u há»i trong section/exam
   metadata           Json?        @map("metadata") // confidence score, AI notes, etc
   questionId         Int?         @unique @map("question_id") // ID cá»§a question chÃ­nh sau khi migrate

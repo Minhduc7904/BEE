@@ -9,18 +9,23 @@ import {
     QuestionListResult,
     QuestionSlugCandidate,
     QuestionSitemapResult,
+    BackfillQuestionDefaultPointsResult,
 } from '../../../domain/repositories/question.repository'
 import { PrismaService } from '../../../prisma/prisma.service'
 import { QuestionMapper } from '../../mappers/exam/question.mapper'
 import { TextSearchUtil } from '../../../shared/utils/text-search.util'
 import { ExamVisibility } from '../../../shared/enums/exam-visibility.enum'
-import { Visibility } from '../../../shared/enums'
+import { QuestionType, Visibility } from '../../../shared/enums'
 
 @Injectable()
 export class PrismaQuestionRepository implements IQuestionRepository {
-    constructor(private readonly prisma: PrismaService | any) { }
+    constructor(private readonly prisma: PrismaService | any) {}
 
-    private async generateUniqueSlug(content: string, client: any, reservedSlugs: Set<string> = new Set()): Promise<string> {
+    private async generateUniqueSlug(
+        content: string,
+        client: any,
+        reservedSlugs: Set<string> = new Set(),
+    ): Promise<string> {
         const contentPreview = TextSearchUtil.stripMarkdownForSearch(content).substring(0, 100)
         const baseSlug = TextSearchUtil.generateSlug(contentPreview)
 
@@ -116,27 +121,27 @@ export class PrismaQuestionRepository implements IQuestionRepository {
             where: { questionId: id },
             ...(includeRelations
                 ? {
-                    include: {
-                        subject: true,
-                        admin: {
-                            include: {
-                                user: true,
-                            },
-                        },
-                        statements: {
-                            orderBy: {
-                                order: 'asc',
-                            },
-                        },
-                        questionChapters: {
-                            include: {
-                                chapter: true,
-                            },
-                        },
-                    },
-                }
+                      include: {
+                          subject: true,
+                          admin: {
+                              include: {
+                                  user: true,
+                              },
+                          },
+                          statements: {
+                              orderBy: {
+                                  order: 'asc',
+                              },
+                          },
+                          questionChapters: {
+                              include: {
+                                  chapter: true,
+                              },
+                          },
+                      },
+                  }
                 : includeStatements
-                    ? {
+                  ? {
                         include: {
                             statements: {
                                 orderBy: {
@@ -145,7 +150,7 @@ export class PrismaQuestionRepository implements IQuestionRepository {
                             },
                         },
                     }
-                    : {}),
+                  : {}),
         })
 
         if (!question) return null
@@ -211,7 +216,7 @@ export class PrismaQuestionRepository implements IQuestionRepository {
         const client = txClient || this.prisma
 
         const updateData: any = {}
-        
+
         if (data.content !== undefined) {
             updateData.content = data.content
             // Auto-update searchableContent and slug when content changes
@@ -313,10 +318,10 @@ export class PrismaQuestionRepository implements IQuestionRepository {
                 {
                     statements: {
                         some: {
-                            content: { contains: searchText }
-                        }
-                    }
-                }
+                            content: { contains: searchText },
+                        },
+                    },
+                },
             ]
         }
 
@@ -391,12 +396,12 @@ export class PrismaQuestionRepository implements IQuestionRepository {
 
         // Build orderBy
         let orderBy: any
-        
+
         // If filtering by examId, sort by QuestionExam.order
         if (filters?.examId !== undefined) {
             orderBy = {
                 examQuestions: {
-                    _count: 'desc',  // This ensures questions in exam come first
+                    _count: 'desc', // This ensures questions in exam come first
                 },
             }
         } else {
@@ -427,14 +432,17 @@ export class PrismaQuestionRepository implements IQuestionRepository {
                             chapter: true,
                         },
                     },
-                    examQuestions: filters?.examId !== undefined ? {
-                        where: {
-                            examId: filters.examId,
-                        },
-                        orderBy: {
-                            order: 'asc',
-                        },
-                    } : false,
+                    examQuestions:
+                        filters?.examId !== undefined
+                            ? {
+                                  where: {
+                                      examId: filters.examId,
+                                  },
+                                  orderBy: {
+                                      order: 'asc',
+                                  },
+                              }
+                            : false,
                 },
             }),
             client.question.count({ where }),
@@ -442,7 +450,7 @@ export class PrismaQuestionRepository implements IQuestionRepository {
 
         // Sort questions by examQuestions.order if filtering by exam
         let questions = QuestionMapper.toDomainQuestions(prismaQuestions)
-        
+
         if (filters?.examId !== undefined) {
             // Sort by order from QuestionExam table
             questions = questions.sort((a, b) => {
@@ -461,6 +469,42 @@ export class PrismaQuestionRepository implements IQuestionRepository {
             limit,
             totalPages,
         }
+    }
+
+    async backfillDefaultPointsForUnscored(): Promise<BackfillQuestionDefaultPointsResult> {
+        const unscoredWhere = (type: QuestionType) => ({
+            type,
+            OR: [{ pointsOrigin: null }, { pointsOrigin: 0 }],
+        })
+
+        const [singleChoice, multipleChoice, trueFalse, shortAnswer] = await this.prisma.$transaction([
+            this.prisma.question.updateMany({
+                where: unscoredWhere(QuestionType.SINGLE_CHOICE),
+                data: { pointsOrigin: 0.25 },
+            }),
+            this.prisma.question.updateMany({
+                where: unscoredWhere(QuestionType.MULTIPLE_CHOICE),
+                data: { pointsOrigin: 0.25 },
+            }),
+            this.prisma.question.updateMany({
+                where: unscoredWhere(QuestionType.TRUE_FALSE),
+                data: { pointsOrigin: 1 },
+            }),
+            this.prisma.question.updateMany({
+                where: unscoredWhere(QuestionType.SHORT_ANSWER),
+                data: { pointsOrigin: 0.5 },
+            }),
+        ])
+
+        const result = {
+            singleChoiceUpdated: singleChoice.count,
+            multipleChoiceUpdated: multipleChoice.count,
+            trueFalseUpdated: trueFalse.count,
+            shortAnswerUpdated: shortAnswer.count,
+            totalUpdated: singleChoice.count + multipleChoice.count + trueFalse.count + shortAnswer.count,
+        }
+
+        return result
     }
 
     async findSitemapEntriesExcludingDraft(

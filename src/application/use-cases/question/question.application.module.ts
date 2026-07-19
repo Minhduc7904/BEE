@@ -25,6 +25,7 @@ const QUESTION_USE_CASES = [
   questionUseCase.RegenerateQuestionSlugsUseCase,
   questionUseCase.GetRelatedPublicSeoQuestionsBySlugUseCase,
   questionUseCase.GetPublicQuestionSitemapUseCase,
+  questionUseCase.BackfillQuestionDefaultPointsUseCase,
   AttachMediaFromContentUseCase,
   ProcessContentWithPresignedUrlsUseCase,
   ProcessContentWithPresignedUrlsAndRenderHtmlUseCase,

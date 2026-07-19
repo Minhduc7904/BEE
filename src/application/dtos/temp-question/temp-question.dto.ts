@@ -4,6 +4,7 @@ import { QuestionType, Difficulty } from '../../../shared/enums'
 import { Subject } from '../../../domain/entities/subject/subject.entity'
 import { Chapter } from '../../../domain/entities/chapter/chapter.entity'
 import { TempQuestionChapter } from 'src/domain/entities'
+import { TempSectionResponseDto } from '../temp-section/temp-section.dto'
 
 export class TempStatementResponseDto {
   tempStatementId: number
@@ -20,7 +21,7 @@ export class TempStatementResponseDto {
 export class TempQuestionResponseDto {
   tempQuestionId: number
   sessionId: number
-  tempSectionId?: string | null
+  tempSectionId?: number | null
   content: string
   processedContent?: string
   type: QuestionType
@@ -39,6 +40,7 @@ export class TempQuestionResponseDto {
   createdAt: Date
   updatedAt: Date
   subject?: Subject
+  tempSection?: TempSectionResponseDto
   chapters?: Chapter[]
   // Relations
   tempStatements?: TempStatementResponseDto[]
@@ -71,6 +73,9 @@ export class TempQuestionResponseDto {
       metadata: tempQuestion.metadata,
       questionId: tempQuestion.questionId ?? null,
       subject: tempQuestion.subject ?? undefined,
+      tempSection: tempQuestion.tempSection
+        ? TempSectionResponseDto.fromEntity(tempQuestion.tempSection)
+        : undefined,
       chapters: tempQuestion.tempQuestionChapters?.map(tqc => tqc.chapter).filter(Boolean) as Chapter[] | undefined,
       tempQuestionChapters: tempQuestion.tempQuestionChapters,
       createdAt: tempQuestion.createdAt,

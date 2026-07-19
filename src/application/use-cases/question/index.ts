@@ -16,3 +16,4 @@ export { GetPublicSeoQuestionBySlugUseCase } from './get-public-seo-question-by-
 export { RegenerateQuestionSlugsUseCase } from './regenerate-question-slugs.use-case'
 export { GetRelatedPublicSeoQuestionsBySlugUseCase } from './get-related-public-seo-questions-by-slug.use-case'
 export { GetPublicQuestionSitemapUseCase } from './get-public-question-sitemap.use-case'
+export { BackfillQuestionDefaultPointsUseCase } from './backfill-question-default-points.use-case'

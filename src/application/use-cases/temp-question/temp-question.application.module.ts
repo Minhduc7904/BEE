@@ -12,6 +12,7 @@ const TEMP_QUESTION_USE_CASES = [
   tempQuestionUseCase.DeleteTempQuestionUseCase,
   tempQuestionUseCase.ReorderTempQuestionsUseCase,
   tempQuestionUseCase.LinkQuestionToSectionUseCase,
+  tempQuestionUseCase.UpdateTempQuestionPointsBySectionUseCase,
 ]
 
 @Module({

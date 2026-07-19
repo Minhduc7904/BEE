@@ -55,4 +55,5 @@ export interface ITempQuestionRepository {
   linkToFinalQuestion(tempQuestionId: number, questionId: number): Promise<TempQuestion>
   updateGrade(tempQuestionId: number, grade: number): Promise<void>
   updateDifficulty(tempQuestionId: number, difficulty: string): Promise<void>
+  updatePointsByTempSectionId(tempSectionId: number, pointsOrigin: number): Promise<number>
 }

@@ -103,7 +103,7 @@ export class ManualSplitQuestionsUseCase {
             const subjectId = tempExam.subjectId ?? null
 
             // ─── Validate rawContent ──────────────────────────────────────────────
-            const { rawContent, questionType } = dto
+            const { rawContent, questionType, pointsOrigin } = dto
             if (!rawContent || rawContent.trim().length === 0) {
                 throw new Error('Nội dung không được để trống')
             }
@@ -112,10 +112,14 @@ export class ManualSplitQuestionsUseCase {
             const splitResult = this.splitByType(rawContent.trim(), questionType, dto.answers)
 
             // ─── Gắn subjectId vào tất cả câu hỏi vừa tách ─────────────────────
-            if (subjectId !== null) {
-                for (const q of splitResult.questions) {
+            for (const q of splitResult.questions) {
+                q.pointsOrigin = pointsOrigin
+                if (subjectId !== null) {
                     q.subjectId = subjectId
                 }
+            }
+            for (const q of splitResult.displayQuestions) {
+                q.pointsOrigin = pointsOrigin
             }
 
             // ─── Tìm hoặc tạo TempSection phù hợp với loại câu hỏi ──────────────
@@ -150,6 +154,7 @@ export class ManualSplitQuestionsUseCase {
                 resourceId: sessionId.toString(),
                 afterData: {
                     questionType,
+                    pointsOrigin,
                     subjectId,
                     tempSectionId: tempSection.tempSectionId,
                     tempSectionTitle: tempSection.title,
@@ -171,6 +176,7 @@ export class ManualSplitQuestionsUseCase {
                 message,
                 data: {
                     questionType,
+                    pointsOrigin,
                     tempSectionId: tempSection.tempSectionId,
                     tempSectionTitle: tempSection.title,
                     tempSectionOrder: tempSection.order,
@@ -193,6 +199,7 @@ export class ManualSplitQuestionsUseCase {
                 errorMessage: error.message,
                 afterData: {
                     questionType: dto.questionType,
+                    pointsOrigin: dto.pointsOrigin,
                     contentLength: dto.rawContent?.length || 0,
                 },
             })

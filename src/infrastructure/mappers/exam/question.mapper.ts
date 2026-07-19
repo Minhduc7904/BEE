@@ -28,12 +28,14 @@ export class QuestionMapper {
       solution: prisma.solution,
       solutionYoutubeUrl: prisma.solutionYoutubeUrl,
       subjectId: prisma.subjectId,
-      pointsOrigin: prisma.pointsOrigin,
+      pointsOrigin: prisma.pointsOrigin != null ? Number(prisma.pointsOrigin) : null,
       createdBy: prisma.createdBy,
       subject: prisma.subject ? SubjectMapper.toDomainSubject(prisma.subject) : undefined,
       admin: prisma.admin,
       statements: prisma.statements ? StatementMapper.toDomainStatements(prisma.statements) : undefined,
-      questionChapters: prisma.questionChapters ? QuestionChapterMapper.toDomainQuestionChapters(prisma.questionChapters) : undefined,
+      questionChapters: prisma.questionChapters
+        ? QuestionChapterMapper.toDomainQuestionChapters(prisma.questionChapters)
+        : undefined,
       examQuestions: prisma.examQuestions ? QuestionExamMapper.toDomainQuestionExams(prisma.examQuestions) : undefined,
     })
   }

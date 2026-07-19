@@ -67,6 +67,14 @@ export interface QuestionSitemapResult {
   totalPages: number
 }
 
+export interface BackfillQuestionDefaultPointsResult {
+  singleChoiceUpdated: number
+  multipleChoiceUpdated: number
+  trueFalseUpdated: number
+  shortAnswerUpdated: number
+  totalUpdated: number
+}
+
 export interface QuestionRelationOptions {
   includeRelations?: boolean
   includeStatements?: boolean
@@ -91,4 +99,5 @@ export interface IQuestionRepository {
     pagination: QuestionPaginationOptions,
     txClient?: any,
   ): Promise<QuestionSitemapResult>
+  backfillDefaultPointsForUnscored(): Promise<BackfillQuestionDefaultPointsResult>
 }

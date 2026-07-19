@@ -5,6 +5,7 @@ import { SubjectMapper } from '../subject/subject.mapper'
 import { TempStatementMapper } from './temp-statement.mapper'
 import { QuestionType, Difficulty } from 'src/shared/enums'
 import { TempQuestionChapterMapper } from './temp-question-chapter.mapper'
+import { TempSection } from '../../../domain/entities/exam-import/temp-section.entity'
 
 /**
  * Mapper class để convert từ Prisma TempQuestion model
@@ -29,6 +30,7 @@ export class TempQuestionMapper {
       difficulty: prismaQuestion.difficulty ? (prismaQuestion.difficulty as Difficulty) : undefined,
       order: prismaQuestion.order,
       grade: prismaQuestion.grade,
+      pointsOrigin: prismaQuestion.pointsOrigin != null ? Number(prismaQuestion.pointsOrigin) : null,
       subjectId: prismaQuestion.subjectId,
       metadata: prismaQuestion.metadata,
       questionId: prismaQuestion.questionId,
@@ -39,6 +41,7 @@ export class TempQuestionMapper {
       subject: prismaQuestion.subject
         ? SubjectMapper.toDomainSubject(prismaQuestion.subject)
         : undefined,
+      tempSection: prismaQuestion.tempSection ? TempSection.fromPrisma(prismaQuestion.tempSection) : undefined,
       tempStatements: prismaQuestion.tempStatements
         ? TempStatementMapper.toDomainTempStatements(prismaQuestion.tempStatements)
         : undefined,

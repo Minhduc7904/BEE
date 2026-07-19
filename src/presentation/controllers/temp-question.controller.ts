@@ -16,6 +16,7 @@ import {
     TempQuestionResponseDto,
     ReorderTempQuestionsDto,
     LinkQuestionToSectionDto,
+    UpdateTempQuestionPointsBySectionDto,
 } from '../../application/dtos/temp-question'
 import {
     GetTempQuestionsBySessionUseCase,
@@ -25,6 +26,7 @@ import {
     DeleteTempQuestionUseCase,
     ReorderTempQuestionsUseCase,
     LinkQuestionToSectionUseCase,
+    UpdateTempQuestionPointsBySectionUseCase,
 } from '../../application/use-cases/temp-question'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
@@ -42,6 +44,7 @@ export class TempQuestionController {
         private readonly deleteTempQuestionUseCase: DeleteTempQuestionUseCase,
         private readonly reorderTempQuestionsUseCase: ReorderTempQuestionsUseCase,
         private readonly linkQuestionToSectionUseCase: LinkQuestionToSectionUseCase,
+        private readonly updateTempQuestionPointsBySectionUseCase: UpdateTempQuestionPointsBySectionUseCase,
     ) { }
 
     /**
@@ -84,6 +87,22 @@ export class TempQuestionController {
     ): Promise<BaseResponseDto<TempQuestionResponseDto>> {
         return ExceptionHandler.execute(() =>
             this.createTempQuestionUseCase.execute(sessionId, dto, userId),
+        )
+    }
+
+    /**
+     * Cap nhat diem goc cho toan bo TempQuestion thuoc mot TempSection.
+     * PUT /temp-questions/section/:tempSectionId/points
+     */
+    @Put('section/:tempSectionId/points')
+    @RequirePermission(PERMISSION_CODES.TEMP_QUESTION.UPDATE)
+    @HttpCode(HttpStatus.OK)
+    async updatePointsByTempSection(
+        @Param('tempSectionId') tempSectionId: number,
+        @Body() dto: UpdateTempQuestionPointsBySectionDto,
+    ): Promise<BaseResponseDto<any>> {
+        return ExceptionHandler.execute(() =>
+            this.updateTempQuestionPointsBySectionUseCase.execute(tempSectionId, dto),
         )
     }
 

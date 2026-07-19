@@ -102,6 +102,7 @@ export class PrismaTempQuestionRepository implements ITempQuestionRepository {
       where: { sessionId },
       orderBy: { order: 'asc' },
       include: {
+        tempSection: true,
         subject: true,
         tempStatements: {
           orderBy: { order: 'asc' },
@@ -278,5 +279,14 @@ export class PrismaTempQuestionRepository implements ITempQuestionRepository {
       where: { tempQuestionId },
       data: { difficulty },
     })
+  }
+
+  async updatePointsByTempSectionId(tempSectionId: number, pointsOrigin: number): Promise<number> {
+    const result = await this.prisma.tempQuestion.updateMany({
+      where: { tempSectionId },
+      data: { pointsOrigin },
+    })
+
+    return result.count
   }
 }

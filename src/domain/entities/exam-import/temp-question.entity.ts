@@ -19,7 +19,7 @@ export class TempQuestion {
   updatedAt: Date
 
   // Optional properties
-  tempSectionId?: string | null
+  tempSectionId?: number | null
   correctAnswer?: string | null
   solution?: string | null
   difficulty?: Difficulty | null
@@ -46,7 +46,7 @@ export class TempQuestion {
     order: number
     createdAt: Date
     updatedAt: Date
-    tempSectionId?: string | null
+    tempSectionId?: number | null
     correctAnswer?: string | null
     solution?: string | null
     difficulty?: Difficulty | null

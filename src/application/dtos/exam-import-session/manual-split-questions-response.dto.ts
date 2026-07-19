@@ -32,6 +32,7 @@ export class ManualSplitQuestionItemDto {
     content: string
     /** Loại câu hỏi */
     type: QuestionType
+    pointsOrigin?: number
     /** Danh sách đáp án / mệnh đề (nếu có) */
     statements?: ManualSplitStatementItemDto[]
     /** Đáp án đúng (nếu xác định được) */
@@ -49,6 +50,7 @@ export class ManualSplitQuestionItemDto {
 export class ManualSplitQuestionsResponseDto {
     /** Loại câu hỏi đã tách */
     questionType: QuestionType
+    pointsOrigin: number
     /** ID của TempSection đã tìm hoặc tạo */
     tempSectionId: number
     /** Tiêu đề TempSection */
