@@ -105,7 +105,7 @@ export class CreateStudentUseCase {
                 isEmailVerified: false,
             })
 
-            await roleRepository.assignRoleToUser(user.userId, 4);
+            // await roleRepository.assignRoleToUser(user.userId, 4);
 
             // Create student (trong cùng transaction)
             const student = await studentRepository.create({

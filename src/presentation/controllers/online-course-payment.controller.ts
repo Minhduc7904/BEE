@@ -320,9 +320,8 @@ export class OnlineCourseInvoicePaymentStatusController {
   /**
    * Endpoint: DELETE /api/online-course-invoices/admin/:invoiceId
    *
-   * Chi xoa hoa don chua thanh toan, chua co enrollment va khong co payment
-   * attempt PENDING/PROCESSING. Invoice items va payment attempts da ket thuc
-   * duoc xoa theo cascade database.
+   * Yeu cau quyen online-course-invoice:delete. Khong ap dung quy tac theo
+   * trang thai invoice; cac ban ghi lien quan duoc xu ly theo cascade database.
    */
   @Delete('admin/:invoiceId')
   @RequirePermission(PERMISSION_CODES.ONLINE_COURSE_INVOICE.DELETE)
