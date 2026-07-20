@@ -1,58 +1,40 @@
 ---
 name: business-rules
-description: Xac dinh, ghi nhan va ap dung business rule cho BEE. Su dung khi them/sua hanh vi nghiep vu, phan quyen theo so huu du lieu, validation lien truong, chuyen trang thai, chinh sach xoa, han muc, hoac quy tac xu ly loi.
+description: Xác định, ghi nhận và áp dụng business rule cho BEE. Dùng khi thêm hoặc sửa hành vi nghiệp vụ, ownership, validation liên trường, state transition, chính sách xóa, hạn mức, thanh toán, audit, notification hoặc quy tắc xử lý lỗi.
 ---
 
-# Business rules
+# Business Rules
 
-## Pham vi
+## Phạm vi
 
-Skill nay la nguon huong dan cho **quy tac nghiep vu**. Khong dung no de quy dinh cach viet Prisma repository, DTO hay controller; phan hien thuc ky thuat thuoc skill `create-application-use-case`.
+Skill này là nguồn hướng dẫn cho quy tắc nghiệp vụ. Rule nằm tại application use case; DTO chỉ validate cấu trúc request, repository chỉ truy vấn/lưu dữ liệu và controller chỉ xử lý HTTP/authentication/permission.
 
-## Truoc khi code
+Đọc `template.md` để viết rule theo biểu mẫu và `reference-files.md` để chọn skill/mã nguồn liên quan. Với học phí, VietQR, webhook SePay hoặc payment core, đọc thêm `tuition-payment-sepay-business-rules/SKILL.md`. Khi tạo một business skill mới, đọc `write-business-rule-skill/SKILL.md`.
 
-1. Doc cac skill chung trong `.agent/skills/shared/`.
-2. Xac dinh domain va nguon su that cua rule: yeu cau duoc phe duyet, tai lieu nghiep vu, hoac hanh vi da co trong code.
-3. Khong tu dat ra rule khi yeu cau chua du thong tin. Neu rule anh huong quyen, du lieu cu, trang thai, hoac thanh toan/diem so, neu ro gia dinh va xin xac nhan truoc khi thay doi.
+## Trước khi thiết kế
 
-## Cach dinh nghia mot rule
+1. Đọc architecture và clean architecture rules.
+2. Xác định actor, aggregate sở hữu dữ liệu, trạng thái hiện có và nguồn sự thật của rule.
+3. Không tự bịa policy chưa được phê duyệt. Với quyền, dữ liệu cũ, tiền, điểm, trạng thái hoặc external provider, tách rõ giả định và quyết định cần chốt.
+4. Đọc `database-schema-changes` nếu rule cần bảng, field, enum, relation, index hoặc migration.
+5. Chạy GitNexus impact analysis trước khi sửa code đang tồn tại.
 
-Voi moi rule moi hoac thay doi, ghi ro:
+## Cách định nghĩa rule
 
-- actor nao thuc hien va pham vi du lieu actor duoc tac dong;
-- dieu kien tien quyet va du lieu dau vao hop le;
-- ket qua, trang thai truoc/sau, va side effect;
-- truong hop bi tu choi va ma loi nghiep vu phu hop;
-- quy tac xoa/giu lich su/audit neu lien quan.
+Với mỗi rule, nêu rõ actor/scope, input tin cậy, precondition, transition/outcome, rejection, audit/notification và retention/xóa khi liên quan. Luồng có client/admin/provider phải mô tả rõ trách nhiệm của từng bên; frontend không là nguồn sự thật của state nghiệp vụ.
 
-Dat rule o application use case. DTO chi validate cau truc request; repository chi truy van va luu tru; controller chi kiem soat HTTP/authentication/permission.
+## Khi hiện thực
 
-## Mau rule
+1. Chuyển rule thành use case có transition tường minh.
+2. Kiểm tra ownership và precondition trước khi đọc/sửa/xóa.
+3. Dùng Unit of Work khi rule thay đổi nhiều aggregate, cần audit hoặc cần atomicity.
+4. Cập nhật API/DTO/permission/schema theo skill tương ứng.
+5. Không bắt buộc viết unit test vì dự án hiện chưa có luồng này; chạy build/typecheck phù hợp sau thay đổi code.
 
-```md
-### <Ten rule>
+## Checklist
 
-- Actor: <ai duoc phep thuc hien>
-- Scope: <ban ghi nao actor duoc phep tac dong>
-- Precondition: <dieu kien bat buoc>
-- Transition/outcome: <trang thai va ket qua>
-- Rejection: <truong hop loi va exception>
-- Audit/notification: <neu can>
-```
-
-## Vi du: gui bao cao
-
-- Actor: student da dang nhap.
-- Scope: chi tao report moi; khong tu gan `reporterId` cua nguoi khac.
-- Precondition: loai target phai phu hop voi ID/URL duoc bao cao; noi dung ly do phai du de xu ly.
-- Outcome: tao report o trang thai `PENDING`, luu nguoi bao cao neu co trong auth context.
-- Rejection: target khong ton tai, target type khong khop, hoac request khong co target hop le.
-- Audit: luu thoi diem tao/cap nhat; cac hanh dong quan tri sau do phai truy vet duoc.
-
-## Khi hien thuc
-
-1. Chuyen rule thanh validation va transition ro rang trong use case.
-2. Ap dung scope/ownership truoc khi doc, sua hoac xoa ban ghi.
-3. Viet test cho duong thanh cong va moi dieu kien bi tu choi quan trong.
-4. Cap nhat API documentation khi input, output, permission, status, hoac loi nhin thay tu client thay doi.
-5. Chi goi `database-schema-changes` khi rule can thay doi schema hoac migration.
+- [ ] Actor, ownership, precondition và rejection rõ ràng.
+- [ ] State transition và side effect được nêu.
+- [ ] Rule không nằm ở controller/repository/DTO.
+- [ ] API, permission, schema và dữ liệu cũ đã được đánh giá khi có tác động.
+- [ ] Giả định chưa chốt được chuyển thành quyết định cần xác nhận.

@@ -1,75 +1,85 @@
 ---
 name: database-schema-changes
-description: Thiet ke va thay doi Prisma/MySQL schema an toan cho BEE. Su dung khi tao/sua bang, cot, enum, relation, index hoac Prisma migration; bao gom comment ro muc dich bang/truong, tao va kiem tra migration.
+description: Thiết kế và thay đổi Prisma/MySQL schema an toàn cho BEE. Dùng khi thêm hoặc sửa bảng, cột, enum, relation, unique/index hay Prisma migration; bao gồm đánh giá business rule, dữ liệu cũ, SQL migration, Prisma generate và build.
 ---
 
-# Database schema changes
+# Thay đổi Database Schema
 
-## Muc tieu
+## Mục tiêu
 
-Thay doi database theo dung kien truc va convention cua BEE, de schema tu giai thich duoc y nghia nghiep vu, migration co the kiem tra/trien khai an toan, va Prisma Client luon dong bo.
+Thay đổi `prisma/schema.prisma` theo Prisma/MySQL và Clean Architecture của BEE. Schema phải diễn đạt đúng nghiệp vụ, giữ dữ liệu lịch sử, có migration kiểm tra được và không làm Application phụ thuộc Prisma.
 
-## Truoc khi chinh sua
+Skill này có đúng ba tệp. Đọc [template.md](template.md) để soạn thiết kế schema/migration và [reference-files.md](reference-files.md) để đối chiếu convention cùng mã nguồn thật.
 
-1. Doc hoan chinh:
-   - `.agent/skills/shared/architecture.md`
-   - `.agent/skills/shared/clean-architecture-rules.md`
-2. Kiem tra `prisma/schema.prisma`, cac model lien quan, migration gan day va repository/use case dang su dung du lieu nay.
-3. Phan tich tac dong cua symbol truoc khi sua code theo quy dinh GitNexus cua du an. Neu rui ro HIGH/CRITICAL, thong bao pham vi anh huong truoc khi sua.
-4. Xac dinh yeu cau nghiep vu: quyen so huu du lieu, quan he, optionality, hanh vi xoa, truy van/phan trang can ho tro, va cach chuyen doi du lieu cu neu co.
+## Trước khi thiết kế hoặc sửa schema
 
-## Quy tac thiet ke schema
+1. Đọc `template.md`, `reference-files.md`, model/relation liên quan, migration gần nhất và repository/mapper/use case sử dụng dữ liệu đó.
+2. Đọc `business-rules` khi thay đổi ownership, lifecycle, status, xóa, tiền hoặc policy; business rule quyết định schema, không suy diễn ngược từ schema.
+3. Đọc `create-enum` trước khi thêm/sửa enum. Giá trị hữu hạn như status, type, provider, visibility hoặc source phải dùng enum Prisma/shared enum phù hợp, không dùng `String` tự do.
+4. Đọc `create-domain-entity`, `create-prisma-mapper`, `create-prisma-repository`, `create-dto` và `create-application-use-case` khi schema tác động các lớp đó.
+5. Chạy GitNexus impact analysis trước khi sửa class/method/symbol code đang tồn tại; báo người dùng nếu rủi ro HIGH/CRITICAL.
+6. Xác định dữ liệu cũ, truy vấn/filter/sort, unique/idempotency, relation, `onDelete`, retention, backfill và rollback trước khi migration.
 
-### Model/bang moi
+## Quy tắc schema BEE
 
-- Dat comment ngay truoc moi `model` moi, neu ro bang nay luu gi, phuc vu luong nghiep vu nao, va pham vi so huu du lieu.
-- Tuan thu quy uoc ten hien co cua du an: field camelCase trong Prisma va `@map`/ `@@map` cho ten cot/bang snake_case.
-- Giu `id`, `createdAt`, `updatedAt`, enum va relation nhat quan voi cac model hien co.
-- Chon `onDelete` co chu dich. Khong dung cascade neu viec xoa ban ghi cha co the lam mat lich su/nghiep vu can luu.
+### Model, tên và timestamp
 
-### Field/cot
+- Prisma field dùng camelCase; database dùng snake_case qua `@map`; table dùng `@@map`.
+- Mỗi model/field/relation mới có comment tiếng Việt có dấu: ý nghĩa nghiệp vụ, ownership/lifecycle và lý do optional/default khi không hiển nhiên.
+- Theo convention model gần nhất: primary key `Int @id @default(autoincrement())`, timestamp `createdAt`/`updatedAt` map snake_case và kiểu `@db.Timestamp(0)` khi phù hợp.
+- Dùng `@db.VarChar(n)`, `@db.Text`, `@db.Date`, `@db.Timestamp(0)` theo dữ liệu thật; không mặc định `String`/`Text` không giới hạn chỉ để tiện.
 
-- Comment ro tung field moi (hoac tung nhom field co cung y nghia) ngay trong model. Comment phai noi duoc:
-  - field luu gia tri gi va muc dich nghiep vu;
-  - voi khoa ngoai: tro toi ban ghi nao va quan he nay dung de lam gi;
-  - ly do field optional/required neu khong tu nhien;
-  - y nghia cua default, enum/status, va timestamp neu co.
-- Khong them field chi vi tien dung ky thuat khi chua ro gia tri nghiep vu va lifecycle cua no.
-- Dung `@unique`, `@@unique` va `@@index` theo truy van thuc te (filter, sort, lookup quan he); tranh index trung lap voi primary key/unique index.
-- Rang buoc schema khong the dien dat (vi du: chi duoc chon mot trong nhieu target optional) phai duoc validate o application layer va ghi ro trong code/DTO phu trach.
+### Enum
 
-## Quy trinh migration bat buoc
+- Tạo enum Prisma cho tập giá trị đóng. Đặt tên rõ theo aggregate, ví dụ `<Feature>Status`, `<Feature>Type`, `<Feature>Provider`.
+- Ghi lifecycle/default của enum trong comment/business rule. Không dùng enum thay cho dữ liệu có thể thay đổi bởi admin mà cần bảng quản lý.
+- Thêm hoặc đổi enum là thay đổi production-sensitive: đọc SQL migration, xác minh dữ liệu cũ và deploy plan; không rename/reorder/loại value tùy tiện.
 
-1. Kiem tra trang thai truoc khi tao migration:
+### Relation, xóa và lịch sử
+
+- Khóa ngoại có field `...Id`, relation name khi cần phân biệt nhiều relation và index cho lookup FK nếu chưa được unique/index bao phủ.
+- Chọn `onDelete` có chủ đích: dùng `Restrict` cho aggregate/lịch sử tài chính cần giữ; `SetNull` khi child vẫn có ý nghĩa sau khi parent mất; `Cascade` chỉ cho child thực sự không thể tồn tại độc lập.
+- Không hard-delete dữ liệu có audit, payment, transaction, attempt, history hoặc retention. Dùng status/soft-delete theo business rule, không tự thêm `deletedAt` nếu chưa được phê duyệt.
+- Relation optional phải phản ánh dữ liệu thật và có kế hoạch backfill; không làm FK required ngay khi bảng cũ còn row chưa có giá trị.
+
+### Unique và index
+
+- Unique biểu đạt identity hoặc invariant thật: code, provider transaction ID hoặc composite idempotency key.
+- Thêm index từ query thực tế: FK join, filter + sort, lookup webhook/reconciliation. Không tạo index trùng primary key/unique hoặc index “để dự phòng”.
+- Với index composite, đặt thứ tự field theo filter/selectivity/sort của repository thực tế; ghi lý do trong thiết kế.
+- Constraint không biểu đạt được ở MySQL/Prisma phải được thực thi tại use case và ghi rõ trong business rule, không giả vờ schema đã bảo vệ.
+
+## Migration an toàn
+
+1. Kiểm tra trạng thái trước:
 
    ```bash
    npm run prisma:migrate:status
    ```
 
-   Neu co migration dang pending, khong tao migration moi cho den khi da xu ly trang thai do theo moi truong phu hop.
+   Nếu migration pending/drift, dừng và xử lý trạng thái môi trường trước; không chồng migration mới lên tình trạng chưa rõ.
 
-2. Cap nhat `prisma/schema.prisma`, bao gom cac comment nghiep vu bat buoc o tren.
+2. Cập nhật schema cùng comments, enum, relation, map, unique/index cần thiết.
 
-3. Tao migration moi voi ten mo ta ro thay doi:
+3. Tạo migration mô tả rõ thay đổi:
 
    ```bash
    npm run prisma:migrate:dev -- --name <ten_thay_doi>
    ```
 
-   Tren PowerShell, neu npm khong chuyen dung tham so `--name`, dung:
+   PowerShell khi npm không chuyển đúng tham số:
 
    ```powershell
    npm.cmd --% run prisma:migrate:dev -- --name <ten_thay_doi>
    ```
 
-   Khong bao gio dung `prisma db push` thay cho migration.
+   Không dùng `prisma db push` thay migration.
 
-4. Doc ky file `prisma/migrations/<timestamp>_<ten_thay_doi>/migration.sql` vua tao:
-   - doi chieu SQL voi yeu cau va schema;
-   - kiem tra xoa/doi ten cot, thay doi enum, FK, unique/index va `ON DELETE`;
-   - neu co nguy co mat du lieu, can co ke hoach backup/backfill/chuyen doi du lieu duoc thong nhat truoc khi tiep tuc.
+4. Đọc toàn bộ `prisma/migrations/<timestamp>_<ten_thay_doi>/migration.sql`. Kiểm tra `DROP`, `ALTER`, enum, default, nullability, FK, `ON DELETE`, unique/index và lock/rủi ro dữ liệu.
 
-5. Dong bo va xac minh:
+5. Với thay đổi phá vỡ, dùng kế hoạch expand → backfill → switch application → contract. Không gộp add non-null column, backfill và drop cột cũ vào một bước khi production data chưa được xác minh.
+
+6. Đồng bộ và kiểm tra:
 
    ```bash
    npm run prisma:generate
@@ -77,26 +87,37 @@ Thay doi database theo dung kien truc va convention cua BEE, de schema tu giai t
    npm run prisma:migrate:status
    ```
 
-6. Khi trien khai moi truong khong phai development, ap dung cac migration da commit:
+7. Môi trường không phải development chỉ áp dụng migration đã commit:
 
    ```bash
    npm run prisma:migrate:deploy
    npm run prisma:migrate:status
    ```
 
-## Dieu cam
+Không bắt buộc unit test vì dự án chưa có luồng này. Khi schema đổi, build/generate và migration status là kiểm tra tối thiểu; chạy lệnh phù hợp phạm vi và báo trung thực lệnh chưa chạy.
 
-- Khong xoa, sua, doi ten hoac viet lai migration da duoc ap dung/commit.
-- Khong dung `prisma db push` cho thay doi schema.
-- Khong tao migration ma khong kiem tra SQL.
-- Khong bo qua comment mo ta bang va cac field moi.
-- Khong xoa du lieu/migration cu chi de lam sach lich su khi chua co yeu cau ro rang va ke hoach phuc hoi.
+## Sau khi schema đổi
 
-## Bao cao khi hoan tat
+1. Regenerate Prisma Client trước khi sửa mã phụ thuộc type mới.
+2. Cập nhật domain entity/value type, application interface, Prisma mapper/repository, DTO/use case/controller/Gateway theo lớp bị tác động; Application không gọi Prisma trực tiếp.
+3. Kiểm tra seed, import/migrator, job/reconciliation và docs API/event khi chúng phụ thuộc enum, field hoặc response thay đổi.
+4. Không sửa migration đã commit/áp dụng. Migration correction là file mới, kèm lý do và backfill/rollback plan.
 
-Neu ro:
+## Điều không được làm
 
-1. model, field, relation, enum va index da thay doi cung ly do;
-2. ten migration va cac diem da kiem tra trong SQL;
-3. ket qua generate, build va migration status;
-4. buoc deploy/backfill con lai (neu co).
+- Không dùng `prisma db push`, không rewrite/xóa migration lịch sử.
+- Không thêm status/type/provider/source dạng `String` khi enum phù hợp.
+- Không dùng `Cascade` hoặc hard-delete chỉ để migration đơn giản hơn.
+- Không thêm cột required/unique/FK mới mà không đánh giá dữ liệu cũ/backfill.
+- Không tạo index/unique không có invariant hoặc query thật.
+- Không chỉ sửa schema mà bỏ mapper/repository/type contract bị ảnh hưởng.
+- Không yêu cầu unit test trong giai đoạn hiện tại.
+
+## Checklist trước khi bàn giao
+
+- [ ] Business rule, ownership, lifecycle, dữ liệu cũ và onDelete đã chốt.
+- [ ] Model/field/relation/enum có comment tiếng Việt có dấu, `@map`/`@@map`, kiểu DB và optionality đúng.
+- [ ] Enum dùng cho tập giá trị đóng; index/unique dựa trên invariant/query thật.
+- [ ] Migration SQL đã đọc; rủi ro destructive/backfill/deploy đã nêu.
+- [ ] Prisma generate, build và migration status đã chạy hoặc lý do chưa chạy được báo rõ.
+- [ ] Lớp entity/mapper/repository/use case/DTO/API/Event bị tác động đã được đánh giá.
