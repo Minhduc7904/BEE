@@ -15,6 +15,7 @@ export class GetBankTransferTransactionsForTuitionPaymentUseCase {
   async execute(
     tuitionPaymentId: number,
     query: BankTransferTransactionListQueryDto,
+    canViewSensitiveAccountNumber: boolean,
   ): Promise<PaginationResponseDto<BankTransferTransactionResponseDto>> {
     const result = await this.unitOfWork.executeInTransaction(async (repos) => {
       const tuitionPayment = await repos.tuitionPaymentRepository.findById(tuitionPaymentId)
@@ -28,6 +29,7 @@ export class GetBankTransferTransactionsForTuitionPaymentUseCase {
       const listOptions = {
         ...options,
         paymentAttemptIdsOrUnassigned: paymentAttempts.map((paymentAttempt) => paymentAttempt.paymentAttemptId),
+        includeReceivingBankAccount: true,
       }
       const [transactions, total] = await Promise.all([
         repos.bankTransferTransactionRepository.findAll(listOptions),
@@ -35,7 +37,10 @@ export class GetBankTransferTransactionsForTuitionPaymentUseCase {
       ])
 
       return {
-        data: BankTransferTransactionResponseDto.fromBankTransferTransactionList(transactions),
+        data: BankTransferTransactionResponseDto.fromBankTransferTransactionList(
+          transactions,
+          canViewSensitiveAccountNumber,
+        ),
         total,
         page: query.page ?? 1,
         limit: query.limit ?? 10,

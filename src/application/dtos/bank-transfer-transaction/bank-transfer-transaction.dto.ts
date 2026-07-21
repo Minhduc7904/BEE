@@ -5,6 +5,7 @@ import {
   BankTransferProvider,
   BankTransferReconciliationStatus,
 } from '../../../shared/enums'
+import { ReceivingBankAccountResponseDto } from '../receiving-bank-account'
 
 export class BankTransferTransactionResponseDto {
   bankTransferTransactionId: number
@@ -13,6 +14,7 @@ export class BankTransferTransactionResponseDto {
   sepayV2TransactionId?: string | null
   paymentAttemptId?: number | null
   receivingBankAccountId?: number | null
+  receivingBankAccount?: ReceivingBankAccountResponseDto | null
   amount: number
   transactionAt: Date
   receivingAccountNumber?: string | null
@@ -23,7 +25,20 @@ export class BankTransferTransactionResponseDto {
   createdAt: Date
   updatedAt: Date
 
-  static fromBankTransferTransaction(transaction: BankTransferTransaction): BankTransferTransactionResponseDto {
+  static fromBankTransferTransaction(
+    transaction: BankTransferTransaction,
+    canViewSensitiveAccountNumber = false,
+  ): BankTransferTransactionResponseDto {
+    const receivingBankAccount =
+      transaction.receivingBankAccount === undefined
+        ? undefined
+        : transaction.receivingBankAccount
+          ? ReceivingBankAccountResponseDto.fromReceivingBankAccount(
+              transaction.receivingBankAccount,
+              canViewSensitiveAccountNumber,
+            )
+          : null
+
     return {
       bankTransferTransactionId: transaction.bankTransferTransactionId,
       provider: transaction.provider,
@@ -31,6 +46,7 @@ export class BankTransferTransactionResponseDto {
       sepayV2TransactionId: transaction.sepayV2TransactionId,
       paymentAttemptId: transaction.paymentAttemptId,
       receivingBankAccountId: transaction.receivingBankAccountId,
+      ...(receivingBankAccount !== undefined && { receivingBankAccount }),
       amount: transaction.amount,
       transactionAt: transaction.transactionAt,
       receivingAccountNumber: transaction.receivingAccountNumber,
@@ -45,8 +61,11 @@ export class BankTransferTransactionResponseDto {
 
   static fromBankTransferTransactionList(
     transactions: BankTransferTransaction[],
+    canViewSensitiveAccountNumber = false,
   ): BankTransferTransactionResponseDto[] {
-    return transactions.map((transaction) => this.fromBankTransferTransaction(transaction))
+    return transactions.map((transaction) =>
+      this.fromBankTransferTransaction(transaction, canViewSensitiveAccountNumber),
+    )
   }
 }
 

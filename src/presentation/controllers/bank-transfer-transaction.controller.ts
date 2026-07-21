@@ -18,8 +18,10 @@ import {
   SyncSepayTransactionsUseCase,
 } from '../../application/use-cases/bank-transfer-transaction'
 import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
-import { RequirePermission } from '../../shared/decorators/permissions.decorator'
+import { ROLE_NAMES } from '../../shared/constants/roles.constant'
 import { CurrentUser } from '../../shared/decorators/current-user.decorator'
+import { RequirePermission } from '../../shared/decorators/permissions.decorator'
+import type { AuthenticatedUser } from '../../shared/guards/auth.guard'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 
 @Controller('admin/bank-transfer-transactions')
@@ -37,8 +39,11 @@ export class BankTransferTransactionController {
   @HttpCode(HttpStatus.OK)
   async getBankTransferTransactions(
     @Query() query: BankTransferTransactionListQueryDto,
+    @CurrentUser() user: AuthenticatedUser,
   ): Promise<PaginationResponseDto<BankTransferTransactionResponseDto>> {
-    return ExceptionHandler.execute(() => this.getBankTransferTransactionsUseCase.execute(query))
+    return ExceptionHandler.execute(() =>
+      this.getBankTransferTransactionsUseCase.execute(query, this.canViewSensitiveAccountNumber(user)),
+    )
   }
 
   @Get('statistics')
@@ -65,9 +70,14 @@ export class BankTransferTransactionController {
   async getBankTransferTransactionsForTuitionPayment(
     @Param('tuitionPaymentId', ParseIntPipe) tuitionPaymentId: number,
     @Query() query: BankTransferTransactionListQueryDto,
+    @CurrentUser() user: AuthenticatedUser,
   ): Promise<PaginationResponseDto<BankTransferTransactionResponseDto>> {
     return ExceptionHandler.execute(() =>
-      this.getBankTransferTransactionsForTuitionPaymentUseCase.execute(tuitionPaymentId, query),
+      this.getBankTransferTransactionsForTuitionPaymentUseCase.execute(
+        tuitionPaymentId,
+        query,
+        this.canViewSensitiveAccountNumber(user),
+      ),
     )
   }
 
@@ -78,5 +88,12 @@ export class BankTransferTransactionController {
     @Param('id', ParseIntPipe) bankTransferTransactionId: number,
   ): Promise<BaseResponseDto<BankTransferTransactionDetailResponseDto>> {
     return ExceptionHandler.execute(() => this.getBankTransferTransactionByIdUseCase.execute(bankTransferTransactionId))
+  }
+
+  private canViewSensitiveAccountNumber(user: AuthenticatedUser): boolean {
+    return (
+      user.roles.some((role) => role.name === ROLE_NAMES.SUPER_ADMIN) ||
+      user.permissions.some((permission) => permission.code === PERMISSION_CODES.RECEIVING_BANK_ACCOUNT.VIEW_SENSITIVE)
+    )
   }
 }

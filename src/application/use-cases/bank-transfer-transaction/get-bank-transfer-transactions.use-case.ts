@@ -13,16 +13,23 @@ export class GetBankTransferTransactionsUseCase {
 
   async execute(
     query: BankTransferTransactionListQueryDto,
+    canViewSensitiveAccountNumber: boolean,
   ): Promise<PaginationResponseDto<BankTransferTransactionResponseDto>> {
     const result = await this.unitOfWork.executeInTransaction(async (repos) => {
-      const options = query.toBankTransferTransactionListOptions()
+      const options = {
+        ...query.toBankTransferTransactionListOptions(),
+        includeReceivingBankAccount: true,
+      }
       const [transactions, total] = await Promise.all([
         repos.bankTransferTransactionRepository.findAll(options),
         repos.bankTransferTransactionRepository.count(options),
       ])
 
       return {
-        data: BankTransferTransactionResponseDto.fromBankTransferTransactionList(transactions),
+        data: BankTransferTransactionResponseDto.fromBankTransferTransactionList(
+          transactions,
+          canViewSensitiveAccountNumber,
+        ),
         total,
         page: query.page ?? 1,
         limit: query.limit ?? 10,

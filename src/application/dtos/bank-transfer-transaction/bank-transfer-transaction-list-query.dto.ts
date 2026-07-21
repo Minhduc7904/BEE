@@ -9,6 +9,7 @@ import {
   IsOptionalDate,
   IsOptionalEnumValue,
   IsOptionalIdNumber,
+  IsOptionalInt,
   IsOptionalNumber,
   IsOptionalString,
 } from '../../../shared/decorators/validate'
@@ -20,6 +21,9 @@ export class BankTransferTransactionListQueryDto extends ListQueryDto {
 
   @IsOptionalIdNumber('ID lần thử thanh toán')
   paymentAttemptId?: number
+
+  @IsOptionalInt('ID ngân hàng nhận tiền', 0)
+  receivingBankAccountId?: number
 
   @IsOptionalEnumValue(BankTransferProcessingStatus, 'Trạng thái xử lý')
   processingStatus?: BankTransferProcessingStatus
@@ -67,6 +71,7 @@ export class BankTransferTransactionListQueryDto extends ListQueryDto {
       take: this.limit ?? 10,
       provider: this.provider,
       paymentAttemptId: this.paymentAttemptId,
+      receivingBankAccountId: this.receivingBankAccountId === 0 ? null : this.receivingBankAccountId,
       processingStatus: this.processingStatus,
       reconciliationStatus: this.reconciliationStatus,
       providerTransactionId: this.providerTransactionId,

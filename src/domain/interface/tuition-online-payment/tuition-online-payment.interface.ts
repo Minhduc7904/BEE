@@ -159,6 +159,8 @@ export interface BankTransferTransactionListOptions extends OffsetPaginationOpti
   paymentAttemptId?: number
   paymentAttemptIds?: number[]
   paymentAttemptIdsOrUnassigned?: number[]
+  receivingBankAccountId?: number | null
+  includeReceivingBankAccount?: boolean
   processingStatus?: BankTransferProcessingStatus
   reconciliationStatus?: BankTransferReconciliationStatus
   providerTransactionId?: string

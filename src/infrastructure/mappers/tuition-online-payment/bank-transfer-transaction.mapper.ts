@@ -1,4 +1,4 @@
-import type { BankTransferTransaction as PrismaBankTransferTransaction } from '@prisma/client'
+import { Prisma, type BankTransferTransaction as PrismaBankTransferTransaction } from '@prisma/client'
 
 import { BankTransferTransaction } from '../../../domain/entities/tuition-online-payment'
 import type { JsonPayload } from '../../../domain/interface/tuition-online-payment'
@@ -7,12 +7,26 @@ import {
   BankTransferProvider,
   BankTransferReconciliationStatus,
 } from '../../../shared/enums'
+import { ReceivingBankAccountMapper } from './receiving-bank-account.mapper'
+
+type PrismaBankTransferTransactionWithReceivingBankAccount = Prisma.BankTransferTransactionGetPayload<{
+  include: { receivingBankAccount: true }
+}>
 
 export class BankTransferTransactionMapper {
   static toDomain(
-    prismaBankTransferTransaction: PrismaBankTransferTransaction | null | undefined,
+    prismaBankTransferTransaction:
+      | PrismaBankTransferTransaction
+      | PrismaBankTransferTransactionWithReceivingBankAccount
+      | null
+      | undefined,
   ): BankTransferTransaction | null {
     if (!prismaBankTransferTransaction) return null
+
+    const receivingBankAccount =
+      'receivingBankAccount' in prismaBankTransferTransaction
+        ? ReceivingBankAccountMapper.toDomain(prismaBankTransferTransaction.receivingBankAccount)
+        : undefined
 
     return new BankTransferTransaction({
       bankTransferTransactionId: prismaBankTransferTransaction.bankTransferTransactionId,
@@ -21,6 +35,7 @@ export class BankTransferTransactionMapper {
       sepayV2TransactionId: prismaBankTransferTransaction.sepayV2TransactionId,
       paymentAttemptId: prismaBankTransferTransaction.paymentAttemptId,
       receivingBankAccountId: prismaBankTransferTransaction.receivingBankAccountId,
+      receivingBankAccount,
       amount: prismaBankTransferTransaction.amount,
       transactionAt: prismaBankTransferTransaction.transactionAt,
       receivingAccountNumber: prismaBankTransferTransaction.receivingAccountNumber,
@@ -35,7 +50,11 @@ export class BankTransferTransactionMapper {
   }
 
   static toDomainList(
-    prismaBankTransferTransactions: PrismaBankTransferTransaction[] | null | undefined,
+    prismaBankTransferTransactions:
+      | PrismaBankTransferTransaction[]
+      | PrismaBankTransferTransactionWithReceivingBankAccount[]
+      | null
+      | undefined,
   ): BankTransferTransaction[] {
     if (!prismaBankTransferTransactions?.length) return []
 

@@ -6,11 +6,11 @@ Các API bên dưới dành cho quản trị viên đã đăng nhập Bearer JWT
 
 ## Permissions
 
-| API | Permission |
-| --- | --- |
-| Danh sách | `bank-transfer-transaction:get-all` |
-| Chi tiết | `bank-transfer-transaction:get-by-id` |
-| Thống kê | `bank-transfer-transaction:stats` |
+| API       | Permission                            |
+| --------- | ------------------------------------- |
+| Danh sách | `bank-transfer-transaction:get-all`   |
+| Chi tiết  | `bank-transfer-transaction:get-by-id` |
+| Thống kê  | `bank-transfer-transaction:stats`     |
 
 | Đồng bộ SePay | `bank-transfer-transaction:sync-sepay` |
 
@@ -26,21 +26,21 @@ Các API bên dưới dành cho quản trị viên đã đăng nhập Bearer JWT
 
 Lấy danh sách giao dịch chuyển khoản, có phân trang.
 
-| Query | Kiểu | Mô tả |
-| --- | --- | --- |
-| `page`, `limit` | số | Phân trang, `page >= 1`, `limit` từ 1 đến 1000. |
-| `search` | chuỗi | Tìm trong mã giao dịch provider, số tài khoản nhận, nội dung chuyển khoản hoặc reference; tối đa 255 ký tự. |
-| `provider` | enum | Hiện hỗ trợ `SEPAY`. |
-| `paymentAttemptId` | số | ID `PaymentAttempt` đã gắn với giao dịch. |
-| `receivingBankAccountId` | số hoặc `null` | Tài khoản nhận nội bộ được nhận diện duy nhất từ `receivingAccountNumber`; `null` khi không có hoặc dữ liệu mơ hồ. |
-| `processingStatus` | enum | Lọc trạng thái xử lý. |
-| `reconciliationStatus` | enum | Lọc trạng thái đối soát. |
-| `providerTransactionId` | chuỗi | Lọc một phần mã giao dịch từ provider. |
-| `receivingAccountNumber` | chuỗi | Lọc một phần số tài khoản nhận. |
-| `minAmount`, `maxAmount` | số | Khoảng số tiền, lớn hơn hoặc bằng 0. |
-| `fromTransactionAt`, `toTransactionAt` | ISO datetime | Khoảng thời điểm phát sinh giao dịch. |
-| `sortBy` | chuỗi | Một trong `bankTransferTransactionId`, `providerTransactionId`, `amount`, `transactionAt`, `processingStatus`, `reconciliationStatus`, `createdAt`, `updatedAt`. Mặc định `transactionAt`. |
-| `sortOrder` | `asc` / `desc` | Mặc định `desc`. |
+| Query                                  | Kiểu               | Mô tả                                                                                                                                                                                      |
+| -------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `page`, `limit`                        | số                 | Phân trang, `page >= 1`, `limit` từ 1 đến 1000.                                                                                                                                            |
+| `search`                               | chuỗi              | Tìm trong mã giao dịch provider, số tài khoản nhận, nội dung chuyển khoản hoặc reference; tối đa 255 ký tự.                                                                                |
+| `provider`                             | enum               | Hiện hỗ trợ `SEPAY`.                                                                                                                                                                       |
+| `paymentAttemptId`                     | số                 | ID `PaymentAttempt` đã gắn với giao dịch.                                                                                                                                                  |
+| `receivingBankAccountId`               | số nguyên không âm | Lọc theo tài khoản nhận nội bộ. Gửi ID dương để lấy giao dịch của tài khoản đó; gửi `0` để lấy giao dịch có `receivingBankAccountId = null`; không truyền để lấy tất cả giao dịch.         |
+| `processingStatus`                     | enum               | Lọc trạng thái xử lý.                                                                                                                                                                      |
+| `reconciliationStatus`                 | enum               | Lọc trạng thái đối soát.                                                                                                                                                                   |
+| `providerTransactionId`                | chuỗi              | Lọc một phần mã giao dịch từ provider.                                                                                                                                                     |
+| `receivingAccountNumber`               | chuỗi              | Lọc một phần số tài khoản nhận.                                                                                                                                                            |
+| `minAmount`, `maxAmount`               | số                 | Khoảng số tiền, lớn hơn hoặc bằng 0.                                                                                                                                                       |
+| `fromTransactionAt`, `toTransactionAt` | ISO datetime       | Khoảng thời điểm phát sinh giao dịch.                                                                                                                                                      |
+| `sortBy`                               | chuỗi              | Một trong `bankTransferTransactionId`, `providerTransactionId`, `amount`, `transactionAt`, `processingStatus`, `reconciliationStatus`, `createdAt`, `updatedAt`. Mặc định `transactionAt`. |
+| `sortOrder`                            | `asc` / `desc`     | Mặc định `desc`.                                                                                                                                                                           |
 
 Response `200 OK`:
 
@@ -56,6 +56,20 @@ Response `200 OK`:
       "sepayV2TransactionId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
       "paymentAttemptId": 31,
       "receivingBankAccountId": 4,
+      "receivingBankAccount": {
+        "receivingBankAccountId": 4,
+        "bankCode": "VCB",
+        "accountNumber": "******6789",
+        "isAccountNumberMasked": true,
+        "accountHolder": "TRUONG BEE",
+        "displayName": "Tài khoản thu học phí",
+        "status": "ACTIVE",
+        "sepayBankAccountId": "sepay-account-4",
+        "sepayStatus": "ACTIVE",
+        "notes": null,
+        "createdAt": "2026-07-01T00:00:00.000Z",
+        "updatedAt": "2026-07-20T08:00:03.000Z"
+      },
       "amount": 1500000,
       "transactionAt": "2026-07-20T08:00:00.000Z",
       "receivingAccountNumber": "0123456789",
@@ -78,15 +92,17 @@ Response `200 OK`:
 }
 ```
 
+Mỗi phần tử của hai API danh sách luôn có `receivingBankAccount`: object tài khoản nhận khi giao dịch đã được nhận diện, hoặc `null` khi chưa nhận diện được. `accountNumber` được mask nếu admin không có quyền `receiving-bank-account:view-sensitive` (SUPER_ADMIN luôn xem được đầy đủ).
+
 ## `GET /api/admin/bank-transfer-transactions/tuition-payment/:tuitionPaymentId`
 
-Returns the same paginated response and supports the same filters/sort as the main list, except `paymentAttemptId` is controlled by the server.
+Returns the same paginated response and supports the same filters/sort as the main list, except `paymentAttemptId` is controlled by the server. In particular, `receivingBankAccountId=0` filters transactions with no identified receiving bank account, while omitting this query parameter returns all eligible transactions.
 
-| Property | Value |
-| --- | --- |
-| Permission | `bank-transfer-transaction:get-all` |
-| Path | `tuitionPaymentId` is a positive tuition payment ID. |
-| Success | `200 OK` |
+| Property   | Value                                                |
+| ---------- | ---------------------------------------------------- |
+| Permission | `bank-transfer-transaction:get-all`                  |
+| Path       | `tuitionPaymentId` is a positive tuition payment ID. |
+| Success    | `200 OK`                                             |
 
 The backend finds the tuition payment, its payment intent, and all attempts belonging to that intent. Results contain bank transactions whose `paymentAttemptId` is in those attempt IDs, **or** whose `paymentAttemptId` is `null`. This gives the admin both transactions already associated with the tuition payment and unassigned transactions available for manual reconciliation. If a legacy tuition payment has no intent yet, the list contains only unassigned transactions. A missing tuition payment returns `404`.
 
@@ -94,6 +110,12 @@ Example:
 
 ```http
 GET /api/admin/bank-transfer-transactions/tuition-payment/201?reconciliationStatus=UNRECONCILED&page=1&limit=20
+```
+
+Example for transactions without an identified receiving bank account:
+
+```http
+GET /api/admin/bank-transfer-transactions?receivingBankAccountId=0&page=1&limit=20
 ```
 
 ## `GET /api/admin/bank-transfer-transactions/:id`

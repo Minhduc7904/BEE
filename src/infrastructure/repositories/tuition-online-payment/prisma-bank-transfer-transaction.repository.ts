@@ -91,6 +91,7 @@ export class PrismaBankTransferTransactionRepository implements IBankTransferTra
       skip: options?.skip,
       take: options?.take,
       orderBy: this.buildOrderBy(options),
+      include: this.buildInclude(options),
     })
 
     return BankTransferTransactionMapper.toDomainList(transactions)
@@ -180,6 +181,9 @@ export class PrismaBankTransferTransactionRepository implements IBankTransferTra
       ...(options?.provider !== undefined && { provider: options.provider }),
       ...(options?.paymentAttemptId !== undefined && { paymentAttemptId: options.paymentAttemptId }),
       ...(options?.paymentAttemptIds?.length && { paymentAttemptId: { in: options.paymentAttemptIds } }),
+      ...(options?.receivingBankAccountId !== undefined && {
+        receivingBankAccountId: options.receivingBankAccountId,
+      }),
       ...(options?.processingStatus !== undefined && { processingStatus: options.processingStatus }),
       ...(includeReconciliationStatus &&
         options?.reconciliationStatus !== undefined && {
@@ -235,6 +239,14 @@ export class PrismaBankTransferTransactionRepository implements IBankTransferTra
     }
 
     return where
+  }
+
+  private buildInclude(
+    options?: BankTransferTransactionListOptions,
+  ): Prisma.BankTransferTransactionInclude | undefined {
+    if (!options?.includeReceivingBankAccount) return undefined
+
+    return { receivingBankAccount: true }
   }
 
   private buildOrderBy(
