@@ -128,7 +128,7 @@ export class SubmitPublicStudentQuestionAnswerUseCase {
                 ? answerMaxPoints
                 : questionOrigin != null && questionOrigin > 0
                     ? questionOrigin
-                    : DEFAULT_QUESTION_POINTS[question.type as QuestionType] ?? null
+                    : DEFAULT_QUESTION_POINTS[question.type] ?? null
 
         const gradeResult = this.gradeAnswer(
             question.type,

@@ -15,7 +15,6 @@ export * from './auth/register.dto'
 export * from './auth/google-auth.dto'
 export * from './auth/reset-password.dto'
 
-
 // Log DTOs
 export * from './log/log.dto'
 
@@ -58,6 +57,13 @@ export * from './pagination/list-query.dto'
 export * from './pagination/pagination-response.dto'
 
 export * from './tuition-payment'
+export * from './receiving-bank-account'
+export * from './tuition-grade-bank-account'
+export * from './tuition-collection-configuration'
+export * from './payment-intent'
+export * from './payment-attempt'
+export * from './bank-transfer-transaction'
+export * from './background-job'
 export * from './online-course-payment'
 export * from './achievement'
 export * from './news'

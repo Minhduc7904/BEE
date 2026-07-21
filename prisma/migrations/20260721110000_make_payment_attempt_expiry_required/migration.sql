@@ -1,0 +1,2 @@
+-- Migration no-op: migration Prisma trùng được tạo trong lần chạy bị gián đoạn.
+-- Thay đổi `payment_attempts.expires_at` đã được thực hiện an toàn ở migration ngay trước đó.

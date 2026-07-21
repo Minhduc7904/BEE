@@ -3,7 +3,7 @@ import { registerDecorator, ValidationOptions, ValidationArguments } from 'class
 export function IsEnumValue(enumObject: Record<string, any>, validationOptions?: ValidationOptions) {
   const enumValues = Object.values(enumObject).filter((v) => typeof v === 'string' || typeof v === 'number')
 
-  return function (object: Object, propertyName: string) {
+  return function (object: object, propertyName: string) {
     registerDecorator({
       name: 'isEnumValue',
       target: object.constructor,

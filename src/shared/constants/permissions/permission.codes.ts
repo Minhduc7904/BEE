@@ -245,9 +245,40 @@ export const PERMISSION_CODES = {
     CREATE: 'tuition-payment:create',
     CREATE_BULK: 'tuition-payment:create-bulk',
     UPDATE: 'tuition-payment:update',
+    CONFIRM_MANUAL_PAYMENT: 'tuition-payment:confirm-manual-payment',
     DELETE: 'tuition-payment:delete',
     EXPORT_EXCEL: 'tuition-payment:export-excel',
     IMPORT_EXCEL: 'tuition-payment:import-excel',
+  },
+  RECEIVING_BANK_ACCOUNT: {
+    GET_ALL: 'receiving-bank-account:get-all',
+    CREATE: 'receiving-bank-account:create',
+    UPDATE: 'receiving-bank-account:update',
+    VIEW_SENSITIVE: 'receiving-bank-account:view-sensitive',
+    SYNC_FROM_SEPAY: 'receiving-bank-account:sync-from-sepay',
+    VIEW_BALANCE: 'receiving-bank-account:view-balance',
+    CONFIGURE_GRADE_MAPPING: 'receiving-bank-account:configure-grade-mapping',
+  },
+  TUITION_COLLECTION_CONFIGURATION: {
+    MANAGE: 'tuition-collection-configuration:manage',
+  },
+  PAYMENT_INTENT: {
+    CREATE: 'payment-intent:create',
+  },
+  BANK_TRANSFER_TRANSACTION: {
+    GET_ALL: 'bank-transfer-transaction:get-all',
+    GET_BY_ID: 'bank-transfer-transaction:get-by-id',
+    STATS: 'bank-transfer-transaction:stats',
+    SYNC_SEPAY: 'bank-transfer-transaction:sync-sepay',
+  },
+  BACKGROUND_JOB: {
+    GET_ALL: 'background-job:get-all',
+    GET_BY_ID: 'background-job:get-by-id',
+    UPDATE: 'background-job:update',
+    GET_LOCKS: 'background-job:get-locks',
+    GET_RUNS: 'background-job:get-runs',
+    GET_RUN_BY_ID: 'background-job:get-run-by-id',
+    GET_SEPAY_SYNC_CURSORS: 'background-job:get-sepay-sync-cursors',
   },
   ONLINE_COURSE_INVOICE: {
     GET_ALL: 'online-course-invoice:get-all',
@@ -422,6 +453,9 @@ const PERMISSION_GROUPS_BY_KEY: Record<string, string> = {
   NEWS_ARTICLE: 'NEWS_ARTICLE_MANAGEMENT',
   LEARNING_ITEM: 'LEARNING_ITEM_MANAGEMENT',
   TUITION_PAYMENT: 'TUITION_PAYMENT_MANAGEMENT',
+  RECEIVING_BANK_ACCOUNT: 'RECEIVING_BANK_ACCOUNT_MANAGEMENT',
+  BANK_TRANSFER_TRANSACTION: 'BANK_TRANSFER_TRANSACTION_MANAGEMENT',
+  BACKGROUND_JOB: 'BACKGROUND_JOB_MANAGEMENT',
   ONLINE_COURSE_INVOICE: 'ONLINE_COURSE_INVOICE_MANAGEMENT',
   MY_TUITION_PAYMENT_STATS: 'TUITION_PAYMENT_MANAGEMENT',
   TEMP_EXAM: 'TEMP_EXAM_MANAGEMENT',
@@ -469,6 +503,8 @@ const PERMISSION_RESOURCE_LABELS_BY_KEY: Record<string, string> = {
   NEWS_ARTICLE: 'news article',
   LEARNING_ITEM: 'learning item',
   TUITION_PAYMENT: 'tuition payment',
+  RECEIVING_BANK_ACCOUNT: 'receiving bank account',
+  BANK_TRANSFER_TRANSACTION: 'bank transfer transaction',
   ONLINE_COURSE_INVOICE: 'online course invoice',
   MY_TUITION_PAYMENT_STATS: 'my tuition payment stats',
   TEMP_EXAM: 'temporary exam',
@@ -561,6 +597,7 @@ const PERMISSION_ACTION_LABELS_BY_KEY: Record<string, string> = {
   ROLLBACK: 'Rollback',
   SYNC_FROM_CODES: 'Sync from permission codes',
   CONFIRM_MANUAL_PAYMENT: 'Confirm manual payment',
+  VIEW_SENSITIVE: 'View sensitive information',
 }
 
 const ADMIN_PAGE_LABELS_BY_KEY: Record<string, string> = {

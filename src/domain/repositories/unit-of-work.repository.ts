@@ -25,7 +25,17 @@ import { IHomeworkSubmitRepository } from './homework-submit.repository'
 import { IVideoContentRepository } from './video-content.repository'
 import { IYoutubeContentRepository } from './youtube-content.repository'
 import { INotificationRepository } from './notification.repository'
+import { IBackgroundJobRepository } from './background-job.repository'
+import { IBackgroundJobRunRepository } from './background-job-run.repository'
+import { IBackgroundJobLockRepository } from './background-job-lock.repository'
+import { ISepayTransactionSyncCursorRepository } from './sepay-transaction-sync-cursor.repository'
 import { ITuitionPaymentRepository } from './tuition-payment.repository'
+import { IReceivingBankAccountRepository } from './receiving-bank-account.repository'
+import { ITuitionGradeReceivingBankAccountRepository } from './tuition-grade-receiving-bank-account.repository'
+import { ITuitionCollectionConfigurationRepository } from './tuition-collection-configuration.repository'
+import { IPaymentIntentRepository } from './payment-intent.repository'
+import { IPaymentAttemptRepository } from './payment-attempt.repository'
+import { IBankTransferTransactionRepository } from './bank-transfer-transaction.repository'
 import { IExamImportSessionRepository } from './exam-import-session.repository'
 import { ITempExamRepository } from './temp-exam.repository'
 import { ITempSectionRepository } from './temp-section.repository'
@@ -83,7 +93,17 @@ export interface UnitOfWorkRepos {
   videoContentRepository: IVideoContentRepository
   youtubeContentRepository: IYoutubeContentRepository
   notificationRepository: INotificationRepository
+  backgroundJobRepository: IBackgroundJobRepository
+  backgroundJobRunRepository: IBackgroundJobRunRepository
+  backgroundJobLockRepository: IBackgroundJobLockRepository
+  sepayTransactionSyncCursorRepository: ISepayTransactionSyncCursorRepository
   tuitionPaymentRepository: ITuitionPaymentRepository
+  receivingBankAccountRepository: IReceivingBankAccountRepository
+  tuitionGradeReceivingBankAccountRepository: ITuitionGradeReceivingBankAccountRepository
+  tuitionCollectionConfigurationRepository: ITuitionCollectionConfigurationRepository
+  paymentIntentRepository: IPaymentIntentRepository
+  paymentAttemptRepository: IPaymentAttemptRepository
+  bankTransferTransactionRepository: IBankTransferTransactionRepository
   examImportSessionRepository: IExamImportSessionRepository
   tempExamRepository: ITempExamRepository
   tempSectionRepository: ITempSectionRepository

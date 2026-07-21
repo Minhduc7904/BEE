@@ -143,7 +143,7 @@ export class SubmitCompetitionAnswerUseCase {
                 ? _answerMaxPoints
                 : (_questionOrigin != null && _questionOrigin > 0)
                     ? _questionOrigin
-                    : (DEFAULT_QUESTION_POINTS[question.type as QuestionType] ?? null)
+                    : (DEFAULT_QUESTION_POINTS[question.type] ?? null)
 
         // 7. Chấm điểm tự động
         const gradeResult = this.gradeAnswer(question.type, selectedStatementIds, body.answer, question, effectiveMaxPoints, answeredStatementIds)

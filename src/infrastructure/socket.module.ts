@@ -9,7 +9,11 @@ import { SocketRoomService } from './services/socket/socket-room.service'
 import { JwtTokenService } from './services/jwt.service'
 import { NotificationRealtimeService } from './services/notification/notification-realtime.service'
 import { StatusRealtimeService } from './services/socket/status-realtime.service'
-import { NotificationRealtimeService as NotificationRealtimeServicePort } from 'src/application/interfaces'
+import { TuitionPaymentIntentRealtimeService } from './services/socket/tuition-payment-intent-realtime.service'
+import {
+    NotificationRealtimeService as NotificationRealtimeServicePort,
+    TuitionPaymentIntentRealtimeService as TuitionPaymentIntentRealtimeServicePort,
+} from 'src/application/interfaces'
 /**
  * SocketModule
  * 
@@ -40,7 +44,9 @@ import { NotificationRealtimeService as NotificationRealtimeServicePort } from '
         JwtTokenService, // Required for token validation
         NotificationRealtimeService, // Real-time notification service
         StatusRealtimeService, // Real-time status service
+        TuitionPaymentIntentRealtimeService,
         { provide: NotificationRealtimeServicePort, useExisting: NotificationRealtimeService },
+        { provide: TuitionPaymentIntentRealtimeServicePort, useExisting: TuitionPaymentIntentRealtimeService },
     ],
     exports: [
         SocketService,
@@ -48,6 +54,7 @@ import { NotificationRealtimeService as NotificationRealtimeServicePort } from '
         SocketRoomService,
         NotificationRealtimeService,
         NotificationRealtimeServicePort,
+        TuitionPaymentIntentRealtimeServicePort,
         StatusRealtimeService,
     ],
 })

@@ -63,7 +63,7 @@ export class GetVideoContentByIdUseCase {
 
                 return mediaFile
             }),
-        ).then(files => files.filter(f => f !== null) as MediaFileDto[])
+        ).then(files => files.filter(f => f !== null))
 
         const dto = VideoContentResponseDto.fromEntity(videoContent, mediaFiles)
         return BaseResponseDto.success('Video content retrieved successfully', dto)

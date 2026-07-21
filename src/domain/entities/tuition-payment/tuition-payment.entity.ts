@@ -119,7 +119,7 @@ export class TuitionPayment {
         if (this.isPaid()) return false
 
         // hạn: đầu tháng kế tiếp
-        const dueDate = new Date(this.year!, this.month!, 1)
+        const dueDate = new Date(this.year, this.month, 1)
         return now > dueDate
     }
 

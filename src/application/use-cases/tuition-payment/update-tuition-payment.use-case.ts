@@ -3,17 +3,19 @@ import { BaseResponseDto, TuitionPaymentResponseDto, UpdateTuitionPaymentDto } f
 import type { IUnitOfWork } from 'src/domain/repositories/unit-of-work.repository'
 import {
   NotFoundException,
-  InvalidStateException,
   UnauthorizedException,
   ForbiddenException,
+  InvalidStateException,
 } from 'src/shared/exceptions/custom-exceptions'
 import { ACTION_KEYS } from 'src/shared/constants/action-key.constants'
 import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
 import { AuditStatus } from 'src/shared/enums/audit-status.enum'
 import { UpdateTuitionPaymentData } from 'src/domain/interface/tuition-payment/tuition-payment.interface'
-import { TuitionPaymentStatus, NotificationType, NotificationLevel, TuitionPaymentStatusLabels } from 'src/shared/enums'
+import { PaymentAttemptStatus, TuitionPaymentStatus, NotificationType, NotificationLevel } from 'src/shared/enums'
 import { CreateAndNotifyOneUseCase } from '../notification/create-and-notify-one.use-case'
-import { SendTuitionPaymentToParentUseCase } from './send-tuition-payment-to-parent.use-case'
+import { CreatePaymentIntentForCreatedTuitionPayment } from '../payment-intent/create-payment-intent-for-created-tuition-payment'
+
+const EXPIRED_ATTEMPT_OFFSET_MS = 1000
 
 @Injectable()
 export class UpdateTuitionPaymentUseCase {
@@ -21,17 +23,7 @@ export class UpdateTuitionPaymentUseCase {
     @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
     private readonly createAndNotifyOne: CreateAndNotifyOneUseCase,
-    private readonly sendTuitionPaymentToParentUseCase: SendTuitionPaymentToParentUseCase,
-  ) { }
-
-  /**
-   * Helper: Strip time from date (set to 00:00:00)
-   */
-  private getDateWithoutTime(date: Date = new Date()): Date {
-    const d = new Date(date)
-    d.setHours(0, 0, 0, 0)
-    return d
-  }
+  ) {}
 
   async execute(
     dto: UpdateTuitionPaymentDto,
@@ -43,18 +35,9 @@ export class UpdateTuitionPaymentUseCase {
     }
 
     const result = await this.unitOfWork.executeInTransaction(async (repos) => {
-      const tuitionPaymentRepository = repos.tuitionPaymentRepository
-      const adminAuditLogRepository = repos.adminAuditLogRepository
-
-      /**
-       * =========================
-       * Load entity
-       * =========================
-       */
-      const tuitionPayment = await tuitionPaymentRepository.findById(tuitionPaymentId)
-
+      const tuitionPayment = await repos.tuitionPaymentRepository.findById(tuitionPaymentId)
       if (!tuitionPayment) {
-        await adminAuditLogRepository.create({
+        await repos.adminAuditLogRepository.create({
           adminId,
           actionKey: ACTION_KEYS.TUITION_PAYMENT.UPDATE,
           status: AuditStatus.FAIL,
@@ -65,127 +48,95 @@ export class UpdateTuitionPaymentUseCase {
         throw new NotFoundException(`Học phí với ID ${tuitionPaymentId} không tồn tại`)
       }
 
-      // Kiểm tra student active
+      if (tuitionPayment.status !== TuitionPaymentStatus.UNPAID) {
+        throw new InvalidStateException('Chỉ có thể cập nhật học phí chưa thanh toán')
+      }
+
       const paymentStudent = await repos.studentRepository.findById(tuitionPayment.studentId)
       if (paymentStudent && !paymentStudent.user?.isActive) {
         throw new ForbiddenException('Học sinh đã bị vô hiệu hóa, không thể cập nhật học phí')
       }
 
-      // Clone trước khi update để audit
-      const beforeData = { ...tuitionPayment }
-      const statusChangedToPaid =
-        dto.status === TuitionPaymentStatus.PAID &&
-        tuitionPayment.status !== TuitionPaymentStatus.PAID
+      const data: UpdateTuitionPaymentData = {}
+      if (dto.amount !== undefined) data.amount = dto.amount
+      if (dto.month !== undefined) data.month = dto.month
+      if (dto.year !== undefined) data.year = dto.year
 
-      /**
-       * =========================
-       * Build update data (SAFE)
-       * =========================
-       */
-      const data: UpdateTuitionPaymentData = {
-        notes: dto.notes,
-      }
+      const beforePaymentIntent = dto.amount === undefined
+        ? null
+        : await repos.paymentIntentRepository.findByTuitionPaymentId(tuitionPaymentId)
+      const isAmountChanged = dto.amount !== undefined && dto.amount !== tuitionPayment.amount
 
-      // Update amount if provided
-      if (dto.amount !== undefined) {
-        data.amount = dto.amount
-      }
-
-      // Update status nếu có
-      if (dto.status) {
-        data.status = dto.status
-      }
-
-      // Update month/year chỉ khi chưa PAID
-      if (tuitionPayment.status !== TuitionPaymentStatus.PAID) {
-        if (dto.month !== undefined) data.month = dto.month
-        if (dto.year !== undefined) data.year = dto.year
-      }
-
-      /**
-       * Logic xử lý paidAt:
-       * 1. Nếu status = PAID:
-       *    - Nếu có dto.paidAt -> dùng dto.paidAt
-       *    - Nếu không có dto.paidAt và DB chưa có paidAt -> set hiện tại
-       *    - Nếu không có dto.paidAt và DB đã có paidAt -> giữ nguyên (không update)
-       * 2. Nếu status = UNPAID:
-       *    - Gỡ paidAt (set null)
-       */
-      if (dto.status === TuitionPaymentStatus.PAID) {
-        if (dto.paidAt) {
-          // Manual set paidAt
-          data.paidAt = new Date(dto.paidAt)
-        } else if (!tuitionPayment.paidAt) {
-          // Auto set paidAt nếu chưa có
-          data.paidAt = this.getDateWithoutTime()
-        }
-        // Nếu có dto.paidAt hoặc DB đã có paidAt -> không set data.paidAt (giữ nguyên)
-      } else if (dto.status === TuitionPaymentStatus.UNPAID) {
-        // Gỡ paidAt khi UNPAID
-        data.paidAt = null
-      }
-
-      /**
-       * =========================
-       * Persist
-       * =========================
-       */
-      const updatedTuitionPayment = await tuitionPaymentRepository.update(tuitionPaymentId, data)
+      const updatedTuitionPayment = await repos.tuitionPaymentRepository.update(tuitionPaymentId, data)
       if (!updatedTuitionPayment) {
         throw new NotFoundException(`Cập nhật học phí thất bại, không tìm thấy học phí với ID ${tuitionPaymentId}`)
       }
-      /**
-       * =========================
-       * Audit SUCCESS
-       * =========================
-       */
-      await adminAuditLogRepository.create({
+
+      let updatedPaymentIntent = beforePaymentIntent
+      const expiredPaymentAttemptIds: number[] = []
+      if (dto.amount !== undefined) {
+        if (beforePaymentIntent && isAmountChanged) {
+          const pendingAttempts = await repos.paymentAttemptRepository.findAll({
+            paymentIntentId: beforePaymentIntent.paymentIntentId,
+            status: PaymentAttemptStatus.PENDING,
+          })
+          const expiresAt = new Date(Date.now() - EXPIRED_ATTEMPT_OFFSET_MS)
+          for (const pendingAttempt of pendingAttempts) {
+            await repos.paymentAttemptRepository.update(pendingAttempt.paymentAttemptId, {
+              status: PaymentAttemptStatus.EXPIRED,
+              expiresAt,
+            })
+            expiredPaymentAttemptIds.push(pendingAttempt.paymentAttemptId)
+          }
+        }
+
+        updatedPaymentIntent = beforePaymentIntent
+          ? await repos.paymentIntentRepository.update(beforePaymentIntent.paymentIntentId, {
+              amount: updatedTuitionPayment.amount!,
+            })
+          : await CreatePaymentIntentForCreatedTuitionPayment.execute(repos, updatedTuitionPayment)
+      }
+
+      await repos.adminAuditLogRepository.create({
         adminId,
         actionKey: ACTION_KEYS.TUITION_PAYMENT.UPDATE,
         status: AuditStatus.SUCCESS,
         resourceType: RESOURCE_TYPES.TUITION_PAYMENT,
         resourceId: updatedTuitionPayment.paymentId.toString(),
-        beforeData,
-        afterData: updatedTuitionPayment,
+        beforeData: {
+          tuitionPayment,
+          paymentIntent: beforePaymentIntent,
+        },
+        afterData: {
+          tuitionPayment: updatedTuitionPayment,
+          paymentIntent: updatedPaymentIntent,
+          expiredPaymentAttemptIds,
+        },
       })
 
-      // Gửi thông báo cho học sinh
       const student = await repos.studentRepository.findById(updatedTuitionPayment.studentId)
-      if (student) {
-        const statusLabel = TuitionPaymentStatusLabels[updatedTuitionPayment.status] || updatedTuitionPayment.status
-        const notificationLevel =
-          updatedTuitionPayment.status === TuitionPaymentStatus.PAID
-            ? NotificationLevel.SUCCESS
-            : NotificationLevel.INFO
-        this.createAndNotifyOne.execute({
-          userId: student.userId,
-          title: 'Cập nhật học phí',
-          message: `Học phí tháng ${updatedTuitionPayment.month}/${updatedTuitionPayment.year} đã được cập nhật - Số tiền: ${updatedTuitionPayment.amount?.toLocaleString('vi-VN')}đ - Trạng thái: ${statusLabel}`,
-          type: NotificationType.TUITION,
-          level: notificationLevel,
-          data: {
-            paymentId: updatedTuitionPayment.paymentId,
-            amount: updatedTuitionPayment.amount,
-            month: updatedTuitionPayment.month,
-            year: updatedTuitionPayment.year,
-            status: updatedTuitionPayment.status,
-            shouldShowReminderModal: true,
-          },
-        }).catch(() => { /* ignore notification error */ })
-      }
-
       return {
         response: new TuitionPaymentResponseDto(updatedTuitionPayment),
-        paymentId: updatedTuitionPayment.paymentId,
-        shouldNotifyParent: statusChangedToPaid,
+        studentUserId: student?.userId,
       }
     })
 
-    // Chỉ gửi Zalo cho phụ huynh khi học phí được cập nhật sang trạng thái PAID và sau khi transaction đã commit
-    if (result.shouldNotifyParent) {
-      await this.sendTuitionPaymentToParentUseCase.execute({
-        paymentId: result.paymentId,
-      }).catch(() => { /* ignore zalo notify error */ })
+    if (result.studentUserId) {
+      this.createAndNotifyOne.execute({
+        userId: result.studentUserId,
+        title: 'Cập nhật học phí',
+        message: `Học phí tháng ${result.response.month}/${result.response.year} đã được cập nhật - Số tiền: ${result.response.amount?.toLocaleString('vi-VN')}đ - Trạng thái: ${result.response.statusLabel}`,
+        type: NotificationType.TUITION,
+        level: NotificationLevel.INFO,
+        data: {
+          paymentId: result.response.paymentId,
+          amount: result.response.amount,
+          month: result.response.month,
+          year: result.response.year,
+          status: result.response.status,
+          shouldShowReminderModal: true,
+        },
+      }).catch(() => { /* ignore notification error */ })
     }
 
     return BaseResponseDto.success('Cập nhật học phí thành công', result.response)

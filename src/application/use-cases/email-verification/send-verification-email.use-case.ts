@@ -49,7 +49,7 @@ export class SendVerificationEmailUseCase {
     }
 
     // 4. Kiểm tra xem đã có email nào trong database verify chưa
-    const existingVerifiedUser = await this.userRepository.findByEmail(user.email!)
+    const existingVerifiedUser = await this.userRepository.findByEmail(user.email)
     if (existingVerifiedUser) {
       throw new ConflictException('Email is already verified by another user')
     }
@@ -70,7 +70,7 @@ export class SendVerificationEmailUseCase {
 
     // 8. Gửi email
     await this.emailService.sendVerificationEmail({
-      email: user.email!,
+      email: user.email,
       firstName: user.firstName,
       verificationUrl,
       appName: 'BeeMath',

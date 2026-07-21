@@ -190,7 +190,7 @@ export class CreateDocumentUseCase {
       )
 
       await repos.mediaUsageRepository.attach({
-        mediaId: thumbnailMedia!.mediaId,
+        mediaId: thumbnailMedia.mediaId,
         entityType: EntityType.DOCUMENT,
         entityId: document.documentId,
         fieldName: DOCUMENT_MEDIA_FIELDS.DOCUMENT_THUMBNAIL,

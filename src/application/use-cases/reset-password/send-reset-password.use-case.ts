@@ -60,7 +60,7 @@ export class SendResetPasswordEmailUseCase {
         const resetUrl = `${redirectUrl}?token=${rawToken}`
 
         await this.emailService.sendPasswordResetEmail({
-            email: user.email!,
+            email: user.email,
             firstName: user.firstName,
             resetUrl,
             appName: 'BeeMath',

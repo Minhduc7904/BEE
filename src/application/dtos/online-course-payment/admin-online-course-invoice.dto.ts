@@ -6,7 +6,12 @@ import {
   IsOptionalNumber,
   IsOptionalString,
 } from 'src/shared/decorators/validate'
-import { OnlineCourseInvoiceStatus, OnlinePaymentAttemptStatus, OnlinePaymentProvider } from 'src/shared/enums'
+import {
+  OnlineCourseInvoiceStatus,
+  OnlinePaymentAttemptStatus,
+  OnlinePaymentProvider,
+} from 'src/shared/enums'
+import { SortOrder } from 'src/shared/enums/sort-order.enum'
 
 export class AdminOnlineCourseInvoiceListQueryDto extends ListQueryDto {
   @IsOptionalEnumValue(OnlineCourseInvoiceStatus, 'Trang thai hoa don')
@@ -42,7 +47,7 @@ export class AdminOnlineCourseInvoiceListQueryDto extends ListQueryDto {
       'expiresAt',
     ]
     const sortBy = this.sortBy && allowedSortFields.includes(this.sortBy) ? this.sortBy : 'createdAt'
-    const sortOrder = this.sortOrder === 'asc' ? 'asc' : 'desc'
+    const sortOrder = this.sortOrder === SortOrder.ASC ? 'asc' as const : 'desc' as const
 
     return {
       page,
@@ -50,7 +55,7 @@ export class AdminOnlineCourseInvoiceListQueryDto extends ListQueryDto {
       skip: (page - 1) * limit,
       take: limit,
       sortBy,
-      sortOrder: sortOrder as 'asc' | 'desc',
+      sortOrder: sortOrder,
     }
   }
 }

@@ -353,8 +353,8 @@ export class TextSearchUtil {
     
     // Center the preview around the search term
     const contextLength = Math.floor((maxLength - searchQuery.length) / 2)
-    let start = Math.max(0, queryIndex - contextLength)
-    let end = Math.min(text.length, queryIndex + searchQuery.length + contextLength)
+    const start = Math.max(0, queryIndex - contextLength)
+    const end = Math.min(text.length, queryIndex + searchQuery.length + contextLength)
     
     let preview = text.substring(start, end)
     

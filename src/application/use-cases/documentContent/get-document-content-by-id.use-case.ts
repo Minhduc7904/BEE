@@ -63,7 +63,7 @@ export class GetDocumentContentByIdUseCase {
 
                 return mediaFile
             }),
-        ).then(files => files.filter(f => f !== null) as MediaFileDto[])
+        ).then(files => files.filter(f => f !== null))
 
         const dto = DocumentContentResponseDto.fromEntity(documentContent, mediaFiles)
         return BaseResponseDto.success('Document content retrieved successfully', dto)

@@ -299,8 +299,8 @@ export class StudentAnswerDto {
                 // Dữ liệu mới: dùng JSON map để lấy isTrue chính xác khỏ null
                 trueFalseAnswers = allStatementIds.map(statementId => ({
                     statementId,
-                    isTrue: statementId.toString() in trueFalseMap!
-                        ? trueFalseMap![statementId.toString()]
+                    isTrue: statementId.toString() in trueFalseMap
+                        ? trueFalseMap[statementId.toString()]
                         : null,
                 }))
                 isTrueFalseAnswered = trueFalseAnswers.length > 0 && trueFalseAnswers.every(a => a.isTrue !== null)

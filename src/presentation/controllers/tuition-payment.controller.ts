@@ -24,6 +24,8 @@ import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.
 
 import {
   CreateTuitionPaymentDto,
+  ConfirmManualTuitionPaymentDto,
+  UpdateManualTuitionPaymentReconciliationDto,
   UpdateTuitionPaymentDto,
   TuitionPaymentListQueryDto,
   TuitionPaymentStatsQueryDto,
@@ -34,14 +36,18 @@ import {
   UpdateArrayBulkTuitionPaymentDto,
   MonthlyTuitionPaymentStatsQueryDto,
   ExportTuitionPaymentListOptionDto,
+  TuitionPaymentIntentStatusResponseDto,
 } from '../../application/dtos/tuition-payment'
 
 import {
   TuitionPaymentListResponseDto,
+  TuitionPaymentDetailResponseDto,
   TuitionPaymentResponseDto,
   TuitionPaymentStatsResponseDto,
   TuitionPaymentMoneyStatsResponseDto,
   TuitionPaymentImportPreviewResponse,
+  MyTuitionPaymentListResponseDto,
+  MyTuitionPaymentResponseDto,
   MonthlyTuitionPaymentStatsResponseDto,
 } from '../../application/dtos/tuition-payment'
 
@@ -50,8 +56,12 @@ import { BaseResponseDto } from '../../application/dtos/common/base-response.dto
 import {
   GetTuitionPaymentsUseCase,
   GetTuitionPaymentByIdUseCase,
+  GetMyTuitionPaymentByIdUseCase,
   CreateTuitionPaymentUseCase,
   UpdateTuitionPaymentUseCase,
+  ConfirmManualTuitionPaymentUseCase,
+  UnreconcileManualTuitionPaymentUseCase,
+  UpdateManualTuitionPaymentReconciliationUseCase,
   DeleteTuitionPaymentUseCase,
   GetTuitionPaymentStatsByStatusUseCase,
   GetMyTuitionPaymentStatsByStatusUseCase,
@@ -64,6 +74,7 @@ import {
   UpdateArrayBulkTuitionPaymentUseCase,
   GetMonthlyTuitionPaymentStatsUseCase,
   ExportTuitionPaymentListUseCase,
+  GetMyTuitionPaymentIntentStatusUseCase,
 } from '../../application/use-cases/tuition-payment'
 import { FileSizeByRoleInterceptor } from 'src/shared/interceptors/file-size-by-role.interceptor'
 import { FileInterceptor } from '@nestjs/platform-express/multer/interceptors/file.interceptor'
@@ -74,9 +85,13 @@ export class TuitionPaymentController {
   constructor(
     private readonly getTuitionPaymentsUseCase: GetTuitionPaymentsUseCase,
     private readonly getTuitionPaymentByIdUseCase: GetTuitionPaymentByIdUseCase,
+    private readonly getMyTuitionPaymentByIdUseCase: GetMyTuitionPaymentByIdUseCase,
     private readonly createTuitionPaymentUseCase: CreateTuitionPaymentUseCase,
     private readonly createBulkTuitionPaymentUseCase: CreateBulkTuitionPaymentUseCase,
     private readonly updateTuitionPaymentUseCase: UpdateTuitionPaymentUseCase,
+    private readonly confirmManualTuitionPaymentUseCase: ConfirmManualTuitionPaymentUseCase,
+    private readonly unreconcileManualTuitionPaymentUseCase: UnreconcileManualTuitionPaymentUseCase,
+    private readonly updateManualTuitionPaymentReconciliationUseCase: UpdateManualTuitionPaymentReconciliationUseCase,
     private readonly deleteTuitionPaymentUseCase: DeleteTuitionPaymentUseCase,
     private readonly getTuitionPaymentStatsByMoneyUseCase: GetTuitionPaymentStatsByMoneyUseCase,
     private readonly getMyTuitionPaymentStatsByMoneyUseCase: GetMyTuitionPaymentStatsByMoneyUseCase,
@@ -86,10 +101,11 @@ export class TuitionPaymentController {
     private readonly updateArrayBulkTuitionPaymentUseCase: UpdateArrayBulkTuitionPaymentUseCase,
     private readonly getMonthlyTuitionPaymentStatsUseCase: GetMonthlyTuitionPaymentStatsUseCase,
     private readonly exportTuitionPaymentListUseCase: ExportTuitionPaymentListUseCase,
+    private readonly getMyTuitionPaymentIntentStatusUseCase: GetMyTuitionPaymentIntentStatusUseCase,
     // stats
     private readonly getTuitionPaymentStatsByStatusUseCase: GetTuitionPaymentStatsByStatusUseCase,
     private readonly getMyTuitionPaymentStatsByStatusUseCase: GetMyTuitionPaymentStatsByStatusUseCase,
-  ) { }
+  ) {}
 
   // ======================================================
   // 📊 STATS
@@ -266,9 +282,28 @@ export class TuitionPaymentController {
   async getMy(
     @Query() query: TuitionPaymentListQueryDto,
     @CurrentUser('studentId') studentId: number,
-  ): Promise<TuitionPaymentListResponseDto> {
-    query.studentId = studentId
-    return ExceptionHandler.execute(() => this.getTuitionPaymentsUseCase.execute(query))
+  ): Promise<MyTuitionPaymentListResponseDto> {
+    return ExceptionHandler.execute(() => this.getTuitionPaymentsUseCase.executeForStudent(query, studentId))
+  }
+
+  @Get('my/:id/payment-intent-status')
+  @RequirePermission()
+  @HttpCode(HttpStatus.OK)
+  async getMyPaymentIntentStatus(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('studentId') studentId: number,
+  ): Promise<BaseResponseDto<TuitionPaymentIntentStatusResponseDto>> {
+    return ExceptionHandler.execute(() => this.getMyTuitionPaymentIntentStatusUseCase.execute(id, studentId))
+  }
+
+  @Get('my/:id')
+  @RequirePermission()
+  @HttpCode(HttpStatus.OK)
+  async getMyById(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('studentId') studentId: number,
+  ): Promise<BaseResponseDto<MyTuitionPaymentResponseDto>> {
+    return ExceptionHandler.execute(() => this.getMyTuitionPaymentByIdUseCase.execute(id, studentId))
   }
 
   // ======================================================
@@ -281,7 +316,7 @@ export class TuitionPaymentController {
   @Get(':id')
   @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT.GET_BY_ID)
   @HttpCode(HttpStatus.OK)
-  async getById(@Param('id', ParseIntPipe) id: number): Promise<BaseResponseDto<TuitionPaymentResponseDto>> {
+  async getById(@Param('id', ParseIntPipe) id: number): Promise<BaseResponseDto<TuitionPaymentDetailResponseDto>> {
     return ExceptionHandler.execute(() => this.getTuitionPaymentByIdUseCase.execute(id))
   }
 
@@ -327,6 +362,40 @@ export class TuitionPaymentController {
     @CurrentUser('adminId') adminId: number,
   ): Promise<BaseResponseDto<TuitionPaymentResponseDto[]>> {
     return ExceptionHandler.execute(() => this.updateArrayBulkTuitionPaymentUseCase.execute(dto, adminId))
+  }
+
+  @Post(':id/confirm-manual-payment')
+  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT.CONFIRM_MANUAL_PAYMENT)
+  @HttpCode(HttpStatus.OK)
+  async confirmManualPayment(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: ConfirmManualTuitionPaymentDto,
+    @CurrentUser('adminId') adminId: number,
+  ): Promise<BaseResponseDto<TuitionPaymentResponseDto>> {
+    return ExceptionHandler.execute(() => this.confirmManualTuitionPaymentUseCase.execute(id, dto, adminId))
+  }
+
+  @Post(':id/unreconcile-manual-payment')
+  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT.CONFIRM_MANUAL_PAYMENT)
+  @HttpCode(HttpStatus.OK)
+  async unreconcileManualPayment(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('adminId') adminId: number,
+  ): Promise<BaseResponseDto<TuitionPaymentResponseDto>> {
+    return ExceptionHandler.execute(() => this.unreconcileManualTuitionPaymentUseCase.execute(id, adminId))
+  }
+
+  @Put(':id/manual-reconciliation')
+  @RequirePermission(PERMISSION_CODES.TUITION_PAYMENT.CONFIRM_MANUAL_PAYMENT)
+  @HttpCode(HttpStatus.OK)
+  async updateManualReconciliation(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateManualTuitionPaymentReconciliationDto,
+    @CurrentUser('adminId') adminId: number,
+  ): Promise<BaseResponseDto<TuitionPaymentResponseDto>> {
+    return ExceptionHandler.execute(() =>
+      this.updateManualTuitionPaymentReconciliationUseCase.execute(id, dto, adminId),
+    )
   }
 
   @Put(':id')

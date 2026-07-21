@@ -116,7 +116,7 @@ export class FetchStudentFromApiUseCase {
       }
 
       // 3. Kiểm tra Student đã tồn tại chưa
-      let student = await this.studentRepository.findByUserId(user.userId)
+      const student = await this.studentRepository.findByUserId(user.userId)
 
       if (!student) {
         // 4. Tạo Student mới

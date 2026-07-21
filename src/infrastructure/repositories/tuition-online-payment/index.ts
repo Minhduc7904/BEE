@@ -1,0 +1,6 @@
+export * from './prisma-bank-transfer-transaction.repository'
+export * from './prisma-payment-attempt.repository'
+export * from './prisma-payment-intent.repository'
+export * from './prisma-receiving-bank-account.repository'
+export * from './prisma-tuition-collection-configuration.repository'
+export * from './prisma-tuition-grade-receiving-bank-account.repository'

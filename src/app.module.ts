@@ -5,6 +5,7 @@ import { ApplicationModule } from './application/application.module'
 import { InfrastructureModule } from './infrastructure/infrastructure.module'
 import { PrismaModule } from './prisma/prisma.module'
 import { ConfigModule } from '@nestjs/config'
+import { ScheduleModule } from '@nestjs/schedule'
 
 @Module({
   imports: [
@@ -13,9 +14,10 @@ import { ConfigModule } from '@nestjs/config'
     InfrastructureModule,
     ApplicationModule,
     PresentationModule,
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true, // dùng global để inject ở mọi nơi
     }),
   ],
 })
-export class AppModule { }
+export class AppModule {}

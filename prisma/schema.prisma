@@ -56,24 +56,17 @@ enum ImportStatus {
   FAILED // Xá»­ lÃ½ tháº¥t báº¡i
 }
 
-enum JobStatus {
-  PENDING // Äang chá» xá»­ lÃ½
-  PROCESSING // Äang xá»­ lÃ½
-  COMPLETED // HoÃ n thÃ nh
-  FAILED // Tháº¥t báº¡i
-  CANCELLED // ÄÃ£ há»§y
-  RETRYING // Äang thá»­ láº¡i
+// Mã job nền do hệ thống quản lý; thêm giá trị mới khi bổ sung một cron job mới.
+enum BackgroundJobCode {
+  SEPAY_TRANSACTION_SYNC
 }
 
-enum JobType {
-  AI_EXAM_PARSE // Parse Ä‘á» thi báº±ng AI
-  AI_QUESTION_GENERATE // Táº¡o cÃ¢u há»i báº±ng AI
-  AI_CONTENT_GENERATE // Táº¡o ná»™i dung báº±ng AI
-  AI_GRADING // Cháº¥m bÃ i tá»± Ä‘á»™ng báº±ng AI
-  EMAIL_SEND // Gá»­i email
-  REPORT_GENERATE // Táº¡o bÃ¡o cÃ¡o
-  DATA_EXPORT // Xuáº¥t dá»¯ liá»‡u
-  DATA_IMPORT // Import dá»¯ liá»‡u
+// Vòng đời của một lần chạy job; chỉ application/scheduler được phép chuyển trạng thái.
+enum BackgroundJobRunStatus {
+  RUNNING
+  SUCCEEDED
+  FAILED
+  SKIPPED
 }
 
 enum CourseType {
@@ -173,7 +166,6 @@ model User {
   EmailVerificationToken EmailVerificationToken[]
   PasswordResetToken     PasswordResetToken[]
   notifications          Notification[]
-  createdJobs            Job[]                    @relation("JobCreator")
   questionChats          QuestionChat[]
   createdDocuments       Document[]               @relation("DocumentCreator")
   updatedDocuments       Document[]               @relation("DocumentUpdater")
@@ -2173,6 +2165,203 @@ enum TuitionPaymentStatus {
   PAID // ÄÃ£ ná»™p
 }
 
+// Trạng thái sử dụng của tài khoản ngân hàng nhận học phí.
+enum ReceivingBankAccountStatus {
+  ACTIVE
+  INACTIVE
+}
+
+// Trạng thái tài khoản tại SePay; UNKNOWN cho dữ liệu chưa từng đồng bộ và luôn phải fallback thủ công.
+enum SepayBankAccountStatus {
+  UNKNOWN
+  ACTIVE
+  INACTIVE
+}
+
+// Chế độ vận hành thu học phí online; không thay đổi trạng thái TuitionPayment.
+enum TuitionCollectionMode {
+  AUTOMATIC
+  MANUAL_FALLBACK
+}
+
+// Nguồn chọn tài khoản được snapshot trên từng lần tạo QR.
+enum PaymentBankSelectionSource {
+  GRADE_MAPPING
+  MANUAL_DEFAULT
+}
+
+// Cách khoản thanh toán được xác nhận, snapshot trên PaymentAttempt.
+enum PaymentConfirmationMode {
+  AUTOMATIC
+  MANUAL_FALLBACK
+}
+
+enum PaymentAttemptStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+  EXPIRED
+}
+
+enum PaymentIntentStatus {
+  PENDING
+  PAID
+  CANCELLED
+  EXPIRED
+}
+
+enum BankTransferProvider {
+  SEPAY
+}
+
+enum BankTransferProcessingStatus {
+  RECEIVED
+  MATCHED
+  UNMATCHED
+  AMOUNT_MISMATCH
+  IGNORED
+  ERROR
+}
+
+// Nguồn đối soát cuối cùng của giao dịch ngân hàng; dữ liệu cũ mặc định chưa đối soát.
+enum BankTransferReconciliationStatus {
+  UNRECONCILED
+  AUTOMATIC
+  ADMIN
+}
+
+// Tài khoản ngân hàng doanh nghiệp có thể nhận học phí.
+model ReceivingBankAccount {
+  receivingBankAccountId Int                        @id @default(autoincrement()) @map("receiving_bank_account_id")
+  bankCode               String                     @map("bank_code") @db.VarChar(30)
+  accountNumber          String                     @map("account_number") @db.VarChar(50)
+  accountHolder          String                     @map("account_holder") @db.VarChar(150)
+  displayName            String?                    @map("display_name") @db.VarChar(150)
+  status                 ReceivingBankAccountStatus @default(ACTIVE) @map("status")
+  sepayBankAccountId     String?                    @map("sepay_bank_account_id") @db.VarChar(100)
+  // Trạng thái provider được đồng bộ từ SePay; UNKNOWN không đủ điều kiện xác nhận tự động.
+  sepayStatus            SepayBankAccountStatus     @default(UNKNOWN) @map("sepay_status")
+  notes                  String?                    @map("notes") @db.Text
+  createdAt              DateTime                   @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt              DateTime                   @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  gradeMappings            TuitionGradeReceivingBankAccount[]
+  paymentAttempts          PaymentAttempt[]
+  bankTransferTransactions BankTransferTransaction[]          @relation("BankTransferTransactionReceivingBankAccount")
+  defaultManualFor         TuitionCollectionConfiguration?    @relation("TuitionDefaultManualBank")
+
+  @@unique([bankCode, accountNumber], map: "uq_receiving_bank_accounts_bank_account")
+  @@index([accountNumber], map: "idx_receiving_bank_accounts_account_number")
+  @@index([status], map: "idx_receiving_bank_accounts_status")
+  @@map("receiving_bank_accounts")
+}
+
+// Mapping sẵn từng khối 1..12 với tài khoản nhận tự động; null nghĩa là dùng bank fallback mặc định.
+model TuitionGradeReceivingBankAccount {
+  tuitionGradeReceivingBankAccountId Int      @id @default(autoincrement()) @map("tuition_grade_receiving_bank_account_id")
+  grade                              Int      @unique @db.TinyInt
+  // Nullable để khối chưa cấu hình bank tự động vẫn phát hành QR qua default manual bank.
+  receivingBankAccountId             Int?     @map("receiving_bank_account_id")
+  createdAt                          DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                          DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  receivingBankAccount ReceivingBankAccount? @relation(fields: [receivingBankAccountId], references: [receivingBankAccountId], onDelete: SetNull)
+
+  @@index([receivingBankAccountId], map: "idx_tuition_grade_bank_account")
+  @@map("tuition_grade_receiving_bank_accounts")
+}
+
+// Cấu hình singleton của thu học phí online và tài khoản manual mặc định.
+model TuitionCollectionConfiguration {
+  tuitionCollectionConfigurationId    Int                   @id @default(autoincrement()) @map("tuition_collection_configuration_id")
+  collectionMode                      TuitionCollectionMode @default(AUTOMATIC) @map("collection_mode")
+  defaultManualReceivingBankAccountId Int                   @unique @map("default_manual_receiving_bank_account_id")
+  createdAt                           DateTime              @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                           DateTime              @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  defaultManualReceivingBankAccount ReceivingBankAccount @relation("TuitionDefaultManualBank", fields: [defaultManualReceivingBankAccountId], references: [receivingBankAccountId], onDelete: Restrict)
+
+  @@map("tuition_collection_configurations")
+}
+
+// Nghĩa vụ thanh toán online của một khoản học phí.
+model PaymentIntent {
+  paymentIntentId  Int                 @id @default(autoincrement()) @map("payment_intent_id")
+  tuitionPaymentId Int                 @unique @map("tuition_payment_id")
+  amount           Int                 @map("amount")
+  currency         String              @default("VND") @map("currency") @db.VarChar(3)
+  status           PaymentIntentStatus @default(PENDING) @map("status")
+  expiresAt        DateTime?           @map("expires_at") @db.Timestamp(0)
+  createdAt        DateTime            @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt        DateTime            @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  tuitionPayment TuitionPayment   @relation(fields: [tuitionPaymentId], references: [paymentId], onDelete: Restrict)
+  attempts       PaymentAttempt[]
+
+  @@index([status, expiresAt], map: "idx_payment_intents_status_expires")
+  @@map("payment_intents")
+}
+
+// Một QR/mã thanh toán, snapshot account/amount/mode tại thời điểm phát hành.
+model PaymentAttempt {
+  paymentAttemptId       Int                        @id @default(autoincrement()) @map("payment_attempt_id")
+  paymentIntentId        Int                        @map("payment_intent_id")
+  attemptCode            String                     @unique @map("attempt_code") @db.VarChar(32)
+  receivingBankAccountId Int                        @map("receiving_bank_account_id")
+  amount                 Int                        @map("amount")
+  currency               String                     @default("VND") @map("currency") @db.VarChar(3)
+  bankSelectionSource    PaymentBankSelectionSource @map("bank_selection_source")
+  confirmationMode       PaymentConfirmationMode    @map("confirmation_mode")
+  status                 PaymentAttemptStatus       @default(PENDING) @map("status")
+  qrCodeUrl              String?                    @map("qr_code_url") @db.Text
+  // Luôn có hạn để QR không thể tồn tại vô hạn; attempt lịch sử lưu thời điểm giao dịch/chuyển trạng thái.
+  expiresAt              DateTime                   @map("expires_at") @db.Timestamp(0)
+  createdAt              DateTime                   @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt              DateTime                   @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  paymentIntent            PaymentIntent             @relation(fields: [paymentIntentId], references: [paymentIntentId], onDelete: Restrict)
+  receivingBankAccount     ReceivingBankAccount      @relation(fields: [receivingBankAccountId], references: [receivingBankAccountId], onDelete: Restrict)
+  bankTransferTransactions BankTransferTransaction[]
+
+  @@index([paymentIntentId, status], map: "idx_payment_attempts_intent_status")
+  @@index([receivingBankAccountId, status], map: "idx_payment_attempts_bank_status")
+  @@map("payment_attempts")
+}
+
+// Giao dịch bank/SePay bất biến để đối soát và chống webhook trùng.
+model BankTransferTransaction {
+  bankTransferTransactionId Int                              @id @default(autoincrement()) @map("bank_transfer_transaction_id")
+  provider                  BankTransferProvider             @map("provider")
+  providerTransactionId     String                           @map("provider_transaction_id") @db.VarChar(120)
+  // UUID bất biến của giao dịch SePay API v2; null với bản ghi webhook chưa xác định được UUID một cách an toàn.
+  sepayV2TransactionId      String?                          @unique(map: "uq_bank_transfer_transactions_sepay_v2_id") @map("sepay_v2_transaction_id") @db.Char(36)
+  paymentAttemptId          Int?                             @map("payment_attempt_id")
+  // Account nhận được nhận diện duy nhất từ dữ liệu provider; null khi không thể xác định an toàn.
+  receivingBankAccountId    Int?                             @map("receiving_bank_account_id")
+  amount                    Int                              @map("amount")
+  transactionAt             DateTime                         @map("transaction_at") @db.Timestamp(0)
+  receivingAccountNumber    String?                          @map("receiving_account_number") @db.VarChar(50)
+  content                   String?                          @map("content") @db.Text
+  reference                 String?                          @map("reference") @db.VarChar(120)
+  rawPayload                Json?                            @map("raw_payload")
+  processingStatus          BankTransferProcessingStatus     @default(RECEIVED) @map("processing_status")
+  // Phân biệt giao dịch chưa đối soát, được BE tự đối soát, hoặc admin xác nhận thủ công.
+  reconciliationStatus      BankTransferReconciliationStatus @default(UNRECONCILED) @map("reconciliation_status")
+  createdAt                 DateTime                         @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                 DateTime                         @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  paymentAttempt       PaymentAttempt?       @relation(fields: [paymentAttemptId], references: [paymentAttemptId], onDelete: SetNull)
+  receivingBankAccount ReceivingBankAccount? @relation("BankTransferTransactionReceivingBankAccount", fields: [receivingBankAccountId], references: [receivingBankAccountId], onDelete: SetNull)
+
+  @@unique([provider, providerTransactionId], map: "uq_bank_transfer_transactions_provider_txn")
+  @@index([processingStatus, transactionAt], map: "idx_bank_transfer_transactions_status_time")
+  @@index([paymentAttemptId], map: "idx_bank_transfer_transactions_attempt")
+  @@index([receivingBankAccountId], map: "idx_bank_transfer_transactions_receiving_account")
+  @@index([provider, reference, amount, receivingAccountNumber], map: "idx_bank_transfer_transactions_provider_reference_match")
+  @@map("bank_transfer_transactions")
+}
+
 model TuitionPayment {
   paymentId Int @id @default(autoincrement()) @map("payment_id")
 
@@ -2193,8 +2382,9 @@ model TuitionPayment {
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // ðŸ”‘ RELATIONS (OPTIONAL PHáº¢I ÄI KÃˆM)
-  course  Course? @relation(fields: [courseId], references: [courseId], onDelete: SetNull)
-  student Student @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  course        Course?        @relation(fields: [courseId], references: [courseId], onDelete: SetNull)
+  student       Student        @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  paymentIntent PaymentIntent?
 
   @@unique([studentId, month, year])
   // INDEXES (OK)
@@ -2249,45 +2439,84 @@ model QuestionChatMessage {
 }
 
 // ============================================
-// JOB QUEUE - HÃ ng Ä‘á»£i xá»­ lÃ½ tÃ¡c vá»¥ báº¥t Ä‘á»“ng bá»™
+// BACKGROUND JOBS - Cấu hình và lịch sử chạy cron job.
 // ============================================
 
-model Job {
-  jobId    Int       @id @default(autoincrement()) @map("job_id")
-  type     JobType   @map("type") // Loáº¡i job
-  status   JobStatus @default(PENDING) @map("status") // Tráº¡ng thÃ¡i job
-  priority Int       @default(0) @map("priority") // Äá»™ Æ°u tiÃªn (sá»‘ cÃ ng cao cÃ ng Æ°u tiÃªn)
+// Cấu hình và trạng thái vận hành của một cron job do hệ thống sở hữu.
+model BackgroundJob {
+  backgroundJobId   Int               @id @default(autoincrement()) @map("background_job_id")
+  code              BackgroundJobCode @unique @map("code")
+  displayName       String            @map("display_name") @db.VarChar(150)
+  cronExpression    String            @map("cron_expression") @db.VarChar(100)
+  timezone          String            @default("Asia/Ho_Chi_Minh") @map("timezone") @db.VarChar(64)
+  isEnabled         Boolean           @default(true) @map("is_enabled")
+  maxRuntimeSeconds Int               @default(300) @map("max_runtime_seconds") @db.UnsignedInt
+  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt         DateTime          @updatedAt @map("updated_at") @db.Timestamp(0)
 
-  // Dá»¯ liá»‡u
-  payload Json? @map("payload") // Dá»¯ liá»‡u Ä‘áº§u vÃ o (params, file path, etc)
-  result  Json? @map("result") // Káº¿t quáº£ Ä‘áº§u ra
+  runs BackgroundJobRun[]
+  lock BackgroundJobLock?
 
-  // ThÃ´ng tin lá»—i
-  errorMessage String? @map("error_message") @db.Text
-  errorStack   String? @map("error_stack") @db.Text
+  @@index([isEnabled], map: "idx_background_jobs_enabled")
+  @@map("background_jobs")
+}
 
-  // Retry logic
-  retryCount Int @default(0) @map("retry_count") // Sá»‘ láº§n Ä‘Ã£ thá»­ láº¡i
-  maxRetries Int @default(3) @map("max_retries") // Sá»‘ láº§n thá»­ láº¡i tá»‘i Ä‘a
+// Khóa lease duy nhất cho từng job, bảo đảm API thủ công và scheduler không chạy đồng thời cùng một job.
+model BackgroundJobLock {
+  backgroundJobId Int      @id @map("background_job_id")
+  lockToken       String   @map("lock_token") @db.Char(36)
+  workerId        String   @map("worker_id") @db.VarChar(100)
+  lockedAt        DateTime @map("locked_at") @db.Timestamp(0)
+  leaseExpiresAt  DateTime @map("lease_expires_at") @db.Timestamp(0)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt       DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
-  // Thá»i gian
-  scheduledAt DateTime? @map("scheduled_at") @db.Timestamp(0) // Thá»i gian dá»± kiáº¿n cháº¡y
-  startedAt   DateTime? @map("started_at") @db.Timestamp(0) // Thá»i gian báº¯t Ä‘áº§u xá»­ lÃ½
-  completedAt DateTime? @map("completed_at") @db.Timestamp(0) // Thá»i gian hoÃ n thÃ nh
-  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamp(0)
+  backgroundJob BackgroundJob @relation(fields: [backgroundJobId], references: [backgroundJobId], onDelete: Cascade)
 
-  // Metadata
-  createdBy Int?  @map("created_by") // User táº¡o job
-  metadata  Json? @map("metadata") // ThÃ´ng tin bá»• sung (progress, logs, etc)
+  @@index([leaseExpiresAt], map: "idx_background_job_locks_lease")
+  @@map("background_job_locks")
+}
 
-  // Relations
-  creator User? @relation("JobCreator", fields: [createdBy], references: [userId], onDelete: SetNull)
+// Lịch sử thực thi, lease và kết quả tối thiểu của từng lần chạy cron job.
+model BackgroundJobRun {
+  backgroundJobRunId Int                    @id @default(autoincrement()) @map("background_job_run_id")
+  backgroundJobId    Int                    @map("background_job_id")
+  scheduledAt        DateTime               @map("scheduled_at") @db.Timestamp(0)
+  startedAt          DateTime               @map("started_at") @db.Timestamp(0)
+  finishedAt         DateTime?              @map("finished_at") @db.Timestamp(0)
+  status             BackgroundJobRunStatus @default(RUNNING) @map("status")
+  workerId           String                 @map("worker_id") @db.VarChar(100)
+  lockToken          String                 @map("lock_token") @db.VarChar(36)
+  leaseExpiresAt     DateTime               @map("lease_expires_at") @db.Timestamp(0)
+  retryCount         Int                    @default(0) @map("retry_count") @db.UnsignedInt
+  errorCode          String?                @map("error_code") @db.VarChar(100)
+  errorMessage       String?                @map("error_message") @db.Text
+  resultSummary      Json?                  @map("result_summary")
+  createdAt          DateTime               @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt          DateTime               @updatedAt @map("updated_at") @db.Timestamp(0)
 
-  // INDEXES
-  @@index([status, priority, createdAt], map: "idx_jobs_status_priority_created")
-  @@index([type, status], map: "idx_jobs_type_status")
-  @@index([createdBy], map: "idx_jobs_created_by")
-  @@index([scheduledAt], map: "idx_jobs_scheduled_at")
-  @@map("jobs")
+  backgroundJob BackgroundJob @relation(fields: [backgroundJobId], references: [backgroundJobId], onDelete: Restrict)
+
+  @@unique([backgroundJobId, scheduledAt], map: "uq_background_job_runs_job_scheduled")
+  @@index([backgroundJobId, status, scheduledAt], map: "idx_background_job_runs_job_status_scheduled")
+  @@index([status, leaseExpiresAt], map: "idx_background_job_runs_status_lease")
+  @@map("background_job_runs")
+}
+
+// Checkpoint riêng của luồng đồng bộ giao dịch SePay; không dùng chung với lịch sử chạy cron.
+model SepayTransactionSyncCursor {
+  sepayTransactionSyncCursorId Int       @id @default(autoincrement()) @map("sepay_transaction_sync_cursor_id")
+  // Phạm vi truy vấn SePay bất biến, ví dụ IN_ALL hoặc IN:<sepayBankAccountId>.
+  scope                         String    @unique @map("scope") @db.VarChar(100)
+  // UUID id cuối cùng của SePay V2 đã được lưu thành công; null khi chưa có checkpoint.
+  lastSinceId                   String?   @map("last_since_id") @db.Char(36)
+  // Thời điểm trang giao dịch gần nhất được xử lý và cập nhật cursor thành công.
+  lastSyncedAt                  DateTime? @map("last_synced_at") @db.Timestamp(0)
+  // Lần lỗi gần nhất chỉ phục vụ vận hành, không chứa API key hay raw payload SePay.
+  lastErrorAt                   DateTime? @map("last_error_at") @db.Timestamp(0)
+  lastErrorMessage              String?   @map("last_error_message") @db.Text
+  createdAt                     DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                     DateTime  @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@map("sepay_transaction_sync_cursors")
 }

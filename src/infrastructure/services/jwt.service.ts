@@ -73,7 +73,7 @@ export class JwtTokenService {
 
   decodeToken(token: string): JwtPayload | null {
     try {
-      return this.jwtService.decode(token) as JwtPayload
+      return this.jwtService.decode(token)
     } catch (error) {
       return null
     }

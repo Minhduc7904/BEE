@@ -34,7 +34,7 @@ export class GoogleOAuthStudentUseCase {
     return await this.unitOfWork.executeInTransaction(async (repos) => {
       // 1. Kiểm tra user đã tồn tại chưa
       // console.log(googleProfile);
-      let existingUser = await repos.userRepository.findByEmail(googleProfile.email)
+      const existingUser = await repos.userRepository.findByEmail(googleProfile.email)
       // console.log(existingUser);
       let user, student, studentId: number
 

@@ -33,6 +33,14 @@ import { SubjectApplicationModule } from './use-cases/subject/subject.applicatio
 import { UserApplicationModule } from './use-cases/user/user.application.module'
 import { NotificationApplicationModule } from './use-cases/notification/notification.application.module'
 import { TuitionPaymentApplicationModule } from './use-cases/tuition-payment/tuition-payment.application.module'
+import { ReceivingBankAccountApplicationModule } from './use-cases/receiving-bank-account/receiving-bank-account.application.module'
+import { TuitionGradeBankAccountApplicationModule } from './use-cases/tuition-grade-bank-account/tuition-grade-bank-account.application.module'
+import { TuitionCollectionConfigurationApplicationModule } from './use-cases/tuition-collection-configuration/tuition-collection-configuration.application.module'
+import { PaymentIntentApplicationModule } from './use-cases/payment-intent/payment-intent.application.module'
+import { PaymentAttemptApplicationModule } from './use-cases/payment-attempt/payment-attempt.application.module'
+import { BankTransferTransactionApplicationModule } from './use-cases/bank-transfer-transaction/bank-transfer-transaction.application.module'
+import { SepayApplicationModule } from './use-cases/sepay/sepay.application.module'
+import { BackgroundJobApplicationModule } from './use-cases/background-job/background-job.application.module'
 import { ExamImportSessionApplicationModule } from './use-cases/exam-import-session/exam-import-session.application.module'
 import { TempExamApplicationModule } from './use-cases/temp-exam/temp-exam.application.module'
 import { TempSectionApplicationModule } from './use-cases/temp-section/temp-section.application.module'
@@ -116,6 +124,14 @@ const modules = [
   NotificationApplicationModule,
   // Tuition Payment
   TuitionPaymentApplicationModule,
+  ReceivingBankAccountApplicationModule,
+  TuitionGradeBankAccountApplicationModule,
+  TuitionCollectionConfigurationApplicationModule,
+  PaymentIntentApplicationModule,
+  PaymentAttemptApplicationModule,
+  BankTransferTransactionApplicationModule,
+  SepayApplicationModule,
+  BackgroundJobApplicationModule,
   OnlineCoursePaymentApplicationModule,
   // Exam Import Session
   ExamImportSessionApplicationModule,
@@ -146,12 +162,7 @@ const modules = [
 ]
 
 @Module({
-  imports: [
-    InfrastructureModule,
-    ...modules,
-  ],
-  exports: [
-    ...modules,
-  ],
+  imports: [InfrastructureModule, ...modules],
+  exports: [...modules],
 })
-export class ApplicationModule { }
+export class ApplicationModule {}

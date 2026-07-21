@@ -47,7 +47,7 @@ export class UpdateCourseEnrollmentUseCase {
             // Validate status transition
             if (updateDto.status) {
                 const validStatuses = Object.values(CourseEnrollmentStatus);
-                if (!validStatuses.includes(updateDto.status as CourseEnrollmentStatus)) {
+                if (!validStatuses.includes(updateDto.status)) {
                     if (adminId) {
                         await adminAuditLogRepository.create({
                             adminId,

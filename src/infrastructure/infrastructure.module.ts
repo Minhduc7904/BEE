@@ -32,7 +32,17 @@ import {
   PrismaCourseEnrollmentRepository,
   PrismaAttendanceRepository,
   PrismaNotificationRepository,
+  PrismaBackgroundJobRepository,
+  PrismaBackgroundJobRunRepository,
+  PrismaBackgroundJobLockRepository,
+  PrismaSepayTransactionSyncCursorRepository,
   PrismaTuitionPaymentRepository,
+  PrismaReceivingBankAccountRepository,
+  PrismaTuitionGradeReceivingBankAccountRepository,
+  PrismaTuitionCollectionConfigurationRepository,
+  PrismaPaymentIntentRepository,
+  PrismaPaymentAttemptRepository,
+  PrismaBankTransferTransactionRepository,
   PrismaTempExamRepository,
   PrismaTempSectionRepository,
   PrismaTempQuestionRepository,
@@ -100,6 +110,7 @@ import { FileConverterService } from './services/file-converter.service'
 import { QuestionChatAIService } from './services/question-chat-ai.service'
 import { VnpayService } from './services/vnpay.service'
 import { PayosService } from './services/payos.service'
+import { SepayService } from './services/sepay.service'
 import { GoogleAdminStrategy } from './strategies/google-admin.strategy'
 import { GoogleStudentStrategy } from './strategies/google-student.strategy'
 import jwtConfig from '../config/jwt.config'
@@ -110,6 +121,7 @@ import supabaseConfig from '../config/supabase.config'
 import mistralConfig from '../config/mistral.config'
 import openaiConfig from '../config/openai.config'
 import payosConfig from '../config/payos.config'
+import sepayConfig from '../config/sepay.config'
 import {
   AchievementBoardSeoAiService as AchievementBoardSeoAiServicePort,
   AuthService as AuthServicePort,
@@ -131,6 +143,7 @@ import {
   NewsArticleSeoAiService as NewsArticleSeoAiServicePort,
   PasswordService as PasswordServicePort,
   PayosService as PayosServicePort,
+  SepayService as SepayServicePort,
   QuestionChapterClassificationService as QuestionChapterClassificationServicePort,
   QuestionChatAIService as QuestionChatAIServicePort,
   TeacherProfileSeoAiService as TeacherProfileSeoAiServicePort,
@@ -151,6 +164,7 @@ import {
     ConfigModule.forFeature(mistralConfig),
     ConfigModule.forFeature(openaiConfig),
     ConfigModule.forFeature(payosConfig),
+    ConfigModule.forFeature(sepayConfig),
     // ConfigModule.forFeature(supabaseConfig), // Disabled: not using Supabase anymore
     JwtModule.register({}), // Empty config, sẽ override trong service
   ],
@@ -175,6 +189,7 @@ import {
     { provide: NewsArticleSeoAiServicePort, useExisting: NewsArticleSeoAiService },
     { provide: PasswordServicePort, useExisting: 'PASSWORD_SERVICE' },
     { provide: PayosServicePort, useExisting: PayosService },
+    { provide: SepayServicePort, useExisting: SepayService },
     { provide: QuestionChapterClassificationServicePort, useExisting: QuestionChapterClassificationService },
     { provide: QuestionChatAIServicePort, useExisting: QuestionChatAIService },
     { provide: TeacherProfileSeoAiServicePort, useExisting: TeacherProfileSeoAiService },
@@ -257,6 +272,26 @@ import {
       inject: [PrismaService],
     },
     {
+      provide: 'IBackgroundJobRepository',
+      useFactory: (prisma: PrismaService) => new PrismaBackgroundJobRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IBackgroundJobRunRepository',
+      useFactory: (prisma: PrismaService) => new PrismaBackgroundJobRunRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IBackgroundJobLockRepository',
+      useFactory: (prisma: PrismaService) => new PrismaBackgroundJobLockRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'ISepayTransactionSyncCursorRepository',
+      useFactory: (prisma: PrismaService) => new PrismaSepayTransactionSyncCursorRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
       provide: 'ICourseRepository',
       useFactory: (prisma: PrismaService) => new PrismaCourseRepository(prisma),
       inject: [PrismaService],
@@ -314,6 +349,36 @@ import {
     {
       provide: 'ITuitionPaymentRepository',
       useFactory: (prisma: PrismaService) => new PrismaTuitionPaymentRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IReceivingBankAccountRepository',
+      useFactory: (prisma: PrismaService) => new PrismaReceivingBankAccountRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'ITuitionGradeReceivingBankAccountRepository',
+      useFactory: (prisma: PrismaService) => new PrismaTuitionGradeReceivingBankAccountRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'ITuitionCollectionConfigurationRepository',
+      useFactory: (prisma: PrismaService) => new PrismaTuitionCollectionConfigurationRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IPaymentIntentRepository',
+      useFactory: (prisma: PrismaService) => new PrismaPaymentIntentRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IPaymentAttemptRepository',
+      useFactory: (prisma: PrismaService) => new PrismaPaymentAttemptRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IBankTransferTransactionRepository',
+      useFactory: (prisma: PrismaService) => new PrismaBankTransferTransactionRepository(prisma),
       inject: [PrismaService],
     },
     {
@@ -554,6 +619,7 @@ import {
     QuestionChatAIService,
     VnpayService,
     PayosService,
+    SepayService,
   ],
   exports: [
     AchievementBoardSeoAiServicePort,
@@ -576,6 +642,7 @@ import {
     NewsArticleSeoAiServicePort,
     PasswordServicePort,
     PayosServicePort,
+    SepayServicePort,
     QuestionChapterClassificationServicePort,
     QuestionChatAIServicePort,
     TeacherProfileSeoAiServicePort,
@@ -594,6 +661,10 @@ import {
     'IAttendanceRepository',
     'INotificationRepository',
     'IAdminAuditLogRepository',
+    'IBackgroundJobRepository',
+    'IBackgroundJobRunRepository',
+    'IBackgroundJobLockRepository',
+    'ISepayTransactionSyncCursorRepository',
     'IStudentRepository',
     'IEmailVerificationTokenRepository',
     'IPasswordResetTokenRepository',
@@ -611,6 +682,12 @@ import {
     'ILessonLearningItemRepository',
     'IClassSessionRepository',
     'ITuitionPaymentRepository',
+    'IReceivingBankAccountRepository',
+    'ITuitionGradeReceivingBankAccountRepository',
+    'ITuitionCollectionConfigurationRepository',
+    'IPaymentIntentRepository',
+    'IPaymentAttemptRepository',
+    'IBankTransferTransactionRepository',
     'ITempExamRepository',
     'ITempSectionRepository',
     'ICompetitionRepository',
@@ -676,6 +753,7 @@ import {
     QuestionChatAIService,
     VnpayService,
     PayosService,
+    SepayService,
   ],
 })
 export class InfrastructureModule {}

@@ -10,7 +10,7 @@ import { NormalizeArrayQueryPipe } from './shared/pipes/normalize-array-query.pi
 async function bootstrap() {
   dotenv.config()
 
-  const app = await NestFactory.create(AppModule)
+  const app = await NestFactory.create(AppModule, { rawBody: true })
 
   /* =========================
    * CORS

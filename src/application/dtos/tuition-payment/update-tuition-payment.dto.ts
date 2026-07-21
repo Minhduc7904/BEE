@@ -1,6 +1,5 @@
-import { TuitionPaymentStatus } from 'src/shared/enums'
 import { ToNumber } from 'src/shared/decorators'
-import { IsOptionalEnumValue, IsOptionalInt, IsOptionalString, IsOptionalDate } from 'src/shared/decorators/validate'
+import { IsOptionalInt } from 'src/shared/decorators/validate'
 
 /**
  * DTO cập nhật thanh toán học phí
@@ -8,20 +7,12 @@ import { IsOptionalEnumValue, IsOptionalInt, IsOptionalString, IsOptionalDate } 
  */
 export class UpdateTuitionPaymentDto {
   /**
-   * Trạng thái học phí
-   * @optional
-   * @example "PAID"
-   */
-  @IsOptionalEnumValue(TuitionPaymentStatus, 'Trạng thái học phí')
-  status?: TuitionPaymentStatus
-
-  /**
    * Số tiền học phí
    * @optional
    * @example 500000
    */
   @IsOptionalInt('Số tiền học phí', 0)
-  amount?: number | null
+  amount?: number
 
   /**
    * Tháng (1-12)
@@ -41,19 +32,4 @@ export class UpdateTuitionPaymentDto {
   @IsOptionalInt('Năm', 2000)
   year?: number
 
-  /**
-   * Ghi chú
-   * @optional
-   * @example "Đã thanh toán đầy đủ"
-   */
-  @IsOptionalString('Ghi chú')
-  notes?: string
-
-  /**
-   * Ngày thanh toán
-   * @optional
-   * @example "2024-01-15"
-   */
-  @IsOptionalDate('Ngày thanh toán')
-  paidAt?: string
 }

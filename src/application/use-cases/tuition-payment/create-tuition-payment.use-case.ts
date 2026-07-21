@@ -7,6 +7,7 @@ import { AuditStatus, NotificationType, NotificationLevel, TuitionPaymentStatusL
 import { RESOURCE_TYPES, ACTION_KEYS } from 'src/shared/constants'
 import { CreateTuitionPaymentData } from 'src/domain/interface'
 import { CreateAndNotifyOneUseCase } from '../notification/create-and-notify-one.use-case'
+import { CreatePaymentIntentForCreatedTuitionPayment } from '../payment-intent/create-payment-intent-for-created-tuition-payment'
 import { SendTuitionPaymentToParentUseCase } from './send-tuition-payment-to-parent.use-case'
 
 @Injectable()
@@ -62,6 +63,7 @@ export class CreateTuitionPaymentUseCase {
       }
 
       const payment = await tuitionPaymentRepository.create(data)
+      await CreatePaymentIntentForCreatedTuitionPayment.execute(repos, payment)
 
       if (adminId) {
         await adminAuditLogRepository.create({

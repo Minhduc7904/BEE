@@ -31,7 +31,7 @@ export class HandleVnpayIpnUseCase {
     const attempt = await this.unitOfWork.executeInTransaction((repos) =>
       repos.onlineCoursePaymentAttemptRepository.findByProviderOrder(
         OnlinePaymentProvider.VNPAY,
-        verify.txnRef!,
+        verify.txnRef,
       ),
     )
 

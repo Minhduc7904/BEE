@@ -9,6 +9,7 @@ import { StatusGateway } from './gateways/status.gateway'
 import { LessonGateway } from './gateways/lesson.gateway'
 import { AttendanceGateway } from './gateways/attendance.gateway'
 import { CompetitionGateway } from './gateways/competition.gateway'
+import { TuitionPaymentIntentGateway } from './gateways/tuition-payment-intent.gateway'
 import { AuthController } from './controllers/auth.controller'
 import { RoleController } from './controllers/role.controller'
 import { GoogleAuthAdminController } from './controllers/google-auth-admin.controller'
@@ -43,6 +44,17 @@ import { ChapterController } from './controllers/chapter.controller'
 import { AttendanceController } from './controllers/attendance.controller'
 import { NotificationController } from './controllers/notification.controller'
 import { TuitionPaymentController } from './controllers/tuition-payment.controller'
+import { ReceivingBankAccountController } from './controllers/receiving-bank-account.controller'
+import { TuitionGradeBankAccountController } from './controllers/tuition-grade-bank-account.controller'
+import { TuitionCollectionConfigurationController } from './controllers/tuition-collection-configuration.controller'
+import { PaymentIntentController } from './controllers/payment-intent.controller'
+import { PaymentAttemptController } from './controllers/payment-attempt.controller'
+import { BankTransferTransactionController } from './controllers/bank-transfer-transaction.controller'
+import { SepayController } from './controllers/sepay.controller'
+import { BackgroundJobController } from './controllers/background-job.controller'
+import { BackgroundJobLockController } from './controllers/background-job-lock.controller'
+import { BackgroundJobRunController } from './controllers/background-job-run.controller'
+import { SepayTransactionSyncCursorController } from './controllers/sepay-transaction-sync-cursor.controller'
 import { ExamImportSessionController } from './controllers/exam-import-session.controller'
 import { TempExamController } from './controllers/temp-exam.controller'
 import { TempSectionController } from './controllers/temp-section.controller'
@@ -80,6 +92,7 @@ import { AchievementBoardController } from './controllers/achievement-board.cont
 import { NewsArticleController } from './controllers/news-article.controller'
 import { PayosOnlineCoursePaymentController } from './controllers/payos-online-course-payment.controller'
 import { ReportController } from './controllers/report.controller'
+import { BankTransferTransactionScheduler } from './scheduler/bank-transfer-transaction.scheduler'
 @Module({
   imports: [
     ApplicationModule, // ✅ lấy toàn bộ UseCase đã export
@@ -124,6 +137,17 @@ import { ReportController } from './controllers/report.controller'
     AttendanceController,
     NotificationController,
     TuitionPaymentController,
+    ReceivingBankAccountController,
+    TuitionGradeBankAccountController,
+    TuitionCollectionConfigurationController,
+    PaymentIntentController,
+    PaymentAttemptController,
+    BankTransferTransactionController,
+    SepayController,
+    BackgroundJobController,
+    BackgroundJobLockController,
+    BackgroundJobRunController,
+    SepayTransactionSyncCursorController,
     ExamImportSessionController,
     TempExamController,
     TempSectionController,
@@ -164,6 +188,8 @@ import { ReportController } from './controllers/report.controller'
     LessonGateway,
     AttendanceGateway,
     CompetitionGateway,
+    TuitionPaymentIntentGateway,
+    BankTransferTransactionScheduler,
   ],
   exports: [
     // Export gateways for use cases to inject
@@ -172,6 +198,7 @@ import { ReportController } from './controllers/report.controller'
     LessonGateway,
     AttendanceGateway,
     CompetitionGateway,
+    TuitionPaymentIntentGateway,
   ],
 })
 export class PresentationModule {}

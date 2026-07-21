@@ -41,7 +41,7 @@ export function ToNumberArray() {
                     const parsedValue = Number(item);
                     return isNaN(parsedValue) ? undefined : parsedValue;
                 })
-                .filter((item) => item !== undefined) as number[];
+                .filter((item) => item !== undefined);
             return numberArray.length > 0 ? numberArray : undefined;
         }
         const parsedValue = Number(value);

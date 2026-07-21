@@ -67,7 +67,21 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _videoContentRepository: any
     let _youtubeContentRepository: any
     let _notificationRepository: any
+    let _backgroundJobRepository: UnitOfWorkRepos['backgroundJobRepository'] | undefined
+    let _backgroundJobRunRepository: UnitOfWorkRepos['backgroundJobRunRepository'] | undefined
+    let _backgroundJobLockRepository: UnitOfWorkRepos['backgroundJobLockRepository'] | undefined
+    let _sepayTransactionSyncCursorRepository: UnitOfWorkRepos['sepayTransactionSyncCursorRepository'] | undefined
     let _tuitionPaymentRepository: any
+    let _receivingBankAccountRepository: UnitOfWorkRepos['receivingBankAccountRepository'] | undefined
+    let _tuitionGradeReceivingBankAccountRepository:
+      | UnitOfWorkRepos['tuitionGradeReceivingBankAccountRepository']
+      | undefined
+    let _tuitionCollectionConfigurationRepository:
+      | UnitOfWorkRepos['tuitionCollectionConfigurationRepository']
+      | undefined
+    let _paymentIntentRepository: UnitOfWorkRepos['paymentIntentRepository'] | undefined
+    let _paymentAttemptRepository: UnitOfWorkRepos['paymentAttemptRepository'] | undefined
+    let _bankTransferTransactionRepository: UnitOfWorkRepos['bankTransferTransactionRepository'] | undefined
     let _examImportSessionRepository: any
     let _tempExamRepository: any
     let _tempSectionRepository: any
@@ -208,8 +222,67 @@ export class PrismaUnitOfWork implements IUnitOfWork {
       enumerable: true,
     })
 
+    Object.defineProperty(repos, 'backgroundJobRepository', {
+      get: () => (_backgroundJobRepository ??= new Repositories.PrismaBackgroundJobRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'backgroundJobRunRepository', {
+      get: () => (_backgroundJobRunRepository ??= new Repositories.PrismaBackgroundJobRunRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'backgroundJobLockRepository', {
+      get: () => (_backgroundJobLockRepository ??= new Repositories.PrismaBackgroundJobLockRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'sepayTransactionSyncCursorRepository', {
+      get: () =>
+        (_sepayTransactionSyncCursorRepository ??=
+          new Repositories.PrismaSepayTransactionSyncCursorRepository(client)),
+      enumerable: true,
+    })
+
     Object.defineProperty(repos, 'tuitionPaymentRepository', {
       get: () => (_tuitionPaymentRepository ??= new Repositories.PrismaTuitionPaymentRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'receivingBankAccountRepository', {
+      get: () =>
+        (_receivingBankAccountRepository ??= new Repositories.PrismaReceivingBankAccountRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'tuitionGradeReceivingBankAccountRepository', {
+      get: () =>
+        (_tuitionGradeReceivingBankAccountRepository ??=
+          new Repositories.PrismaTuitionGradeReceivingBankAccountRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'tuitionCollectionConfigurationRepository', {
+      get: () =>
+        (_tuitionCollectionConfigurationRepository ??=
+          new Repositories.PrismaTuitionCollectionConfigurationRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'paymentIntentRepository', {
+      get: () => (_paymentIntentRepository ??= new Repositories.PrismaPaymentIntentRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'paymentAttemptRepository', {
+      get: () => (_paymentAttemptRepository ??= new Repositories.PrismaPaymentAttemptRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'bankTransferTransactionRepository', {
+      get: () =>
+        (_bankTransferTransactionRepository ??=
+          new Repositories.PrismaBankTransferTransactionRepository(client)),
       enumerable: true,
     })
 

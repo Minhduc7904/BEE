@@ -85,7 +85,7 @@ export class QuestionChapterClassificationService {
             const questionsBySubject = this.groupQuestionsBySubject(questionsWithSubject)
 
             const allMappings: QuestionChapterMapping[] = []
-            let totalUsage = {
+            const totalUsage = {
                 promptTokens: 0,
                 completionTokens: 0,
                 totalTokens: 0,
@@ -385,7 +385,7 @@ ${questionsInfo}
             // Validate difficulty
             if (mapping.difficulty !== null && mapping.difficulty !== undefined) {
                 const validDifficulties = [Difficulty.NB, Difficulty.TH, Difficulty.VD, Difficulty.VDC]
-                if (!validDifficulties.includes(mapping.difficulty as Difficulty)) {
+                if (!validDifficulties.includes(mapping.difficulty)) {
                     this.logger.warn(
                         `Question ${mapping.questionId}: difficulty "${mapping.difficulty}" không hợp lệ (phải là NB/TH/VD/VDC), set null`,
                     )

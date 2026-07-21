@@ -90,7 +90,7 @@ export class AttendanceImageTemplate {
         const status = this.getStatusDisplay(attendance.status)
         const timeStr = this.buildTimeString(session, options)
 
-        let commentIdx = 1
+        const commentIdx = 1
 
         return `<!DOCTYPE html>
 <html lang="vi">

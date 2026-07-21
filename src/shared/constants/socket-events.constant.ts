@@ -26,4 +26,13 @@ export const SOCKET_EVENTS = {
         ATTEMPT_FINISH: 'competition:attempt:finish',
         ATTEMPT_FINISHED: 'competition:attempt:finished',
     },
+
+    TUITION_PAYMENT: {
+        INTENT_SUBSCRIBE: 'tuition-payment:intent:subscribe',
+        INTENT_SUBSCRIBED: 'tuition-payment:intent:subscribed',
+        INTENT_UNSUBSCRIBE: 'tuition-payment:intent:unsubscribe',
+        INTENT_UNSUBSCRIBED: 'tuition-payment:intent:unsubscribed',
+        INTENT_STATUS: 'tuition-payment:intent:status',
+        INTENT_PAID: 'tuition-payment:intent:paid',
+    },
 } as const

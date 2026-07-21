@@ -30,7 +30,7 @@ export class GoogleOAuthAdminUseCase {
   async execute(googleProfile: GoogleUserProfileDto): Promise<BaseResponseDto<LoginResponseDto>> {
     return await this.unitOfWork.executeInTransaction(async (repos) => {
       // 1. Kiểm tra user đã tồn tại chưa
-      let existingUser = await repos.userRepository.findByEmail(googleProfile.email)
+      const existingUser = await repos.userRepository.findByEmail(googleProfile.email)
 
       let user, admin, adminId: number
 
@@ -91,7 +91,7 @@ export class GoogleOAuthAdminUseCase {
 
       const isEmailVerified = user.isEmailVerified
       if (!isEmailVerified) {
-        const existingVerifiedUser = await repos.userRepository.findByEmail(user.email!)
+        const existingVerifiedUser = await repos.userRepository.findByEmail(user.email)
         if (existingVerifiedUser) {
           throw new ConflictException('Email is already verified by another user')
         }

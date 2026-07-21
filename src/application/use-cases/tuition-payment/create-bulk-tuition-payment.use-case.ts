@@ -8,6 +8,7 @@ import { RESOURCE_TYPES, ACTION_KEYS } from 'src/shared/constants'
 import { CreateTuitionPaymentData } from 'src/domain/interface'
 import { TuitionPayment } from 'src/domain/entities/tuition-payment/tuition-payment.entity'
 import { CreateAndNotifyManyUseCase } from '../notification/create-and-notify-many.use-case'
+import { CreatePaymentIntentForCreatedTuitionPayment } from '../payment-intent/create-payment-intent-for-created-tuition-payment'
 import { SendBulkTuitionPaymentToParentUseCase } from './send-bulk-tuition-payment-to-parent.use-case'
 
 @Injectable()
@@ -102,6 +103,7 @@ export class CreateBulkTuitionPaymentUseCase {
 
         for (const data of paymentsToCreate) {
           const payment = await tuitionPaymentRepository.create(data)
+          await CreatePaymentIntentForCreatedTuitionPayment.execute(repos, payment)
           createdPayments.push(payment)
         }
 

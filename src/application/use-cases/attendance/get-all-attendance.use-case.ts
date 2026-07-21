@@ -174,7 +174,7 @@ export class GetAllAttendanceUseCase {
     )
 
     // Nếu có month và year, tìm học phí cho từng attendance
-    let tuitionPaymentsMap = new Map()
+    const tuitionPaymentsMap = new Map()
     
     if (query.month && query.year) {
       const studentIds = [...new Set(result.data.map(a => a.studentId))]

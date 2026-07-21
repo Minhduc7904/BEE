@@ -74,7 +74,7 @@ export class GetAllDocumentContentUseCase {
 
                         return mediaFile
                     }),
-                ).then(files => files.filter(f => f !== null) as MediaFileDto[])
+                ).then(files => files.filter(f => f !== null))
 
                 return DocumentContentResponseDto.fromEntity(item, mediaFiles)
             }),

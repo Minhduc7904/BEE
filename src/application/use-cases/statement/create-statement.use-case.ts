@@ -88,7 +88,7 @@ export class CreateStatementUseCase {
     return {
       success: true,
       message: 'Tạo đáp án thành công',
-      data: StatementResponseDto.fromEntity(result!),
+      data: StatementResponseDto.fromEntity(result),
     }
   }
 }
