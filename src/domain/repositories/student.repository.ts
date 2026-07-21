@@ -15,6 +15,7 @@ export interface IStudentRepository {
   findByParentZaloId(parentZaloId: string): Promise<Student | null>
   findByStudentZaloId(studentZaloId: string): Promise<Student | null>
   findByStudentOrParentPhone(phone: string): Promise<Student | null>
+  findAllByStudentOrParentPhone(phone: string): Promise<Student[]>
   unlinkParentZaloId(studentId: number): Promise<Student>
   update(id: number, data: Partial<Student>): Promise<Student>
   updateMissingGraduationYearByGrade(grade: number, highSchoolGraduationYear: number): Promise<number>

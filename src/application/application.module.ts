@@ -70,6 +70,7 @@ import { OnlineCoursePaymentApplicationModule } from './use-cases/online-course-
 import { AchievementApplicationModule } from './use-cases/achievement/achievement.application.module'
 import { NewsApplicationModule } from './use-cases/news/news.application.module'
 import { ReportApplicationModule } from './use-cases/report/report.application.module'
+import { SeoTuitionPaymentApplicationModule } from './use-cases/seo-tuition-payment/seo-tuition-payment.application.module'
 
 const modules = [
   // Auth & Account
@@ -129,6 +130,7 @@ const modules = [
   TuitionCollectionConfigurationApplicationModule,
   PaymentIntentApplicationModule,
   PaymentAttemptApplicationModule,
+  SeoTuitionPaymentApplicationModule,
   BankTransferTransactionApplicationModule,
   SepayApplicationModule,
   BackgroundJobApplicationModule,

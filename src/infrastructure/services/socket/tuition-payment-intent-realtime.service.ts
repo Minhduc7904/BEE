@@ -13,11 +13,15 @@ export class TuitionPaymentIntentRealtimeService extends TuitionPaymentIntentRea
   }
 
   notifyIntentPaid(payload: TuitionPaymentIntentStatusPayload): void {
-    this.socketService.emitToRoom(this.getIntentRoom(payload.paymentIntentId), SOCKET_EVENTS.TUITION_PAYMENT.INTENT_PAID, {
+    const eventPayload = {
       success: true,
       intent: payload,
       timestamp: new Date().toISOString(),
-    })
+    }
+    const room = this.getIntentRoom(payload.paymentIntentId)
+
+    this.socketService.emitToRoom(room, SOCKET_EVENTS.TUITION_PAYMENT.INTENT_PAID, eventPayload)
+    this.socketService.getServer()?.of('/seo').to(room).emit(SOCKET_EVENTS.TUITION_PAYMENT.INTENT_PAID, eventPayload)
   }
 
   private getIntentRoom(paymentIntentId: number): string {

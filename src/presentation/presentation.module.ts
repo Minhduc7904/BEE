@@ -10,6 +10,8 @@ import { LessonGateway } from './gateways/lesson.gateway'
 import { AttendanceGateway } from './gateways/attendance.gateway'
 import { CompetitionGateway } from './gateways/competition.gateway'
 import { TuitionPaymentIntentGateway } from './gateways/tuition-payment-intent.gateway'
+import { SeoTuitionPaymentIntentGateway } from './gateways/seo-tuition-payment-intent.gateway'
+import { SeoTuitionPaymentController } from './controllers/seo-tuition-payment.controller'
 import { AuthController } from './controllers/auth.controller'
 import { RoleController } from './controllers/role.controller'
 import { GoogleAuthAdminController } from './controllers/google-auth-admin.controller'
@@ -137,6 +139,7 @@ import { BankTransferTransactionScheduler } from './scheduler/bank-transfer-tran
     AttendanceController,
     NotificationController,
     TuitionPaymentController,
+    SeoTuitionPaymentController,
     ReceivingBankAccountController,
     TuitionGradeBankAccountController,
     TuitionCollectionConfigurationController,
@@ -189,6 +192,7 @@ import { BankTransferTransactionScheduler } from './scheduler/bank-transfer-tran
     AttendanceGateway,
     CompetitionGateway,
     TuitionPaymentIntentGateway,
+    SeoTuitionPaymentIntentGateway,
     BankTransferTransactionScheduler,
   ],
   exports: [
@@ -199,6 +203,7 @@ import { BankTransferTransactionScheduler } from './scheduler/bank-transfer-tran
     AttendanceGateway,
     CompetitionGateway,
     TuitionPaymentIntentGateway,
+    SeoTuitionPaymentIntentGateway,
   ],
 })
 export class PresentationModule {}
