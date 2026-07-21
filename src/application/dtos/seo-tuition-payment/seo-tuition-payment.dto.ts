@@ -26,12 +26,14 @@ export class SeoStudentResponseDto {
   studentId: number
   fullName: string
   grade: number
+  parentPhone: string
 
   static fromStudent(student: Student): SeoStudentResponseDto {
     return {
       studentId: student.studentId,
       fullName: student.getFullName(),
       grade: student.grade,
+      parentPhone: student.parentPhone?.trim() ?? '',
     }
   }
 
