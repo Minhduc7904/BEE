@@ -1,9 +1,11 @@
 export const PAGE_SEO_MEDIA_SLOTS = {
     home: {
         hero: "home_hero",
-        gallery: "home_gallery",
         featuredStudents: "home_featured_students",
+        gallery: "home_gallery",
         learningEnvironment: "home_learning_environment",
+        introductionVideoDesktop: "home_intro_video_desktop",
+        introductionVideoMobile: "home_intro_video_mobile",
         studentReviews: "home_student_reviews",
         teacherTeam: "home_teacher_team",
         footerBanner: "footer_banner",
