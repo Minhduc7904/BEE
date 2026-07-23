@@ -8,6 +8,7 @@ import {
   AdminMapper,
   StudentMapper
 } from '..'
+import { UserRoleMapper } from './user-role.mapper'
 
 /**
  * Mapper class để convert từ Prisma User models sang Domain User entities
@@ -34,7 +35,9 @@ export class UserMapper {
       emailVerifiedAt: prismaUser.emailVerifiedAt ?? undefined,
       lastLoginAt: prismaUser.lastLoginAt ?? undefined,
       updatedAt: prismaUser.updatedAt ?? undefined,
-      userRoles: prismaUser.userRoles ?? undefined,
+      userRoles: Array.isArray(prismaUser.userRoles)
+        ? UserRoleMapper.toDomainUserRoles(prismaUser.userRoles)
+        : undefined,
     })
   }
 

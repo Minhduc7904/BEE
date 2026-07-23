@@ -1,7 +1,8 @@
 // src/infrastructure/mappers/user-role.mapper.ts
 
 import { UserRole } from '../../../domain/entities'
-import { RoleMapper, UserMapper } from '..'
+import { RoleMapper } from '../role/role.mapper'
+import { UserMapper } from './user.mapper'
 
 export class UserRoleMapper {
   static toDomainUserRole(prismaUserRole: any): UserRole | null {
