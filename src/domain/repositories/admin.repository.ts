@@ -22,5 +22,6 @@ export interface IAdminRepository {
   update(id: number, data: UpdateAdminData): Promise<Admin>
   delete(id: number): Promise<boolean>
   findAll(): Promise<Admin[]>
+  findAllByRoleId(roleId: number): Promise<Admin[]>
   findAllWithPagination(options: FindAllAdminsOptions): Promise<FindAllAdminsResult>
 }

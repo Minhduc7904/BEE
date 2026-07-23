@@ -1,0 +1,3 @@
+export const ASSISTANT_SHIFT_CONFIG = {
+  ELIGIBLE_ASSISTANT_ROLE_ID: 16,
+} as const

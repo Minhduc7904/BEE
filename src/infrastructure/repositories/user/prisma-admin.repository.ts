@@ -225,4 +225,25 @@ export class PrismaAdminRepository implements IAdminRepository {
 
     return AdminMapper.toDomainAdmins(prismaAdmins)
   }
+
+  async findAllByRoleId(roleId: number): Promise<Admin[]> {
+    const now = new Date()
+    const prismaAdmins = await this.prisma.admin.findMany({
+      where: {
+        user: {
+          userRoles: {
+            some: {
+              roleId,
+              isActive: true,
+              OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+            },
+          },
+        },
+      },
+      include: { user: true },
+      orderBy: { adminId: 'asc' },
+    })
+
+    return AdminMapper.toDomainAdmins(prismaAdmins)
+  }
 }

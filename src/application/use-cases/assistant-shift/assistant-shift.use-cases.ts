@@ -1,14 +1,27 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { AssistantShiftAssignmentResponseDto, AssistantShiftDateRangeQueryDto, AssistantShiftRangeDto, AssistantShiftResponseDto, AssistantShiftSeriesResponseDto, BaseResponseDto, CopyAssistantShiftsDto, CreateAssistantShiftAssignmentDto, CreateAssistantShiftDto, CreateAssistantShiftSeriesDto, SetAssistantShiftSelfRegistrationWindowDto, UpdateAssistantShiftAssignmentDto, UpdateAssistantShiftDto, UpdateAssistantShiftSeriesDto } from '../../dtos'
-import type { IMediaUsageRepository, IUnitOfWork } from '../../../domain/repositories'
+import { AssistantShiftAllBySeriesQueryDto, AssistantShiftAssistantStatisticsResponseDto, AssistantShiftAssignmentResponseDto, AssistantShiftDateRangeQueryDto, AssistantShiftRangeDto, AssistantShiftResponseDto, AssistantShiftSeriesResponseDto, BaseResponseDto, CopyAssistantShiftsDto, CreateAssistantShiftAssignmentDto, CreateAssistantShiftDto, CreateAssistantShiftSeriesDto, SetAssistantShiftSelfRegistrationWindowDto, UpdateAssistantShiftAssignmentDto, UpdateAssistantShiftDto, UpdateAssistantShiftSeriesDto } from '../../dtos'
+import type { IAdminRepository, IMediaUsageRepository, IUnitOfWork } from '../../../domain/repositories'
 import { AssistantShiftAssignmentAttendanceStatus, MediaStatus } from '../../../shared/enums'
 import { MinioService } from '../../interfaces'
 import { EntityType } from '../../../shared/constants/entity-type.constants'
 import { USER_MEDIA_FIELDS } from '../../../shared/constants'
+import { ASSISTANT_SHIFT_CONFIG } from '../../../shared/constants/assistant-shift.constants'
 import { BusinessLogicException, ConflictException, NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 
 const details = { includeSeries: true, includeAssignmentsWithAdmin: true, includeCourseClass: true }
 const AVATAR_URL_EXPIRY_SECONDS = 3600 * 24
+
+async function assertEligibleAssistant(
+  adminId: number,
+  adminRepository: IAdminRepository,
+) {
+  const admin = await adminRepository.findById(adminId)
+  if (!admin) throw new NotFoundException('Trợ giảng không tồn tại')
+  if (!admin.user?.hasRole(ASSISTANT_SHIFT_CONFIG.ELIGIBLE_ASSISTANT_ROLE_ID)) {
+    throw new BusinessLogicException('Chỉ admin có role trợ giảng mới có thể đăng ký hoặc được phân công ca')
+  }
+  return admin
+}
 
 async function attachAssistantAvatarUrls(
   shifts: AssistantShiftResponseDto[],
@@ -38,9 +51,9 @@ function assertRange(startAt: Date, endAt: Date) { if (endAt <= startAt) throw n
 @Injectable() export class GetAvailableAssistantShiftSeriesUseCase { constructor(@Inject('UNIT_OF_WORK') private readonly uow: IUnitOfWork) {} async execute() { const data = await this.uow.executeInTransaction((r) => r.assistantShiftSeriesRepository.findAll({ isLocked: false })); return BaseResponseDto.success('Lấy danh sách chuỗi ca thành công', data.map((x) => new AssistantShiftSeriesResponseDto(x))) } }
 @Injectable() export class GetAllAssistantShiftSeriesUseCase { constructor(@Inject('UNIT_OF_WORK') private readonly uow: IUnitOfWork) {} async execute() { const data = await this.uow.executeInTransaction((r) => r.assistantShiftSeriesRepository.findAll()); return BaseResponseDto.success('Lấy tất cả chuỗi ca thành công', data.map((x) => new AssistantShiftSeriesResponseDto(x))) } }
 
-abstract class AssistantShiftListBase { constructor(protected readonly uow: IUnitOfWork, protected readonly mediaUsageRepository: IMediaUsageRepository, protected readonly minioService: MinioService) {} protected async list(seriesId: number, query: AssistantShiftDateRangeQueryDto, onlyUnlocked: boolean) { const range = query.toRange(); if (range.startAtFrom > range.startAtTo) throw new BusinessLogicException('Khoảng thời gian không hợp lệ'); const data = await this.uow.executeInTransaction(async (r) => { const series = await r.assistantShiftSeriesRepository.findById(seriesId); if (!series) throw new NotFoundException('Chuỗi ca không tồn tại'); if (onlyUnlocked && series.isLocked) return []; return r.assistantShiftRepository.findAll({ assistantShiftSeriesId: seriesId, ...range, onlyUnlocked, ...details }) }); const response = data.map((x) => new AssistantShiftResponseDto(x)); await attachAssistantAvatarUrls(response, this.mediaUsageRepository, this.minioService); return BaseResponseDto.success('Lấy danh sách ca thành công', response) } }
+abstract class AssistantShiftListBase { constructor(protected readonly uow: IUnitOfWork, protected readonly mediaUsageRepository: IMediaUsageRepository, protected readonly minioService: MinioService) {} protected async list(seriesId: number, query: AssistantShiftDateRangeQueryDto, onlyUnlocked: boolean, assignedAdminId?: number) { const range = query.toRange(); if (range.startAtFrom > range.startAtTo) throw new BusinessLogicException('Khoảng thời gian không hợp lệ'); const data = await this.uow.executeInTransaction(async (r) => { const series = await r.assistantShiftSeriesRepository.findById(seriesId); if (!series) throw new NotFoundException('Chuỗi ca không tồn tại'); if (onlyUnlocked && series.isLocked) return []; return r.assistantShiftRepository.findAll({ assistantShiftSeriesId: seriesId, ...range, onlyUnlocked, assignedAdminId, ...details }) }); const response = data.map((x) => new AssistantShiftResponseDto(x)); await attachAssistantAvatarUrls(response, this.mediaUsageRepository, this.minioService); return BaseResponseDto.success('Lấy danh sách ca thành công', response) } }
 @Injectable() export class GetAvailableAssistantShiftsBySeriesUseCase extends AssistantShiftListBase { constructor(@Inject('UNIT_OF_WORK') uow: IUnitOfWork, @Inject('IMediaUsageRepository') mediaUsageRepository: IMediaUsageRepository, minioService: MinioService) { super(uow, mediaUsageRepository, minioService) } execute(id: number, query: AssistantShiftDateRangeQueryDto) { return this.list(id, query, true) } }
-@Injectable() export class GetAllAssistantShiftsBySeriesUseCase extends AssistantShiftListBase { constructor(@Inject('UNIT_OF_WORK') uow: IUnitOfWork, @Inject('IMediaUsageRepository') mediaUsageRepository: IMediaUsageRepository, minioService: MinioService) { super(uow, mediaUsageRepository, minioService) } execute(id: number, query: AssistantShiftDateRangeQueryDto) { return this.list(id, query, false) } }
+@Injectable() export class GetAllAssistantShiftsBySeriesUseCase extends AssistantShiftListBase { constructor(@Inject('UNIT_OF_WORK') uow: IUnitOfWork, @Inject('IMediaUsageRepository') mediaUsageRepository: IMediaUsageRepository, minioService: MinioService) { super(uow, mediaUsageRepository, minioService) } execute(id: number, query: AssistantShiftAllBySeriesQueryDto) { return this.list(id, query, false, query.adminId) } }
 
 abstract class AssistantShiftDetailBase { constructor(protected readonly uow: IUnitOfWork, protected readonly mediaUsageRepository: IMediaUsageRepository, protected readonly minioService: MinioService) {} protected async get(id: number, onlyUnlocked: boolean) { const shift = await this.uow.executeInTransaction((r) => r.assistantShiftRepository.findById(id, details)); if (!shift) throw new NotFoundException('Ca trợ giảng không tồn tại'); if (onlyUnlocked && (shift.isLocked || shift.series?.isLocked)) throw new NotFoundException('Ca trợ giảng không tồn tại'); const response = new AssistantShiftResponseDto(shift); await attachAssistantAvatarUrls([response], this.mediaUsageRepository, this.minioService); return BaseResponseDto.success('Lấy chi tiết ca thành công', response) } }
 @Injectable() export class GetAvailableAssistantShiftUseCase extends AssistantShiftDetailBase { constructor(@Inject('UNIT_OF_WORK') uow: IUnitOfWork, @Inject('IMediaUsageRepository') mediaUsageRepository: IMediaUsageRepository, minioService: MinioService) { super(uow, mediaUsageRepository, minioService) } execute(id: number) { return this.get(id, true) } }
@@ -54,10 +67,10 @@ abstract class AssistantShiftDetailBase { constructor(protected readonly uow: IU
 @Injectable() export class UpdateAssistantShiftUseCase { constructor(@Inject('UNIT_OF_WORK') private readonly uow: IUnitOfWork) {} async execute(id: number, dto: UpdateAssistantShiftDto) { const item = await this.uow.executeInTransaction(async (r) => { const current = await r.assistantShiftRepository.findById(id); if (!current) throw new NotFoundException('Ca trợ giảng không tồn tại'); if (dto.assistantShiftSeriesId && !await r.assistantShiftSeriesRepository.findById(dto.assistantShiftSeriesId)) throw new NotFoundException('Chuỗi ca không tồn tại'); const startAt = dto.startAt ? new Date(dto.startAt) : current.startAt, endAt = dto.endAt ? new Date(dto.endAt) : current.endAt; assertRange(startAt, endAt); return r.assistantShiftRepository.update(id, { ...dto, startAt, endAt, selfRegistrationOpenAt: dto.selfRegistrationOpenAt ? new Date(dto.selfRegistrationOpenAt) : undefined, selfRegistrationCloseAt: dto.selfRegistrationCloseAt ? new Date(dto.selfRegistrationCloseAt) : undefined }) }); return BaseResponseDto.success('Cập nhật ca thành công', new AssistantShiftResponseDto(item)) } }
 @Injectable() export class DeleteAssistantShiftUseCase { constructor(@Inject('UNIT_OF_WORK') private readonly uow: IUnitOfWork) {} async execute(id: number) { await this.uow.executeInTransaction(async (r) => { if (!await r.assistantShiftRepository.findById(id)) throw new NotFoundException('Ca trợ giảng không tồn tại'); await r.assistantShiftRepository.delete(id) }); return BaseResponseDto.success('Xóa ca thành công', { deleted: true }) } }
 
-@Injectable() export class RegisterAssistantShiftUseCase { constructor(@Inject('UNIT_OF_WORK') private readonly uow: IUnitOfWork) {} async execute(shiftId: number, adminId: number) { const item = await this.uow.executeInTransaction(async (r) => { const shift = await r.assistantShiftRepository.findById(shiftId, { includeSeries: true }); if (!shift || shift.isLocked || shift.series?.isLocked) throw new NotFoundException('Ca trợ giảng không tồn tại'); const now = new Date(); if (!shift.selfRegistrationOpenAt || !shift.selfRegistrationCloseAt || now < shift.selfRegistrationOpenAt || now > shift.selfRegistrationCloseAt) throw new BusinessLogicException('Ca chưa trong thời gian tự đăng ký'); if (await r.assistantShiftAssignmentRepository.findById(shiftId, adminId)) throw new ConflictException('Bạn đã đăng ký ca này'); return r.assistantShiftAssignmentRepository.create({ assistantShiftId: shiftId, adminId }) }); return BaseResponseDto.success('Đăng ký ca thành công', new AssistantShiftAssignmentResponseDto(item)) } }
+@Injectable() export class RegisterAssistantShiftUseCase { constructor(@Inject('UNIT_OF_WORK') private readonly uow: IUnitOfWork) {} async execute(shiftId: number, adminId: number) { const item = await this.uow.executeInTransaction(async (r) => { await assertEligibleAssistant(adminId, r.adminRepository); const shift = await r.assistantShiftRepository.findById(shiftId, { includeSeries: true }); if (!shift || shift.isLocked || shift.series?.isLocked) throw new NotFoundException('Ca trợ giảng không tồn tại'); const now = new Date(); if (!shift.selfRegistrationOpenAt || !shift.selfRegistrationCloseAt || now < shift.selfRegistrationOpenAt || now > shift.selfRegistrationCloseAt) throw new BusinessLogicException('Ca chưa trong thời gian tự đăng ký'); if (await r.assistantShiftAssignmentRepository.findById(shiftId, adminId)) throw new ConflictException('Bạn đã đăng ký ca này'); return r.assistantShiftAssignmentRepository.create({ assistantShiftId: shiftId, adminId }) }); return BaseResponseDto.success('Đăng ký ca thành công', new AssistantShiftAssignmentResponseDto(item)) } }
 @Injectable() export class CancelAssistantShiftRegistrationUseCase { constructor(@Inject('UNIT_OF_WORK') private readonly uow: IUnitOfWork) {} async execute(shiftId: number, adminId: number) { await this.uow.executeInTransaction(async (r) => { const shift = await r.assistantShiftRepository.findById(shiftId, { includeSeries: true }); if (!shift || shift.isLocked || shift.series?.isLocked) throw new NotFoundException('Ca trợ giảng không tồn tại'); const now = new Date(); if (!shift.selfRegistrationOpenAt || !shift.selfRegistrationCloseAt || now < shift.selfRegistrationOpenAt || now > shift.selfRegistrationCloseAt) throw new BusinessLogicException('Ca chưa trong thời gian tự đăng ký'); if (!await r.assistantShiftAssignmentRepository.findById(shiftId, adminId)) throw new NotFoundException('Bạn chưa đăng ký ca này'); await r.assistantShiftAssignmentRepository.delete(shiftId, adminId) }); return BaseResponseDto.success('Hủy đăng ký ca thành công', { cancelled: true }) } }
 
-@Injectable() export class CreateAssistantShiftAssignmentUseCase { constructor(@Inject('UNIT_OF_WORK') private readonly uow: IUnitOfWork) {} async execute(shiftId: number, dto: CreateAssistantShiftAssignmentDto) { const item = await this.uow.executeInTransaction(async (r) => { if (!await r.assistantShiftRepository.findById(shiftId)) throw new NotFoundException('Ca trợ giảng không tồn tại'); if (!await r.adminRepository.findById(dto.adminId)) throw new NotFoundException('Trợ giảng không tồn tại'); return r.assistantShiftAssignmentRepository.create({ assistantShiftId: shiftId, ...dto }) }); return BaseResponseDto.success('Phân công trợ giảng thành công', new AssistantShiftAssignmentResponseDto(item)) } }
+@Injectable() export class CreateAssistantShiftAssignmentUseCase { constructor(@Inject('UNIT_OF_WORK') private readonly uow: IUnitOfWork) {} async execute(shiftId: number, dto: CreateAssistantShiftAssignmentDto) { const item = await this.uow.executeInTransaction(async (r) => { if (!await r.assistantShiftRepository.findById(shiftId)) throw new NotFoundException('Ca trợ giảng không tồn tại'); await assertEligibleAssistant(dto.adminId, r.adminRepository); return r.assistantShiftAssignmentRepository.create({ assistantShiftId: shiftId, ...dto }) }); return BaseResponseDto.success('Phân công trợ giảng thành công', new AssistantShiftAssignmentResponseDto(item)) } }
 @Injectable() export class UpdateAssistantShiftAssignmentUseCase { constructor(@Inject('UNIT_OF_WORK') private readonly uow: IUnitOfWork) {} async execute(shiftId: number, adminId: number, dto: UpdateAssistantShiftAssignmentDto) { const item = await this.uow.executeInTransaction(async (r) => { if (!await r.assistantShiftAssignmentRepository.findById(shiftId, adminId)) throw new NotFoundException('Phân công không tồn tại'); return r.assistantShiftAssignmentRepository.update(shiftId, adminId, dto) }); return BaseResponseDto.success('Cập nhật phân công thành công', new AssistantShiftAssignmentResponseDto(item)) } }
 @Injectable() export class DeleteAssistantShiftAssignmentUseCase { constructor(@Inject('UNIT_OF_WORK') private readonly uow: IUnitOfWork) {} async execute(shiftId: number, adminId: number) { await this.uow.executeInTransaction(async (r) => { if (!await r.assistantShiftAssignmentRepository.findById(shiftId, adminId)) throw new NotFoundException('Phân công không tồn tại'); await r.assistantShiftAssignmentRepository.delete(shiftId, adminId) }); return BaseResponseDto.success('Xóa phân công thành công', { deleted: true }) } }
 @Injectable() export class CheckInAssistantShiftUseCase { constructor(@Inject('UNIT_OF_WORK') private readonly uow: IUnitOfWork) {} async execute(shiftId: number, adminId: number) { const item = await this.uow.executeInTransaction(async (r) => { const shift = await r.assistantShiftRepository.findById(shiftId); if (!shift) throw new NotFoundException('Ca trợ giảng không tồn tại'); const now = new Date(), openAt = new Date(shift.startAt.getTime() - 45 * 60 * 1000); if (now < openAt || now > shift.endAt) throw new BusinessLogicException('Chỉ được chấm công từ 45 phút trước giờ bắt đầu đến trước khi ca kết thúc'); if (!await r.assistantShiftAssignmentRepository.findById(shiftId, adminId)) throw new NotFoundException('Bạn chưa được phân công vào ca này'); return r.assistantShiftAssignmentRepository.update(shiftId, adminId, { attendanceStatus: AssistantShiftAssignmentAttendanceStatus.PRESENT }) }); return BaseResponseDto.success('Chấm công thành công', new AssistantShiftAssignmentResponseDto(item)) } }
@@ -103,6 +116,19 @@ export class CopyAssistantShiftsBySeriesUseCase {
       }
       if (await r.assistantShiftRepository.hasOverlappingTimeRange(seriesId, pasteStartAt, pasteEndAt)) {
         throw new ConflictException('Khoảng thời gian dán đã có ca trợ giảng')
+      }
+
+      if (copyAssignments) {
+        const assignedAdminIds = new Set(
+          sourceShifts.flatMap((shift) => (shift.assignments ?? []).map((assignment) => assignment.adminId)),
+        )
+        const eligibleAssistants = await r.adminRepository.findAllByRoleId(
+          ASSISTANT_SHIFT_CONFIG.ELIGIBLE_ASSISTANT_ROLE_ID,
+        )
+        const eligibleAdminIds = new Set(eligibleAssistants.map((assistant) => assistant.adminId))
+        if ([...assignedAdminIds].some((adminId) => !eligibleAdminIds.has(adminId))) {
+          throw new BusinessLogicException('Chỉ admin có role trợ giảng mới có thể được sao chép phân công ca')
+        }
       }
 
       let copiedAssignmentCount = 0
@@ -214,6 +240,73 @@ export class GetMyAssistantShiftsUseCase {
     const response = data.map((item) => new AssistantShiftResponseDto(item))
     await attachAssistantAvatarUrls(response, this.mediaUsageRepository, this.minioService)
     return BaseResponseDto.success('Lấy lịch trợ giảng của bạn thành công', response)
+  }
+}
+
+@Injectable()
+export class GetAssistantShiftAssistantStatisticsUseCase {
+  constructor(@Inject('UNIT_OF_WORK') private readonly uow: IUnitOfWork) {}
+
+  async execute(query: AssistantShiftDateRangeQueryDto) {
+    const range = query.toRange()
+    if (range.startAtFrom > range.startAtTo) {
+      throw new BusinessLogicException('Khoảng thời gian không hợp lệ')
+    }
+
+    const response = await this.uow.executeInTransaction(async (repos) => {
+      const [assistants, shifts] = await Promise.all([
+        repos.adminRepository.findAllByRoleId(ASSISTANT_SHIFT_CONFIG.ELIGIBLE_ASSISTANT_ROLE_ID),
+        repos.assistantShiftRepository.findAll({
+          ...range,
+          includeAssignmentsWithAdmin: true,
+        }),
+      ])
+
+      const statisticsByAdminId = new Map(
+        assistants.map((assistant) => [
+          assistant.adminId,
+          {
+            adminId: assistant.adminId,
+            userId: assistant.userId,
+            fullName: assistant.getFullName(),
+            registeredShiftCount: 0,
+            workedHours: 0,
+            absentHours: 0,
+            pendingHours: 0,
+          },
+        ]),
+      )
+
+      for (const shift of shifts) {
+        const hours = (shift.endAt.getTime() - shift.startAt.getTime()) / (60 * 60 * 1000)
+        for (const assignment of shift.assignments ?? []) {
+          const statistics = statisticsByAdminId.get(assignment.adminId)
+          if (!statistics) continue
+
+          statistics.registeredShiftCount += 1
+          if (assignment.attendanceStatus === AssistantShiftAssignmentAttendanceStatus.PRESENT) {
+            statistics.workedHours += hours
+          } else if (assignment.attendanceStatus === AssistantShiftAssignmentAttendanceStatus.ABSENT) {
+            statistics.absentHours += hours
+          } else {
+            statistics.pendingHours += hours
+          }
+        }
+      }
+
+      return {
+        startAt: range.startAtFrom,
+        endAt: range.startAtTo,
+        assistants: [...statisticsByAdminId.values()].map((statistics) => ({
+          ...statistics,
+          workedHours: Math.round(statistics.workedHours * 100) / 100,
+          absentHours: Math.round(statistics.absentHours * 100) / 100,
+          pendingHours: Math.round(statistics.pendingHours * 100) / 100,
+        })),
+      } satisfies AssistantShiftAssistantStatisticsResponseDto
+    })
+
+    return BaseResponseDto.success('Lấy thống kê trợ giảng thành công', response)
   }
 }
 

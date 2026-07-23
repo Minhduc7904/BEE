@@ -45,6 +45,26 @@ export class AssistantShiftDateRangeQueryDto {
   }
 }
 
+export class AssistantShiftAllBySeriesQueryDto extends AssistantShiftDateRangeQueryDto {
+  @IsOptionalIdNumber('ID trợ giảng') adminId?: number
+}
+
+export class AssistantShiftAssistantStatisticsItemDto {
+  adminId: number
+  userId: number
+  fullName: string
+  registeredShiftCount: number
+  workedHours: number
+  absentHours: number
+  pendingHours: number
+}
+
+export class AssistantShiftAssistantStatisticsResponseDto {
+  startAt: Date
+  endAt: Date
+  assistants: AssistantShiftAssistantStatisticsItemDto[]
+}
+
 export class AssistantShiftRangeDto {
   @IsRequiredDate('Thời gian bắt đầu') startAt!: string
   @IsRequiredDate('Thời gian kết thúc') endAt!: string
