@@ -1,8 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common'
+import { randomUUID } from 'crypto'
 import { AssistantShiftAllBySeriesQueryDto, AssistantShiftAssistantStatisticsResponseDto, AssistantShiftAssignmentResponseDto, AssistantShiftDateRangeQueryDto, AssistantShiftRangeDto, AssistantShiftResponseDto, AssistantShiftSeriesResponseDto, BaseResponseDto, CopyAssistantShiftsDto, CreateAssistantShiftAssignmentDto, CreateAssistantShiftDto, CreateAssistantShiftSeriesDto, SetAssistantShiftSelfRegistrationWindowDto, UpdateAssistantShiftAssignmentDto, UpdateAssistantShiftDto, UpdateAssistantShiftSeriesDto } from '../../dtos'
 import type { IAdminRepository, IMediaUsageRepository, IUnitOfWork } from '../../../domain/repositories'
-import { AssistantShiftAssignmentAttendanceStatus, MediaStatus } from '../../../shared/enums'
-import { MinioService } from '../../interfaces'
+import { AssistantShiftAssignmentAttendanceStatus, BackgroundJobCode, BackgroundJobRunStatus, MediaStatus } from '../../../shared/enums'
+import { AssistantShiftReminderEmailServicePort, MinioService } from '../../interfaces'
 import { EntityType } from '../../../shared/constants/entity-type.constants'
 import { USER_MEDIA_FIELDS } from '../../../shared/constants'
 import { ASSISTANT_SHIFT_CONFIG } from '../../../shared/constants/assistant-shift.constants'
@@ -73,7 +74,192 @@ abstract class AssistantShiftDetailBase { constructor(protected readonly uow: IU
 @Injectable() export class CreateAssistantShiftAssignmentUseCase { constructor(@Inject('UNIT_OF_WORK') private readonly uow: IUnitOfWork) {} async execute(shiftId: number, dto: CreateAssistantShiftAssignmentDto) { const item = await this.uow.executeInTransaction(async (r) => { if (!await r.assistantShiftRepository.findById(shiftId)) throw new NotFoundException('Ca trợ giảng không tồn tại'); await assertEligibleAssistant(dto.adminId, r.adminRepository); return r.assistantShiftAssignmentRepository.create({ assistantShiftId: shiftId, ...dto }) }); return BaseResponseDto.success('Phân công trợ giảng thành công', new AssistantShiftAssignmentResponseDto(item)) } }
 @Injectable() export class UpdateAssistantShiftAssignmentUseCase { constructor(@Inject('UNIT_OF_WORK') private readonly uow: IUnitOfWork) {} async execute(shiftId: number, adminId: number, dto: UpdateAssistantShiftAssignmentDto) { const item = await this.uow.executeInTransaction(async (r) => { if (!await r.assistantShiftAssignmentRepository.findById(shiftId, adminId)) throw new NotFoundException('Phân công không tồn tại'); return r.assistantShiftAssignmentRepository.update(shiftId, adminId, dto) }); return BaseResponseDto.success('Cập nhật phân công thành công', new AssistantShiftAssignmentResponseDto(item)) } }
 @Injectable() export class DeleteAssistantShiftAssignmentUseCase { constructor(@Inject('UNIT_OF_WORK') private readonly uow: IUnitOfWork) {} async execute(shiftId: number, adminId: number) { await this.uow.executeInTransaction(async (r) => { if (!await r.assistantShiftAssignmentRepository.findById(shiftId, adminId)) throw new NotFoundException('Phân công không tồn tại'); await r.assistantShiftAssignmentRepository.delete(shiftId, adminId) }); return BaseResponseDto.success('Xóa phân công thành công', { deleted: true }) } }
-@Injectable() export class CheckInAssistantShiftUseCase { constructor(@Inject('UNIT_OF_WORK') private readonly uow: IUnitOfWork) {} async execute(shiftId: number, adminId: number) { const item = await this.uow.executeInTransaction(async (r) => { const shift = await r.assistantShiftRepository.findById(shiftId); if (!shift) throw new NotFoundException('Ca trợ giảng không tồn tại'); const now = new Date(), openAt = new Date(shift.startAt.getTime() - 45 * 60 * 1000); if (now < openAt || now > shift.endAt) throw new BusinessLogicException('Chỉ được chấm công từ 45 phút trước giờ bắt đầu đến trước khi ca kết thúc'); if (!await r.assistantShiftAssignmentRepository.findById(shiftId, adminId)) throw new NotFoundException('Bạn chưa được phân công vào ca này'); return r.assistantShiftAssignmentRepository.update(shiftId, adminId, { attendanceStatus: AssistantShiftAssignmentAttendanceStatus.PRESENT }) }); return BaseResponseDto.success('Chấm công thành công', new AssistantShiftAssignmentResponseDto(item)) } }
+export interface AssistantShiftCheckInPageResult { success: boolean; message: string }
+@Injectable() export class CheckInAssistantShiftUseCase { constructor(@Inject('UNIT_OF_WORK') private readonly uow: IUnitOfWork) {} async execute(shiftId: number, token?: string): Promise<AssistantShiftCheckInPageResult> { try { if (!token?.trim()) throw new BusinessLogicException('Liên kết điểm danh không hợp lệ'); await this.uow.executeInTransaction(async (r) => { const assignment = await r.assistantShiftAssignmentRepository.findByCheckInToken(shiftId, token); if (!assignment) throw new NotFoundException('Liên kết điểm danh không hợp lệ'); if (!assignment.isPending()) throw new BusinessLogicException('Ca này không còn ở trạng thái chờ điểm danh'); const shift = await r.assistantShiftRepository.findById(shiftId); if (!shift) throw new NotFoundException('Liên kết điểm danh không hợp lệ'); const now = new Date(), openAt = new Date(shift.startAt.getTime() - 45 * 60 * 1000); if (now < openAt || now > shift.endAt) throw new BusinessLogicException('Chỉ được điểm danh từ 45 phút trước giờ bắt đầu đến trước khi ca kết thúc'); await r.assistantShiftAssignmentRepository.update(shiftId, assignment.adminId, { attendanceStatus: AssistantShiftAssignmentAttendanceStatus.PRESENT }) }); return { success: true, message: 'Bạn đã điểm danh thành công. Chúc bạn có một ca trợ giảng hiệu quả!' } } catch (error) { if (error instanceof BusinessLogicException || error instanceof NotFoundException) return { success: false, message: error.message }; return { success: false, message: 'Hệ thống đang gặp sự cố. Vui lòng thử lại sau.' } } }
+
+}
+
+const ASSISTANT_SHIFT_REMINDER_JOB = {
+  code: BackgroundJobCode.ASSISTANT_SHIFT_REMINDER,
+  displayName: 'Nhắc lịch và xác nhận vắng trợ giảng',
+  cronExpression: '0 */5 * * * *',
+  timezone: 'Asia/Ho_Chi_Minh',
+  isEnabled: true,
+  maxRuntimeSeconds: 240,
+} as const
+
+export interface AssistantShiftReminderJobResult {
+  backgroundJobRunId: number
+  checkInEmailsSent: number
+  absenceEmailsSent: number
+  assignmentsMarkedAbsent: number
+  failedEmailCount: number
+}
+
+@Injectable()
+export class SendUpcomingAssistantShiftReminderEmailsUseCase {
+  constructor(
+    @Inject('UNIT_OF_WORK') private readonly uow: IUnitOfWork,
+    private readonly reminderEmailService: AssistantShiftReminderEmailServicePort,
+  ) {}
+
+  async executeScheduled(workerId: string): Promise<AssistantShiftReminderJobResult | null> {
+    const job = await this.uow.executeInTransaction((repos) =>
+      repos.backgroundJobRepository.upsert(ASSISTANT_SHIFT_REMINDER_JOB),
+    )
+    if (!job.canRun()) return null
+
+    const execution = await this.acquireExecution(job.backgroundJobId, job.maxRuntimeSeconds, workerId)
+    if (!execution) throw new ConflictException('ASSISTANT_SHIFT_REMINDER_ALREADY_RUNNING')
+
+    try {
+      const result = await this.processAssignments()
+      await this.completeExecution(execution.backgroundJobRunId, result)
+      return { backgroundJobRunId: execution.backgroundJobRunId, ...result }
+    } catch (error) {
+      await this.failExecution(execution.backgroundJobRunId, error)
+      throw error
+    } finally {
+      await this.uow.executeInTransaction((repos) =>
+        repos.backgroundJobLockRepository.release(execution.backgroundJobId, execution.lockToken),
+      )
+    }
+  }
+
+  private async acquireExecution(backgroundJobId: number, maxRuntimeSeconds: number, workerId: string) {
+    return this.uow.executeInTransaction(async (repos) => {
+      const now = new Date()
+      const lockToken = randomUUID()
+      const lock = await repos.backgroundJobLockRepository.tryAcquire({
+        backgroundJobId,
+        lockToken,
+        workerId,
+        lockedAt: now,
+        leaseExpiresAt: new Date(now.getTime() + maxRuntimeSeconds * 1000),
+      })
+      if (!lock) return null
+
+      const latestRun = await repos.backgroundJobRunRepository.findLatestByBackgroundJobId(backgroundJobId)
+      const scheduledAt = new Date(now)
+      scheduledAt.setMilliseconds(0)
+      if (latestRun && latestRun.scheduledAt >= scheduledAt) scheduledAt.setTime(latestRun.scheduledAt.getTime() + 1000)
+      const run = await repos.backgroundJobRunRepository.create({
+        backgroundJobId,
+        scheduledAt,
+        startedAt: now,
+        status: BackgroundJobRunStatus.RUNNING,
+        workerId,
+        lockToken,
+        leaseExpiresAt: lock.leaseExpiresAt,
+      })
+      return { backgroundJobId, backgroundJobRunId: run.backgroundJobRunId, lockToken }
+    })
+  }
+
+  private async processAssignments(): Promise<Omit<AssistantShiftReminderJobResult, 'backgroundJobRunId'>> {
+    const now = new Date()
+    const [checkInCandidates, absenceCandidates] = await Promise.all([
+      this.uow.executeInTransaction((repos) => repos.assistantShiftAssignmentRepository.findCheckInReminderCandidates(now)),
+      this.uow.executeInTransaction((repos) => repos.assistantShiftAssignmentRepository.findExpiredAbsenceCandidates(now)),
+    ])
+
+    let checkInEmailsSent = 0
+    let absenceEmailsSent = 0
+    let assignmentsMarkedAbsent = 0
+    let failedEmailCount = 0
+
+    for (const candidate of checkInCandidates) {
+      if (!candidate.token) continue
+      const claimed = await this.uow.executeInTransaction((repos) =>
+        repos.assistantShiftAssignmentRepository.claimCheckInReminderEmail(
+          candidate.assistantShiftId,
+          candidate.adminId,
+          now,
+        ),
+      )
+      if (!claimed) continue
+      try {
+        await this.reminderEmailService.sendReminder({
+          assistantShiftId: candidate.assistantShiftId,
+          token: candidate.token,
+          recipientEmail: candidate.recipientEmail,
+          recipientName: candidate.recipientName,
+          shiftName: candidate.assistantShiftName,
+          startAt: candidate.startAt,
+          endAt: candidate.endAt,
+        })
+        checkInEmailsSent += 1
+      } catch {
+        failedEmailCount += 1
+        await this.uow.executeInTransaction((repos) =>
+          repos.assistantShiftAssignmentRepository.requeueCheckInReminderEmail(
+            candidate.assistantShiftId,
+            candidate.adminId,
+          ),
+        )
+      }
+    }
+
+    for (const candidate of absenceCandidates) {
+      const markedPendingAsAbsent = candidate.attendanceStatus === AssistantShiftAssignmentAttendanceStatus.PENDING
+      const claimed = await this.uow.executeInTransaction((repos) =>
+        repos.assistantShiftAssignmentRepository.claimAbsenceNotification(
+          candidate.assistantShiftId,
+          candidate.adminId,
+          candidate.attendanceStatus,
+          now,
+        ),
+      )
+      if (!claimed) continue
+      if (markedPendingAsAbsent) assignmentsMarkedAbsent += 1
+      try {
+        await this.reminderEmailService.sendAbsenceNotification({
+          recipientEmail: candidate.recipientEmail,
+          recipientName: candidate.recipientName,
+          shiftName: candidate.assistantShiftName,
+          startAt: candidate.startAt,
+          endAt: candidate.endAt,
+        })
+        absenceEmailsSent += 1
+      } catch {
+        failedEmailCount += 1
+        await this.uow.executeInTransaction((repos) =>
+          repos.assistantShiftAssignmentRepository.requeueAbsenceNotification(
+            candidate.assistantShiftId,
+            candidate.adminId,
+          ),
+        )
+      }
+    }
+
+    return { checkInEmailsSent, absenceEmailsSent, assignmentsMarkedAbsent, failedEmailCount }
+  }
+
+  private async completeExecution(
+    backgroundJobRunId: number,
+    result: Omit<AssistantShiftReminderJobResult, 'backgroundJobRunId'>,
+  ): Promise<void> {
+    await this.uow.executeInTransaction((repos) =>
+      repos.backgroundJobRunRepository.update(backgroundJobRunId, {
+        status: BackgroundJobRunStatus.SUCCEEDED,
+        finishedAt: new Date(),
+        resultSummary: result,
+      }),
+    )
+  }
+
+  private async failExecution(backgroundJobRunId: number, error: unknown): Promise<void> {
+    const errorMessage = error instanceof Error ? error.message.slice(0, 1000) : 'Lỗi không xác định khi nhắc lịch trợ giảng'
+    await this.uow.executeInTransaction((repos) =>
+      repos.backgroundJobRunRepository.update(backgroundJobRunId, {
+        status: BackgroundJobRunStatus.FAILED,
+        finishedAt: new Date(),
+        errorCode: 'ASSISTANT_SHIFT_REMINDER_FAILED',
+        errorMessage,
+      }),
+    )
+  }
+}
 
 function toDateRange(dto: AssistantShiftRangeDto): { startAt: Date; endAt: Date } {
   const startAt = new Date(dto.startAt)

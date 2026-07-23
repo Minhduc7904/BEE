@@ -89,6 +89,7 @@ import {
   HttpClientService,
   AuthService,
   ResendEmailService,
+  AssistantShiftReminderEmailService,
   ZaloService,
   // SupabaseStorageService, // Disabled: not using Supabase anymore
   MediaProcessingService,
@@ -127,6 +128,7 @@ import payosConfig from '../config/payos.config'
 import sepayConfig from '../config/sepay.config'
 import {
   AchievementBoardSeoAiService as AchievementBoardSeoAiServicePort,
+  AssistantShiftReminderEmailServicePort,
   AuthService as AuthServicePort,
   CompetitionSubmitFeedbackAiService as CompetitionSubmitFeedbackAiServicePort,
   DocumentContentExtractionService as DocumentContentExtractionServicePort,
@@ -172,6 +174,8 @@ import {
     JwtModule.register({}), // Empty config, sẽ override trong service
   ],
   providers: [
+    AssistantShiftReminderEmailService,
+    { provide: AssistantShiftReminderEmailServicePort, useExisting: AssistantShiftReminderEmailService },
     { provide: AchievementBoardSeoAiServicePort, useExisting: AchievementBoardSeoAiService },
     { provide: AuthServicePort, useExisting: 'AUTH_SERVICE' },
     { provide: CompetitionSubmitFeedbackAiServicePort, useExisting: CompetitionSubmitFeedbackAiService },
@@ -751,6 +755,7 @@ import {
     'HTTP_CLIENT_SERVICE',
     'AUTH_SERVICE',
     'IEmailService',
+    AssistantShiftReminderEmailServicePort,
     // 'IStorageService', // Disabled: not using Supabase anymore
     MediaProcessingService,
     DocumentThumbnailService,

@@ -66,3 +66,15 @@ export interface AssistantShiftAssignmentListOptions extends OffsetPaginationOpt
   adminId?: number
   attendanceStatus?: AssistantShiftAssignmentAttendanceStatus
 }
+
+export interface AssistantShiftReminderCandidate {
+  assistantShiftId: number
+  adminId: number
+  token?: string | null
+  assistantShiftName: string
+  startAt: Date
+  endAt: Date
+  recipientEmail: string
+  recipientName: string
+  attendanceStatus: AssistantShiftAssignmentAttendanceStatus
+}

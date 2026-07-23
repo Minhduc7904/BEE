@@ -95,6 +95,7 @@ import { NewsArticleController } from './controllers/news-article.controller'
 import { PayosOnlineCoursePaymentController } from './controllers/payos-online-course-payment.controller'
 import { ReportController } from './controllers/report.controller'
 import { BankTransferTransactionScheduler } from './scheduler/bank-transfer-transaction.scheduler'
+import { AssistantShiftReminderScheduler } from './scheduler/assistant-shift-reminder.scheduler'
 import { AssistantShiftSeriesController } from './controllers/assistant-shift-series.controller'
 import { AssistantShiftController } from './controllers/assistant-shift.controller'
 import { AssistantShiftAssignmentController } from './controllers/assistant-shift-assignment.controller'
@@ -200,6 +201,7 @@ import { AssistantShiftAssignmentController } from './controllers/assistant-shif
     TuitionPaymentIntentGateway,
     SeoTuitionPaymentIntentGateway,
     BankTransferTransactionScheduler,
+    AssistantShiftReminderScheduler,
   ],
   exports: [
     // Export gateways for use cases to inject

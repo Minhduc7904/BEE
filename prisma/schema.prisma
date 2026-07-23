@@ -59,6 +59,7 @@ enum ImportStatus {
 // Mã job nền do hệ thống quản lý; thêm giá trị mới khi bổ sung một cron job mới.
 enum BackgroundJobCode {
   SEPAY_TRANSACTION_SYNC
+  ASSISTANT_SHIFT_REMINDER
 }
 
 // Vòng đời của một lần chạy job; chỉ application/scheduler được phép chuyển trạng thái.
@@ -1310,6 +1311,14 @@ model AssistantShift {
 model AssistantShiftAssignment {
   assistantShiftId Int                                      @map("assistant_shift_id")
   adminId          Int                                      @map("admin_id")
+  // Token ngẫu nhiên dùng cho liên kết điểm danh công khai; null để không phát hành liên kết cho dữ liệu cũ.
+  token            String?                                  @map("token") @db.VarChar(64)
+  // Chỉ phân công mới mới được đưa vào hàng đợi email nhắc lịch; dữ liệu cũ mặc định không gửi email.
+  shouldSendReminderEmail Boolean                            @default(false) @map("should_send_reminder_email")
+  // Thời điểm đã gửi email điểm danh; null khi phân công mới chưa được nhắc hoặc cần gửi lại sau lỗi provider.
+  checkInReminderSentAt DateTime?                            @map("check_in_reminder_sent_at") @db.Timestamp(0)
+  // Thời điểm đã gửi email thông báo vắng; null cho phép job thử lại nếu provider email lỗi.
+  absenceEmailSentAt   DateTime?                            @map("absence_email_sent_at") @db.Timestamp(0)
   assignedAt       DateTime                                 @default(now()) @map("assigned_at") @db.Timestamp(0)
   // PENDING: chưa xác nhận; PRESENT: đã đi làm; ABSENT: không đi làm.
   attendanceStatus AssistantShiftAssignmentAttendanceStatus @default(PENDING) @map("attendance_status")
@@ -1325,6 +1334,11 @@ model AssistantShiftAssignment {
 
   @@id([assistantShiftId, adminId])
   @@index([adminId], map: "idx_assistant_shift_assignments_admin_id")
+  // Phục vụ job tìm đúng phân công có token còn chờ gửi email nhắc lịch.
+  @@index([shouldSendReminderEmail, token], map: "idx_assistant_shift_assignments_reminder_token")
+  // Phục vụ hai truy vấn idempotent: email điểm danh và email thông báo vắng.
+  @@index([shouldSendReminderEmail, checkInReminderSentAt], map: "idx_assistant_shift_assignments_check_in_email")
+  @@index([shouldSendReminderEmail, absenceEmailSentAt], map: "idx_assistant_shift_assignments_absence_email")
   @@map("assistant_shift_assignments")
 }
 

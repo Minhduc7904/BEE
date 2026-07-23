@@ -10,6 +10,10 @@ export class AssistantShiftAssignment {
   assignedAt: Date
   attendanceStatus: AssistantShiftAssignmentAttendanceStatus
   updatedAt: Date
+  token?: string | null
+  shouldSendReminderEmail: boolean
+  checkInReminderSentAt?: Date | null
+  absenceEmailSentAt?: Date | null
   absenceReason?: string | null
   managerNote?: string | null
   admin?: Admin
@@ -20,6 +24,10 @@ export class AssistantShiftAssignment {
     assignedAt?: Date
     attendanceStatus?: AssistantShiftAssignmentAttendanceStatus
     updatedAt?: Date
+    token?: string | null
+    shouldSendReminderEmail?: boolean
+    checkInReminderSentAt?: Date | null
+    absenceEmailSentAt?: Date | null
     absenceReason?: string | null
     managerNote?: string | null
     admin?: Admin
@@ -29,6 +37,10 @@ export class AssistantShiftAssignment {
     this.assignedAt = data.assignedAt ?? new Date()
     this.attendanceStatus = data.attendanceStatus ?? AssistantShiftAssignmentAttendanceStatus.PENDING
     this.updatedAt = data.updatedAt ?? new Date()
+    this.token = data.token ?? null
+    this.shouldSendReminderEmail = data.shouldSendReminderEmail ?? false
+    this.checkInReminderSentAt = data.checkInReminderSentAt ?? null
+    this.absenceEmailSentAt = data.absenceEmailSentAt ?? null
     this.absenceReason = data.absenceReason ?? null
     this.managerNote = data.managerNote ?? null
     this.admin = data.admin

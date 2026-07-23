@@ -16,12 +16,18 @@ import { EmailTemplates } from '../templates/email-templates'
 @Injectable()
 export class ResendEmailService implements IEmailService {
   private readonly logger = new Logger(ResendEmailService.name)
-  private readonly resend: Resend
+  private readonly resend: Resend | null
 
   constructor(
     @Inject(emailConfig.KEY)
     private readonly config: ConfigType<typeof emailConfig>,
   ) {
+    if (!this.config.enabled) {
+      this.resend = null
+      this.logger.warn('Gửi email đang tắt qua MAIL_ENABLED')
+      return
+    }
+
     if (!this.config.resendApiKey) {
       throw new Error('RESEND_API_KEY is required but not provided')
     }
@@ -86,13 +92,21 @@ export class ResendEmailService implements IEmailService {
 
   async sendRawEmail(template: EmailTemplate): Promise<void> {
     try {
+      if (!this.config.enabled) {
+        this.logger.debug('Bỏ qua gửi email vì MAIL_ENABLED=false')
+        return
+      }
+
+      if (!this.resend) throw new Error('Dịch vụ Resend chưa được khởi tạo')
+
       this.logger.log(`Sending email to: ${template.to}`)
       this.logger.log(`From address: ${this.config.fromAddress}`)
       this.logger.log(`Subject: ${template.subject}`)
 
       const result = await this.resend.emails.send({
-        from: this.config.fromAddress,
+        from: `${this.config.fromName} <${this.config.fromAddress}>`,
         to: template.to,
+        ...(this.config.replyTo && { replyTo: this.config.replyTo }),
         subject: template.subject,
         html: template.html,
         text: template.text,

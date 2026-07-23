@@ -97,7 +97,7 @@ export class PrismaBackgroundJobRunRepository implements IBackgroundJobRunReposi
   }
 
   private toPrismaJson(
-    resultSummary: CreateBackgroundJobRunData['resultSummary'] | UpdateBackgroundJobRunData['resultSummary'],
+    resultSummary: CreateBackgroundJobRunData['resultSummary']  ,
   ): Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput | undefined {
     if (resultSummary === undefined) return undefined
     if (resultSummary === null) return Prisma.JsonNull

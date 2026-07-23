@@ -323,25 +323,32 @@ Response `200`:
 
 Lỗi: `404` khi ca/series khóa, không tồn tại hoặc trợ giảng chưa đăng ký; `400` khi ngoài thời gian tự đăng ký.
 
-### POST `/assistant-shifts/:id/check-in`
+### GET `/api/assistant-shifts/:id/check-in`
 
-- Permission: `assistant-shift:check-in`.
-- Request: không body. `adminId` lấy từ JWT.
-- Rule: chỉ chấm công assignment của chính admin hiện tại; thời gian hợp lệ từ `startAt - 45 phút` đến hết `endAt`; kết quả chuyển `attendanceStatus` thành `PRESENT`.
+- Public endpoint: không dùng JWT và không yêu cầu permission.
+- Query bắt buộc: `token` là token ngẫu nhiên của đúng assignment. API bắt buộc khớp cả `:id` (ID ca) và `token`; token không được trả trong các API danh sách/lịch.
+- Rule: chỉ điểm danh trong khoảng từ `startAt - 45 phút` đến hết `endAt` **và assignment phải còn `PENDING`**. Điểm danh thành công chuyển trạng thái thành `PRESENT`; gọi lại link sau đó hiển thị trang thất bại.
 
 Request:
 
 ```http
-POST /api/assistant-shifts/101/check-in
+GET /api/assistant-shifts/101/check-in?token=<64-character-token>
 ```
 
-Response `201`:
+Response luôn là trang `text/html` có icon ở giữa, tiêu đề và thông báo trạng thái; không trả JSON.
 
-```json
-{ "success": true, "message": "Chấm công thành công", "data": { "assistantShiftId": 101, "adminId": 25, "attendanceStatus": "PRESENT", "absenceReason": null, "managerNote": null } }
-```
+Các trường hợp token sai, ca không còn `PENDING`, chưa đến giờ hoặc đã kết thúc đều hiển thị trang HTML thất bại. Không gửi `Authorization` header.
 
-`400` nếu chưa đến thời gian hoặc ca đã kết thúc; `404` nếu ca/assignment không tồn tại.
+## Email nhắc lịch và token điểm danh
+
+- Khi repository tạo assignment (tự đăng ký, quản lý phân công hoặc sao chép), hệ thống tự sinh `token` ngẫu nhiên 64 ký tự và đặt `shouldSendReminderEmail = true`.
+- Assignment cũ giữ `token = null` và `shouldSendReminderEmail = false`, nên không được job gửi email xử lý.
+- Background job `ASSISTANT_SHIFT_REMINDER` chạy mỗi 5 phút (`0 */5 * * * *`, `Asia/Ho_Chi_Minh`), dùng database lease lock và tạo một `BackgroundJobRun` `RUNNING → SUCCEEDED/FAILED` cho mỗi lần chạy thực tế.
+- Với assignment `PENDING`, email điểm danh được gửi đúng một lần khi thời điểm hiện tại nằm trong `[startAt - 45 phút, endAt]`. Subject có dạng `16:00 - 18:00 Lớp đại 12A - Bạn có lịch đi trợ giảng`.
+- Nếu đã quá `endAt` mà assignment vẫn `PENDING`, job chuyển trạng thái thành `ABSENT`, lý do `Không điểm danh trước khi ca kết thúc`, rồi gửi đúng một email thông báo vắng. Email provider lỗi sẽ được đánh dấu để job lần sau thử lại.
+- Hai mốc `checkInReminderSentAt` và `absenceEmailSentAt` đảm bảo từng loại email không bị gửi trùng; `shouldSendReminderEmail` chỉ là cờ cho phép assignment mới tham gia luồng email.
+- Template ở `src/infrastructure/templates/assistant-shift-reminder.template.ts`. Nút **Điểm danh** gọi chính xác `GET /api/assistant-shifts/:assistantShiftId/check-in?token=:token`; base URL lấy từ `API_BASE_URL`.
+- Cấu hình bắt buộc: `RESEND_API_KEY`, `MAIL_FROM_NAME`, `MAIL_FROM_ADDRESS`, `MAIL_REPLY_TO`, `MAIL_ENABLED=true`, và `API_BASE_URL` phải là URL public của backend có hậu tố `/api`.
 
 ## Phân công do quản lý thực hiện
 

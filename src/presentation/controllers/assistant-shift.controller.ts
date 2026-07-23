@@ -1,10 +1,12 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, Put, Query } from '@nestjs/common'
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, Put, Query, Res } from '@nestjs/common'
+import type { Response } from 'express'
 import { AssistantShiftAllBySeriesQueryDto, AssistantShiftDateRangeQueryDto, AssistantShiftRangeDto, CopyAssistantShiftsDto, CreateAssistantShiftDto, SetAssistantShiftSelfRegistrationWindowDto, UpdateAssistantShiftDto } from '../../application/dtos'
 import { CancelAssistantShiftRegistrationUseCase, CheckInAssistantShiftUseCase, CopyAssistantShiftsBySeriesUseCase, CreateAssistantShiftUseCase, DeleteAssistantShiftUseCase, GetAllAssistantShiftsBySeriesUseCase, GetAssistantShiftAssistantStatisticsUseCase, GetAssistantShiftUseCase, GetAvailableAssistantShiftUseCase, GetAvailableAssistantShiftsBySeriesUseCase, GetMyAssistantShiftMonthlyStatisticsUseCase, GetMyAssistantShiftsUseCase, LockAssistantShiftsBySeriesUseCase, RegisterAssistantShiftUseCase, SetAssistantShiftSelfRegistrationWindowBySeriesUseCase, UnlockAssistantShiftsBySeriesUseCase, UpdateAssistantShiftUseCase } from '../../application/use-cases/assistant-shift'
 import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 import { CurrentUser } from '../../shared/decorators/current-user.decorator'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
+import { renderAssistantShiftCheckInResultPage } from '../templates/assistant-shift-check-in-result.template'
 
 @Controller('assistant-shifts')
 export class AssistantShiftController {
@@ -22,7 +24,7 @@ export class AssistantShiftController {
   @Get(':id/available') @RequirePermission(PERMISSION_CODES.ASSISTANT_SHIFT.GET_AVAILABLE_DETAIL) getAvailable(@Param('id', ParseIntPipe) id: number) { return ExceptionHandler.execute(() => this.availableDetail.execute(id)) }
   @Post(':id/register') @RequirePermission(PERMISSION_CODES.ASSISTANT_SHIFT.REGISTER) @HttpCode(HttpStatus.CREATED) register(@Param('id', ParseIntPipe) id: number, @CurrentUser('adminId') adminId: number) { return ExceptionHandler.execute(() => this.registerUseCase.execute(id, adminId)) }
   @Delete(':id/register') @RequirePermission(PERMISSION_CODES.ASSISTANT_SHIFT.CANCEL_REGISTRATION) @HttpCode(HttpStatus.OK) cancelRegistration(@Param('id', ParseIntPipe) id: number, @CurrentUser('adminId') adminId: number) { return ExceptionHandler.execute(() => this.cancelRegistrationUseCase.execute(id, adminId)) }
-  @Post(':id/check-in') @RequirePermission(PERMISSION_CODES.ASSISTANT_SHIFT.CHECK_IN) checkIn(@Param('id', ParseIntPipe) id: number, @CurrentUser('adminId') adminId: number) { return ExceptionHandler.execute(() => this.checkInUseCase.execute(id, adminId)) }
+  @Get(':id/check-in') @HttpCode(HttpStatus.OK) async checkIn(@Param('id', ParseIntPipe) id: number, @Query('token') token: string | undefined, @Res() response: Response): Promise<void> { const result = await this.checkInUseCase.execute(id, token); response.type('html').send(renderAssistantShiftCheckInResultPage(result)) }
   @Get(':id') @RequirePermission(PERMISSION_CODES.ASSISTANT_SHIFT.GET_DETAIL) get(@Param('id', ParseIntPipe) id: number) { return ExceptionHandler.execute(() => this.detail.execute(id)) }
   @Put(':id') @RequirePermission(PERMISSION_CODES.ASSISTANT_SHIFT.UPDATE) update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateAssistantShiftDto) { return ExceptionHandler.execute(() => this.updateUseCase.execute(id, dto)) }
   @Delete(':id') @RequirePermission(PERMISSION_CODES.ASSISTANT_SHIFT.DELETE) delete(@Param('id', ParseIntPipe) id: number) { return ExceptionHandler.execute(() => this.deleteUseCase.execute(id)) }

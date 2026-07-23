@@ -1,5 +1,6 @@
 export * from './achievement-board-seo-ai.interface'
 export * from './auth.interface'
+export * from './assistant-shift-reminder-email.interface'
 export * from './competition-submit-feedback-ai.interface'
 export * from './document-content-extraction.interface'
 export * from './document-media-alt-text-ai.interface'
