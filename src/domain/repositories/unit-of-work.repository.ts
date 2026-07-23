@@ -63,6 +63,9 @@ import { IOnlineCourseInvoiceRepository } from './online-course-invoice.reposito
 import { IOnlineCourseInvoiceItemRepository } from './online-course-invoice-item.repository'
 import { IOnlineCoursePaymentAttemptRepository } from './online-course-payment-attempt.repository'
 import { INewsArticleRepository } from './news-article.repository'
+import { IAssistantShiftSeriesRepository } from './assistant-shift-series.repository'
+import { IAssistantShiftRepository } from './assistant-shift.repository'
+import { IAssistantShiftAssignmentRepository } from './assistant-shift-assignment.repository'
 // src/domain/repositories/unit-of-work.repository.ts
 export interface UnitOfWorkRepos {
   userRepository: IUserRepository
@@ -129,6 +132,9 @@ export interface UnitOfWorkRepos {
   onlineCourseInvoiceItemRepository: IOnlineCourseInvoiceItemRepository
   onlineCoursePaymentAttemptRepository: IOnlineCoursePaymentAttemptRepository
   newsArticleRepository: INewsArticleRepository
+  assistantShiftSeriesRepository: IAssistantShiftSeriesRepository
+  assistantShiftRepository: IAssistantShiftRepository
+  assistantShiftAssignmentRepository: IAssistantShiftAssignmentRepository
 }
 
 export interface IUnitOfWork {

@@ -162,6 +162,9 @@ export const PERMISSION_CODES = {
     UPDATE: 'class-session:update',
     DELETE: 'class-session:delete',
   },
+  ASSISTANT_SHIFT: {
+    GET_AVAILABLE_SERIES: 'assistant-shift:get-available-series', GET_ALL_SERIES: 'assistant-shift:get-all-series', GET_AVAILABLE_BY_SERIES: 'assistant-shift:get-available-by-series', GET_ALL_BY_SERIES: 'assistant-shift:get-all-by-series', GET_AVAILABLE_DETAIL: 'assistant-shift:get-available-detail', GET_DETAIL: 'assistant-shift:get-detail', GET_MY_SCHEDULE: 'assistant-shift:get-my-schedule', GET_MY_MONTHLY_STATISTICS: 'assistant-shift:get-my-monthly-statistics', CREATE_SERIES: 'assistant-shift:create-series', UPDATE_SERIES: 'assistant-shift:update-series', DELETE_SERIES: 'assistant-shift:delete-series', CREATE: 'assistant-shift:create', UPDATE: 'assistant-shift:update', DELETE: 'assistant-shift:delete', REGISTER: 'assistant-shift:register', CANCEL_REGISTRATION: 'assistant-shift:cancel-registration', ASSIGN: 'assistant-shift:assign', UPDATE_ASSIGNMENT: 'assistant-shift:update-assignment', DELETE_ASSIGNMENT: 'assistant-shift:delete-assignment', CHECK_IN: 'assistant-shift:check-in', COPY: 'assistant-shift:copy', LOCK_BY_SERIES: 'assistant-shift:lock-by-series', UNLOCK_BY_SERIES: 'assistant-shift:unlock-by-series', SET_SELF_REGISTRATION_WINDOW_BY_SERIES: 'assistant-shift:set-self-registration-window-by-series',
+  },
   REPORT: {
     GET_ALL: 'report:get-all',
     GET_BY_ID: 'report:get-by-id',

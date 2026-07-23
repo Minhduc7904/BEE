@@ -77,6 +77,9 @@ import {
   PrismaAchievementBoardRepository,
   PrismaNewsArticleRepository,
   PrismaReportRepository,
+  PrismaAssistantShiftSeriesRepository,
+  PrismaAssistantShiftRepository,
+  PrismaAssistantShiftAssignmentRepository,
 } from './repositories'
 import {
   PasswordService,
@@ -567,6 +570,21 @@ import {
       inject: [PrismaService],
     },
     {
+      provide: 'IAssistantShiftSeriesRepository',
+      useFactory: (prisma: PrismaService) => new PrismaAssistantShiftSeriesRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IAssistantShiftRepository',
+      useFactory: (prisma: PrismaService) => new PrismaAssistantShiftRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IAssistantShiftAssignmentRepository',
+      useFactory: (prisma: PrismaService) => new PrismaAssistantShiftAssignmentRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
       provide: 'PASSWORD_SERVICE',
       useClass: PasswordService,
     },
@@ -723,6 +741,9 @@ import {
     'IAchievementBoardRepository',
     'INewsArticleRepository',
     'IReportRepository',
+    'IAssistantShiftSeriesRepository',
+    'IAssistantShiftRepository',
+    'IAssistantShiftAssignmentRepository',
     'PASSWORD_SERVICE',
     'JWT_TOKEN_SERVICE',
     'TOKEN_HASH_SERVICE',

@@ -106,6 +106,9 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _onlineCourseInvoiceItemRepository: any
     let _onlineCoursePaymentAttemptRepository: any
     let _newsArticleRepository: any
+    let _assistantShiftSeriesRepository: UnitOfWorkRepos['assistantShiftSeriesRepository'] | undefined
+    let _assistantShiftRepository: UnitOfWorkRepos['assistantShiftRepository'] | undefined
+    let _assistantShiftAssignmentRepository: UnitOfWorkRepos['assistantShiftAssignmentRepository'] | undefined
 
     Object.defineProperty(repos, 'studentRepository', {
       get: () => (_studentRepository ??= new Repositories.PrismaStudentRepository(client)),
@@ -410,6 +413,23 @@ export class PrismaUnitOfWork implements IUnitOfWork {
 
     Object.defineProperty(repos, 'newsArticleRepository', {
       get: () => (_newsArticleRepository ??= new Repositories.PrismaNewsArticleRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'assistantShiftSeriesRepository', {
+      get: () =>
+        (_assistantShiftSeriesRepository ??= new Repositories.PrismaAssistantShiftSeriesRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'assistantShiftRepository', {
+      get: () => (_assistantShiftRepository ??= new Repositories.PrismaAssistantShiftRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'assistantShiftAssignmentRepository', {
+      get: () =>
+        (_assistantShiftAssignmentRepository ??= new Repositories.PrismaAssistantShiftAssignmentRepository(client)),
       enumerable: true,
     })
 

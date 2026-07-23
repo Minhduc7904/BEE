@@ -32,3 +32,4 @@ export * from './achievement'
 export * from './news'
 
 export * from './question-chat'
+export * from './assistant-shift'

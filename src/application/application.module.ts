@@ -6,6 +6,7 @@ import { AttendanceApplicationModule } from './use-cases/attendance/attendance.a
 import { AdminApplicationModule } from './use-cases/admin/admin.application.module'
 import { ChapterApplicationModule } from './use-cases/chapter/chapter.application.module'
 import { ClassSessionApplicationModule } from './use-cases/class-session/class-session.application.module'
+import { AssistantShiftApplicationModule } from './use-cases/assistant-shift/assistant-shift.application.module'
 import { ClassStudentApplicationModule } from './use-cases/class-student/class-student.application.module'
 import { CourseApplicationModule } from './use-cases/course/course.application.module'
 import { CourseClassApplicationModule } from './use-cases/course-class/course-class.application.module'
@@ -116,6 +117,7 @@ const modules = [
 
   // Class & Attendance
   ClassSessionApplicationModule,
+  AssistantShiftApplicationModule,
   ClassStudentApplicationModule,
   AttendanceApplicationModule,
 

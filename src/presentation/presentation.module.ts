@@ -95,6 +95,9 @@ import { NewsArticleController } from './controllers/news-article.controller'
 import { PayosOnlineCoursePaymentController } from './controllers/payos-online-course-payment.controller'
 import { ReportController } from './controllers/report.controller'
 import { BankTransferTransactionScheduler } from './scheduler/bank-transfer-transaction.scheduler'
+import { AssistantShiftSeriesController } from './controllers/assistant-shift-series.controller'
+import { AssistantShiftController } from './controllers/assistant-shift.controller'
+import { AssistantShiftAssignmentController } from './controllers/assistant-shift-assignment.controller'
 @Module({
   imports: [
     ApplicationModule, // ✅ lấy toàn bộ UseCase đã export
@@ -183,6 +186,9 @@ import { BankTransferTransactionScheduler } from './scheduler/bank-transfer-tran
     AchievementBoardController,
     NewsArticleController,
     ReportController,
+    AssistantShiftSeriesController,
+    AssistantShiftController,
+    AssistantShiftAssignmentController,
   ],
   providers: [
     // WebSocket Gateways

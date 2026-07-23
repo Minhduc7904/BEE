@@ -342,22 +342,23 @@ model Admin {
   adminZaloOaId String? @map("admin_zalo_oa_id") @db.VarChar(32)
 
   // Relations
-  subject                  Subject?            @relation("AdminSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
-  AdminAuditLog            AdminAuditLog[]
-  Exam                     Exam[]              @relation("ExamCreatedBy")
-  Competition              Competition[]       @relation("CompetitionCreatedBy")
-  Course                   Course[]            @relation("CourseTeacher")
-  Lesson                   Lesson[]            @relation("LessonTeacher")
-  Question                 Question[]          @relation("QuestionCreatedBy")
-  courseClasses            CourseClass[]
-  attendances              Attendance[]
-  learningItems            LearningItem[]
-  homeworkSubmits          HomeworkSubmit[]
-  gradedExamAttempts       ExamAttempt[]       @relation("ExamAttemptGrader")
-  gradedCompetitionSubmits CompetitionSubmit[] @relation("CompetitionSubmitGrader")
-  courseAssistants         CourseAssistant[]
-  reportsAbout             Report[]            @relation("ReportTargetAdmin")
-  handledReports           Report[]            @relation("ReportHandler")
+  subject                   Subject?                   @relation("AdminSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
+  AdminAuditLog             AdminAuditLog[]
+  Exam                      Exam[]                     @relation("ExamCreatedBy")
+  Competition               Competition[]              @relation("CompetitionCreatedBy")
+  Course                    Course[]                   @relation("CourseTeacher")
+  Lesson                    Lesson[]                   @relation("LessonTeacher")
+  Question                  Question[]                 @relation("QuestionCreatedBy")
+  courseClasses             CourseClass[]
+  attendances               Attendance[]
+  learningItems             LearningItem[]
+  homeworkSubmits           HomeworkSubmit[]
+  gradedExamAttempts        ExamAttempt[]              @relation("ExamAttemptGrader")
+  gradedCompetitionSubmits  CompetitionSubmit[]        @relation("CompetitionSubmitGrader")
+  courseAssistants          CourseAssistant[]
+  assistantShiftAssignments AssistantShiftAssignment[]
+  reportsAbout              Report[]                   @relation("ReportTargetAdmin")
+  handledReports            Report[]                   @relation("ReportHandler")
 
   @@index([subjectId], map: "idx_admins_subject_id")
   @@map("admins")
@@ -1235,15 +1236,96 @@ model CourseClass {
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
-  course        Course              @relation(fields: [courseId], references: [courseId], onDelete: Cascade)
-  instructor    Admin?              @relation(fields: [instructorId], references: [adminId], onDelete: SetNull)
-  classSessions ClassSession[]
-  classStudents ClassStudent[]
-  classLessons  CourseClassLesson[]
-  reports       Report[]
+  course          Course              @relation(fields: [courseId], references: [courseId], onDelete: Cascade)
+  instructor      Admin?              @relation(fields: [instructorId], references: [adminId], onDelete: SetNull)
+  classSessions   ClassSession[]
+  classStudents   ClassStudent[]
+  classLessons    CourseClassLesson[]
+  assistantShifts AssistantShift[]
+  reports         Report[]
 
   @@index([courseId], map: "idx_course_classes_course_id")
   @@map("courses_classes")
+}
+
+// Nhóm các ca trợ giảng có liên hệ tuần tự, ví dụ các buổi liên tiếp của cùng một lớp.
+// Một ca độc lập không cần thuộc series nào.
+model AssistantShiftSeries {
+  assistantShiftSeriesId Int      @id @default(autoincrement()) @map("assistant_shift_series_id")
+  name                   String   @map("name") @db.VarChar(200)
+  // Series bị khóa không được hiển thị trong luồng lịch dành cho trợ giảng.
+  isLocked               Boolean  @default(false) @map("is_locked")
+  createdAt              DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt              DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Các ca thuộc chuỗi; xóa series chỉ bỏ liên kết series để giữ lịch ca đã tạo.
+  assistantShifts AssistantShift[]
+
+  @@index([isLocked], map: "idx_assistant_shift_series_locked")
+  @@map("assistant_shift_series")
+}
+
+// Trạng thái chấm công của trợ giảng trong một ca.
+enum AssistantShiftAssignmentAttendanceStatus {
+  PENDING
+  PRESENT
+  ABSENT
+}
+
+// Một ca trợ giảng cụ thể, có thể gắn với lớp hoặc là ca độc lập.
+model AssistantShift {
+  assistantShiftId       Int     @id @default(autoincrement()) @map("assistant_shift_id")
+  assistantShiftSeriesId Int     @map("assistant_shift_series_id")
+  // Lớp là tùy chọn để hỗ trợ ca không thuộc lớp cụ thể.
+  classId                Int?    @map("class_id")
+  // Tên hiển thị để phân biệt các ca có cùng thời gian.
+  name                   String  @map("name") @db.VarChar(200)
+  // Ghi chú vận hành chung của ca.
+  notes                  String? @map("notes") @db.Text
+
+  startAt                 DateTime  @map("start_at") @db.Timestamp(0)
+  endAt                   DateTime  @map("end_at") @db.Timestamp(0)
+  // Ca bị khóa không được hiển thị hoặc tự đăng ký trong luồng dành cho trợ giảng.
+  isLocked                Boolean   @default(false) @map("is_locked")
+  // Hai mốc cùng null nghĩa là ca không mở tự đăng ký.
+  selfRegistrationOpenAt  DateTime? @map("self_registration_open_at") @db.Timestamp(0)
+  selfRegistrationCloseAt DateTime? @map("self_registration_close_at") @db.Timestamp(0)
+  requiredAssistantCount  Int       @default(1) @map("required_assistant_count")
+  createdAt               DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt               DateTime  @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Mỗi ca luôn thuộc một series để áp dụng chung quy tắc hiển thị.
+  series      AssistantShiftSeries       @relation(fields: [assistantShiftSeriesId], references: [assistantShiftSeriesId], onDelete: Cascade)
+  courseClass CourseClass?               @relation(fields: [classId], references: [classId], onDelete: SetNull)
+  assignments AssistantShiftAssignment[]
+
+  // Phục vụ xem lịch theo lớp, theo chuỗi tuần tự và theo khoảng thời gian.
+  @@index([classId, startAt], map: "idx_assistant_shifts_class_start_at")
+  @@index([assistantShiftSeriesId, startAt], map: "idx_assistant_shifts_series_start_at")
+  @@index([startAt], map: "idx_assistant_shifts_start_at")
+  @@map("assistant_shifts")
+}
+
+// Phân công một admin (trợ giảng) vào một ca; khóa kép ngăn phân công trùng cùng ca.
+model AssistantShiftAssignment {
+  assistantShiftId Int                                      @map("assistant_shift_id")
+  adminId          Int                                      @map("admin_id")
+  assignedAt       DateTime                                 @default(now()) @map("assigned_at") @db.Timestamp(0)
+  // PENDING: chưa xác nhận; PRESENT: đã đi làm; ABSENT: không đi làm.
+  attendanceStatus AssistantShiftAssignmentAttendanceStatus @default(PENDING) @map("attendance_status")
+  // Lý do vắng, chỉ có ý nghĩa khi trạng thái là ABSENT.
+  absenceReason    String?                                  @map("absence_reason") @db.Text
+  // Nhận xét của quản lý về chất lượng hoặc vấn đề trong ca làm việc.
+  managerNote      String?                                  @map("manager_note") @db.Text
+  updatedAt        DateTime                                 @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Xóa ca sẽ xóa các phân công phụ thuộc; không xóa admin khi còn lịch sử phân công.
+  assistantShift AssistantShift @relation(fields: [assistantShiftId], references: [assistantShiftId], onDelete: Cascade)
+  admin          Admin          @relation(fields: [adminId], references: [adminId], onDelete: Restrict)
+
+  @@id([assistantShiftId, adminId])
+  @@index([adminId], map: "idx_assistant_shift_assignments_admin_id")
+  @@map("assistant_shift_assignments")
 }
 
 // Báo cáo do người dùng gửi về giáo viên/trợ giảng, câu hỏi, đề thi, lớp học,
@@ -2507,16 +2589,16 @@ model BackgroundJobRun {
 model SepayTransactionSyncCursor {
   sepayTransactionSyncCursorId Int       @id @default(autoincrement()) @map("sepay_transaction_sync_cursor_id")
   // Phạm vi truy vấn SePay bất biến, ví dụ IN_ALL hoặc IN:<sepayBankAccountId>.
-  scope                         String    @unique @map("scope") @db.VarChar(100)
+  scope                        String    @unique @map("scope") @db.VarChar(100)
   // UUID id cuối cùng của SePay V2 đã được lưu thành công; null khi chưa có checkpoint.
-  lastSinceId                   String?   @map("last_since_id") @db.Char(36)
+  lastSinceId                  String?   @map("last_since_id") @db.Char(36)
   // Thời điểm trang giao dịch gần nhất được xử lý và cập nhật cursor thành công.
-  lastSyncedAt                  DateTime? @map("last_synced_at") @db.Timestamp(0)
+  lastSyncedAt                 DateTime? @map("last_synced_at") @db.Timestamp(0)
   // Lần lỗi gần nhất chỉ phục vụ vận hành, không chứa API key hay raw payload SePay.
-  lastErrorAt                   DateTime? @map("last_error_at") @db.Timestamp(0)
-  lastErrorMessage              String?   @map("last_error_message") @db.Text
-  createdAt                     DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt                     DateTime  @updatedAt @map("updated_at") @db.Timestamp(0)
+  lastErrorAt                  DateTime? @map("last_error_at") @db.Timestamp(0)
+  lastErrorMessage             String?   @map("last_error_message") @db.Text
+  createdAt                    DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                    DateTime  @updatedAt @map("updated_at") @db.Timestamp(0)
 
   @@map("sepay_transaction_sync_cursors")
 }
