@@ -99,6 +99,7 @@ import { AssistantShiftReminderScheduler } from './scheduler/assistant-shift-rem
 import { AssistantShiftSeriesController } from './controllers/assistant-shift-series.controller'
 import { AssistantShiftController } from './controllers/assistant-shift.controller'
 import { AssistantShiftAssignmentController } from './controllers/assistant-shift-assignment.controller'
+import { SocketLifecycleGateway } from './gateways/socket-lifecycle.gateway'
 @Module({
   imports: [
     ApplicationModule, // ✅ lấy toàn bộ UseCase đã export
@@ -193,6 +194,7 @@ import { AssistantShiftAssignmentController } from './controllers/assistant-shif
   ],
   providers: [
     // WebSocket Gateways
+    SocketLifecycleGateway,
     NotificationGateway,
     StatusGateway,
     LessonGateway,

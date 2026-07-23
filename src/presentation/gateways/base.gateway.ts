@@ -1,10 +1,5 @@
 // src/presentation/gateways/base.gateway.ts
-import {
-    OnGatewayConnection,
-    OnGatewayDisconnect,
-    OnGatewayInit,
-    WebSocketServer
-} from '@nestjs/websockets'
+import { WebSocketServer } from '@nestjs/websockets'
 import { Logger } from '@nestjs/common'
 import { Server, Socket } from 'socket.io'
 import { SocketAuthService } from '../../infrastructure/services/socket/socket-auth.service'
@@ -14,15 +9,13 @@ import { SocketRoomService } from '../../infrastructure/services/socket/socket-r
 /**
  * BaseGateway
  * 
- * Abstract base class for all Socket.IO gateways.
- * Handles common connection/disconnection logic and authentication.
+ * Shared Socket.IO helpers for feature gateways.
+ * Connection lifecycle is owned exclusively by SocketLifecycleGateway.
  * 
  * @layer Presentation
  * @abstract
- * @implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
  */
-export abstract class BaseGateway
-    implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+export abstract class BaseGateway {
     protected readonly logger = new Logger(this.constructor.name)
 
     @WebSocketServer()
@@ -33,101 +26,6 @@ export abstract class BaseGateway
         protected readonly socketAuthService: SocketAuthService,
         protected readonly socketRoomService: SocketRoomService,
     ) { }
-
-    /**
-     * Called after gateway initialization
-     * Sets up the Socket.IO server in the socket service
-     */
-    afterInit(server: Server) {
-        this.socketService.setServer(server)
-        this.logger.log('Gateway initialized')
-    }
-
-    /**
-     * Handle new client connection
-     * Validates JWT token and sets up user rooms
-     */
-    async handleConnection(client: Socket) {
-        try {
-            // Extract token from handshake
-            const token = this.socketAuthService.extractTokenFromHandshake(client.handshake)
-
-            if (!token) {
-                this.logger.warn('Connection rejected: No token provided')
-                client.emit('error', { message: 'Authentication required' })
-                client.disconnect()
-                return
-            }
-
-            // Validate token and get user info
-            const user = await this.socketAuthService.validateToken(token)
-
-            // Store user info in socket data
-            client.data.user = user
-
-            // Join user-specific room for targeted messaging
-            this.socketRoomService.joinUserRoom(client, user.userId)
-
-            // Join role-based rooms for each role
-            if (user.roles && Array.isArray(user.roles) && user.roles.length > 0) {
-                user.roles.forEach(role => {
-                    if (role && role.name) {
-                        this.socketRoomService.joinRoleRoom(client, role.name)
-                    }
-                })
-            }
-
-            // Join userType-based room (admin or student)
-            if (user.userType) {
-                this.socketRoomService.joinRoleRoom(client, user.userType)
-            }
-
-            // Emit connection success
-            client.emit('connected', {
-                message: 'Connected to WebSocket server',
-                userId: user.userId,
-                timestamp: new Date().toISOString(),
-            })
-
-            this.logger.log(`Client connected | user=${user.userId} | socket=${client.id} | type=${user.userType}`)
-
-            // Broadcast online stats update (use setImmediate to ensure socket is fully registered)
-            setImmediate(() => {
-                this.broadcastOnlineStats()
-            })
-
-        } catch (error) {
-            // this.logger.error(`Connection authentication failed: ${error.message}`)
-            client.emit('error', { message: 'Authentication failed' })
-            client.disconnect()
-        }
-    }
-
-    /**
-     * Handle client disconnection
-     * Clean up resources and log disconnect
-     */
-    handleDisconnect(client: Socket) {
-        const user = client.data.user
-
-        if (user) {
-            // Check if user still online (other tabs/devices)
-            const stillOnline = this.socketService.isUserOnline(user.userId)
-
-            if (!stillOnline) {
-                // Last connection closed - user is now offline
-                // Broadcast online stats update (use setImmediate to ensure socket is fully removed)
-                setImmediate(() => {
-                    this.broadcastOnlineStats()
-                })
-            } else {
-                // User still has other connections
-                // this.logger.debug(`Client disconnected | user=${user.userId} | socket=${client.id} | status=STILL_ONLINE`)
-            }
-        } else {
-            // this.logger.debug(`Client disconnected | socket=${client.id} | status=UNAUTHENTICATED`)
-        }
-    }
 
     /**
      * Helper: Get user from socket

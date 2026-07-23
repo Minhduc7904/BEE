@@ -5,6 +5,7 @@ import type { IAdminRepository, IMediaUsageRepository, IUnitOfWork } from '../..
 import { AssistantShiftAssignmentAttendanceStatus, BackgroundJobCode, BackgroundJobRunStatus, MediaStatus } from '../../../shared/enums'
 import { AssistantShiftReminderEmailServicePort, MinioService } from '../../interfaces'
 import type { AssistantShiftReminderCandidate } from '../../../domain/interface/assistant-shift'
+import type { BackgroundJobRunResultSummary } from '../../../domain/interface/background-job'
 import { EntityType } from '../../../shared/constants/entity-type.constants'
 import { USER_MEDIA_FIELDS } from '../../../shared/constants'
 import { ASSISTANT_SHIFT_CONFIG } from '../../../shared/constants/assistant-shift.constants'
@@ -98,15 +99,15 @@ export interface AssistantShiftReminderJobResult {
   emailFailures: AssistantShiftReminderEmailFailure[]
 }
 
-export interface AssistantShiftReminderEmailFailure {
+export interface AssistantShiftReminderEmailFailure extends BackgroundJobRunResultSummary {
   type: 'CHECK_IN_REMINDER' | 'ABSENCE_NOTIFICATION'
   assistantShiftId: number
   adminId: number
   recipientEmail: string
   occurredAt: string
   errorMessage: string
-  errorCode?: string
-  httpStatus?: number
+  errorCode: string | null
+  httpStatus: number | null
 }
 
 @Injectable()
@@ -272,8 +273,8 @@ export class SendUpcomingAssistantShiftReminderEmailsUseCase {
       recipientEmail: this.maskEmail(candidate.recipientEmail ?? ''),
       occurredAt: new Date().toISOString(),
       errorMessage: errorMessage.slice(0, 1000),
-      ...(typeof errorCode === 'string' && { errorCode: errorCode.slice(0, 100) }),
-      ...(typeof status === 'number' && { httpStatus: status }),
+      errorCode: typeof errorCode === 'string' ? errorCode.slice(0, 100) : null,
+      httpStatus: typeof status === 'number' ? status : null,
     }
   }
 

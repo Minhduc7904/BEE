@@ -3,7 +3,7 @@
 ## Kết nối và phạm vi
 
 - Socket.IO dùng root namespace: `ws(s)://<API host>/`.
-- Client gửi JWT trong Socket.IO handshake theo cơ chế hiện có của ứng dụng. `BaseGateway` xác thực JWT và lưu actor ở `client.data.user`.
+- Client gửi JWT trong Socket.IO handshake theo cơ chế hiện có của ứng dụng. `SocketLifecycleGateway` xác thực JWT và lưu actor ở `client.data.user`.
 - Chỉ actor có `studentId` mới dùng các event bên dưới. Không truyền `studentId` hoặc room name từ client.
 - Room riêng có dạng `tuition-payment-intent:{paymentIntentId}`. Gateway chỉ join sau khi use case xác minh intent thuộc tuition payment của học sinh đang đăng nhập.
 - Socket tự rời mọi room khi disconnect. FE nên chủ động unsubscribe khi đóng màn hình thanh toán hoặc đổi intent.
