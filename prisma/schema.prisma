@@ -60,6 +60,8 @@ enum ImportStatus {
 enum BackgroundJobCode {
   SEPAY_TRANSACTION_SYNC
   ASSISTANT_SHIFT_REMINDER
+  AUDIT_LOG_RETENTION_CLEANUP
+  BACKGROUND_JOB_RUN_RETENTION_CLEANUP
 }
 
 // Vòng đời của một lần chạy job; chỉ application/scheduler được phép chuyển trạng thái.
@@ -510,6 +512,7 @@ model AdminAuditLog {
   @@index([resourceType, resourceId], map: "idx_admin_audit_resource")
   @@index([actionKey, createdAt], map: "idx_admin_audit_action_created")
   @@index([status], map: "idx_admin_audit_status")
+  @@index([createdAt], map: "idx_admin_audit_created")
   @@map("admin_audit_logs")
 }
 
@@ -2596,6 +2599,7 @@ model BackgroundJobRun {
   @@unique([backgroundJobId, scheduledAt], map: "uq_background_job_runs_job_scheduled")
   @@index([backgroundJobId, status, scheduledAt], map: "idx_background_job_runs_job_status_scheduled")
   @@index([status, leaseExpiresAt], map: "idx_background_job_runs_status_lease")
+  @@index([finishedAt], map: "idx_background_job_runs_finished")
   @@map("background_job_runs")
 }
 

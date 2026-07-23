@@ -12,4 +12,5 @@ export interface IBackgroundJobRunRepository {
   findByBackgroundJobAndScheduledAt(backgroundJobId: number, scheduledAt: Date): Promise<BackgroundJobRun | null>
   findLatestByBackgroundJobId(backgroundJobId: number): Promise<BackgroundJobRun | null>
   update(backgroundJobRunId: number, data: UpdateBackgroundJobRunData): Promise<BackgroundJobRun>
+  deleteFinishedBefore(cutoff: Date): Promise<number>
 }

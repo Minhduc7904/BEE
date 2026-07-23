@@ -15,7 +15,7 @@
 | Status thành công | `200 OK`                   |
 | Use case          | `GetBackgroundJobsUseCase` |
 
-Query: `page`, `limit`, `search` (tên job), `code=SEPAY_TRANSACTION_SYNC`, `isEnabled=true|false`, `sortBy=backgroundJobId|code|displayName|isEnabled|createdAt|updatedAt`, `sortOrder=asc|desc`.
+Query: `page`, `limit`, `search` (tên job), `code=SEPAY_TRANSACTION_SYNC|ASSISTANT_SHIFT_REMINDER|AUDIT_LOG_RETENTION_CLEANUP|BACKGROUND_JOB_RUN_RETENTION_CLEANUP`, `isEnabled=true|false`, `sortBy=backgroundJobId|code|displayName|isEnabled|createdAt|updatedAt`, `sortOrder=asc|desc`.
 
 ## `GET /api/admin/background-jobs/:id`
 
@@ -88,6 +88,19 @@ The request body must contain at least one field. Each field accepts `null` to c
 ```
 
 The API does not create cursors or change `scope`. It returns `409 Conflict` while the SePay sync job holds a lock, preventing an active worker from being overwritten. This only updates the sync cursor; it never changes bank transactions, reconciliation, or tuition payments.
+
+## Lịch tự động dọn dữ liệu
+
+Hai job sau được seed từ migration và xuất hiện trong API danh sách background job. Quản trị viên có thể bật/tắt bằng `PUT /api/admin/background-jobs/:id`; cron expression là cấu hình hệ thống nên không sửa qua API.
+
+| Code | Lịch (Asia/Ho_Chi_Minh) | Điều kiện xóa | Kết quả lưu trong `resultSummary` |
+| --- | --- | --- | --- |
+| `AUDIT_LOG_RETENTION_CLEANUP` | Mỗi ngày 03:00 | `admin_audit_logs.created_at` nhỏ hơn thời điểm chạy 30 ngày | `deletedCount`, `retentionDays`, `cutoffAt` |
+| `BACKGROUND_JOB_RUN_RETENTION_CLEANUP` | Mỗi ngày 03:10 | `background_job_runs.finished_at` nhỏ hơn thời điểm chạy 7 ngày | `deletedCount`, `retentionDays`, `cutoffAt` |
+
+- Việc xóa là vĩnh viễn. Audit log trước đúng mốc 30 ngày sẽ bị xóa.
+- Job run chỉ bị xóa khi đã có `finishedAt`; run đang chạy có `finishedAt = null` luôn được giữ lại.
+- Mỗi lượt thực thi tạo một `BackgroundJobRun`, có lease lock riêng theo từng code job, và được đánh dấu `SUCCEEDED` hoặc `FAILED` như các scheduler khác.
 
 ## `GET /api/admin/sepay-transaction-sync-cursors`
 

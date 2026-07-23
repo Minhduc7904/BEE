@@ -12,6 +12,7 @@ const BACKGROUND_JOB_USE_CASES = [
   backgroundJobUseCases.GetBackgroundJobRunByIdUseCase,
   backgroundJobUseCases.GetSepayTransactionSyncCursorsUseCase,
   backgroundJobUseCases.UpdateSepayTransactionSyncCursorUseCase,
+  backgroundJobUseCases.RetentionCleanupService,
 ]
 
 @Module({

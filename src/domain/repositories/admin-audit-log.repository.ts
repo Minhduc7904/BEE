@@ -15,4 +15,5 @@ export interface IAdminAuditLogRepository {
   findByResourceId(resourceId: string): Promise<AdminAuditLog[]>
   findAll(): Promise<AdminAuditLog[]>
   findAllWithPagination(query: AuditLogListQueryDto): Promise<{ data: AdminAuditLog[]; total: number }>
+  deleteOlderThan(cutoff: Date): Promise<number>
 }

@@ -96,6 +96,13 @@ export class PrismaBackgroundJobRunRepository implements IBackgroundJobRunReposi
     return BackgroundJobRunMapper.toDomain(updated)!
   }
 
+  async deleteFinishedBefore(cutoff: Date): Promise<number> {
+    const result = await this.prisma.backgroundJobRun.deleteMany({
+      where: { finishedAt: { lt: cutoff } },
+    })
+    return result.count
+  }
+
   private toPrismaJson(
     resultSummary: CreateBackgroundJobRunData['resultSummary']  ,
   ): Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput | undefined {

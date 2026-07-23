@@ -174,4 +174,11 @@ export class PrismaAdminLogRepository implements IAdminAuditLogRepository {
       total,
     }
   }
+
+  async deleteOlderThan(cutoff: Date): Promise<number> {
+    const result = await this.prisma.adminAuditLog.deleteMany({
+      where: { createdAt: { lt: cutoff } },
+    })
+    return result.count
+  }
 }
