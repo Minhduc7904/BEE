@@ -115,9 +115,14 @@ export class ResendEmailService implements IEmailService {
       this.logger.log(`Resend API result:`, result)
 
       if (result.error) {
+        const providerError = result.error as unknown as Record<string, unknown>
         const errorMessage = result.error.message || result.error.name || JSON.stringify(result.error)
         this.logger.error(`Resend API error details:`, result.error)
-        throw new Error(`Resend API error: ${errorMessage}`)
+        const error = Object.assign(new Error(`Resend API error: ${errorMessage}`), {
+          code: typeof providerError.name === 'string' ? providerError.name : undefined,
+          statusCode: typeof providerError.statusCode === 'number' ? providerError.statusCode : undefined,
+        })
+        throw error
       }
 
       this.logger.log(`Email sent successfully. ID: ${result.data?.id}`)

@@ -20,7 +20,12 @@ export class AssistantShiftReminderScheduler {
         this.logger.debug('Bỏ qua nhắc lịch trợ giảng vì job đang tắt')
         return
       }
-      if (result.failedEmailCount > 0) this.logger.error(`Gửi ${result.failedEmailCount} email trợ giảng thất bại`)
+      if (result.failedEmailCount > 0) {
+        this.logger.error(`Gửi ${result.failedEmailCount} email trợ giảng thất bại trong job #${result.backgroundJobRunId}`)
+        for (const failure of result.emailFailures) {
+          this.logger.error(`Assistant shift email failure: ${JSON.stringify(failure)}`)
+        }
+      }
       if (result.checkInEmailsSent + result.absenceEmailsSent > 0) {
         this.logger.log(`Job trợ giảng #${result.backgroundJobRunId}: ${result.checkInEmailsSent} email điểm danh, ${result.absenceEmailsSent} email vắng`)
       }

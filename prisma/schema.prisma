@@ -1317,7 +1317,7 @@ model AssistantShiftAssignment {
   shouldSendReminderEmail Boolean                            @default(false) @map("should_send_reminder_email")
   // Thời điểm đã gửi email điểm danh; null khi phân công mới chưa được nhắc hoặc cần gửi lại sau lỗi provider.
   checkInReminderSentAt DateTime?                            @map("check_in_reminder_sent_at") @db.Timestamp(0)
-  // Thời điểm đã gửi email thông báo vắng; null cho phép job thử lại nếu provider email lỗi.
+  // Thời điểm đã xử lý thông báo vắng; null cho phép job thử lại nếu provider email lỗi hoặc đánh dấu hoàn tất khi người dùng không có email.
   absenceEmailSentAt   DateTime?                            @map("absence_email_sent_at") @db.Timestamp(0)
   assignedAt       DateTime                                 @default(now()) @map("assigned_at") @db.Timestamp(0)
   // PENDING: chưa xác nhận; PRESENT: đã đi làm; ABSENT: không đi làm.

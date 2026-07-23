@@ -119,7 +119,7 @@ export class PrismaAssistantShiftAssignmentRepository implements IAssistantShift
           },
         ],
         assistantShift: { endAt: { lt: now } },
-        admin: { user: { isActive: true, email: { not: null } } },
+        admin: { user: { isActive: true } },
       },
       select: {
         assistantShiftId: true,
@@ -131,11 +131,10 @@ export class PrismaAssistantShiftAssignmentRepository implements IAssistantShift
       },
     })
 
-    return records.flatMap((record) => {
-      const email = record.admin.user.email?.trim()
-      if (!email) return []
+    return records.map((record) => {
+      const email = record.admin.user.email?.trim() || null
 
-      return [{
+      return {
         assistantShiftId: record.assistantShiftId,
         adminId: record.adminId,
         token: record.token,
@@ -145,7 +144,7 @@ export class PrismaAssistantShiftAssignmentRepository implements IAssistantShift
         recipientEmail: email,
         recipientName: `${record.admin.user.lastName} ${record.admin.user.firstName}`.trim(),
         attendanceStatus: record.attendanceStatus as AssistantShiftAssignmentAttendanceStatus,
-      }]
+      }
     })
   }
 

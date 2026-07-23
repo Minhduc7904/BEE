@@ -74,7 +74,7 @@ export interface AssistantShiftReminderCandidate {
   assistantShiftName: string
   startAt: Date
   endAt: Date
-  recipientEmail: string
+  recipientEmail: string | null
   recipientName: string
   attendanceStatus: AssistantShiftAssignmentAttendanceStatus
 }

@@ -4,6 +4,7 @@ import { AssistantShiftAllBySeriesQueryDto, AssistantShiftAssistantStatisticsRes
 import type { IAdminRepository, IMediaUsageRepository, IUnitOfWork } from '../../../domain/repositories'
 import { AssistantShiftAssignmentAttendanceStatus, BackgroundJobCode, BackgroundJobRunStatus, MediaStatus } from '../../../shared/enums'
 import { AssistantShiftReminderEmailServicePort, MinioService } from '../../interfaces'
+import type { AssistantShiftReminderCandidate } from '../../../domain/interface/assistant-shift'
 import { EntityType } from '../../../shared/constants/entity-type.constants'
 import { USER_MEDIA_FIELDS } from '../../../shared/constants'
 import { ASSISTANT_SHIFT_CONFIG } from '../../../shared/constants/assistant-shift.constants'
@@ -94,6 +95,18 @@ export interface AssistantShiftReminderJobResult {
   absenceEmailsSent: number
   assignmentsMarkedAbsent: number
   failedEmailCount: number
+  emailFailures: AssistantShiftReminderEmailFailure[]
+}
+
+export interface AssistantShiftReminderEmailFailure {
+  type: 'CHECK_IN_REMINDER' | 'ABSENCE_NOTIFICATION'
+  assistantShiftId: number
+  adminId: number
+  recipientEmail: string
+  occurredAt: string
+  errorMessage: string
+  errorCode?: string
+  httpStatus?: number
 }
 
 @Injectable()
@@ -167,9 +180,10 @@ export class SendUpcomingAssistantShiftReminderEmailsUseCase {
     let absenceEmailsSent = 0
     let assignmentsMarkedAbsent = 0
     let failedEmailCount = 0
+    const emailFailures: AssistantShiftReminderEmailFailure[] = []
 
     for (const candidate of checkInCandidates) {
-      if (!candidate.token) continue
+      if (!candidate.token || !candidate.recipientEmail) continue
       const claimed = await this.uow.executeInTransaction((repos) =>
         repos.assistantShiftAssignmentRepository.claimCheckInReminderEmail(
           candidate.assistantShiftId,
@@ -189,8 +203,9 @@ export class SendUpcomingAssistantShiftReminderEmailsUseCase {
           endAt: candidate.endAt,
         })
         checkInEmailsSent += 1
-      } catch {
+      } catch (error) {
         failedEmailCount += 1
+        emailFailures.push(this.createEmailFailure('CHECK_IN_REMINDER', candidate, error))
         await this.uow.executeInTransaction((repos) =>
           repos.assistantShiftAssignmentRepository.requeueCheckInReminderEmail(
             candidate.assistantShiftId,
@@ -212,6 +227,7 @@ export class SendUpcomingAssistantShiftReminderEmailsUseCase {
       )
       if (!claimed) continue
       if (markedPendingAsAbsent) assignmentsMarkedAbsent += 1
+      if (!candidate.recipientEmail) continue
       try {
         await this.reminderEmailService.sendAbsenceNotification({
           recipientEmail: candidate.recipientEmail,
@@ -221,8 +237,9 @@ export class SendUpcomingAssistantShiftReminderEmailsUseCase {
           endAt: candidate.endAt,
         })
         absenceEmailsSent += 1
-      } catch {
+      } catch (error) {
         failedEmailCount += 1
+        emailFailures.push(this.createEmailFailure('ABSENCE_NOTIFICATION', candidate, error))
         await this.uow.executeInTransaction((repos) =>
           repos.assistantShiftAssignmentRepository.requeueAbsenceNotification(
             candidate.assistantShiftId,
@@ -232,7 +249,38 @@ export class SendUpcomingAssistantShiftReminderEmailsUseCase {
       }
     }
 
-    return { checkInEmailsSent, absenceEmailsSent, assignmentsMarkedAbsent, failedEmailCount }
+    return { checkInEmailsSent, absenceEmailsSent, assignmentsMarkedAbsent, failedEmailCount, emailFailures }
+  }
+
+  private createEmailFailure(
+    type: AssistantShiftReminderEmailFailure['type'],
+    candidate: AssistantShiftReminderCandidate,
+    error: unknown,
+  ): AssistantShiftReminderEmailFailure {
+    const errorRecord = error && typeof error === 'object' ? error as Record<string, unknown> : {}
+    const response = errorRecord.response && typeof errorRecord.response === 'object'
+      ? errorRecord.response as Record<string, unknown>
+      : {}
+    const status = errorRecord.statusCode ?? errorRecord.status ?? response.status
+    const errorCode = errorRecord.code ?? response.code
+    const errorMessage = error instanceof Error ? error.message : String(error)
+
+    return {
+      type,
+      assistantShiftId: candidate.assistantShiftId,
+      adminId: candidate.adminId,
+      recipientEmail: this.maskEmail(candidate.recipientEmail ?? ''),
+      occurredAt: new Date().toISOString(),
+      errorMessage: errorMessage.slice(0, 1000),
+      ...(typeof errorCode === 'string' && { errorCode: errorCode.slice(0, 100) }),
+      ...(typeof status === 'number' && { httpStatus: status }),
+    }
+  }
+
+  private maskEmail(email: string): string {
+    const [localPart, domain] = email.split('@')
+    if (!domain) return '***'
+    return `${localPart.slice(0, 1) || '*'}***@${domain}`
   }
 
   private async completeExecution(
