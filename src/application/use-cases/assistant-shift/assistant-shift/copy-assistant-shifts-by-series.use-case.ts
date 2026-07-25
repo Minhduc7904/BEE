@@ -27,6 +27,7 @@ export class CopyAssistantShiftsBySeriesUseCase {
     }
 
     const copyAssignments = dto.copyAssignments ?? true
+    const copyAssignmentAttendanceStatus = dto.copyAssignmentAttendanceStatus ?? false
     const offsetMilliseconds = pasteStartAt.getTime() - copyStartAt.getTime()
     const result = await this.uow.executeInTransaction(
       async (repos) => {
@@ -71,7 +72,7 @@ export class CopyAssistantShiftsBySeriesUseCase {
             assistantShiftSeriesId,
             classId: sourceShift.classId ?? null,
             name: sourceShift.name,
-            notes: null,
+            notes: sourceShift.notes ?? null,
             startAt: new Date(sourceShift.startAt.getTime() + offsetMilliseconds),
             endAt: new Date(sourceShift.endAt.getTime() + offsetMilliseconds),
             isLocked: sourceShift.isLocked,
@@ -90,7 +91,9 @@ export class CopyAssistantShiftsBySeriesUseCase {
             await repos.assistantShiftAssignmentRepository.create({
               assistantShiftId: copiedShift.assistantShiftId,
               adminId: assignment.adminId,
-              attendanceStatus: AssistantShiftAssignmentAttendanceStatus.PENDING,
+              attendanceStatus: copyAssignmentAttendanceStatus
+                ? assignment.attendanceStatus
+                : AssistantShiftAssignmentAttendanceStatus.PENDING,
               absenceReason: null,
               managerNote: null,
             })

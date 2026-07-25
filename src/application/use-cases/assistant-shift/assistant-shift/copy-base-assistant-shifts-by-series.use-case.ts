@@ -19,6 +19,7 @@ export class CopyBaseAssistantShiftsBySeriesUseCase {
   async execute(dto: CopyBaseAssistantShiftsDto) {
     const targetWeek = getBaseShiftCopyTargetWeek(new Date(dto.startPasteAt), new Date(dto.endPasteAt))
     const copyAssignments = dto.copyAssignments ?? true
+    const copyAssignmentAttendanceStatus = dto.copyAssignmentAttendanceStatus ?? false
 
     if (dto.ids.length === 0) {
       throw new BusinessLogicException('Phải chọn ít nhất một ca cơ sở để sao chép')
@@ -96,7 +97,9 @@ export class CopyBaseAssistantShiftsBySeriesUseCase {
               await repos.assistantShiftAssignmentRepository.create({
                 assistantShiftId: copiedShift.assistantShiftId,
                 adminId: assignment.adminId,
-                attendanceStatus: AssistantShiftAssignmentAttendanceStatus.PENDING,
+                attendanceStatus: copyAssignmentAttendanceStatus
+                  ? assignment.attendanceStatus
+                  : AssistantShiftAssignmentAttendanceStatus.PENDING,
                 absenceReason: null,
                 managerNote: null,
               })

@@ -7,7 +7,7 @@ import type {
 } from '../../../domain/interface/action-approval-request'
 import type { IActionApprovalRequestRepository } from '../../../domain/repositories/action-approval-request.repository'
 import { PrismaService } from '../../../prisma/prisma.service'
-import { ActionApprovalRequestStatus } from '../../../shared/enums'
+import { ActionApprovalRequestStatus, ActionApprovalRequestType } from '../../../shared/enums'
 import { ActionApprovalRequestMapper } from '../../mappers/action-approval-request'
 
 export class PrismaActionApprovalRequestRepository implements IActionApprovalRequestRepository {
@@ -61,6 +61,20 @@ export class PrismaActionApprovalRequestRepository implements IActionApprovalReq
     })
 
     return ActionApprovalRequestMapper.toDomain(record)
+  }
+
+  async findPendingAssistantShiftExchangeRequests(now: Date): Promise<ActionApprovalRequest[]> {
+    const records = await this.prisma.actionApprovalRequest.findMany({
+      where: {
+        type: {
+          in: [ActionApprovalRequestType.ASSISTANT_SHIFT_SWAP, ActionApprovalRequestType.ASSISTANT_SHIFT_TRANSFER],
+        },
+        status: ActionApprovalRequestStatus.PENDING,
+        expiresAt: { gt: now },
+      },
+    })
+
+    return records.map((record) => ActionApprovalRequestMapper.toDomain(record)!)
   }
 
   async countCreatedByRequesterSince(requesterUserId: number, since: Date): Promise<number> {

@@ -122,8 +122,8 @@ Các API dưới đây là thao tác quản lý, yêu cầu Bearer JWT và permi
 - Sao chép các ca có `startAt` thuộc `[startCopyAt, endCopyAt]` trong đúng series truyền vào.
 - Khoảng copy và paste phải có cùng độ dài. Không được có bất kỳ ca nào của series giao với khoảng paste (`shift.startAt < endPasteAt` và `shift.endAt > startPasteAt`).
 - Mỗi ca nguồn phải kết thúc không muộn hơn `endCopyAt`; điều này bảo đảm mọi ca mới nằm trọn trong khoảng paste.
-- API này chỉ sao chép ca thường. Ca mới giữ `classId`, `name`, `requiredAssistantCount`, `isLocked` và các thời điểm tự đăng ký; mọi trường thời gian được cộng cùng offset `startPasteAt - startCopyAt`. `notes` luôn thành `null`.
-- Mọi assignment được sao chép sang ca mới với cùng `adminId`, nhưng `attendanceStatus = PENDING`, `absenceReason = null`, `managerNote = null`.
+- API này chỉ sao chép ca thường. Ca mới giữ `classId`, `name`, `notes`, `requiredAssistantCount`, `isLocked` và các thời điểm tự đăng ký; mọi trường thời gian được cộng cùng offset `startPasteAt - startCopyAt`.
+- Mọi assignment được sao chép sang ca mới với cùng `adminId`. Khi `copyAssignmentAttendanceStatus = true`, assignment mới giữ `attendanceStatus` của assignment nguồn; mặc định là `PENDING`. `absenceReason` và `managerNote` luôn là `null`.
 - Toàn bộ kiểm tra và tạo ca/phân công chạy trong một transaction. Nếu bất kỳ điều kiện nào lỗi, không có ca nào được tạo.
 
 Request:
@@ -140,7 +140,8 @@ Content-Type: application/json
   "endCopyAt": "2026-07-26T23:59:59+07:00",
   "startPasteAt": "2026-07-27T00:00:00+07:00",
   "endPasteAt": "2026-08-02T23:59:59+07:00",
-  "copyAssignments": true
+  "copyAssignments": true,
+  "copyAssignmentAttendanceStatus": false
 }
 ```
 
@@ -156,7 +157,7 @@ Response `201`:
 
 Lỗi: `400` nếu một trong hai khoảng không hợp lệ, độ dài hai khoảng khác nhau hoặc ca nguồn vượt ra ngoài khoảng copy; `404` nếu series không tồn tại hoặc không có ca nguồn; `409` nếu khoảng paste đã có ca giao nhau.
 
-`copyAssignments` là boolean tùy chọn, mặc định `true`. Gửi `true` để copy cả phân công trợ giảng; gửi `false` để chỉ copy các ca, không tạo assignment nào.
+`copyAssignments` là boolean tùy chọn, mặc định `true`. Gửi `true` để copy cả phân công trợ giảng; gửi `false` để chỉ copy các ca, không tạo assignment nào. `copyAssignmentAttendanceStatus` là boolean tùy chọn, mặc định `false` và chỉ có hiệu lực khi `copyAssignments = true`.
 
 ### PUT `/api/assistant-shifts/series/:seriesId/lock`
 

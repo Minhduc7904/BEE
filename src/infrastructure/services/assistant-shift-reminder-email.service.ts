@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common'
 import type { ConfigType } from '@nestjs/config'
 import type {
   AssistantShiftAbsenceNotificationEmailRequest,
+  AssistantShiftCheckInSuccessEmailRequest,
   AssistantShiftReminderEmailRequest,
   IAssistantShiftReminderEmailService,
 } from 'src/application/interfaces/assistant-shift-reminder-email.interface'
@@ -9,6 +10,7 @@ import emailConfig from 'src/config/email.config'
 import type { IEmailService } from '../interfaces/email.interface'
 import {
   createAssistantShiftAbsenceNotificationTemplate,
+  createAssistantShiftCheckInSuccessTemplate,
   createAssistantShiftReminderTemplate,
 } from '../templates/assistant-shift-reminder.template'
 
@@ -20,19 +22,28 @@ export class AssistantShiftReminderEmailService implements IAssistantShiftRemind
   ) {}
 
   async sendReminder(input: AssistantShiftReminderEmailRequest): Promise<void> {
-    const checkInUrl = new URL(
-      `assistant-shifts/${input.assistantShiftId}/check-in`,
-      `${this.config.apiBaseUrl}/`,
-    )
+    const checkInUrl = new URL(`assistant-shifts/${input.assistantShiftId}/check-in`, `${this.config.apiBaseUrl}/`)
     checkInUrl.searchParams.set('token', input.token)
 
     const template = createAssistantShiftReminderTemplate({
       recipientName: input.recipientName,
       shiftName: input.shiftName,
+      shiftNotes: input.shiftNotes,
       startAt: input.startAt,
       endAt: input.endAt,
       checkInUrl: checkInUrl.toString(),
     })
+
+    await this.emailService.sendRawEmail({
+      to: input.recipientEmail,
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    })
+  }
+
+  async sendCheckInSuccess(input: AssistantShiftCheckInSuccessEmailRequest): Promise<void> {
+    const template = createAssistantShiftCheckInSuccessTemplate(input)
 
     await this.emailService.sendRawEmail({
       to: input.recipientEmail,

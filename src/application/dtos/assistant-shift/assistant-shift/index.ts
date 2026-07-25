@@ -1,6 +1,7 @@
 export * from './assistant-shift-all-by-series-query.dto'
 export * from './assistant-shift-date-range-query.dto'
 export * from './assistant-shift-range.dto'
+export * from './assistant-shift-series-ids.dto'
 export * from './assistant-shift-response.dto'
 export * from './copy-assistant-shifts.dto'
 export * from './copy-base-assistant-shifts.dto'

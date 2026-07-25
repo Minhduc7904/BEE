@@ -7,6 +7,8 @@ export class AssistantShiftAssignmentResponseDto {
   attendanceStatus: AssistantShiftAssignmentAttendanceStatus
   absenceReason: string | null
   managerNote: string | null
+  isPendingExchangeRequest?: boolean
+  nextExchangeRequestAllowedAt?: Date | null
   admin?: {
     adminId: number
     userId: number

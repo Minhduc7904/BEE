@@ -92,7 +92,7 @@ export class PrismaAssistantShiftAssignmentRepository implements IAssistantShift
         adminId: true,
         token: true,
         attendanceStatus: true,
-        assistantShift: { select: { name: true, startAt: true, endAt: true } },
+        assistantShift: { select: { name: true, notes: true, startAt: true, endAt: true } },
         admin: { select: { user: { select: { firstName: true, lastName: true, email: true } } } },
       },
     })
@@ -107,6 +107,7 @@ export class PrismaAssistantShiftAssignmentRepository implements IAssistantShift
           adminId: record.adminId,
           token: record.token,
           assistantShiftName: record.assistantShift.name,
+          shiftNotes: record.assistantShift.notes,
           startAt: record.assistantShift.startAt,
           endAt: record.assistantShift.endAt,
           recipientEmail: email,
@@ -137,7 +138,7 @@ export class PrismaAssistantShiftAssignmentRepository implements IAssistantShift
         adminId: true,
         token: true,
         attendanceStatus: true,
-        assistantShift: { select: { name: true, startAt: true, endAt: true } },
+        assistantShift: { select: { name: true, notes: true, startAt: true, endAt: true } },
         admin: { select: { user: { select: { firstName: true, lastName: true, email: true } } } },
       },
     })
@@ -150,6 +151,7 @@ export class PrismaAssistantShiftAssignmentRepository implements IAssistantShift
         adminId: record.adminId,
         token: record.token,
         assistantShiftName: record.assistantShift.name,
+        shiftNotes: record.assistantShift.notes,
         startAt: record.assistantShift.startAt,
         endAt: record.assistantShift.endAt,
         recipientEmail: email,

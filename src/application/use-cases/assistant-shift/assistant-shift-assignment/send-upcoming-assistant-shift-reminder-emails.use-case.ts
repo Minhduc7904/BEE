@@ -142,6 +142,7 @@ export class SendUpcomingAssistantShiftReminderEmailsUseCase {
           recipientEmail: candidate.recipientEmail,
           recipientName: candidate.recipientName,
           shiftName: candidate.assistantShiftName,
+          shiftNotes: candidate.shiftNotes,
           startAt: candidate.startAt,
           endAt: candidate.endAt,
         })

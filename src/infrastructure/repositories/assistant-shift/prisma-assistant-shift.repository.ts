@@ -95,9 +95,13 @@ export class PrismaAssistantShiftRepository implements IAssistantShiftRepository
       options?.assignmentAttendanceStatus !== undefined
         ? { attendanceStatus: options.assignmentAttendanceStatus }
         : undefined
+    const assistantShiftSeriesIdFilter =
+      options?.assistantShiftSeriesIds !== undefined
+        ? { in: options.assistantShiftSeriesIds }
+        : options?.assistantShiftSeriesId
     const where: Prisma.AssistantShiftWhereInput = {
-      ...(options?.assistantShiftSeriesId !== undefined && {
-        assistantShiftSeriesId: options.assistantShiftSeriesId,
+      ...(assistantShiftSeriesIdFilter !== undefined && {
+        assistantShiftSeriesId: assistantShiftSeriesIdFilter,
       }),
       ...(options?.classId !== undefined && { classId: options.classId }),
       ...((options?.startAtFrom !== undefined || options?.startAtTo !== undefined) && {

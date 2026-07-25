@@ -7,6 +7,7 @@ export interface IActionApprovalRequestRepository {
   findByActionTokenHash(tokenHash: string): Promise<ActionApprovalRequest | null>
   findByActiveDedupKey(activeDedupKey: string): Promise<ActionApprovalRequest | null>
   findLatestByDedupKey(dedupKey: string): Promise<ActionApprovalRequest | null>
+  findPendingAssistantShiftExchangeRequests(now: Date): Promise<ActionApprovalRequest[]>
   countCreatedByRequesterSince(requesterUserId: number, since: Date): Promise<number>
   countCreatedByRecipientSince(recipientUserId: number, since: Date): Promise<number>
   claimPending(id: number, now: Date): Promise<boolean>

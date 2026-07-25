@@ -12,4 +12,7 @@ export class CopyBaseAssistantShiftsDto {
 
   @IsOptionalBoolean('Sao chép phân công trợ giảng')
   copyAssignments?: boolean
+
+  @IsOptionalBoolean('Sao chép trạng thái điểm danh của phân công')
+  copyAssignmentAttendanceStatus?: boolean
 }

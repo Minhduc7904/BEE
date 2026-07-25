@@ -7,6 +7,7 @@ import {
   assistantShiftDetails,
   attachAssistantAvatarUrls,
 } from './assistant-shift.use-case.helpers'
+import { attachPendingExchangeRequestFlags } from './assistant-shift-pending-exchange-request.helper'
 
 @Injectable()
 export class GetAvailableAssistantShiftUseCase {
@@ -17,15 +18,21 @@ export class GetAvailableAssistantShiftUseCase {
   ) {}
 
   async execute(assistantShiftId: number, query: AssistantShiftAssignmentStatusQueryDto) {
-    const shift = await this.uow.executeInTransaction((repos) =>
-      repos.assistantShiftRepository.findById(assistantShiftId, {
-        ...assistantShiftDetails,
-        assignmentAttendanceStatus: query.attendanceStatus,
-      }),
-    )
-    assertAssistantShiftAvailableToAssistant(shift)
+    const result = await this.uow.executeInTransaction(async (repos) => {
+      const [shift, approvalRequests] = await Promise.all([
+        repos.assistantShiftRepository.findById(assistantShiftId, {
+          ...assistantShiftDetails,
+          assignmentAttendanceStatus: query.attendanceStatus,
+        }),
+        repos.actionApprovalRequestRepository.findPendingAssistantShiftExchangeRequests(new Date()),
+      ])
 
-    const response = new AssistantShiftResponseDto(shift)
+      return { shift, approvalRequests }
+    })
+    assertAssistantShiftAvailableToAssistant(result.shift)
+
+    const response = new AssistantShiftResponseDto(result.shift)
+    attachPendingExchangeRequestFlags([response], result.approvalRequests)
     await attachAssistantAvatarUrls([response], this.mediaUsageRepository, this.minioService)
     return BaseResponseDto.success('Lấy chi tiết ca thành công', response)
   }

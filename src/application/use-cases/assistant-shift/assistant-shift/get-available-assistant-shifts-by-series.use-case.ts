@@ -4,6 +4,7 @@ import type { IMediaUsageRepository, IUnitOfWork } from '../../../../domain/repo
 import { BusinessLogicException, NotFoundException } from '../../../../shared/exceptions/custom-exceptions'
 import { MinioService } from '../../../interfaces'
 import { assistantShiftDetails, attachAssistantAvatarUrls } from './assistant-shift.use-case.helpers'
+import { attachPendingExchangeRequestFlags } from './assistant-shift-pending-exchange-request.helper'
 
 @Injectable()
 export class GetAvailableAssistantShiftsBySeriesUseCase {
@@ -17,22 +18,28 @@ export class GetAvailableAssistantShiftsBySeriesUseCase {
     const range = query.toRange()
     if (range.startAtFrom > range.startAtTo) throw new BusinessLogicException('Khoảng thời gian không hợp lệ')
 
-    const data = await this.uow.executeInTransaction(async (repos) => {
+    const result = await this.uow.executeInTransaction(async (repos) => {
       const series = await repos.assistantShiftSeriesRepository.findById(seriesId)
       if (!series) throw new NotFoundException('Chuỗi ca không tồn tại')
-      if (series.isLocked) return []
+      if (series.isLocked) return { shifts: [], approvalRequests: [] }
 
-      return repos.assistantShiftRepository.findAll({
-        assistantShiftSeriesId: seriesId,
-        ...range,
-        onlyUnlocked: true,
-        excludeBaseShifts: true,
-        assignmentAttendanceStatus: query.attendanceStatus,
-        ...assistantShiftDetails,
-      })
+      const [shifts, approvalRequests] = await Promise.all([
+        repos.assistantShiftRepository.findAll({
+          assistantShiftSeriesId: seriesId,
+          ...range,
+          onlyUnlocked: true,
+          excludeBaseShifts: true,
+          assignmentAttendanceStatus: query.attendanceStatus,
+          ...assistantShiftDetails,
+        }),
+        repos.actionApprovalRequestRepository.findPendingAssistantShiftExchangeRequests(new Date()),
+      ])
+
+      return { shifts, approvalRequests }
     })
 
-    const response = data.map((item) => new AssistantShiftResponseDto(item))
+    const response = result.shifts.map((item) => new AssistantShiftResponseDto(item))
+    attachPendingExchangeRequestFlags(response, result.approvalRequests)
     await attachAssistantAvatarUrls(response, this.mediaUsageRepository, this.minioService)
     return BaseResponseDto.success('Lấy danh sách ca thành công', response)
   }

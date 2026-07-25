@@ -1,12 +1,22 @@
 /** Application port for the assistant-shift reminder email integration. */
 export abstract class AssistantShiftReminderEmailServicePort {
   abstract sendReminder(input: AssistantShiftReminderEmailRequest): Promise<void>
+  abstract sendCheckInSuccess(input: AssistantShiftCheckInSuccessEmailRequest): Promise<void>
   abstract sendAbsenceNotification(input: AssistantShiftAbsenceNotificationEmailRequest): Promise<void>
 }
 
 export interface AssistantShiftReminderEmailRequest {
   assistantShiftId: number
   token: string
+  recipientEmail: string
+  recipientName: string
+  shiftName: string
+  shiftNotes: string | null
+  startAt: Date
+  endAt: Date
+}
+
+export interface AssistantShiftCheckInSuccessEmailRequest {
   recipientEmail: string
   recipientName: string
   shiftName: string
@@ -24,5 +34,6 @@ export interface AssistantShiftAbsenceNotificationEmailRequest {
 
 export interface IAssistantShiftReminderEmailService {
   sendReminder(input: AssistantShiftReminderEmailRequest): Promise<void>
+  sendCheckInSuccess(input: AssistantShiftCheckInSuccessEmailRequest): Promise<void>
   sendAbsenceNotification(input: AssistantShiftAbsenceNotificationEmailRequest): Promise<void>
 }

@@ -84,7 +84,7 @@ Query tùy chọn `attendanceStatus=PENDING|PRESENT|ABSENT` áp dụng cho mọi
 
 - Permission: `assistant-shift:get-available-by-series`.
 - Rule: series phải tồn tại. Nếu series khóa, response là `data: []`. Khi series chưa khóa, chỉ lấy shift có `isLocked = false` và `isBaseShift = false`.
-- Include: `series`, `courseClass`, `assignments`, `assignments[].admin`.
+- Include: `series`, `courseClass`, `assignments`, `assignments[].admin`. Each assignment includes `isPendingExchangeRequest`: `true` when that assignment belongs to an unexpired `PENDING` swap or transfer request; otherwise `false`. `nextExchangeRequestAllowedAt` is the ISO 8601 time FE may enable a new exchange action after the displayed pending request expires and its 10-minute cooldown ends; it is `null` when no request is pending.
 
 Request:
 
@@ -118,26 +118,36 @@ Response `200`:
 
 `404` khi series không tồn tại; `400` khi thiếu/sai `startAt`, `endAt`.
 
-### GET `/assistant-shifts/series/:seriesId?startAt=...&endAt=...`
+### GET `/assistant-shifts/series?startAt=...&endAt=...`
 
 - Permission: `assistant-shift:get-all-by-series`.
-- Query `adminId` là tùy chọn. Có truyền thì chỉ trả các ca mà admin đó có assignment; không truyền thì trả toàn bộ ca trong series.
-- Rule: series phải tồn tại. Không lọc theo trạng thái khóa của series hoặc shift, nhưng luôn loại ca cơ sở (`isBaseShift = true`). Dùng API ca cơ sở riêng để lấy dữ liệu mẫu.
+- Body bắt buộc: `assistantShiftSeriesIds` là mảng ID chuỗi ca dương, không rỗng và không trùng. Có thể truyền nhiều ID trong một request.
+- Query `adminId` là tùy chọn. Có truyền thì chỉ trả các ca mà admin đó có assignment; không truyền thì trả toàn bộ ca thuộc các series đã chọn.
+- Rule: mọi series trong body phải tồn tại. Không lọc theo trạng thái khóa của series hoặc shift, nhưng luôn loại ca cơ sở (`isBaseShift = true`). Dùng API ca cơ sở riêng để lấy dữ liệu mẫu.
 - Include: `series`, `courseClass`, `assignments`, `assignments[].admin`.
 
 Request:
 
 ```http
-GET /api/assistant-shifts/series/10?startAt=2026-07-16&endAt=2026-07-18&adminId=25&attendanceStatus=PRESENT
+GET /api/assistant-shifts/series?startAt=2026-07-16&endAt=2026-07-18&adminId=25&attendanceStatus=PRESENT
+Content-Type: application/json
+```
+
+```json
+{
+  "assistantShiftSeriesIds": [2, 10]
+}
 ```
 
 Response `200`: envelope giống API available; `data` có thể gồm cả shift `isLocked: true` và series `isLocked: true`.
+
+`GET /api/assistant-shifts/series/:seriesId` không còn được hỗ trợ; FE chuyển sang body mảng `assistantShiftSeriesIds` kể cả khi chỉ truy vấn một series.
 
 ### GET `/assistant-shifts/:id/available`
 
 - Permission: `assistant-shift:get-available-detail`.
 - Rule: chỉ trả nếu shift không phải ca cơ sở và **cả shift và series** chưa khóa. Ca cơ sở hoặc shift/series khóa được xử lý như không tồn tại (`404`).
-- Include: `series`, `courseClass`, `assignments`, `assignments[].admin`.
+- Include: `series`, `courseClass`, `assignments`, `assignments[].admin`. Each assignment includes `isPendingExchangeRequest` and `nextExchangeRequestAllowedAt` using the same rule as the available-shifts list API.
 
 Request:
 
@@ -228,14 +238,15 @@ Ca cơ sở là mẫu lịch duy nhất trong tuần **20/07/2026 (Thứ Hai) đ
 - Permission: `assistant-shift:copy`.
 - `ids` là danh sách ID ca cơ sở cần sao chép. `startPasteAt` và `endPasteAt` phải cùng tuần Thứ Hai–Chủ Nhật, ví dụ `2026-07-27` đến `2026-08-02`.
 - Ca được tạo là ca thường (`isBaseShift = false`), `isLocked = false`, không có cửa sổ tự đăng ký.
-- `copyAssignments` mặc định `true`; khi bật, chỉ copy admin được gắn và luôn tạo assignment `PENDING`, không copy attendance status, lý do vắng hay ghi chú quản lý.
+- `notes` của ca cơ sở được copy sang ca thường mới. `copyAssignments` mặc định `true`; khi bật, copy admin được gắn. `copyAssignmentAttendanceStatus` mặc định `false`; khi bật cùng `copyAssignments`, assignment mới giữ attendance status của assignment nguồn. Lý do vắng và ghi chú quản lý luôn không copy.
 
 ```json
 {
   "ids": [101, 102],
   "startPasteAt": "2026-07-27T00:00:00+07:00",
   "endPasteAt": "2026-08-02T23:59:59+07:00",
-  "copyAssignments": true
+  "copyAssignments": true,
+  "copyAssignmentAttendanceStatus": false
 }
 ```
 

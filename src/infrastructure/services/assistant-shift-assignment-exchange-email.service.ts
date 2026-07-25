@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common'
 import type { ConfigType } from '@nestjs/config'
 import type {
   AssistantShiftRequestDeclinedEmail,
+  AssistantShiftRequestAcceptedEmail,
   AssistantShiftSwapRequestEmail,
   AssistantShiftTransferRequestEmail,
   IAssistantShiftAssignmentExchangeEmailService,
@@ -10,6 +11,7 @@ import emailConfig from 'src/config/email.config'
 import type { IEmailService } from '../interfaces/email.interface'
 import {
   createAssistantShiftRequestDeclinedTemplate,
+  createAssistantShiftRequestAcceptedTemplate,
   createAssistantShiftSwapRequestTemplate,
   createAssistantShiftTransferRequestTemplate,
 } from '../templates/assistant-shift-assignment-exchange.template'
@@ -47,6 +49,20 @@ export class AssistantShiftAssignmentExchangeEmailService implements IAssistantS
       endAt: input.endAt,
       acceptUrl: this.createActionUrl('transfer', 'accept', input.actionToken),
       declineUrl: this.createActionUrl('transfer', 'decline', input.actionToken),
+    })
+
+    await this.send(input.recipientEmail, template)
+  }
+
+  async sendRequestAccepted(input: AssistantShiftRequestAcceptedEmail): Promise<void> {
+    const template = createAssistantShiftRequestAcceptedTemplate({
+      recipientName: input.recipientName,
+      requesterName: input.counterpartName,
+      action: input.action,
+      recipientRole: input.recipientRole,
+      shiftName: input.shiftName,
+      startAt: input.startAt,
+      endAt: input.endAt,
     })
 
     await this.send(input.recipientEmail, template)

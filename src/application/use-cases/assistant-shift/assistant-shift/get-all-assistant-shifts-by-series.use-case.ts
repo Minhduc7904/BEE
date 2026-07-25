@@ -1,5 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { AssistantShiftAllBySeriesQueryDto, AssistantShiftResponseDto, BaseResponseDto } from '../../../dtos'
+import {
+  AssistantShiftAllBySeriesQueryDto,
+  AssistantShiftResponseDto,
+  AssistantShiftSeriesIdsDto,
+  BaseResponseDto,
+} from '../../../dtos'
 import type { IMediaUsageRepository, IUnitOfWork } from '../../../../domain/repositories'
 import { BusinessLogicException, NotFoundException } from '../../../../shared/exceptions/custom-exceptions'
 import { MinioService } from '../../../interfaces'
@@ -13,16 +18,28 @@ export class GetAllAssistantShiftsBySeriesUseCase {
     private readonly minioService: MinioService,
   ) {}
 
-  async execute(seriesId: number, query: AssistantShiftAllBySeriesQueryDto) {
+  async execute(dto: AssistantShiftSeriesIdsDto, query: AssistantShiftAllBySeriesQueryDto) {
     const range = query.toRange()
     if (range.startAtFrom > range.startAtTo) throw new BusinessLogicException('Khoảng thời gian không hợp lệ')
+    if (dto.assistantShiftSeriesIds.length === 0) {
+      throw new BusinessLogicException('Phải chọn ít nhất một chuỗi ca')
+    }
+    if (new Set(dto.assistantShiftSeriesIds).size !== dto.assistantShiftSeriesIds.length) {
+      throw new BusinessLogicException('Danh sách ID chuỗi ca không được trùng lặp')
+    }
 
     const data = await this.uow.executeInTransaction(async (repos) => {
-      const series = await repos.assistantShiftSeriesRepository.findById(seriesId)
-      if (!series) throw new NotFoundException('Chuỗi ca không tồn tại')
+      const series = await Promise.all(
+        dto.assistantShiftSeriesIds.map((assistantShiftSeriesId) =>
+          repos.assistantShiftSeriesRepository.findById(assistantShiftSeriesId),
+        ),
+      )
+      if (series.some((item) => !item)) {
+        throw new NotFoundException('Một hoặc nhiều chuỗi ca không tồn tại')
+      }
 
       return repos.assistantShiftRepository.findAll({
-        assistantShiftSeriesId: seriesId,
+        assistantShiftSeriesIds: dto.assistantShiftSeriesIds,
         ...range,
         excludeBaseShifts: true,
         assignedAdminId: query.adminId,

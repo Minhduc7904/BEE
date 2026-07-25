@@ -1,6 +1,7 @@
 export abstract class AssistantShiftAssignmentExchangeEmailServicePort {
   abstract sendSwapRequest(input: AssistantShiftSwapRequestEmail): Promise<void>
   abstract sendTransferRequest(input: AssistantShiftTransferRequestEmail): Promise<void>
+  abstract sendRequestAccepted(input: AssistantShiftRequestAcceptedEmail): Promise<void>
   abstract sendRequestDeclined(input: AssistantShiftRequestDeclinedEmail): Promise<void>
 }
 
@@ -27,6 +28,17 @@ export interface AssistantShiftTransferRequestEmail {
   actionToken: string
 }
 
+export interface AssistantShiftRequestAcceptedEmail {
+  recipientEmail: string
+  recipientName: string
+  counterpartName: string
+  action: 'swap' | 'transfer'
+  recipientRole: 'requester' | 'recipient'
+  shiftName: string
+  startAt: Date
+  endAt: Date
+}
+
 export interface AssistantShiftRequestDeclinedEmail {
   requesterEmail: string
   requesterName: string
@@ -40,5 +52,6 @@ export interface AssistantShiftRequestDeclinedEmail {
 export interface IAssistantShiftAssignmentExchangeEmailService {
   sendSwapRequest(input: AssistantShiftSwapRequestEmail): Promise<void>
   sendTransferRequest(input: AssistantShiftTransferRequestEmail): Promise<void>
+  sendRequestAccepted(input: AssistantShiftRequestAcceptedEmail): Promise<void>
   sendRequestDeclined(input: AssistantShiftRequestDeclinedEmail): Promise<void>
 }

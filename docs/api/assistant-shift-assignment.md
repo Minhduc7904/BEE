@@ -82,7 +82,7 @@ Bốn URL trong email là **public GET**, không dùng JWT. Query `token` là to
 
 Khi bấm link, hệ thống claim đề nghị `PENDING` sang `PROCESSING` trong cùng transaction, kiểm tra lại toàn bộ assignment/ca/owner thực tế rồi mới đổi dữ liệu và chốt `ACCEPTED` hoặc `DECLINED`. Vì vậy bấm hai lần, click hai email trùng nhau, hoặc click lại email cũ chỉ nhận trang trạng thái; không thể đổi/nhường lặp.
 
-Chống spam khi tạo đề nghị: chỉ một đề nghị giống hệt còn hoạt động; sau khi từ chối cùng đề nghị phải chờ một giờ; tối đa 5 đề nghị/15 phút và 15 đề nghị/24 giờ cho người gửi, tối đa 3 đề nghị/giờ cho cùng người nhận. Đề nghị hết hạn tại mốc sớm hơn giữa `endAt` của ca liên quan và 24 giờ sau lúc tạo.
+Chống spam khi tạo đề nghị: chỉ một đề nghị giống hệt còn hoạt động; sau khi từ chối cùng đề nghị phải chờ một giờ; tối đa 5 đề nghị/15 phút và 15 đề nghị/24 giờ cho người gửi, tối đa 3 đề nghị/giờ cho cùng người nhận. Đề nghị hết hạn tại mốc sớm hơn giữa `endAt` của ca liên quan và 30 phút sau lúc tạo. Sau khi hết hạn, phải chờ thêm 10 phút mới gửi lại cùng đề nghị được.
 
 ### POST `/assistant-shift-assignment-actions/my/swap-requests`
 

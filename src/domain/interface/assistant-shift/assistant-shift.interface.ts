@@ -43,6 +43,7 @@ export interface AssistantShiftRelationOptions {
 
 export interface AssistantShiftListOptions extends OffsetPaginationOptions, AssistantShiftRelationOptions {
   assistantShiftSeriesId?: number
+  assistantShiftSeriesIds?: number[]
   classId?: number | null
   startAtFrom?: Date
   startAtTo?: Date
@@ -77,6 +78,7 @@ export interface AssistantShiftReminderCandidate {
   adminId: number
   token?: string | null
   assistantShiftName: string
+  shiftNotes: string | null
   startAt: Date
   endAt: Date
   recipientEmail: string | null

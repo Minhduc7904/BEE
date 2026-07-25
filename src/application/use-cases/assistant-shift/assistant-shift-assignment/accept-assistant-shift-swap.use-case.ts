@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
 
+import { AssistantShiftAssignmentExchangeEmailServicePort } from '../../../interfaces'
 import type { IUnitOfWork } from '../../../../domain/repositories'
 import { ActionApprovalRequestStatus, ActionApprovalRequestType } from '../../../../shared/enums'
 import { BusinessLogicException, ConflictException } from '../../../../shared/exceptions/custom-exceptions'
@@ -16,11 +17,15 @@ import {
 
 @Injectable()
 export class AcceptAssistantShiftSwapUseCase {
-  constructor(@Inject('UNIT_OF_WORK') private readonly uow: IUnitOfWork) {}
+  constructor(
+    @Inject('UNIT_OF_WORK') private readonly uow: IUnitOfWork,
+    @Inject(AssistantShiftAssignmentExchangeEmailServicePort)
+    private readonly emailService: AssistantShiftAssignmentExchangeEmailServicePort,
+  ) {}
 
   async execute(actionToken: string): Promise<AssistantShiftAssignmentActionPageResult> {
     try {
-      await this.uow.executeInTransaction(
+      const successEmailRequests = await this.uow.executeInTransaction(
         async (repos) => {
           const request = await claimActionApprovalRequest(
             repos,
@@ -70,8 +75,37 @@ export class AcceptAssistantShiftSwapUseCase {
             status: ActionApprovalRequestStatus.ACCEPTED,
             respondedAt: new Date(),
           })
+
+          return [
+            {
+              recipientEmail: requester.getEmail()?.trim() ?? '',
+              recipientName: requester.getFullName(),
+              counterpartName: recipient.getFullName(),
+              action: 'swap' as const,
+              recipientRole: 'requester' as const,
+              shiftName: targetShift.name,
+              startAt: targetShift.startAt,
+              endAt: targetShift.endAt,
+            },
+            {
+              recipientEmail: recipient.getEmail()?.trim() ?? '',
+              recipientName: recipient.getFullName(),
+              counterpartName: requester.getFullName(),
+              action: 'swap' as const,
+              recipientRole: 'recipient' as const,
+              shiftName: sourceShift.name,
+              startAt: sourceShift.startAt,
+              endAt: sourceShift.endAt,
+            },
+          ]
         },
         { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+      )
+
+      await Promise.allSettled(
+        successEmailRequests
+          .filter(({ recipientEmail }) => Boolean(recipientEmail))
+          .map((input) => this.emailService.sendRequestAccepted(input)),
       )
 
       return { success: true, message: 'Đổi ca thành công.' }

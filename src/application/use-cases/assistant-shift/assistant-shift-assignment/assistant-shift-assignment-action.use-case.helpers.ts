@@ -10,8 +10,8 @@ import {
   NotFoundException,
 } from '../../../../shared/exceptions/custom-exceptions'
 
-const REQUEST_EXPIRY_MILLISECONDS = 24 * 60 * 60 * 1000
-const DUPLICATE_COOLDOWN_MILLISECONDS = 10 * 60 * 1000
+const REQUEST_EXPIRY_MILLISECONDS = 30 * 60 * 1000
+export const DUPLICATE_COOLDOWN_MILLISECONDS = 10 * 60 * 1000
 export const DECLINED_REQUEST_COOLDOWN_MILLISECONDS = 60 * 60 * 1000
 
 export interface AssistantShiftAssignmentActionPageResult {
@@ -97,7 +97,7 @@ export async function assertActionApprovalCreationAllowed(
       await repos.actionApprovalRequestRepository.expirePending(
         activeRequest.actionApprovalRequestId,
         now,
-        new Date(now.getTime() + DUPLICATE_COOLDOWN_MILLISECONDS),
+        new Date(activeRequest.expiresAt.getTime() + DUPLICATE_COOLDOWN_MILLISECONDS),
       )
     } else {
       throw new ConflictException('Đề nghị giống hệt đang chờ phản hồi')
@@ -152,7 +152,7 @@ export async function claimActionApprovalRequest(
     await repos.actionApprovalRequestRepository.expirePending(
       request.actionApprovalRequestId,
       now,
-      new Date(now.getTime() + DUPLICATE_COOLDOWN_MILLISECONDS),
+      new Date(request.expiresAt.getTime() + DUPLICATE_COOLDOWN_MILLISECONDS),
     )
     throw new BusinessLogicException('Đề nghị này đã hết hạn')
   }
