@@ -89,23 +89,6 @@ export class PrismaAdminRepository implements IAdminRepository {
 
   async findAllWithPagination(options: FindAllAdminsOptions): Promise<FindAllAdminsResult> {
     const where: Prisma.AdminWhereInput = {}
-
-    if (options.search) {
-      const keywords = options.search.trim().split(/\s+/)
-
-      where.OR = [
-        // 1️⃣ Search by email
-        { user: { email: { contains: options.search } } },
-
-        // 2️⃣ Search by full name (virtual)
-        {
-          AND: keywords.map((keyword) => ({
-            OR: [{ user: { firstName: { contains: keyword } } }, { user: { lastName: { contains: keyword } } }],
-          })),
-        },
-      ]
-    }
-
     const userWhere: Prisma.UserWhereInput = {
       ...(options.isActive !== undefined && { isActive: options.isActive }),
       ...(options.roleId !== undefined && {
@@ -117,6 +100,19 @@ export class PrismaAdminRepository implements IAdminRepository {
           },
         },
       }),
+    }
+    const search = options.search?.trim()
+    if (search) {
+      const keywords = search.split(/\s+/)
+      userWhere.OR = [
+        { username: { contains: search } },
+        { email: { contains: search } },
+        {
+          AND: keywords.map((keyword) => ({
+            OR: [{ firstName: { contains: keyword } }, { lastName: { contains: keyword } }],
+          })),
+        },
+      ]
     }
     if (Object.keys(userWhere).length > 0) {
       where.user = userWhere

@@ -34,6 +34,7 @@ import {
   CopyAssistantShiftsBySeriesUseCase,
   CreateBaseAssistantShiftUseCase,
   CreateAssistantShiftUseCase,
+  DeleteBaseAssistantShiftUseCase,
   DeleteAssistantShiftUseCase,
   GetAllAssistantShiftsBySeriesUseCase,
   GetBaseAssistantShiftsBySeriesUseCase,
@@ -73,6 +74,7 @@ export class AssistantShiftController {
     private readonly createBaseUseCase: CreateBaseAssistantShiftUseCase,
     private readonly updateUseCase: UpdateAssistantShiftUseCase,
     private readonly updateBaseUseCase: UpdateBaseAssistantShiftUseCase,
+    private readonly deleteBaseUseCase: DeleteBaseAssistantShiftUseCase,
     private readonly deleteUseCase: DeleteAssistantShiftUseCase,
     private readonly registerUseCase: RegisterAssistantShiftUseCase,
     private readonly cancelRegistrationUseCase: CancelAssistantShiftRegistrationUseCase,
@@ -171,6 +173,12 @@ export class AssistantShiftController {
   @RequirePermission(PERMISSION_CODES.ASSISTANT_SHIFT.UPDATE)
   updateBase(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateBaseAssistantShiftDto) {
     return ExceptionHandler.execute(() => this.updateBaseUseCase.execute(id, dto))
+  }
+  @Delete(':id/base')
+  @RequirePermission(PERMISSION_CODES.ASSISTANT_SHIFT.DELETE)
+  @HttpCode(HttpStatus.OK)
+  deleteBase(@Param('id', ParseIntPipe) id: number) {
+    return ExceptionHandler.execute(() => this.deleteBaseUseCase.execute(id))
   }
   @Get(':id/available') @RequirePermission(PERMISSION_CODES.ASSISTANT_SHIFT.GET_AVAILABLE_DETAIL) getAvailable(
     @Param('id', ParseIntPipe) id: number,

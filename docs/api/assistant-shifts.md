@@ -218,6 +218,11 @@ Ca cơ sở là mẫu lịch duy nhất trong tuần **20/07/2026 (Thứ Hai) đ
 { "startTime": "18:30", "endTime": "20:30" }
 ```
 
+### DELETE `/assistant-shifts/:id/base`
+
+- Permission: `assistant-shift:delete`.
+- Chỉ xóa ca cơ sở. API xóa ca thường `DELETE /assistant-shifts/:id` sẽ từ chối ca cơ sở.
+
 ### POST `/assistant-shifts/base/copy`
 
 - Permission: `assistant-shift:copy`.

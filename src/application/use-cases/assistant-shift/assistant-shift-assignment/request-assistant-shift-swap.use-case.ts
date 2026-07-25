@@ -43,6 +43,20 @@ export class RequestAssistantShiftSwapUseCase {
         assertShiftNotEnded(sourceShift)
         assertShiftNotEnded(targetShift)
 
+        const [sourceTargetConflict, targetSourceConflict] = await Promise.all([
+          repos.assistantShiftAssignmentRepository.findById(
+            targetAssignment.assistantShiftId,
+            sourceAssignment.adminId,
+          ),
+          repos.assistantShiftAssignmentRepository.findById(
+            sourceAssignment.assistantShiftId,
+            targetAssignment.adminId,
+          ),
+        ])
+        if (sourceTargetConflict || targetSourceConflict) {
+          throw new ConflictException('Một trong hai trợ giảng đã được phân công vào ca muốn đổi')
+        }
+
         const [requester, recipient] = await Promise.all([
           assertEligibleAssistant(adminId, repos.adminRepository),
           assertEligibleAssistant(dto.targetAdminId, repos.adminRepository),
