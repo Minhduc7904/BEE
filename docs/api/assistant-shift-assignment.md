@@ -364,7 +364,7 @@ Response `200`:
 - Permission: `assistant-shift:get-all-by-series`.
 - Dùng cho quản lý xem thống kê tất cả trợ giảng có role `16` còn hiệu lực trong khoảng `startAt`/`endAt`.
 - Báo cáo lấy ca không phải ca cơ sở có `startAt` nằm trong khoảng cùng quy ước với API danh sách ca; ca/series khóa vẫn được tính. Trợ giảng không có assignment trong khoảng vẫn xuất hiện với tất cả số bằng `0`.
-- `registeredShiftCount` đếm mọi assignment; `workedHours` chỉ tính `PRESENT`; `absentHours` chỉ tính `ABSENT`; `pendingHours` chỉ tính `PENDING`. Số giờ là tổng `(endAt - startAt)`, làm tròn tối đa hai chữ số thập phân.
+- `totalAssignmentCount`/`totalHours` tính mọi assignment. Các cặp `pendingAssignmentCount`/`pendingHours`, `presentAssignmentCount`/`presentHours`, `absentAssignmentCount`/`absentHours` tính theo từng attendance status. `sundayPresentAssignmentCount`/`sundayPresentHours` chỉ tính assignment `PRESENT` có ca bắt đầu vào Chủ nhật. `presentWorkDayCount` là số ngày khác nhau có ít nhất một assignment `PRESENT`; nhiều ca trong cùng ngày chỉ tính một ngày. Số giờ là tổng `(endAt - startAt)`, làm tròn tối đa hai chữ số thập phân. `registeredShiftCount` và `workedHours` được giữ để tương thích lần lượt với tổng assignment và giờ `PRESENT`.
 
 Request:
 
@@ -387,10 +387,19 @@ Response `200`:
         "adminId": 25,
         "userId": 60,
         "fullName": "Nguyễn Minh Đức",
-        "registeredShiftCount": 10,
-        "workedHours": 16.5,
+        "totalAssignmentCount": 10,
+        "totalHours": 22,
+        "pendingAssignmentCount": 2,
+        "pendingHours": 3.5,
+        "presentAssignmentCount": 7,
+        "presentHours": 16.5,
+        "absentAssignmentCount": 1,
         "absentHours": 2,
-        "pendingHours": 3.5
+        "sundayPresentAssignmentCount": 2,
+        "sundayPresentHours": 4,
+        "presentWorkDayCount": 6,
+        "registeredShiftCount": 10,
+        "workedHours": 16.5
       }
     ]
   }

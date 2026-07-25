@@ -7,7 +7,6 @@ import type { IUnitOfWork, UnitOfWorkRepos } from '../../../domain/repositories'
 import type { PaymentAttempt, ReceivingBankAccount } from '../../../domain/entities/tuition-online-payment'
 import type { TuitionPayment } from '../../../domain/entities/tuition-payment'
 import {
-  PaymentAttemptStatus,
   PaymentBankSelectionSource,
   PaymentConfirmationMode,
   PaymentIntentStatus,
@@ -61,13 +60,9 @@ export class GetMyTuitionPaymentInstructionsUseCase {
         throw new InvalidStateException('Yêu cầu thanh toán này đã hết hạn')
       }
 
-      const pendingAttempts = existingPaymentIntent
-        ? await repos.paymentAttemptRepository.findAll({
-            paymentIntentId: existingPaymentIntent.paymentIntentId,
-            status: PaymentAttemptStatus.PENDING,
-          })
-        : []
-      const latestPendingAttempt = pendingAttempts.find((paymentAttempt) => !paymentAttempt.isExpired(now)) ?? null
+      const latestPendingAttempt = existingPaymentIntent
+        ? await repos.paymentAttemptRepository.findLatestPendingByPaymentIntent(existingPaymentIntent.paymentIntentId)
+        : null
       if (!options.forceRefresh && latestPendingAttempt && this.isReusableAttempt(latestPendingAttempt, now)) {
         const bankAccount = await repos.receivingBankAccountRepository.findById(
           latestPendingAttempt.receivingBankAccountId,
