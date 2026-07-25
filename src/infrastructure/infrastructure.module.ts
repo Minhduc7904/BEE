@@ -80,6 +80,7 @@ import {
   PrismaAssistantShiftSeriesRepository,
   PrismaAssistantShiftRepository,
   PrismaAssistantShiftAssignmentRepository,
+  PrismaActionApprovalRequestRepository,
 } from './repositories'
 import {
   PasswordService,
@@ -89,6 +90,7 @@ import {
   HttpClientService,
   AuthService,
   ResendEmailService,
+  AssistantShiftAssignmentExchangeEmailService,
   AssistantShiftReminderEmailService,
   ZaloService,
   // SupabaseStorageService, // Disabled: not using Supabase anymore
@@ -128,6 +130,7 @@ import payosConfig from '../config/payos.config'
 import sepayConfig from '../config/sepay.config'
 import {
   AchievementBoardSeoAiService as AchievementBoardSeoAiServicePort,
+  AssistantShiftAssignmentExchangeEmailServicePort,
   AssistantShiftReminderEmailServicePort,
   AuthService as AuthServicePort,
   CompetitionSubmitFeedbackAiService as CompetitionSubmitFeedbackAiServicePort,
@@ -174,6 +177,11 @@ import {
     JwtModule.register({}), // Empty config, sẽ override trong service
   ],
   providers: [
+    AssistantShiftAssignmentExchangeEmailService,
+    {
+      provide: AssistantShiftAssignmentExchangeEmailServicePort,
+      useExisting: AssistantShiftAssignmentExchangeEmailService,
+    },
     AssistantShiftReminderEmailService,
     { provide: AssistantShiftReminderEmailServicePort, useExisting: AssistantShiftReminderEmailService },
     { provide: AchievementBoardSeoAiServicePort, useExisting: AchievementBoardSeoAiService },
@@ -589,6 +597,11 @@ import {
       inject: [PrismaService],
     },
     {
+      provide: 'IActionApprovalRequestRepository',
+      useFactory: (prisma: PrismaService) => new PrismaActionApprovalRequestRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
       provide: 'PASSWORD_SERVICE',
       useClass: PasswordService,
     },
@@ -645,6 +658,7 @@ import {
   ],
   exports: [
     AchievementBoardSeoAiServicePort,
+    AssistantShiftAssignmentExchangeEmailServicePort,
     AuthServicePort,
     CompetitionSubmitFeedbackAiServicePort,
     DocumentContentExtractionServicePort,
@@ -748,6 +762,7 @@ import {
     'IAssistantShiftSeriesRepository',
     'IAssistantShiftRepository',
     'IAssistantShiftAssignmentRepository',
+    'IActionApprovalRequestRepository',
     'PASSWORD_SERVICE',
     'JWT_TOKEN_SERVICE',
     'TOKEN_HASH_SERVICE',

@@ -24,6 +24,7 @@ export class PrismaAssistantShiftRepository implements IAssistantShiftRepository
         startAt: data.startAt,
         endAt: data.endAt,
         isLocked: data.isLocked ?? false,
+        isBaseShift: data.isBaseShift ?? false,
         selfRegistrationOpenAt: data.selfRegistrationOpenAt ?? null,
         selfRegistrationCloseAt: data.selfRegistrationCloseAt ?? null,
         requiredAssistantCount: data.requiredAssistantCount ?? 1,
@@ -33,17 +34,19 @@ export class PrismaAssistantShiftRepository implements IAssistantShiftRepository
     return AssistantShiftMapper.toDomain(created)!
   }
 
-  async findById(
-    assistantShiftId: number,
-    options?: AssistantShiftRelationOptions,
-  ): Promise<AssistantShift | null> {
+  async findById(assistantShiftId: number, options?: AssistantShiftRelationOptions): Promise<AssistantShift | null> {
+    const assignmentWhere =
+      options?.assignmentAttendanceStatus !== undefined
+        ? { attendanceStatus: options.assignmentAttendanceStatus }
+        : undefined
+
     if (options?.includeSeries && options.includeAssignmentsWithAdmin && options.includeCourseClass) {
       const record = await this.prisma.assistantShift.findUnique({
         where: { assistantShiftId },
         include: {
           series: true,
           courseClass: true,
-          assignments: { include: { admin: { include: { user: true } } } },
+          assignments: { where: assignmentWhere, include: { admin: { include: { user: true } } } },
         },
       })
 
@@ -55,7 +58,7 @@ export class PrismaAssistantShiftRepository implements IAssistantShiftRepository
         where: { assistantShiftId },
         include: {
           series: true,
-          assignments: { include: { admin: { include: { user: true } } } },
+          assignments: { where: assignmentWhere, include: { admin: { include: { user: true } } } },
         },
       })
 
@@ -74,7 +77,7 @@ export class PrismaAssistantShiftRepository implements IAssistantShiftRepository
     if (options?.includeAssignmentsWithAdmin) {
       const record = await this.prisma.assistantShift.findUnique({
         where: { assistantShiftId },
-        include: { assignments: { include: { admin: { include: { user: true } } } } },
+        include: { assignments: { where: assignmentWhere, include: { admin: { include: { user: true } } } } },
       })
 
       return AssistantShiftMapper.toDomainWithAssignments(record)
@@ -88,6 +91,10 @@ export class PrismaAssistantShiftRepository implements IAssistantShiftRepository
   }
 
   async findAll(options?: AssistantShiftListOptions): Promise<AssistantShift[]> {
+    const assignmentWhere =
+      options?.assignmentAttendanceStatus !== undefined
+        ? { attendanceStatus: options.assignmentAttendanceStatus }
+        : undefined
     const where: Prisma.AssistantShiftWhereInput = {
       ...(options?.assistantShiftSeriesId !== undefined && {
         assistantShiftSeriesId: options.assistantShiftSeriesId,
@@ -100,12 +107,19 @@ export class PrismaAssistantShiftRepository implements IAssistantShiftRepository
         },
       }),
       ...(options?.assignedAdminId !== undefined && {
-        assignments: { some: { adminId: options.assignedAdminId } },
+        assignments: {
+          some: {
+            adminId: options.assignedAdminId,
+            ...(assignmentWhere ?? {}),
+          },
+        },
       }),
       ...(options?.onlyUnlocked && {
         isLocked: false,
         series: { is: { isLocked: false } },
       }),
+      ...(options?.onlyBaseShifts && { isBaseShift: true }),
+      ...(options?.excludeBaseShifts && { isBaseShift: false }),
     }
 
     if (options?.includeSeries && options.includeCourseClass && options.includeAssignmentsForAdminId !== undefined) {
@@ -118,7 +132,7 @@ export class PrismaAssistantShiftRepository implements IAssistantShiftRepository
           series: true,
           courseClass: true,
           assignments: {
-            where: { adminId: options.includeAssignmentsForAdminId },
+            where: { adminId: options.includeAssignmentsForAdminId, ...(assignmentWhere ?? {}) },
             include: { admin: { include: { user: true } } },
           },
         },
@@ -136,7 +150,7 @@ export class PrismaAssistantShiftRepository implements IAssistantShiftRepository
         include: {
           series: true,
           courseClass: true,
-          assignments: { include: { admin: { include: { user: true } } } },
+          assignments: { where: assignmentWhere, include: { admin: { include: { user: true } } } },
         },
       })
 
@@ -151,7 +165,7 @@ export class PrismaAssistantShiftRepository implements IAssistantShiftRepository
         orderBy: [{ startAt: 'asc' }, { assistantShiftId: 'asc' }],
         include: {
           series: true,
-          assignments: { include: { admin: { include: { user: true } } } },
+          assignments: { where: assignmentWhere, include: { admin: { include: { user: true } } } },
         },
       })
 
@@ -165,7 +179,7 @@ export class PrismaAssistantShiftRepository implements IAssistantShiftRepository
         take: options?.take,
         orderBy: [{ startAt: 'asc' }, { assistantShiftId: 'asc' }],
         include: {
-          assignments: { include: { admin: { include: { user: true } } } },
+          assignments: { where: assignmentWhere, include: { admin: { include: { user: true } } } },
         },
       })
 
@@ -180,7 +194,7 @@ export class PrismaAssistantShiftRepository implements IAssistantShiftRepository
         orderBy: [{ startAt: 'asc' }, { assistantShiftId: 'asc' }],
         include: {
           assignments: {
-            where: { adminId: options.includeAssignmentsForAdminId },
+            where: { adminId: options.includeAssignmentsForAdminId, ...(assignmentWhere ?? {}) },
             include: { admin: { include: { user: true } } },
           },
         },
@@ -203,12 +217,16 @@ export class PrismaAssistantShiftRepository implements IAssistantShiftRepository
     assistantShiftSeriesId: number,
     startAt: Date,
     endAt: Date,
+    excludeAssistantShiftId?: number,
   ): Promise<boolean> {
     const count = await this.prisma.assistantShift.count({
       where: {
         assistantShiftSeriesId,
         startAt: { lt: endAt },
         endAt: { gt: startAt },
+        ...(excludeAssistantShiftId !== undefined && {
+          assistantShiftId: { not: excludeAssistantShiftId },
+        }),
       },
     })
 
@@ -228,6 +246,7 @@ export class PrismaAssistantShiftRepository implements IAssistantShiftRepository
       },
       data: {
         ...(data.isLocked !== undefined && { isLocked: data.isLocked }),
+        ...(data.isBaseShift !== undefined && { isBaseShift: data.isBaseShift }),
         ...(data.selfRegistrationOpenAt !== undefined && {
           selfRegistrationOpenAt: data.selfRegistrationOpenAt,
         }),
@@ -253,6 +272,7 @@ export class PrismaAssistantShiftRepository implements IAssistantShiftRepository
         ...(data.startAt !== undefined && { startAt: data.startAt }),
         ...(data.endAt !== undefined && { endAt: data.endAt }),
         ...(data.isLocked !== undefined && { isLocked: data.isLocked }),
+        ...(data.isBaseShift !== undefined && { isBaseShift: data.isBaseShift }),
         ...(data.selfRegistrationOpenAt !== undefined && {
           selfRegistrationOpenAt: data.selfRegistrationOpenAt,
         }),

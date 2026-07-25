@@ -9,6 +9,7 @@ export class AssistantShift {
   requiredAssistantCount: number
   assistantShiftSeriesId: number
   isLocked: boolean
+  isBaseShift: boolean
   selfRegistrationOpenAt: Date | null
   selfRegistrationCloseAt: Date | null
   createdAt: Date
@@ -27,6 +28,7 @@ export class AssistantShift {
     assistantShiftSeriesId: number
     requiredAssistantCount?: number
     isLocked?: boolean
+    isBaseShift?: boolean
     selfRegistrationOpenAt?: Date | null
     selfRegistrationCloseAt?: Date | null
     createdAt?: Date
@@ -44,6 +46,7 @@ export class AssistantShift {
     this.assistantShiftSeriesId = data.assistantShiftSeriesId
     this.requiredAssistantCount = data.requiredAssistantCount ?? 1
     this.isLocked = data.isLocked ?? false
+    this.isBaseShift = data.isBaseShift ?? false
     this.selfRegistrationOpenAt = data.selfRegistrationOpenAt ?? null
     this.selfRegistrationCloseAt = data.selfRegistrationCloseAt ?? null
     this.createdAt = data.createdAt ?? new Date()

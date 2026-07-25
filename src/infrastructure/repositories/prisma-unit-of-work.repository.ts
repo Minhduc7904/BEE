@@ -109,6 +109,7 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _assistantShiftSeriesRepository: UnitOfWorkRepos['assistantShiftSeriesRepository'] | undefined
     let _assistantShiftRepository: UnitOfWorkRepos['assistantShiftRepository'] | undefined
     let _assistantShiftAssignmentRepository: UnitOfWorkRepos['assistantShiftAssignmentRepository'] | undefined
+    let _actionApprovalRequestRepository: UnitOfWorkRepos['actionApprovalRequestRepository'] | undefined
 
     Object.defineProperty(repos, 'studentRepository', {
       get: () => (_studentRepository ??= new Repositories.PrismaStudentRepository(client)),
@@ -242,8 +243,7 @@ export class PrismaUnitOfWork implements IUnitOfWork {
 
     Object.defineProperty(repos, 'sepayTransactionSyncCursorRepository', {
       get: () =>
-        (_sepayTransactionSyncCursorRepository ??=
-          new Repositories.PrismaSepayTransactionSyncCursorRepository(client)),
+        (_sepayTransactionSyncCursorRepository ??= new Repositories.PrismaSepayTransactionSyncCursorRepository(client)),
       enumerable: true,
     })
 
@@ -253,8 +253,7 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     })
 
     Object.defineProperty(repos, 'receivingBankAccountRepository', {
-      get: () =>
-        (_receivingBankAccountRepository ??= new Repositories.PrismaReceivingBankAccountRepository(client)),
+      get: () => (_receivingBankAccountRepository ??= new Repositories.PrismaReceivingBankAccountRepository(client)),
       enumerable: true,
     })
 
@@ -267,8 +266,9 @@ export class PrismaUnitOfWork implements IUnitOfWork {
 
     Object.defineProperty(repos, 'tuitionCollectionConfigurationRepository', {
       get: () =>
-        (_tuitionCollectionConfigurationRepository ??=
-          new Repositories.PrismaTuitionCollectionConfigurationRepository(client)),
+        (_tuitionCollectionConfigurationRepository ??= new Repositories.PrismaTuitionCollectionConfigurationRepository(
+          client,
+        )),
       enumerable: true,
     })
 
@@ -284,8 +284,7 @@ export class PrismaUnitOfWork implements IUnitOfWork {
 
     Object.defineProperty(repos, 'bankTransferTransactionRepository', {
       get: () =>
-        (_bankTransferTransactionRepository ??=
-          new Repositories.PrismaBankTransferTransactionRepository(client)),
+        (_bankTransferTransactionRepository ??= new Repositories.PrismaBankTransferTransactionRepository(client)),
       enumerable: true,
     })
 
@@ -417,8 +416,7 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     })
 
     Object.defineProperty(repos, 'assistantShiftSeriesRepository', {
-      get: () =>
-        (_assistantShiftSeriesRepository ??= new Repositories.PrismaAssistantShiftSeriesRepository(client)),
+      get: () => (_assistantShiftSeriesRepository ??= new Repositories.PrismaAssistantShiftSeriesRepository(client)),
       enumerable: true,
     })
 
@@ -430,6 +428,11 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     Object.defineProperty(repos, 'assistantShiftAssignmentRepository', {
       get: () =>
         (_assistantShiftAssignmentRepository ??= new Repositories.PrismaAssistantShiftAssignmentRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'actionApprovalRequestRepository', {
+      get: () => (_actionApprovalRequestRepository ??= new Repositories.PrismaActionApprovalRequestRepository(client)),
       enumerable: true,
     })
 

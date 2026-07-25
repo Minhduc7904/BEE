@@ -38,6 +38,7 @@ export class AssistantShiftMapper {
       startAt: record.startAt,
       endAt: record.endAt,
       isLocked: record.isLocked,
+      isBaseShift: record.isBaseShift,
       selfRegistrationOpenAt: record.selfRegistrationOpenAt,
       selfRegistrationCloseAt: record.selfRegistrationCloseAt,
       requiredAssistantCount: record.requiredAssistantCount,
@@ -85,9 +86,7 @@ export class AssistantShiftMapper {
   static toDomainList(records: PrismaAssistantShift[] | null | undefined): AssistantShift[] {
     if (!records?.length) return []
 
-    return records
-      .map((record) => this.toDomain(record))
-      .filter((record): record is AssistantShift => record !== null)
+    return records.map((record) => this.toDomain(record)).filter((record): record is AssistantShift => record !== null)
   }
 
   static toDomainListWithDetails(records: PrismaAssistantShiftWithDetails[] | null | undefined): AssistantShift[] {

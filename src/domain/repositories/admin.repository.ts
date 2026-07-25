@@ -6,6 +6,7 @@ export interface FindAllAdminsOptions {
   take?: number
   search?: string
   isActive?: boolean
+  roleId?: number
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
 }

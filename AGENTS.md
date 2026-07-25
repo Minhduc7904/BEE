@@ -1,7 +1,7 @@
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **BEE** (24641 symbols, 76207 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **BEE** (25216 symbols, 77864 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > If any GitNexus tool warns the index is stale, run `npx gitnexus analyze` in terminal first.
 
@@ -58,3 +58,11 @@ For every business behavior request (ownership, validation, state transition, po
 For every API/application implementation request (DTO, use case, repository, mapper, controller, pagination, or DI), read `.agent/skills/create-application-use-case/SKILL.md` completely before editing.
 
 When a non-empty task-specific skill exists under `.agent/skills/`, read its `SKILL.md` completely before doing work in that skill's scope. Do not treat blank placeholder skills as instructions.
+
+## TypeScript and NestJS code style
+
+- Do not place an entire class, method, controller handler, DTO declaration, or control-flow block on one line.
+- Format all edited TypeScript with the repository Prettier configuration before handoff.
+- Use one import per logical group and let Prettier wrap long import lists, constructor parameters, object literals, and method calls.
+- Keep one DTO class and one action use case per file. Use `index.ts` barrel exports for feature-level imports.
+- Keep controller decorators, method signatures, and route handlers on separate readable lines following NestJS conventions.

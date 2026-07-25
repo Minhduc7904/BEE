@@ -27,7 +27,6 @@ type ResolvedBankAccount = {
 }
 
 const PAYMENT_ATTEMPT_RENEWAL_THRESHOLD_MS = 60 * 1000
-const EXPIRED_ATTEMPT_OFFSET_MS = 1000
 
 type GetPaymentInstructionsOptions = {
   forceRefresh?: boolean
@@ -62,9 +61,13 @@ export class GetMyTuitionPaymentInstructionsUseCase {
         throw new InvalidStateException('Yêu cầu thanh toán này đã hết hạn')
       }
 
-      const latestPendingAttempt = existingPaymentIntent
-        ? await repos.paymentAttemptRepository.findLatestPendingByPaymentIntent(existingPaymentIntent.paymentIntentId)
-        : null
+      const pendingAttempts = existingPaymentIntent
+        ? await repos.paymentAttemptRepository.findAll({
+            paymentIntentId: existingPaymentIntent.paymentIntentId,
+            status: PaymentAttemptStatus.PENDING,
+          })
+        : []
+      const latestPendingAttempt = pendingAttempts.find((paymentAttempt) => !paymentAttempt.isExpired(now)) ?? null
       if (!options.forceRefresh && latestPendingAttempt && this.isReusableAttempt(latestPendingAttempt, now)) {
         const bankAccount = await repos.receivingBankAccountRepository.findById(
           latestPendingAttempt.receivingBankAccountId,
@@ -75,27 +78,15 @@ export class GetMyTuitionPaymentInstructionsUseCase {
 
         const transferContent = this.createTransferContent(tuitionPayment, latestPendingAttempt.attemptCode)
         const qrCodeUrl = this.createVietQrUrl(bankAccount, latestPendingAttempt.amount, transferContent)
-        const paymentAttempt = latestPendingAttempt.qrCodeUrl === qrCodeUrl
-          ? latestPendingAttempt
-          : await repos.paymentAttemptRepository.update(latestPendingAttempt.paymentAttemptId, { qrCodeUrl })
+        const paymentAttempt =
+          latestPendingAttempt.qrCodeUrl === qrCodeUrl
+            ? latestPendingAttempt
+            : await repos.paymentAttemptRepository.update(latestPendingAttempt.paymentAttemptId, { qrCodeUrl })
         return this.toResponse(tuitionPayment, paymentAttempt, bankAccount, transferContent)
       }
 
-      const pendingAttempts = existingPaymentIntent
-        ? await repos.paymentAttemptRepository.findAll({
-            paymentIntentId: existingPaymentIntent.paymentIntentId,
-            status: PaymentAttemptStatus.PENDING,
-          })
-        : []
-      for (const pendingAttempt of pendingAttempts) {
-        await repos.paymentAttemptRepository.update(pendingAttempt.paymentAttemptId, {
-          status: PaymentAttemptStatus.EXPIRED,
-          expiresAt: this.getExpiredAttemptTime(now),
-        })
-      }
-
       const selection = await this.resolveReceivingBankAccount(repos, tuitionPayment)
-      const paymentIntent = existingPaymentIntent ?? await this.createPaymentIntent(repos, tuitionPayment)
+      const paymentIntent = existingPaymentIntent ?? (await this.createPaymentIntent(repos, tuitionPayment))
       const attemptCode = this.createAttemptCode()
       const transferContent = this.createTransferContent(tuitionPayment, attemptCode)
       const paymentAttempt = await repos.paymentAttemptRepository.create({
@@ -150,9 +141,8 @@ export class GetMyTuitionPaymentInstructionsUseCase {
     }
 
     const grade = tuitionPayment.student?.grade
-    const gradeMapping = grade === undefined
-      ? null
-      : await repos.tuitionGradeReceivingBankAccountRepository.findByGrade(grade)
+    const gradeMapping =
+      grade === undefined ? null : await repos.tuitionGradeReceivingBankAccountRepository.findByGrade(grade)
     const automaticBankAccount = gradeMapping?.receivingBankAccountId
       ? await repos.receivingBankAccountRepository.findById(gradeMapping.receivingBankAccountId)
       : null
@@ -188,10 +178,6 @@ export class GetMyTuitionPaymentInstructionsUseCase {
     }
 
     return paymentAttempt.expiresAt.getTime() - now.getTime() >= PAYMENT_ATTEMPT_RENEWAL_THRESHOLD_MS
-  }
-
-  private getExpiredAttemptTime(now: Date): Date {
-    return new Date(now.getTime() - EXPIRED_ATTEMPT_OFFSET_MS)
   }
 
   private createAttemptCode(): string {
@@ -235,11 +221,7 @@ export class GetMyTuitionPaymentInstructionsUseCase {
     )
   }
 
-  private createVietQrUrl(
-    bankAccount: ReceivingBankAccount,
-    amount: number,
-    transferContent: string,
-  ): string {
+  private createVietQrUrl(bankAccount: ReceivingBankAccount, amount: number, transferContent: string): string {
     return this.sepayService.createVietQrUrl({
       bankCode: bankAccount.bankCode,
       accountNumber: bankAccount.accountNumber,

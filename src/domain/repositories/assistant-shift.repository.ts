@@ -10,7 +10,12 @@ export interface IAssistantShiftRepository {
   create(data: CreateAssistantShiftData): Promise<AssistantShift>
   findById(assistantShiftId: number, options?: AssistantShiftRelationOptions): Promise<AssistantShift | null>
   findAll(options?: AssistantShiftListOptions): Promise<AssistantShift[]>
-  hasOverlappingTimeRange(assistantShiftSeriesId: number, startAt: Date, endAt: Date): Promise<boolean>
+  hasOverlappingTimeRange(
+    assistantShiftSeriesId: number,
+    startAt: Date,
+    endAt: Date,
+    excludeAssistantShiftId?: number,
+  ): Promise<boolean>
   updateBySeriesAndStartAtRange(
     assistantShiftSeriesId: number,
     startAt: Date,

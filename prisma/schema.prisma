@@ -62,6 +62,7 @@ enum BackgroundJobCode {
   ASSISTANT_SHIFT_REMINDER
   AUDIT_LOG_RETENTION_CLEANUP
   BACKGROUND_JOB_RUN_RETENTION_CLEANUP
+  COMPETITION_SUBMISSION_AUTO_SUBMIT
 }
 
 // Vòng đời của một lần chạy job; chỉ application/scheduler được phép chuyển trạng thái.
@@ -160,22 +161,25 @@ model User {
   emailVerifiedAt DateTime? @map("email_verified_at") @db.Timestamp(0)
 
   // Relations
-  uploadedMedia          Media[]                  @relation("MediaUploader")
-  student                Student?                 @relation("UserStudent")
-  admin                  Admin?                   @relation("UserAdmin")
-  UserRefreshToken       UserRefreshToken[]
-  userRoles              UserRole[]
-  assignedUserRoles      UserRole[]               @relation("UserRoleAssigner")
-  EmailVerificationToken EmailVerificationToken[]
-  PasswordResetToken     PasswordResetToken[]
-  notifications          Notification[]
-  questionChats          QuestionChat[]
-  createdDocuments       Document[]               @relation("DocumentCreator")
-  updatedDocuments       Document[]               @relation("DocumentUpdater")
-  createdTeacherProfiles TeacherProfile[]         @relation("TeacherProfileCreator")
-  updatedTeacherProfiles TeacherProfile[]         @relation("TeacherProfileUpdater")
-  onlineCourseInvoices   OnlineCourseInvoice[]    @relation("OnlineCourseInvoiceBuyer")
-  submittedReports       Report[]                 @relation("ReportReporter")
+  uploadedMedia                  Media[]                  @relation("MediaUploader")
+  student                        Student?                 @relation("UserStudent")
+  admin                          Admin?                   @relation("UserAdmin")
+  UserRefreshToken               UserRefreshToken[]
+  userRoles                      UserRole[]
+  assignedUserRoles              UserRole[]               @relation("UserRoleAssigner")
+  EmailVerificationToken         EmailVerificationToken[]
+  PasswordResetToken             PasswordResetToken[]
+  notifications                  Notification[]
+  questionChats                  QuestionChat[]
+  createdDocuments               Document[]               @relation("DocumentCreator")
+  updatedDocuments               Document[]               @relation("DocumentUpdater")
+  createdTeacherProfiles         TeacherProfile[]         @relation("TeacherProfileCreator")
+  updatedTeacherProfiles         TeacherProfile[]         @relation("TeacherProfileUpdater")
+  onlineCourseInvoices           OnlineCourseInvoice[]    @relation("OnlineCourseInvoiceBuyer")
+  submittedReports               Report[]                 @relation("ReportReporter")
+  // Đề nghị hành động do người dùng gửi hoặc nhận; giữ lịch sử quyết định độc lập với từng module nghiệp vụ.
+  sentActionApprovalRequests     ActionApprovalRequest[]  @relation("ActionApprovalRequestRequester")
+  receivedActionApprovalRequests ActionApprovalRequest[]  @relation("ActionApprovalRequestRecipient")
 
   @@index([lastName, firstName], map: "idx_users_name")
   @@map("users")
@@ -1276,6 +1280,22 @@ enum AssistantShiftAssignmentAttendanceStatus {
   ABSENT
 }
 
+// Loại hành động cần người nhận chấp thuận; có thể mở rộng cho các module khác.
+enum ActionApprovalRequestType {
+  ASSISTANT_SHIFT_SWAP
+  ASSISTANT_SHIFT_TRANSFER
+}
+
+// Vòng đời của đề nghị hành động, từ chờ phản hồi đến kết thúc hoặc hết hạn.
+enum ActionApprovalRequestStatus {
+  PENDING
+  PROCESSING
+  ACCEPTED
+  DECLINED
+  CANCELED
+  EXPIRED
+}
+
 // Một ca trợ giảng cụ thể, có thể gắn với lớp hoặc là ca độc lập.
 model AssistantShift {
   assistantShiftId       Int     @id @default(autoincrement()) @map("assistant_shift_id")
@@ -1291,7 +1311,9 @@ model AssistantShift {
   endAt                   DateTime  @map("end_at") @db.Timestamp(0)
   // Ca bị khóa không được hiển thị hoặc tự đăng ký trong luồng dành cho trợ giảng.
   isLocked                Boolean   @default(false) @map("is_locked")
-  // Hai mốc cùng null nghĩa là ca không mở tự đăng ký.
+  // Ca cơ sở chỉ dành cho quản trị: vẫn có assignment nhưng không xuất hiện hay được xử lý trong luồng trợ giảng/automation.
+  isBaseShift             Boolean   @default(false) @map("is_base_shift")
+  // Hai mốc cùng null nghĩa là tự đăng ký không bị giới hạn thời gian; từng mốc null tương ứng không có cận dưới/cận trên.
   selfRegistrationOpenAt  DateTime? @map("self_registration_open_at") @db.Timestamp(0)
   selfRegistrationCloseAt DateTime? @map("self_registration_close_at") @db.Timestamp(0)
   requiredAssistantCount  Int       @default(1) @map("required_assistant_count")
@@ -1312,24 +1334,24 @@ model AssistantShift {
 
 // Phân công một admin (trợ giảng) vào một ca; khóa kép ngăn phân công trùng cùng ca.
 model AssistantShiftAssignment {
-  assistantShiftId Int                                      @map("assistant_shift_id")
-  adminId          Int                                      @map("admin_id")
+  assistantShiftId        Int                                      @map("assistant_shift_id")
+  adminId                 Int                                      @map("admin_id")
   // Token ngẫu nhiên dùng cho liên kết điểm danh công khai; null để không phát hành liên kết cho dữ liệu cũ.
-  token            String?                                  @map("token") @db.VarChar(64)
+  token                   String?                                  @map("token") @db.VarChar(64)
   // Chỉ phân công mới mới được đưa vào hàng đợi email nhắc lịch; dữ liệu cũ mặc định không gửi email.
-  shouldSendReminderEmail Boolean                            @default(false) @map("should_send_reminder_email")
+  shouldSendReminderEmail Boolean                                  @default(false) @map("should_send_reminder_email")
   // Thời điểm đã gửi email điểm danh; null khi phân công mới chưa được nhắc hoặc cần gửi lại sau lỗi provider.
-  checkInReminderSentAt DateTime?                            @map("check_in_reminder_sent_at") @db.Timestamp(0)
+  checkInReminderSentAt   DateTime?                                @map("check_in_reminder_sent_at") @db.Timestamp(0)
   // Thời điểm đã xử lý thông báo vắng; null cho phép job thử lại nếu provider email lỗi hoặc đánh dấu hoàn tất khi người dùng không có email.
-  absenceEmailSentAt   DateTime?                            @map("absence_email_sent_at") @db.Timestamp(0)
-  assignedAt       DateTime                                 @default(now()) @map("assigned_at") @db.Timestamp(0)
+  absenceEmailSentAt      DateTime?                                @map("absence_email_sent_at") @db.Timestamp(0)
+  assignedAt              DateTime                                 @default(now()) @map("assigned_at") @db.Timestamp(0)
   // PENDING: chưa xác nhận; PRESENT: đã đi làm; ABSENT: không đi làm.
-  attendanceStatus AssistantShiftAssignmentAttendanceStatus @default(PENDING) @map("attendance_status")
+  attendanceStatus        AssistantShiftAssignmentAttendanceStatus @default(PENDING) @map("attendance_status")
   // Lý do vắng, chỉ có ý nghĩa khi trạng thái là ABSENT.
-  absenceReason    String?                                  @map("absence_reason") @db.Text
+  absenceReason           String?                                  @map("absence_reason") @db.Text
   // Nhận xét của quản lý về chất lượng hoặc vấn đề trong ca làm việc.
-  managerNote      String?                                  @map("manager_note") @db.Text
-  updatedAt        DateTime                                 @updatedAt @map("updated_at") @db.Timestamp(0)
+  managerNote             String?                                  @map("manager_note") @db.Text
+  updatedAt               DateTime                                 @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Xóa ca sẽ xóa các phân công phụ thuộc; không xóa admin khi còn lịch sử phân công.
   assistantShift AssistantShift @relation(fields: [assistantShiftId], references: [assistantShiftId], onDelete: Cascade)
@@ -1343,6 +1365,43 @@ model AssistantShiftAssignment {
   @@index([shouldSendReminderEmail, checkInReminderSentAt], map: "idx_assistant_shift_assignments_check_in_email")
   @@index([shouldSendReminderEmail, absenceEmailSentAt], map: "idx_assistant_shift_assignments_absence_email")
   @@map("assistant_shift_assignments")
+}
+
+// Đề nghị hành động tổng quát giữa hai người dùng; payload là snapshot có version, không là nguồn sự thật của nghiệp vụ.
+model ActionApprovalRequest {
+  actionApprovalRequestId Int                         @id @default(autoincrement()) @map("action_approval_request_id")
+  // Loại handler nghiệp vụ sẽ kiểm tra và thực hiện khi người nhận phản hồi.
+  type                    ActionApprovalRequestType   @map("type")
+  // PENDING/PROCESSING giữ dedup key; các trạng thái kết thúc giải phóng key để có thể tạo đề nghị mới.
+  status                  ActionApprovalRequestStatus @default(PENDING) @map("status")
+  requesterUserId         Int                         @map("requester_user_id")
+  recipientUserId         Int                         @map("recipient_user_id")
+  // Snapshot JSON có version, giữ dữ liệu tham chiếu để các module tự parse theo type.
+  payload                 Json                        @map("payload")
+  // Hash duy nhất của dữ liệu xác định một đề nghị đang hoạt động; null sau khi đề nghị kết thúc.
+  activeDedupKey          String?                     @unique(map: "uq_action_approval_requests_active_dedup_key") @map("active_dedup_key") @db.Char(64)
+  // Hash dữ liệu xác định đề nghị được lưu suốt vòng đời để áp dụng thời gian chờ tạo lại.
+  dedupKey                String                      @map("dedup_key") @db.Char(64)
+  // Chỉ lưu SHA-256 của token email; token gốc không được ghi vào database.
+  actionTokenHash         String                      @unique(map: "uq_action_approval_requests_action_token_hash") @map("action_token_hash") @db.Char(64)
+  // Hết hạn theo ngữ cảnh nghiệp vụ, ví dụ trước khi ca trợ giảng kết thúc.
+  expiresAt               DateTime                    @map("expires_at") @db.Timestamp(0)
+  // Mốc chống spam cho cùng một đề nghị sau khi bị từ chối, hủy hoặc hết hạn.
+  cooldownUntil           DateTime?                   @map("cooldown_until") @db.Timestamp(0)
+  emailSentAt             DateTime?                   @map("email_sent_at") @db.Timestamp(0)
+  respondedAt             DateTime?                   @map("responded_at") @db.Timestamp(0)
+  createdAt               DateTime                    @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt               DateTime                    @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  requester User @relation("ActionApprovalRequestRequester", fields: [requesterUserId], references: [userId], onDelete: Restrict)
+  recipient User @relation("ActionApprovalRequestRecipient", fields: [recipientUserId], references: [userId], onDelete: Restrict)
+
+  // Phục vụ chống spam theo người gửi/người nhận và truy vấn job hết hạn.
+  @@index([requesterUserId, createdAt], map: "idx_action_approval_requests_requester_created")
+  @@index([recipientUserId, createdAt], map: "idx_action_approval_requests_recipient_created")
+  @@index([dedupKey, createdAt], map: "idx_action_approval_requests_dedup_created")
+  @@index([status, expiresAt], map: "idx_action_approval_requests_status_expires")
+  @@map("action_approval_requests")
 }
 
 // Báo cáo do người dùng gửi về giáo viên/trợ giảng, câu hỏi, đề thi, lớp học,

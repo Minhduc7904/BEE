@@ -14,6 +14,7 @@ export interface CreateAssistantShiftData {
   classId?: number | null
   notes?: string | null
   isLocked?: boolean
+  isBaseShift?: boolean
   selfRegistrationOpenAt?: Date | null
   selfRegistrationCloseAt?: Date | null
 }
@@ -27,6 +28,7 @@ export interface UpdateAssistantShiftData {
   classId?: number | null
   notes?: string | null
   isLocked?: boolean
+  isBaseShift?: boolean
   selfRegistrationOpenAt?: Date | null
   selfRegistrationCloseAt?: Date | null
 }
@@ -35,6 +37,7 @@ export interface AssistantShiftRelationOptions {
   includeSeries?: boolean
   includeAssignmentsWithAdmin?: boolean
   includeAssignmentsForAdminId?: number
+  assignmentAttendanceStatus?: AssistantShiftAssignmentAttendanceStatus
   includeCourseClass?: boolean
 }
 
@@ -44,6 +47,8 @@ export interface AssistantShiftListOptions extends OffsetPaginationOptions, Assi
   startAtFrom?: Date
   startAtTo?: Date
   onlyUnlocked?: boolean
+  onlyBaseShifts?: boolean
+  excludeBaseShifts?: boolean
   assignedAdminId?: number
 }
 

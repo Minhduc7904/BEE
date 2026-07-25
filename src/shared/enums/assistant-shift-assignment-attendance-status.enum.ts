@@ -8,11 +8,9 @@ export enum AssistantShiftAssignmentAttendanceStatus {
   ABSENT = 'ABSENT',
 }
 
-export const AssistantShiftAssignmentAttendanceStatusLabels: Record<
-  AssistantShiftAssignmentAttendanceStatus,
-  string
-> = {
-  [AssistantShiftAssignmentAttendanceStatus.PENDING]: 'Chưa chấm công',
-  [AssistantShiftAssignmentAttendanceStatus.PRESENT]: 'Đã đi làm',
-  [AssistantShiftAssignmentAttendanceStatus.ABSENT]: 'Nghỉ',
-}
+export const AssistantShiftAssignmentAttendanceStatusLabels: Record<AssistantShiftAssignmentAttendanceStatus, string> =
+  {
+    [AssistantShiftAssignmentAttendanceStatus.PENDING]: 'Chưa chấm công',
+    [AssistantShiftAssignmentAttendanceStatus.PRESENT]: 'Đã đi làm',
+    [AssistantShiftAssignmentAttendanceStatus.ABSENT]: 'Nghỉ',
+  }

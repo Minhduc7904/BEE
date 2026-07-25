@@ -8,7 +8,8 @@ import { AdminMapper } from '../../mappers'
 import { NumberUtil } from '../../../shared/utils'
 
 export class PrismaAdminRepository implements IAdminRepository {
-  constructor(private readonly prisma: PrismaService | any) { } // any để hỗ trợ transaction client
+  // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
+  constructor(private readonly prisma: PrismaService | any) {} // any để hỗ trợ transaction client
 
   async create(data: CreateAdminData): Promise<Admin> {
     const numericUserId = NumberUtil.ensureValidId(data.userId, 'User ID')
@@ -37,7 +38,7 @@ export class PrismaAdminRepository implements IAdminRepository {
                 isActive: true,
               },
               include: {
-                role: true
+                role: true,
               },
             },
           },
@@ -86,9 +87,7 @@ export class PrismaAdminRepository implements IAdminRepository {
     return AdminMapper.toDomainAdmin(prismaAdmin)!
   }
 
-  async findAllWithPagination(
-    options: FindAllAdminsOptions
-  ): Promise<FindAllAdminsResult> {
+  async findAllWithPagination(options: FindAllAdminsOptions): Promise<FindAllAdminsResult> {
     const where: Prisma.AdminWhereInput = {}
 
     if (options.search) {
@@ -101,29 +100,32 @@ export class PrismaAdminRepository implements IAdminRepository {
         // 2️⃣ Search by full name (virtual)
         {
           AND: keywords.map((keyword) => ({
-            OR: [
-              { user: { firstName: { contains: keyword } } },
-              { user: { lastName: { contains: keyword } } },
-            ],
+            OR: [{ user: { firstName: { contains: keyword } } }, { user: { lastName: { contains: keyword } } }],
           })),
         },
       ]
     }
 
-    // Admin activity is stored on the related User row, not on Admin itself.
-    // Keeping it in `where` makes findMany and count use the same filter.
-    if (options.isActive !== undefined) {
-      where.user = {
-        isActive: options.isActive,
-      }
+    const userWhere: Prisma.UserWhereInput = {
+      ...(options.isActive !== undefined && { isActive: options.isActive }),
+      ...(options.roleId !== undefined && {
+        userRoles: {
+          some: {
+            roleId: options.roleId,
+            isActive: true,
+            OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+          },
+        },
+      }),
+    }
+    if (Object.keys(userWhere).length > 0) {
+      where.user = userWhere
     }
 
     const sortableFields = ['adminId', 'createdAt', 'updatedAt'] as const
-    const isValidSortField = (
-      field: string
-    ): field is (typeof sortableFields)[number] =>
+    const isValidSortField = (field: string): field is (typeof sortableFields)[number] =>
       (sortableFields as readonly string[]).includes(field)
-    
+
     let orderBy: Prisma.AdminOrderByWithRelationInput = {}
 
     if (options.sortBy && isValidSortField(options.sortBy)) {
@@ -131,8 +133,8 @@ export class PrismaAdminRepository implements IAdminRepository {
       if (options.sortBy === 'createdAt' || options.sortBy === 'updatedAt') {
         orderBy = {
           user: {
-            [options.sortBy]: options.sortOrder ?? 'asc'
-          }
+            [options.sortBy]: options.sortOrder ?? 'asc',
+          },
         }
       } else {
         orderBy[options.sortBy] = options.sortOrder ?? 'asc'
@@ -151,8 +153,7 @@ export class PrismaAdminRepository implements IAdminRepository {
         take,
         orderBy,
         include: {
-          user:
-          {
+          user: {
             include: {
               userRoles: {
                 where: {
@@ -163,7 +164,7 @@ export class PrismaAdminRepository implements IAdminRepository {
                 },
               },
             },
-          }
+          },
         },
       }),
       this.prisma.admin.count({ where }),
@@ -174,7 +175,6 @@ export class PrismaAdminRepository implements IAdminRepository {
       total,
     }
   }
-
 
   async update(id: number, data: UpdateAdminData): Promise<Admin> {
     const numericId = NumberUtil.ensureValidId(id, 'Admin ID')

@@ -280,33 +280,23 @@ export class ConfirmManualTuitionPaymentUseCase {
     let paymentAttempt: import('src/domain/entities/tuition-online-payment').PaymentAttempt
     if (transaction.paymentAttemptId) {
       const existingAttempt = await repos.paymentAttemptRepository.findById(transaction.paymentAttemptId)
-      if (
-        !existingAttempt ||
-        existingAttempt.paymentIntentId !== paymentIntent.paymentIntentId ||
-        existingAttempt.confirmationMode !== PaymentConfirmationMode.MANUAL_FALLBACK ||
-        ![PaymentAttemptStatus.PENDING, PaymentAttemptStatus.SUCCEEDED].includes(existingAttempt.status)
-      ) {
+      if (!existingAttempt || existingAttempt.paymentIntentId !== paymentIntent.paymentIntentId) {
         throw new InvalidStateException('Giao dịch ngân hàng không thể được xác nhận thủ công cho học phí này')
       }
 
       paymentAttempt =
-        existingAttempt.status === PaymentAttemptStatus.PENDING
-          ? await repos.paymentAttemptRepository.update(existingAttempt.paymentAttemptId, {
+        existingAttempt.status === PaymentAttemptStatus.SUCCEEDED
+          ? existingAttempt
+          : await repos.paymentAttemptRepository.update(existingAttempt.paymentAttemptId, {
               status: PaymentAttemptStatus.SUCCEEDED,
             })
-          : existingAttempt
     } else {
       const pendingManualAttempts = await repos.paymentAttemptRepository.findAll({
         paymentIntentId: paymentIntent.paymentIntentId,
         status: PaymentAttemptStatus.PENDING,
         confirmationMode: PaymentConfirmationMode.MANUAL_FALLBACK,
       })
-      const pendingAttempt = pendingManualAttempts.find((attempt) => !attempt.isExpired())
-      for (const expiredAttempt of pendingManualAttempts.filter((attempt) => attempt.isExpired())) {
-        await repos.paymentAttemptRepository.update(expiredAttempt.paymentAttemptId, {
-          status: PaymentAttemptStatus.EXPIRED,
-        })
-      }
+      const pendingAttempt = pendingManualAttempts[0]
 
       if (pendingAttempt) {
         paymentAttempt = await repos.paymentAttemptRepository.update(pendingAttempt.paymentAttemptId, {

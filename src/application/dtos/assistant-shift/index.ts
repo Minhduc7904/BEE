@@ -1,1 +1,3 @@
-export * from './assistant-shift.dto'
+export * from './assistant-shift'
+export * from './assistant-shift-assignment'
+export * from './assistant-shift-series'

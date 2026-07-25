@@ -35,6 +35,14 @@
 - Whitelist sort fields in `to...PaginationOptions`; never pass an arbitrary client sort field to Prisma.
 - Use separate query DTOs when admin and self-service APIs expose different filters.
 
+## TypeScript and NestJS formatting rules
+
+- Do not write an entire class, method, DTO declaration, controller handler, or control-flow block on one line.
+- Apply the repository Prettier configuration to every edited TypeScript file before handoff.
+- Place each DTO class in its own file and export it through the feature `index.ts` barrel.
+- Place each action use case in its own file and export it through the feature `index.ts` barrel; shared non-action helpers may live in a clearly named helper file.
+- Keep NestJS decorators, constructor parameters, route method signatures, and long object literals on separate readable lines.
+
 ## Change discipline
 
 - Before editing a function, class, or method, run the required GitNexus impact analysis and assess the blast radius.

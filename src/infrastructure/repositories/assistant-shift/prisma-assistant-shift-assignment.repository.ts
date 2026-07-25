@@ -42,6 +42,14 @@ export class PrismaAssistantShiftAssignmentRepository implements IAssistantShift
     return AssistantShiftAssignmentMapper.toDomain(record)
   }
 
+  async findByToken(token: string): Promise<AssistantShiftAssignment | null> {
+    const record = await this.prisma.assistantShiftAssignment.findFirst({
+      where: { token },
+    })
+
+    return AssistantShiftAssignmentMapper.toDomain(record)
+  }
+
   async findByCheckInToken(assistantShiftId: number, token: string): Promise<AssistantShiftAssignment | null> {
     const record = await this.prisma.assistantShiftAssignment.findFirst({
       where: { assistantShiftId, token },
@@ -73,6 +81,7 @@ export class PrismaAssistantShiftAssignmentRepository implements IAssistantShift
         token: { not: null },
         attendanceStatus: 'PENDING',
         assistantShift: {
+          isBaseShift: false,
           startAt: { lte: new Date(now.getTime() + 45 * 60 * 1000) },
           endAt: { gte: now },
         },
@@ -92,17 +101,19 @@ export class PrismaAssistantShiftAssignmentRepository implements IAssistantShift
       const email = record.admin.user.email?.trim()
       if (!record.token || !email) return []
 
-      return [{
-        assistantShiftId: record.assistantShiftId,
-        adminId: record.adminId,
-        token: record.token,
-        assistantShiftName: record.assistantShift.name,
-        startAt: record.assistantShift.startAt,
-        endAt: record.assistantShift.endAt,
-        recipientEmail: email,
-        recipientName: `${record.admin.user.lastName} ${record.admin.user.firstName}`.trim(),
-        attendanceStatus: record.attendanceStatus as AssistantShiftAssignmentAttendanceStatus,
-      }]
+      return [
+        {
+          assistantShiftId: record.assistantShiftId,
+          adminId: record.adminId,
+          token: record.token,
+          assistantShiftName: record.assistantShift.name,
+          startAt: record.assistantShift.startAt,
+          endAt: record.assistantShift.endAt,
+          recipientEmail: email,
+          recipientName: `${record.admin.user.lastName} ${record.admin.user.firstName}`.trim(),
+          attendanceStatus: record.attendanceStatus as AssistantShiftAssignmentAttendanceStatus,
+        },
+      ]
     })
   }
 
@@ -118,7 +129,7 @@ export class PrismaAssistantShiftAssignmentRepository implements IAssistantShift
             absenceReason: AUTO_ABSENCE_REASON,
           },
         ],
-        assistantShift: { endAt: { lt: now } },
+        assistantShift: { isBaseShift: false, endAt: { lt: now } },
         admin: { user: { isActive: true } },
       },
       select: {
@@ -148,11 +159,7 @@ export class PrismaAssistantShiftAssignmentRepository implements IAssistantShift
     })
   }
 
-  async claimCheckInReminderEmail(
-    assistantShiftId: number,
-    adminId: number,
-    sentAt: Date,
-  ): Promise<boolean> {
+  async claimCheckInReminderEmail(assistantShiftId: number, adminId: number, sentAt: Date): Promise<boolean> {
     const result = await this.prisma.assistantShiftAssignment.updateMany({
       where: {
         assistantShiftId,
@@ -160,6 +167,7 @@ export class PrismaAssistantShiftAssignmentRepository implements IAssistantShift
         shouldSendReminderEmail: true,
         checkInReminderSentAt: null,
         attendanceStatus: 'PENDING',
+        assistantShift: { isBaseShift: false },
       },
       data: { checkInReminderSentAt: sentAt },
     })
@@ -188,6 +196,7 @@ export class PrismaAssistantShiftAssignmentRepository implements IAssistantShift
         shouldSendReminderEmail: true,
         absenceEmailSentAt: null,
         attendanceStatus: isPending ? 'PENDING' : 'ABSENT',
+        assistantShift: { isBaseShift: false },
         ...(!isPending && { absenceReason: AUTO_ABSENCE_REASON }),
       },
       data: {
@@ -206,6 +215,64 @@ export class PrismaAssistantShiftAssignmentRepository implements IAssistantShift
     await this.prisma.assistantShiftAssignment.update({
       where: { assistantShiftId_adminId: { assistantShiftId, adminId } },
       data: { absenceEmailSentAt: null },
+    })
+  }
+
+  async rotateToken(assistantShiftId: number, adminId: number): Promise<void> {
+    await this.prisma.assistantShiftAssignment.update({
+      where: { assistantShiftId_adminId: { assistantShiftId, adminId } },
+      data: { token: randomBytes(32).toString('hex') },
+    })
+  }
+
+  async swapAssistantShifts(
+    firstAssistantShiftId: number,
+    firstAdminId: number,
+    secondAssistantShiftId: number,
+    secondAdminId: number,
+  ): Promise<void> {
+    await this.prisma.assistantShiftAssignment.update({
+      where: {
+        assistantShiftId_adminId: {
+          assistantShiftId: firstAssistantShiftId,
+          adminId: firstAdminId,
+        },
+      },
+      data: {
+        assistantShiftId: secondAssistantShiftId,
+        token: randomBytes(32).toString('hex'),
+        checkInReminderSentAt: null,
+        absenceEmailSentAt: null,
+        shouldSendReminderEmail: true,
+      },
+    })
+    await this.prisma.assistantShiftAssignment.update({
+      where: {
+        assistantShiftId_adminId: {
+          assistantShiftId: secondAssistantShiftId,
+          adminId: secondAdminId,
+        },
+      },
+      data: {
+        assistantShiftId: firstAssistantShiftId,
+        token: randomBytes(32).toString('hex'),
+        checkInReminderSentAt: null,
+        absenceEmailSentAt: null,
+        shouldSendReminderEmail: true,
+      },
+    })
+  }
+
+  async transferAssignment(assistantShiftId: number, fromAdminId: number, toAdminId: number): Promise<void> {
+    await this.prisma.assistantShiftAssignment.update({
+      where: { assistantShiftId_adminId: { assistantShiftId, adminId: fromAdminId } },
+      data: {
+        adminId: toAdminId,
+        token: randomBytes(32).toString('hex'),
+        checkInReminderSentAt: null,
+        absenceEmailSentAt: null,
+        shouldSendReminderEmail: true,
+      },
     })
   }
 

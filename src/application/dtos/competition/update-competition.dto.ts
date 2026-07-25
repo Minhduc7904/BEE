@@ -6,6 +6,7 @@ import {
     IsOptionalInt,
     IsOptionalBoolean,
     IsOptionalIdNumber,
+    IsNullableInt,
 } from '../../../shared/decorators/validate'
 import { Visibility } from '../../../shared/enums'
 
@@ -53,18 +54,18 @@ export class UpdateCompetitionDto {
     endDate?: Date
 
     /**
-     * Thời lượng làm bài (phút)
+     * Thời lượng làm bài (phút), null = không giới hạn thời gian
      * @example 90
      */
-    @IsOptionalInt('Thời lượng làm bài', 1, 999999)
-    durationMinutes?: number
+    @IsNullableInt('Thời lượng làm bài', 1, 999999)
+    durationMinutes?: number | null
 
     /**
      * Số lần được làm (null = không giới hạn)
      * @example 3
      */
-    @IsOptionalInt('Số lần được làm', 1, 999)
-    maxAttempts?: number
+    @IsNullableInt('Số lần được làm', 1, 999)
+    maxAttempts?: number | null
 
     /**
      * Trạng thái hiển thị

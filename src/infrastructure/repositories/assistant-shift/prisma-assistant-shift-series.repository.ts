@@ -37,7 +37,10 @@ export class PrismaAssistantShiftSeriesRepository implements IAssistantShiftSeri
     return AssistantShiftSeriesMapper.toDomainList(records)
   }
 
-  async update(assistantShiftSeriesId: number, data: { name?: string; isLocked?: boolean }): Promise<AssistantShiftSeries> {
+  async update(
+    assistantShiftSeriesId: number,
+    data: { name?: string; isLocked?: boolean },
+  ): Promise<AssistantShiftSeries> {
     const record = await this.prisma.assistantShiftSeries.update({
       where: { assistantShiftSeriesId },
       data,

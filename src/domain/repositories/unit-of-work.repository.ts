@@ -66,6 +66,7 @@ import { INewsArticleRepository } from './news-article.repository'
 import { IAssistantShiftSeriesRepository } from './assistant-shift-series.repository'
 import { IAssistantShiftRepository } from './assistant-shift.repository'
 import { IAssistantShiftAssignmentRepository } from './assistant-shift-assignment.repository'
+import { IActionApprovalRequestRepository } from './action-approval-request.repository'
 // src/domain/repositories/unit-of-work.repository.ts
 export interface UnitOfWorkRepos {
   userRepository: IUserRepository
@@ -135,6 +136,7 @@ export interface UnitOfWorkRepos {
   assistantShiftSeriesRepository: IAssistantShiftSeriesRepository
   assistantShiftRepository: IAssistantShiftRepository
   assistantShiftAssignmentRepository: IAssistantShiftAssignmentRepository
+  actionApprovalRequestRepository: IActionApprovalRequestRepository
 }
 
 export interface IUnitOfWork {

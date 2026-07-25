@@ -10,6 +10,7 @@ import {
 export interface IAssistantShiftAssignmentRepository {
   create(data: CreateAssistantShiftAssignmentData): Promise<AssistantShiftAssignment>
   findById(assistantShiftId: number, adminId: number): Promise<AssistantShiftAssignment | null>
+  findByToken(token: string): Promise<AssistantShiftAssignment | null>
   findByCheckInToken(assistantShiftId: number, token: string): Promise<AssistantShiftAssignment | null>
   findAll(options?: AssistantShiftAssignmentListOptions): Promise<AssistantShiftAssignment[]>
   findCheckInReminderCandidates(now: Date): Promise<AssistantShiftReminderCandidate[]>
@@ -23,6 +24,14 @@ export interface IAssistantShiftAssignmentRepository {
     sentAt: Date,
   ): Promise<boolean>
   requeueAbsenceNotification(assistantShiftId: number, adminId: number): Promise<void>
+  rotateToken(assistantShiftId: number, adminId: number): Promise<void>
+  swapAssistantShifts(
+    firstAssistantShiftId: number,
+    firstAdminId: number,
+    secondAssistantShiftId: number,
+    secondAdminId: number,
+  ): Promise<void>
+  transferAssignment(assistantShiftId: number, fromAdminId: number, toAdminId: number): Promise<void>
   update(
     assistantShiftId: number,
     adminId: number,

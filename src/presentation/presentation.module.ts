@@ -100,6 +100,7 @@ import { RetentionCleanupScheduler } from './scheduler/retention-cleanup.schedul
 import { AssistantShiftSeriesController } from './controllers/assistant-shift-series.controller'
 import { AssistantShiftController } from './controllers/assistant-shift.controller'
 import { AssistantShiftAssignmentController } from './controllers/assistant-shift-assignment.controller'
+import { AssistantShiftAssignmentActionController } from './controllers/assistant-shift-assignment-action.controller'
 import { SocketLifecycleGateway } from './gateways/socket-lifecycle.gateway'
 @Module({
   imports: [
@@ -192,6 +193,7 @@ import { SocketLifecycleGateway } from './gateways/socket-lifecycle.gateway'
     AssistantShiftSeriesController,
     AssistantShiftController,
     AssistantShiftAssignmentController,
+    AssistantShiftAssignmentActionController,
   ],
   providers: [
     // WebSocket Gateways
