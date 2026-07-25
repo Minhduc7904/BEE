@@ -1,10 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
-import {
-  AssistantShiftAllBySeriesQueryDto,
-  AssistantShiftResponseDto,
-  AssistantShiftSeriesIdsDto,
-  BaseResponseDto,
-} from '../../../dtos'
+import { AssistantShiftAllBySeriesQueryDto, AssistantShiftResponseDto, BaseResponseDto } from '../../../dtos'
 import type { IMediaUsageRepository, IUnitOfWork } from '../../../../domain/repositories'
 import { BusinessLogicException, NotFoundException } from '../../../../shared/exceptions/custom-exceptions'
 import { MinioService } from '../../../interfaces'
@@ -18,19 +13,19 @@ export class GetAllAssistantShiftsBySeriesUseCase {
     private readonly minioService: MinioService,
   ) {}
 
-  async execute(dto: AssistantShiftSeriesIdsDto, query: AssistantShiftAllBySeriesQueryDto) {
+  async execute(query: AssistantShiftAllBySeriesQueryDto) {
     const range = query.toRange()
     if (range.startAtFrom > range.startAtTo) throw new BusinessLogicException('Khoảng thời gian không hợp lệ')
-    if (dto.assistantShiftSeriesIds.length === 0) {
+    if (query.assistantShiftSeriesIds.length === 0) {
       throw new BusinessLogicException('Phải chọn ít nhất một chuỗi ca')
     }
-    if (new Set(dto.assistantShiftSeriesIds).size !== dto.assistantShiftSeriesIds.length) {
+    if (new Set(query.assistantShiftSeriesIds).size !== query.assistantShiftSeriesIds.length) {
       throw new BusinessLogicException('Danh sách ID chuỗi ca không được trùng lặp')
     }
 
     const data = await this.uow.executeInTransaction(async (repos) => {
       const series = await Promise.all(
-        dto.assistantShiftSeriesIds.map((assistantShiftSeriesId) =>
+        query.assistantShiftSeriesIds.map((assistantShiftSeriesId) =>
           repos.assistantShiftSeriesRepository.findById(assistantShiftSeriesId),
         ),
       )
@@ -39,7 +34,7 @@ export class GetAllAssistantShiftsBySeriesUseCase {
       }
 
       return repos.assistantShiftRepository.findAll({
-        assistantShiftSeriesIds: dto.assistantShiftSeriesIds,
+        assistantShiftSeriesIds: query.assistantShiftSeriesIds,
         ...range,
         excludeBaseShifts: true,
         assignedAdminId: query.adminId,

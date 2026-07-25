@@ -121,27 +121,20 @@ Response `200`:
 ### GET `/assistant-shifts/series?startAt=...&endAt=...`
 
 - Permission: `assistant-shift:get-all-by-series`.
-- Body bắt buộc: `assistantShiftSeriesIds` là mảng ID chuỗi ca dương, không rỗng và không trùng. Có thể truyền nhiều ID trong một request.
+- Query bắt buộc: `assistantShiftSeriesIds` là mảng ID chuỗi ca dương, không rỗng và không trùng. Truyền lặp lại key này để lấy nhiều series trong một request, ví dụ `assistantShiftSeriesIds=2&assistantShiftSeriesIds=10`.
 - Query `adminId` là tùy chọn. Có truyền thì chỉ trả các ca mà admin đó có assignment; không truyền thì trả toàn bộ ca thuộc các series đã chọn.
-- Rule: mọi series trong body phải tồn tại. Không lọc theo trạng thái khóa của series hoặc shift, nhưng luôn loại ca cơ sở (`isBaseShift = true`). Dùng API ca cơ sở riêng để lấy dữ liệu mẫu.
+- Rule: mọi series trong query phải tồn tại. Không lọc theo trạng thái khóa của series hoặc shift, nhưng luôn loại ca cơ sở (`isBaseShift = true`). Dùng API ca cơ sở riêng để lấy dữ liệu mẫu.
 - Include: `series`, `courseClass`, `assignments`, `assignments[].admin`.
 
 Request:
 
 ```http
-GET /api/assistant-shifts/series?startAt=2026-07-16&endAt=2026-07-18&adminId=25&attendanceStatus=PRESENT
-Content-Type: application/json
-```
-
-```json
-{
-  "assistantShiftSeriesIds": [2, 10]
-}
+GET /api/assistant-shifts/series?startAt=2026-07-16&endAt=2026-07-18&assistantShiftSeriesIds=2&assistantShiftSeriesIds=10&adminId=25&attendanceStatus=PRESENT
 ```
 
 Response `200`: envelope giống API available; `data` có thể gồm cả shift `isLocked: true` và series `isLocked: true`.
 
-`GET /api/assistant-shifts/series/:seriesId` không còn được hỗ trợ; FE chuyển sang body mảng `assistantShiftSeriesIds` kể cả khi chỉ truy vấn một series.
+`GET /api/assistant-shifts/series/:seriesId` không còn được hỗ trợ; FE dùng query `assistantShiftSeriesIds` kể cả khi chỉ truy vấn một series.
 
 ### GET `/assistant-shifts/:id/available`
 
