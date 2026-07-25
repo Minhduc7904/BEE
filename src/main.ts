@@ -6,11 +6,13 @@ import { HttpExceptionFilter } from './shared/filters/http-exception.filter'
 import { CorsConfig } from './config/cors.config'
 import { Server } from 'http'
 import { NormalizeArrayQueryPipe } from './shared/pipes/normalize-array-query.pipe'
+import { DeduplicatedDisconnectIoAdapter } from './presentation/adapters/deduplicated-disconnect-io.adapter'
 
 async function bootstrap() {
   dotenv.config()
 
   const app = await NestFactory.create(AppModule, { rawBody: true })
+  app.useWebSocketAdapter(new DeduplicatedDisconnectIoAdapter(app))
 
   /* =========================
    * CORS
@@ -32,7 +34,7 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
       transform: true,
     }),
-  );
+  )
 
   /* =========================
    * Exception filter
