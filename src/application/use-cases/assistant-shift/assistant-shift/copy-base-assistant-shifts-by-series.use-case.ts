@@ -16,32 +16,56 @@ import { copyBaseShiftTimeToWeek, getBaseShiftCopyTargetWeek } from './assistant
 export class CopyBaseAssistantShiftsBySeriesUseCase {
   constructor(@Inject('UNIT_OF_WORK') private readonly uow: IUnitOfWork) {}
 
-  async execute(assistantShiftId: number, dto: CopyBaseAssistantShiftsDto) {
+  async execute(dto: CopyBaseAssistantShiftsDto) {
     const targetWeek = getBaseShiftCopyTargetWeek(new Date(dto.startPasteAt), new Date(dto.endPasteAt))
     const copyAssignments = dto.copyAssignments ?? true
 
+    if (dto.ids.length === 0) {
+      throw new BusinessLogicException('Phải chọn ít nhất một ca cơ sở để sao chép')
+    }
+
+    if (new Set(dto.ids).size !== dto.ids.length) {
+      throw new BusinessLogicException('Danh sách ID ca cơ sở không được trùng lặp')
+    }
+
     const result = await this.uow.executeInTransaction(
       async (repos) => {
-        const sourceShift = await repos.assistantShiftRepository.findById(assistantShiftId, {
-          includeAssignmentsWithAdmin: copyAssignments,
-        })
-        if (!sourceShift || !sourceShift.isBaseShift) {
-          throw new NotFoundException('Ca cơ sở không tồn tại')
-        }
-        const startAt = copyBaseShiftTimeToWeek(sourceShift.startAt, targetWeek.startAt)
-        const endAt = copyBaseShiftTimeToWeek(sourceShift.endAt, targetWeek.startAt)
-        if (
-          await repos.assistantShiftRepository.hasOverlappingTimeRange(
-            sourceShift.assistantShiftSeriesId,
-            startAt,
-            endAt,
-          )
-        ) {
-          throw new ConflictException('Khoảng thời gian dán đã có ca trợ giảng')
+        const sourceShifts = await Promise.all(
+          dto.ids.map((assistantShiftId) =>
+            repos.assistantShiftRepository.findById(assistantShiftId, {
+              includeAssignmentsWithAdmin: copyAssignments,
+            }),
+          ),
+        )
+        if (sourceShifts.some((shift) => !shift || !shift.isBaseShift)) {
+          throw new NotFoundException('Một hoặc nhiều ca cơ sở không tồn tại')
         }
 
+        const baseShifts = sourceShifts.filter((shift): shift is NonNullable<typeof shift> => Boolean(shift))
+        const copiedShifts = await Promise.all(
+          baseShifts.map(async (sourceShift) => {
+            const startAt = copyBaseShiftTimeToWeek(sourceShift.startAt, targetWeek.startAt)
+            const endAt = copyBaseShiftTimeToWeek(sourceShift.endAt, targetWeek.startAt)
+            if (
+              await repos.assistantShiftRepository.hasOverlappingTimeRange(
+                sourceShift.assistantShiftSeriesId,
+                startAt,
+                endAt,
+              )
+            ) {
+              throw new ConflictException('Khoảng thời gian dán đã có ca trợ giảng')
+            }
+
+            return { sourceShift, startAt, endAt }
+          }),
+        )
+
         if (copyAssignments) {
-          const assignedAdminIds = new Set((sourceShift.assignments ?? []).map((assignment) => assignment.adminId))
+          const assignedAdminIds = new Set(
+            baseShifts.flatMap((sourceShift) =>
+              (sourceShift.assignments ?? []).map((assignment) => assignment.adminId),
+            ),
+          )
           const eligibleAssistants = await repos.adminRepository.findAllByRoleId(
             ASSISTANT_SHIFT_CONFIG.ELIGIBLE_ASSISTANT_ROLE_ID,
           )
@@ -52,34 +76,36 @@ export class CopyBaseAssistantShiftsBySeriesUseCase {
         }
 
         let copiedAssignmentCount = 0
-        const copiedShift = await repos.assistantShiftRepository.create({
-          assistantShiftSeriesId: sourceShift.assistantShiftSeriesId,
-          classId: sourceShift.classId ?? null,
-          name: sourceShift.name,
-          notes: sourceShift.notes ?? null,
-          startAt,
-          endAt,
-          requiredAssistantCount: sourceShift.requiredAssistantCount,
-          isBaseShift: false,
-          isLocked: false,
-          selfRegistrationOpenAt: null,
-          selfRegistrationCloseAt: null,
-        })
+        for (const { sourceShift, startAt, endAt } of copiedShifts) {
+          const copiedShift = await repos.assistantShiftRepository.create({
+            assistantShiftSeriesId: sourceShift.assistantShiftSeriesId,
+            classId: sourceShift.classId ?? null,
+            name: sourceShift.name,
+            notes: sourceShift.notes ?? null,
+            startAt,
+            endAt,
+            requiredAssistantCount: sourceShift.requiredAssistantCount,
+            isBaseShift: false,
+            isLocked: false,
+            selfRegistrationOpenAt: null,
+            selfRegistrationCloseAt: null,
+          })
 
-        if (copyAssignments) {
-          for (const assignment of sourceShift.assignments ?? []) {
-            await repos.assistantShiftAssignmentRepository.create({
-              assistantShiftId: copiedShift.assistantShiftId,
-              adminId: assignment.adminId,
-              attendanceStatus: AssistantShiftAssignmentAttendanceStatus.PENDING,
-              absenceReason: null,
-              managerNote: null,
-            })
-            copiedAssignmentCount += 1
+          if (copyAssignments) {
+            for (const assignment of sourceShift.assignments ?? []) {
+              await repos.assistantShiftAssignmentRepository.create({
+                assistantShiftId: copiedShift.assistantShiftId,
+                adminId: assignment.adminId,
+                attendanceStatus: AssistantShiftAssignmentAttendanceStatus.PENDING,
+                absenceReason: null,
+                managerNote: null,
+              })
+              copiedAssignmentCount += 1
+            }
           }
         }
 
-        return { copiedShiftCount: 1, copiedAssignmentCount }
+        return { copiedShiftCount: copiedShifts.length, copiedAssignmentCount }
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
     )

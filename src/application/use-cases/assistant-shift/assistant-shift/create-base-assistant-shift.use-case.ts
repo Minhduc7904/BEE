@@ -9,7 +9,8 @@ import { assertRange, createBaseShiftDate } from './assistant-shift.use-case.hel
 export class CreateBaseAssistantShiftUseCase {
   constructor(@Inject('UNIT_OF_WORK') private readonly uow: IUnitOfWork) {}
 
-  async execute(assistantShiftSeriesId: number, dto: CreateBaseAssistantShiftDto) {
+  async execute(dto: CreateBaseAssistantShiftDto) {
+    const assistantShiftSeriesId = dto.assistantShiftSeriesId
     const item = await this.uow.executeInTransaction(async (repos) => {
       if (!(await repos.assistantShiftSeriesRepository.findById(assistantShiftSeriesId))) {
         throw new NotFoundException('Chuỗi ca không tồn tại')

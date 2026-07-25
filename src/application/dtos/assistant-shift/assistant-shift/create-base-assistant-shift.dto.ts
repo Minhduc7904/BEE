@@ -2,11 +2,15 @@ import {
   IsOptionalIdNumber,
   IsOptionalInt,
   IsOptionalString,
+  IsRequiredIdNumber,
   IsRequiredInt,
   IsRequiredString,
 } from '../../../../shared/decorators/validate'
 
 export class CreateBaseAssistantShiftDto {
+  @IsRequiredIdNumber('ID chuỗi ca')
+  assistantShiftSeriesId!: number
+
   @IsOptionalIdNumber('ID lớp')
   classId?: number
 

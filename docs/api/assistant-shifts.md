@@ -68,7 +68,6 @@ Hai API list và hai API chi tiết Assistant Shift **luôn include** đầy đ�
 
 Lỗi chung: `401/403` thiếu JWT hoặc permission; `404` không tìm thấy; `400` sai validation/rule nghiệp vụ; `409` trùng đăng ký. Response lỗi theo error filter chung của hệ thống.
 
-
 ## Tài liệu liên quan
 
 - [Assistant Shift](./assistant-shifts.md)
@@ -193,13 +192,14 @@ Ca cơ sở là mẫu lịch duy nhất trong tuần **20/07/2026 (Thứ Hai) đ
 - Permission: `assistant-shift:get-all-by-series`.
 - Không có query ngày; luôn trả toàn bộ ca cơ sở của series, kèm `series`, `courseClass`, `assignments` và `assignments[].admin`.
 
-### POST `/assistant-shifts/series/:seriesId/base`
+### POST `/assistant-shifts/base`
 
 - Permission: `assistant-shift:create`.
-- `startAt` và `endAt` được server dựng từ `weekday`, `startTime`, `endTime`; client không gửi ngày.
+- `assistantShiftSeriesId` được gửi trong body. `startAt` và `endAt` được server dựng từ `weekday`, `startTime`, `endTime`; client không gửi ngày.
 
 ```json
 {
+  "assistantShiftSeriesId": 10,
   "classId": 12,
   "name": "Ca tối thứ Hai",
   "weekday": 1,
@@ -218,15 +218,16 @@ Ca cơ sở là mẫu lịch duy nhất trong tuần **20/07/2026 (Thứ Hai) đ
 { "startTime": "18:30", "endTime": "20:30" }
 ```
 
-### POST `/assistant-shifts/:id/base/copy`
+### POST `/assistant-shifts/base/copy`
 
 - Permission: `assistant-shift:copy`.
-- `id` là ID của đúng một ca cơ sở cần sao chép. `startPasteAt` và `endPasteAt` phải cùng tuần Thứ Hai–Chủ Nhật, ví dụ `2026-07-27` đến `2026-08-02`.
+- `ids` là danh sách ID ca cơ sở cần sao chép. `startPasteAt` và `endPasteAt` phải cùng tuần Thứ Hai–Chủ Nhật, ví dụ `2026-07-27` đến `2026-08-02`.
 - Ca được tạo là ca thường (`isBaseShift = false`), `isLocked = false`, không có cửa sổ tự đăng ký.
 - `copyAssignments` mặc định `true`; khi bật, chỉ copy admin được gắn và luôn tạo assignment `PENDING`, không copy attendance status, lý do vắng hay ghi chú quản lý.
 
 ```json
 {
+  "ids": [101, 102],
   "startPasteAt": "2026-07-27T00:00:00+07:00",
   "endPasteAt": "2026-08-02T23:59:59+07:00",
   "copyAssignments": true

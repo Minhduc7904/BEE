@@ -1,6 +1,9 @@
-import { IsOptionalBoolean, IsRequiredDate } from '../../../../shared/decorators/validate'
+import { IsOptionalBoolean, IsRequiredDate, IsRequiredIntArray } from '../../../../shared/decorators/validate'
 
 export class CopyBaseAssistantShiftsDto {
+  @IsRequiredIntArray('Danh sách ID ca cơ sở')
+  ids!: number[]
+
   @IsRequiredDate('Thời gian bắt đầu dán')
   startPasteAt!: string
 

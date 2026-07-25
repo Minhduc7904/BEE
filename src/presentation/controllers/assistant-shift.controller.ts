@@ -93,17 +93,17 @@ export class AssistantShiftController {
   listBase(@Param('seriesId', ParseIntPipe) id: number) {
     return ExceptionHandler.execute(() => this.baseList.execute(id))
   }
-  @Post('series/:seriesId/base')
+  @Post('base')
   @RequirePermission(PERMISSION_CODES.ASSISTANT_SHIFT.CREATE)
   @HttpCode(HttpStatus.CREATED)
-  createBase(@Param('seriesId', ParseIntPipe) id: number, @Body() dto: CreateBaseAssistantShiftDto) {
-    return ExceptionHandler.execute(() => this.createBaseUseCase.execute(id, dto))
+  createBase(@Body() dto: CreateBaseAssistantShiftDto) {
+    return ExceptionHandler.execute(() => this.createBaseUseCase.execute(dto))
   }
-  @Post(':id/base/copy')
+  @Post('base/copy')
   @RequirePermission(PERMISSION_CODES.ASSISTANT_SHIFT.COPY)
   @HttpCode(HttpStatus.CREATED)
-  copyBase(@Param('id', ParseIntPipe) id: number, @Body() dto: CopyBaseAssistantShiftsDto) {
-    return ExceptionHandler.execute(() => this.copyBaseUseCase.execute(id, dto))
+  copyBase(@Body() dto: CopyBaseAssistantShiftsDto) {
+    return ExceptionHandler.execute(() => this.copyBaseUseCase.execute(dto))
   }
   @Get('series/:seriesId') @RequirePermission(PERMISSION_CODES.ASSISTANT_SHIFT.GET_ALL_BY_SERIES) listAll(
     @Param('seriesId', ParseIntPipe) id: number,
