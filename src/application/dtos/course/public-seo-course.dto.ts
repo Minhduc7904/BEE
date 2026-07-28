@@ -33,13 +33,6 @@ export interface PublicSeoCourseClassDto {
   room?: string | null
 }
 
-export interface PublicSeoCourseAssistantDto {
-  courseAssistantId: number
-  adminId: number
-  joinedAt: Date
-  admin?: PublicSeoCourseTeacherDto
-}
-
 export interface PublicSeoMediaFileDto {
   usageId?: number
   mediaId: number
@@ -174,7 +167,6 @@ export interface PublicSeoCourseSummaryDto {
 export interface PublicSeoCourseDetailDto extends PublicSeoCourseSummaryDto {
   media: PublicSeoCourseMediaDto
   classes: PublicSeoCourseClassDto[]
-  assistants: PublicSeoCourseAssistantDto[]
   lessons: PublicSeoCourseLessonDto[]
 }
 

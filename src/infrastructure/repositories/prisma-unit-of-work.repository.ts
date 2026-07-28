@@ -109,6 +109,8 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _assistantShiftSeriesRepository: UnitOfWorkRepos['assistantShiftSeriesRepository'] | undefined
     let _assistantShiftRepository: UnitOfWorkRepos['assistantShiftRepository'] | undefined
     let _assistantShiftAssignmentRepository: UnitOfWorkRepos['assistantShiftAssignmentRepository'] | undefined
+    let _assistantTaskRepository: UnitOfWorkRepos['assistantTaskRepository'] | undefined
+    let _assistantTaskProductRepository: UnitOfWorkRepos['assistantTaskProductRepository'] | undefined
     let _actionApprovalRequestRepository: UnitOfWorkRepos['actionApprovalRequestRepository'] | undefined
 
     Object.defineProperty(repos, 'studentRepository', {
@@ -428,6 +430,16 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     Object.defineProperty(repos, 'assistantShiftAssignmentRepository', {
       get: () =>
         (_assistantShiftAssignmentRepository ??= new Repositories.PrismaAssistantShiftAssignmentRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'assistantTaskRepository', {
+      get: () => (_assistantTaskRepository ??= new Repositories.PrismaAssistantTaskRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'assistantTaskProductRepository', {
+      get: () => (_assistantTaskProductRepository ??= new Repositories.PrismaAssistantTaskProductRepository(client)),
       enumerable: true,
     })
 

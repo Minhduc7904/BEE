@@ -362,7 +362,7 @@ model Admin {
   homeworkSubmits           HomeworkSubmit[]
   gradedExamAttempts        ExamAttempt[]              @relation("ExamAttemptGrader")
   gradedCompetitionSubmits  CompetitionSubmit[]        @relation("CompetitionSubmitGrader")
-  courseAssistants          CourseAssistant[]
+  assignedAssistantTasks    AssistantTask[]            @relation("AssistantTaskAssignee")
   assistantShiftAssignments AssistantShiftAssignment[]
   reportsAbout              Report[]                   @relation("ReportTargetAdmin")
   handledReports            Report[]                   @relation("ReportHandler")
@@ -1171,25 +1171,7 @@ model StudentLearningItem {
   @@map("students_learning_items")
 }
 
-model CourseAssistant {
-  courseAssistantId Int @id @default(autoincrement()) @map("course_assistant_id")
-
-  courseId Int @map("course_id")
-  adminId  Int @map("admin_id") // trá»£ giáº£ng
-
-  joinedAt  DateTime @default(now()) @map("joined_at")
-  createdAt DateTime @default(now()) @map("created_at")
-
-  // Relations
-  course Course @relation(fields: [courseId], references: [courseId], onDelete: Cascade)
-  admin  Admin  @relation(fields: [adminId], references: [adminId], onDelete: Cascade)
-
-  @@unique([courseId, adminId]) // 1 admin khÃ´ng Ä‘Æ°á»£c lÃ m TA 2 láº§n trong 1 course
-  @@index([courseId])
-  @@index([adminId])
-  @@map("course_assistants")
-}
-
+// Quan hệ trợ giảng theo khóa học được thay thế bằng công việc được giao.
 model Course {
   courseId     Int        @id @default(autoincrement()) @map("course_id")
   code         String     @unique @map("code") @db.VarChar(50) // mÃ£ khoÃ¡ há»c dÃ¹ng Ä‘á»ƒ Ä‘Äƒng kÃ½, vÃ­ dá»¥: "TOAN10A", "VAN11NC"
@@ -1217,7 +1199,7 @@ model Course {
   courseEnrollments  CourseEnrollment[]
   tuitionPayments    TuitionPayment[]
   onlineInvoiceItems OnlineCourseInvoiceItem[]
-  courseAssistants   CourseAssistant[]
+  assistantTasks     AssistantTask[]
 
   @@unique([code], map: "unique_course_code")
   @@index([visibility], map: "idx_courses_visibility")
@@ -1228,6 +1210,72 @@ model Course {
   @@index([createdAt], map: "idx_courses_created_at")
   @@index([visibility, courseType, updatedAt, code], map: "idx_courses_sitemap_online")
   @@map("courses")
+}
+
+// Loại công việc tạo cho trợ giảng; tập giá trị chỉ được mở rộng khi có nghiệp vụ mới được phê duyệt.
+enum AssistantTaskType {
+  HOMEWORK_ANSWER_KEY
+  PUBLISH_HOMEWORK
+  HOMEWORK_SOLUTION_VIDEO
+  IN_CLASS_EXERCISE_ANSWER_KEY
+  ESSAY_GRADING
+}
+
+// Vòng đời công việc trợ giảng; transition sẽ do application use case kiểm soát khi triển khai API.
+enum AssistantTaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+// Công việc có thể được tạo nháp trước khi gắn khóa học, trợ giảng hoặc loại việc.
+model AssistantTask {
+  assistantTaskId Int                 @id @default(autoincrement()) @map("assistant_task_id")
+  courseId        Int?                @map("course_id")
+  assistantId     Int?                @map("assistant_id")
+  taskType        AssistantTaskType?  @map("task_type")
+  status          AssistantTaskStatus @default(PENDING) @map("status")
+  // Task mẫu để sao chép nhanh khi tạo task mới cho trợ giảng.
+  isBaseTask      Boolean             @default(false) @map("is_base_task")
+
+  // Hạn hoàn thành là tùy chọn để hỗ trợ task mẫu hoặc task chưa được lên lịch.
+  deadlineAt  DateTime? @map("deadline_at") @db.Timestamp(0)
+  // Thời điểm task hoàn thành thực tế; chỉ được ghi khi luồng nghiệp vụ xác nhận hoàn thành.
+  completedAt DateTime? @map("completed_at") @db.Timestamp(0)
+  // Ghi chú hướng dẫn hoặc yêu cầu của công việc.
+  note        String?   @map("note") @db.Text
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Giữ công việc khi khóa học hoặc trợ giảng bị xóa; chỉ bỏ liên kết đã không còn hợp lệ.
+  course    Course?                @relation(fields: [courseId], references: [courseId], onDelete: SetNull)
+  assistant Admin?                 @relation("AssistantTaskAssignee", fields: [assistantId], references: [adminId], onDelete: SetNull)
+  products  AssistantTaskProduct[]
+
+  // Phục vụ danh sách công việc theo khóa học/trợ giảng, trạng thái và hạn hoàn thành.
+  @@index([courseId, status, deadlineAt], map: "idx_assistant_tasks_course_status_deadline")
+  @@index([assistantId, status, deadlineAt], map: "idx_assistant_tasks_assistant_status_deadline")
+  @@index([isBaseTask], map: "idx_assistant_tasks_is_base_task")
+  @@map("assistant_tasks")
+}
+
+// Sản phẩm có thể được chuẩn bị trước hoặc sau khi gắn vào một công việc.
+model AssistantTaskProduct {
+  assistantTaskProductId Int      @id @default(autoincrement()) @map("assistant_task_product_id")
+  assistantTaskId        Int?     @map("assistant_task_id")
+  // Tên sản phẩm không áp dụng cho ESSAY_GRADING; use case sẽ bắt buộc để null cho loại công việc này.
+  name                   String?  @map("name") @db.VarChar(255)
+  // Số bài đã chấm cho ESSAY_GRADING; use case sẽ bắt buộc giá trị không âm và không dùng cho các loại khác.
+  quantity               Int?     @map("quantity")
+  createdAt              DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt              DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  // Giữ sản phẩm khi công việc bị xóa; chỉ bỏ liên kết công việc.
+  assistantTask AssistantTask? @relation(fields: [assistantTaskId], references: [assistantTaskId], onDelete: SetNull)
+
+  // File đính kèm sản phẩm được lưu qua MediaUsage với entityType = ASSISTANT_TASK_PRODUCT và entityId = assistantTaskProductId.
+  @@index([assistantTaskId], map: "idx_assistant_task_products_task_id")
+  @@map("assistant_task_products")
 }
 
 model CourseClass {

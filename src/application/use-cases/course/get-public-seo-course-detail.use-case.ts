@@ -48,18 +48,6 @@ export class GetPublicSeoCourseDetailUseCase {
             classId: 'asc',
           },
         },
-        courseAssistants: {
-          include: {
-            admin: {
-              include: {
-                user: true,
-              },
-            },
-          },
-          orderBy: {
-            courseAssistantId: 'asc',
-          },
-        },
         lessons: {
           where: {
             visibility: Visibility.PUBLISHED,
@@ -158,12 +146,6 @@ export class GetPublicSeoCourseDetailUseCase {
         endDate: courseClass.endDate,
         weeklySchedule: courseClass.weeklySchedule,
         room: courseClass.room,
-      })),
-      assistants: course.courseAssistants.map((assistant) => ({
-        courseAssistantId: assistant.courseAssistantId,
-        adminId: assistant.adminId,
-        joinedAt: assistant.joinedAt,
-        admin: mapPublicSeoTeacher(assistant.admin),
       })),
       lessons: course.lessons.map((lesson) => ({
         lessonId: lesson.lessonId,

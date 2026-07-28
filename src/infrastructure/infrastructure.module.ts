@@ -80,6 +80,8 @@ import {
   PrismaAssistantShiftSeriesRepository,
   PrismaAssistantShiftRepository,
   PrismaAssistantShiftAssignmentRepository,
+  PrismaAssistantTaskRepository,
+  PrismaAssistantTaskProductRepository,
   PrismaActionApprovalRequestRepository,
 } from './repositories'
 import {
@@ -597,6 +599,16 @@ import {
       inject: [PrismaService],
     },
     {
+      provide: 'IAssistantTaskRepository',
+      useFactory: (prisma: PrismaService) => new PrismaAssistantTaskRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IAssistantTaskProductRepository',
+      useFactory: (prisma: PrismaService) => new PrismaAssistantTaskProductRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
       provide: 'IActionApprovalRequestRepository',
       useFactory: (prisma: PrismaService) => new PrismaActionApprovalRequestRepository(prisma),
       inject: [PrismaService],
@@ -762,6 +774,8 @@ import {
     'IAssistantShiftSeriesRepository',
     'IAssistantShiftRepository',
     'IAssistantShiftAssignmentRepository',
+    'IAssistantTaskRepository',
+    'IAssistantTaskProductRepository',
     'IActionApprovalRequestRepository',
     'PASSWORD_SERVICE',
     'JWT_TOKEN_SERVICE',
