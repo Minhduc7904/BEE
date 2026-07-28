@@ -6,7 +6,11 @@ import { AssistantTaskStatus, AssistantTaskType } from '../../../shared/enums'
 import { AssistantTaskProductMapper } from './assistant-task-product.mapper'
 
 type PrismaAssistantTaskWithProducts = Prisma.AssistantTaskGetPayload<{
-  include: { products: true }
+  include: {
+    submissions: {
+      include: { assistantTaskProduct: true }
+    }
+  }
 }>
 
 export class AssistantTaskMapper {
@@ -17,6 +21,7 @@ export class AssistantTaskMapper {
       assistantTaskId: record.assistantTaskId,
       courseId: record.courseId,
       assistantId: record.assistantId,
+      taskName: record.taskName,
       taskType: record.taskType as AssistantTaskType | null,
       status: record.status as AssistantTaskStatus,
       isBaseTask: record.isBaseTask,
@@ -32,7 +37,9 @@ export class AssistantTaskMapper {
     const task = this.toDomain(record)
     if (!task || !record) return null
 
-    task.products = AssistantTaskProductMapper.toDomainList(record.products)
+    task.products = AssistantTaskProductMapper.toDomainList(
+      record.submissions.map((submission) => submission.assistantTaskProduct),
+    )
     return task
   }
 

@@ -191,6 +191,29 @@ export const PERMISSION_CODES = {
     UNLOCK_BY_SERIES: 'assistant-shift:unlock-by-series',
     SET_SELF_REGISTRATION_WINDOW_BY_SERIES: 'assistant-shift:set-self-registration-window-by-series',
   },
+  ASSISTANT_TASK: {
+    GET_ALL: 'assistant-task:get-all',
+    GET_BY_ID: 'assistant-task:get-by-id',
+    CREATE: 'assistant-task:create',
+    UPDATE: 'assistant-task:update',
+    DELETE: 'assistant-task:delete',
+  },
+  ASSISTANT_TASK_PRODUCT: {
+    GET_ALL: 'assistant-task-product:get-all',
+    GET_BY_ID: 'assistant-task-product:get-by-id',
+    GET_MY: 'assistant-task-product:get-my',
+    CREATE_FOR_ASSISTANT: 'assistant-task-product:create-for-assistant',
+    CREATE_MY: 'assistant-task-product:create-my',
+    UPDATE: 'assistant-task-product:update',
+    UPDATE_MY: 'assistant-task-product:update-my',
+    DELETE: 'assistant-task-product:delete',
+  },
+  ASSISTANT_TASK_PRODUCT_SUBMISSION: {
+    GET_ALL: 'assistant-task-product-submission:get-all',
+    GET_BY_ID: 'assistant-task-product-submission:get-by-id',
+    MANAGE: 'assistant-task-product-submission:manage',
+    SELF_MANAGE: 'assistant-task-product-submission:self-manage',
+  },
   REPORT: {
     GET_ALL: 'report:get-all',
     GET_BY_ID: 'report:get-by-id',
@@ -501,6 +524,9 @@ const PERMISSION_GROUPS_BY_KEY: Record<string, string> = {
   HOMEWORK_SUBMIT: 'HOMEWORK_SUBMIT_MANAGEMENT',
   LESSON_LEARNING_ITEM: 'LESSON_LEARNING_ITEM_MANAGEMENT',
   ADMIN_PAGE: 'ADMIN_PAGE_ACCESS',
+  ASSISTANT_TASK: 'ASSISTANT_TASK_MANAGEMENT',
+  ASSISTANT_TASK_PRODUCT: 'ASSISTANT_TASK_PRODUCT_MANAGEMENT',
+  ASSISTANT_TASK_PRODUCT_SUBMISSION: 'ASSISTANT_TASK_PRODUCT_SUBMISSION_MANAGEMENT',
 }
 
 const PERMISSION_RESOURCE_LABELS_BY_KEY: Record<string, string> = {
@@ -550,6 +576,9 @@ const PERMISSION_RESOURCE_LABELS_BY_KEY: Record<string, string> = {
   HOMEWORK_SUBMIT: 'homework submission',
   LESSON_LEARNING_ITEM: 'lesson learning item',
   ADMIN_PAGE: 'admin page',
+  ASSISTANT_TASK: 'assistant task',
+  ASSISTANT_TASK_PRODUCT: 'assistant task product',
+  ASSISTANT_TASK_PRODUCT_SUBMISSION: 'assistant task product submission',
 }
 
 const PERMISSION_ACTION_LABELS_BY_KEY: Record<string, string> = {
@@ -627,6 +656,11 @@ const PERMISSION_ACTION_LABELS_BY_KEY: Record<string, string> = {
   SYNC_FROM_CODES: 'Sync from permission codes',
   CONFIRM_MANUAL_PAYMENT: 'Confirm manual payment',
   VIEW_SENSITIVE: 'View sensitive information',
+  CREATE_FOR_ASSISTANT: 'Create for assistant',
+  CREATE_MY: 'Create my',
+  UPDATE_MY: 'Update my',
+  MANAGE: 'Manage',
+  SELF_MANAGE: 'Self manage',
 }
 
 const ADMIN_PAGE_LABELS_BY_KEY: Record<string, string> = {
@@ -673,6 +707,10 @@ const SELF_CONTAINED_ACTION_KEYS = new Set([
   'GET_MY_ATTENDANCES',
   'GET_MY_ENROLLMENTS',
   'GET_MY_LEARNING_ITEMS',
+  'GET_MY',
+  'CREATE_MY',
+  'UPDATE_MY',
+  'SELF_MANAGE',
   'GET_USER_ROLES',
   'TOGGLE_ROLE_PERMISSION',
   'GET_STATISTICS_BUCKETS',

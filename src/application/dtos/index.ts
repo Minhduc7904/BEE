@@ -81,3 +81,4 @@ export * from './question-chat'
 // Question Chat Message DTOs
 export * from './question-chat-message'
 export * from './assistant-shift'
+export * from './assistant-task'

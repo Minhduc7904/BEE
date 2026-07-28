@@ -23,6 +23,7 @@ export class PrismaAssistantTaskRepository implements IAssistantTaskRepository {
       data: {
         courseId: data.courseId ?? null,
         assistantId: data.assistantId ?? null,
+        taskName: data.taskName ?? null,
         taskType: (data.taskType ?? null) as PrismaAssistantTaskType | null,
         status: (data.status ?? PrismaAssistantTaskStatus.PENDING) as PrismaAssistantTaskStatus,
         isBaseTask: data.isBaseTask ?? false,
@@ -39,7 +40,11 @@ export class PrismaAssistantTaskRepository implements IAssistantTaskRepository {
     if (options?.includeProducts) {
       const record = await this.prisma.assistantTask.findUnique({
         where: { assistantTaskId },
-        include: { products: true },
+        include: {
+          submissions: {
+            include: { assistantTaskProduct: true },
+          },
+        },
       })
 
       return AssistantTaskMapper.toDomainWithProducts(record)
@@ -53,9 +58,47 @@ export class PrismaAssistantTaskRepository implements IAssistantTaskRepository {
   }
 
   async findAll(options?: AssistantTaskListOptions): Promise<AssistantTask[]> {
-    const where: Prisma.AssistantTaskWhereInput = {
+    const where = this.buildWhere(options)
+
+    if (options?.includeProducts) {
+      const records = await this.prisma.assistantTask.findMany({
+        where,
+        skip: options.skip,
+        take: options.take,
+        orderBy: [{ deadlineAt: 'asc' }, { assistantTaskId: 'asc' }],
+        include: {
+          submissions: {
+            include: { assistantTaskProduct: true },
+          },
+        },
+      })
+
+      return AssistantTaskMapper.toDomainListWithProducts(records)
+    }
+
+    const records = await this.prisma.assistantTask.findMany({
+      where,
+      skip: options?.skip,
+      take: options?.take,
+      orderBy: [{ deadlineAt: 'asc' }, { assistantTaskId: 'asc' }],
+    })
+
+    return AssistantTaskMapper.toDomainList(records)
+  }
+
+  async count(options?: AssistantTaskListOptions): Promise<number> {
+    return this.prisma.assistantTask.count({
+      where: this.buildWhere(options),
+    })
+  }
+
+  private buildWhere(options?: AssistantTaskListOptions): Prisma.AssistantTaskWhereInput {
+    return {
       ...(options?.courseId !== undefined && { courseId: options.courseId }),
       ...(options?.assistantId !== undefined && { assistantId: options.assistantId }),
+      ...(options?.taskName !== undefined && {
+        taskName: options.taskName,
+      }),
       ...(options?.taskType !== undefined && {
         taskType: options.taskType as PrismaAssistantTaskType | null,
       }),
@@ -75,28 +118,12 @@ export class PrismaAssistantTaskRepository implements IAssistantTaskRepository {
           ...(options.completedAtTo !== undefined && { lte: options.completedAtTo }),
         },
       }),
+      ...(options?.productId !== undefined && {
+        submissions: {
+          some: { assistantTaskProductId: options.productId },
+        },
+      }),
     }
-
-    if (options?.includeProducts) {
-      const records = await this.prisma.assistantTask.findMany({
-        where,
-        skip: options.skip,
-        take: options.take,
-        orderBy: [{ deadlineAt: 'asc' }, { assistantTaskId: 'asc' }],
-        include: { products: true },
-      })
-
-      return AssistantTaskMapper.toDomainListWithProducts(records)
-    }
-
-    const records = await this.prisma.assistantTask.findMany({
-      where,
-      skip: options?.skip,
-      take: options?.take,
-      orderBy: [{ deadlineAt: 'asc' }, { assistantTaskId: 'asc' }],
-    })
-
-    return AssistantTaskMapper.toDomainList(records)
   }
 
   async update(assistantTaskId: number, data: UpdateAssistantTaskData): Promise<AssistantTask> {
@@ -105,6 +132,9 @@ export class PrismaAssistantTaskRepository implements IAssistantTaskRepository {
       data: {
         ...(data.courseId !== undefined && { courseId: data.courseId }),
         ...(data.assistantId !== undefined && { assistantId: data.assistantId }),
+        ...(data.taskName !== undefined && {
+          taskName: data.taskName,
+        }),
         ...(data.taskType !== undefined && {
           taskType: data.taskType as PrismaAssistantTaskType | null,
         }),

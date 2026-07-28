@@ -68,6 +68,7 @@ import { IAssistantShiftRepository } from './assistant-shift.repository'
 import { IAssistantShiftAssignmentRepository } from './assistant-shift-assignment.repository'
 import { IAssistantTaskRepository } from './assistant-task.repository'
 import { IAssistantTaskProductRepository } from './assistant-task-product.repository'
+import { IAssistantTaskProductSubmissionRepository } from './assistant-task-product-submission.repository'
 import { IActionApprovalRequestRepository } from './action-approval-request.repository'
 // src/domain/repositories/unit-of-work.repository.ts
 export interface UnitOfWorkRepos {
@@ -140,6 +141,7 @@ export interface UnitOfWorkRepos {
   assistantShiftAssignmentRepository: IAssistantShiftAssignmentRepository
   assistantTaskRepository: IAssistantTaskRepository
   assistantTaskProductRepository: IAssistantTaskProductRepository
+  assistantTaskProductSubmissionRepository: IAssistantTaskProductSubmissionRepository
   actionApprovalRequestRepository: IActionApprovalRequestRepository
 }
 

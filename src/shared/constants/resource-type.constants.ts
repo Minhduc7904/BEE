@@ -40,6 +40,9 @@ export const RESOURCE_TYPES = {
   EXAM: 'EXAM',
   COMPETITION: 'COMPETITION',
   COMPETITION_SUBMIT: 'COMPETITION_SUBMIT',
+  ASSISTANT_TASK: 'ASSISTANT_TASK',
+  ASSISTANT_TASK_PRODUCT: 'ASSISTANT_TASK_PRODUCT',
+  ASSISTANT_TASK_PRODUCT_SUBMISSION: 'ASSISTANT_TASK_PRODUCT_SUBMISSION',
 } as const
 
 export const RESOURCE_TYPE_TABLE = {
@@ -276,6 +279,24 @@ export const RESOURCE_TYPE_TABLE = {
     tableName: 'competition_submits',
     primaryKey: 'competitionSubmitId',
     repositoryName: 'competitionSubmitRepository',
+  },
+  [RESOURCE_TYPES.ASSISTANT_TASK]: {
+    displayName: 'Assistant Task',
+    tableName: 'assistant_tasks',
+    primaryKey: 'assistantTaskId',
+    repositoryName: 'assistantTaskRepository',
+  },
+  [RESOURCE_TYPES.ASSISTANT_TASK_PRODUCT]: {
+    displayName: 'Assistant Task Product',
+    tableName: 'assistant_task_products',
+    primaryKey: 'assistantTaskProductId',
+    repositoryName: 'assistantTaskProductRepository',
+  },
+  [RESOURCE_TYPES.ASSISTANT_TASK_PRODUCT_SUBMISSION]: {
+    displayName: 'Assistant Task Product Submission',
+    tableName: 'assistant_task_product_submissions',
+    primaryKey: 'assistantTaskProductSubmissionId',
+    repositoryName: 'assistantTaskProductSubmissionRepository',
   },
 } as const
 

@@ -10,6 +10,7 @@ export interface IAssistantTaskRepository {
   create(data: CreateAssistantTaskData): Promise<AssistantTask>
   findById(assistantTaskId: number, options?: AssistantTaskRelationOptions): Promise<AssistantTask | null>
   findAll(options?: AssistantTaskListOptions): Promise<AssistantTask[]>
+  count(options?: AssistantTaskListOptions): Promise<number>
   update(assistantTaskId: number, data: UpdateAssistantTaskData): Promise<AssistantTask>
   delete(assistantTaskId: number): Promise<boolean>
 }

@@ -6,6 +6,7 @@ export class AssistantTask {
   assistantTaskId: number
   courseId: number | null
   assistantId: number | null
+  taskName: string | null
   taskType: AssistantTaskType | null
   status: AssistantTaskStatus
   isBaseTask: boolean
@@ -20,6 +21,7 @@ export class AssistantTask {
     assistantTaskId: number
     courseId?: number | null
     assistantId?: number | null
+    taskName?: string | null
     taskType?: AssistantTaskType | null
     status?: AssistantTaskStatus
     isBaseTask?: boolean
@@ -33,6 +35,7 @@ export class AssistantTask {
     this.assistantTaskId = data.assistantTaskId
     this.courseId = data.courseId ?? null
     this.assistantId = data.assistantId ?? null
+    this.taskName = data.taskName ?? null
     this.taskType = data.taskType ?? null
     this.status = data.status ?? AssistantTaskStatus.PENDING
     this.isBaseTask = data.isBaseTask ?? false

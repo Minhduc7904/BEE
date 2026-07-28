@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client'
 import { AssistantTaskProduct } from '../../../domain/entities/assistant-task'
 import type {
   AssistantTaskProductListOptions,
+  AssistantTaskProductRelationOptions,
   CreateAssistantTaskProductData,
   UpdateAssistantTaskProductData,
 } from '../../../domain/interface/assistant-task'
@@ -16,7 +17,8 @@ export class PrismaAssistantTaskProductRepository implements IAssistantTaskProdu
   async create(data: CreateAssistantTaskProductData): Promise<AssistantTaskProduct> {
     const created = await this.prisma.assistantTaskProduct.create({
       data: {
-        assistantTaskId: data.assistantTaskId ?? null,
+        assistantId: data.assistantId,
+        examId: data.examId ?? null,
         name: data.name ?? null,
         quantity: data.quantity ?? null,
       },
@@ -25,7 +27,23 @@ export class PrismaAssistantTaskProductRepository implements IAssistantTaskProdu
     return AssistantTaskProductMapper.toDomain(created)!
   }
 
-  async findById(assistantTaskProductId: number): Promise<AssistantTaskProduct | null> {
+  async findById(
+    assistantTaskProductId: number,
+    options?: AssistantTaskProductRelationOptions,
+  ): Promise<AssistantTaskProduct | null> {
+    if (options?.includeTasks) {
+      const record = await this.prisma.assistantTaskProduct.findUnique({
+        where: { assistantTaskProductId },
+        include: {
+          submissions: {
+            include: { assistantTask: true },
+          },
+        },
+      })
+
+      return AssistantTaskProductMapper.toDomainWithTasks(record)
+    }
+
     const record = await this.prisma.assistantTaskProduct.findUnique({
       where: { assistantTaskProductId },
     })
@@ -34,23 +52,44 @@ export class PrismaAssistantTaskProductRepository implements IAssistantTaskProdu
   }
 
   async findAll(options?: AssistantTaskProductListOptions): Promise<AssistantTaskProduct[]> {
+    const where = this.buildWhere(options)
+
+    if (options?.includeTasks) {
+      const records = await this.prisma.assistantTaskProduct.findMany({
+        where,
+        skip: options.skip,
+        take: options.take,
+        orderBy: [{ createdAt: 'desc' }, { assistantTaskProductId: 'desc' }],
+        include: {
+          submissions: {
+            include: { assistantTask: true },
+          },
+        },
+      })
+
+      return AssistantTaskProductMapper.toDomainListWithTasks(records)
+    }
+
     const records = await this.prisma.assistantTaskProduct.findMany({
-      where: {
-        ...(options?.assistantTaskId !== undefined && { assistantTaskId: options.assistantTaskId }),
-      },
+      where,
       skip: options?.skip,
       take: options?.take,
-      orderBy: { assistantTaskProductId: 'asc' },
+      orderBy: [{ createdAt: 'desc' }, { assistantTaskProductId: 'desc' }],
     })
 
     return AssistantTaskProductMapper.toDomainList(records)
+  }
+
+  async count(options?: AssistantTaskProductListOptions): Promise<number> {
+    return this.prisma.assistantTaskProduct.count({
+      where: this.buildWhere(options),
+    })
   }
 
   async update(assistantTaskProductId: number, data: UpdateAssistantTaskProductData): Promise<AssistantTaskProduct> {
     const updated = await this.prisma.assistantTaskProduct.update({
       where: { assistantTaskProductId },
       data: {
-        ...(data.assistantTaskId !== undefined && { assistantTaskId: data.assistantTaskId }),
         ...(data.name !== undefined && { name: data.name }),
         ...(data.quantity !== undefined && { quantity: data.quantity }),
       },
@@ -65,5 +104,23 @@ export class PrismaAssistantTaskProductRepository implements IAssistantTaskProdu
     })
 
     return true
+  }
+
+  private buildWhere(options?: AssistantTaskProductListOptions): Prisma.AssistantTaskProductWhereInput {
+    return {
+      ...(options?.assistantId !== undefined && { assistantId: options.assistantId }),
+      ...(options?.examId !== undefined && { examId: options.examId }),
+      ...((options?.createdAtFrom !== undefined || options?.createdAtTo !== undefined) && {
+        createdAt: {
+          ...(options.createdAtFrom !== undefined && { gte: options.createdAtFrom }),
+          ...(options.createdAtTo !== undefined && { lte: options.createdAtTo }),
+        },
+      }),
+      ...(options?.taskId !== undefined && {
+        submissions: {
+          some: { assistantTaskId: options.taskId },
+        },
+      }),
+    }
   }
 }

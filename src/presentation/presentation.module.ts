@@ -101,6 +101,9 @@ import { AssistantShiftSeriesController } from './controllers/assistant-shift-se
 import { AssistantShiftController } from './controllers/assistant-shift.controller'
 import { AssistantShiftAssignmentController } from './controllers/assistant-shift-assignment.controller'
 import { AssistantShiftAssignmentActionController } from './controllers/assistant-shift-assignment-action.controller'
+import { AssistantTaskController } from './controllers/assistant-task.controller'
+import { AssistantTaskProductController } from './controllers/assistant-task-product.controller'
+import { AssistantTaskProductSubmissionController } from './controllers/assistant-task-product-submission.controller'
 import { SocketLifecycleGateway } from './gateways/socket-lifecycle.gateway'
 @Module({
   imports: [
@@ -194,6 +197,9 @@ import { SocketLifecycleGateway } from './gateways/socket-lifecycle.gateway'
     AssistantShiftController,
     AssistantShiftAssignmentController,
     AssistantShiftAssignmentActionController,
+    AssistantTaskController,
+    AssistantTaskProductController,
+    AssistantTaskProductSubmissionController,
   ],
   providers: [
     // WebSocket Gateways

@@ -363,6 +363,7 @@ model Admin {
   gradedExamAttempts        ExamAttempt[]              @relation("ExamAttemptGrader")
   gradedCompetitionSubmits  CompetitionSubmit[]        @relation("CompetitionSubmitGrader")
   assignedAssistantTasks    AssistantTask[]            @relation("AssistantTaskAssignee")
+  assistantTaskProducts     AssistantTaskProduct[]     @relation("AssistantTaskProductOwner")
   assistantShiftAssignments AssistantShiftAssignment[]
   reportsAbout              Report[]                   @relation("ReportTargetAdmin")
   handledReports            Report[]                   @relation("ReportHandler")
@@ -594,14 +595,15 @@ model Exam {
   typeOfExam         TypeOfExam?    @map("type_of_exam") // vÃ­ dá»¥: "15 phÃºt", "1 tiáº¿t", "há»c ká»³", "tuyá»ƒn sinh"
 
   // Relations
-  subject      Subject?       @relation("ExamSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
-  admin        Admin          @relation("ExamCreatedBy", fields: [createdBy], references: [adminId], onDelete: Cascade)
-  competitions Competition[]
-  sections     Section[]      @relation("ExamSections")
-  questions    QuestionExam[]
-  tempExam     TempExam?      @relation("TempExamFinal")
-  examAttempts ExamAttempt[]
-  reports      Report[]
+  subject               Subject?               @relation("ExamSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
+  admin                 Admin                  @relation("ExamCreatedBy", fields: [createdBy], references: [adminId], onDelete: Cascade)
+  competitions          Competition[]
+  sections              Section[]              @relation("ExamSections")
+  questions             QuestionExam[]
+  tempExam              TempExam?              @relation("TempExamFinal")
+  examAttempts          ExamAttempt[]
+  reports               Report[]
+  assistantTaskProducts AssistantTaskProduct[]
 
   @@index([grade, subjectId], map: "idx_exams_grade_subject")
   @@index([subjectId], map: "idx_exams_subject_id")
@@ -1212,15 +1214,6 @@ model Course {
   @@map("courses")
 }
 
-// Loại công việc tạo cho trợ giảng; tập giá trị chỉ được mở rộng khi có nghiệp vụ mới được phê duyệt.
-enum AssistantTaskType {
-  HOMEWORK_ANSWER_KEY
-  PUBLISH_HOMEWORK
-  HOMEWORK_SOLUTION_VIDEO
-  IN_CLASS_EXERCISE_ANSWER_KEY
-  ESSAY_GRADING
-}
-
 // Vòng đời công việc trợ giảng; transition sẽ do application use case kiểm soát khi triển khai API.
 enum AssistantTaskStatus {
   PENDING
@@ -1228,11 +1221,20 @@ enum AssistantTaskStatus {
   COMPLETED
 }
 
-// Công việc có thể được tạo nháp trước khi gắn khóa học, trợ giảng hoặc loại việc.
+enum AssistantTaskType {
+  BTVN
+  VIDEO
+  BTTL
+  BAI_CHAM
+}
+
+// Công việc có thể được tạo nháp trước khi gắn khóa học, trợ giảng hoặc tên công việc.
 model AssistantTask {
   assistantTaskId Int                 @id @default(autoincrement()) @map("assistant_task_id")
   courseId        Int?                @map("course_id")
   assistantId     Int?                @map("assistant_id")
+  // Tên công việc do người dùng lựa chọn hoặc nhập; nullable để giữ task nháp và dữ liệu lịch sử.
+  taskName        String?             @map("task_name") @db.VarChar(255)
   taskType        AssistantTaskType?  @map("task_type")
   status          AssistantTaskStatus @default(PENDING) @map("status")
   // Task mẫu để sao chép nhanh khi tạo task mới cho trợ giảng.
@@ -1250,7 +1252,7 @@ model AssistantTask {
   // Giữ công việc khi khóa học hoặc trợ giảng bị xóa; chỉ bỏ liên kết đã không còn hợp lệ.
   course    Course?                @relation(fields: [courseId], references: [courseId], onDelete: SetNull)
   assistant Admin?                 @relation("AssistantTaskAssignee", fields: [assistantId], references: [adminId], onDelete: SetNull)
-  products  AssistantTaskProduct[]
+  submissions AssistantTaskProductSubmission[]
 
   // Phục vụ danh sách công việc theo khóa học/trợ giảng, trạng thái và hạn hoàn thành.
   @@index([courseId, status, deadlineAt], map: "idx_assistant_tasks_course_status_deadline")
@@ -1262,20 +1264,43 @@ model AssistantTask {
 // Sản phẩm có thể được chuẩn bị trước hoặc sau khi gắn vào một công việc.
 model AssistantTaskProduct {
   assistantTaskProductId Int      @id @default(autoincrement()) @map("assistant_task_product_id")
-  assistantTaskId        Int?     @map("assistant_task_id")
-  // Tên sản phẩm không áp dụng cho ESSAY_GRADING; use case sẽ bắt buộc để null cho loại công việc này.
+  assistantId            Int      @map("assistant_id")
+  // Đề thi liên quan đến sản phẩm; bị bỏ liên kết khi đề thi bị xóa để giữ lịch sử sản phẩm.
+  examId                 Int?     @map("exam_id")
+  // Tên sản phẩm do người dùng mô tả; không bị ràng buộc bởi danh sách loại công việc cố định.
   name                   String?  @map("name") @db.VarChar(255)
-  // Số bài đã chấm cho ESSAY_GRADING; use case sẽ bắt buộc giá trị không âm và không dùng cho các loại khác.
+  // Số lượng sản phẩm hoặc bài đã xử lý; validation nghiệp vụ thuộc application use case.
   quantity               Int?     @map("quantity")
   createdAt              DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt              DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Giữ sản phẩm khi công việc bị xóa; chỉ bỏ liên kết công việc.
-  assistantTask AssistantTask? @relation(fields: [assistantTaskId], references: [assistantTaskId], onDelete: SetNull)
+  assistant   Admin                            @relation("AssistantTaskProductOwner", fields: [assistantId], references: [adminId], onDelete: Cascade)
+  exam        Exam?                            @relation(fields: [examId], references: [examId], onDelete: SetNull)
+  submissions AssistantTaskProductSubmission[]
 
   // File đính kèm sản phẩm được lưu qua MediaUsage với entityType = ASSISTANT_TASK_PRODUCT và entityId = assistantTaskProductId.
-  @@index([assistantTaskId], map: "idx_assistant_task_products_task_id")
+  @@index([assistantId, createdAt], map: "idx_assistant_task_products_assistant_created_at")
+  @@index([examId], map: "idx_assistant_task_products_exam_id")
   @@map("assistant_task_products")
+}
+
+// Lần một product được nộp/gắn vào một task; giữ thời điểm nộp cho từng cặp many-to-many.
+model AssistantTaskProductSubmission {
+  assistantTaskProductSubmissionId Int      @id @default(autoincrement()) @map("assistant_task_product_submission_id")
+  assistantTaskId                  Int      @map("assistant_task_id")
+  assistantTaskProductId           Int      @map("assistant_task_product_id")
+  submittedAt                      DateTime @default(now()) @map("submitted_at") @db.Timestamp(0)
+  createdAt                        DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                        DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  assistantTask        AssistantTask        @relation(fields: [assistantTaskId], references: [assistantTaskId], onDelete: Cascade)
+  assistantTaskProduct AssistantTaskProduct @relation(fields: [assistantTaskProductId], references: [assistantTaskProductId], onDelete: Cascade)
+
+  @@unique([assistantTaskId, assistantTaskProductId], map: "unique_assistant_task_product_submission")
+  @@index([assistantTaskId, submittedAt], map: "idx_assistant_task_product_submissions_task_submitted_at")
+  @@index([assistantTaskProductId, submittedAt], map: "idx_assistant_task_product_submissions_product_submitted_at")
+  @@map("assistant_task_product_submissions")
 }
 
 model CourseClass {

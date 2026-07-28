@@ -8,6 +8,7 @@ export interface AssistantTaskOffsetPaginationOptions {
 export interface CreateAssistantTaskData {
   courseId?: number | null
   assistantId?: number | null
+  taskName?: string | null
   taskType?: AssistantTaskType | null
   status?: AssistantTaskStatus
   isBaseTask?: boolean
@@ -19,6 +20,7 @@ export interface CreateAssistantTaskData {
 export interface UpdateAssistantTaskData {
   courseId?: number | null
   assistantId?: number | null
+  taskName?: string | null
   taskType?: AssistantTaskType | null
   status?: AssistantTaskStatus
   isBaseTask?: boolean
@@ -34,6 +36,7 @@ export interface AssistantTaskRelationOptions {
 export interface AssistantTaskListOptions extends AssistantTaskOffsetPaginationOptions, AssistantTaskRelationOptions {
   courseId?: number | null
   assistantId?: number | null
+  taskName?: string | null
   taskType?: AssistantTaskType | null
   status?: AssistantTaskStatus
   isBaseTask?: boolean
@@ -41,20 +44,38 @@ export interface AssistantTaskListOptions extends AssistantTaskOffsetPaginationO
   deadlineAtTo?: Date
   completedAtFrom?: Date
   completedAtTo?: Date
+  productId?: number
 }
 
 export interface CreateAssistantTaskProductData {
-  assistantTaskId?: number | null
+  assistantId: number
+  examId?: number | null
   name?: string | null
   quantity?: number | null
 }
 
 export interface UpdateAssistantTaskProductData {
-  assistantTaskId?: number | null
   name?: string | null
   quantity?: number | null
 }
 
-export interface AssistantTaskProductListOptions extends AssistantTaskOffsetPaginationOptions {
-  assistantTaskId?: number | null
+export interface AssistantTaskProductRelationOptions {
+  includeTasks?: boolean
+}
+
+export interface AssistantTaskProductListOptions
+  extends AssistantTaskOffsetPaginationOptions,
+    AssistantTaskProductRelationOptions {
+  assistantId?: number
+  examId?: number | null
+  createdAtFrom?: Date
+  createdAtTo?: Date
+  taskId?: number
+}
+
+export interface AssistantTaskProductSubmissionListOptions extends AssistantTaskOffsetPaginationOptions {
+  assistantTaskId?: number
+  assistantTaskProductId?: number
+  submittedAtFrom?: Date
+  submittedAtTo?: Date
 }

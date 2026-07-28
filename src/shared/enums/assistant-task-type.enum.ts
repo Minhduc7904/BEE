@@ -1,18 +1,14 @@
-/**
- * Đồng bộ với Prisma enum AssistantTaskType.
- */
+/** Đồng bộ với Prisma enum AssistantTaskType. */
 export enum AssistantTaskType {
-  HOMEWORK_ANSWER_KEY = 'HOMEWORK_ANSWER_KEY',
-  PUBLISH_HOMEWORK = 'PUBLISH_HOMEWORK',
-  HOMEWORK_SOLUTION_VIDEO = 'HOMEWORK_SOLUTION_VIDEO',
-  IN_CLASS_EXERCISE_ANSWER_KEY = 'IN_CLASS_EXERCISE_ANSWER_KEY',
-  ESSAY_GRADING = 'ESSAY_GRADING',
+  BTVN = 'BTVN',
+  VIDEO = 'VIDEO',
+  BTTL = 'BTTL',
+  BAI_CHAM = 'BAI_CHAM',
 }
 
 export const AssistantTaskTypeLabels: Record<AssistantTaskType, string> = {
-  [AssistantTaskType.HOMEWORK_ANSWER_KEY]: 'Đáp án BTVN',
-  [AssistantTaskType.PUBLISH_HOMEWORK]: 'Đăng BTVN',
-  [AssistantTaskType.HOMEWORK_SOLUTION_VIDEO]: 'Video chữa BTVN',
-  [AssistantTaskType.IN_CLASS_EXERCISE_ANSWER_KEY]: 'Đáp án BTTL',
-  [AssistantTaskType.ESSAY_GRADING]: 'Chấm tự luận',
+  [AssistantTaskType.BTVN]: 'Bài tập về nhà',
+  [AssistantTaskType.VIDEO]: 'Video',
+  [AssistantTaskType.BTTL]: 'Bài tập trên lớp',
+  [AssistantTaskType.BAI_CHAM]: 'Bài chấm',
 }

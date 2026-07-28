@@ -1,25 +1,33 @@
+import type { AssistantTask } from './assistant-task.entity'
+
 export class AssistantTaskProduct {
   assistantTaskProductId: number
-  assistantTaskId: number | null
+  assistantId: number
+  examId: number | null
   name: string | null
   quantity: number | null
   createdAt: Date
   updatedAt: Date
+  tasks?: AssistantTask[]
 
   constructor(data: {
     assistantTaskProductId: number
-    assistantTaskId?: number | null
+    assistantId: number
+    examId?: number | null
     name?: string | null
     quantity?: number | null
     createdAt?: Date
     updatedAt?: Date
+    tasks?: AssistantTask[]
   }) {
     this.assistantTaskProductId = data.assistantTaskProductId
-    this.assistantTaskId = data.assistantTaskId ?? null
+    this.assistantId = data.assistantId
+    this.examId = data.examId ?? null
     this.name = data.name ?? null
     this.quantity = data.quantity ?? null
     this.createdAt = data.createdAt ?? new Date()
     this.updatedAt = data.updatedAt ?? new Date()
+    this.tasks = data.tasks
   }
 
   equals(other: AssistantTaskProduct): boolean {
