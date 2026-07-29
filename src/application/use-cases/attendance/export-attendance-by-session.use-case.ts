@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import type { IAttendanceRepository } from 'src/domain/repositories/attendance.repository'
+import type { IHomeworkSubmitRepository } from 'src/domain/repositories/homework-submit.repository'
 import { ExcelService, ExcelColumn } from 'src/application/interfaces'
 import { NotFoundException } from '@nestjs/common'
 import { ExportAttendanceOptionsDto } from '../../dtos/attendance/export-attendance-options.dto'
@@ -9,6 +10,8 @@ export class ExportAttendanceBySessionUseCase {
   constructor(
     @Inject('IAttendanceRepository')
     private readonly attendanceRepository: IAttendanceRepository,
+    @Inject('IHomeworkSubmitRepository')
+    private readonly homeworkSubmitRepository: IHomeworkSubmitRepository,
     private readonly excelService: ExcelService,
   ) {}
 
@@ -27,6 +30,21 @@ export class ExportAttendanceBySessionUseCase {
     }
 
     // Chuẩn bị dữ liệu cho Excel
+    const homeworkScoreByStudentId = new Map<number, number | null>()
+    if (options.homeworkContentId !== undefined) {
+      const studentIds = [...new Set(result.data.map((attendance) => attendance.studentId))]
+      const homeworkSubmits = await this.homeworkSubmitRepository.findManyByContentAndStudents(
+        options.homeworkContentId,
+        studentIds,
+      )
+
+      for (const homeworkSubmit of homeworkSubmits) {
+        if (!homeworkScoreByStudentId.has(homeworkSubmit.studentId)) {
+          homeworkScoreByStudentId.set(homeworkSubmit.studentId, homeworkSubmit.points ?? null)
+        }
+      }
+    }
+
     const excelData = result.data.map((attendance, index) => ({
       stt: index + 1,
       studentCode: attendance.student?.studentId || '',
@@ -41,6 +59,10 @@ export class ExportAttendanceBySessionUseCase {
       notes: attendance.notes || '',
       makeupNote: attendance.makeupNote || '',
       markerName: attendance.getMarkerName() || '',
+      homeworkScore:
+        options.homeworkContentId !== undefined
+          ? (homeworkScoreByStudentId.get(attendance.studentId) ?? '')
+          : undefined,
     }))
 
     // Lấy thông tin session để đặt tên file
@@ -114,6 +136,10 @@ export class ExportAttendanceBySessionUseCase {
 
     if (options.includeMarkerName !== false) {
       columns.push({ header: 'Người điểm danh', key: 'markerName', width: 20 })
+    }
+
+    if (options.homeworkContentId !== undefined) {
+      columns.push({ header: 'Điểm BTVN', key: 'homeworkScore', width: 14 })
     }
 
     return columns

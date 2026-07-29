@@ -48,6 +48,7 @@ export class CompetitionResponseDto {
   startDate?: Date | null
   endDate?: Date | null
   durationMinutes?: number | null
+  isUnlimited: boolean
   maxAttempts?: number | null
   visibility: string
   showResultDetail: boolean
@@ -70,7 +71,8 @@ export class CompetitionResponseDto {
     dto.policies = competition.policies
     dto.startDate = competition.startDate ?? null
     dto.endDate = competition.endDate ?? null
-    dto.durationMinutes = competition.durationMinutes
+    dto.durationMinutes = competition.getDurationMinutes()
+    dto.isUnlimited = competition.isUnlimited()
     dto.maxAttempts = competition.maxAttempts
     dto.visibility = competition.visibility
     dto.showResultDetail = competition.showResultDetail
@@ -266,6 +268,7 @@ export class PublicStudentExamCompetitionResponseDto {
   startDate?: Date | null
   endDate?: Date | null
   durationMinutes?: number | null
+  isUnlimited: boolean
   maxAttempts?: number | null
   visibility: string
   showResultDetail: boolean
@@ -287,7 +290,8 @@ export class PublicStudentExamCompetitionResponseDto {
     dto.policies = competition.policies
     dto.startDate = competition.startDate ?? null
     dto.endDate = competition.endDate ?? null
-    dto.durationMinutes = competition.durationMinutes
+    dto.durationMinutes = competition.getDurationMinutes()
+    dto.isUnlimited = competition.isUnlimited()
     dto.maxAttempts = competition.maxAttempts
     dto.visibility = competition.visibility
     dto.showResultDetail = competition.showResultDetail
@@ -364,9 +368,7 @@ export class PublicStudentExamDetailResponseDto {
     dto.solutionYoutubeUrl = exam.solutionYoutubeUrl
     dto.thumbnailUrl = null
     dto.typeOfExam = exam.typeOfExam
-    dto.competitions = exam.competitions
-      ? PublicStudentExamCompetitionResponseDto.fromEntities(exam.competitions)
-      : []
+    dto.competitions = exam.competitions ? PublicStudentExamCompetitionResponseDto.fromEntities(exam.competitions) : []
     dto.createdAt = exam.createdAt
     dto.updatedAt = exam.updatedAt
     dto.hasDescription = exam.hasDescription()

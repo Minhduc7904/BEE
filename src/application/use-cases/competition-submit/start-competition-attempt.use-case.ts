@@ -36,6 +36,7 @@ export class StartCompetitionAttemptUseCase {
 
     // 2. Check if competition is ongoing (optional - based on startDate/endDate)
     const now = new Date()
+    const durationMinutes = competition.getDurationMinutes()
 
     if (competition.startDate && now < competition.startDate) {
       return {
@@ -58,10 +59,10 @@ export class StartCompetitionAttemptUseCase {
 
     // 3. Check if there's already an IN_PROGRESS attempt
     const expiredInProgressAttempt = existingAttempts.find((attempt) => {
-      if (attempt.status !== CompetitionSubmitStatus.IN_PROGRESS || !competition.durationMinutes) return false
+      if (attempt.status !== CompetitionSubmitStatus.IN_PROGRESS || durationMinutes === null) return false
 
       const elapsedMs = now.getTime() - attempt.startedAt.getTime()
-      return elapsedMs >= competition.durationMinutes * 60 * 1000
+      return elapsedMs >= durationMinutes * 60 * 1000
     })
 
     if (expiredInProgressAttempt) {
@@ -80,10 +81,10 @@ export class StartCompetitionAttemptUseCase {
       if (attempt.status !== CompetitionSubmitStatus.IN_PROGRESS) return false
 
       // Nếu không có durationMinutes thì không có giới hạn thời gian -> vẫn còn hiệu lực
-      if (!competition.durationMinutes) return true
+      if (durationMinutes === null) return true
 
       const elapsedMs = now.getTime() - attempt.startedAt.getTime()
-      const durationMs = competition.durationMinutes * 60 * 1000
+      const durationMs = durationMinutes * 60 * 1000
       return elapsedMs < durationMs
     })
 

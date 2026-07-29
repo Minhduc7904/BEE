@@ -25,8 +25,7 @@ export class AutoSubmitExpiredCompetitionAttemptsUseCase {
     const candidates = inProgressSubmits
       .map((submit) => ({ submit, reason: this.getExpiryReason(submit, now) }))
       .filter(
-        (candidate): candidate is { submit: CompetitionSubmit; reason: AutoSubmitReason } =>
-          candidate.reason !== null,
+        (candidate): candidate is { submit: CompetitionSubmit; reason: AutoSubmitReason } => candidate.reason !== null,
       )
 
     const submitted: AutoSubmitResultItem[] = []
@@ -71,8 +70,8 @@ export class AutoSubmitExpiredCompetitionAttemptsUseCase {
       return 'COMPETITION_ENDED'
     }
 
-    const durationMinutes = competition.durationMinutes
-    if (durationMinutes === null || durationMinutes === undefined || durationMinutes <= 0) {
+    const durationMinutes = competition.getDurationMinutes()
+    if (durationMinutes === null) {
       return null
     }
 

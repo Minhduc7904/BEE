@@ -62,7 +62,6 @@ export class Competition {
     admin?: any
     learningItems?: LearningItem[]
     homeworkContents?: HomeworkContent[]
-
   }) {
     this.competitionId = data.competitionId
     this.title = data.title
@@ -94,8 +93,7 @@ export class Competition {
    * Kiểm tra competition có giới hạn thời gian không
    */
   hasTimeLimit(): boolean {
-    return this.startDate !== null && this.startDate !== undefined && 
-           this.endDate !== null && this.endDate !== undefined
+    return Boolean(this.startDate || this.endDate)
   }
 
   /**
@@ -123,7 +121,22 @@ export class Competition {
    * Kiểm tra competition có thời lượng không
    */
   hasDuration(): boolean {
-    return this.durationMinutes !== null && this.durationMinutes !== undefined
+    return this.durationMinutes !== null && this.durationMinutes !== undefined && this.durationMinutes > 0
+  }
+
+  /**
+   * Lấy thời lượng hiệu lực. Giá trị null, 0 hoặc âm đều là không giới hạn.
+   */
+  getDurationMinutes(): number | null {
+    return this.hasDuration() ? this.durationMinutes! : null
+  }
+
+  /**
+   * Cuộc thi chỉ vô thời hạn khi không có giới hạn cho từng lượt làm bài
+   * và cũng không có hạn kết thúc chung của cuộc thi.
+   */
+  isUnlimited(): boolean {
+    return this.getDurationMinutes() === null && !this.endDate
   }
 
   /**
@@ -195,25 +208,21 @@ export class Competition {
    * Kiểm tra competition có đang diễn ra không
    */
   isOngoing(): boolean {
-    if (!this.hasTimeLimit()) return true // Không giới hạn thời gian = luôn đang diễn ra
-    const now = new Date()
-    return now >= this.startDate! && now <= this.endDate!
+    return !this.isUpcoming() && !this.isEnded()
   }
 
   /**
    * Kiểm tra competition đã kết thúc chưa
    */
   isEnded(): boolean {
-    if (!this.hasTimeLimit()) return false // Không giới hạn thời gian = chưa kết thúc
-    return new Date() > this.endDate!
+    return Boolean(this.endDate && new Date() > this.endDate)
   }
 
   /**
    * Kiểm tra competition chưa bắt đầu
    */
   isUpcoming(): boolean {
-    if (!this.hasTimeLimit()) return false // Không giới hạn thời gian = không phải sắp tới
-    return new Date() < this.startDate!
+    return Boolean(this.startDate && new Date() < this.startDate)
   }
 
   /**
@@ -305,7 +314,7 @@ export class Competition {
    * Tính thời gian còn lại đến khi bắt đầu (milliseconds)
    */
   getTimeUntilStart(): number {
-    if (!this.hasTimeLimit() || !this.startDate) return 0
+    if (!this.startDate) return 0
     return this.startDate.getTime() - new Date().getTime()
   }
 
@@ -313,7 +322,7 @@ export class Competition {
    * Tính thời gian còn lại đến khi kết thúc (milliseconds)
    */
   getTimeUntilEnd(): number {
-    if (!this.hasTimeLimit() || !this.endDate) return 0
+    if (!this.endDate) return 0
     return this.endDate.getTime() - new Date().getTime()
   }
 
@@ -321,17 +330,16 @@ export class Competition {
    * Lấy thời gian còn lại hiển thị
    */
   getTimeRemainingDisplay(): string {
-    if (!this.hasTimeLimit()) return 'Không giới hạn thời gian'
     if (this.isEnded()) return 'Đã kết thúc'
     if (this.isUpcoming()) {
       const ms = this.getTimeUntilStart()
       return this.formatTimeRemaining(ms)
     }
-    if (this.isOngoing()) {
+    if (this.endDate) {
       const ms = this.getTimeUntilEnd()
       return this.formatTimeRemaining(ms)
     }
-    return ''
+    return 'Không có thời hạn kết thúc'
   }
 
   /**
@@ -377,7 +385,7 @@ export class Competition {
       policies: this.policies,
       createdBy: this.createdBy,
       visibility: this.visibility,
-      durationMinutes: this.durationMinutes,
+      durationMinutes: this.getDurationMinutes(),
       maxAttempts: this.maxAttempts,
       showResultDetail: this.showResultDetail,
       allowLeaderboard: this.allowLeaderboard,
@@ -395,6 +403,7 @@ export class Competition {
       hasSubtitle: this.hasSubtitle(),
       hasPolicies: this.hasPolicies(),
       hasDuration: this.hasDuration(),
+      isUnlimited: this.isUnlimited(),
       hasMaxAttempts: this.hasMaxAttempts(),
       hasLearningItems: this.hasLearningItems(),
       durationDisplay: this.getDurationDisplay(),

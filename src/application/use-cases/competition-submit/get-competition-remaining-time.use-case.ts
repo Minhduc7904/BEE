@@ -4,7 +4,11 @@ import { Inject, Injectable } from '@nestjs/common'
 import type { ICompetitionSubmitRepository } from '../../../domain/repositories'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 import { CompetitionSubmitRemainingTimeDto } from '../../dtos/competition-submit/competition-submit-remaining-time.dto'
-import { ForbiddenException, NotFoundException, ValidationException } from '../../../shared/exceptions/custom-exceptions'
+import {
+  ForbiddenException,
+  NotFoundException,
+  ValidationException,
+} from '../../../shared/exceptions/custom-exceptions'
 
 @Injectable()
 export class GetCompetitionRemainingTimeUseCase {
@@ -45,19 +49,24 @@ export class GetCompetitionRemainingTimeUseCase {
     const elapsedMs = now.getTime() - startedAt.getTime()
     const elapsedMinutes = Math.floor(elapsedMs / 60000)
 
-    const durationMinutes = competitionSubmit.competition.durationMinutes
+    const durationMinutes = competitionSubmit.competition.getDurationMinutes()
+    const durationDeadlineAt =
+      durationMinutes === null ? null : new Date(startedAt.getTime() + durationMinutes * 60 * 1000)
+    const competitionEndDate = competitionSubmit.competition.endDate ?? null
+    const deadlineAt =
+      durationDeadlineAt && competitionEndDate
+        ? new Date(Math.min(durationDeadlineAt.getTime(), competitionEndDate.getTime()))
+        : (durationDeadlineAt ?? competitionEndDate)
+    const isUnlimited = competitionSubmit.competition.isUnlimited()
 
     let remainingMs: number | undefined
     let remainingMinutes: number | undefined
     let isOverTime = false
 
-    if (durationMinutes !== null && durationMinutes !== undefined) {
-      const durationMs = durationMinutes * 60 * 1000
-
-      remainingMs = Math.max(0, durationMs - elapsedMs)
+    if (deadlineAt) {
+      remainingMs = Math.max(0, deadlineAt.getTime() - now.getTime())
       remainingMinutes = Math.floor(remainingMs / 60000)
-
-      isOverTime = elapsedMs > durationMs
+      isOverTime = now.getTime() >= deadlineAt.getTime()
     }
 
     // ===============================
@@ -90,6 +99,7 @@ export class GetCompetitionRemainingTimeUseCase {
       elapsedMinutes,
       remainingMinutes,
       isOverTime,
+      isUnlimited,
       formattedRemaining,
       formattedElapsed,
     )

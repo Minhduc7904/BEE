@@ -71,6 +71,7 @@ export class StudentHomeworkCompetitionDto {
   startDate: Date | null
   endDate: Date | null
   durationMinutes: number | null
+  isUnlimited: boolean
   maxAttempts: number | null
   examId: number | null
   visibility: Visibility
@@ -85,6 +86,17 @@ export class StudentHomeworkCompetitionDto {
   static fromPrisma(competition: StudentHomeworkCompetitionSource): StudentHomeworkCompetitionDto {
     const dto = new StudentHomeworkCompetitionDto()
     Object.assign(dto, competition, {
+      durationMinutes:
+        competition.durationMinutes !== null &&
+        competition.durationMinutes !== undefined &&
+        competition.durationMinutes > 0
+          ? competition.durationMinutes
+          : null,
+      isUnlimited:
+        (competition.durationMinutes === null ||
+          competition.durationMinutes === undefined ||
+          competition.durationMinutes <= 0) &&
+        !competition.endDate,
       visibility: competition.visibility as Visibility,
     })
     return dto
