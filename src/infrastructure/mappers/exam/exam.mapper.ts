@@ -5,6 +5,7 @@ import { SubjectMapper } from '../subject/subject.mapper'
 import { AdminMapper } from '../user/admin.mapper'
 import { SectionMapper } from './section.mapper'
 import { QuestionExamMapper } from './question-exam.mapper'
+import { CompetitionMapper } from '../competition/competition.mapper'
 export class ExamMapper {
   /**
    * Convert Prisma model to Domain entity
@@ -32,7 +33,7 @@ export class ExamMapper {
       subject: prisma.subject ? SubjectMapper.toDomainSubject(prisma.subject) : null,
       admin: prisma.admin ? AdminMapper.toDomainAdmin(prisma.admin) : undefined,
       questions: prisma.questions ? QuestionExamMapper.toDomainQuestionExams(prisma.questions) : undefined,
-      competitions: prisma.competitions,
+      competitions: prisma.competitions ? CompetitionMapper.toDomainCompetitions(prisma.competitions) : undefined,
       sections: prisma.sections ? prisma.sections.map(SectionMapper.toDomainSection) : undefined,
     })
   }
