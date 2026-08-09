@@ -1,6 +1,6 @@
 import type { TuitionPayment } from '../../../domain/entities/tuition-payment/tuition-payment.entity'
 import type { UnitOfWorkRepos } from '../../../domain/repositories'
-import { PaymentIntentStatus, TuitionPaymentStatus } from '../../../shared/enums'
+import { BankTransferTransactionType, PaymentIntentStatus, TuitionPaymentStatus } from '../../../shared/enums'
 import { BusinessLogicException } from '../../../shared/exceptions/custom-exceptions'
 
 /**
@@ -20,6 +20,7 @@ export class CreatePaymentIntentForCreatedTuitionPayment {
     }
 
     return repos.paymentIntentRepository.create({
+      type: BankTransferTransactionType.TUITION_PAYMENT,
       tuitionPaymentId: tuitionPayment.paymentId,
       amount: tuitionPayment.amount,
       currency: 'VND',

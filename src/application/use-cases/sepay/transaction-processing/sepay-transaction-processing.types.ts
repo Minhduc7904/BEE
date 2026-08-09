@@ -1,9 +1,16 @@
 import type { JsonPayload } from 'src/domain/interface/tuition-online-payment'
-import { BankTransferProcessingStatus, PaymentIntentStatus, TuitionPaymentStatus } from 'src/shared/enums'
+import {
+  BankTransferProcessingStatus,
+  BankTransferTransactionType,
+  PaymentIntentStatus,
+  TuitionPaymentStatus,
+} from 'src/shared/enums'
 
 export interface PaymentInstructionReference {
   attemptCode: string
-  tuitionPaymentId: number
+  type: BankTransferTransactionType
+  tuitionPaymentId?: number
+  courseEnrollmentId?: number
 }
 
 export interface IncomingSepayTransaction {
@@ -29,4 +36,6 @@ export interface ProcessSepayTransactionResult {
   intentStatus?: PaymentIntentStatus
   paidAt?: Date | null
   intentUpdatedAt?: Date
+  type?: BankTransferTransactionType
+  courseEnrollmentId?: number
 }

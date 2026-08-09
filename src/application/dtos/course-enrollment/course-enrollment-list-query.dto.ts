@@ -4,9 +4,15 @@ import {
   CourseEnrollmentFilterOptions,
   CourseEnrollmentPaginationOptions,
 } from 'src/domain/interface/course-enrollment/course-enrollment.interface'
-import { CourseEnrollmentStatus, Visibility } from 'src/shared/enums'
+import { CourseEnrollmentStatus, CourseEnrollmentType, Visibility } from 'src/shared/enums'
 import { ToNumber } from 'src/shared/decorators'
-import { IsOptionalIdNumber, IsOptionalString, IsOptionalDate, IsOptionalInt } from 'src/shared/decorators/validate'
+import {
+  IsOptionalDate,
+  IsOptionalEnumValue,
+  IsOptionalIdNumber,
+  IsOptionalInt,
+  IsOptionalString,
+} from 'src/shared/decorators/validate'
 
 /**
  * DTO truy vấn danh sách đăng ký khóa học
@@ -38,6 +44,10 @@ export class CourseEnrollmentListQueryDto extends ListQueryDto {
    */
   @IsOptionalString('Trạng thái')
   status?: CourseEnrollmentStatus
+
+  /** Nguồn tạo enrollment. */
+  @IsOptionalEnumValue(CourseEnrollmentType, 'Loại đăng ký khóa học')
+  type?: CourseEnrollmentType
 
   /**
    * Ngày đăng ký từ
@@ -86,33 +96,26 @@ export class CourseEnrollmentListQueryDto extends ListQueryDto {
       courseId: this.courseId,
       studentId: this.studentId,
       status: this.status,
+      type: this.type,
       search: this.search,
       enrolledAtFrom: this.enrolledAtFrom ? new Date(this.enrolledAtFrom) : undefined,
       enrolledAtTo: this.enrolledAtTo ? new Date(this.enrolledAtTo) : undefined,
       courseVisibility: this.courseVisibility,
       grade: this.grade,
       subjectId: this.subjectId,
-    };
+    }
   }
 
   toCourseEnrollmentPaginationOptions(): CourseEnrollmentPaginationOptions {
-    const allowedSortFields = [
-      'enrollmentId',
-      'courseId',
-      'studentId',
-      'enrolledAt',
-      'status',
-    ];
+    const allowedSortFields = ['enrollmentId', 'courseId', 'studentId', 'enrolledAt', 'status']
 
-    const sortBy = allowedSortFields.includes(this.sortBy || '')
-      ? this.sortBy
-      : 'enrolledAt';
+    const sortBy = allowedSortFields.includes(this.sortBy || '') ? this.sortBy : 'enrolledAt'
 
     return {
       page: this.page || 1,
       limit: this.limit || 10,
       sortBy,
       sortOrder: this.sortOrder,
-    };
+    }
   }
 }

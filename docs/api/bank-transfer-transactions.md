@@ -2,6 +2,8 @@
 
 Base URL: `/api`.
 
+Danh sách `GET /admin/bank-transfer-transactions` hỗ trợ query `type=TUITION_PAYMENT|COURSE_PURCHASE` và response có trường `type`. `type: null` nghĩa là nội dung giao dịch chưa thể phân loại tự động. Dùng `includeUnclassified=true` để lấy thêm giao dịch có `type: null`; nếu không truyền `type`, query này chỉ lấy giao dịch chưa phân loại.
+
 Các API bên dưới dành cho quản trị viên đã đăng nhập Bearer JWT. Chúng chỉ đọc dữ liệu giao dịch, không tạo audit log.
 
 ## Permissions
@@ -30,6 +32,8 @@ Lấy danh sách giao dịch chuyển khoản, có phân trang.
 | -------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `page`, `limit`                        | số                 | Phân trang, `page >= 1`, `limit` từ 1 đến 1000.                                                                                                                                            |
 | `search`                               | chuỗi              | Tìm trong mã giao dịch provider, số tài khoản nhận, nội dung chuyển khoản hoặc reference; tối đa 255 ký tự.                                                                                |
+| `type`                                 | enum               | `TUITION_PAYMENT` hoặc `COURSE_PURCHASE`. Kết hợp `includeUnclassified=true` để lấy cả giao dịch chưa phân loại. |
+| `includeUnclassified`                  | boolean            | Lấy giao dịch `type = null`; có thể kết hợp với `type` cho danh sách đối soát thủ công. |
 | `provider`                             | enum               | Hiện hỗ trợ `SEPAY`.                                                                                                                                                                       |
 | `paymentAttemptId`                     | số                 | ID `PaymentAttempt` đã gắn với giao dịch.                                                                                                                                                  |
 | `receivingBankAccountId`               | số nguyên không âm | Lọc theo tài khoản nhận nội bộ. Gửi ID dương để lấy giao dịch của tài khoản đó; gửi `0` để lấy giao dịch có `receivingBankAccountId = null`; không truyền để lấy tất cả giao dịch.         |
@@ -149,7 +153,7 @@ Trả `404 Not Found` nếu không tồn tại giao dịch.
 
 Trả số lượng giao dịch theo trạng thái đối soát và tổng số tiền VND. Hỗ trợ cùng các filter nghiệp vụ của API danh sách: `search`, `provider`, `paymentAttemptId`, `processingStatus`, `providerTransactionId`, `receivingAccountNumber`, `minAmount`, `maxAmount`, `fromTransactionAt`, `toTransactionAt`.
 
-`reconciliationStatus` cũng được nhận để giữ tương thích query, nhưng không giới hạn các nhóm thống kê: response luôn phân rã đủ chưa đối soát, admin đối soát và tự động đối soát trong phạm vi các filter còn lại.
+`reconciliationStatus` cũng được nhận để giữ tương thích query, nhưng không giới hạn các nhóm thống kê: response luôn phân rã đủ chưa đối soát, admin đối soát và tự động đối soát trong phạm vi các filter còn lại. Statistics cũng nhận `type` và `includeUnclassified` với cùng ngữ nghĩa như API danh sách.
 
 Response `200 OK`:
 

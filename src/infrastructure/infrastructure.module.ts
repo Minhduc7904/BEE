@@ -71,9 +71,6 @@ import {
   PrismaTeacherProfileRepository,
   PrismaDocumentTagRepository,
   PrismaTagRepository,
-  PrismaOnlineCourseInvoiceRepository,
-  PrismaOnlineCourseInvoiceItemRepository,
-  PrismaOnlineCoursePaymentAttemptRepository,
   PrismaAchievementBoardRepository,
   PrismaNewsArticleRepository,
   PrismaReportRepository,
@@ -117,8 +114,6 @@ import { MarkdownRenderService } from './services/markdown-render.service'
 import { QuestionChapterClassificationService } from './services/question-chapter-classification.service'
 import { FileConverterService } from './services/file-converter.service'
 import { QuestionChatAIService } from './services/question-chat-ai.service'
-import { VnpayService } from './services/vnpay.service'
-import { PayosService } from './services/payos.service'
 import { SepayService } from './services/sepay.service'
 import { GoogleAdminStrategy } from './strategies/google-admin.strategy'
 import { GoogleStudentStrategy } from './strategies/google-student.strategy'
@@ -129,7 +124,6 @@ import httpClientConfig from '../config/http-client.config'
 import supabaseConfig from '../config/supabase.config'
 import mistralConfig from '../config/mistral.config'
 import openaiConfig from '../config/openai.config'
-import payosConfig from '../config/payos.config'
 import sepayConfig from '../config/sepay.config'
 import {
   AchievementBoardSeoAiService as AchievementBoardSeoAiServicePort,
@@ -153,14 +147,12 @@ import {
   MistralService as MistralServicePort,
   NewsArticleSeoAiService as NewsArticleSeoAiServicePort,
   PasswordService as PasswordServicePort,
-  PayosService as PayosServicePort,
   SepayService as SepayServicePort,
   QuestionChapterClassificationService as QuestionChapterClassificationServicePort,
   QuestionChatAIService as QuestionChatAIServicePort,
   TeacherProfileSeoAiService as TeacherProfileSeoAiServicePort,
   TokenHashService as TokenHashServicePort,
   TokenService as TokenServicePort,
-  VnpayService as VnpayServicePort,
   ZaloService as ZaloServicePort,
 } from 'src/application/interfaces'
 
@@ -174,7 +166,6 @@ import {
     ConfigModule.forFeature(httpClientConfig),
     ConfigModule.forFeature(mistralConfig),
     ConfigModule.forFeature(openaiConfig),
-    ConfigModule.forFeature(payosConfig),
     ConfigModule.forFeature(sepayConfig),
     // ConfigModule.forFeature(supabaseConfig), // Disabled: not using Supabase anymore
     JwtModule.register({}), // Empty config, sẽ override trong service
@@ -206,14 +197,12 @@ import {
     { provide: MistralServicePort, useExisting: MistralService },
     { provide: NewsArticleSeoAiServicePort, useExisting: NewsArticleSeoAiService },
     { provide: PasswordServicePort, useExisting: 'PASSWORD_SERVICE' },
-    { provide: PayosServicePort, useExisting: PayosService },
     { provide: SepayServicePort, useExisting: SepayService },
     { provide: QuestionChapterClassificationServicePort, useExisting: QuestionChapterClassificationService },
     { provide: QuestionChatAIServicePort, useExisting: QuestionChatAIService },
     { provide: TeacherProfileSeoAiServicePort, useExisting: TeacherProfileSeoAiService },
     { provide: TokenHashServicePort, useExisting: 'TOKEN_HASH_SERVICE' },
     { provide: TokenServicePort, useExisting: TokenService },
-    { provide: VnpayServicePort, useExisting: VnpayService },
     { provide: ZaloServicePort, useExisting: ZaloService },
     {
       provide: 'UNIT_OF_WORK',
@@ -550,21 +539,6 @@ import {
       inject: [PrismaService],
     },
     {
-      provide: 'IOnlineCourseInvoiceRepository',
-      useFactory: (prisma: PrismaService) => new PrismaOnlineCourseInvoiceRepository(prisma),
-      inject: [PrismaService],
-    },
-    {
-      provide: 'IOnlineCourseInvoiceItemRepository',
-      useFactory: (prisma: PrismaService) => new PrismaOnlineCourseInvoiceItemRepository(prisma),
-      inject: [PrismaService],
-    },
-    {
-      provide: 'IOnlineCoursePaymentAttemptRepository',
-      useFactory: (prisma: PrismaService) => new PrismaOnlineCoursePaymentAttemptRepository(prisma),
-      inject: [PrismaService],
-    },
-    {
       provide: 'IStudentPointLogRepository',
       useFactory: (prisma: PrismaService) => new PrismaStudentPointLogRepository(prisma),
       inject: [PrismaService],
@@ -670,8 +644,6 @@ import {
     GoogleStudentStrategy,
     ImageExportService,
     QuestionChatAIService,
-    VnpayService,
-    PayosService,
     SepayService,
   ],
   exports: [
@@ -695,14 +667,12 @@ import {
     MistralServicePort,
     NewsArticleSeoAiServicePort,
     PasswordServicePort,
-    PayosServicePort,
     SepayServicePort,
     QuestionChapterClassificationServicePort,
     QuestionChatAIServicePort,
     TeacherProfileSeoAiServicePort,
     TokenHashServicePort,
     TokenServicePort,
-    VnpayServicePort,
     ZaloServicePort,
     'UNIT_OF_WORK',
     'IUserRepository',
@@ -770,9 +740,6 @@ import {
     'ITeacherProfileRepository',
     'ITagRepository',
     'IDocumentTagRepository',
-    'IOnlineCourseInvoiceRepository',
-    'IOnlineCourseInvoiceItemRepository',
-    'IOnlineCoursePaymentAttemptRepository',
     'IStudentPointLogRepository',
     'IAchievementBoardRepository',
     'INewsArticleRepository',
@@ -813,8 +780,6 @@ import {
     ZaloService,
     ImageExportService,
     QuestionChatAIService,
-    VnpayService,
-    PayosService,
     SepayService,
   ],
 })

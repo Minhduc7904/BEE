@@ -18,7 +18,6 @@ const COURSE_USE_CASES = [
   courseUseCase.GetPublicSeoCourseDetailUseCase,
   courseUseCase.GetPublicSeoCourseSitemapUseCase,
   courseUseCase.UpdateCourseMediaUseCase,
-  courseUseCase.CreatePublicSeoCourseManualInvoiceUseCase,
 ]
 
 @Module({

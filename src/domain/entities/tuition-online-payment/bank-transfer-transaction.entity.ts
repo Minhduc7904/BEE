@@ -2,6 +2,7 @@ import {
   BankTransferProcessingStatus,
   BankTransferProvider,
   BankTransferReconciliationStatus,
+  BankTransferTransactionType,
 } from '../../../shared/enums'
 import type { JsonPayload } from '../../interface/tuition-online-payment'
 import type { ReceivingBankAccount } from './receiving-bank-account.entity'
@@ -15,6 +16,7 @@ export class BankTransferTransaction {
   transactionAt: Date
   processingStatus: BankTransferProcessingStatus
   reconciliationStatus: BankTransferReconciliationStatus
+  type?: BankTransferTransactionType | null
   createdAt: Date
   updatedAt: Date
 
@@ -35,6 +37,7 @@ export class BankTransferTransaction {
     transactionAt: Date
     processingStatus?: BankTransferProcessingStatus
     reconciliationStatus?: BankTransferReconciliationStatus
+    type?: BankTransferTransactionType | null
     paymentAttemptId?: number | null
     receivingBankAccountId?: number | null
     receivingBankAccount?: ReceivingBankAccount | null
@@ -53,6 +56,7 @@ export class BankTransferTransaction {
     this.transactionAt = data.transactionAt
     this.processingStatus = data.processingStatus ?? BankTransferProcessingStatus.RECEIVED
     this.reconciliationStatus = data.reconciliationStatus ?? BankTransferReconciliationStatus.UNRECONCILED
+    this.type = data.type ?? null
     this.paymentAttemptId = data.paymentAttemptId ?? null
     this.receivingBankAccountId = data.receivingBankAccountId ?? null
     this.receivingBankAccount = data.receivingBankAccount

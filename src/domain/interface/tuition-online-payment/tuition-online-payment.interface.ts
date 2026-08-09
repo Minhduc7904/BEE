@@ -2,6 +2,7 @@ import {
   BankTransferProcessingStatus,
   BankTransferProvider,
   BankTransferReconciliationStatus,
+  BankTransferTransactionType,
   PaymentAttemptStatus,
   PaymentBankSelectionSource,
   PaymentConfirmationMode,
@@ -79,7 +80,9 @@ export interface UpdateTuitionCollectionConfigurationData {
 }
 
 export interface CreatePaymentIntentData {
-  tuitionPaymentId: number
+  type: BankTransferTransactionType
+  tuitionPaymentId?: number | null
+  courseEnrollmentId?: number | null
   amount: number
   currency?: string
   status?: PaymentIntentStatus
@@ -93,6 +96,7 @@ export interface UpdatePaymentIntentData {
 }
 
 export interface PaymentIntentListOptions extends OffsetPaginationOptions {
+  type?: BankTransferTransactionType
   status?: PaymentIntentStatus
   tuitionPaymentId?: number
   expiresBefore?: Date
@@ -139,12 +143,14 @@ export interface CreateBankTransferTransactionData {
   rawPayload?: JsonPayload
   processingStatus?: BankTransferProcessingStatus
   reconciliationStatus?: BankTransferReconciliationStatus
+  type?: BankTransferTransactionType | null
 }
 
 export interface UpdateBankTransferTransactionReconciliationData {
   paymentAttemptId?: number | null
   processingStatus?: BankTransferProcessingStatus
   reconciliationStatus?: BankTransferReconciliationStatus
+  type?: BankTransferTransactionType | null
 }
 
 export interface BankTransferTransactionProviderReferenceMatchOptions {
@@ -155,6 +161,8 @@ export interface BankTransferTransactionProviderReferenceMatchOptions {
 }
 
 export interface BankTransferTransactionListOptions extends OffsetPaginationOptions {
+  type?: BankTransferTransactionType
+  includeUnclassified?: boolean
   provider?: BankTransferProvider
   paymentAttemptId?: number
   paymentAttemptIds?: number[]

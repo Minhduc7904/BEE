@@ -5,6 +5,8 @@ import {
   BankTransferProcessingStatus,
   BankTransferProvider,
   BankTransferReconciliationStatus,
+  BankTransferTransactionType,
+  CourseEnrollmentStatus,
   PaymentAttemptStatus,
   PaymentConfirmationMode,
   PaymentIntentStatus,
@@ -22,10 +24,9 @@ export class SepayTransactionProcessorService {
   constructor(@Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork) {}
 
   async process(input: IncomingSepayTransaction): Promise<ProcessSepayTransactionResult> {
-    return this.unitOfWork.executeInTransaction(
-      (repos) => this.processInTransaction(repos, input),
-      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
-    )
+    return this.unitOfWork.executeInTransaction((repos) => this.processInTransaction(repos, input), {
+      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+    })
   }
 
   async processInTransaction(
@@ -35,7 +36,10 @@ export class SepayTransactionProcessorService {
     const existing = await this.findExistingTransaction(repos, input)
     const receivingBankAccount = await this.resolveReceivingBankAccount(repos, input)
     if (existing) {
-      if ((existing.receivingBankAccountId === null || existing.receivingBankAccountId === undefined) && receivingBankAccount) {
+      if (
+        (existing.receivingBankAccountId === null || existing.receivingBankAccountId === undefined) &&
+        receivingBankAccount
+      ) {
         await repos.bankTransferTransactionRepository.updateReceivingBankAccountId(
           existing.bankTransferTransactionId,
           receivingBankAccount.receivingBankAccountId,
@@ -80,19 +84,17 @@ export class SepayTransactionProcessorService {
       reference: input.reference ?? null,
       rawPayload: input.rawPayload,
       processingStatus,
+      type: paymentInstruction?.type ?? null,
     })
 
     if (processingStatus !== BankTransferProcessingStatus.RECEIVED || !attempt) {
       return { duplicate: false, processingStatus: transaction.processingStatus }
     }
 
-    return this.confirmMatchedTuitionPayment(repos, transaction.bankTransferTransactionId, input, attempt, paymentInstruction)
+    return this.confirmMatchedPayment(repos, transaction.bankTransferTransactionId, input, attempt, paymentInstruction)
   }
 
-  private async findExistingTransaction(
-    repos: UnitOfWorkRepos,
-    input: IncomingSepayTransaction,
-  ) {
+  private async findExistingTransaction(repos: UnitOfWorkRepos, input: IncomingSepayTransaction) {
     if (input.sepayV2TransactionId) {
       const existingByV2Id = await repos.bankTransferTransactionRepository.findBySepayV2TransactionId(
         input.sepayV2TransactionId,
@@ -116,7 +118,7 @@ export class SepayTransactionProcessorService {
     return candidates.length === 1 ? candidates[0] : null
   }
 
-  private async confirmMatchedTuitionPayment(
+  private async confirmMatchedPayment(
     repos: UnitOfWorkRepos,
     bankTransferTransactionId: number,
     input: IncomingSepayTransaction,
@@ -131,7 +133,19 @@ export class SepayTransactionProcessorService {
       return { duplicate: false, processingStatus: BankTransferProcessingStatus.UNMATCHED }
     }
 
-    const tuitionPayment = await repos.tuitionPaymentRepository.findById(paymentIntent.tuitionPaymentId)
+    if (paymentIntent.type === BankTransferTransactionType.COURSE_PURCHASE) {
+      return this.confirmMatchedCoursePayment(
+        repos,
+        bankTransferTransactionId,
+        input,
+        attempt,
+        paymentIntent,
+        paymentInstruction,
+      )
+    }
+    const tuitionPayment = paymentIntent.tuitionPaymentId
+      ? await repos.tuitionPaymentRepository.findById(paymentIntent.tuitionPaymentId)
+      : null
     const paymentIntentExpired = paymentIntent.isExpired()
     if (paymentIntentExpired && paymentIntent.status === PaymentIntentStatus.PENDING) {
       await repos.paymentIntentRepository.update(paymentIntent.paymentIntentId, { status: PaymentIntentStatus.EXPIRED })
@@ -141,7 +155,8 @@ export class SepayTransactionProcessorService {
       tuitionPayment.status !== TuitionPaymentStatus.UNPAID ||
       paymentIntent.status !== PaymentIntentStatus.PENDING ||
       paymentIntentExpired ||
-      (paymentInstruction && paymentInstruction.tuitionPaymentId !== paymentIntent.tuitionPaymentId)
+      paymentInstruction?.type !== BankTransferTransactionType.TUITION_PAYMENT ||
+      paymentInstruction.tuitionPaymentId !== paymentIntent.tuitionPaymentId
     ) {
       await repos.bankTransferTransactionRepository.updateReconciliation(bankTransferTransactionId, {
         processingStatus: BankTransferProcessingStatus.IGNORED,
@@ -175,6 +190,55 @@ export class SepayTransactionProcessorService {
       intentStatus: PaymentIntentStatus.PAID,
       paidAt: updatedTuitionPayment?.paidAt ?? null,
       intentUpdatedAt: updatedPaymentIntent.updatedAt,
+      type: BankTransferTransactionType.TUITION_PAYMENT,
+    }
+  }
+
+  private async confirmMatchedCoursePayment(
+    repos: UnitOfWorkRepos,
+    bankTransferTransactionId: number,
+    input: IncomingSepayTransaction,
+    attempt: import('src/domain/entities/tuition-online-payment').PaymentAttempt,
+    paymentIntent: import('src/domain/entities/tuition-online-payment').PaymentIntent,
+    reference: PaymentInstructionReference | null,
+  ): Promise<ProcessSepayTransactionResult> {
+    const enrollmentId = paymentIntent.courseEnrollmentId
+    const enrollment = enrollmentId ? await repos.courseEnrollmentRepository.findById(enrollmentId) : null
+    if (
+      !enrollment ||
+      reference?.type !== BankTransferTransactionType.COURSE_PURCHASE ||
+      reference.courseEnrollmentId !== enrollmentId ||
+      paymentIntent.status !== PaymentIntentStatus.PENDING
+    ) {
+      await repos.bankTransferTransactionRepository.updateReconciliation(bankTransferTransactionId, {
+        processingStatus: BankTransferProcessingStatus.IGNORED,
+      })
+      return { duplicate: false, processingStatus: BankTransferProcessingStatus.IGNORED }
+    }
+    await repos.paymentAttemptRepository.update(attempt.paymentAttemptId, { status: PaymentAttemptStatus.SUCCEEDED })
+    const updatedIntent = await repos.paymentIntentRepository.update(paymentIntent.paymentIntentId, {
+      status: PaymentIntentStatus.PAID,
+    })
+    await repos.courseEnrollmentRepository.update(enrollment.enrollmentId, {
+      status: CourseEnrollmentStatus.ACTIVE,
+      isPaidFull: true,
+    })
+    await repos.bankTransferTransactionRepository.updateReconciliation(bankTransferTransactionId, {
+      paymentAttemptId: attempt.paymentAttemptId,
+      processingStatus: BankTransferProcessingStatus.MATCHED,
+      reconciliationStatus: BankTransferReconciliationStatus.AUTOMATIC,
+      type: BankTransferTransactionType.COURSE_PURCHASE,
+    })
+    return {
+      duplicate: false,
+      processingStatus: BankTransferProcessingStatus.MATCHED,
+      paymentIntentId: paymentIntent.paymentIntentId,
+      intentStatus: PaymentIntentStatus.PAID,
+      paidAt: input.transactionAt,
+      intentUpdatedAt: updatedIntent.updatedAt,
+      type: BankTransferTransactionType.COURSE_PURCHASE,
+      courseEnrollmentId: enrollment.enrollmentId,
+      studentUserId: enrollment.student?.userId,
     }
   }
 
@@ -190,7 +254,14 @@ export class SepayTransactionProcessorService {
 
     if (paymentInstruction) {
       const paymentIntent = await repos.paymentIntentRepository.findById(attempt.paymentIntentId)
-      if (!paymentIntent || paymentIntent.tuitionPaymentId !== paymentInstruction.tuitionPaymentId) {
+      if (
+        !paymentIntent ||
+        paymentIntent.type !== paymentInstruction.type ||
+        (paymentInstruction.type === BankTransferTransactionType.TUITION_PAYMENT &&
+          paymentIntent.tuitionPaymentId !== paymentInstruction.tuitionPaymentId) ||
+        (paymentInstruction.type === BankTransferTransactionType.COURSE_PURCHASE &&
+          paymentIntent.courseEnrollmentId !== paymentInstruction.courseEnrollmentId)
+      ) {
         return BankTransferProcessingStatus.UNMATCHED
       }
     }

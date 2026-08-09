@@ -11,6 +11,7 @@ import { AttendanceGateway } from './gateways/attendance.gateway'
 import { CompetitionGateway } from './gateways/competition.gateway'
 import { TuitionPaymentIntentGateway } from './gateways/tuition-payment-intent.gateway'
 import { SeoTuitionPaymentIntentGateway } from './gateways/seo-tuition-payment-intent.gateway'
+import { CoursePaymentIntentGateway } from './gateways/course-payment-intent.gateway'
 import { SeoTuitionPaymentController } from './controllers/seo-tuition-payment.controller'
 import { AuthController } from './controllers/auth.controller'
 import { RoleController } from './controllers/role.controller'
@@ -49,6 +50,7 @@ import { TuitionPaymentController } from './controllers/tuition-payment.controll
 import { ReceivingBankAccountController } from './controllers/receiving-bank-account.controller'
 import { TuitionGradeBankAccountController } from './controllers/tuition-grade-bank-account.controller'
 import { TuitionCollectionConfigurationController } from './controllers/tuition-collection-configuration.controller'
+import { CoursePaymentConfigurationController } from './controllers/course-payment-configuration.controller'
 import { PaymentIntentController } from './controllers/payment-intent.controller'
 import { PaymentAttemptController } from './controllers/payment-attempt.controller'
 import { BankTransferTransactionController } from './controllers/bank-transfer-transaction.controller'
@@ -86,13 +88,8 @@ import { QuestionChatMessageController } from './controllers/question-chat-messa
 import { DocumentController } from './controllers/document.controller'
 import { TeacherProfileController } from './controllers/teacher-profile.controller'
 import { TagController } from './controllers/tag.controller'
-import {
-  OnlineCourseInvoicePaymentStatusController,
-  OnlineCoursePaymentController,
-} from './controllers/online-course-payment.controller'
 import { AchievementBoardController } from './controllers/achievement-board.controller'
 import { NewsArticleController } from './controllers/news-article.controller'
-import { PayosOnlineCoursePaymentController } from './controllers/payos-online-course-payment.controller'
 import { ReportController } from './controllers/report.controller'
 import { BankTransferTransactionScheduler } from './scheduler/bank-transfer-transaction.scheduler'
 import { AssistantShiftReminderScheduler } from './scheduler/assistant-shift-reminder.scheduler'
@@ -153,6 +150,7 @@ import { SocketLifecycleGateway } from './gateways/socket-lifecycle.gateway'
     ReceivingBankAccountController,
     TuitionGradeBankAccountController,
     TuitionCollectionConfigurationController,
+    CoursePaymentConfigurationController,
     PaymentIntentController,
     PaymentAttemptController,
     BankTransferTransactionController,
@@ -187,9 +185,6 @@ import { SocketLifecycleGateway } from './gateways/socket-lifecycle.gateway'
     ZaloController,
     QuestionChatController,
     QuestionChatMessageController,
-    OnlineCoursePaymentController,
-    PayosOnlineCoursePaymentController,
-    OnlineCourseInvoicePaymentStatusController,
     AchievementBoardController,
     NewsArticleController,
     ReportController,
@@ -211,6 +206,7 @@ import { SocketLifecycleGateway } from './gateways/socket-lifecycle.gateway'
     CompetitionGateway,
     TuitionPaymentIntentGateway,
     SeoTuitionPaymentIntentGateway,
+    CoursePaymentIntentGateway,
     BankTransferTransactionScheduler,
     AssistantShiftReminderScheduler,
     RetentionCleanupScheduler,
@@ -224,6 +220,7 @@ import { SocketLifecycleGateway } from './gateways/socket-lifecycle.gateway'
     CompetitionGateway,
     TuitionPaymentIntentGateway,
     SeoTuitionPaymentIntentGateway,
+    CoursePaymentIntentGateway,
   ],
 })
 export class PresentationModule {}

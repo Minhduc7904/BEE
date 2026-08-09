@@ -33,6 +33,7 @@ export class PrismaBankTransferTransactionRepository implements IBankTransferTra
         ...(data.rawPayload !== undefined && { rawPayload: this.toPrismaJsonValue(data.rawPayload) }),
         processingStatus: data.processingStatus,
         reconciliationStatus: data.reconciliationStatus,
+        type: data.type,
       },
     })
 
@@ -144,6 +145,7 @@ export class PrismaBankTransferTransactionRepository implements IBankTransferTra
         ...(data.reconciliationStatus !== undefined && {
           reconciliationStatus: data.reconciliationStatus,
         }),
+        ...(data.type !== undefined && { type: data.type }),
       },
     })
 
@@ -217,7 +219,18 @@ export class PrismaBankTransferTransactionRepository implements IBankTransferTra
       )
     }
 
-    const orGroups = [searchConditions, paymentAttemptConditions].filter((conditions) => conditions.length > 0)
+    const transactionTypeConditions: Prisma.BankTransferTransactionWhereInput[] = []
+    if (options?.type !== undefined && options.includeUnclassified) {
+      transactionTypeConditions.push({ type: options.type }, { type: null })
+    } else if (options?.type !== undefined) {
+      where.type = options.type
+    } else if (options?.includeUnclassified) {
+      where.type = null
+    }
+
+    const orGroups = [searchConditions, paymentAttemptConditions, transactionTypeConditions].filter(
+      (conditions) => conditions.length > 0,
+    )
     if (orGroups.length === 1) {
       where.OR = orGroups[0]
     } else if (orGroups.length > 1) {

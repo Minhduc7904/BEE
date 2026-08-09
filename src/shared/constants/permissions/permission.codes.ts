@@ -314,6 +314,9 @@ export const PERMISSION_CODES = {
   TUITION_COLLECTION_CONFIGURATION: {
     MANAGE: 'tuition-collection-configuration:manage',
   },
+  COURSE_PAYMENT_CONFIGURATION: {
+    MANAGE: 'course-payment-configuration:manage',
+  },
   PAYMENT_INTENT: {
     CREATE: 'payment-intent:create',
   },
@@ -331,12 +334,6 @@ export const PERMISSION_CODES = {
     GET_RUNS: 'background-job:get-runs',
     GET_RUN_BY_ID: 'background-job:get-run-by-id',
     GET_SEPAY_SYNC_CURSORS: 'background-job:get-sepay-sync-cursors',
-  },
-  ONLINE_COURSE_INVOICE: {
-    GET_ALL: 'online-course-invoice:get-all',
-    GET_BY_ID: 'online-course-invoice:get-by-id',
-    CONFIRM_MANUAL_PAYMENT: 'online-course-invoice:confirm-manual-payment',
-    DELETE: 'online-course-invoice:delete',
   },
   MY_TUITION_PAYMENT_STATS: 'my-tuition-payment:stats',
   TEMP_EXAM: {
@@ -508,7 +505,6 @@ const PERMISSION_GROUPS_BY_KEY: Record<string, string> = {
   RECEIVING_BANK_ACCOUNT: 'RECEIVING_BANK_ACCOUNT_MANAGEMENT',
   BANK_TRANSFER_TRANSACTION: 'BANK_TRANSFER_TRANSACTION_MANAGEMENT',
   BACKGROUND_JOB: 'BACKGROUND_JOB_MANAGEMENT',
-  ONLINE_COURSE_INVOICE: 'ONLINE_COURSE_INVOICE_MANAGEMENT',
   MY_TUITION_PAYMENT_STATS: 'TUITION_PAYMENT_MANAGEMENT',
   TEMP_EXAM: 'TEMP_EXAM_MANAGEMENT',
   TEMP_SECTION: 'TEMP_SECTION_MANAGEMENT',
@@ -560,7 +556,6 @@ const PERMISSION_RESOURCE_LABELS_BY_KEY: Record<string, string> = {
   TUITION_PAYMENT: 'tuition payment',
   RECEIVING_BANK_ACCOUNT: 'receiving bank account',
   BANK_TRANSFER_TRANSACTION: 'bank transfer transaction',
-  ONLINE_COURSE_INVOICE: 'online course invoice',
   MY_TUITION_PAYMENT_STATS: 'my tuition payment stats',
   TEMP_EXAM: 'temporary exam',
   TEMP_SECTION: 'temporary section',

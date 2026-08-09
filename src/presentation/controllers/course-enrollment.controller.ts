@@ -36,6 +36,8 @@ import {
   DeleteCourseEnrollmentUseCase,
   ExportCourseEnrollmentListUseCase,
 } from '../../application/use-cases/course-enrollment'
+import { ConfirmManualCoursePaymentUseCase } from '../../application/use-cases/course-payment'
+import { ConfirmManualCoursePaymentDto } from '../../application/dtos/course-payment'
 
 import { CurrentUser } from 'src/shared/decorators/current-user.decorator'
 import type { Response } from 'express'
@@ -51,7 +53,8 @@ export class CourseEnrollmentController {
     private readonly updateCourseEnrollmentUseCase: UpdateCourseEnrollmentUseCase,
     private readonly deleteCourseEnrollmentUseCase: DeleteCourseEnrollmentUseCase,
     private readonly exportCourseEnrollmentListUseCase: ExportCourseEnrollmentListUseCase,
-  ) { }
+    private readonly confirmManualCoursePaymentUseCase: ConfirmManualCoursePaymentUseCase,
+  ) {}
 
   @Get()
   @RequirePermission(PERMISSION_CODES.COURSE_ENROLLMENT.GET_ALL)
@@ -136,10 +139,7 @@ export class CourseEnrollmentController {
     @Query() query: CourseEnrollmentListQueryDto,
   ): Promise<CourseEnrollmentListResponseDto> {
     return ExceptionHandler.execute(() => {
-      return this.getStudentCourseEnrollmentsUseCase.executeSortedByProgress(
-        user.studentId,
-        query,
-      )
+      return this.getStudentCourseEnrollmentsUseCase.executeSortedByProgress(user.studentId, query)
     })
   }
 
@@ -237,6 +237,19 @@ export class CourseEnrollmentController {
       const adminId = user.adminId
       return this.createCourseEnrollmentUseCase.execute(dto, isStudent, adminId)
     })
+  }
+
+  @Post(':id/confirm-manual-payment')
+  @RequirePermission(PERMISSION_CODES.COURSE_ENROLLMENT.UPDATE)
+  @HttpCode(HttpStatus.OK)
+  async confirmManualPayment(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: ConfirmManualCoursePaymentDto,
+    @CurrentUser('adminId') adminId: number,
+  ): Promise<BaseResponseDto<null>> {
+    return ExceptionHandler.execute(() =>
+      this.confirmManualCoursePaymentUseCase.execute(id, dto.bankTransferTransactionId, adminId),
+    )
   }
 
   @Put(':id')

@@ -6,6 +6,7 @@ import {
   BankTransferProcessingStatus,
   BankTransferProvider,
   BankTransferReconciliationStatus,
+  BankTransferTransactionType,
 } from '../../../shared/enums'
 import { ReceivingBankAccountMapper } from './receiving-bank-account.mapper'
 
@@ -44,6 +45,7 @@ export class BankTransferTransactionMapper {
       rawPayload: prismaBankTransferTransaction.rawPayload as JsonPayload | null,
       processingStatus: prismaBankTransferTransaction.processingStatus as BankTransferProcessingStatus,
       reconciliationStatus: prismaBankTransferTransaction.reconciliationStatus as BankTransferReconciliationStatus,
+      type: prismaBankTransferTransaction.type as BankTransferTransactionType | null,
       createdAt: prismaBankTransferTransaction.createdAt,
       updatedAt: prismaBankTransferTransaction.updatedAt,
     })

@@ -35,4 +35,12 @@ export const SOCKET_EVENTS = {
         INTENT_STATUS: 'tuition-payment:intent:status',
         INTENT_PAID: 'tuition-payment:intent:paid',
     },
+    COURSE_PAYMENT: {
+        INTENT_SUBSCRIBE: 'course-payment:intent:subscribe',
+        INTENT_SUBSCRIBED: 'course-payment:intent:subscribed',
+        INTENT_UNSUBSCRIBE: 'course-payment:intent:unsubscribe',
+        INTENT_UNSUBSCRIBED: 'course-payment:intent:unsubscribed',
+        INTENT_STATUS: 'course-payment:intent:status',
+        INTENT_PAID: 'course-payment:intent:paid',
+    },
 } as const

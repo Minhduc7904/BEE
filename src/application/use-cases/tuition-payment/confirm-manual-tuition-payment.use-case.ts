@@ -9,6 +9,7 @@ import {
   AuditStatus,
   BankTransferProcessingStatus,
   BankTransferReconciliationStatus,
+  BankTransferTransactionType,
   NotificationLevel,
   NotificationType,
   PaymentAttemptStatus,
@@ -276,6 +277,9 @@ export class ConfirmManualTuitionPaymentUseCase {
     if (transaction.reconciliationStatus !== BankTransferReconciliationStatus.UNRECONCILED) {
       throw new InvalidStateException('Giao dịch ngân hàng này đã được đối soát')
     }
+    if (transaction.type && transaction.type !== BankTransferTransactionType.TUITION_PAYMENT) {
+      throw new InvalidStateException('Giao dịch ngân hàng thuộc mục đích thanh toán khác')
+    }
 
     let paymentAttempt: import('src/domain/entities/tuition-online-payment').PaymentAttempt
     if (transaction.paymentAttemptId) {
@@ -329,6 +333,7 @@ export class ConfirmManualTuitionPaymentUseCase {
         paymentAttemptId: paymentAttempt.paymentAttemptId,
         processingStatus: BankTransferProcessingStatus.MATCHED,
         reconciliationStatus: BankTransferReconciliationStatus.ADMIN,
+        type: BankTransferTransactionType.TUITION_PAYMENT,
       },
     )
 

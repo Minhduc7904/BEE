@@ -13,6 +13,7 @@ import { CourseApplicationModule } from './use-cases/course/course.application.m
 import { CourseClassApplicationModule } from './use-cases/course-class/course-class.application.module'
 import { CourseClassLessonApplicationModule } from './use-cases/courseClassLesson/course-class-lesson.application.module'
 import { CourseEnrollmentApplicationModule } from './use-cases/course-enrollment/course-enrollment.application.module'
+import { CoursePaymentApplicationModule } from './use-cases/course-payment/course-payment.application.module'
 
 import { EmailVerificationApplicationModule } from './use-cases/email-verification/email-verification.application.module'
 import { LessonApplicationModule } from './use-cases/lesson/lesson.application.module'
@@ -68,7 +69,6 @@ import { QuestionChatMessageApplicationModule } from './use-cases/question-chat-
 import { DocumentApplicationModule } from './use-cases/document/document.application.module'
 import { TeacherProfileApplicationModule } from './use-cases/teacher-profile/teacher-profile.application.module'
 import { TagApplicationModule } from './use-cases/tag/tag.application.module'
-import { OnlineCoursePaymentApplicationModule } from './use-cases/online-course-payment/online-course-payment.application.module'
 import { AchievementApplicationModule } from './use-cases/achievement/achievement.application.module'
 import { NewsApplicationModule } from './use-cases/news/news.application.module'
 import { ReportApplicationModule } from './use-cases/report/report.application.module'
@@ -109,6 +109,7 @@ const modules = [
   CourseClassApplicationModule,
   CourseClassLessonApplicationModule,
   CourseEnrollmentApplicationModule,
+  CoursePaymentApplicationModule,
   SubjectApplicationModule,
   ChapterApplicationModule,
   LessonApplicationModule,
@@ -138,7 +139,6 @@ const modules = [
   BankTransferTransactionApplicationModule,
   SepayApplicationModule,
   BackgroundJobApplicationModule,
-  OnlineCoursePaymentApplicationModule,
   // Exam Import Session
   ExamImportSessionApplicationModule,
   TempExamApplicationModule,

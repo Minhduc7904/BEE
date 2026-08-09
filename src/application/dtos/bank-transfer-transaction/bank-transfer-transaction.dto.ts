@@ -4,6 +4,7 @@ import {
   BankTransferProcessingStatus,
   BankTransferProvider,
   BankTransferReconciliationStatus,
+  BankTransferTransactionType,
 } from '../../../shared/enums'
 import { ReceivingBankAccountResponseDto } from '../receiving-bank-account'
 
@@ -22,6 +23,7 @@ export class BankTransferTransactionResponseDto {
   reference?: string | null
   processingStatus: BankTransferProcessingStatus
   reconciliationStatus: BankTransferReconciliationStatus
+  type?: BankTransferTransactionType | null
   createdAt: Date
   updatedAt: Date
 
@@ -54,6 +56,7 @@ export class BankTransferTransactionResponseDto {
       reference: transaction.reference,
       processingStatus: transaction.processingStatus,
       reconciliationStatus: transaction.reconciliationStatus,
+      type: transaction.type,
       createdAt: transaction.createdAt,
       updatedAt: transaction.updatedAt,
     }

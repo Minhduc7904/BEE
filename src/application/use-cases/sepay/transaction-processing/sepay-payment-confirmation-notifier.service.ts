@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common'
 import { CreateAndNotifyOneUseCase } from 'src/application/use-cases/notification/create-and-notify-one.use-case'
 import { SendTuitionPaymentToParentUseCase } from 'src/application/use-cases/tuition-payment/send-tuition-payment-to-parent.use-case'
-import { TuitionPaymentIntentRealtimeService } from 'src/application/interfaces'
+import { CoursePaymentIntentRealtimeService, TuitionPaymentIntentRealtimeService } from 'src/application/interfaces'
 import {
   BankTransferProcessingStatus,
   NotificationLevel,
   NotificationType,
   TuitionPaymentStatus,
+  BankTransferTransactionType,
 } from 'src/shared/enums'
 import type { ProcessSepayTransactionResult } from './sepay-transaction-processing.types'
 
@@ -16,17 +17,32 @@ export class SepayPaymentConfirmationNotifierService {
     private readonly createAndNotifyOne: CreateAndNotifyOneUseCase,
     private readonly sendTuitionPaymentToParentUseCase: SendTuitionPaymentToParentUseCase,
     private readonly tuitionPaymentIntentRealtimeService: TuitionPaymentIntentRealtimeService,
+    private readonly coursePaymentIntentRealtimeService: CoursePaymentIntentRealtimeService,
   ) {}
 
   async notify(result: ProcessSepayTransactionResult): Promise<void> {
-    if (result.duplicate || result.processingStatus !== BankTransferProcessingStatus.MATCHED || !result.paymentId) return
+    if (result.duplicate || result.processingStatus !== BankTransferProcessingStatus.MATCHED) return
 
     if (
+      result.type === BankTransferTransactionType.COURSE_PURCHASE &&
       result.paymentIntentId &&
-      result.tuitionPaymentStatus &&
+      result.courseEnrollmentId &&
       result.intentStatus &&
       result.intentUpdatedAt
     ) {
+      this.coursePaymentIntentRealtimeService.notifyIntentPaid({
+        paymentIntentId: result.paymentIntentId,
+        courseEnrollmentId: result.courseEnrollmentId,
+        intentStatus: result.intentStatus,
+        paidAt: result.paidAt ?? null,
+        intentUpdatedAt: result.intentUpdatedAt,
+      })
+      return
+    }
+
+    if (!result.paymentId) return
+
+    if (result.paymentIntentId && result.tuitionPaymentStatus && result.intentStatus && result.intentUpdatedAt) {
       this.tuitionPaymentIntentRealtimeService.notifyIntentPaid({
         paymentIntentId: result.paymentIntentId,
         tuitionPaymentId: result.paymentId,

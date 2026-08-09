@@ -3,7 +3,7 @@ import type { IUnitOfWork } from 'src/domain/repositories'
 import { CreateCourseEnrollmentDto } from '../../dtos/course-enrollment/create-course-enrollment.dto'
 import { CourseEnrollmentResponseDto } from '../../dtos/course-enrollment/course-enrollment.dto'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
-import { CourseEnrollmentStatus } from 'src/shared/enums'
+import { CourseEnrollmentStatus, CourseEnrollmentType } from 'src/shared/enums'
 import { ACTION_KEYS } from 'src/shared/constants/action-key.constants'
 import { AuditStatus } from 'src/shared/enums/audit-status.enum'
 import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
@@ -15,7 +15,7 @@ export class CreateCourseEnrollmentUseCase {
     @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
     private readonly prisma: PrismaService,
-  ) { }
+  ) {}
 
   async execute(
     createDto: CreateCourseEnrollmentDto,
@@ -65,7 +65,9 @@ export class CreateCourseEnrollmentUseCase {
       }
 
       if (isStudent && course.priceVND > 0) {
-        throw new ConflictException('Bạn không thể đăng ký khóa học trả phí, vui lòng liên hệ quản trị viên nếu bạn đã thanh toán')
+        throw new ConflictException(
+          'Bạn không thể đăng ký khóa học trả phí, vui lòng liên hệ quản trị viên nếu bạn đã thanh toán',
+        )
       }
 
       // Check if student exists
@@ -107,6 +109,7 @@ export class CreateCourseEnrollmentUseCase {
         courseId: createDto.courseId,
         studentId: createDto.studentId,
         status: createDto.status || CourseEnrollmentStatus.ACTIVE,
+        type: CourseEnrollmentType.MANUAL,
       })
 
       if (adminId) {
@@ -120,6 +123,7 @@ export class CreateCourseEnrollmentUseCase {
             courseId: enrollment.courseId,
             studentId: enrollment.studentId,
             status: enrollment.status,
+            type: enrollment.type,
           },
         })
       }

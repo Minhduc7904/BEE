@@ -45,9 +45,8 @@ export class TuitionPaymentAttemptDetailResponseDto {
       expiresAt: paymentAttempt.expiresAt,
       createdAt: paymentAttempt.createdAt,
       updatedAt: paymentAttempt.updatedAt,
-      bankTransferTransactions: BankTransferTransactionResponseDto.fromBankTransferTransactionList(
-        bankTransferTransactions,
-      ),
+      bankTransferTransactions:
+        BankTransferTransactionResponseDto.fromBankTransferTransactionList(bankTransferTransactions),
     }
   }
 }
@@ -72,7 +71,7 @@ export class TuitionPaymentIntentDetailResponseDto {
   ): TuitionPaymentIntentDetailResponseDto {
     return {
       paymentIntentId: paymentIntent.paymentIntentId,
-      tuitionPaymentId: paymentIntent.tuitionPaymentId,
+      tuitionPaymentId: paymentIntent.tuitionPaymentId!,
       amount: paymentIntent.amount,
       currency: paymentIntent.currency,
       status: paymentIntent.status,
@@ -80,10 +79,7 @@ export class TuitionPaymentIntentDetailResponseDto {
       createdAt: paymentIntent.createdAt,
       updatedAt: paymentIntent.updatedAt,
       paymentAttempts: paymentAttempts.map(({ paymentAttempt, bankTransferTransactions }) =>
-        TuitionPaymentAttemptDetailResponseDto.fromPaymentAttempt(
-          paymentAttempt,
-          bankTransferTransactions,
-        ),
+        TuitionPaymentAttemptDetailResponseDto.fromPaymentAttempt(paymentAttempt, bankTransferTransactions),
       ),
     }
   }

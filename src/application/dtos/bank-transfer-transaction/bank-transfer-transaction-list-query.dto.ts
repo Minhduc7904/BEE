@@ -3,10 +3,12 @@ import {
   BankTransferProcessingStatus,
   BankTransferProvider,
   BankTransferReconciliationStatus,
+  BankTransferTransactionType,
 } from '../../../shared/enums'
 import { SortOrder } from '../../../shared/enums/sort-order.enum'
 import {
   IsOptionalDate,
+  IsOptionalBoolean,
   IsOptionalEnumValue,
   IsOptionalIdNumber,
   IsOptionalInt,
@@ -16,6 +18,12 @@ import {
 import { ListQueryDto } from '../pagination/list-query.dto'
 
 export class BankTransferTransactionListQueryDto extends ListQueryDto {
+  @IsOptionalEnumValue(BankTransferTransactionType, 'Loại giao dịch')
+  type?: BankTransferTransactionType
+
+  @IsOptionalBoolean('Bao gồm giao dịch chưa phân loại')
+  includeUnclassified?: boolean
+
   @IsOptionalEnumValue(BankTransferProvider, 'Nhà cung cấp')
   provider?: BankTransferProvider
 
@@ -70,6 +78,8 @@ export class BankTransferTransactionListQueryDto extends ListQueryDto {
       skip: this.offset,
       take: this.limit ?? 10,
       provider: this.provider,
+      type: this.type,
+      includeUnclassified: this.includeUnclassified,
       paymentAttemptId: this.paymentAttemptId,
       receivingBankAccountId: this.receivingBankAccountId === 0 ? null : this.receivingBankAccountId,
       processingStatus: this.processingStatus,

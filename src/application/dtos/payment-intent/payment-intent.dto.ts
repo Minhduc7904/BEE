@@ -26,7 +26,7 @@ export class PaymentIntentResponseDto {
   static fromPaymentIntent(paymentIntent: PaymentIntent): PaymentIntentResponseDto {
     return {
       paymentIntentId: paymentIntent.paymentIntentId,
-      tuitionPaymentId: paymentIntent.tuitionPaymentId,
+      tuitionPaymentId: paymentIntent.tuitionPaymentId!,
       amount: paymentIntent.amount,
       currency: paymentIntent.currency,
       status: paymentIntent.status,

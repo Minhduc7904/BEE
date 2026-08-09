@@ -33,6 +33,7 @@ import { ITuitionPaymentRepository } from './tuition-payment.repository'
 import { IReceivingBankAccountRepository } from './receiving-bank-account.repository'
 import { ITuitionGradeReceivingBankAccountRepository } from './tuition-grade-receiving-bank-account.repository'
 import { ITuitionCollectionConfigurationRepository } from './tuition-collection-configuration.repository'
+import { ICoursePaymentConfigurationRepository } from './course-payment-configuration.repository'
 import { IPaymentIntentRepository } from './payment-intent.repository'
 import { IPaymentAttemptRepository } from './payment-attempt.repository'
 import { IBankTransferTransactionRepository } from './bank-transfer-transaction.repository'
@@ -59,9 +60,6 @@ import { IDocumentRepository } from './document.repository'
 import { ITeacherProfileRepository } from './teacher-profile.repository'
 import { ITagRepository } from './tag.repository'
 import { IDocumentTagRepository } from './document-tag.repository'
-import { IOnlineCourseInvoiceRepository } from './online-course-invoice.repository'
-import { IOnlineCourseInvoiceItemRepository } from './online-course-invoice-item.repository'
-import { IOnlineCoursePaymentAttemptRepository } from './online-course-payment-attempt.repository'
 import { INewsArticleRepository } from './news-article.repository'
 import { IAssistantShiftSeriesRepository } from './assistant-shift-series.repository'
 import { IAssistantShiftRepository } from './assistant-shift.repository'
@@ -108,6 +106,7 @@ export interface UnitOfWorkRepos {
   receivingBankAccountRepository: IReceivingBankAccountRepository
   tuitionGradeReceivingBankAccountRepository: ITuitionGradeReceivingBankAccountRepository
   tuitionCollectionConfigurationRepository: ITuitionCollectionConfigurationRepository
+  coursePaymentConfigurationRepository: ICoursePaymentConfigurationRepository
   paymentIntentRepository: IPaymentIntentRepository
   paymentAttemptRepository: IPaymentAttemptRepository
   bankTransferTransactionRepository: IBankTransferTransactionRepository
@@ -132,9 +131,6 @@ export interface UnitOfWorkRepos {
   teacherProfileRepository: ITeacherProfileRepository
   tagRepository: ITagRepository
   documentTagRepository: IDocumentTagRepository
-  onlineCourseInvoiceRepository: IOnlineCourseInvoiceRepository
-  onlineCourseInvoiceItemRepository: IOnlineCourseInvoiceItemRepository
-  onlineCoursePaymentAttemptRepository: IOnlineCoursePaymentAttemptRepository
   newsArticleRepository: INewsArticleRepository
   assistantShiftSeriesRepository: IAssistantShiftSeriesRepository
   assistantShiftRepository: IAssistantShiftRepository

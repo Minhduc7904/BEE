@@ -16,7 +16,9 @@ export class PrismaPaymentIntentRepository implements IPaymentIntentRepository {
   async create(data: CreatePaymentIntentData): Promise<PaymentIntent> {
     const created = await this.prisma.paymentIntent.create({
       data: {
+        type: data.type,
         tuitionPaymentId: data.tuitionPaymentId,
+        courseEnrollmentId: data.courseEnrollmentId,
         amount: data.amount,
         currency: data.currency,
         status: data.status,
@@ -43,10 +45,19 @@ export class PrismaPaymentIntentRepository implements IPaymentIntentRepository {
     return PaymentIntentMapper.toDomain(paymentIntent)
   }
 
+  async findByCourseEnrollmentId(courseEnrollmentId: number): Promise<PaymentIntent | null> {
+    const paymentIntent = await this.prisma.paymentIntent.findUnique({
+      where: { courseEnrollmentId },
+    })
+
+    return PaymentIntentMapper.toDomain(paymentIntent)
+  }
+
   async findAll(options?: PaymentIntentListOptions): Promise<PaymentIntent[]> {
     const paymentIntents = await this.prisma.paymentIntent.findMany({
       where: {
         ...(options?.status !== undefined && { status: options.status }),
+        ...(options?.type !== undefined && { type: options.type }),
         ...(options?.tuitionPaymentId !== undefined && { tuitionPaymentId: options.tuitionPaymentId }),
         ...(options?.expiresBefore !== undefined && { expiresAt: { lte: options.expiresBefore } }),
       },

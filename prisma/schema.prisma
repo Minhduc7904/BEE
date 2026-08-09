@@ -175,7 +175,6 @@ model User {
   updatedDocuments               Document[]               @relation("DocumentUpdater")
   createdTeacherProfiles         TeacherProfile[]         @relation("TeacherProfileCreator")
   updatedTeacherProfiles         TeacherProfile[]         @relation("TeacherProfileUpdater")
-  onlineCourseInvoices           OnlineCourseInvoice[]    @relation("OnlineCourseInvoiceBuyer")
   submittedReports               Report[]                 @relation("ReportReporter")
   // Đề nghị hành động do người dùng gửi hoặc nhận; giữ lịch sử quyết định độc lập với từng module nghiệp vụ.
   sentActionApprovalRequests     ActionApprovalRequest[]  @relation("ActionApprovalRequestRequester")
@@ -294,7 +293,6 @@ model Student {
   homeworkSubmits      HomeworkSubmit[]
   studentLearningItems StudentLearningItem[]
   tuitionPayments      TuitionPayment[]
-  onlineCourseInvoices OnlineCourseInvoice[]
   competitionSubmits   CompetitionSubmit[]
   examAttempts         ExamAttempt[]
 
@@ -1200,7 +1198,6 @@ model Course {
   courseClasses      CourseClass[]
   courseEnrollments  CourseEnrollment[]
   tuitionPayments    TuitionPayment[]
-  onlineInvoiceItems OnlineCourseInvoiceItem[]
   assistantTasks     AssistantTask[]
 
   @@unique([code], map: "unique_course_code")
@@ -1566,6 +1563,12 @@ enum CourseEnrollmentStatus {
   TRIAL // Há»c thá»­
 }
 
+// Nguồn tạo enrollment; chỉ flow thanh toán công khai được phép tạo ONLINE_PURCHASE.
+enum CourseEnrollmentType {
+  MANUAL
+  ONLINE_PURCHASE
+}
+
 model CourseEnrollment {
   enrollmentId Int @id @default(autoincrement()) @map("enrollment_id")
   courseId     Int @map("course_id")
@@ -1573,169 +1576,21 @@ model CourseEnrollment {
 
   enrolledAt DateTime               @default(now()) @map("enrolled_at") @db.Timestamp(0) // ngày đăng ký khóa học
   status     CourseEnrollmentStatus @map("status")
+  // Phân loại enrollment do admin tạo thủ công hoặc do học sinh mua course online.
+  type       CourseEnrollmentType   @default(MANUAL) @map("type")
   isPaidFull Boolean                @default(false) @map("is_paid_full") // đã thanh toán đủ học phí hay chưa
 
   // Relations
   course             Course                    @relation(fields: [courseId], references: [courseId], onDelete: Cascade)
   student            Student                   @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
-  onlineInvoiceItems OnlineCourseInvoiceItem[]
+  // Mỗi enrollment mua course chỉ có một nghĩa vụ SePay; null với enrollment tạo thủ công hoặc course miễn phí.
+  paymentIntent      PaymentIntent?
 
   @@unique([courseId, studentId], map: "unique_course_enrollment")
   @@index([studentId], map: "idx_course_enrollments_student_id")
   @@index([enrolledAt], map: "idx_course_enrollments_enrolled_at")
+  @@index([type, enrolledAt], map: "idx_course_enrollments_type_enrolled_at")
   @@map("courses_enrollments")
-}
-
-enum OnlineCourseInvoiceStatus {
-  PENDING_PAYMENT
-  PAID
-  PAYMENT_FAILED
-  CANCELLED
-  EXPIRED
-  REFUNDED
-  PARTIALLY_REFUNDED
-}
-
-enum OnlinePaymentProvider {
-  VNPAY
-  MOMO
-  ZALOPAY
-  PAYOS
-  STRIPE
-  BANK_TRANSFER
-  OTHER
-}
-
-enum OnlinePaymentAttemptStatus {
-  PENDING
-  PROCESSING
-  SUCCEEDED
-  FAILED
-  CANCELLED
-  EXPIRED
-}
-
-model OnlineCourseInvoice {
-  invoiceId   Int    @id @default(autoincrement()) @map("invoice_id")
-  invoiceCode String @unique @map("invoice_code") @db.VarChar(50)
-
-  buyerUserId Int @map("buyer_user_id")
-  studentId   Int @map("student_id")
-
-  status OnlineCourseInvoiceStatus @default(PENDING_PAYMENT) @map("status")
-
-  currency       String @default("VND") @map("currency") @db.VarChar(3)
-  subtotalAmount Int    @default(0) @map("subtotal_amount")
-  discountAmount Int    @default(0) @map("discount_amount")
-  totalAmount    Int    @default(0) @map("total_amount")
-  paidAmount     Int    @default(0) @map("paid_amount")
-  refundedAmount Int    @default(0) @map("refunded_amount")
-
-  paymentProvider OnlinePaymentProvider? @map("payment_provider")
-  providerOrderId String?                @map("provider_order_id") @db.VarChar(120)
-  checkoutUrl     String?                @map("checkout_url") @db.Text
-  qrCodeUrl       String?                @map("qr_code_url") @db.Text
-
-  expiresAt  DateTime? @map("expires_at") @db.Timestamp(0)
-  paidAt     DateTime? @map("paid_at") @db.Timestamp(0)
-  canceledAt DateTime? @map("canceled_at") @db.Timestamp(0)
-  refundedAt DateTime? @map("refunded_at") @db.Timestamp(0)
-
-  cancelReason String? @map("cancel_reason") @db.VarChar(255)
-  notes        String? @map("notes") @db.Text
-  metadata     Json?   @map("metadata")
-
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
-
-  buyerUser       User                         @relation("OnlineCourseInvoiceBuyer", fields: [buyerUserId], references: [userId], onDelete: Restrict)
-  student         Student                      @relation(fields: [studentId], references: [studentId], onDelete: Restrict)
-  items           OnlineCourseInvoiceItem[]
-  paymentAttempts OnlineCoursePaymentAttempt[]
-
-  @@index([buyerUserId, status], map: "idx_online_course_invoices_buyer_status")
-  @@index([studentId, status], map: "idx_online_course_invoices_student_status")
-  @@index([status, createdAt], map: "idx_online_course_invoices_status_created")
-  @@index([providerOrderId], map: "idx_online_course_invoices_provider_order")
-  @@map("online_course_invoices")
-}
-
-model OnlineCourseInvoiceItem {
-  invoiceItemId Int  @id @default(autoincrement()) @map("invoice_item_id")
-  invoiceId     Int  @map("invoice_id")
-  courseId      Int? @map("course_id")
-  enrollmentId  Int? @map("enrollment_id")
-
-  courseCode  String? @map("course_code") @db.VarChar(50)
-  courseTitle String  @map("course_title") @db.VarChar(200)
-
-  unitPriceAmount Int @default(0) @map("unit_price_amount")
-  quantity        Int @default(1) @map("quantity")
-  discountAmount  Int @default(0) @map("discount_amount")
-  totalAmount     Int @default(0) @map("total_amount")
-
-  metadata Json? @map("metadata")
-
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
-
-  invoice          OnlineCourseInvoice @relation(fields: [invoiceId], references: [invoiceId], onDelete: Cascade)
-  course           Course?             @relation(fields: [courseId], references: [courseId], onDelete: SetNull)
-  courseEnrollment CourseEnrollment?   @relation(fields: [enrollmentId], references: [enrollmentId], onDelete: SetNull)
-
-  @@index([invoiceId], map: "idx_online_course_invoice_items_invoice")
-  @@index([courseId], map: "idx_online_course_invoice_items_course")
-  @@index([enrollmentId], map: "idx_online_course_invoice_items_enrollment")
-  @@map("online_course_invoice_items")
-}
-
-model OnlineCoursePaymentAttempt {
-  attemptId   Int    @id @default(autoincrement()) @map("attempt_id")
-  attemptCode String @unique @map("attempt_code") @db.VarChar(80)
-
-  invoiceId Int @map("invoice_id")
-
-  provider OnlinePaymentProvider      @map("provider")
-  status   OnlinePaymentAttemptStatus @default(PENDING) @map("status")
-
-  amount   Int    @map("amount")
-  currency String @default("VND") @map("currency") @db.VarChar(3)
-
-  qrContent String? @map("qr_content") @db.Text
-
-  providerOrderId       String  @map("provider_order_id") @db.VarChar(120)
-  providerTransactionId String? @map("provider_transaction_id") @db.VarChar(120)
-  providerResponseCode  String? @map("provider_response_code") @db.VarChar(50)
-  providerMessage       String? @map("provider_message") @db.VarChar(255)
-
-  providerBankCode   String? @map("provider_bank_code") @db.VarChar(50)
-  providerBankTranNo String? @map("provider_bank_tran_no") @db.VarChar(120)
-  providerCardType   String? @map("provider_card_type") @db.VarChar(50)
-  providerPayDate    String? @map("provider_pay_date") @db.VarChar(14)
-
-  checkoutUrl String? @map("checkout_url") @db.Text
-  qrCodeUrl   String? @map("qr_code_url") @db.Text
-
-  requestPayload  Json? @map("request_payload")
-  responsePayload Json? @map("response_payload")
-  callbackPayload Json? @map("callback_payload")
-
-  paidAt     DateTime? @map("paid_at") @db.Timestamp(0)
-  failedAt   DateTime? @map("failed_at") @db.Timestamp(0)
-  canceledAt DateTime? @map("canceled_at") @db.Timestamp(0)
-  expiredAt  DateTime? @map("expired_at") @db.Timestamp(0)
-
-  cancelReason String? @map("cancel_reason") @db.VarChar(255)
-
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
-
-  invoice OnlineCourseInvoice @relation(fields: [invoiceId], references: [invoiceId], onDelete: Cascade)
-
-  @@unique([provider, providerOrderId], map: "uq_online_payment_attempts_provider_order")
-  @@index([invoiceId, status], map: "idx_online_payment_attempts_invoice_status")
-  @@index([providerTransactionId], map: "idx_online_payment_attempts_provider_txn")
-  @@map("online_course_payment_attempts")
 }
 
 enum AttendanceStatus {
@@ -2462,6 +2317,12 @@ enum BankTransferReconciliationStatus {
   ADMIN
 }
 
+// Mục đích nghiệp vụ của payment intent và giao dịch SePay; thêm giá trị mới khi có luồng thanh toán mới.
+enum BankTransferTransactionType {
+  TUITION_PAYMENT
+  COURSE_PURCHASE
+}
+
 // Tài khoản ngân hàng doanh nghiệp có thể nhận học phí.
 model ReceivingBankAccount {
   receivingBankAccountId Int                        @id @default(autoincrement()) @map("receiving_bank_account_id")
@@ -2481,6 +2342,7 @@ model ReceivingBankAccount {
   paymentAttempts          PaymentAttempt[]
   bankTransferTransactions BankTransferTransaction[]          @relation("BankTransferTransactionReceivingBankAccount")
   defaultManualFor         TuitionCollectionConfiguration?    @relation("TuitionDefaultManualBank")
+  coursePaymentConfiguration CoursePaymentConfiguration?      @relation("CoursePaymentConfigurationBank")
 
   @@unique([bankCode, accountNumber], map: "uq_receiving_bank_accounts_bank_account")
   @@index([accountNumber], map: "idx_receiving_bank_accounts_account_number")
@@ -2516,10 +2378,26 @@ model TuitionCollectionConfiguration {
   @@map("tuition_collection_configurations")
 }
 
+// Cấu hình singleton chọn tài khoản nhận cho thanh toán mua khóa học qua SePay.
+model CoursePaymentConfiguration {
+  coursePaymentConfigurationId Int      @id @default(autoincrement()) @map("course_payment_configuration_id")
+  scopeKey                     String   @unique @default("GLOBAL") @map("scope_key") @db.VarChar(20)
+  receivingBankAccountId       Int      @unique @map("receiving_bank_account_id")
+  createdAt                    DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                    DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  receivingBankAccount ReceivingBankAccount @relation("CoursePaymentConfigurationBank", fields: [receivingBankAccountId], references: [receivingBankAccountId], onDelete: Restrict)
+
+  @@map("course_payment_configurations")
+}
+
 // Nghĩa vụ thanh toán online của một khoản học phí.
 model PaymentIntent {
   paymentIntentId  Int                 @id @default(autoincrement()) @map("payment_intent_id")
-  tuitionPaymentId Int                 @unique @map("tuition_payment_id")
+  // Mỗi intent thuộc đúng một tuition payment hoặc một course enrollment; application layer kiểm soát invariant này.
+  type             BankTransferTransactionType @default(TUITION_PAYMENT) @map("type")
+  tuitionPaymentId Int?                @unique @map("tuition_payment_id")
+  courseEnrollmentId Int?              @unique @map("course_enrollment_id")
   amount           Int                 @map("amount")
   currency         String              @default("VND") @map("currency") @db.VarChar(3)
   status           PaymentIntentStatus @default(PENDING) @map("status")
@@ -2527,10 +2405,12 @@ model PaymentIntent {
   createdAt        DateTime            @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt        DateTime            @updatedAt @map("updated_at") @db.Timestamp(0)
 
-  tuitionPayment TuitionPayment   @relation(fields: [tuitionPaymentId], references: [paymentId], onDelete: Restrict)
+  tuitionPayment TuitionPayment?  @relation(fields: [tuitionPaymentId], references: [paymentId], onDelete: Restrict)
+  courseEnrollment CourseEnrollment? @relation(fields: [courseEnrollmentId], references: [enrollmentId], onDelete: Restrict)
   attempts       PaymentAttempt[]
 
   @@index([status, expiresAt], map: "idx_payment_intents_status_expires")
+  @@index([type, status], map: "idx_payment_intents_type_status")
   @@map("payment_intents")
 }
 
@@ -2576,6 +2456,8 @@ model BankTransferTransaction {
   content                   String?                          @map("content") @db.Text
   reference                 String?                          @map("reference") @db.VarChar(120)
   rawPayload                Json?                            @map("raw_payload")
+  // Null khi nội dung chuyển khoản chưa đủ để phân loại; chỉ gán type sau parser hoặc đối soát admin.
+  type                      BankTransferTransactionType?     @map("type")
   processingStatus          BankTransferProcessingStatus     @default(RECEIVED) @map("processing_status")
   // Phân biệt giao dịch chưa đối soát, được BE tự đối soát, hoặc admin xác nhận thủ công.
   reconciliationStatus      BankTransferReconciliationStatus @default(UNRECONCILED) @map("reconciliation_status")
@@ -2589,6 +2471,7 @@ model BankTransferTransaction {
   @@index([processingStatus, transactionAt], map: "idx_bank_transfer_transactions_status_time")
   @@index([paymentAttemptId], map: "idx_bank_transfer_transactions_attempt")
   @@index([receivingBankAccountId], map: "idx_bank_transfer_transactions_receiving_account")
+  @@index([type, transactionAt], map: "idx_bank_transfer_transactions_type_time")
   @@index([provider, reference, amount, receivingAccountNumber], map: "idx_bank_transfer_transactions_provider_reference_match")
   @@map("bank_transfer_transactions")
 }

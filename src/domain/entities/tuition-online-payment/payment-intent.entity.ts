@@ -1,8 +1,10 @@
-import { PaymentIntentStatus } from '../../../shared/enums'
+import { BankTransferTransactionType, PaymentIntentStatus } from '../../../shared/enums'
 
 export class PaymentIntent {
   paymentIntentId: number
-  tuitionPaymentId: number
+  type: BankTransferTransactionType
+  tuitionPaymentId?: number | null
+  courseEnrollmentId?: number | null
   amount: number
   currency: string
   status: PaymentIntentStatus
@@ -14,7 +16,9 @@ export class PaymentIntent {
 
   constructor(data: {
     paymentIntentId: number
-    tuitionPaymentId: number
+    type?: BankTransferTransactionType
+    tuitionPaymentId?: number | null
+    courseEnrollmentId?: number | null
     amount: number
     currency?: string
     status?: PaymentIntentStatus
@@ -23,7 +27,9 @@ export class PaymentIntent {
     updatedAt?: Date
   }) {
     this.paymentIntentId = data.paymentIntentId
-    this.tuitionPaymentId = data.tuitionPaymentId
+    this.type = data.type ?? BankTransferTransactionType.TUITION_PAYMENT
+    this.tuitionPaymentId = data.tuitionPaymentId ?? null
+    this.courseEnrollmentId = data.courseEnrollmentId ?? null
     this.amount = data.amount
     this.currency = data.currency ?? 'VND'
     this.status = data.status ?? PaymentIntentStatus.PENDING

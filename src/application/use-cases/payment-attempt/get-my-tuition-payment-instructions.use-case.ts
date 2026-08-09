@@ -7,6 +7,7 @@ import type { IUnitOfWork, UnitOfWorkRepos } from '../../../domain/repositories'
 import type { PaymentAttempt, ReceivingBankAccount } from '../../../domain/entities/tuition-online-payment'
 import type { TuitionPayment } from '../../../domain/entities/tuition-payment'
 import {
+  BankTransferTransactionType,
   PaymentBankSelectionSource,
   PaymentConfirmationMode,
   PaymentIntentStatus,
@@ -104,6 +105,7 @@ export class GetMyTuitionPaymentInstructionsUseCase {
 
   private async createPaymentIntent(repos: UnitOfWorkRepos, tuitionPayment: TuitionPayment) {
     return repos.paymentIntentRepository.create({
+      type: BankTransferTransactionType.TUITION_PAYMENT,
       tuitionPaymentId: tuitionPayment.paymentId,
       amount: tuitionPayment.amount!,
       currency: 'VND',

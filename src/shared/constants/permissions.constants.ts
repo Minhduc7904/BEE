@@ -1420,6 +1420,13 @@ export const PERMISSIONS = [
     group: 'TUITION_COLLECTION_CONFIGURATION_MANAGEMENT',
     isSystem: true,
   },
+  {
+    code: 'course-payment-configuration:manage',
+    name: 'Quản lý cấu hình thanh toán khóa học',
+    description: 'Chọn tài khoản nhận tiền SePay cho mua khóa học',
+    group: 'TUITION_PAYMENT_MANAGEMENT',
+    isSystem: true,
+  },
 
   // ===================================
   // TEMP EXAM MANAGEMENT

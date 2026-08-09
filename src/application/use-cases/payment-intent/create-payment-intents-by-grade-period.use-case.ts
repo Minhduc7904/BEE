@@ -9,7 +9,7 @@ import {
 import type { IUnitOfWork } from '../../../domain/repositories'
 import { ACTION_KEYS } from '../../../shared/constants/action-key.constants'
 import { RESOURCE_TYPES } from '../../../shared/constants/resource-type.constants'
-import { AuditStatus, TuitionPaymentStatus } from '../../../shared/enums'
+import { AuditStatus, BankTransferTransactionType, TuitionPaymentStatus } from '../../../shared/enums'
 import { TuitionPaymentIntentEligibility } from './tuition-payment-intent-eligibility'
 
 @Injectable()
@@ -26,8 +26,8 @@ export class CreatePaymentIntentsByGradePeriodUseCase {
         year: dto.year,
         status: TuitionPaymentStatus.UNPAID,
       })
-      const eligiblePayments = payments.filter((payment) =>
-        payment.student?.grade === dto.grade && payment.amount !== null && payment.amount > 0,
+      const eligiblePayments = payments.filter(
+        (payment) => payment.student?.grade === dto.grade && payment.amount !== null && payment.amount > 0,
       )
       const created: PaymentIntentResponseDto[] = []
       let existingPaymentIntentCount = 0
@@ -40,6 +40,7 @@ export class CreatePaymentIntentsByGradePeriodUseCase {
         }
 
         const paymentIntent = await repos.paymentIntentRepository.create({
+          type: BankTransferTransactionType.TUITION_PAYMENT,
           tuitionPaymentId: tuitionPayment.paymentId,
           amount: tuitionPayment.amount!,
           currency: 'VND',
@@ -66,12 +67,16 @@ export class CreatePaymentIntentsByGradePeriodUseCase {
     return BaseResponseDto.success('Tạo payment intent theo khối và kỳ học thành công', response)
   }
 
-  private toAuditData(
-    paymentIntent: { paymentIntentId: number; tuitionPaymentId: number; amount: number; currency: string; status: string },
-  ) {
+  private toAuditData(paymentIntent: {
+    paymentIntentId: number
+    tuitionPaymentId?: number | null
+    amount: number
+    currency: string
+    status: string
+  }) {
     return {
       paymentIntentId: paymentIntent.paymentIntentId,
-      tuitionPaymentId: paymentIntent.tuitionPaymentId,
+      tuitionPaymentId: paymentIntent.tuitionPaymentId!,
       amount: paymentIntent.amount,
       currency: paymentIntent.currency,
       status: paymentIntent.status,

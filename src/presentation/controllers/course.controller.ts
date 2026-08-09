@@ -19,31 +19,27 @@ import type { Response } from 'express'
 import { CourseListQueryDto } from '../../application/dtos/course/course-list-query.dto'
 import { CreateCourseDto } from '../../application/dtos/course/create-course.dto'
 import { UpdateCourseBasicInfoDto, UpdateCoursePricingDto } from '../../application/dtos/course/update-course.dto'
-import {
-  CourseListResponseDto,
-  CourseResponseDto,
-} from '../../application/dtos/course/course.dto'
-import {
-  CourseMediaResponseDto,
-  UpdateCourseMediaDto,
-} from '../../application/dtos/course/course-media.dto'
+import { CourseListResponseDto, CourseResponseDto } from '../../application/dtos/course/course.dto'
+import { CourseMediaResponseDto, UpdateCourseMediaDto } from '../../application/dtos/course/course-media.dto'
 import {
   PublicSeoCourseDetailDto,
   PublicSeoCourseListResponseDto,
-  PublicSeoCourseManualInvoiceBaseResponseDto,
-  PublicSeoCourseManualInvoiceStatusBaseResponseDto,
-  PublicSeoCourseManualInvoiceStatusWithCredentialDto,
-  PublicSeoCourseManualInvoiceWithCredentialDto,
 } from '../../application/dtos/course/public-seo-course.dto'
-import { StudentCourseDetailResponseDto } from '../../application/dtos/course/student-course-detail.dto'
 import {
-  CourseSearchQueryDto,
-} from '../../application/dtos/course/course-search-query.dto'
+  CoursePaymentInstructionResponseDto,
+  PublicCoursePaymentCredentialDto,
+  PublicCoursePaymentStatusDto,
+} from '../../application/dtos/course-payment'
+import { StudentCourseDetailResponseDto } from '../../application/dtos/course/student-course-detail.dto'
+import { CourseSearchQueryDto } from '../../application/dtos/course/course-search-query.dto'
 import { CourseStudentsAttendanceQueryDto } from '../../application/dtos/course/course-students-attendance-query.dto'
 import { ExportCourseStudentsAttendanceQueryDto } from '../../application/dtos/course/export-course-students-attendance-query.dto'
 import { CourseStudentsAttendanceListResponseDto } from '../../application/dtos/course/course-student-attendance.dto'
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
-import { PublicSeoSitemapQueryDto, PublicSeoSitemapResponseDto } from '../../application/dtos/seo/public-seo-sitemap.dto'
+import {
+  PublicSeoSitemapQueryDto,
+  PublicSeoSitemapResponseDto,
+} from '../../application/dtos/seo/public-seo-sitemap.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
 import { CurrentUser } from '../../shared/decorators/current-user.decorator'
@@ -62,9 +58,12 @@ import {
   GetPublicSeoOnlineCoursesUseCase,
   GetPublicSeoCourseDetailUseCase,
   UpdateCourseMediaUseCase,
-  CreatePublicSeoCourseManualInvoiceUseCase,
   GetPublicSeoCourseSitemapUseCase,
 } from '../../application/use-cases/course'
+import {
+  CreateCoursePaymentInstructionsUseCase,
+  GetMyCoursePaymentIntentStatusUseCase,
+} from '../../application/use-cases/course-payment'
 import { Injectable } from '@nestjs/common'
 
 @Injectable()
@@ -84,9 +83,10 @@ export class CourseController {
     private readonly getPublicSeoOnlineCoursesUseCase: GetPublicSeoOnlineCoursesUseCase,
     private readonly getPublicSeoCourseDetailUseCase: GetPublicSeoCourseDetailUseCase,
     private readonly updateCourseMediaUseCase: UpdateCourseMediaUseCase,
-    private readonly createPublicSeoCourseManualInvoiceUseCase: CreatePublicSeoCourseManualInvoiceUseCase,
+    private readonly createCoursePaymentInstructionsUseCase: CreateCoursePaymentInstructionsUseCase,
+    private readonly getMyCoursePaymentIntentStatusUseCase: GetMyCoursePaymentIntentStatusUseCase,
     private readonly getPublicSeoCourseSitemapUseCase: GetPublicSeoCourseSitemapUseCase,
-  ) { }
+  ) {}
 
   @Get()
   @RequirePermission(PERMISSION_CODES.COURSE.GET_ALL)
@@ -98,10 +98,7 @@ export class CourseController {
   @Get('search')
   @RequirePermission(PERMISSION_CODES.COURSE.SEARCH)
   @HttpCode(HttpStatus.OK)
-  async searchCourses(
-    @Query() query: CourseSearchQueryDto,
-    @CurrentUser() user?: any,
-  ): Promise<CourseListResponseDto> {
+  async searchCourses(@Query() query: CourseSearchQueryDto, @CurrentUser() user?: any): Promise<CourseListResponseDto> {
     // All permission logic is handled in the UseCase
     const context = {
       user: {
@@ -110,10 +107,8 @@ export class CourseController {
         permissions: user?.permissions ?? [],
       },
     }
-    
-    return ExceptionHandler.execute(() =>
-      this.searchCoursesUseCase.execute(query, context),
-    )
+
+    return ExceptionHandler.execute(() => this.searchCoursesUseCase.execute(query, context))
   }
 
   @Get('admin/my')
@@ -241,9 +236,7 @@ export class CourseController {
     @Query() query: CourseListQueryDto,
     @CurrentUser('studentId') studentId: number,
   ): Promise<CourseListResponseDto> {
-    return ExceptionHandler.execute(() =>
-      this.getStudentAvailableOnlineCoursesUseCase.execute(query, studentId),
-    )
+    return ExceptionHandler.execute(() => this.getStudentAvailableOnlineCoursesUseCase.execute(query, studentId))
   }
 
   /**
@@ -274,9 +267,7 @@ export class CourseController {
    */
   @Get('public/seo')
   @HttpCode(HttpStatus.OK)
-  async getPublicSeoOnlineCourses(
-    @Query() query: CourseListQueryDto,
-  ): Promise<PublicSeoCourseListResponseDto> {
+  async getPublicSeoOnlineCourses(@Query() query: CourseListQueryDto): Promise<PublicSeoCourseListResponseDto> {
     return ExceptionHandler.execute(() => this.getPublicSeoOnlineCoursesUseCase.execute(query))
   }
 
@@ -308,154 +299,68 @@ export class CourseController {
    * - Thông tin khóa học public online, subject, teacher, lớp, trợ giảng,
    *   buổi học public, chương của buổi học và learning item của các buổi học thử.
    */
-  /**
-   * Endpoint: POST /api/courses/public/seo/:courseIdOrCode/register-manual-invoice
-   *
-   * Request:
-   * - Khong can JWT.
-   * - Param:
-   *   courseIdOrCode: number | string
-   * - Body:
-   *   { "username": "student01", "password": "123456" }
-   *   hoac { "email": "student@example.com", "password": "123456" }
-   *
-   * Rule:
-   * - Chi truyen username hoac email, khong truyen ca hai.
-   * - Backend verify tai khoan hoc sinh va mat khau, khong tao access token moi.
-   * - Chi tao invoice cho course PUBLISHED, chua ket thuc, courseType ONLINE hoac ALL.
-   * - Neu hoc sinh da co CourseEnrollment ACTIVE thi tra loi da mua/kich hoat khoa hoc.
-   * - Neu da co invoice PENDING_PAYMENT cho cung hoc sinh + course thi tra lai invoice cu, khong tao invoice thu hai.
-   * - Course co phi: invoice paymentProvider = BANK_TRANSFER, status = PENDING_PAYMENT de admin doi soat.
-   * - Course mien phi: invoice paymentProvider = OTHER, status = PAID va tao CourseEnrollment ngay.
-   *
-   * Response:
-   * {
-   *   "success": true,
-   *   "message": "Tao hoa don chuyen khoan thu cong thanh cong",
-   *   "data": {
-   *     "invoiceId": 123,
-   *     "invoiceCode": "OC...",
-   *     "buyerUserId": 10,
-   *     "studentId": 5,
-   *     "status": "PENDING_PAYMENT",
-   *     "currency": "VND",
-   *     "totalAmount": 299000,
-   *     "paidAmount": 0,
-   *     "paymentProvider": "BANK_TRANSFER",
-   *     "items": [{ "courseId": 64, "courseTitle": "Khoa hoc online", "totalAmount": 299000 }],
-   *     "alreadyHasEnrollment": false,
-   *     "reusedPendingInvoice": false
-   *   }
-   * }
-   */
-  @Post('public/seo/:courseIdOrCode/register-manual-invoice')
+  /** Lấy hướng dẫn SePay bằng credential học sinh; xem docs/api/course-payments.md. */
+  @Post('public/seo/:courseIdOrCode/payment-instructions')
   @HttpCode(HttpStatus.OK)
-  async createPublicSeoManualInvoiceWithCredential(
+  async createPublicSeoCoursePaymentInstructionsWithCredential(
     @Param('courseIdOrCode') courseIdOrCode: string,
-    @Body() body: PublicSeoCourseManualInvoiceWithCredentialDto,
-  ): Promise<PublicSeoCourseManualInvoiceBaseResponseDto> {
+    @Body() body: PublicCoursePaymentCredentialDto,
+  ): Promise<BaseResponseDto<CoursePaymentInstructionResponseDto>> {
     return ExceptionHandler.execute(() =>
-      this.createPublicSeoCourseManualInvoiceUseCase.executeWithCredential(courseIdOrCode, body),
+      this.createCoursePaymentInstructionsUseCase.executeWithCredential(courseIdOrCode, body),
     )
   }
 
-  /**
-   * Endpoint: POST /api/courses/public/seo/:courseIdOrCode/manual-invoice-status
-   *
-   * Request:
-   * - Khong can JWT.
-   * - Param:
-   *   courseIdOrCode: number | string
-   * - Body:
-   *   {
-   *     "invoiceId": 123,
-   *     "username": "student01",
-   *     "password": "123456"
-   *   }
-   *   hoac:
-   *   {
-   *     "invoiceId": 123,
-   *     "email": "student@example.com",
-   *     "password": "123456"
-   *   }
-   *
-   * Response:
-   * {
-   *   "success": true,
-   *   "message": "Lay trang thai hoa don chuyen khoan thu cong thanh cong",
-   *   "data": {
-   *     "invoiceId": 123,
-   *     "invoiceCode": "OC...",
-   *     "status": "PAID",
-   *     "paidAt": "2026-07-09T10:00:00.000Z",
-   *     "paidAmount": 299000,
-   *     "paymentProvider": "BANK_TRANSFER",
-   *     "latestAttempt": {
-   *       "attemptCode": "BANK_123_...",
-   *       "status": "SUCCEEDED",
-   *       "provider": "BANK_TRANSFER"
-   *     },
-   *     "enrollmentCreated": true
-   *   }
-   * }
-   *
-   * Frontend:
-   * - Poll API nay neu user tao invoice khi chua dang nhap.
-   * - Khi status = PAID va enrollmentCreated = true thi hien thanh cong va doi nut thanh "Vao hoc".
-   */
-  @Post('public/seo/:courseIdOrCode/manual-invoice-status')
+  /** Refresh làm hết hiệu lực hướng dẫn đang chờ và trả QR SePay mới. */
+  @Post('public/seo/:courseIdOrCode/payment-instructions/refresh')
   @HttpCode(HttpStatus.OK)
-  async getPublicSeoManualInvoiceStatusWithCredential(
+  async refreshPublicSeoCoursePaymentInstructionsWithCredential(
     @Param('courseIdOrCode') courseIdOrCode: string,
-    @Body() body: PublicSeoCourseManualInvoiceStatusWithCredentialDto,
-  ): Promise<PublicSeoCourseManualInvoiceStatusBaseResponseDto> {
+    @Body() body: PublicCoursePaymentCredentialDto,
+  ): Promise<BaseResponseDto<CoursePaymentInstructionResponseDto>> {
     return ExceptionHandler.execute(() =>
-      this.createPublicSeoCourseManualInvoiceUseCase.executeStatusWithCredential(courseIdOrCode, body),
+      this.createCoursePaymentInstructionsUseCase.executeWithCredential(courseIdOrCode, body, true),
     )
   }
 
-  /**
-   * Endpoint: POST /api/courses/public/seo/:courseIdOrCode/register-manual-invoice/me
-   *
-   * Request:
-   * - Header: Authorization: Bearer <JWT student>
-   * - Param:
-   *   courseIdOrCode: number | string
-   * - Body: khong can truyen gi.
-   *
-   * Rule:
-   * - Backend lay user/student hien tai tu JWT.
-   * - Chi tao invoice cho course PUBLISHED, chua ket thuc, courseType ONLINE hoac ALL.
-   * - Neu hoc sinh da co CourseEnrollment ACTIVE thi tra loi da mua/kich hoat khoa hoc.
-   * - Neu da co invoice PENDING_PAYMENT cho cung hoc sinh + course thi tra lai invoice cu, khong tao invoice thu hai.
-   * - Course co phi: invoice paymentProvider = BANK_TRANSFER, status = PENDING_PAYMENT de admin doi soat.
-   * - Course mien phi: invoice paymentProvider = OTHER, status = PAID va tao CourseEnrollment ngay.
-   *
-   * Response:
-   * {
-   *   "success": true,
-   *   "message": "Tao hoa don chuyen khoan thu cong thanh cong",
-   *   "data": {
-   *     "invoiceId": 123,
-   *     "invoiceCode": "OC...",
-   *     "studentId": 5,
-   *     "status": "PENDING_PAYMENT",
-   *     "totalAmount": 299000,
-   *     "paymentProvider": "BANK_TRANSFER",
-   *     "reusedPendingInvoice": false
-   *   }
-   * }
-   */
-  @Post('public/seo/:courseIdOrCode/register-manual-invoice/me')
+  @Post('public/seo/:courseIdOrCode/payment-instructions/status')
+  @HttpCode(HttpStatus.OK)
+  async getPublicSeoCoursePaymentStatusWithCredential(
+    @Param('courseIdOrCode') _courseIdOrCode: string,
+    @Body() body: PublicCoursePaymentStatusDto,
+  ) {
+    return ExceptionHandler.execute(async () => {
+      const userId = await this.createCoursePaymentInstructionsUseCase.authenticateCredential(body)
+      const data = await this.getMyCoursePaymentIntentStatusUseCase.executeForUser(body.paymentIntentId, userId)
+      return BaseResponseDto.success('Lấy trạng thái thanh toán khóa học thành công', data)
+    })
+  }
+
+  /** Lấy hướng dẫn SePay bằng JWT học sinh. */
+  @Post('public/seo/:courseIdOrCode/payment-instructions/me')
   @RequirePermission()
   @HttpCode(HttpStatus.OK)
-  async createPublicSeoManualInvoiceForLoggedInUser(
+  async createPublicSeoCoursePaymentInstructionsForLoggedInUser(
     @Param('courseIdOrCode') courseIdOrCode: string,
     @CurrentUser('userId') userId: number,
-  ): Promise<PublicSeoCourseManualInvoiceBaseResponseDto> {
+  ): Promise<BaseResponseDto<CoursePaymentInstructionResponseDto>> {
     return ExceptionHandler.execute(() =>
-      this.createPublicSeoCourseManualInvoiceUseCase.executeForLoggedInUser(courseIdOrCode, userId),
+      this.createCoursePaymentInstructionsUseCase.executeForLoggedInUser(courseIdOrCode, userId),
     )
+  }
+
+  @Get('public/seo/:courseIdOrCode/payment-instructions/me/:paymentIntentId')
+  @RequirePermission()
+  @HttpCode(HttpStatus.OK)
+  async getCoursePaymentStatusForLoggedInUser(
+    @Param('courseIdOrCode') _courseIdOrCode: string,
+    @Param('paymentIntentId', ParseIntPipe) paymentIntentId: number,
+    @CurrentUser('userId') userId: number,
+  ) {
+    return ExceptionHandler.execute(async () => {
+      const data = await this.getMyCoursePaymentIntentStatusUseCase.executeForUser(paymentIntentId, userId)
+      return BaseResponseDto.success('Lấy trạng thái thanh toán khóa học thành công', data)
+    })
   }
 
   @Get('public/seo/:courseIdOrCode')
@@ -469,12 +374,12 @@ export class CourseController {
   /**
    * Get course detail for student
    * GET /courses/student/:id
-   * 
+   *
    * Kiểm tra:
    * - Course có tồn tại không
    * - Course có phải DRAFT không (nếu DRAFT thì throw error)
    * - Student đã enroll chưa (nếu chưa thì throw error)
-   * 
+   *
    * Trả về thông tin:
    * - Thông tin cơ bản của course
    * - Thông tin giáo viên (tên, email)
@@ -487,9 +392,7 @@ export class CourseController {
     @Param('id', ParseIntPipe) id: number,
     @CurrentUser('studentId') studentId: number,
   ): Promise<BaseResponseDto<StudentCourseDetailResponseDto>> {
-    return ExceptionHandler.execute(() => 
-      this.getStudentCourseDetailUseCase.execute(id, studentId)
-    )
+    return ExceptionHandler.execute(() => this.getStudentCourseDetailUseCase.execute(id, studentId))
   }
 
   @Get(':id')

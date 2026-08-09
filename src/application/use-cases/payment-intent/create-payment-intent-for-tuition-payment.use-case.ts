@@ -1,25 +1,18 @@
 import { Inject, Injectable } from '@nestjs/common'
 
-import {
-  BaseResponseDto,
-  CreatePaymentIntentResponseDto,
-  PaymentIntentResponseDto,
-} from '../../dtos'
+import { BaseResponseDto, CreatePaymentIntentResponseDto, PaymentIntentResponseDto } from '../../dtos'
 import type { IUnitOfWork } from '../../../domain/repositories'
 import { ACTION_KEYS } from '../../../shared/constants/action-key.constants'
 import { RESOURCE_TYPES } from '../../../shared/constants/resource-type.constants'
 import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
-import { AuditStatus } from '../../../shared/enums'
+import { AuditStatus, BankTransferTransactionType } from '../../../shared/enums'
 import { TuitionPaymentIntentEligibility } from './tuition-payment-intent-eligibility'
 
 @Injectable()
 export class CreatePaymentIntentForTuitionPaymentUseCase {
   constructor(@Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork) {}
 
-  async execute(
-    tuitionPaymentId: number,
-    adminId: number,
-  ): Promise<BaseResponseDto<CreatePaymentIntentResponseDto>> {
+  async execute(tuitionPaymentId: number, adminId: number): Promise<BaseResponseDto<CreatePaymentIntentResponseDto>> {
     const response = await this.unitOfWork.executeInTransaction(async (repos) => {
       const tuitionPayment = await repos.tuitionPaymentRepository.findById(tuitionPaymentId)
       if (!tuitionPayment) {
@@ -36,6 +29,7 @@ export class CreatePaymentIntentForTuitionPaymentUseCase {
       }
 
       const paymentIntent = await repos.paymentIntentRepository.create({
+        type: BankTransferTransactionType.TUITION_PAYMENT,
         tuitionPaymentId,
         amount: tuitionPayment.amount!,
         currency: 'VND',
@@ -63,12 +57,16 @@ export class CreatePaymentIntentForTuitionPaymentUseCase {
     )
   }
 
-  private toAuditData(
-    paymentIntent: { paymentIntentId: number; tuitionPaymentId: number; amount: number; currency: string; status: string },
-  ) {
+  private toAuditData(paymentIntent: {
+    paymentIntentId: number
+    tuitionPaymentId?: number | null
+    amount: number
+    currency: string
+    status: string
+  }) {
     return {
       paymentIntentId: paymentIntent.paymentIntentId,
-      tuitionPaymentId: paymentIntent.tuitionPaymentId,
+      tuitionPaymentId: paymentIntent.tuitionPaymentId!,
       amount: paymentIntent.amount,
       currency: paymentIntent.currency,
       status: paymentIntent.status,

@@ -1,8 +1,4 @@
-import {
-  PaymentAttemptStatus,
-  PaymentBankSelectionSource,
-  PaymentConfirmationMode,
-} from '../../../shared/enums'
+import { PaymentAttemptStatus, PaymentBankSelectionSource, PaymentConfirmationMode } from '../../../shared/enums'
 
 export class PaymentAttempt {
   paymentAttemptId: number

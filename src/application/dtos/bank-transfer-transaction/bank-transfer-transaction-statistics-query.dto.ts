@@ -3,9 +3,11 @@ import {
   BankTransferProcessingStatus,
   BankTransferProvider,
   BankTransferReconciliationStatus,
+  BankTransferTransactionType,
 } from '../../../shared/enums'
 import {
   IsOptionalDate,
+  IsOptionalBoolean,
   IsOptionalEnumValue,
   IsOptionalIdNumber,
   IsOptionalNumber,
@@ -13,6 +15,12 @@ import {
 } from '../../../shared/decorators/validate'
 
 export class BankTransferTransactionStatisticsQueryDto {
+  @IsOptionalEnumValue(BankTransferTransactionType, 'Loại giao dịch')
+  type?: BankTransferTransactionType
+
+  @IsOptionalBoolean('Bao gồm giao dịch chưa phân loại')
+  includeUnclassified?: boolean
+
   @IsOptionalEnumValue(BankTransferProvider, 'Nhà cung cấp')
   provider?: BankTransferProvider
 
@@ -49,6 +57,8 @@ export class BankTransferTransactionStatisticsQueryDto {
   toBankTransferTransactionListOptions(): BankTransferTransactionListOptions {
     return {
       provider: this.provider,
+      type: this.type,
+      includeUnclassified: this.includeUnclassified,
       paymentAttemptId: this.paymentAttemptId,
       processingStatus: this.processingStatus,
       reconciliationStatus: this.reconciliationStatus,

@@ -79,6 +79,9 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _tuitionCollectionConfigurationRepository:
       | UnitOfWorkRepos['tuitionCollectionConfigurationRepository']
       | undefined
+    let _coursePaymentConfigurationRepository:
+      | UnitOfWorkRepos['coursePaymentConfigurationRepository']
+      | undefined
     let _paymentIntentRepository: UnitOfWorkRepos['paymentIntentRepository'] | undefined
     let _paymentAttemptRepository: UnitOfWorkRepos['paymentAttemptRepository'] | undefined
     let _bankTransferTransactionRepository: UnitOfWorkRepos['bankTransferTransactionRepository'] | undefined
@@ -102,9 +105,6 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _tagRepository: any
     let _teacherProfileRepository: any
     let _documentTagRepository: any
-    let _onlineCourseInvoiceRepository: any
-    let _onlineCourseInvoiceItemRepository: any
-    let _onlineCoursePaymentAttemptRepository: any
     let _newsArticleRepository: any
     let _assistantShiftSeriesRepository: UnitOfWorkRepos['assistantShiftSeriesRepository'] | undefined
     let _assistantShiftRepository: UnitOfWorkRepos['assistantShiftRepository'] | undefined
@@ -277,6 +277,14 @@ export class PrismaUnitOfWork implements IUnitOfWork {
       enumerable: true,
     })
 
+    Object.defineProperty(repos, 'coursePaymentConfigurationRepository', {
+      get: () =>
+        (_coursePaymentConfigurationRepository ??= new Repositories.PrismaCoursePaymentConfigurationRepository(
+          client,
+        )),
+      enumerable: true,
+    })
+
     Object.defineProperty(repos, 'paymentIntentRepository', {
       get: () => (_paymentIntentRepository ??= new Repositories.PrismaPaymentIntentRepository(client)),
       enumerable: true,
@@ -395,23 +403,6 @@ export class PrismaUnitOfWork implements IUnitOfWork {
 
     Object.defineProperty(repos, 'documentTagRepository', {
       get: () => (_documentTagRepository ??= new Repositories.PrismaDocumentTagRepository(client)),
-      enumerable: true,
-    })
-
-    Object.defineProperty(repos, 'onlineCourseInvoiceRepository', {
-      get: () => (_onlineCourseInvoiceRepository ??= new Repositories.PrismaOnlineCourseInvoiceRepository(client)),
-      enumerable: true,
-    })
-
-    Object.defineProperty(repos, 'onlineCourseInvoiceItemRepository', {
-      get: () =>
-        (_onlineCourseInvoiceItemRepository ??= new Repositories.PrismaOnlineCourseInvoiceItemRepository(client)),
-      enumerable: true,
-    })
-
-    Object.defineProperty(repos, 'onlineCoursePaymentAttemptRepository', {
-      get: () =>
-        (_onlineCoursePaymentAttemptRepository ??= new Repositories.PrismaOnlineCoursePaymentAttemptRepository(client)),
       enumerable: true,
     })
 

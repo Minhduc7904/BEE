@@ -6,6 +6,7 @@ import type { UnitOfWorkRepos } from '../../../domain/repositories'
 import {
   BankTransferProcessingStatus,
   BankTransferReconciliationStatus,
+  BankTransferTransactionType,
   PaymentAttemptStatus,
   PaymentBankSelectionSource,
   PaymentConfirmationMode,
@@ -143,6 +144,9 @@ export class ManualTuitionPaymentReconciliationService {
     if (transaction.reconciliationStatus !== BankTransferReconciliationStatus.UNRECONCILED) {
       throw new InvalidStateException('Giao dịch ngân hàng này đã được đối soát')
     }
+    if (transaction.type && transaction.type !== BankTransferTransactionType.TUITION_PAYMENT) {
+      throw new InvalidStateException('Giao dịch ngân hàng thuộc mục đích thanh toán khác')
+    }
 
     let paymentAttempt
     if (transaction.paymentAttemptId) {
@@ -195,6 +199,7 @@ export class ManualTuitionPaymentReconciliationService {
         paymentAttemptId: paymentAttempt.paymentAttemptId,
         processingStatus: BankTransferProcessingStatus.MATCHED,
         reconciliationStatus: BankTransferReconciliationStatus.ADMIN,
+        type: BankTransferTransactionType.TUITION_PAYMENT,
       },
     )
 

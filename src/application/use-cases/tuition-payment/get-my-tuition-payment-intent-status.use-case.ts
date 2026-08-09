@@ -20,7 +20,9 @@ export class GetMyTuitionPaymentIntentStatusUseCase {
     studentId?: number,
   ): Promise<TuitionPaymentIntentStatusResponseDto> {
     if (!studentId) {
-      throw new UnauthorizedException('Ch\u1ec9 h\u1ecdc sinh \u0111\u01b0\u1ee3c ph\u00e9p theo d\u00f5i thanh to\u00e1n h\u1ecdc ph\u00ed')
+      throw new UnauthorizedException(
+        'Ch\u1ec9 h\u1ecdc sinh \u0111\u01b0\u1ee3c ph\u00e9p theo d\u00f5i thanh to\u00e1n h\u1ecdc ph\u00ed',
+      )
     }
 
     return this.unitOfWork.executeInTransaction(async (repos) => {
@@ -29,6 +31,9 @@ export class GetMyTuitionPaymentIntentStatusUseCase {
         throw new NotFoundException(`Payment intent v\u1edbi ID ${paymentIntentId} kh\u00f4ng t\u1ed3n t\u1ea1i`)
       }
 
+      if (!paymentIntent.tuitionPaymentId) {
+        throw new NotFoundException('Payment intent này không thuộc thanh toán học phí')
+      }
       const tuitionPayment = await repos.tuitionPaymentRepository.findById(paymentIntent.tuitionPaymentId)
       return this.assertOwnershipAndMap(tuitionPayment, paymentIntent, studentId)
     })
@@ -39,7 +44,9 @@ export class GetMyTuitionPaymentIntentStatusUseCase {
     studentId?: number,
   ): Promise<TuitionPaymentIntentStatusResponseDto> {
     if (!studentId) {
-      throw new UnauthorizedException('Ch\u1ec9 h\u1ecdc sinh \u0111\u01b0\u1ee3c ph\u00e9p theo d\u00f5i thanh to\u00e1n h\u1ecdc ph\u00ed')
+      throw new UnauthorizedException(
+        'Ch\u1ec9 h\u1ecdc sinh \u0111\u01b0\u1ee3c ph\u00e9p theo d\u00f5i thanh to\u00e1n h\u1ecdc ph\u00ed',
+      )
     }
 
     return this.unitOfWork.executeInTransaction(async (repos) => {
@@ -66,7 +73,9 @@ export class GetMyTuitionPaymentIntentStatusUseCase {
     studentId: number,
   ): TuitionPaymentIntentStatusResponseDto {
     if (!tuitionPayment) {
-      throw new NotFoundException(`H\u1ecdc ph\u00ed v\u1edbi ID ${paymentIntent.tuitionPaymentId} kh\u00f4ng t\u1ed3n t\u1ea1i`)
+      throw new NotFoundException(
+        `H\u1ecdc ph\u00ed v\u1edbi ID ${paymentIntent.tuitionPaymentId} kh\u00f4ng t\u1ed3n t\u1ea1i`,
+      )
     }
     if (tuitionPayment.studentId !== studentId) {
       throw new ForbiddenException('B\u1ea1n kh\u00f4ng c\u00f3 quy\u1ec1n truy c\u1eadp payment intent n\u00e0y')

@@ -3,12 +3,6 @@ import { StorageProvider, StorageProviderLabels } from '../enums/storage-provide
 import { AuditStatus, AuditStatusLabels } from '../enums/audit-status.enum'
 import { CourseType, CourseTypeLabels } from '../enums/course-type.enum'
 import { CourseVisibility, CourseVisibilityLabels } from '../enums/course-visibility.enum'
-import { OnlineCourseInvoiceStatus, OnlineCourseInvoiceStatusLabels } from '../enums/online-course-invoice-status.enum'
-import {
-  OnlinePaymentAttemptStatus,
-  OnlinePaymentAttemptStatusLabels,
-} from '../enums/online-payment-attempt-status.enum'
-import { OnlinePaymentProvider, OnlinePaymentProviderLabels } from '../enums/online-payment-provider.enum'
 import { Difficulty, DifficultyLabels } from '../enums/difficulty.enum'
 import { QuestionType, QuestionTypeLabels } from '../enums/question-type.enum'
 import { LearningItemType, LearningItemTypeLabels } from '../enums/learning-item-type.enum'
@@ -41,18 +35,6 @@ export const ENUM_VALUES = {
   COURSE_TYPE: {
     values: Object.values(CourseType),
     labels: CourseTypeLabels,
-  },
-  ONLINE_COURSE_INVOICE_STATUS: {
-    values: Object.values(OnlineCourseInvoiceStatus),
-    labels: OnlineCourseInvoiceStatusLabels,
-  },
-  ONLINE_PAYMENT_PROVIDER: {
-    values: Object.values(OnlinePaymentProvider),
-    labels: OnlinePaymentProviderLabels,
-  },
-  ONLINE_PAYMENT_ATTEMPT_STATUS: {
-    values: Object.values(OnlinePaymentAttemptStatus),
-    labels: OnlinePaymentAttemptStatusLabels,
   },
   DIFFICULTY: {
     values: Object.values(Difficulty),
