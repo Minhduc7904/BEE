@@ -42,7 +42,18 @@ export class PrismaAssistantTaskRepository implements IAssistantTaskRepository {
         where: { assistantTaskId },
         include: {
           submissions: {
-            include: { assistantTaskProduct: true },
+            include: {
+              assistantTaskProduct: {
+                include: {
+                  exam: {
+                    select: {
+                      title: true,
+                      solutionYoutubeUrl: true,
+                    },
+                  },
+                },
+              },
+            },
           },
         },
       })
@@ -68,7 +79,18 @@ export class PrismaAssistantTaskRepository implements IAssistantTaskRepository {
         orderBy: [{ deadlineAt: 'asc' }, { assistantTaskId: 'asc' }],
         include: {
           submissions: {
-            include: { assistantTaskProduct: true },
+            include: {
+              assistantTaskProduct: {
+                include: {
+                  exam: {
+                    select: {
+                      title: true,
+                      solutionYoutubeUrl: true,
+                    },
+                  },
+                },
+              },
+            },
           },
         },
       })

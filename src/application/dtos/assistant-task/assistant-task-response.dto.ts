@@ -1,6 +1,11 @@
 import { AssistantTask } from '../../../domain/entities/assistant-task'
 import { AssistantTaskStatus, AssistantTaskType } from '../../../shared/enums'
 
+export interface AssistantTaskProductExamMedia {
+  examFileName: string | null
+  examSolutionFileName: string | null
+}
+
 export class AssistantTaskResponseDto {
   assistantTaskId: number
   courseId: number | null
@@ -18,13 +23,17 @@ export class AssistantTaskResponseDto {
     assistantTaskProductId: number
     assistantId: number
     examId: number | null
+    examName: string | null
+    solutionYoutubeUrl: string | null
     name: string | null
     quantity: number | null
+    examFileName?: string | null
+    examSolutionFileName?: string | null
     createdAt: Date
     updatedAt: Date
   }>
 
-  constructor(entity: AssistantTask) {
+  constructor(entity: AssistantTask, examMediaByExamId?: ReadonlyMap<number, AssistantTaskProductExamMedia>) {
     this.assistantTaskId = entity.assistantTaskId
     this.courseId = entity.courseId
     this.assistantId = entity.assistantId
@@ -37,14 +46,29 @@ export class AssistantTaskResponseDto {
     this.note = entity.note
     this.createdAt = entity.createdAt
     this.updatedAt = entity.updatedAt
-    this.products = entity.products?.map((product) => ({
-      assistantTaskProductId: product.assistantTaskProductId,
-      assistantId: product.assistantId,
-      examId: product.examId,
-      name: product.name,
-      quantity: product.quantity,
-      createdAt: product.createdAt,
-      updatedAt: product.updatedAt,
-    }))
+    this.products = entity.products?.map((product) => {
+      const examMedia = product.examId
+        ? (examMediaByExamId?.get(product.examId) ?? {
+            examFileName: null,
+            examSolutionFileName: null,
+          })
+        : undefined
+
+      return {
+        assistantTaskProductId: product.assistantTaskProductId,
+        assistantId: product.assistantId,
+        examId: product.examId,
+        examName: product.examName ?? null,
+        solutionYoutubeUrl: product.solutionYoutubeUrl ?? null,
+        name: product.name,
+        quantity: product.quantity,
+        ...(examMediaByExamId !== undefined && {
+          examFileName: examMedia?.examFileName ?? null,
+          examSolutionFileName: examMedia?.examSolutionFileName ?? null,
+        }),
+        createdAt: product.createdAt,
+        updatedAt: product.updatedAt,
+      }
+    })
   }
 }
