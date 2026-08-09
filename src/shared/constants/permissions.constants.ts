@@ -2168,4 +2168,17 @@ export const PERMISSIONS = [
     group: 'ASSISTANT_TASK_PRODUCT_SUBMISSION_MANAGEMENT',
     isSystem: true,
   })),
+  ...[
+    ['book:get-all', 'Xem danh sách sách'],
+    ['book:get-by-id', 'Xem chi tiết sách'],
+    ['book:create', 'Tạo sách'],
+    ['book:update', 'Cập nhật sách'],
+    ['book:delete', 'Xóa sách'],
+    ['book-category:get-all', 'Xem loại sách'],
+    ['book-category:create', 'Tạo loại sách'],
+    ['book-category:update', 'Cập nhật loại sách'],
+    ['book-category:delete', 'Xóa loại sách'],
+    ['book-sales-contact-configuration:get', 'Xem cấu hình liên hệ bán sách'],
+    ['book-sales-contact-configuration:update', 'Cập nhật cấu hình liên hệ bán sách'],
+  ].map(([code, name]) => ({ code, name, description: name, group: 'BOOK_MANAGEMENT', isSystem: true })),
 ]

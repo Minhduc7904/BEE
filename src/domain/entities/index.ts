@@ -28,6 +28,7 @@ export * from './tuition-online-payment'
 export * from './background-job'
 export * from './sepay'
 export * from './achievement'
+export * from './book'
 export * from './news'
 
 export * from './question-chat'

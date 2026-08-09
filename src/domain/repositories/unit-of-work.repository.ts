@@ -68,6 +68,9 @@ import { IAssistantTaskRepository } from './assistant-task.repository'
 import { IAssistantTaskProductRepository } from './assistant-task-product.repository'
 import { IAssistantTaskProductSubmissionRepository } from './assistant-task-product-submission.repository'
 import { IActionApprovalRequestRepository } from './action-approval-request.repository'
+import { IBookRepository } from './book.repository'
+import { IBookCategoryRepository } from './book-category.repository'
+import { IBookSalesContactConfigurationRepository } from './book-sales-contact-configuration.repository'
 // src/domain/repositories/unit-of-work.repository.ts
 export interface UnitOfWorkRepos {
   userRepository: IUserRepository
@@ -139,6 +142,9 @@ export interface UnitOfWorkRepos {
   assistantTaskProductRepository: IAssistantTaskProductRepository
   assistantTaskProductSubmissionRepository: IAssistantTaskProductSubmissionRepository
   actionApprovalRequestRepository: IActionApprovalRequestRepository
+  bookRepository: IBookRepository
+  bookCategoryRepository: IBookCategoryRepository
+  bookSalesContactConfigurationRepository: IBookSalesContactConfigurationRepository
 }
 
 export interface IUnitOfWork {

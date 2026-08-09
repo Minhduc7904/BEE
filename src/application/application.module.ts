@@ -73,6 +73,7 @@ import { AchievementApplicationModule } from './use-cases/achievement/achievemen
 import { NewsApplicationModule } from './use-cases/news/news.application.module'
 import { ReportApplicationModule } from './use-cases/report/report.application.module'
 import { SeoTuitionPaymentApplicationModule } from './use-cases/seo-tuition-payment/seo-tuition-payment.application.module'
+import { BookApplicationModule } from './use-cases/book/book.application.module'
 
 const modules = [
   // Auth & Account
@@ -136,6 +137,7 @@ const modules = [
   PaymentIntentApplicationModule,
   PaymentAttemptApplicationModule,
   SeoTuitionPaymentApplicationModule,
+  BookApplicationModule,
   BankTransferTransactionApplicationModule,
   SepayApplicationModule,
   BackgroundJobApplicationModule,

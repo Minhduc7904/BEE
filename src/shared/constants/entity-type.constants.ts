@@ -28,7 +28,7 @@ export const ENTITY_TYPES = {
   COMPETITION: 'COMPETITION',
   HOMEWORK_SUBMIT: 'HOMEWORK_SUBMIT',
   NEWS_ARTICLE: 'NEWS_ARTICLE',
-  
+  BOOK: 'BOOK',
 } as const
 
 export enum EntityType {
@@ -55,4 +55,5 @@ export enum EntityType {
   COMPETITION = 'COMPETITION',
   HOMEWORK_SUBMIT = 'HOMEWORK_SUBMIT',
   NEWS_ARTICLE = 'NEWS_ARTICLE',
+  BOOK = 'BOOK',
 }

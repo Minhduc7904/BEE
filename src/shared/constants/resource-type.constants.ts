@@ -43,6 +43,9 @@ export const RESOURCE_TYPES = {
   ASSISTANT_TASK: 'ASSISTANT_TASK',
   ASSISTANT_TASK_PRODUCT: 'ASSISTANT_TASK_PRODUCT',
   ASSISTANT_TASK_PRODUCT_SUBMISSION: 'ASSISTANT_TASK_PRODUCT_SUBMISSION',
+  BOOK: 'BOOK',
+  BOOK_CATEGORY: 'BOOK_CATEGORY',
+  BOOK_SALES_CONTACT_CONFIGURATION: 'BOOK_SALES_CONTACT_CONFIGURATION',
 } as const
 
 export const RESOURCE_TYPE_TABLE = {
@@ -297,6 +300,24 @@ export const RESOURCE_TYPE_TABLE = {
     tableName: 'assistant_task_product_submissions',
     primaryKey: 'assistantTaskProductSubmissionId',
     repositoryName: 'assistantTaskProductSubmissionRepository',
+  },
+  [RESOURCE_TYPES.BOOK]: {
+    displayName: 'Book',
+    tableName: 'books',
+    primaryKey: 'bookId',
+    repositoryName: 'bookRepository',
+  },
+  [RESOURCE_TYPES.BOOK_CATEGORY]: {
+    displayName: 'Book Category',
+    tableName: 'book_categories',
+    primaryKey: 'bookCategoryId',
+    repositoryName: 'bookCategoryRepository',
+  },
+  [RESOURCE_TYPES.BOOK_SALES_CONTACT_CONFIGURATION]: {
+    displayName: 'Book Sales Contact Configuration',
+    tableName: 'book_sales_contact_configurations',
+    primaryKey: 'bookSalesContactConfigurationId',
+    repositoryName: 'bookSalesContactConfigurationRepository',
   },
 } as const
 

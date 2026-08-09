@@ -1,0 +1,31 @@
+import { ListQueryDto } from '../pagination/list-query.dto'
+import { IsOptionalBoolean, IsOptionalEnumValue, IsOptionalString } from 'src/shared/decorators/validate'
+import { Visibility } from 'src/shared/enums'
+import { SortOrder } from 'src/shared/enums/sort-order.enum'
+
+export class BookListQueryDto extends ListQueryDto {
+  @IsOptionalEnumValue(Visibility, 'Trạng thái hiển thị')
+  visibility?: Visibility
+
+  @IsOptionalBoolean('Sách nổi bật')
+  isFeatured?: boolean
+
+  @IsOptionalString('Slug loại sách', 180, 2)
+  categorySlug?: string
+
+  toBookPaginationOptions() {
+    const allowedSortFields = [
+      'bookId',
+      'title',
+      'priceVnd',
+      'isFeatured',
+      'viewCount',
+      'createdAt',
+      'updatedAt',
+    ] as const
+    const sortBy = allowedSortFields.includes(this.sortBy as (typeof allowedSortFields)[number])
+      ? (this.sortBy as (typeof allowedSortFields)[number])
+      : 'createdAt'
+    return { page: this.page ?? 1, limit: this.limit ?? 10, sortBy, sortOrder: this.sortOrder ?? SortOrder.DESC }
+  }
+}

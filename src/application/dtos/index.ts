@@ -67,6 +67,7 @@ export * from './course-payment'
 export * from './seo-tuition-payment'
 export * from './background-job'
 export * from './achievement'
+export * from './book'
 export * from './news'
 
 // Competition DTOs

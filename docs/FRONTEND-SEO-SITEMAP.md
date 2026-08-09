@@ -14,6 +14,7 @@ Mỗi endpoint chỉ trả định danh URL và thời điểm cập nhật, kh�
 | Khóa học online | `GET /courses/public/seo/sitemap` | `/khoa-hoc-online/[code]` |
 | Tin tức | `GET /news-articles/public/seo/sitemap` | `/tin-tuc/[slug]` |
 | Giáo viên | `GET /teacher-profiles/public/seo/sitemap` | `/doi-ngu/giao-vien/chi-tiet/[slug]` |
+| Sách | `GET /books/public/seo/sitemap` | `/sach/[slug]` |
 
 ## Query parameters
 

@@ -89,6 +89,12 @@ export const NEWS_ARTICLE_MEDIA_FIELDS = {
   CONTENT: 'CONTENT',
 } as const
 
+export const BOOK_MEDIA_FIELDS = {
+  COVER: 'COVER',
+  GALLERY: 'GALLERY',
+  OG_IMAGE: 'OG_IMAGE',
+} as const
+
 export const VIDEO_MEDIA_FIELDS = {
   VIDEO_FILE: 'VIDEO_FILE',
 } as const

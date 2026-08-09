@@ -81,6 +81,9 @@ import {
   PrismaAssistantTaskProductRepository,
   PrismaAssistantTaskProductSubmissionRepository,
   PrismaActionApprovalRequestRepository,
+  PrismaBookRepository,
+  PrismaBookCategoryRepository,
+  PrismaBookSalesContactConfigurationRepository,
 } from './repositories'
 import {
   PasswordService,
@@ -261,6 +264,21 @@ import {
     {
       provide: 'IMediaUsageRepository',
       useFactory: (prisma: PrismaService) => new PrismaMediaUsageRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IBookRepository',
+      useFactory: (prisma: PrismaService) => new PrismaBookRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IBookCategoryRepository',
+      useFactory: (prisma: PrismaService) => new PrismaBookCategoryRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IBookSalesContactConfigurationRepository',
+      useFactory: (prisma: PrismaService) => new PrismaBookSalesContactConfigurationRepository(prisma),
       inject: [PrismaService],
     },
     {
@@ -696,6 +714,9 @@ import {
     'IMediaRepository',
     'IMediaFolderRepository',
     'IMediaUsageRepository',
+    'IBookRepository',
+    'IBookCategoryRepository',
+    'IBookSalesContactConfigurationRepository',
     'ISeoMediaSlotRepository',
     'ISeoMediaItemRepository',
     'ICourseRepository',

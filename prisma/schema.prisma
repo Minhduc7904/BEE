@@ -2246,6 +2246,92 @@ model NewsArticle {
   @@map("news_articles")
 }
 
+// Danh mục sách do quản trị viên duy trì để phân loại và điều hướng catalog công khai.
+model BookCategory {
+  bookCategoryId Int      @id @default(autoincrement()) @map("book_category_id")
+  name           String   @map("name") @db.VarChar(150)
+  slug           String   @unique @map("slug") @db.VarChar(180)
+  description    String?  @map("description") @db.Text
+  // Danh mục ngừng hoạt động được giữ lịch sử nhưng không hiển thị công khai.
+  isActive       Boolean  @default(true) @map("is_active")
+  sortOrder      Int      @default(0) @map("sort_order")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  bookLinks BookCategoryBook[]
+
+  @@index([isActive, sortOrder], map: "idx_book_categories_active_order")
+  @@map("book_categories")
+}
+
+// Sách trong catalog; khách liên hệ thủ công thay vì tạo đơn hàng trong hệ thống.
+model Book {
+  bookId Int @id @default(autoincrement()) @map("book_id")
+  // SKU là mã vận hành duy nhất của mỗi đầu sách.
+  sku    String @unique @map("sku") @db.VarChar(80)
+  // ISBN chỉ có khi nhà xuất bản cung cấp và không được trùng.
+  isbn   String? @unique @map("isbn") @db.VarChar(32)
+
+  title            String  @map("title") @db.VarChar(255)
+  slug             String  @unique @map("slug") @db.VarChar(255)
+  shortDescription String? @map("short_description") @db.VarChar(500)
+  content          String? @map("content") @db.LongText
+  author           String? @map("author") @db.VarChar(255)
+  publisher        String? @map("publisher") @db.VarChar(255)
+  // Giá niêm yết bằng VND, luôn được kiểm tra là số nguyên dương tại application layer.
+  priceVnd         Int     @map("price_vnd")
+
+  visibility Visibility @default(DRAFT) @map("visibility")
+  isFeatured Boolean    @default(false) @map("is_featured")
+  viewCount  Int        @default(0) @map("view_count")
+
+  targetKeyword   String? @map("target_keyword") @db.VarChar(255)
+  keywordText     String? @map("keyword_text") @db.Text
+  metaTitle       String? @map("meta_title") @db.VarChar(255)
+  metaDescription String? @map("meta_description") @db.VarChar(500)
+  ogTitle         String? @map("og_title") @db.VarChar(255)
+  ogDescription   String? @map("og_description") @db.VarChar(500)
+  canonicalUrl    String? @map("canonical_url") @db.VarChar(1000)
+  searchIntent    String? @map("search_intent") @db.VarChar(100)
+  seoScore        Int?    @map("seo_score") @db.TinyInt
+  structuredData  Json?   @map("structured_data")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  categoryLinks BookCategoryBook[]
+
+  @@index([visibility, isFeatured, updatedAt], map: "idx_books_public_featured_updated")
+  @@index([visibility, updatedAt, slug], map: "idx_books_sitemap_published")
+  @@fulltext([title, shortDescription, author, publisher, targetKeyword, keywordText, metaTitle, metaDescription], map: "ft_books_seo")
+  @@map("books")
+}
+
+// Liên kết nhiều-nhiều giữa sách và danh mục; category bị Restrict để không mất phân loại đang dùng.
+model BookCategoryBook {
+  bookId         Int @map("book_id")
+  bookCategoryId Int @map("book_category_id")
+
+  book     Book         @relation(fields: [bookId], references: [bookId], onDelete: Cascade)
+  category BookCategory @relation(fields: [bookCategoryId], references: [bookCategoryId], onDelete: Restrict)
+
+  @@id([bookId, bookCategoryId])
+  @@index([bookCategoryId, bookId], map: "idx_book_category_books_category_book")
+  @@map("book_category_books")
+}
+
+// Cấu hình singleton cho CTA liên hệ mua sách, dùng chung trên toàn catalog công khai.
+model BookSalesContactConfiguration {
+  bookSalesContactConfigurationId Int      @id @default(autoincrement()) @map("book_sales_contact_configuration_id")
+  scopeKey                        String   @unique @default("GLOBAL") @map("scope_key") @db.VarChar(20)
+  phone                           String   @map("phone") @db.VarChar(20)
+  facebookUrl                     String   @map("facebook_url") @db.VarChar(255)
+  createdAt                       DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                       DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@map("book_sales_contact_configurations")
+}
+
 enum TuitionPaymentStatus {
   UNPAID // ChÆ°a ná»™p
   PAID // ÄÃ£ ná»™p

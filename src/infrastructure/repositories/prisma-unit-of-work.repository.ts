@@ -79,9 +79,7 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _tuitionCollectionConfigurationRepository:
       | UnitOfWorkRepos['tuitionCollectionConfigurationRepository']
       | undefined
-    let _coursePaymentConfigurationRepository:
-      | UnitOfWorkRepos['coursePaymentConfigurationRepository']
-      | undefined
+    let _coursePaymentConfigurationRepository: UnitOfWorkRepos['coursePaymentConfigurationRepository'] | undefined
     let _paymentIntentRepository: UnitOfWorkRepos['paymentIntentRepository'] | undefined
     let _paymentAttemptRepository: UnitOfWorkRepos['paymentAttemptRepository'] | undefined
     let _bankTransferTransactionRepository: UnitOfWorkRepos['bankTransferTransactionRepository'] | undefined
@@ -115,6 +113,9 @@ export class PrismaUnitOfWork implements IUnitOfWork {
       | UnitOfWorkRepos['assistantTaskProductSubmissionRepository']
       | undefined
     let _actionApprovalRequestRepository: UnitOfWorkRepos['actionApprovalRequestRepository'] | undefined
+    let _bookRepository: UnitOfWorkRepos['bookRepository'] | undefined
+    let _bookCategoryRepository: UnitOfWorkRepos['bookCategoryRepository'] | undefined
+    let _bookSalesContactConfigurationRepository: UnitOfWorkRepos['bookSalesContactConfigurationRepository'] | undefined
 
     Object.defineProperty(repos, 'studentRepository', {
       get: () => (_studentRepository ??= new Repositories.PrismaStudentRepository(client)),
@@ -279,9 +280,7 @@ export class PrismaUnitOfWork implements IUnitOfWork {
 
     Object.defineProperty(repos, 'coursePaymentConfigurationRepository', {
       get: () =>
-        (_coursePaymentConfigurationRepository ??= new Repositories.PrismaCoursePaymentConfigurationRepository(
-          client,
-        )),
+        (_coursePaymentConfigurationRepository ??= new Repositories.PrismaCoursePaymentConfigurationRepository(client)),
       enumerable: true,
     })
 
@@ -447,6 +446,24 @@ export class PrismaUnitOfWork implements IUnitOfWork {
 
     Object.defineProperty(repos, 'actionApprovalRequestRepository', {
       get: () => (_actionApprovalRequestRepository ??= new Repositories.PrismaActionApprovalRequestRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'bookRepository', {
+      get: () => (_bookRepository ??= new Repositories.PrismaBookRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'bookCategoryRepository', {
+      get: () => (_bookCategoryRepository ??= new Repositories.PrismaBookCategoryRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'bookSalesContactConfigurationRepository', {
+      get: () =>
+        (_bookSalesContactConfigurationRepository ??= new Repositories.PrismaBookSalesContactConfigurationRepository(
+          client,
+        )),
       enumerable: true,
     })
 

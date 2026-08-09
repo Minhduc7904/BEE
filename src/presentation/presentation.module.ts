@@ -101,6 +101,7 @@ import { AssistantShiftAssignmentActionController } from './controllers/assistan
 import { AssistantTaskController } from './controllers/assistant-task.controller'
 import { AssistantTaskProductController } from './controllers/assistant-task-product.controller'
 import { AssistantTaskProductSubmissionController } from './controllers/assistant-task-product-submission.controller'
+import { BookController } from './controllers/book.controller'
 import { SocketLifecycleGateway } from './gateways/socket-lifecycle.gateway'
 @Module({
   imports: [
@@ -195,6 +196,7 @@ import { SocketLifecycleGateway } from './gateways/socket-lifecycle.gateway'
     AssistantTaskController,
     AssistantTaskProductController,
     AssistantTaskProductSubmissionController,
+    BookController,
   ],
   providers: [
     // WebSocket Gateways
