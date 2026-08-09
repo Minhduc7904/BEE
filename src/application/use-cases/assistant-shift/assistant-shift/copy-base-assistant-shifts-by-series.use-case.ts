@@ -52,6 +52,8 @@ export class CopyBaseAssistantShiftsBySeriesUseCase {
                 sourceShift.assistantShiftSeriesId,
                 startAt,
                 endAt,
+                undefined,
+                { ignoreBaseShifts: true },
               )
             ) {
               throw new ConflictException('Khoảng thời gian dán đã có ca trợ giảng')

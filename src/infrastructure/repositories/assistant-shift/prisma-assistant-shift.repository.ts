@@ -7,7 +7,10 @@ import type {
   CreateAssistantShiftData,
   UpdateAssistantShiftData,
 } from '../../../domain/interface/assistant-shift'
-import type { IAssistantShiftRepository } from '../../../domain/repositories/assistant-shift.repository'
+import type {
+  AssistantShiftOverlapOptions,
+  IAssistantShiftRepository,
+} from '../../../domain/repositories/assistant-shift.repository'
 import { PrismaService } from '../../../prisma/prisma.service'
 import { AssistantShiftMapper } from '../../mappers/assistant-shift'
 
@@ -222,12 +225,14 @@ export class PrismaAssistantShiftRepository implements IAssistantShiftRepository
     startAt: Date,
     endAt: Date,
     excludeAssistantShiftId?: number,
+    options?: AssistantShiftOverlapOptions,
   ): Promise<boolean> {
     const count = await this.prisma.assistantShift.count({
       where: {
         assistantShiftSeriesId,
         startAt: { lt: endAt },
         endAt: { gt: startAt },
+        ...(options?.ignoreBaseShifts && { isBaseShift: false }),
         ...(excludeAssistantShiftId !== undefined && {
           assistantShiftId: { not: excludeAssistantShiftId },
         }),

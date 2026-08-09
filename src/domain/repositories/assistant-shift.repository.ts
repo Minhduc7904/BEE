@@ -6,6 +6,10 @@ import {
   UpdateAssistantShiftData,
 } from '../interface/assistant-shift'
 
+export interface AssistantShiftOverlapOptions {
+  ignoreBaseShifts?: boolean
+}
+
 export interface IAssistantShiftRepository {
   create(data: CreateAssistantShiftData): Promise<AssistantShift>
   findById(assistantShiftId: number, options?: AssistantShiftRelationOptions): Promise<AssistantShift | null>
@@ -15,6 +19,7 @@ export interface IAssistantShiftRepository {
     startAt: Date,
     endAt: Date,
     excludeAssistantShiftId?: number,
+    options?: AssistantShiftOverlapOptions,
   ): Promise<boolean>
   updateBySeriesAndStartAtRange(
     assistantShiftSeriesId: number,
