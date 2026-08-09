@@ -59,7 +59,7 @@ description: Thiết kế luồng task và product của trợ giảng, gồm ow
 
 ## Phân bổ API theo controller
 
-- `AssistantTaskController`: tạo, lấy danh sách/chi tiết, sửa và xóa task. Danh sách lọc theo `startAt`, `endAt`, `productId`, `taskType` và có `includeProducts`.
+- `AssistantTaskController`: tạo, lấy danh sách/chi tiết, sửa và xóa task. Danh sách lọc theo `startAt`, `endAt`, `productId`, `taskType` và có `includeProducts`. Khi `includeProducts=true`, mỗi product trả `examName`, `solutionYoutubeUrl`, `examFileName` và `examSolutionFileName`; URL lấy trực tiếp từ `Exam.solutionYoutubeUrl`, hai tên file chỉ lấy từ `MediaUsage` có `entityType=EXAM`, lần lượt `fieldName=EXAM_FILE` và `SOLUTION_FILE` (tương thích dữ liệu cũ `EXAM_SOLUTION_FILE`), không có thì trả `null`.
 - `AssistantTaskProductController`: API quản trị và `/me` để tạo/lấy/sửa product; chỉ API quản trị nhận `quantity`. Danh sách lọc theo thời gian tạo và có `includeTasks`.
 - `AssistantTaskProductSubmissionController`: lấy danh sách/chi tiết submission và các API gắn/gỡ quản trị hoặc tự phục vụ. `submittedAt` luôn do server tạo.
 

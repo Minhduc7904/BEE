@@ -11,6 +11,17 @@ type PrismaAssistantTaskProductWithTasks = Prisma.AssistantTaskProductGetPayload
   }
 }>
 
+type PrismaAssistantTaskProductWithExam = Prisma.AssistantTaskProductGetPayload<{
+  include: {
+    exam: {
+      select: {
+        title: true
+        solutionYoutubeUrl: true
+      }
+    }
+  }
+}>
+
 export class AssistantTaskProductMapper {
   static toDomain(record: PrismaAssistantTaskProduct | null | undefined): AssistantTaskProduct | null {
     if (!record) return null
@@ -53,6 +64,15 @@ export class AssistantTaskProductMapper {
     return product
   }
 
+  static toDomainWithExam(record: PrismaAssistantTaskProductWithExam | null | undefined): AssistantTaskProduct | null {
+    const product = this.toDomain(record)
+    if (!product || !record) return null
+
+    product.examName = record.exam?.title ?? null
+    product.solutionYoutubeUrl = record.exam?.solutionYoutubeUrl ?? null
+    return product
+  }
+
   static toDomainList(records: PrismaAssistantTaskProduct[] | null | undefined): AssistantTaskProduct[] {
     if (!records?.length) return []
 
@@ -68,6 +88,16 @@ export class AssistantTaskProductMapper {
 
     return records
       .map((record) => this.toDomainWithTasks(record))
+      .filter((record): record is AssistantTaskProduct => record !== null)
+  }
+
+  static toDomainListWithExam(
+    records: PrismaAssistantTaskProductWithExam[] | null | undefined,
+  ): AssistantTaskProduct[] {
+    if (!records?.length) return []
+
+    return records
+      .map((record) => this.toDomainWithExam(record))
       .filter((record): record is AssistantTaskProduct => record !== null)
   }
 }

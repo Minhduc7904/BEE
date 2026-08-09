@@ -4,6 +4,8 @@ export class AssistantTaskProduct {
   assistantTaskProductId: number
   assistantId: number
   examId: number | null
+  examName?: string | null
+  solutionYoutubeUrl?: string | null
   name: string | null
   quantity: number | null
   createdAt: Date
@@ -14,6 +16,8 @@ export class AssistantTaskProduct {
     assistantTaskProductId: number
     assistantId: number
     examId?: number | null
+    examName?: string | null
+    solutionYoutubeUrl?: string | null
     name?: string | null
     quantity?: number | null
     createdAt?: Date
@@ -23,6 +27,8 @@ export class AssistantTaskProduct {
     this.assistantTaskProductId = data.assistantTaskProductId
     this.assistantId = data.assistantId
     this.examId = data.examId ?? null
+    this.examName = data.examName
+    this.solutionYoutubeUrl = data.solutionYoutubeUrl
     this.name = data.name ?? null
     this.quantity = data.quantity ?? null
     this.createdAt = data.createdAt ?? new Date()

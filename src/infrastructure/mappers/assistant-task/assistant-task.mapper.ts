@@ -8,7 +8,18 @@ import { AssistantTaskProductMapper } from './assistant-task-product.mapper'
 type PrismaAssistantTaskWithProducts = Prisma.AssistantTaskGetPayload<{
   include: {
     submissions: {
-      include: { assistantTaskProduct: true }
+      include: {
+        assistantTaskProduct: {
+          include: {
+            exam: {
+              select: {
+                title: true
+                solutionYoutubeUrl: true
+              }
+            }
+          }
+        }
+      }
     }
   }
 }>
@@ -37,7 +48,7 @@ export class AssistantTaskMapper {
     const task = this.toDomain(record)
     if (!task || !record) return null
 
-    task.products = AssistantTaskProductMapper.toDomainList(
+    task.products = AssistantTaskProductMapper.toDomainListWithExam(
       record.submissions.map((submission) => submission.assistantTaskProduct),
     )
     return task
