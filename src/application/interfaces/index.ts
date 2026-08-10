@@ -1,4 +1,5 @@
 export * from './achievement-board-seo-ai.interface'
+export * from './book-seo-ai.interface'
 export * from './auth.interface'
 export * from './assistant-shift-assignment-exchange-email.interface'
 export * from './assistant-shift-reminder-email.interface'

@@ -1,60 +1,45 @@
-# StudentFrontend — Khám phá và liên hệ mua sách
+# StudentFE — Catalog sách đã đăng nhập
 
-## Phạm vi
+## Mục tiêu và giới hạn
 
-Trong tài liệu này, “student” là người dùng website. Luồng xem sách là công khai, không yêu cầu đăng nhập và không tạo giỏ hàng, đơn hàng, thanh toán hay giao dịch SePay.
+StudentFE chỉ hiển thị sách đã `PUBLISHED` cho role `STUDENT`. Đây là catalog và CTA liên hệ mua thủ công; không có giỏ hàng, order, thanh toán hoặc SePay.
 
-## 1. Tải danh sách loại và catalog
-
-1. Tải loại sách công khai bằng `GET /api/books/public/seo/categories`.
-2. Tải catalog bằng `GET /api/books/public/seo`.
-3. Có thể truyền `page`, `limit`, `search`, `categorySlug` và `featured` để phân trang, tìm kiếm, lọc theo loại hoặc sách nổi bật.
-4. Chỉ render các sách backend trả về; API công khai chỉ trả sách `PUBLISHED`.
-
-Ví dụ:
+Mọi request cần:
 
 ```http
-GET /api/books/public/seo?categorySlug=ky-nang-song&featured=true&page=1&limit=12
+Authorization: Bearer <student-access-token>
 ```
 
-## 2. Hiển thị thẻ sách
+## Luồng giao diện
 
-Mỗi thẻ nên dùng `title`, `slug`, `shortDescription`, `priceVnd`, `coverMedia` và `categories`. Giá là VND nguyên; frontend tự định dạng, ví dụ `199000` thành `199.000 đ`.
+1. Khi mở catalog, gọi `GET /api/books/student/my/categories` và `GET /api/books/student/my?page=1&limit=12` song song.
+2. Khi người dùng tìm/lọc, gửi lại query `search`, `categorySlugs`, `isFeatured`, `sortBy`, `sortOrder`, `page`, `limit`. Có thể gửi lặp `categorySlugs` để chọn nhiều loại; Book thuộc ít nhất một loại được chọn sẽ khớp. Không gửi `visibility`; backend luôn ép `PUBLISHED`.
+3. Khi mở trang sách, gọi `GET /api/books/student/my/:slug`. Nếu `404`, hiển thị trang không tìm thấy, không suy đoán trạng thái sách.
+4. Sau khi trang detail render thành công, gọi đúng một lần `POST /api/books/student/my/:slug/view`.
+5. Dùng `contact.phone` làm `tel:` và `contact.facebookUrl` làm CTA Facebook. Không gửi request mua sách lên backend.
 
-URL media trong response là URL truy cập có thời hạn. Khi cần dữ liệu mới, tải lại catalog hoặc chi tiết sách thay vì lưu URL để dùng lâu dài.
+## Ví dụ request
 
-## 3. Xem chi tiết và SEO
-
-1. Điều hướng theo slug tới trang sách.
-2. Gọi `GET /api/books/public/seo/:slug`.
-3. Dùng `content`, tác giả, nhà xuất bản, cover/gallery và metadata SEO để render trang.
-4. Dùng `metaTitle`, `metaDescription`, Open Graph, `canonicalUrl` và `structuredData` từ response khi có. Frontend không tự công khai một sách không được API trả về.
-
-Nếu sách không tồn tại, chưa xuất bản, ở chế độ riêng tư, hoặc cấu hình liên hệ bán sách không còn tồn tại, API trả 404; frontend hiển thị trang không tìm thấy.
-
-## 4. CTA liên hệ mua sách
-
-Response chi tiết có:
-
-```json
-{
-  "contact": {
-    "phone": "0901234567",
-    "facebookUrl": "https://www.facebook.com/bee.edu.vn"
-  }
-}
+```http
+GET /api/books/student/my?categorySlugs=ky-nang-song&categorySlugs=thieu-nhi&isFeatured=true&page=1&limit=12
+Authorization: Bearer <student-access-token>
 ```
 
-- Nút gọi điện dùng `href="tel:0901234567"`.
-- Nút Facebook dùng liên kết `facebookUrl`.
-- Có thể đưa tên sách/SKU vào nội dung hướng dẫn người dùng trao đổi với tư vấn viên, nhưng frontend không gửi yêu cầu mua lên API.
+```http
+GET /api/books/student/my/atomic-habits
+Authorization: Bearer <student-access-token>
+```
 
-## 5. Ghi nhận lượt xem
+```http
+POST /api/books/student/my/atomic-habits/view
+Authorization: Bearer <student-access-token>
+```
 
-Sau khi trang chi tiết đã render, frontend có thể gọi một lần `POST /api/books/public/seo/:slug/view` để tăng lượt xem. Chỉ gọi một lần cho mỗi lần hiển thị trang để tránh tăng số liệu do re-render.
+## Quy tắc hiển thị
 
-## 6. Sitemap
+- Chỉ render các item backend trả về; không cố mở `DRAFT`/`PRIVATE` bằng slug.
+- List không có `content`; dùng detail để lấy nội dung đầy đủ và metadata SEO.
+- `media[].viewUrl` có hạn; reload list/detail khi URL hết hạn.
+- Khi token hết hạn hoặc không phải role học sinh, chuyển về luồng đăng nhập; không fallback sang API SEO vì hai contract khác nhau.
 
-Job frontend/SEO gọi `GET /api/books/public/seo/sitemap`. Mỗi phần tử có `slug` và `updatedAt`; chỉ tạo URL sitemap cho các phần tử API trả về. Chi tiết tích hợp sitemap nằm trong [Frontend SEO sitemap](../FRONTEND-SEO-SITEMAP.md).
-
-Xem đầy đủ field và contract tại [Books API](books.md).
+Request/response, lỗi và toàn bộ API xem tại [Books API](books.md).

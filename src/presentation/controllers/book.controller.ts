@@ -22,6 +22,7 @@ import {
   PaginationResponseDto,
   PublicSeoSitemapQueryDto,
   PublicSeoSitemapResponseDto,
+  StudentBookListQueryDto,
   UpdateBookCategoryDto,
   UpdateBookDto,
   UpdateBookMediaDto,
@@ -36,8 +37,12 @@ import {
   GetBookCategoriesUseCase,
   GetBooksUseCase,
   GetBookSalesContactConfigurationUseCase,
+  GetStudentBookBySlugUseCase,
+  GetStudentBookCategoriesUseCase,
+  GetStudentBooksUseCase,
   GetPublicSeoBookBySlugUseCase,
   GetPublicSeoBookSitemapUseCase,
+  IncrementStudentBookViewCountUseCase,
   IncrementPublicBookViewCountUseCase,
   UpdateBookCategoryUseCase,
   UpdateBookSalesContactConfigurationUseCase,
@@ -47,6 +52,7 @@ import {
 import { PERMISSION_CODES } from 'src/shared/constants/permissions/permission.codes'
 import { CurrentUser } from 'src/shared/decorators'
 import { RequirePermission } from 'src/shared/decorators/permissions.decorator'
+import { StudentOnly } from 'src/shared/decorators/permission.decorator'
 import { Visibility } from 'src/shared/enums'
 import { ExceptionHandler } from 'src/shared/utils/exception-handler.util'
 
@@ -59,8 +65,12 @@ export class BookController {
     private readonly deleteBookUseCase: DeleteBookUseCase,
     private readonly getBooksUseCase: GetBooksUseCase,
     private readonly getBookByIdUseCase: GetBookByIdUseCase,
+    private readonly getStudentBooksUseCase: GetStudentBooksUseCase,
+    private readonly getStudentBookBySlugUseCase: GetStudentBookBySlugUseCase,
+    private readonly getStudentBookCategoriesUseCase: GetStudentBookCategoriesUseCase,
     private readonly getPublicSeoBookBySlugUseCase: GetPublicSeoBookBySlugUseCase,
     private readonly getPublicSeoBookSitemapUseCase: GetPublicSeoBookSitemapUseCase,
+    private readonly incrementStudentBookViewCountUseCase: IncrementStudentBookViewCountUseCase,
     private readonly incrementPublicBookViewCountUseCase: IncrementPublicBookViewCountUseCase,
     private readonly createBookCategoryUseCase: CreateBookCategoryUseCase,
     private readonly updateBookCategoryUseCase: UpdateBookCategoryUseCase,
@@ -94,6 +104,43 @@ export class BookController {
   @Get('public/seo/:slug')
   async publicDetail(@Param('slug') slug: string): Promise<BaseResponseDto<BookResponseDto>> {
     return ExceptionHandler.execute(() => this.getPublicSeoBookBySlugUseCase.execute(slug))
+  }
+
+  @Get('student/my/categories')
+  @RequirePermission()
+  @HttpCode(HttpStatus.OK)
+  async studentCategories(@CurrentUser('studentId') studentId: number): Promise<BaseResponseDto<BookCategoryDto[]>> {
+    return ExceptionHandler.execute(() => this.getStudentBookCategoriesUseCase.execute(studentId))
+  }
+
+  @Get('student/my')
+  @RequirePermission()
+  @HttpCode(HttpStatus.OK)
+  async studentList(
+    @CurrentUser('studentId') studentId: number,
+    @Query() query: StudentBookListQueryDto,
+  ): Promise<PaginationResponseDto<BookResponseDto>> {
+    return ExceptionHandler.execute(() => this.getStudentBooksUseCase.execute(studentId, query))
+  }
+
+  @Post('student/my/:slug/view')
+  @RequirePermission()
+  @HttpCode(HttpStatus.OK)
+  async studentView(
+    @CurrentUser('studentId') studentId: number,
+    @Param('slug') slug: string,
+  ): Promise<BaseResponseDto<{ viewCount: number }>> {
+    return ExceptionHandler.execute(() => this.incrementStudentBookViewCountUseCase.execute(studentId, slug))
+  }
+
+  @Get('student/my/:slug')
+  @RequirePermission()
+  @HttpCode(HttpStatus.OK)
+  async studentDetail(
+    @CurrentUser('studentId') studentId: number,
+    @Param('slug') slug: string,
+  ): Promise<BaseResponseDto<BookResponseDto>> {
+    return ExceptionHandler.execute(() => this.getStudentBookBySlugUseCase.execute(studentId, slug))
   }
 
   @Post('categories')

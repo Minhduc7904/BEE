@@ -1,17 +1,8 @@
 import { ListQueryDto } from '../pagination/list-query.dto'
-import {
-  IsOptionalBoolean,
-  IsOptionalEnumValue,
-  IsOptionalString,
-  IsOptionalStringArray,
-} from 'src/shared/decorators/validate'
-import { Visibility } from 'src/shared/enums'
+import { IsOptionalBoolean, IsOptionalString, IsOptionalStringArray } from 'src/shared/decorators/validate'
 import { SortOrder } from 'src/shared/enums/sort-order.enum'
 
-export class BookListQueryDto extends ListQueryDto {
-  @IsOptionalEnumValue(Visibility, 'Trạng thái hiển thị')
-  visibility?: Visibility
-
+export class StudentBookListQueryDto extends ListQueryDto {
   @IsOptionalBoolean('Sách nổi bật')
   isFeatured?: boolean
 
