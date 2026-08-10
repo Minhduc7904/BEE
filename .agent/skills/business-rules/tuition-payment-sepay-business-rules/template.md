@@ -42,10 +42,10 @@ TuitionPayment
 | Điều kiện | Account dùng cho QR | Source | Confirmation | Phản hồi FE |
 | --- | --- | --- | --- | --- |
 | Mapping grade `ACTIVE`, mode auto, auto khả dụng | Bank mapping grade | `GRADE_MAPPING` | `AUTOMATIC` | Chờ SePay xác nhận. |
+| Mapping grade `ACTIVE`, SePay `UNKNOWN`/`INACTIVE` | Bank mapping grade | `GRADE_MAPPING` | `MANUAL_FALLBACK` | QR theo bank khối + chờ admin kiểm tra sao kê. |
 | Grade chưa mapping | Default manual bank `ACTIVE` | `MANUAL_DEFAULT` | `MANUAL_FALLBACK` | QR + chờ admin kiểm tra sao kê. |
 | Mapping grade `INACTIVE` | Default manual bank `ACTIVE` | `MANUAL_DEFAULT` | `MANUAL_FALLBACK` | QR + chờ admin kiểm tra sao kê. |
 | Mode hệ thống `MANUAL_FALLBACK` | Default manual bank `ACTIVE` | `MANUAL_DEFAULT` | `MANUAL_FALLBACK` | QR + chờ admin kiểm tra sao kê. |
-| SePay auto unavailable đã được health rule phân loại | Default manual bank `ACTIVE` | `MANUAL_DEFAULT` | `MANUAL_FALLBACK` | QR + chờ admin kiểm tra sao kê. |
 | Default manual bank thiếu/inactive | Không tạo QR | — | — | Lỗi `TUITION_MANUAL_RECEIVING_BANK_UNAVAILABLE`; admin được cảnh báo. |
 | Ownership, amount, DB, xác thực/bảo mật lỗi | Không tạo QR | — | — | Trả lỗi gốc; không fallback. |
 
@@ -87,7 +87,7 @@ type TuitionPaymentSocketEnvelope = {
 
 | Event | Room | Trigger | Payload bổ sung | FE xử lý |
 | --- | --- | --- | --- | --- |
-| `tuition-payment:instruction-updated` | `user:{userId}` đã ownership check | QR/attempt mới hoặc chuyển manual default | `paymentCode`, `expiresAt`, `bankSelectionSource` | Gọi lại instruction một lần. |
+| `tuition-payment:instruction-updated` | `user:{userId}` đã ownership check | QR/attempt mới hoặc đổi account/mode xác nhận | `paymentCode`, `expiresAt`, `bankSelectionSource` | Gọi lại instruction một lần. |
 | `tuition-payment:status-updated` | `user:{userId}` | Mọi thay đổi hiển thị | envelope chuẩn | Event canonical, merge theo `version`. |
 | `tuition-payment:manual-review-required` | user sở hữu + admin room có quyền | Attempt manual được tạo/cần check | `bankSelectionSource`, `messageKey` | Client hiện chờ sao kê; admin thêm queue. |
 | `tuition-payment:reconciliation-resolved` | user sở hữu + admin đã thao tác | Manual resolution kết thúc | `resolution`, `resolvedBy?` | Chỉ hiện paid khi `tuitionStatus = PAID`. |
@@ -101,10 +101,12 @@ Không phát event `paid` riêng. Không cho client tự join room tài chính/a
 FE Client                BE resolver                     FE Admin / Socket
   | GET payment instruction  |                                  |
   |------------------------->| grade + mapping + config + health |
-  |                          | mapping active + auto OK?         |
-  |                          |-- có --> QR grade / AUTOMATIC     |
+  |                          | mapping bank active?               |
   |                          |-- không -> default active?        |
   |                          |              |-- có --> QR default / MANUAL_FALLBACK
+  |                          |-- có --> SePay auto OK?           |
+  |                          |              |-- có --> QR grade / AUTOMATIC
+  |                          |              |-- không --> QR grade / MANUAL_FALLBACK
   |<-------------------------| instruction + confirmation state  |
   | chuyển khoản             |                                  |
   |                          | webhook match hoặc admin sao kê   |
@@ -120,10 +122,13 @@ FE Client                BE resolver                     FE Admin / Socket
 | Grade chưa mapping / mapping inactive | `PENDING` với default manual | `UNPAID` | QR + chờ admin sao kê. |
 | Default manual unavailable | Không tạo | `UNPAID` | Không QR; thông báo liên hệ trung tâm. |
 | Auto account active | `PENDING`, automatic | `UNPAID` | QR + chờ auto confirm. |
+| Bank khối active, SePay chưa sẵn sàng | `PENDING`, manual theo bank khối | `UNPAID` | QR + chờ admin sao kê. |
 | Webhook đúng account/mã/amount | `SUCCEEDED` | `PAID` | Socket success. |
 | Sai account/mã/amount | Không match | `UNPAID` | Chờ admin đối soát. |
-| SePay suy giảm | Attempt manual mới dùng default | `UNPAID` | QR + chờ sao kê. |
 | Admin check sao kê thành công | Lưu history/resolution | `UNPAID → PAID` | Socket success sau commit. |
+| Bulk đổi amount | Mọi attempt `PENDING` bị `EXPIRED`; intent cập nhật amount | Giữ trạng thái hiện có | Học sinh phải lấy QR mới. |
+| Bulk `PAID → UNPAID` | Release giao dịch/attempt như gỡ đối soát thủ công; intent `PENDING` | `PAID → UNPAID` | Xóa ngày thanh toán, chờ thanh toán lại. |
+| Bulk `UNPAID → PAID` | Không tạo hoặc đối soát giao dịch; intent có sẵn chuyển `PAID` | `UNPAID → PAID` | Điều chỉnh trạng thái quản trị, có audit. |
 | SePay đến muộn sau manual paid | Review/ignored | `PAID` giữ nguyên | Không notification trùng. |
 
 ## 8. Quyết định cần chốt

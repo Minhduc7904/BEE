@@ -221,6 +221,7 @@ Sau response này, client dùng `paymentIntentId` để subscribe `tuition-payme
 | `POST /api/tuition-payments` | `tuition-payment:create` | Một khoản học phí | Một `TuitionPayment` | Tạo `PaymentIntent` cùng transaction. |
 | `POST /api/tuition-payments/bulk` | `tuition-payment:create-bulk` | Một mức thu cho course, grade hoặc danh sách học sinh | Danh sách học phí mới | Mỗi học phí mới có một intent; khoản đã tồn tại được bỏ qua. |
 | `POST /api/tuition-payments/bulk-array` | `tuition-payment:create-bulk` | Mảng khoản thu riêng từng học sinh | Danh sách khoản được tạo | Mỗi học phí mới có một intent; phần tử trùng hoặc học sinh không hoạt động được bỏ qua theo luồng hiện có. |
+| `PUT /api/tuition-payments/bulk-array` | `tuition-payment:update` | Mảng cập nhật học phí | Danh sách khoản được cập nhật | Đồng bộ intent, QR/attempt và trạng thái đối soát theo từng khoản. |
 
 ### `POST /api/tuition-payments`
 
@@ -280,6 +281,19 @@ Response là `BaseResponseDto<TuitionPaymentResponseDto[]>`; mỗi phần tử t
 ```
 
 Response là `BaseResponseDto<TuitionPaymentResponseDto[]>`; chỉ các phần tử tạo thành công xuất hiện trong `data` và mỗi phần tử đều có intent tương ứng. Bất kỳ phần tử nào có `amount: null` làm transaction rollback để không tạo học phí thiếu intent.
+
+## `PUT /api/tuition-payments/bulk-array`
+
+| Thuộc tính | Giá trị |
+| --- | --- |
+| Permission | `tuition-payment:update` |
+| Status thành công | `200 OK` |
+| Side effect | Cập nhật từng khoản cùng `PaymentIntent`, `PaymentAttempt` và dữ liệu đối soát khi trạng thái/số tiền thay đổi. |
+
+Khi cập nhật `amount`, API áp dụng đúng rule của cập nhật một khoản: cập nhật `PaymentIntent.amount` (hoặc tạo intent cho dữ liệu cũ chưa có); nếu số tiền thực sự đổi thì toàn bộ `PaymentAttempt` `PENDING` của intent bị chuyển `EXPIRED` để QR cũ không còn hiệu lực. Không được đổi số tiền của học phí đang `PAID`, trừ khi cùng request chuyển nó về `UNPAID`.
+
+- `PAID → UNPAID`: thực hiện như API gỡ đối soát thủ công—xóa `paidAt`, đưa intent về `PENDING`, gỡ liên kết giao dịch ngân hàng khỏi attempt và đưa các giao dịch đó về `RECEIVED`/`UNRECONCILED`.
+- `UNPAID → PAID`: chỉ là cập nhật trạng thái quản trị. API không tự tạo, gắn hoặc đối soát bất kỳ giao dịch ngân hàng nào; nếu payment intent tồn tại sau khi áp dụng rule cập nhật amount thì chuyển intent sang `PAID`.
 
 ## `PUT /api/tuition-payments/:id`
 

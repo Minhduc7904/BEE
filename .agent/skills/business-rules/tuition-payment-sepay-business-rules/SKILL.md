@@ -36,20 +36,21 @@ TuitionCollectionConfiguration ──► defaultManualReceivingBankAccount
 4. `TuitionCollectionConfiguration.defaultManualReceivingBankAccountId` là FK đến một account `ACTIVE`. Dùng bảng cấu hình một dòng thay vì cờ `isDefault` trên account để enforce chính xác một bank mặc định.
 5. Resolver chọn account theo thứ tự:
    - Mapping của khối có tài khoản vận hành `status = ACTIVE`, `sepayStatus = ACTIVE`, mode `AUTOMATIC` và luồng auto khả dụng → dùng mapping, `bankSelectionSource = GRADE_MAPPING`, `confirmationMode = AUTOMATIC`.
-   - Mode vận hành là `MANUAL_FALLBACK`; hoặc mapping không tồn tại/inactive; hoặc `sepayStatus` là `UNKNOWN`/`INACTIVE`; hoặc auto không khả dụng do lỗi đã được phân loại → dùng default manual bank, `bankSelectionSource = MANUAL_DEFAULT`, `confirmationMode = MANUAL_FALLBACK`.
+   - Mapping của khối có `status = ACTIVE` nhưng `sepayStatus` là `UNKNOWN`/`INACTIVE` → vẫn dùng mapping, `bankSelectionSource = GRADE_MAPPING`, `confirmationMode = MANUAL_FALLBACK`; QR được phát theo bank khối và chờ admin đối soát.
+   - Mode vận hành là `MANUAL_FALLBACK`; hoặc mapping không tồn tại; hoặc bank mapping `INACTIVE` → dùng default manual bank, `bankSelectionSource = MANUAL_DEFAULT`, `confirmationMode = MANUAL_FALLBACK`.
    - Default manual bank không có hoặc inactive → không tạo QR, trả lỗi `TUITION_MANUAL_RECEIVING_BANK_UNAVAILABLE`, đồng thời tạo cảnh báo cho admin.
-6. Chỉ fallback với lỗi có chủ đích: `GRADE_BANK_NOT_CONFIGURED`, `GRADE_BANK_INACTIVE`, `SEPAY_BANK_STATUS_UNKNOWN`, `SEPAY_BANK_INACTIVE`, `SEPAY_AUTO_UNAVAILABLE` hoặc mode vận hành đã chuyển. Không fallback khi ownership, amount, dữ liệu, database, xác thực hoặc bảo mật có lỗi.
+6. Chỉ fallback sang **default manual bank** với lý do có chủ đích: `GRADE_BANK_NOT_CONFIGURED`, `GRADE_BANK_INACTIVE` hoặc mode vận hành đã chuyển. `SEPAY_BANK_STATUS_UNKNOWN` và `SEPAY_BANK_INACTIVE` chỉ chuyển phương thức xác nhận của bank khối sang thủ công, không đổi account nhận. Không fallback khi ownership, amount, dữ liệu, database, xác thực hoặc bảo mật có lỗi.
 7. Đổi mapping/default chỉ tác động attempt tạo sau đó. Attempt cũ luôn dùng snapshot account, amount, code và phương thức xác nhận của chính nó.
 
 ## Dữ liệu và enum dự kiến
 
 ### ReceivingBankAccount
 
-Giữ `bankCode`, `accountNumber`, `accountHolder`, `displayName?`, `status`, `sepayBankAccountId?`, `sepayStatus`, `notes?`, timestamps. `ReceivingBankAccountStatus` tối thiểu có `ACTIVE`, `INACTIVE`; đây là trạng thái vận hành cục bộ. `SepayBankAccountStatus` có `UNKNOWN`, `ACTIVE`, `INACTIVE` và chỉ được cập nhật từ API SePay khi đồng bộ. Chỉ `status = ACTIVE` và `sepayStatus = ACTIVE` mới cho attempt tự động; `sepayStatus = UNKNOWN` hoặc `INACTIVE` không chặn QR fallback thủ công nếu `status = ACTIVE`. Chỉ người có quyền phù hợp mới xem đầy đủ số tài khoản; không log secret SePay.
+Giữ `bankCode`, `accountNumber`, `accountHolder`, `displayName?`, `status`, `sepayBankAccountId?`, `sepayStatus`, `notes?`, timestamps. `ReceivingBankAccountStatus` tối thiểu có `ACTIVE`, `INACTIVE`; đây là trạng thái vận hành cục bộ. `SepayBankAccountStatus` có `UNKNOWN`, `ACTIVE`, `INACTIVE` và chỉ được cập nhật từ API SePay khi đồng bộ. Chỉ `status = ACTIVE` và `sepayStatus = ACTIVE` mới cho attempt tự động; khi `status = ACTIVE` nhưng `sepayStatus = UNKNOWN` hoặc `INACTIVE`, QR vẫn dùng bank mapping của khối với xác nhận thủ công. Chỉ người có quyền phù hợp mới xem đầy đủ số tài khoản; không log secret SePay.
 
 ### TuitionGradeReceivingBankAccount
 
-Có đúng 12 bản ghi bền vững cho `grade` từ `1` đến `12`; migration phải tạo idempotent các bản ghi còn thiếu. Field chính: `id`, `grade Int`, `receivingBankAccountId?`, timestamps. Unique `grade`, index `receivingBankAccountId`. `receivingBankAccountId = null` nghĩa là khối chưa gán bank tự động và **bắt buộc** dùng default manual bank, không phải lỗi cấu hình. Khi có ID, availability auto vẫn lấy từ tài khoản: chỉ `status = ACTIVE` và `sepayStatus = ACTIVE` mới tạo attempt `AUTOMATIC`; mọi trạng thái còn lại dùng fallback thủ công nếu default manual bank sẵn sàng.
+Có đúng 12 bản ghi bền vững cho `grade` từ `1` đến `12`; migration phải tạo idempotent các bản ghi còn thiếu. Field chính: `id`, `grade Int`, `receivingBankAccountId?`, timestamps. Unique `grade`, index `receivingBankAccountId`. `receivingBankAccountId = null` nghĩa là khối chưa gán bank tự động và **bắt buộc** dùng default manual bank, không phải lỗi cấu hình. Khi có ID, chỉ `status = ACTIVE` và `sepayStatus = ACTIVE` mới tạo attempt `AUTOMATIC`; bank `ACTIVE` nhưng SePay chưa sẵn sàng vẫn tạo attempt `MANUAL_FALLBACK` theo chính bank khối. Chỉ mapping thiếu hoặc bank `INACTIVE` mới dùng default manual bank.
 
 ### TuitionCollectionConfiguration
 
@@ -179,10 +180,16 @@ Quy tắc “không cộng partial tự động” chỉ áp dụng auto-match. 
 
 ## Fallback xác nhận thủ công
 
-SePay là luồng tự động ưu tiên, không phải điều kiện duy nhất để phát hành QR. Default manual bank làm cho phụ huynh vẫn có QR hợp lệ khi khối chưa được cấu hình hoặc luồng tự động suy giảm.
+SePay là luồng tự động ưu tiên, không phải điều kiện duy nhất để phát hành QR. Với bank khối đang `ACTIVE`, SePay chưa sẵn sàng chỉ chuyển attempt sang xác nhận thủ công, không đổi bank QR. Default manual bank làm cho phụ huynh vẫn có QR hợp lệ khi khối chưa được cấu hình, bank mapping đã `INACTIVE` hoặc hệ thống chủ động chuyển mode thủ công.
 
-1. `TuitionPayment` luôn giữ `UNPAID` cho đến khi webhook match thành công hoặc admin kiểm tra sao kê xác nhận.
+1. `TuitionPayment` giữ `UNPAID` cho đến khi webhook match thành công, admin kiểm tra sao kê xác nhận, hoặc admin thực hiện điều chỉnh trạng thái `UNPAID → PAID` qua bulk update có audit; trường hợp bulk không tạo hoặc đối soát giao dịch ngân hàng.
 2. Attempt fallback vẫn có QR, account, amount và payment code do BE tạo; trường `confirmationMode = MANUAL_FALLBACK` là bắt buộc trong instruction response.
+
+### Cập nhật hàng loạt học phí
+
+- Khi bulk update đổi `amount`, phải thực hiện giống update một khoản: cập nhật hoặc tạo `PaymentIntent`; nếu amount thực sự thay đổi, expire mọi `PaymentAttempt` `PENDING` để QR cũ không thể được dùng với số tiền mới.
+- Bulk `PAID → UNPAID` phải thực hiện toàn bộ logic gỡ đối soát thủ công trong cùng transaction: xóa `paidAt`, đưa intent về `PENDING`, release giao dịch ngân hàng về `RECEIVED`/`UNRECONCILED` và khôi phục attempt `SUCCEEDED` không còn giao dịch về `PENDING`.
+- Bulk `UNPAID → PAID` là điều chỉnh trạng thái quản trị, không được tự tạo/gắn/đối soát `BankTransferTransaction`. Nếu payment intent đã tồn tại, chỉ chuyển status của intent sang `PAID`.
 3. FE client hiển thị rõ: “Đang chờ nhà trường kiểm tra sao kê”, không hứa auto-confirm và không tự đổi sang `PAID`.
 4. Admin kiểm tra sao kê theo account snapshot, nội dung chuyển khoản, thời gian và các bằng chứng vận hành phù hợp. Admin có thể chọn một hoặc nhiều `BankTransferTransaction` chưa đối soát để thực hiện `UNPAID → PAID`; chính sách thủ công không bắt buộc số tiền từng giao dịch hoặc tổng giao dịch phải khớp chính xác học phí. Mọi ID giao dịch, `adminId`, `paidAt` thực tế (nếu có), mã tham chiếu và lý do phải được ghi vào audit/notes.
 5. Giữ audit và notification sau commit; không tạo webhook hoặc `BankTransferTransaction` giả để thay cho sao kê.
@@ -214,9 +221,9 @@ Socket là push channel; database/API vẫn là nguồn sự thật. Client khô
 
 | Event                                     | Recipient                            | Khi phát                                                    | Payload tối thiểu                                                                                                                                       | Hành vi FE                                                                  |
 | ----------------------------------------- | ------------------------------------ | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| `tuition-payment:instruction-updated`     | user sở hữu                          | Attempt/QR mới hoặc resolver chuyển qua default manual bank | `eventId`, `occurredAt`, `paymentId`, `attemptId`, `paymentCode`, `confirmationMode`, `confirmationStatus`, `expiresAt`                                 | Tải lại payment instruction một lần; thay QR/nhãn nếu attempt còn hiệu lực. |
+| `tuition-payment:instruction-updated`     | user sở hữu                          | Attempt/QR mới hoặc resolver đổi account/mode xác nhận      | `eventId`, `occurredAt`, `paymentId`, `attemptId`, `paymentCode`, `confirmationMode`, `confirmationStatus`, `expiresAt`                                 | Tải lại payment instruction một lần; thay QR/nhãn nếu attempt còn hiệu lực. |
 | `tuition-payment:status-updated`          | user sở hữu                          | Mọi thay đổi trạng thái có thể hiển thị                     | `eventId`, `occurredAt`, `paymentId`, `attemptId?`, `tuitionStatus`, `attemptStatus?`, `confirmationMode?`, `confirmationStatus?`, `paidAt?`, `version` | Đây là event chuẩn; cập nhật UI hoặc gọi snapshot API nếu version lệch.     |
-| `tuition-payment:manual-review-required`  | user sở hữu và admin được phân quyền | Attempt dùng default manual bank hoặc admin cần kiểm tra    | payload chuẩn + `bankSelectionSource = MANUAL_DEFAULT`, `messageKey = AWAITING_ADMIN_RECONCILIATION`                                                    | Client hiển thị chờ sao kê; admin thêm vào hàng đợi đối soát.               |
+| `tuition-payment:manual-review-required`  | user sở hữu và admin được phân quyền | Attempt dùng xác nhận thủ công hoặc admin cần kiểm tra      | payload chuẩn + `bankSelectionSource` (`GRADE_MAPPING` hoặc `MANUAL_DEFAULT`), `messageKey = AWAITING_ADMIN_RECONCILIATION`                              | Client hiển thị chờ sao kê; admin thêm vào hàng đợi đối soát.               |
 | `tuition-payment:reconciliation-resolved` | user sở hữu và admin đã thao tác     | Admin xác nhận/từ chối resolution                           | payload chuẩn + `resolution = PAID_CONFIRMED                                                                                                            | REJECTED`, `resolvedBy?`                                                    | Client chỉ hiển thị thành công khi `tuitionStatus = PAID`; admin cập nhật hàng đợi. |
 | `tuition-payment:collection-mode-changed` | admin room                           | Mode auto/manual hoặc default bank thay đổi                 | `eventId`, `occurredAt`, `collectionMode`, `defaultManualBankAvailable`, `reason`                                                                       | Hiển thị/đóng banner vận hành, tải lại dashboard.                           |
 
@@ -235,9 +242,9 @@ Không cần event `paid` riêng: `tuition-payment:status-updated` là event can
 ### FE admin
 
 1. Quản lý account, mapping grade, mode và default manual bank; UI không cho deactivate account đang là default nếu chưa thay default active khác.
-2. Dashboard hiển thị grade không có mapping active là “manual default”, không phải “không thể thu online”, miễn default manual bank sẵn sàng.
+2. Dashboard phân biệt: grade không có mapping hoặc mapping `INACTIVE` là “manual default”; mapping `ACTIVE` nhưng SePay chưa sẵn sàng là “manual theo bank khối”. Cả hai không phải “không thể thu online” nếu account được chọn sẵn sàng.
 3. Nhận event admin room, quản lý hàng đợi `AWAITING_ADMIN_RECONCILIATION`, đối chiếu sao kê rồi gọi action xác nhận có reference/lý do bắt buộc.
-4. Nếu default manual bank unavailable, hiển thị cảnh báo ưu tiên cao; lúc đó không cho phát QR mới.
+4. Nếu default manual bank unavailable, hiển thị cảnh báo ưu tiên cao và không cho phát QR mới trong các trường hợp cần fallback về default; QR theo bank khối `ACTIVE` vẫn có thể phát với xác nhận thủ công.
 
 ## Điều không được làm
 
@@ -252,7 +259,7 @@ Không cần event `paid` riêng: `tuition-payment:status-updated` là event can
 ## Checklist
 
 - [ ] Có đúng một default manual bank `ACTIVE`, luôn được kiểm tra trước khi phát QR fallback.
-- [ ] Mapping grade inactive/thiếu và auto unavailable đều trả instruction QR manual có trạng thái chờ sao kê.
+- [ ] Mapping grade `ACTIVE` nhưng SePay chưa sẵn sàng trả QR theo bank khối với trạng thái chờ sao kê; mapping inactive/thiếu mới dùng default manual bank.
 - [ ] Lỗi không đủ điều kiện fallback bị trả đúng, không phát QR sai.
 - [ ] Attempt snapshot đủ account, amount, code, nguồn chọn bank và mode xác nhận.
 - [ ] Auto-match chỉ xử lý attempt `AUTOMATIC`; manual resolution có audit/reference.
