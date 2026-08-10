@@ -85,9 +85,7 @@ export class DocumentController {
 
   @Get('public/seo')
   @HttpCode(HttpStatus.OK)
-  async getPublicSeoList(
-    @Query() query: DocumentListQueryDto,
-  ): Promise<PaginationResponseDto<DocumentResponseDto>> {
+  async getPublicSeoList(@Query() query: DocumentListQueryDto): Promise<PaginationResponseDto<DocumentResponseDto>> {
     query.visibility = Visibility.PUBLISHED
     return ExceptionHandler.execute(() => this.getDocumentsUseCase.execute(query))
   }
@@ -127,9 +125,7 @@ export class DocumentController {
 
   @Post('public/seo/:slug/view')
   @HttpCode(HttpStatus.OK)
-  async incrementPublicSeoViewCount(
-    @Param('slug') slug: string,
-  ): Promise<BaseResponseDto<{ viewCount: number }>> {
+  async incrementPublicSeoViewCount(@Param('slug') slug: string): Promise<BaseResponseDto<{ viewCount: number }>> {
     return ExceptionHandler.execute(() => this.incrementPublicDocumentViewCountUseCase.execute(slug))
   }
 
@@ -142,10 +138,7 @@ export class DocumentController {
   }
 
   @Get('public/seo/:slug/download')
-  async downloadPublicSeoDocument(
-    @Param('slug') slug: string,
-    @Res() res: Response,
-  ): Promise<void> {
+  async downloadPublicSeoDocument(@Param('slug') slug: string, @Res() res: Response): Promise<void> {
     return ExceptionHandler.execute(async () => {
       const result = await this.downloadPublicDocumentUseCase.execute(slug)
       res.redirect(HttpStatus.FOUND, result.downloadUrl)
@@ -162,9 +155,7 @@ export class DocumentController {
 
   @Get('public/seo/:slug')
   @HttpCode(HttpStatus.OK)
-  async getPublicSeoBySlug(
-    @Param('slug') slug: string,
-  ): Promise<BaseResponseDto<DocumentResponseDto>> {
+  async getPublicSeoBySlug(@Param('slug') slug: string): Promise<BaseResponseDto<DocumentResponseDto>> {
     return ExceptionHandler.execute(() => this.getPublicSeoDocumentBySlugUseCase.execute(slug))
   }
 
@@ -221,7 +212,8 @@ Notes:
 - Neu khong truyen thumbnailMediaId, he thong tu lay trang dau PDF de tao thumbnail.
 - Neu truyen contentStartPage + contentEndPage, he thong cat doan PDF do, OCR, sua markdown roi luu vao content.
 - Neu khong truyen khoang trang nhung co content, he thong luu content va attach media trong markdown.
-- Neu bo trong cac truong SEO, he thong tu sinh SEO tieng Viet tu title + content.
+- Meta title luon duoc he thong gan bang dung title; client khong gui metaTitle.
+- Neu bo trong cac truong SEO con lai, he thong tu sinh SEO tieng Viet tu title + content.
 Request body:
 {
   "title": "Tai lieu tich phan lop 12",
@@ -235,7 +227,6 @@ Request body:
   "sourceUrl": "https://example.com/source.pdf",
   "targetKeyword": "tai lieu tich phan lop 12",
   "keywordText": "tich phan, bai tap tich phan, on thi thpt",
-  "metaTitle": "Tai lieu tich phan lop 12",
   "metaDescription": "Tai lieu tich phan lop 12 co dap an va loi giai.",
   "ogTitle": "Tai lieu tich phan lop 12",
   "ogDescription": "Tai lieu on tap tich phan.",

@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { BaseResponseDto, DocumentResponseDto, UpdateDocumentDto } from 'src/application/dtos'
-import type { IUnitOfWork } from 'src/domain/repositories'
+import type { IUnitOfWork, UpdateDocumentData } from 'src/domain/repositories'
 import { EntityType } from 'src/shared/constants/entity-type.constants'
 import { ConflictException, NotFoundException } from 'src/shared/exceptions/custom-exceptions'
 import { MediaStatus, MediaType, MediaVisibility } from 'src/shared/enums'
@@ -27,17 +27,17 @@ export class UpdateDocumentUseCase {
         throw new NotFoundException('Khong tim thay tai lieu')
       }
 
-      const { thumbnailMediaId, ...updateData } = dto
+      const { thumbnailMediaId, ...dtoUpdateData } = dto
+      const updateData: UpdateDocumentData = { ...dtoUpdateData }
 
       if (dto.content !== undefined) {
         const normalizedResults = this.attachMediaFromContentUseCase.normalizeAndExtract([
           { fieldName: DOCUMENT_MEDIA_FIELDS.CONTENT, content: dto.content },
         ])
 
-        const normalizedContent = this.attachMediaFromContentUseCase.getNormalizedContent(
-          normalizedResults,
-          DOCUMENT_MEDIA_FIELDS.CONTENT,
-        ) || ''
+        const normalizedContent =
+          this.attachMediaFromContentUseCase.getNormalizedContent(normalizedResults, DOCUMENT_MEDIA_FIELDS.CONTENT) ||
+          ''
 
         updateData.content = normalizedContent
 
@@ -59,6 +59,10 @@ export class UpdateDocumentUseCase {
           existing.documentId,
           existing.slug,
         )
+      }
+
+      if (dto.title !== undefined) {
+        updateData.metaTitle = dto.title
       }
 
       if (!updateData.slug && dto.slug && dto.slug !== existing.slug) {
@@ -113,9 +117,6 @@ export class UpdateDocumentUseCase {
       })
     })
 
-    return BaseResponseDto.success(
-      'Cap nhat tai lieu thanh cong',
-      DocumentResponseDto.fromEntity(document),
-    )
+    return BaseResponseDto.success('Cap nhat tai lieu thanh cong', DocumentResponseDto.fromEntity(document))
   }
 }

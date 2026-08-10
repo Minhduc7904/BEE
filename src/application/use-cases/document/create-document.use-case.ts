@@ -25,10 +25,7 @@ export class CreateDocumentUseCase {
     private readonly attachMediaFromContentUseCase: AttachMediaFromContentUseCase,
   ) {}
 
-  async execute(
-    dto: CreateDocumentDto,
-    userId?: number,
-  ): Promise<BaseResponseDto<DocumentResponseDto>> {
+  async execute(dto: CreateDocumentDto, userId?: number): Promise<BaseResponseDto<DocumentResponseDto>> {
     const document = await this.unitOfWork.executeInTransaction(async (repos) => {
       const media = await repos.mediaRepository.findById(dto.mediaId)
       if (!media) {
@@ -44,25 +41,19 @@ export class CreateDocumentUseCase {
         throw new ConflictException('Tai lieu bat buoc phai la file PDF')
       }
 
-      let thumbnailMedia = dto.thumbnailMediaId
-        ? await repos.mediaRepository.findById(dto.thumbnailMediaId)
-        : null
+      let thumbnailMedia = dto.thumbnailMediaId ? await repos.mediaRepository.findById(dto.thumbnailMediaId) : null
 
       if (dto.thumbnailMediaId && !thumbnailMedia) {
         throw new NotFoundException(`Khong tim thay thumbnail media ${dto.thumbnailMediaId}`)
       }
 
-      if (
-        thumbnailMedia &&
-        (thumbnailMedia.status !== MediaStatus.READY || thumbnailMedia.type !== MediaType.IMAGE)
-      ) {
+      if (thumbnailMedia && (thumbnailMedia.status !== MediaStatus.READY || thumbnailMedia.type !== MediaType.IMAGE)) {
         throw new ConflictException('Thumbnail media khong hop le')
       }
 
       await assertTagIdsExist(repos, dto.tagIds)
       const slug = await generateUniqueDocumentSlug(dto.title, repos.documentRepository)
-      const shouldGenerateContent =
-        dto.contentStartPage !== undefined || dto.contentEndPage !== undefined
+      const shouldGenerateContent = dto.contentStartPage !== undefined || dto.contentEndPage !== undefined
 
       if (
         (dto.contentStartPage === undefined && dto.contentEndPage !== undefined) ||
@@ -107,7 +98,6 @@ export class CreateDocumentUseCase {
       const seoFields =
         !dto.targetKeyword ||
         !dto.keywordText ||
-        !dto.metaTitle ||
         !dto.metaDescription ||
         !dto.ogTitle ||
         !dto.ogDescription ||
@@ -125,7 +115,7 @@ export class CreateDocumentUseCase {
         content: normalizedContent,
         targetKeyword: dto.targetKeyword || seoFields?.targetKeyword,
         keywordText: dto.keywordText || seoFields?.keywordText,
-        metaTitle: dto.metaTitle || seoFields?.metaTitle,
+        metaTitle: dto.title,
         metaDescription: dto.metaDescription || seoFields?.metaDescription,
         ogTitle: dto.ogTitle || seoFields?.ogTitle,
         ogDescription: dto.ogDescription || seoFields?.ogDescription,
@@ -201,10 +191,7 @@ export class CreateDocumentUseCase {
       return document
     })
 
-    return BaseResponseDto.success(
-      'Tao tai lieu thanh cong',
-      DocumentResponseDto.fromEntity(document),
-    )
+    return BaseResponseDto.success('Tao tai lieu thanh cong', DocumentResponseDto.fromEntity(document))
   }
 
   private buildThumbnailAlt(title: string): string {

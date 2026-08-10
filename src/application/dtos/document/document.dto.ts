@@ -48,9 +48,6 @@ export class CreateDocumentDto {
   @IsOptionalString('Danh sach tu khoa')
   keywordText?: string
 
-  @IsOptionalString('Meta title', 255)
-  metaTitle?: string
-
   @IsOptionalString('Meta description', 500)
   metaDescription?: string
 
@@ -106,9 +103,6 @@ export class UpdateDocumentDto {
 
   @IsOptionalString('Danh sach tu khoa')
   keywordText?: string
-
-  @IsOptionalString('Meta title', 255)
-  metaTitle?: string
 
   @IsOptionalString('Meta description', 500)
   metaDescription?: string

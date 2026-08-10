@@ -1837,7 +1837,7 @@ model Document {
   targetKeyword   String?    @map("target_keyword") @db.VarChar(255) // vd: "tai lieu tich phan"
   // Danh sach tu khoa phu, bien the va long-tail.
   keywordText     String?    @map("keyword_text") @db.Text // tu khoa phu, bien the, long-tail
-  // Title tag rieng cho SEO, co the khac title H1.
+  // Title tag SEO; application luon dong bo bang title H1 cua tai lieu.
   metaTitle       String?    @map("meta_title") @db.VarChar(255)
   // Meta description hien thi tren Google.
   metaDescription String?    @map("meta_description") @db.VarChar(500)

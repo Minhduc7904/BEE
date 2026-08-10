@@ -6,7 +6,6 @@ import { TextSearchUtil } from 'src/shared/utils/text-search.util'
 export interface DocumentSeoFields {
   targetKeyword: string
   keywordText: string
-  metaTitle: string
   metaDescription: string
   ogTitle: string
   ogDescription: string
@@ -36,7 +35,6 @@ export class DocumentSeoAiService {
       'Trả về đúng object JSON với các field:',
       '- targetKeyword: 1 cụm từ khóa chính tiếng Việt có dấu',
       '- keywordText: 5-10 cụm từ khóa phụ, ngăn cách bằng dấu phẩy',
-      '- metaTitle: tối đa 60 ký tự, có từ khóa chính',
       '- metaDescription: khoảng 140-160 ký tự, rõ lợi ích và có từ khóa chính',
       '- ogTitle: tiêu đề chia sẻ mạng xã hội, tự nhiên',
       '- ogDescription: mô tả chia sẻ mạng xã hội, tự nhiên',
@@ -53,13 +51,16 @@ export class DocumentSeoAiService {
   }
 
   private parse(raw: string): DocumentSeoFields {
-    const cleaned = raw.trim().replace(/^```json\s*/i, '').replace(/```$/i, '').trim()
+    const cleaned = raw
+      .trim()
+      .replace(/^```json\s*/i, '')
+      .replace(/```$/i, '')
+      .trim()
     const parsed = JSON.parse(cleaned)
 
     return {
       targetKeyword: String(parsed.targetKeyword || '').trim(),
       keywordText: String(parsed.keywordText || '').trim(),
-      metaTitle: String(parsed.metaTitle || '').trim(),
       metaDescription: String(parsed.metaDescription || '').trim(),
       ogTitle: String(parsed.ogTitle || '').trim(),
       ogDescription: String(parsed.ogDescription || '').trim(),

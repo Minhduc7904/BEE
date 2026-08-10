@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 import {
   AssistantShiftAssistantStatisticsResponseDto,
-  AssistantShiftDateRangeQueryDto,
+  AssistantShiftStatisticsQueryDto,
   BaseResponseDto,
 } from '../../../dtos'
 import type { IUnitOfWork } from '../../../../domain/repositories'
@@ -13,19 +13,25 @@ import { BusinessLogicException } from '../../../../shared/exceptions/custom-exc
 export class GetAssistantShiftAssistantStatisticsUseCase {
   constructor(@Inject('UNIT_OF_WORK') private readonly uow: IUnitOfWork) {}
 
-  async execute(query: AssistantShiftDateRangeQueryDto) {
+  async execute(query: AssistantShiftStatisticsQueryDto) {
     const range = query.toRange()
     if (range.startAtFrom > range.startAtTo) throw new BusinessLogicException('Khoảng thời gian không hợp lệ')
 
     const response = await this.uow.executeInTransaction(async (repos) => {
-      const [assistants, shifts] = await Promise.all([
+      const [eligibleAssistants, shifts] = await Promise.all([
         repos.adminRepository.findAllByRoleId(ASSISTANT_SHIFT_CONFIG.ELIGIBLE_ASSISTANT_ROLE_ID),
         repos.assistantShiftRepository.findAll({
           ...range,
           excludeBaseShifts: true,
+          assignedAdminId: query.adminId,
           includeAssignmentsWithAdmin: true,
         }),
       ])
+
+      const assistants =
+        query.adminId === undefined
+          ? eligibleAssistants
+          : eligibleAssistants.filter((assistant) => assistant.adminId === query.adminId)
 
       const statisticsByAdminId = new Map(
         assistants.map((assistant) => [

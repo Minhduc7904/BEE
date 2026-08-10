@@ -194,6 +194,13 @@ Ca cơ sở là mẫu lịch duy nhất trong tuần **20/07/2026 (Thứ Hai) đ
 
 - Permission: `assistant-shift:get-all-by-series`.
 - Không có query ngày; luôn trả toàn bộ ca cơ sở của series, kèm `series`, `courseClass`, `assignments` và `assignments[].admin`.
+- Query `adminId` là tùy chọn. Khi truyền, chỉ trả ca cơ sở mà admin đó có assignment, ví dụ `GET /api/assistant-shifts/series/2/base?adminId=25`.
+
+### GET `/assistant-shifts/statistics?startAt=...&endAt=...`
+
+- Permission: `assistant-shift:get-all-by-series`.
+- `startAt` và `endAt` là bắt buộc. Query `adminId` là tùy chọn; khi truyền, response chỉ có thống kê của trợ giảng đó và chỉ tính các ca được phân công cho họ.
+- Ví dụ: `GET /api/assistant-shifts/statistics?startAt=2026-08-10&endAt=2026-08-16&adminId=25`.
 
 ### POST `/assistant-shifts/base`
 

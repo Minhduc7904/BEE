@@ -17,6 +17,7 @@ import {
   AssistantShiftAllBySeriesQueryDto,
   AssistantShiftAssistantListQueryDto,
   AssistantShiftAssignmentStatusQueryDto,
+  AssistantShiftBaseListQueryDto,
   AssistantShiftDateRangeQueryDto,
   AssistantShiftRangeDto,
   CopyBaseAssistantShiftsDto,
@@ -24,6 +25,7 @@ import {
   CreateBaseAssistantShiftDto,
   CreateAssistantShiftDto,
   SetAssistantShiftSelfRegistrationWindowDto,
+  AssistantShiftStatisticsQueryDto,
   UpdateBaseAssistantShiftDto,
   UpdateAssistantShiftDto,
 } from '../../application/dtos'
@@ -92,8 +94,8 @@ export class AssistantShiftController {
   }
   @Get('series/:seriesId/base')
   @RequirePermission(PERMISSION_CODES.ASSISTANT_SHIFT.GET_ALL_BY_SERIES)
-  listBase(@Param('seriesId', ParseIntPipe) id: number) {
-    return ExceptionHandler.execute(() => this.baseList.execute(id))
+  listBase(@Param('seriesId', ParseIntPipe) id: number, @Query() query: AssistantShiftBaseListQueryDto) {
+    return ExceptionHandler.execute(() => this.baseList.execute(id, query))
   }
   @Post('base')
   @RequirePermission(PERMISSION_CODES.ASSISTANT_SHIFT.CREATE)
@@ -143,7 +145,7 @@ export class AssistantShiftController {
   @Get('statistics')
   @RequirePermission(PERMISSION_CODES.ASSISTANT_SHIFT.GET_ALL_BY_SERIES)
   @HttpCode(HttpStatus.OK)
-  getAssistantStatistics(@Query() query: AssistantShiftDateRangeQueryDto) {
+  getAssistantStatistics(@Query() query: AssistantShiftStatisticsQueryDto) {
     return ExceptionHandler.execute(() => this.assistantStatistics.execute(query))
   }
   @Get('assistants')

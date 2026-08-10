@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 
-import { AssistantShiftResponseDto, BaseResponseDto } from '../../../dtos'
+import { AssistantShiftBaseListQueryDto, AssistantShiftResponseDto, BaseResponseDto } from '../../../dtos'
 import type { IMediaUsageRepository, IUnitOfWork } from '../../../../domain/repositories'
 import { NotFoundException } from '../../../../shared/exceptions/custom-exceptions'
 import { MinioService } from '../../../interfaces'
@@ -14,7 +14,7 @@ export class GetBaseAssistantShiftsBySeriesUseCase {
     private readonly minioService: MinioService,
   ) {}
 
-  async execute(assistantShiftSeriesId: number) {
+  async execute(assistantShiftSeriesId: number, query: AssistantShiftBaseListQueryDto) {
     const data = await this.uow.executeInTransaction(async (repos) => {
       if (!(await repos.assistantShiftSeriesRepository.findById(assistantShiftSeriesId))) {
         throw new NotFoundException('Chuỗi ca không tồn tại')
@@ -23,6 +23,7 @@ export class GetBaseAssistantShiftsBySeriesUseCase {
       return repos.assistantShiftRepository.findAll({
         assistantShiftSeriesId,
         onlyBaseShifts: true,
+        assignedAdminId: query.adminId,
         ...assistantShiftDetails,
       })
     })
