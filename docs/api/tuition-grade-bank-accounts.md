@@ -15,7 +15,7 @@
 | Status thành công | `200 OK` |
 | Side effect | Không có audit log |
 
-Trả về toàn bộ 12 khối. `confirmationMode = AUTOMATIC` chỉ khi tài khoản gán cho khối có `status = ACTIVE`, `sepayStatus = ACTIVE` và cấu hình thu học phí không ở chế độ thủ công. Những trường hợp khác trả `MANUAL_FALLBACK` cùng `fallbackReason`; FE hiển thị thông tin default manual bank và `isManualFallbackAvailable`.
+Trả về toàn bộ 12 khối. `confirmationMode = AUTOMATIC` chỉ khi tài khoản gán cho khối có `status = ACTIVE`, `sepayStatus = ACTIVE` và cấu hình thu học phí không ở chế độ thủ công. Bank khối `ACTIVE` nhưng `sepayStatus` `UNKNOWN`/`INACTIVE` trả `MANUAL_FALLBACK` cùng `fallbackReason`, nhưng QR mới vẫn dùng bank khối và chờ admin đối soát; không chuyển sang default manual bank. FE hiển thị thông tin default manual bank và `isManualFallbackAvailable` cho các trường hợp thực sự cần fallback.
 
 ```json
 {
@@ -57,7 +57,7 @@ Body nhận một hoặc nhiều mapping. `grade` là số nguyên từ `1` đ�
 }
 ```
 
-Response có cùng cấu trúc với `GET`, luôn trả đủ 12 khối sau khi cập nhật. Gán một tài khoản đang tắt hoặc có `sepayStatus` chưa sẵn sàng được phép để cấu hình trước, nhưng response sẽ báo `MANUAL_FALLBACK`; backend không tự xác nhận thanh toán cho mapping đó.
+Response có cùng cấu trúc với `GET`, luôn trả đủ 12 khối sau khi cập nhật. Gán một tài khoản đang tắt hoặc có `sepayStatus` chưa sẵn sàng được phép để cấu hình trước. Bank đang `ACTIVE` nhưng SePay chưa sẵn sàng sẽ báo `MANUAL_FALLBACK`, sinh QR theo bank khối và không tự xác nhận thanh toán; bank `INACTIVE` mới dùng default manual bank.
 
 ## Lỗi FE cần xử lý
 

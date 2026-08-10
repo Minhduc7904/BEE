@@ -14,8 +14,8 @@
 3. Nếu intent có `PaymentAttempt` `PENDING` mới nhất còn **ít nhất 60 giây**, API lấy hướng dẫn trả lại chính attempt đó; không tạo attempt mới. URL QR được dựng lại với nội dung chuyển khoản chuẩn nếu bản QR cũ dùng nội dung cũ. `PaymentAttempt.expiresAt` luôn có giá trị, không có QR vô hạn.
 4. Attempt đã hết hạn hoặc chỉ còn **dưới 60 giây** không được trả lại cho học sinh, nhưng vẫn được giữ làm lịch sử. API tạo attempt/QR mới trong cùng transaction, không đổi trạng thái attempt cũ sang `EXPIRED`. Thời hạn attempt mới lấy từ `SEPAY_ATTEMPT_EXPIRY_MINUTES`, mặc định `30` phút.
 5. Cấu hình thu `MANUAL_FALLBACK` luôn dùng bank manual mặc định với `confirmationMode: MANUAL_FALLBACK`.
-6. Cấu hình `AUTOMATIC` chỉ dùng bank mapping theo khối với `confirmationMode: AUTOMATIC` khi mapping có bank, bank `status: ACTIVE` và `sepayStatus: ACTIVE`. Thiếu một trong các điều kiện này thì tự động chuyển sang bank manual mặc định và `MANUAL_FALLBACK`.
-7. Bank manual mặc định phải tồn tại và `status: ACTIVE` trong mọi trường hợp.
+6. Cấu hình `AUTOMATIC` dùng bank mapping theo khối với `confirmationMode: AUTOMATIC` khi mapping có bank, bank `status: ACTIVE` và `sepayStatus: ACTIVE`. Nếu bank khối `status: ACTIVE` nhưng `sepayStatus: UNKNOWN` hoặc `INACTIVE`, API vẫn sinh QR theo chính bank khối, `bankSelectionSource: GRADE_MAPPING` và `confirmationMode: MANUAL_FALLBACK`; giao dịch chờ admin đối soát. Chỉ khi mapping thiếu hoặc bank khối `status: INACTIVE` mới dùng bank manual mặc định.
+7. Bank manual mặc định phải tồn tại và `status: ACTIVE` khi hệ thống đang ở `MANUAL_FALLBACK`, hoặc khi mapping khối thiếu/không còn hoạt động và cần fallback.
 
 ## `GET /api/tuition-payments/my/:id/payment-instructions`
 

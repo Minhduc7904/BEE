@@ -122,19 +122,8 @@ export class GetMyTuitionPaymentInstructionsUseCase {
       throw new NotFoundException('Chưa có cấu hình thu học phí')
     }
 
-    const defaultManualAccount = await repos.receivingBankAccountRepository.findById(
-      configuration.defaultManualReceivingBankAccountId,
-    )
-    if (!defaultManualAccount || !defaultManualAccount.isAvailableForManualCollection()) {
-      throw new BusinessLogicException('Tài khoản nhận tiền thủ công mặc định chưa sẵn sàng')
-    }
-
     if (configuration.collectionMode === TuitionCollectionMode.MANUAL_FALLBACK) {
-      return {
-        bankAccount: defaultManualAccount,
-        bankSelectionSource: PaymentBankSelectionSource.MANUAL_DEFAULT,
-        confirmationMode: PaymentConfirmationMode.MANUAL_FALLBACK,
-      }
+      return this.resolveDefaultManualBankAccount(repos, configuration.defaultManualReceivingBankAccountId)
     }
 
     const grade = tuitionPayment.student?.grade
@@ -150,6 +139,28 @@ export class GetMyTuitionPaymentInstructionsUseCase {
         bankSelectionSource: PaymentBankSelectionSource.GRADE_MAPPING,
         confirmationMode: PaymentConfirmationMode.AUTOMATIC,
       }
+    }
+
+    if (automaticBankAccount?.isAvailableForManualCollection()) {
+      return {
+        bankAccount: automaticBankAccount,
+        bankSelectionSource: PaymentBankSelectionSource.GRADE_MAPPING,
+        confirmationMode: PaymentConfirmationMode.MANUAL_FALLBACK,
+      }
+    }
+
+    return this.resolveDefaultManualBankAccount(repos, configuration.defaultManualReceivingBankAccountId)
+  }
+
+  private async resolveDefaultManualBankAccount(
+    repos: UnitOfWorkRepos,
+    defaultManualReceivingBankAccountId: number,
+  ): Promise<ResolvedBankAccount> {
+    const defaultManualAccount = await repos.receivingBankAccountRepository.findById(
+      defaultManualReceivingBankAccountId,
+    )
+    if (!defaultManualAccount || !defaultManualAccount.isAvailableForManualCollection()) {
+      throw new BusinessLogicException('Tài khoản nhận tiền thủ công mặc định chưa sẵn sàng')
     }
 
     return {
