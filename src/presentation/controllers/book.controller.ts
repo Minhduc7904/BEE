@@ -107,14 +107,14 @@ export class BookController {
   }
 
   @Get('student/my/categories')
-  @StudentOnly()
+  @RequirePermission()
   @HttpCode(HttpStatus.OK)
   async studentCategories(@CurrentUser('studentId') studentId: number): Promise<BaseResponseDto<BookCategoryDto[]>> {
     return ExceptionHandler.execute(() => this.getStudentBookCategoriesUseCase.execute(studentId))
   }
 
   @Get('student/my')
-  @StudentOnly()
+  @RequirePermission()
   @HttpCode(HttpStatus.OK)
   async studentList(
     @CurrentUser('studentId') studentId: number,
@@ -124,7 +124,7 @@ export class BookController {
   }
 
   @Post('student/my/:slug/view')
-  @StudentOnly()
+  @RequirePermission()
   @HttpCode(HttpStatus.OK)
   async studentView(
     @CurrentUser('studentId') studentId: number,
@@ -134,7 +134,7 @@ export class BookController {
   }
 
   @Get('student/my/:slug')
-  @StudentOnly()
+  @RequirePermission()
   @HttpCode(HttpStatus.OK)
   async studentDetail(
     @CurrentUser('studentId') studentId: number,
