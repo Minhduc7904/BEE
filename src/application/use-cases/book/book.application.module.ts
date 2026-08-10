@@ -18,6 +18,10 @@ const BOOK_USE_CASES = [
   useCases.GetBookSalesContactConfigurationUseCase,
   useCases.UpdateBookSalesContactConfigurationUseCase,
   useCases.GetPublicSeoBookSitemapUseCase,
+  useCases.GetStudentBooksUseCase,
+  useCases.GetStudentBookBySlugUseCase,
+  useCases.GetStudentBookCategoriesUseCase,
+  useCases.IncrementStudentBookViewCountUseCase,
 ]
 
 @Module({ imports: [InfrastructureModule], providers: BOOK_USE_CASES, exports: BOOK_USE_CASES })

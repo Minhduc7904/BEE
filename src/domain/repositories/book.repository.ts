@@ -39,7 +39,7 @@ export interface BookListOptions extends BookRelationOptions {
   search?: string
   visibility?: Visibility
   isFeatured?: boolean
-  categorySlug?: string
+  categorySlugs?: string[]
 }
 
 export interface IBookRepository {

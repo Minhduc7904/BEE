@@ -100,7 +100,9 @@ export class PrismaBookRepository implements IBookRepository {
     const where: Prisma.BookWhereInput = {}
     if (options.visibility) where.visibility = options.visibility
     if (options.isFeatured !== undefined) where.isFeatured = options.isFeatured
-    if (options.categorySlug) where.categoryLinks = { some: { category: { slug: options.categorySlug } } }
+    if (options.categorySlugs?.length) {
+      where.categoryLinks = { some: { category: { slug: { in: options.categorySlugs } } } }
+    }
     if (options.search) {
       where.OR = [
         { title: { contains: options.search } },

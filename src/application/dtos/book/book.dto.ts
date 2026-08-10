@@ -56,6 +56,9 @@ export class CreateBookDto {
   @IsOptionalBoolean('Sách nổi bật')
   isFeatured?: boolean
 
+  @IsOptionalBoolean('Tự động tạo SEO bằng AI')
+  autoGenerateSeo?: boolean
+
   @IsOptionalString('Từ khóa chính', 255)
   targetKeyword?: string | null
 

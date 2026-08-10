@@ -103,6 +103,7 @@ import {
   DocumentSeoAiService,
   TeacherProfileSeoAiService,
   AchievementBoardSeoAiService,
+  BookSeoAiService,
   NewsArticleSeoAiService,
   DocumentMediaAltTextAiService,
   ExcelService,
@@ -130,6 +131,7 @@ import openaiConfig from '../config/openai.config'
 import sepayConfig from '../config/sepay.config'
 import {
   AchievementBoardSeoAiService as AchievementBoardSeoAiServicePort,
+  BookSeoAiService as BookSeoAiServicePort,
   AssistantShiftAssignmentExchangeEmailServicePort,
   AssistantShiftReminderEmailServicePort,
   AuthService as AuthServicePort,
@@ -182,6 +184,7 @@ import {
     AssistantShiftReminderEmailService,
     { provide: AssistantShiftReminderEmailServicePort, useExisting: AssistantShiftReminderEmailService },
     { provide: AchievementBoardSeoAiServicePort, useExisting: AchievementBoardSeoAiService },
+    { provide: BookSeoAiServicePort, useExisting: BookSeoAiService },
     { provide: AuthServicePort, useExisting: 'AUTH_SERVICE' },
     { provide: CompetitionSubmitFeedbackAiServicePort, useExisting: CompetitionSubmitFeedbackAiService },
     { provide: DocumentContentExtractionServicePort, useExisting: DocumentContentExtractionService },
@@ -646,6 +649,7 @@ import {
     DocumentSeoAiService,
     TeacherProfileSeoAiService,
     AchievementBoardSeoAiService,
+    BookSeoAiService,
     NewsArticleSeoAiService,
     DocumentMediaAltTextAiService,
     ExcelService,
@@ -666,6 +670,7 @@ import {
   ],
   exports: [
     AchievementBoardSeoAiServicePort,
+    BookSeoAiServicePort,
     AssistantShiftAssignmentExchangeEmailServicePort,
     AuthServicePort,
     CompetitionSubmitFeedbackAiServicePort,
@@ -787,6 +792,7 @@ import {
     DocumentSeoAiService,
     TeacherProfileSeoAiService,
     AchievementBoardSeoAiService,
+    BookSeoAiService,
     NewsArticleSeoAiService,
     DocumentMediaAltTextAiService,
     ExcelService,
