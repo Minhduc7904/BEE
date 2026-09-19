@@ -164,6 +164,7 @@ model User {
   uploadedMedia                  Media[]                  @relation("MediaUploader")
   student                        Student?                 @relation("UserStudent")
   admin                          Admin?                   @relation("UserAdmin")
+  parent                         Parent?                  @relation("UserParent")
   UserRefreshToken               UserRefreshToken[]
   userRoles                      UserRole[]
   assignedUserRoles              UserRole[]               @relation("UserRoleAssigner")
@@ -295,9 +296,11 @@ model Student {
   tuitionPayments      TuitionPayment[]
   competitionSubmits   CompetitionSubmit[]
   examAttempts         ExamAttempt[]
+  parents              ParentStudent[]
 
   // âœ… UNIQUE theo cáº·p studentPhone + parentPhone
   @@unique([studentPhone, parentPhone], map: "uq_student_studentPhone_parentPhone")
+  @@index([parentPhone], map: "idx_students_parent_phone")
   @@index([grade, school], map: "idx_students_grade_school")
   @@index([studentType], map: "idx_students_student_type")
   @@map("students")
@@ -1192,13 +1195,13 @@ model Course {
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Relations
-  subject            Subject?                  @relation("CourseSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
-  teacher            Admin?                    @relation("CourseTeacher", fields: [teacherId], references: [adminId], onDelete: SetNull)
-  lessons            Lesson[]
-  courseClasses      CourseClass[]
-  courseEnrollments  CourseEnrollment[]
-  tuitionPayments    TuitionPayment[]
-  assistantTasks     AssistantTask[]
+  subject           Subject?           @relation("CourseSubject", fields: [subjectId], references: [subjectId], onDelete: SetNull)
+  teacher           Admin?             @relation("CourseTeacher", fields: [teacherId], references: [adminId], onDelete: SetNull)
+  lessons           Lesson[]
+  courseClasses     CourseClass[]
+  courseEnrollments CourseEnrollment[]
+  tuitionPayments   TuitionPayment[]
+  assistantTasks    AssistantTask[]
 
   @@unique([code], map: "unique_course_code")
   @@index([visibility], map: "idx_courses_visibility")
@@ -1247,8 +1250,8 @@ model AssistantTask {
   updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // Giữ công việc khi khóa học hoặc trợ giảng bị xóa; chỉ bỏ liên kết đã không còn hợp lệ.
-  course    Course?                @relation(fields: [courseId], references: [courseId], onDelete: SetNull)
-  assistant Admin?                 @relation("AssistantTaskAssignee", fields: [assistantId], references: [adminId], onDelete: SetNull)
+  course      Course?                          @relation(fields: [courseId], references: [courseId], onDelete: SetNull)
+  assistant   Admin?                           @relation("AssistantTaskAssignee", fields: [assistantId], references: [adminId], onDelete: SetNull)
   submissions AssistantTaskProductSubmission[]
 
   // Phục vụ danh sách công việc theo khóa học/trợ giảng, trạng thái và hạn hoàn thành.
@@ -1581,10 +1584,10 @@ model CourseEnrollment {
   isPaidFull Boolean                @default(false) @map("is_paid_full") // đã thanh toán đủ học phí hay chưa
 
   // Relations
-  course             Course                    @relation(fields: [courseId], references: [courseId], onDelete: Cascade)
-  student            Student                   @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  course        Course         @relation(fields: [courseId], references: [courseId], onDelete: Cascade)
+  student       Student        @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
   // Mỗi enrollment mua course chỉ có một nghĩa vụ SePay; null với enrollment tạo thủ công hoặc course miễn phí.
-  paymentIntent      PaymentIntent?
+  paymentIntent PaymentIntent?
 
   @@unique([courseId, studentId], map: "unique_course_enrollment")
   @@index([studentId], map: "idx_course_enrollments_student_id")
@@ -2246,6 +2249,31 @@ model NewsArticle {
   @@map("news_articles")
 }
 
+// Hồ sơ phụ huynh gắn một-một với tài khoản User; số điện thoại là định danh đăng nhập.
+model Parent {
+  parentId Int    @id @default(autoincrement()) @map("parent_id")
+  userId   Int    @unique @map("user_id")
+  phone    String @unique @map("phone") @db.VarChar(15)
+
+  user     User            @relation("UserParent", fields: [userId], references: [userId], onDelete: Cascade)
+  students ParentStudent[]
+
+  @@map("parents")
+}
+
+// Liên kết các học sinh mà phụ huynh được phép quản lý; bản ghi phụ thuộc hoàn toàn vào hai đầu quan hệ.
+model ParentStudent {
+  parentId  Int @map("parent_id")
+  studentId Int @map("student_id")
+
+  parent  Parent  @relation(fields: [parentId], references: [parentId], onDelete: Cascade)
+  student Student @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+
+  @@id([parentId, studentId])
+  @@index([studentId], map: "idx_parent_students_student_id")
+  @@map("parents_students")
+}
+
 // Danh mục sách do quản trị viên duy trì để phân loại và điều hướng catalog công khai.
 model BookCategory {
   bookCategoryId Int      @id @default(autoincrement()) @map("book_category_id")
@@ -2266,9 +2294,9 @@ model BookCategory {
 
 // Sách trong catalog; khách liên hệ thủ công thay vì tạo đơn hàng trong hệ thống.
 model Book {
-  bookId Int @id @default(autoincrement()) @map("book_id")
+  bookId Int     @id @default(autoincrement()) @map("book_id")
   // SKU là mã vận hành duy nhất của mỗi đầu sách.
-  sku    String @unique @map("sku") @db.VarChar(80)
+  sku    String  @unique @map("sku") @db.VarChar(80)
   // ISBN chỉ có khi nhà xuất bản cung cấp và không được trùng.
   isbn   String? @unique @map("isbn") @db.VarChar(32)
 
@@ -2424,11 +2452,11 @@ model ReceivingBankAccount {
   createdAt              DateTime                   @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt              DateTime                   @updatedAt @map("updated_at") @db.Timestamp(0)
 
-  gradeMappings            TuitionGradeReceivingBankAccount[]
-  paymentAttempts          PaymentAttempt[]
-  bankTransferTransactions BankTransferTransaction[]          @relation("BankTransferTransactionReceivingBankAccount")
-  defaultManualFor         TuitionCollectionConfiguration?    @relation("TuitionDefaultManualBank")
-  coursePaymentConfiguration CoursePaymentConfiguration?      @relation("CoursePaymentConfigurationBank")
+  gradeMappings              TuitionGradeReceivingBankAccount[]
+  paymentAttempts            PaymentAttempt[]
+  bankTransferTransactions   BankTransferTransaction[]          @relation("BankTransferTransactionReceivingBankAccount")
+  defaultManualFor           TuitionCollectionConfiguration?    @relation("TuitionDefaultManualBank")
+  coursePaymentConfiguration CoursePaymentConfiguration?        @relation("CoursePaymentConfigurationBank")
 
   @@unique([bankCode, accountNumber], map: "uq_receiving_bank_accounts_bank_account")
   @@index([accountNumber], map: "idx_receiving_bank_accounts_account_number")
@@ -2479,21 +2507,21 @@ model CoursePaymentConfiguration {
 
 // Nghĩa vụ thanh toán online của một khoản học phí.
 model PaymentIntent {
-  paymentIntentId  Int                 @id @default(autoincrement()) @map("payment_intent_id")
+  paymentIntentId    Int                         @id @default(autoincrement()) @map("payment_intent_id")
   // Mỗi intent thuộc đúng một tuition payment hoặc một course enrollment; application layer kiểm soát invariant này.
-  type             BankTransferTransactionType @default(TUITION_PAYMENT) @map("type")
-  tuitionPaymentId Int?                @unique @map("tuition_payment_id")
-  courseEnrollmentId Int?              @unique @map("course_enrollment_id")
-  amount           Int                 @map("amount")
-  currency         String              @default("VND") @map("currency") @db.VarChar(3)
-  status           PaymentIntentStatus @default(PENDING) @map("status")
-  expiresAt        DateTime?           @map("expires_at") @db.Timestamp(0)
-  createdAt        DateTime            @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt        DateTime            @updatedAt @map("updated_at") @db.Timestamp(0)
+  type               BankTransferTransactionType @default(TUITION_PAYMENT) @map("type")
+  tuitionPaymentId   Int?                        @unique @map("tuition_payment_id")
+  courseEnrollmentId Int?                        @unique @map("course_enrollment_id")
+  amount             Int                         @map("amount")
+  currency           String                      @default("VND") @map("currency") @db.VarChar(3)
+  status             PaymentIntentStatus         @default(PENDING) @map("status")
+  expiresAt          DateTime?                   @map("expires_at") @db.Timestamp(0)
+  createdAt          DateTime                    @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt          DateTime                    @updatedAt @map("updated_at") @db.Timestamp(0)
 
-  tuitionPayment TuitionPayment?  @relation(fields: [tuitionPaymentId], references: [paymentId], onDelete: Restrict)
+  tuitionPayment   TuitionPayment?   @relation(fields: [tuitionPaymentId], references: [paymentId], onDelete: Restrict)
   courseEnrollment CourseEnrollment? @relation(fields: [courseEnrollmentId], references: [enrollmentId], onDelete: Restrict)
-  attempts       PaymentAttempt[]
+  attempts         PaymentAttempt[]
 
   @@index([status, expiresAt], map: "idx_payment_intents_status_expires")
   @@index([type, status], map: "idx_payment_intents_type_status")

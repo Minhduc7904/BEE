@@ -1,5 +1,7 @@
 export * from './log/admin-audit-log.mapper'
 export * from './user/admin.mapper'
+export * from './user/parent.mapper'
+export * from './user/parent-student.mapper'
 export * from './verification/email-verification-token.mapper'
 export * from './pagination/pagination.mapper'
 export * from './verification/refresh-token.mapper'

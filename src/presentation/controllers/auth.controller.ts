@@ -1,17 +1,14 @@
-import {
-  Controller,
-  Post,
-  Body,
-  HttpCode,
-  HttpStatus
-} from '@nestjs/common'
+import { Body, Controller, HttpCode, HttpStatus, Injectable, Post } from '@nestjs/common'
 import {
   LogoutUseCase,
   RefreshTokenUseCase,
   LoginAdminUseCase,
   LoginStudentUseCase,
   RegisterStudentUseCase,
-  RegisterAdminUseCase
+  RegisterAdminUseCase,
+  CheckParentPhoneUseCase,
+  RegisterParentUseCase,
+  LoginParentUseCase,
 } from '../../application/use-cases'
 import {
   RefreshTokenRequestDto,
@@ -25,9 +22,13 @@ import {
   RegisterStudentDto,
   LoginRequestDto,
   StudentResponseDto,
+  CheckParentPhoneRequestDto,
+  CheckParentPhoneResponseDto,
+  RegisterParentDto,
+  ParentResponseDto,
+  LoginParentRequestDto,
 } from '../../application/dtos'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
-import { Injectable } from '@nestjs/common'
 
 @Injectable()
 @Controller('auth')
@@ -39,7 +40,30 @@ export class AuthController {
     private readonly loginStudentUseCase: LoginStudentUseCase,
     private readonly refreshTokenUseCase: RefreshTokenUseCase,
     private readonly logoutUseCase: LogoutUseCase,
-  ) { }
+    private readonly checkParentPhoneUseCase: CheckParentPhoneUseCase,
+    private readonly registerParentUseCase: RegisterParentUseCase,
+    private readonly loginParentUseCase: LoginParentUseCase,
+  ) {}
+
+  @Post('/parent/check-phone')
+  @HttpCode(HttpStatus.OK)
+  async checkParentPhone(
+    @Body() dto: CheckParentPhoneRequestDto,
+  ): Promise<BaseResponseDto<CheckParentPhoneResponseDto>> {
+    return ExceptionHandler.execute(() => this.checkParentPhoneUseCase.execute(dto))
+  }
+
+  @Post('/parent/register')
+  @HttpCode(HttpStatus.CREATED)
+  async registerParent(@Body() dto: RegisterParentDto): Promise<BaseResponseDto<ParentResponseDto>> {
+    return ExceptionHandler.execute(() => this.registerParentUseCase.execute(dto))
+  }
+
+  @Post('/parent/login')
+  @HttpCode(HttpStatus.OK)
+  async loginParent(@Body() dto: LoginParentRequestDto): Promise<BaseResponseDto<LoginResponseDto>> {
+    return ExceptionHandler.execute(() => this.loginParentUseCase.execute(dto))
+  }
 
   // @Post('/admin/register')
   // @HttpCode(HttpStatus.CREATED)

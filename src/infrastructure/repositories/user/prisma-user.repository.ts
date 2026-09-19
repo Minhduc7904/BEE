@@ -1,39 +1,40 @@
 // src/infrastructure/repositories/prisma-user.repository.ts
 import { PrismaService } from '../../../prisma/prisma.service'
-import type {
-  IUserRepository,
-  CreateUserData,
-  UpdateUserData
-} from '../../../domain/repositories'
-import {
-  User,
-  Admin,
-  Student
-} from '../../../domain/entities'
+import type { IUserRepository, CreateUserData, UpdateUserData } from '../../../domain/repositories'
+import { User, Admin, Student, Parent } from '../../../domain/entities'
 import { UserMapper } from '../../mappers'
 import { NumberUtil } from '../../../shared/utils'
+import { Prisma } from '@prisma/client'
+import { UniqueConstraintException } from '../../../shared/exceptions/custom-exceptions'
 
 export class PrismaUserRepository implements IUserRepository {
-  constructor(private readonly prisma: PrismaService | any) { } // any để hỗ trợ transaction client
+  constructor(private readonly prisma: PrismaService | any) {} // any để hỗ trợ transaction client
 
   async create(data: CreateUserData): Promise<User> {
-    const prismaUser = await this.prisma.user.create({
-      data: {
-        username: data.username,
-        email: data.email,
-        passwordHash: data.passwordHash,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        oldUserId: data.oldUserId,
-        isActive: data.isActive ?? true,
-        isEmailVerified: data.isEmailVerified ?? false,
-        emailVerifiedAt: data.emailVerifiedAt,
-        lastLoginAt: data.lastLoginAt,
-        // NEW
-        gender: data.gender,
-        dateOfBirth: data.dateOfBirth,
-      },
-    })
+    let prismaUser
+    try {
+      prismaUser = await this.prisma.user.create({
+        data: {
+          username: data.username,
+          email: data.email,
+          passwordHash: data.passwordHash,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          oldUserId: data.oldUserId,
+          isActive: data.isActive ?? true,
+          isEmailVerified: data.isEmailVerified ?? false,
+          emailVerifiedAt: data.emailVerifiedAt,
+          lastLoginAt: data.lastLoginAt,
+          gender: data.gender,
+          dateOfBirth: data.dateOfBirth,
+        },
+      })
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        throw new UniqueConstraintException('Tên đăng nhập hoặc email đã tồn tại')
+      }
+      throw error
+    }
 
     return UserMapper.toDomainUser(prismaUser)!
   }
@@ -60,12 +61,14 @@ export class PrismaUserRepository implements IUserRepository {
     user: User
     admin?: Admin
     student?: Student
+    parent?: Parent
   } | null> {
     const result = await this.prisma.user.findUnique({
       where: { username },
       include: {
         admin: true,
         student: true,
+        parent: true,
       },
     })
 
@@ -76,12 +79,14 @@ export class PrismaUserRepository implements IUserRepository {
     user: User
     admin?: Admin
     student?: Student
+    parent?: Parent
   } | null> {
     const result = await this.prisma.user.findFirst({
       where: { email, isEmailVerified: true },
       include: {
         admin: true,
         student: true,
+        parent: true,
       },
     })
 
@@ -175,7 +180,7 @@ export class PrismaUserRepository implements IUserRepository {
       },
     })
 
-    return users.map(u => u.userId)
+    return users.map((u) => u.userId)
   }
 
   async filterActiveUserIds(userIds: number[]): Promise<number[]> {

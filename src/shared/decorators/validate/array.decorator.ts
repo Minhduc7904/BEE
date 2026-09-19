@@ -1,4 +1,13 @@
-import { IsOptional, IsArray, IsNotEmpty, IsInt, IsPositive, IsString } from 'class-validator'
+import {
+  ArrayMinSize,
+  ArrayUnique,
+  IsOptional,
+  IsArray,
+  IsNotEmpty,
+  IsInt,
+  IsPositive,
+  IsString,
+} from 'class-validator'
 import { applyDecorators } from '@nestjs/common'
 import { Transform } from 'class-transformer'
 import { VALIDATION_MESSAGES } from 'src/shared/constants'
@@ -101,6 +110,18 @@ export function IsRequiredIntArray(label: string) {
     IsPositive({
       each: true,
       message: `${label} phải là số nguyên dương`,
+    }),
+  )
+}
+
+export function IsRequiredUniqueIntArray(label: string) {
+  return applyDecorators(
+    IsRequiredIntArray(label),
+    ArrayMinSize(1, {
+      message: `${label} phải có ít nhất một phần tử`,
+    }),
+    ArrayUnique({
+      message: `${label} không được chứa giá trị trùng lặp`,
     }),
   )
 }

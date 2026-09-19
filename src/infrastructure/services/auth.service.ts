@@ -8,9 +8,10 @@ import { TokenExpiredError, JsonWebTokenError } from 'jsonwebtoken'
 export interface AuthenticatedUser {
   userId: number
   username: string
-  userType: 'admin' | 'student'
+  userType: 'admin' | 'student' | 'parent'
   adminId?: number
   studentId?: number
+  parentId?: number
   roles: Array<{
     id: number
     name: string
@@ -30,7 +31,7 @@ export class AuthService {
     @Inject('JWT_TOKEN_SERVICE') private readonly jwtTokenService: JwtTokenService,
     @Inject('IRoleRepository') private readonly roleRepository: IRoleRepository,
     @Inject('IUserRepository') private readonly userRepository: IUserRepository,
-  ) { }
+  ) {}
 
   async verifyTokenAndGetUser(token: string): Promise<AuthenticatedUser> {
     try {
@@ -56,7 +57,7 @@ export class AuthService {
         if (userRole.role?.roleId) {
           const roleWithPermissions = await this.roleRepository.findByIdWithPermissions(userRole.role.roleId)
           if (roleWithPermissions?.permissions) {
-            roleWithPermissions.permissions.forEach(permission => {
+            roleWithPermissions.permissions.forEach((permission) => {
               permissionsMap.set(permission.permissionId, {
                 id: permission.permissionId,
                 code: permission.code,
@@ -76,6 +77,7 @@ export class AuthService {
         userType: payload.userType,
         adminId: payload.adminId,
         studentId: payload.studentId,
+        parentId: payload.parentId,
         roles: userRoles.map((ur) => ({
           id: ur.role?.roleId || 0,
           name: ur.role?.roleName || '',

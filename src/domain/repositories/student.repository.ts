@@ -16,6 +16,8 @@ export interface IStudentRepository {
   findByStudentZaloId(studentZaloId: string): Promise<Student | null>
   findByStudentOrParentPhone(phone: string): Promise<Student | null>
   findAllByStudentOrParentPhone(phone: string): Promise<Student[]>
+  findAllByParentPhoneVariants(phoneVariants: string[]): Promise<Student[]>
+  findAllByIdsAndParentPhoneVariants(studentIds: number[], phoneVariants: string[]): Promise<Student[]>
   unlinkParentZaloId(studentId: number): Promise<Student>
   update(id: number, data: Partial<Student>): Promise<Student>
   updateMissingGraduationYearByGrade(grade: number, highSchoolGraduationYear: number): Promise<number>
@@ -38,9 +40,7 @@ export interface IStudentRepository {
 
   statsByStatus(filters?: StudentFilterOptions): Promise<StudentStatusStats[]>
   // IStudentRepository
-  statsByGrade(
-    filters?: StudentFilterOptions,
-  ): Promise<
+  statsByGrade(filters?: StudentFilterOptions): Promise<
     {
       grade: number
       active: number

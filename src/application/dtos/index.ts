@@ -9,6 +9,7 @@ export * from './pagination/list-query.dto'
 
 // Auth DTOs
 export * from './auth/login.dto'
+export * from './auth/parent-auth.dto'
 export * from './auth/logout.dto'
 export * from './auth/refresh-token.dto'
 export * from './auth/register.dto'

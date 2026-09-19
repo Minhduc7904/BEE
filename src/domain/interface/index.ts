@@ -6,6 +6,7 @@ export * from './common'
 // Entity-specific interfaces
 export * from './student/student.interface'
 export * from './admin/admin.interface'
+export * from './parent/parent.interface'
 export * from './exam/exam.interface'
 export * from './question/question.interface'
 export * from './course/course.interface'

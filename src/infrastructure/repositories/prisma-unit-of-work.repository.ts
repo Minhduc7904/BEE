@@ -44,6 +44,8 @@ export class PrismaUnitOfWork implements IUnitOfWork {
 
     // Các repositories ít dùng - lazy load với cache
     let _studentRepository: any
+    let _parentRepository: UnitOfWorkRepos['parentRepository'] | undefined
+    let _parentStudentRepository: UnitOfWorkRepos['parentStudentRepository'] | undefined
     let _studentPointLogRepository: any
     let _documentRepository: any
     let _userRefreshTokenRepository: any
@@ -119,6 +121,16 @@ export class PrismaUnitOfWork implements IUnitOfWork {
 
     Object.defineProperty(repos, 'studentRepository', {
       get: () => (_studentRepository ??= new Repositories.PrismaStudentRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'parentRepository', {
+      get: () => (_parentRepository ??= new Repositories.PrismaParentRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'parentStudentRepository', {
+      get: () => (_parentStudentRepository ??= new Repositories.PrismaParentStudentRepository(client)),
       enumerable: true,
     })
 

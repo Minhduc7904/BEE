@@ -1,19 +1,9 @@
 // src/application/use-cases/refresh-token.use-case.ts
 import { Injectable, Inject } from '@nestjs/common'
 import type { IUnitOfWork } from '../../../domain/repositories'
-import {
-  TokenHashService,
-  JwtTokenService
-} from 'src/application/interfaces'
-import {
-  RefreshTokenRequestDto,
-  RefreshTokenResponseDto,
-  BaseResponseDto
-} from '../../dtos'
-import {
-  UnauthorizedException,
-  NotFoundException
-} from '../../../shared/exceptions/custom-exceptions'
+import { TokenHashService, JwtTokenService } from 'src/application/interfaces'
+import { RefreshTokenRequestDto, RefreshTokenResponseDto, BaseResponseDto } from '../../dtos'
+import { UnauthorizedException, NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 
 /**
  * Use case cho refresh token với rotation mechanism
@@ -24,7 +14,7 @@ export class RefreshTokenUseCase {
     @Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork,
     @Inject('JWT_TOKEN_SERVICE') private readonly jwtTokenService: JwtTokenService,
     @Inject('TOKEN_HASH_SERVICE') private readonly tokenHashService: TokenHashService,
-  ) { }
+  ) {}
 
   async execute(refreshDto: RefreshTokenRequestDto): Promise<BaseResponseDto<RefreshTokenResponseDto>> {
     return await this.unitOfWork.executeInTransaction(async (repos) => {
@@ -36,7 +26,6 @@ export class RefreshTokenUseCase {
       } catch (error) {
         throw new UnauthorizedException('Refresh token không hợp lệ hoặc đã hết hạn')
       }
-
 
       // 2. Tìm tất cả active refresh tokens của user
       const userId = decodedToken.sub
@@ -74,6 +63,7 @@ export class RefreshTokenUseCase {
         userType: decodedToken.userType,
         adminId: decodedToken.adminId,
         studentId: decodedToken.studentId,
+        parentId: decodedToken.parentId,
         roles: decodedToken.roles || [],
       }
 
@@ -110,8 +100,6 @@ export class RefreshTokenUseCase {
         refreshToken: newRefreshToken,
         expiresIn: 3600, // 1 hour
       }
-
-      console.log('Refresh token response: ', refreshTokenResponse)
 
       return BaseResponseDto.success('Token đã được làm mới thành công', refreshTokenResponse)
     })

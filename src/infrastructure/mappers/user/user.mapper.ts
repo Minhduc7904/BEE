@@ -1,13 +1,6 @@
 // src/infrastructure/mappers/user.mapper.ts
-import {
-  User,
-  Admin,
-  Student,
-} from '../../../domain/entities'
-import {
-  AdminMapper,
-  StudentMapper
-} from '..'
+import { User, Admin, Student, Parent } from '../../../domain/entities'
+import { AdminMapper, StudentMapper, ParentMapper } from '..'
 import { UserRoleMapper } from './user-role.mapper'
 
 /**
@@ -55,6 +48,7 @@ export class UserMapper {
     user: User
     admin?: Admin
     student?: Student
+    parent?: Parent
   } | null {
     if (!result) return null
 
@@ -65,6 +59,7 @@ export class UserMapper {
       user,
       admin: AdminMapper.toDomainAdmin(result.admin),
       student: StudentMapper.toDomainStudent(result.student),
+      parent: ParentMapper.toDomainParent(result.parent) ?? undefined,
     }
   }
 }

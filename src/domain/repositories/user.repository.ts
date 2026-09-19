@@ -1,9 +1,5 @@
 // src/domain/repositories/user.repository.ts
-import {
-  User,
-  Admin,
-  Student
-} from '../entities'
+import { User, Admin, Student, Parent } from '../entities'
 import { Gender } from '../../shared/enums'
 
 export interface CreateUserData {
@@ -50,11 +46,13 @@ export interface IUserRepository {
     user: User
     admin?: Admin
     student?: Student
+    parent?: Parent
   } | null>
   findByEmailWithDetails(email: string): Promise<{
     user: User
     admin?: Admin
     student?: Student
+    parent?: Parent
   } | null>
 
   update(id: number, data: UpdateUserData): Promise<User>

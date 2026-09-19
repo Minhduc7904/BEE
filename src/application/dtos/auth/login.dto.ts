@@ -1,21 +1,21 @@
-import { AdminResponseDto, StudentResponseDto } from '..'
+import { AdminResponseDto, ParentResponseDto, StudentResponseDto } from '..'
 import { IsOptionalString, IsRequiredString, IsOptionalEmail } from 'src/shared/decorators/validate'
 import { MinLength } from 'class-validator'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 
 /**
  * DTO for user login request
- * 
+ *
  * Required fields:
  * - Password (Mật khẩu)
- * 
+ *
  * Optional fields (at least one required):
  * - Username (Tên đăng nhập)
  * - Email
- * 
+ *
  * Optional metadata fields:
  * - User Agent
- * - IP Address  
+ * - IP Address
  * - Device Fingerprint
  */
 export class LoginRequestDto {
@@ -97,5 +97,5 @@ export class LoginResponseDto {
   /**
    * Authenticated user data
    */
-  user: AdminResponseDto | StudentResponseDto
+  user: AdminResponseDto | StudentResponseDto | ParentResponseDto
 }

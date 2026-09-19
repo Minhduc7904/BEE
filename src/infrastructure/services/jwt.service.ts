@@ -9,9 +9,10 @@ import jwtConfig from '../../config/jwt.config'
 export interface JwtPayload {
   sub: number // userId
   username: string
-  userType: 'admin' | 'student'
+  userType: 'admin' | 'student' | 'parent'
   adminId?: number
   studentId?: number
+  parentId?: number
   aud: string // audience
   iss: string // issuer
   jti?: string // JWT ID để đảm bảo unique
@@ -25,7 +26,7 @@ export class JwtTokenService {
     private readonly jwtService: JwtService,
     @Inject(jwtConfig.KEY)
     private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
-  ) { }
+  ) {}
 
   generateAccessToken(payload: Omit<JwtPayload, 'iat' | 'exp' | 'aud' | 'iss' | 'jti'>): string {
     const tokenPayload: Omit<JwtPayload, 'iat' | 'exp'> = {

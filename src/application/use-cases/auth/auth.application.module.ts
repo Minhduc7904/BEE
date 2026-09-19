@@ -15,6 +15,10 @@ const AUTH_USE_CASES = [
   authUseCase.LoginStudentUseCase,
   authUseCase.RegisterStudentUseCase,
   authUseCase.GoogleOAuthStudentUseCase,
+
+  authUseCase.CheckParentPhoneUseCase,
+  authUseCase.RegisterParentUseCase,
+  authUseCase.LoginParentUseCase,
 ]
 
 @Module({

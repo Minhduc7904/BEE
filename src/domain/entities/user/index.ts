@@ -1,4 +1,6 @@
 export * from './admin.entity'
+export * from './parent.entity'
+export * from './parent-student.entity'
 export * from './student.entity'
 export * from './student-point-log.entity'
 export * from './user.entity'

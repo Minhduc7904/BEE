@@ -10,6 +10,8 @@ import {
   PrismaRoleRepository,
   PrismaPermissionRepository,
   PrismaStudentRepository,
+  PrismaParentRepository,
+  PrismaParentStudentRepository,
   PrismaStudentPointLogRepository,
   PrismaEmailVerificationTokenRepository,
   PrismaAdminRepository,
@@ -237,6 +239,16 @@ import {
     {
       provide: 'IStudentRepository',
       useFactory: (prisma: PrismaService) => new PrismaStudentRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IParentRepository',
+      useFactory: (prisma: PrismaService) => new PrismaParentRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'IParentStudentRepository',
+      useFactory: (prisma: PrismaService) => new PrismaParentStudentRepository(prisma),
       inject: [PrismaService],
     },
     {
@@ -701,6 +713,8 @@ import {
     'IUserRepository',
     'IAdminRepository',
     'IStudentRepository',
+    'IParentRepository',
+    'IParentStudentRepository',
     'IRoleRepository',
     'IPermissionRepository',
     'IClassStudentRepository',

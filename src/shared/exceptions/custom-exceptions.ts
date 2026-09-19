@@ -24,6 +24,14 @@ export class DomainException extends Error {
   }
 }
 
+/** Hạ tầng dùng exception này để báo vi phạm unique mà không phụ thuộc HTTP. */
+export class UniqueConstraintException extends DomainException {
+  constructor(message = 'Dữ liệu đã tồn tại') {
+    super(message)
+    this.name = 'UniqueConstraintException'
+  }
+}
+
 /**
  * =========================
  * CLIENT / REQUEST ERRORS

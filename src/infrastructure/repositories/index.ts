@@ -1,5 +1,7 @@
 export * from './log/prisma-admin-log.repository'
 export * from './user/prisma-admin.repository'
+export * from './user/prisma-parent.repository'
+export * from './user/prisma-parent-student.repository'
 export * from './verification/prisma-email-verification-token.repository'
 export * from './permission/prisma-permission.repository'
 export * from './role/prisma-role.repository'

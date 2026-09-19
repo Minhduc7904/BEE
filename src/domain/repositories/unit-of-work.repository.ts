@@ -2,6 +2,8 @@
 import { IUserRepository } from './user.repository'
 import { IAdminRepository } from './admin.repository'
 import { IStudentRepository } from './student.repository'
+import { IParentRepository } from './parent.repository'
+import { IParentStudentRepository } from './parent-student.repository'
 import { IStudentPointLogRepository } from './student-point-log.repository'
 import { IUserRefreshTokenRepository } from './user-refresh-token.repository'
 import { IRoleRepository } from './role.repository'
@@ -76,6 +78,8 @@ export interface UnitOfWorkRepos {
   userRepository: IUserRepository
   adminRepository: IAdminRepository
   studentRepository: IStudentRepository
+  parentRepository: IParentRepository
+  parentStudentRepository: IParentStudentRepository
   studentPointLogRepository: IStudentPointLogRepository
   userRefreshTokenRepository: IUserRefreshTokenRepository
   roleRepository: IRoleRepository

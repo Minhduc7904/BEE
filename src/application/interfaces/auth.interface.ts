@@ -7,10 +7,10 @@ export interface AuthService {
 export interface AuthenticatedUser {
   userId: number
   username: string
-  userType: 'admin' | 'student'
+  userType: 'admin' | 'student' | 'parent'
   adminId?: number
   studentId?: number
+  parentId?: number
   roles: Array<{ id: number; name: string; description?: string }>
   permissions: Array<{ id: number; code: string; name: string; group?: string }>
 }
-
