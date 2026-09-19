@@ -19,6 +19,7 @@ const AUTH_USE_CASES = [
   authUseCase.CheckParentPhoneUseCase,
   authUseCase.RegisterParentUseCase,
   authUseCase.LoginParentUseCase,
+  authUseCase.ParentStudentSummaryService,
 ]
 
 @Module({

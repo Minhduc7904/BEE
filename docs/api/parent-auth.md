@@ -36,7 +36,14 @@ Nếu được đăng ký, trả `200 OK` và chỉ cung cấp dữ liệu học
     "canLogin": false,
     "canRegister": true,
     "students": [
-      { "studentId": 12, "fullName": "Nguyễn Minh An", "grade": 8, "school": "THCS Minh Khai" }
+      {
+        "studentId": 12,
+        "fullName": "Nguyễn Minh An",
+        "grade": 8,
+        "school": "THCS Minh Khai",
+        "avatarUrl": null,
+        "gender": "FEMALE"
+      }
     ]
   }
 }

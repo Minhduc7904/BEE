@@ -86,7 +86,16 @@ describe('Parent authentication', () => {
     expect(result.data).toEqual({
       canLogin: false,
       canRegister: true,
-      students: [{ studentId: 12, fullName: 'Minh An Nguyễn', grade: 8, school: undefined }],
+      students: [
+        {
+          studentId: 12,
+          fullName: 'Nguyễn Minh An',
+          grade: 8,
+          school: undefined,
+          avatarUrl: null,
+          gender: null,
+        },
+      ],
     })
   })
 
@@ -139,7 +148,11 @@ describe('Parent authentication', () => {
         } as UnitOfWorkRepos['userRefreshTokenRepository'],
       }),
       { comparePassword: jest.fn().mockResolvedValue(true) },
-      { generateAccessToken, generateRefreshToken },
+      {
+        generateAccessToken,
+        generateRefreshToken,
+        getAccessTokenExpirationTime: jest.fn().mockReturnValue(3600),
+      },
       { hashToken: jest.fn().mockResolvedValue('refresh-hash') },
     )
 
@@ -296,6 +309,7 @@ describe('Parent authentication', () => {
         }),
         generateAccessToken,
         generateRefreshToken,
+        getAccessTokenExpirationTime: jest.fn().mockReturnValue(3600),
       },
       {
         verifyToken: jest.fn().mockResolvedValue(true),

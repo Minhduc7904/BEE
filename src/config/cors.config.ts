@@ -8,8 +8,7 @@ export class CorsConfig {
    * Get CORS options based on environment
    */
   static getOptions(): CorsOptions {
-    // const isDevelopment = process.env.NODE_ENV === 'development'
-    const isDevelopment = true // Force development config for testing
+    const isDevelopment = process.env.NODE_ENV !== 'production'
 
     if (isDevelopment) {
       return this.getDevelopmentOptions()
@@ -84,7 +83,7 @@ export class CorsConfig {
           return callback(new Error('Not allowed by CORS policy'))
         }
       },
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
       allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
       exposedHeaders: ['X-Total-Count', 'X-Page-Count', 'X-Current-Page'],
       credentials: true,

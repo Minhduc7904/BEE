@@ -98,7 +98,7 @@ export class RefreshTokenUseCase {
       const refreshTokenResponse: RefreshTokenResponseDto = {
         accessToken: newAccessToken,
         refreshToken: newRefreshToken,
-        expiresIn: 3600, // 1 hour
+        expiresIn: this.jwtTokenService.getAccessTokenExpirationTime(),
       }
 
       return BaseResponseDto.success('Token đã được làm mới thành công', refreshTokenResponse)

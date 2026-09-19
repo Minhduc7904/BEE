@@ -5,6 +5,7 @@ import { JwtTokenService, PasswordService, TokenHashService } from '../../../int
 import { BaseResponseDto, LoginParentRequestDto, LoginResponseDto, ParentResponseDto, TokensDto } from '../../../dtos'
 import { UnauthorizedException } from '../../../../shared/exceptions/custom-exceptions'
 import { PhoneUtil } from '../../../../shared/utils'
+import { ParentStudentSummaryService } from './parent-student-summary.service'
 
 @Injectable()
 export class LoginParentUseCase {
@@ -13,10 +14,11 @@ export class LoginParentUseCase {
     @Inject('PASSWORD_SERVICE') private readonly passwordService: PasswordService,
     @Inject('JWT_TOKEN_SERVICE') private readonly jwtTokenService: JwtTokenService,
     @Inject('TOKEN_HASH_SERVICE') private readonly tokenHashService: TokenHashService,
+    private readonly studentSummaryService?: ParentStudentSummaryService,
   ) {}
 
   async execute(dto: LoginParentRequestDto): Promise<BaseResponseDto<LoginResponseDto>> {
-    return this.unitOfWork.executeInTransaction(async (repos) => {
+    const result = await this.unitOfWork.executeInTransaction(async (repos) => {
       const phone = PhoneUtil.normalizeVietnamesePhone(dto.phone)
       const parent = await repos.parentRepository.findByPhone(phone, {
         includeUser: true,
@@ -63,10 +65,23 @@ export class LoginParentUseCase {
         deviceFingerprint: dto.deviceFingerprint,
       })
 
-      const tokens: TokensDto = { accessToken, refreshToken, expiresIn: 3600 }
-      const user = ParentResponseDto.fromParent(parent)
-
-      return BaseResponseDto.success('Đăng nhập thành công', { tokens, user })
+      const tokens: TokensDto = {
+        accessToken,
+        refreshToken,
+        expiresIn: this.jwtTokenService.getAccessTokenExpirationTime(),
+      }
+      return { tokens, parent }
+    })
+    const linkedStudents = (result.parent.studentLinks ?? [])
+      .map((link) => link.student)
+      .filter((student): student is NonNullable<typeof student> => student !== undefined)
+    const students = this.studentSummaryService
+      ? await this.studentSummaryService.createMany(linkedStudents)
+      : undefined
+    const user = ParentResponseDto.fromParent(result.parent, students)
+    return BaseResponseDto.success('Đăng nhập thành công', {
+      tokens: result.tokens,
+      user,
     })
   }
 }

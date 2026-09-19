@@ -8,17 +8,19 @@ import {
   ValidationException,
 } from '../../../../shared/exceptions/custom-exceptions'
 import { PhoneUtil } from '../../../../shared/utils'
+import { ParentStudentSummaryService } from './parent-student-summary.service'
 
 @Injectable()
 export class RegisterParentUseCase {
   constructor(
     @Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork,
     @Inject('PASSWORD_SERVICE') private readonly passwordService: PasswordService,
+    private readonly studentSummaryService?: ParentStudentSummaryService,
   ) {}
 
   async execute(dto: RegisterParentDto): Promise<BaseResponseDto<ParentResponseDto>> {
     try {
-      return await this.unitOfWork.executeInTransaction(async (repos) => {
+      const created = await this.unitOfWork.executeInTransaction(async (repos) => {
         const phone = PhoneUtil.normalizeVietnamesePhone(dto.phone)
         const uniqueStudentIds = Array.from(new Set(dto.studentIds))
 
@@ -67,8 +69,18 @@ export class RegisterParentUseCase {
           throw new Error('Không thể tải tài khoản phụ huynh vừa tạo')
         }
 
-        return BaseResponseDto.success('Tạo tài khoản phụ huynh thành công', ParentResponseDto.fromParent(created))
+        return created
       })
+      const linkedStudents = (created.studentLinks ?? [])
+        .map((link) => link.student)
+        .filter((student): student is NonNullable<typeof student> => student !== undefined)
+      const students = this.studentSummaryService
+        ? await this.studentSummaryService.createMany(linkedStudents)
+        : undefined
+      return BaseResponseDto.success(
+        'Tạo tài khoản phụ huynh thành công',
+        ParentResponseDto.fromParent(created, students),
+      )
     } catch (error) {
       if (error instanceof UniqueConstraintException) {
         throw new ConflictException(error.message)

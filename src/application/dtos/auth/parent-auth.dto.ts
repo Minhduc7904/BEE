@@ -1,5 +1,6 @@
 import { Parent } from '../../../domain/entities/user/parent.entity'
 import { Student } from '../../../domain/entities/user/student.entity'
+import { Gender } from '../../../shared/enums'
 import {
   IsOptionalString,
   IsRequiredLocalPhoneVN,
@@ -51,13 +52,19 @@ export class ParentStudentSummaryDto {
   fullName: string
   grade: number
   school?: string
+  avatarUrl: string | null
+  gender: Gender | null
 
-  static fromStudent(student: Student): ParentStudentSummaryDto {
+  static fromStudent(student: Student, avatarUrl: string | null = null): ParentStudentSummaryDto {
     return {
       studentId: student.studentId,
-      fullName: student.getFullName(),
+      fullName: student.user
+        ? `${student.user.lastName} ${student.user.firstName}`.trim()
+        : `Student #${student.studentId}`,
       grade: student.grade,
       school: student.school,
+      avatarUrl,
+      gender: student.user?.gender ?? null,
     }
   }
 
@@ -82,12 +89,12 @@ export class ParentResponseDto {
   isActive: boolean
   students: ParentStudentSummaryDto[]
 
-  static fromParent(parent: Parent): ParentResponseDto {
+  static fromParent(parent: Parent, students?: ParentStudentSummaryDto[]): ParentResponseDto {
     if (!parent.user) {
       throw new Error('Parent entity must include user details')
     }
 
-    const students = (parent.studentLinks ?? [])
+    const linkedStudents = (parent.studentLinks ?? [])
       .map((link) => link.student)
       .filter((student): student is Student => student !== undefined)
 
@@ -97,9 +104,9 @@ export class ParentResponseDto {
       phone: parent.phone,
       firstName: parent.user.firstName,
       lastName: parent.user.lastName,
-      fullName: parent.user.getFullName(),
+      fullName: `${parent.user.lastName} ${parent.user.firstName}`.trim(),
       isActive: parent.user.isActive,
-      students: ParentStudentSummaryDto.fromStudents(students),
+      students: students ?? ParentStudentSummaryDto.fromStudents(linkedStudents),
     }
   }
 }
