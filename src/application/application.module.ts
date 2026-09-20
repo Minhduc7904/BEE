@@ -30,6 +30,7 @@ import { PermissionApplicationModule } from './use-cases/permission/permission.a
 import { PasswordRecoveryApplicationModule } from './use-cases/reset-password/password-recovery.application.module'
 import { AdminProfileApplicationModule } from './use-cases/profile/admin-profile.application.module'
 import { StudentProfileApplicationModule } from './use-cases/profile/student-profile.application.module'
+import { ParentProfileApplicationModule } from './use-cases/profile/parent-profile.application.module'
 import { RoleApplicationModule } from './use-cases/role/role.application.module'
 import { StudentApplicationModule } from './use-cases/student/student.application.module'
 import { SubjectApplicationModule } from './use-cases/subject/subject.application.module'
@@ -87,6 +88,7 @@ const modules = [
   StudentPointLogApplicationModule,
   AdminProfileApplicationModule,
   StudentProfileApplicationModule,
+  ParentProfileApplicationModule,
   AdminApplicationModule,
 
   // Role & Permission

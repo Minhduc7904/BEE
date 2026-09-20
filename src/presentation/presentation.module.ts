@@ -31,6 +31,7 @@ import { MediaFolderController } from './controllers/media-folder.controller'
 import { SeoMediaController } from './controllers/seo-media.controller'
 import { ProfileAdminController } from './controllers/profile.admin.controller'
 import { ProfileStudentController } from './controllers/profile.student.controller'
+import { ProfileParentController } from './controllers/profile.parent.controller'
 import { PermissionController } from './controllers/permission.controller'
 import { AdminController } from './controllers/admin.controller'
 import { AdminStudentController } from './controllers/super-admin.controller'
@@ -132,6 +133,7 @@ import { SocketLifecycleGateway } from './gateways/socket-lifecycle.gateway'
     TagController,
     ProfileAdminController,
     ProfileStudentController,
+    ProfileParentController,
     PermissionController,
     AdminController,
     AdminStudentController,
