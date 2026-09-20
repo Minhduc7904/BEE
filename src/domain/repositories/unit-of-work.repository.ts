@@ -73,6 +73,7 @@ import { IActionApprovalRequestRepository } from './action-approval-request.repo
 import { IBookRepository } from './book.repository'
 import { IBookCategoryRepository } from './book-category.repository'
 import { IBookSalesContactConfigurationRepository } from './book-sales-contact-configuration.repository'
+import { IResetPasswordTokenRepository } from './reset-password-token.repository'
 // src/domain/repositories/unit-of-work.repository.ts
 export interface UnitOfWorkRepos {
   userRepository: IUserRepository
@@ -80,6 +81,7 @@ export interface UnitOfWorkRepos {
   studentRepository: IStudentRepository
   parentRepository: IParentRepository
   parentStudentRepository: IParentStudentRepository
+  passwordResetTokenRepository: IResetPasswordTokenRepository
   studentPointLogRepository: IStudentPointLogRepository
   userRefreshTokenRepository: IUserRefreshTokenRepository
   roleRepository: IRoleRepository

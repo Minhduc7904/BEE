@@ -16,6 +16,23 @@ import { NumberUtil, TextSearchUtil } from '../../../shared/utils'
 export class PrismaStudentRepository implements IStudentRepository {
   constructor(private readonly prisma: PrismaService | any) {} // any để hỗ trợ transaction client
 
+  async findRandomDistinctSchools(excludedSchool: string, limit: number): Promise<string[]> {
+    const safeLimit = Math.max(0, Math.min(Math.trunc(limit), 20))
+    if (safeLimit === 0) return []
+
+    const rows = (await this.prisma.$queryRaw`
+      SELECT DISTINCT school
+      FROM students
+      WHERE school IS NOT NULL
+        AND TRIM(school) <> ''
+        AND TRIM(school) <> TRIM(${excludedSchool})
+      ORDER BY RAND()
+      LIMIT ${safeLimit}
+    `) as Array<{ school: string }>
+
+    return rows.map((row) => row.school.trim()).filter(Boolean)
+  }
+
   /**
    * Build SQL expression to remove Vietnamese accents from a column
    * @param columnName - SQL column name (e.g., 'u.first_name')

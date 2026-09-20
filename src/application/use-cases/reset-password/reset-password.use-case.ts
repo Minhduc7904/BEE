@@ -9,10 +9,7 @@ import {
   ConflictException,
 } from '../../../shared/exceptions/custom-exceptions'
 
-import {
-  ResetPasswordDto,
-  BaseResponseDto
-} from '../../dtos'
+import { ResetPasswordDto, BaseResponseDto } from '../../dtos'
 
 @Injectable()
 export class ResetPasswordUseCase {
@@ -23,7 +20,7 @@ export class ResetPasswordUseCase {
     private readonly resetPasswordTokenRepository: IResetPasswordTokenRepository,
     private readonly tokenService: TokenService,
     @Inject('PASSWORD_SERVICE')
-    private readonly passwordService: PasswordService
+    private readonly passwordService: PasswordService,
   ) {}
 
   /**

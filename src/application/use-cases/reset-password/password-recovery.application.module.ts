@@ -6,6 +6,9 @@ import { InfrastructureModule } from 'src/infrastructure/infrastructure.module'
 const PASSWORD_RECOVERY_USE_CASES = [
   passwordRecoveryUseCase.ResetPasswordUseCase,
   passwordRecoveryUseCase.SendResetPasswordEmailUseCase,
+  passwordRecoveryUseCase.GetParentRecoveryStudentsUseCase,
+  passwordRecoveryUseCase.VerifyParentRecoveryUseCase,
+  passwordRecoveryUseCase.ResetParentPasswordUseCase,
 ]
 
 @Module({

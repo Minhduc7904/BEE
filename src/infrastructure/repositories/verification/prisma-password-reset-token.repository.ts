@@ -7,73 +7,86 @@ import { ResetPasswordTokenMapper } from '../../mappers'
 
 @Injectable()
 export class PrismaResetPasswordTokenRepository implements IResetPasswordTokenRepository {
-    constructor(private readonly prisma: PrismaService | any) { } // any để hỗ trợ transaction client
+  constructor(private readonly prisma: PrismaService | any) {} // any để hỗ trợ transaction client
 
-    async create(data: { userId: number; tokenHash: string; expiresAt: Date }): Promise<ResetPasswordToken> {
-        await this.deleteByUserId(data.userId)
+  async create(data: { userId: number; tokenHash: string; expiresAt: Date }): Promise<ResetPasswordToken> {
+    await this.deleteByUserId(data.userId)
 
-        const token = await this.prisma.passwordResetToken.create({
-            data: {
-                userId: data.userId,
-                tokenHash: data.tokenHash,
-                expiresAt: data.expiresAt,
-            },
-        })
+    const token = await this.prisma.passwordResetToken.create({
+      data: {
+        userId: data.userId,
+        tokenHash: data.tokenHash,
+        expiresAt: data.expiresAt,
+      },
+    })
 
-        const domainToken = ResetPasswordTokenMapper.toDomainResetPasswordToken(token)
-        if (!domainToken) {
-            throw new Error('Failed to create password reset token')
-        }
-
-        return domainToken
+    const domainToken = ResetPasswordTokenMapper.toDomainResetPasswordToken(token)
+    if (!domainToken) {
+      throw new Error('Failed to create password reset token')
     }
 
-    async findByUserId(userId: number): Promise<ResetPasswordToken | null> {
-        const token = await this.prisma.passwordResetToken.findFirst({
-            where: { userId },
-            orderBy: { createdAt: 'desc' }, // lấy token mới nhất
-        })
+    return domainToken
+  }
 
-        return ResetPasswordTokenMapper.toDomainResetPasswordToken(token)
+  async findByUserId(userId: number): Promise<ResetPasswordToken | null> {
+    const token = await this.prisma.passwordResetToken.findFirst({
+      where: { userId },
+      orderBy: { createdAt: 'desc' }, // lấy token mới nhất
+    })
+
+    return ResetPasswordTokenMapper.toDomainResetPasswordToken(token)
+  }
+
+  async findByTokenHash(tokenHash: string): Promise<ResetPasswordToken | null> {
+    const token = await this.prisma.passwordResetToken.findFirst({
+      where: { tokenHash },
+    })
+
+    return ResetPasswordTokenMapper.toDomainResetPasswordToken(token)
+  }
+
+  async markAsUsed(id: number): Promise<ResetPasswordToken> {
+    const token = await this.prisma.passwordResetToken.update({
+      where: { id },
+      data: { isUsed: true },
+    })
+
+    const domainToken = ResetPasswordTokenMapper.toDomainResetPasswordToken(token)
+    if (!domainToken) {
+      throw new Error('Failed to mark password reset token as used')
     }
 
-    async findByTokenHash(tokenHash: string): Promise<ResetPasswordToken | null> {
-        const token = await this.prisma.passwordResetToken.findFirst({
-            where: { tokenHash },
-        })
+    return domainToken
+  }
 
-        return ResetPasswordTokenMapper.toDomainResetPasswordToken(token)
-    }
+  async markAsUsedIfUsable(id: number, now: Date): Promise<boolean> {
+    const result = await this.prisma.passwordResetToken.updateMany({
+      where: {
+        id,
+        isUsed: false,
+        expiresAt: { gt: now },
+      },
+      data: { isUsed: true },
+    })
 
-    async markAsUsed(id: number): Promise<ResetPasswordToken> {
-        const token = await this.prisma.passwordResetToken.update({
-            where: { id },
-            data: { isUsed: true },
-        })
+    return result.count === 1
+  }
 
-        const domainToken = ResetPasswordTokenMapper.toDomainResetPasswordToken(token)
-        if (!domainToken) {
-            throw new Error('Failed to mark password reset token as used')
-        }
+  async deleteByUserId(userId: number): Promise<void> {
+    await this.prisma.passwordResetToken.deleteMany({
+      where: { userId },
+    })
+  }
 
-        return domainToken
-    }
+  async deleteExpiredTokens(): Promise<number> {
+    const result = await this.prisma.passwordResetToken.deleteMany({
+      where: {
+        expiresAt: {
+          lt: new Date(),
+        },
+      },
+    })
 
-    async deleteByUserId(userId: number): Promise<void> {
-        await this.prisma.passwordResetToken.deleteMany({
-            where: { userId },
-        })
-    }
-
-    async deleteExpiredTokens(): Promise<number> {
-        const result = await this.prisma.passwordResetToken.deleteMany({
-            where: {
-                expiresAt: {
-                    lt: new Date(),
-                },
-            },
-        })
-
-        return result.count
-    }
+    return result.count
+  }
 }

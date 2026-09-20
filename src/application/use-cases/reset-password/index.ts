@@ -1,2 +1,5 @@
 export * from './reset-password.use-case'
 export * from './send-reset-password.use-case'
+export * from './get-parent-recovery-students.use-case'
+export * from './verify-parent-recovery.use-case'
+export * from './reset-parent-password.use-case'

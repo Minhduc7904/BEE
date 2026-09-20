@@ -231,6 +231,60 @@ describe('Parent authentication', () => {
     expect(result.data?.parentId).toBe(5)
   })
 
+  it('register kiểm tra lại và từ chối khi Parent đã được tạo sau bước check-phone', async () => {
+    const phone = '0392923661'
+    const password = 'Example123'
+    const studentIds = [12]
+    const firstName = 'An'
+    const lastName = 'Nguyễn'
+    const existingParent = new Parent({ parentId: 5, userId: 20, phone })
+    const createUser = jest.fn()
+    const useCase = new RegisterParentUseCase(
+      createUnitOfWork({
+        parentRepository: {
+          findByPhone: jest.fn().mockResolvedValue(existingParent),
+        } as UnitOfWorkRepos['parentRepository'],
+        userRepository: {
+          create: createUser,
+        } as UnitOfWorkRepos['userRepository'],
+      }),
+      { hashPassword: jest.fn() },
+    )
+
+    await expect(useCase.execute({ phone, password, firstName, lastName, studentIds })).rejects.toMatchObject({
+      status: 409,
+    })
+    expect(createUser).not.toHaveBeenCalled()
+  })
+
+  it('register kiểm tra lại và từ chối khi username đã được dùng sau bước check-phone', async () => {
+    const phone = '0392923661'
+    const createUser = jest.fn()
+    const useCase = new RegisterParentUseCase(
+      createUnitOfWork({
+        parentRepository: {
+          findByPhone: jest.fn().mockResolvedValue(null),
+        } as UnitOfWorkRepos['parentRepository'],
+        userRepository: {
+          existsByUsername: jest.fn().mockResolvedValue(true),
+          create: createUser,
+        } as UnitOfWorkRepos['userRepository'],
+      }),
+      { hashPassword: jest.fn() },
+    )
+
+    await expect(
+      useCase.execute({
+        phone,
+        password: 'Example123',
+        firstName: 'An',
+        lastName: 'Nguyễn',
+        studentIds: [12],
+      }),
+    ).rejects.toMatchObject({ status: 409 })
+    expect(createUser).not.toHaveBeenCalled()
+  })
+
   it('register từ chối toàn bộ khi một studentId không thuộc số điện thoại', async () => {
     const createUser = jest.fn()
     const useCase = new RegisterParentUseCase(

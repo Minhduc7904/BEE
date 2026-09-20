@@ -15,6 +15,7 @@ export * from './auth/refresh-token.dto'
 export * from './auth/register.dto'
 export * from './auth/google-auth.dto'
 export * from './auth/reset-password.dto'
+export * from './auth/parent-password-recovery'
 
 // Log DTOs
 export * from './log/log.dto'

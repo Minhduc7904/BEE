@@ -6,7 +6,8 @@
 - Ba endpoint check/register/login là public; refresh và logout dùng refresh token trong body.
 - `phone` chỉ nhận số nội địa Việt Nam gồm 10 chữ số, bắt đầu bằng `0`, ví dụ `0392923661`. Không nhận `+84...`, `84...`, khoảng trắng hoặc dấu phân cách.
 - Access token có `userType=parent` và `parentId`. Refresh token được rotation và token cũ bị revoke.
-- V1 chưa có OTP, rate limit, khóa tạm thời, quên mật khẩu hoặc xóa tài khoản.
+- V1 chưa có OTP, khóa tạm thời hoặc xóa tài khoản. Riêng luồng quên mật khẩu
+  có rate limit in-memory theo IP và định danh request.
 
 ## `POST /api/auth/parent/check-phone`
 
@@ -106,6 +107,27 @@ Thành công: `200 OK`:
 ```
 
 Sai số điện thoại hoặc mật khẩu trả cùng lỗi `401`; tài khoản bị khóa cũng trả `401` với hướng dẫn liên hệ admin.
+
+## Khôi phục mật khẩu Parent
+
+Ba endpoint dưới `/api/auth/parent/password-recovery` đều public, không yêu cầu
+JWT. Dữ liệu nhạy cảm và raw reset token không được ghi log.
+
+- `POST /students` nhận `{ "phone": "0392923661" }`, trả toàn bộ học sinh liên
+  kết với `studentId`, `fullName` và đúng bốn `schoolOptions` đã xáo trộn. Mỗi
+  danh sách gồm trường thật và ba trường mồi khác nhau; API không công bố đáp án.
+- `POST /verify` nhận `phone` cùng danh sách đầy đủ
+  `{ studentId, school, studentPhone, parentPhone }`. Sai thông tin trả `200`
+  với `verified=false` và `invalidStudentIds`; đúng thông tin trả raw
+  `resetToken` dùng một lần cùng `expiresAt` sau 30 phút.
+- `POST /reset` nhận `{ token, newPassword, confirmPassword }`. Thành công đổi
+  password, consume token và revoke toàn bộ refresh token của Parent trong cùng
+  transaction.
+
+Mỗi Parent chỉ có một reset token còn hiệu lực. `/students` cho phép 5 lần/phút;
+`/verify` và `/reset` cho phép 5 lần/15 phút. Khóa rate limit gồm endpoint, IP và
+SĐT đã chuẩn hóa (hoặc hash token với `/reset`); khi vượt ngưỡng API trả `429`
+kèm `Retry-After`.
 
 ## Refresh và logout
 

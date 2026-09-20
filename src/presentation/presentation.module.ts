@@ -14,6 +14,8 @@ import { SeoTuitionPaymentIntentGateway } from './gateways/seo-tuition-payment-i
 import { CoursePaymentIntentGateway } from './gateways/course-payment-intent.gateway'
 import { SeoTuitionPaymentController } from './controllers/seo-tuition-payment.controller'
 import { AuthController } from './controllers/auth.controller'
+import { ParentPasswordRecoveryController } from './controllers/parent-password-recovery.controller'
+import { RecoveryRateLimitService } from './services/recovery-rate-limit.service'
 import { RoleController } from './controllers/role.controller'
 import { GoogleAuthAdminController } from './controllers/google-auth-admin.controller'
 import { GoogleAuthStudentController } from './controllers/google-auth-student.controller'
@@ -111,6 +113,7 @@ import { SocketLifecycleGateway } from './gateways/socket-lifecycle.gateway'
   ],
   controllers: [
     AuthController,
+    ParentPasswordRecoveryController,
     RoleController,
     AdminAuditLogController,
     StudentController,
@@ -199,6 +202,7 @@ import { SocketLifecycleGateway } from './gateways/socket-lifecycle.gateway'
     BookController,
   ],
   providers: [
+    RecoveryRateLimitService,
     // WebSocket Gateways
     SocketLifecycleGateway,
     NotificationGateway,
