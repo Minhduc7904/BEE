@@ -1,7 +1,8 @@
 import { CompetitionSubmitStatus, HomeworkContentType } from '../../shared/enums'
+import type { ParentResultCursor } from './parent-result-cursor.interface'
 
-export interface ParentStudentResultPagination {
-  page: number
+export interface ParentStudentResultCursorPagination {
+  after: ParentResultCursor | null
   limit: number
 }
 
@@ -28,11 +29,10 @@ export interface ParentCompetitionSubmissionListItem {
   feedback: string | null
 }
 
-export interface ParentStudentSubmissionListResult<T> {
+export interface ParentStudentSubmissionCursorListResult<T> {
   data: T[]
-  total: number
-  page: number
-  limit: number
+  hasNext: boolean
+  nextCursor: string | null
 }
 
 export interface ParentStudentSubmissionStatistics {
@@ -79,8 +79,8 @@ export abstract class ParentStudentResultsReadService {
 
   abstract listHomeworkSubmissions(
     studentId: number,
-    pagination: ParentStudentResultPagination,
-  ): Promise<ParentStudentSubmissionListResult<ParentHomeworkSubmissionListItem>>
+    pagination: ParentStudentResultCursorPagination,
+  ): Promise<ParentStudentSubmissionCursorListResult<ParentHomeworkSubmissionListItem>>
 
   abstract getHomeworkSubmissionStatistics(studentId: number): Promise<ParentStudentSubmissionStatistics>
 
@@ -91,8 +91,8 @@ export abstract class ParentStudentResultsReadService {
 
   abstract listStandaloneCompetitionSubmissions(
     studentId: number,
-    pagination: ParentStudentResultPagination,
-  ): Promise<ParentStudentSubmissionListResult<ParentCompetitionSubmissionListItem>>
+    pagination: ParentStudentResultCursorPagination,
+  ): Promise<ParentStudentSubmissionCursorListResult<ParentCompetitionSubmissionListItem>>
 
   abstract getStandaloneCompetitionSubmissionStatistics(studentId: number): Promise<ParentStudentSubmissionStatistics>
 

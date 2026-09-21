@@ -6,11 +6,11 @@ import {
   ParentCompetitionSubmissionListItemDto,
   ParentHomeworkSubmissionDetailDto,
   ParentHomeworkSubmissionListItemDto,
-  ParentStudentResultListQueryDto,
+  ParentStudentResultCursorQueryDto,
   ParentSubmissionStatisticsDto,
 } from '../../application/dtos/parent-student-results'
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
-import { PaginationResponseDto } from '../../application/dtos/pagination/pagination-response.dto'
+import { CursorPageResponseDto } from '../../application/dtos/pagination/cursor-page-response.dto'
 import {
   GetParentStudentCompetitionSubmissionDetailUseCase,
   GetParentStudentCompetitionSubmissionsUseCase,
@@ -39,8 +39,8 @@ export class ParentStudentResultsController {
   getHomeworkSubmissionList(
     @CurrentUser() user: AuthenticatedUser,
     @Param('studentId', ParseIntPipe) studentId: number,
-    @Query() query: ParentStudentResultListQueryDto,
-  ): Promise<PaginationResponseDto<ParentHomeworkSubmissionListItemDto>> {
+    @Query() query: ParentStudentResultCursorQueryDto,
+  ): Promise<CursorPageResponseDto<ParentHomeworkSubmissionListItemDto>> {
     return ExceptionHandler.execute(() => this.getHomeworkSubmissions.execute(user, studentId, query))
   }
 
@@ -65,8 +65,8 @@ export class ParentStudentResultsController {
   getCompetitionSubmissionList(
     @CurrentUser() user: AuthenticatedUser,
     @Param('studentId', ParseIntPipe) studentId: number,
-    @Query() query: ParentStudentResultListQueryDto,
-  ): Promise<PaginationResponseDto<ParentCompetitionSubmissionListItemDto>> {
+    @Query() query: ParentStudentResultCursorQueryDto,
+  ): Promise<CursorPageResponseDto<ParentCompetitionSubmissionListItemDto>> {
     return ExceptionHandler.execute(() => this.getCompetitionSubmissions.execute(user, studentId, query))
   }
 

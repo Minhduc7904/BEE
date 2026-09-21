@@ -2,13 +2,14 @@ import { Injectable } from '@nestjs/common'
 import { CompetitionSubmitStatus as PrismaCompetitionSubmitStatus, Prisma } from '@prisma/client'
 
 import {
+  encodeResultCursor,
   ParentCompetitionSubmissionDetail,
   ParentCompetitionSubmissionListItem,
   ParentHomeworkSubmissionDetail,
   ParentHomeworkSubmissionListItem,
-  ParentStudentResultPagination,
+  ParentStudentResultCursorPagination,
   ParentStudentResultsReadService,
-  ParentStudentSubmissionListResult,
+  ParentStudentSubmissionCursorListResult,
   ParentStudentSubmissionStatistics,
   ParentSubmissionSectionScore,
 } from '../../application/interfaces'
@@ -36,35 +37,46 @@ export class PrismaParentStudentResultsReadService extends ParentStudentResultsR
 
   async listHomeworkSubmissions(
     studentId: number,
-    pagination: ParentStudentResultPagination,
-  ): Promise<ParentStudentSubmissionListResult<ParentHomeworkSubmissionListItem>> {
-    const where: Prisma.HomeworkSubmitWhereInput = { studentId }
-    const [rows, total] = await this.prisma.$transaction([
-      this.prisma.homeworkSubmit.findMany({
-        where,
-        skip: (pagination.page - 1) * pagination.limit,
-        take: pagination.limit,
-        orderBy: [{ submitAt: 'desc' }, { homeworkSubmitId: 'desc' }],
-        select: {
-          homeworkSubmitId: true,
-          submitAt: true,
-          gradedAt: true,
-          points: true,
-          feedback: true,
-          homeworkContent: {
-            select: {
-              type: true,
-              learningItem: { select: { title: true } },
-            },
+    pagination: ParentStudentResultCursorPagination,
+  ): Promise<ParentStudentSubmissionCursorListResult<ParentHomeworkSubmissionListItem>> {
+    const { after, limit } = pagination
+    const where: Prisma.HomeworkSubmitWhereInput = {
+      studentId,
+      ...(after
+        ? {
+            OR: [
+              { submitAt: { lt: after.timestamp } },
+              { submitAt: after.timestamp, homeworkSubmitId: { lt: after.id } },
+            ],
+          }
+        : {}),
+    }
+    const rows = await this.prisma.homeworkSubmit.findMany({
+      where,
+      take: limit + 1,
+      orderBy: [{ submitAt: 'desc' }, { homeworkSubmitId: 'desc' }],
+      select: {
+        homeworkSubmitId: true,
+        submitAt: true,
+        gradedAt: true,
+        points: true,
+        feedback: true,
+        homeworkContent: {
+          select: {
+            type: true,
+            learningItem: { select: { title: true } },
           },
-          competitionSubmit: { select: { totalPoints: true, maxPoints: true } },
         },
-      }),
-      this.prisma.homeworkSubmit.count({ where }),
-    ])
+        competitionSubmit: { select: { totalPoints: true, maxPoints: true } },
+      },
+    })
+
+    const hasNext = rows.length > limit
+    const page = hasNext ? rows.slice(0, limit) : rows
+    const last = page.at(-1)
 
     return {
-      data: rows.map((row) => ({
+      data: page.map((row) => ({
         homeworkSubmitId: row.homeworkSubmitId,
         title: row.homeworkContent.learningItem.title,
         homeworkType: row.homeworkContent.type as HomeworkContentType,
@@ -74,9 +86,8 @@ export class PrismaParentStudentResultsReadService extends ParentStudentResultsR
         maxPoints: this.homeworkMaxPoints(row.points, row.competitionSubmit?.maxPoints),
         feedback: row.feedback,
       })),
-      total,
-      page: pagination.page,
-      limit: pagination.limit,
+      hasNext,
+      nextCursor: hasNext && last ? encodeResultCursor(last.submitAt, last.homeworkSubmitId) : null,
     }
   }
 
@@ -144,36 +155,45 @@ export class PrismaParentStudentResultsReadService extends ParentStudentResultsR
 
   async listStandaloneCompetitionSubmissions(
     studentId: number,
-    pagination: ParentStudentResultPagination,
-  ): Promise<ParentStudentSubmissionListResult<ParentCompetitionSubmissionListItem>> {
+    pagination: ParentStudentResultCursorPagination,
+  ): Promise<ParentStudentSubmissionCursorListResult<ParentCompetitionSubmissionListItem>> {
+    const { after, limit } = pagination
     const where: Prisma.CompetitionSubmitWhereInput = {
       studentId,
       homeworkSubmit: null,
       status: { in: completedCompetitionStatuses },
+      ...(after
+        ? {
+            OR: [
+              { submittedAt: { lt: after.timestamp } },
+              { submittedAt: after.timestamp, competitionSubmitId: { lt: after.id } },
+            ],
+          }
+        : {}),
     }
-    const [rows, total] = await this.prisma.$transaction([
-      this.prisma.competitionSubmit.findMany({
-        where,
-        skip: (pagination.page - 1) * pagination.limit,
-        take: pagination.limit,
-        orderBy: [{ submittedAt: 'desc' }, { competitionSubmitId: 'desc' }],
-        select: {
-          competitionSubmitId: true,
-          attemptNumber: true,
-          status: true,
-          submittedAt: true,
-          gradedAt: true,
-          totalPoints: true,
-          maxPoints: true,
-          feedback: true,
-          competition: { select: { title: true } },
-        },
-      }),
-      this.prisma.competitionSubmit.count({ where }),
-    ])
+    const rows = await this.prisma.competitionSubmit.findMany({
+      where,
+      take: limit + 1,
+      orderBy: [{ submittedAt: 'desc' }, { competitionSubmitId: 'desc' }],
+      select: {
+        competitionSubmitId: true,
+        attemptNumber: true,
+        status: true,
+        submittedAt: true,
+        gradedAt: true,
+        totalPoints: true,
+        maxPoints: true,
+        feedback: true,
+        competition: { select: { title: true } },
+      },
+    })
+
+    const hasNext = rows.length > limit
+    const page = hasNext ? rows.slice(0, limit) : rows
+    const last = page.at(-1)
 
     return {
-      data: rows.map((row) => ({
+      data: page.map((row) => ({
         competitionSubmitId: row.competitionSubmitId,
         title: row.competition.title,
         attemptNumber: row.attemptNumber,
@@ -184,9 +204,8 @@ export class PrismaParentStudentResultsReadService extends ParentStudentResultsR
         maxPoints: this.toNumber(row.maxPoints),
         feedback: row.feedback,
       })),
-      total,
-      page: pagination.page,
-      limit: pagination.limit,
+      hasNext,
+      nextCursor: hasNext && last?.submittedAt ? encodeResultCursor(last.submittedAt, last.competitionSubmitId) : null,
     }
   }
 

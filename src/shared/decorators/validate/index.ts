@@ -1,5 +1,6 @@
 export * from './array.decorator'
 export * from './boolean.decorator'
+export * from './cursor.decorator'
 export * from './date.decorator'
 export * from './email.decorator'
 export * from './enum.decorator'

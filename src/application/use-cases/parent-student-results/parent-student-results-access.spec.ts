@@ -1,5 +1,5 @@
 import type { AuthenticatedUser, ParentStudentResultsReadService } from '../../interfaces'
-import { ParentStudentResultListQueryDto } from '../../dtos/parent-student-results'
+import { ParentStudentResultCursorQueryDto } from '../../dtos/parent-student-results'
 import {
   GetParentStudentCompetitionSubmissionDetailUseCase,
   GetParentStudentCompetitionSubmissionsUseCase,
@@ -26,7 +26,7 @@ describe('Parent student results ownership', () => {
         new GetParentStudentHomeworkSubmissionsUseCase(service).execute(
           parentIdentity,
           99,
-          new ParentStudentResultListQueryDto(),
+          new ParentStudentResultCursorQueryDto(),
         ),
     ],
     [
@@ -45,7 +45,7 @@ describe('Parent student results ownership', () => {
         new GetParentStudentCompetitionSubmissionsUseCase(service).execute(
           parentIdentity,
           99,
-          new ParentStudentResultListQueryDto(),
+          new ParentStudentResultCursorQueryDto(),
         ),
     ],
     [
