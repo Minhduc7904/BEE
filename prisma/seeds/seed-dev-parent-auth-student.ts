@@ -1,10 +1,26 @@
-import 'dotenv/config'
-
 import { Gender, PrismaClient, Student } from '@prisma/client'
 import * as bcrypt from 'bcryptjs'
 
-const DEV_PARENT_PHONE = '0392923661'
-const DEV_PASSWORD = 'Dev@123456'
+export const DEV_PARENT_PHONE = '0392923661'
+export const DEV_PASSWORD = 'Dev@123456'
+
+export interface DevStudentFixture {
+  index: number
+  studentId: number
+  userId: number
+  firstName: string
+  lastName: string
+  fullName: string
+  grade: number
+  school: string
+}
+
+export interface DevParentFixtureContext {
+  parentId: number
+  parentUserId: number
+  parentPhone: string
+  students: DevStudentFixture[]
+}
 
 const DEV_STUDENTS = [
   {
@@ -53,7 +69,7 @@ const DEV_STUDENTS = [
   },
 ] as const
 
-async function seedDevParentAuthStudent(prisma: PrismaClient): Promise<void> {
+export async function seedDevParentAuthStudent(prisma: PrismaClient): Promise<DevParentFixtureContext> {
   const passwordHash = await bcrypt.hash(DEV_PASSWORD, 10)
 
   const seededStudents = await prisma.$transaction(async (transaction) => {
@@ -140,12 +156,12 @@ async function seedDevParentAuthStudent(prisma: PrismaClient): Promise<void> {
       students.push(student)
     }
 
-    return students
+    return { parent, parentUser, students }
   })
 
   console.log(`✅ Dev Parent Auth recovery ready: parentPhone=${DEV_PARENT_PHONE}, password=${DEV_PASSWORD}`)
   console.table(
-    seededStudents.map((student, index) => ({
+    seededStudents.students.map((student, index) => ({
       studentId: student.studentId,
       fullName: `${DEV_STUDENTS[index].lastName} ${DEV_STUDENTS[index].firstName}`,
       school: DEV_STUDENTS[index].school,
@@ -153,22 +169,20 @@ async function seedDevParentAuthStudent(prisma: PrismaClient): Promise<void> {
       parentPhoneToInput: DEV_PARENT_PHONE,
     })),
   )
-}
 
-async function main(): Promise<void> {
-  if (process.env.NODE_ENV !== 'development') {
-    throw new Error('Dev seed bị từ chối: NODE_ENV phải có giá trị development.')
+  return {
+    parentId: seededStudents.parent.parentId,
+    parentUserId: seededStudents.parentUser.userId,
+    parentPhone: DEV_PARENT_PHONE,
+    students: seededStudents.students.map((student, index) => ({
+      index,
+      studentId: student.studentId,
+      userId: student.userId,
+      firstName: DEV_STUDENTS[index].firstName,
+      lastName: DEV_STUDENTS[index].lastName,
+      fullName: `${DEV_STUDENTS[index].lastName} ${DEV_STUDENTS[index].firstName}`,
+      grade: DEV_STUDENTS[index].grade,
+      school: DEV_STUDENTS[index].school,
+    })),
   }
-
-  const prisma = new PrismaClient()
-  try {
-    await seedDevParentAuthStudent(prisma)
-  } finally {
-    await prisma.$disconnect()
-  }
 }
-
-void main().catch((error: unknown) => {
-  console.error('❌ Không thể seed dữ liệu Parent Auth recovery cho development.', error)
-  process.exit(1)
-})
