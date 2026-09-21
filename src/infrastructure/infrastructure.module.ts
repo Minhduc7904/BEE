@@ -109,6 +109,7 @@ import {
   NewsArticleSeoAiService,
   DocumentMediaAltTextAiService,
   ExcelService,
+  PrismaParentStudentResultsReadService,
 } from './services'
 import { ImageExportService } from './services/image-export.service'
 import { MistralService } from './services/mistral.service'
@@ -161,6 +162,7 @@ import {
   TokenHashService as TokenHashServicePort,
   TokenService as TokenServicePort,
   ZaloService as ZaloServicePort,
+  ParentStudentResultsReadService as ParentStudentResultsReadServicePort,
 } from 'src/application/interfaces'
 
 @Module({
@@ -178,6 +180,11 @@ import {
     JwtModule.register({}), // Empty config, sẽ override trong service
   ],
   providers: [
+    PrismaParentStudentResultsReadService,
+    {
+      provide: ParentStudentResultsReadServicePort,
+      useExisting: PrismaParentStudentResultsReadService,
+    },
     AssistantShiftAssignmentExchangeEmailService,
     {
       provide: AssistantShiftAssignmentExchangeEmailServicePort,
@@ -681,6 +688,7 @@ import {
     SepayService,
   ],
   exports: [
+    ParentStudentResultsReadServicePort,
     AchievementBoardSeoAiServicePort,
     BookSeoAiServicePort,
     AssistantShiftAssignmentExchangeEmailServicePort,

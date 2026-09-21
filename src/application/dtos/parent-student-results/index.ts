@@ -1,0 +1,7 @@
+export * from './parent-student-result-list-query.dto'
+export * from './parent-homework-submission-list-item.dto'
+export * from './parent-competition-submission-list-item.dto'
+export * from './parent-submission-statistics.dto'
+export * from './parent-submission-section-score.dto'
+export * from './parent-homework-submission-detail.dto'
+export * from './parent-competition-submission-detail.dto'
