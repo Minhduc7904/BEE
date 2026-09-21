@@ -1,4 +1,3 @@
-import { CompetitionSubmitStatus, HomeworkContentType } from '../../shared/enums'
 import type { ParentResultCursor } from './parent-result-cursor.interface'
 
 export interface ParentStudentResultCursorPagination {
@@ -9,24 +8,17 @@ export interface ParentStudentResultCursorPagination {
 export interface ParentHomeworkSubmissionListItem {
   homeworkSubmitId: number
   title: string
-  homeworkType: HomeworkContentType
   submittedAt: Date
-  gradedAt: Date | null
   points: number | null
   maxPoints: number | null
-  feedback: string | null
 }
 
 export interface ParentCompetitionSubmissionListItem {
   competitionSubmitId: number
   title: string
-  attemptNumber: number
-  status: CompetitionSubmitStatus
   submittedAt: Date | null
-  gradedAt: Date | null
   points: number | null
   maxPoints: number | null
-  feedback: string | null
 }
 
 export interface ParentStudentSubmissionCursorListResult<T> {

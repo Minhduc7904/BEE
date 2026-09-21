@@ -40,8 +40,25 @@ describe('PrismaParentStudentResultsReadService', () => {
     expect(result.data).toHaveLength(10)
     expect(result.hasNext).toBe(false)
     expect(result.nextCursor).toBeNull()
+    expect(Object.keys(result.data[0]).sort()).toEqual([
+      'homeworkSubmitId',
+      'maxPoints',
+      'points',
+      'submittedAt',
+      'title',
+    ])
     expect(prisma.homeworkSubmit.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { studentId: 12 }, take: 11 }),
+      expect.objectContaining({
+        where: { studentId: 12 },
+        take: 11,
+        select: {
+          homeworkSubmitId: true,
+          submitAt: true,
+          points: true,
+          homeworkContent: { select: { learningItem: { select: { title: true } } } },
+          competitionSubmit: { select: { totalPoints: true, maxPoints: true } },
+        },
+      }),
     )
   })
 
@@ -104,13 +121,72 @@ describe('PrismaParentStudentResultsReadService', () => {
         where: expect.objectContaining({
           studentId: 12,
           homeworkSubmit: null,
+          status: { in: ['SUBMITTED', 'GRADED'] },
           OR: [
             { submittedAt: { lt: after.timestamp } },
             { submittedAt: after.timestamp, competitionSubmitId: { lt: after.id } },
           ],
         }),
+        select: {
+          competitionSubmitId: true,
+          submittedAt: true,
+          totalPoints: true,
+          maxPoints: true,
+          competition: { select: { title: true } },
+        },
       }),
     )
+  })
+
+  it('homework detail liên kết dùng điểm và nhận xét competition, giữ tên/ngày homework', async () => {
+    const homeworkDate = new Date('2026-09-20T10:00:00Z')
+    const competitionGradedAt = new Date('2026-09-21T10:00:00Z')
+    const row = {
+      homeworkSubmitId: 12,
+      studentId: 9,
+      submitAt: homeworkDate,
+      gradedAt: null,
+      points: 5,
+      feedback: 'Nhận xét bài tập',
+      homeworkContent: { learningItem: { title: 'Bài tập Toán' } },
+      competitionSubmit: {
+        competitionSubmitId: 22,
+        totalPoints: new Prisma.Decimal(8),
+        maxPoints: new Prisma.Decimal(10),
+        gradedAt: competitionGradedAt,
+        feedback: 'Nhận xét bài thi',
+        competition: { title: 'Cuộc thi', examId: 1 },
+        competitionAnswers: [],
+      },
+    }
+    const prisma = { homeworkSubmit: { findFirst: jest.fn().mockResolvedValue(row) } } as unknown as PrismaService
+    const detail = await new PrismaParentStudentResultsReadService(prisma).getHomeworkSubmissionDetail(9, 12)
+    expect(detail).toMatchObject({
+      homeworkSubmitId: 12,
+      title: 'Bài tập Toán',
+      submittedAt: homeworkDate,
+      gradedAt: competitionGradedAt,
+      points: 8,
+      maxPoints: 10,
+      feedback: 'Nhận xét bài thi',
+      sectionScores: [],
+    })
+  })
+
+  it('homework detail không liên kết giữ điểm và nhận xét homework', async () => {
+    const row = {
+      homeworkSubmitId: 12,
+      studentId: 9,
+      submitAt: new Date('2026-09-20T10:00:00Z'),
+      gradedAt: null,
+      points: 7,
+      feedback: 'Nhận xét bài tập',
+      homeworkContent: { learningItem: { title: 'Bài tập Toán' } },
+      competitionSubmit: null,
+    }
+    const prisma = { homeworkSubmit: { findFirst: jest.fn().mockResolvedValue(row) } } as unknown as PrismaService
+    const detail = await new PrismaParentStudentResultsReadService(prisma).getHomeworkSubmissionDetail(9, 12)
+    expect(detail).toMatchObject({ points: 7, maxPoints: 100, feedback: 'Nhận xét bài tập', sectionScores: [] })
   })
 
   it('tính điểm homework tổng 10 từ cả homework points và competition fallback', async () => {

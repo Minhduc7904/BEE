@@ -14,7 +14,6 @@ import {
   ParentSubmissionSectionScore,
 } from '../../application/interfaces'
 import { PrismaService } from '../../prisma/prisma.service'
-import { CompetitionSubmitStatus, HomeworkContentType } from '../../shared/enums'
 
 const completedCompetitionStatuses: PrismaCompetitionSubmitStatus[] = [
   PrismaCompetitionSubmitStatus.SUBMITTED,
@@ -58,12 +57,9 @@ export class PrismaParentStudentResultsReadService extends ParentStudentResultsR
       select: {
         homeworkSubmitId: true,
         submitAt: true,
-        gradedAt: true,
         points: true,
-        feedback: true,
         homeworkContent: {
           select: {
-            type: true,
             learningItem: { select: { title: true } },
           },
         },
@@ -79,12 +75,11 @@ export class PrismaParentStudentResultsReadService extends ParentStudentResultsR
       data: page.map((row) => ({
         homeworkSubmitId: row.homeworkSubmitId,
         title: row.homeworkContent.learningItem.title,
-        homeworkType: row.homeworkContent.type as HomeworkContentType,
         submittedAt: row.submitAt,
-        gradedAt: row.gradedAt,
         points: row.points ?? this.toNumber(row.competitionSubmit?.totalPoints),
-        maxPoints: this.homeworkMaxPoints(row.points, row.competitionSubmit?.maxPoints),
-        feedback: row.feedback,
+        maxPoints: row.competitionSubmit
+          ? this.toNumber(row.competitionSubmit.maxPoints)
+          : this.homeworkMaxPoints(row.points),
       })),
       hasNext,
       nextCursor: hasNext && last ? encodeResultCursor(last.submitAt, last.homeworkSubmitId) : null,
@@ -132,7 +127,13 @@ export class PrismaParentStudentResultsReadService extends ParentStudentResultsR
         points: true,
         feedback: true,
         homeworkContent: { select: { learningItem: { select: { title: true } } } },
-        competitionSubmit: { select: this.competitionDetailSelect() },
+        competitionSubmit: {
+          select: {
+            ...this.competitionDetailSelect(),
+            gradedAt: true,
+            feedback: true,
+          },
+        },
       },
     })
     if (!row) return null
@@ -142,10 +143,12 @@ export class PrismaParentStudentResultsReadService extends ParentStudentResultsR
       studentId: row.studentId,
       title: row.homeworkContent.learningItem.title,
       submittedAt: row.submitAt,
-      gradedAt: row.gradedAt,
-      points: row.points ?? this.toNumber(row.competitionSubmit?.totalPoints),
-      maxPoints: this.homeworkMaxPoints(row.points, row.competitionSubmit?.maxPoints),
-      feedback: row.feedback,
+      gradedAt: row.competitionSubmit ? row.competitionSubmit.gradedAt : row.gradedAt,
+      points: row.competitionSubmit ? this.toNumber(row.competitionSubmit.totalPoints) : row.points,
+      maxPoints: row.competitionSubmit
+        ? this.toNumber(row.competitionSubmit.maxPoints)
+        : this.homeworkMaxPoints(row.points),
+      feedback: row.competitionSubmit ? row.competitionSubmit.feedback : row.feedback,
       sectionScores: this.toSectionScores(
         row.competitionSubmit?.competitionAnswers ?? [],
         row.competitionSubmit?.competition.examId,
@@ -177,13 +180,9 @@ export class PrismaParentStudentResultsReadService extends ParentStudentResultsR
       orderBy: [{ submittedAt: 'desc' }, { competitionSubmitId: 'desc' }],
       select: {
         competitionSubmitId: true,
-        attemptNumber: true,
-        status: true,
         submittedAt: true,
-        gradedAt: true,
         totalPoints: true,
         maxPoints: true,
-        feedback: true,
         competition: { select: { title: true } },
       },
     })
@@ -196,13 +195,9 @@ export class PrismaParentStudentResultsReadService extends ParentStudentResultsR
       data: page.map((row) => ({
         competitionSubmitId: row.competitionSubmitId,
         title: row.competition.title,
-        attemptNumber: row.attemptNumber,
-        status: row.status as CompetitionSubmitStatus,
         submittedAt: row.submittedAt,
-        gradedAt: row.gradedAt,
         points: this.toNumber(row.totalPoints),
         maxPoints: this.toNumber(row.maxPoints),
-        feedback: row.feedback,
       })),
       hasNext,
       nextCursor: hasNext && last?.submittedAt ? encodeResultCursor(last.submittedAt, last.competitionSubmitId) : null,
@@ -338,13 +333,7 @@ export class PrismaParentStudentResultsReadService extends ParentStudentResultsR
     return value === null || value === undefined ? null : Number(value)
   }
 
-  private homeworkMaxPoints(
-    points: number | null,
-    competitionMaxPoints: Prisma.Decimal | null | undefined,
-  ): number | null {
-    if (competitionMaxPoints !== null && competitionMaxPoints !== undefined) {
-      return this.toNumber(competitionMaxPoints)
-    }
+  private homeworkMaxPoints(points: number | null): number | null {
     return points === null ? null : 100
   }
 
