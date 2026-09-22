@@ -16,6 +16,7 @@ export interface IStudentRepository {
   findByStudentZaloId(studentZaloId: string): Promise<Student | null>
   findByStudentOrParentPhone(phone: string): Promise<Student | null>
   findAllByStudentOrParentPhone(phone: string): Promise<Student[]>
+  findByStudentPhoneAndParentPhone(studentPhone: string, parentPhone: string): Promise<Student | null>
   findAllByParentPhoneVariants(phoneVariants: string[]): Promise<Student[]>
   findAllByIdsAndParentPhoneVariants(studentIds: number[], phoneVariants: string[]): Promise<Student[]>
   findRandomDistinctSchools(excludedSchool: string, limit: number): Promise<string[]>

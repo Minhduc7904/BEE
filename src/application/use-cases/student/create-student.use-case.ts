@@ -41,6 +41,22 @@ export class CreateStudentUseCase {
         }
       }
 
+      if (dto.studentPhone && dto.parentPhone) {
+        const existingStudent = await studentRepository.findByStudentPhoneAndParentPhone(
+          dto.studentPhone,
+          dto.parentPhone,
+        )
+        if (existingStudent) {
+          const owner = existingStudent.user
+          const ownerLabel = owner
+            ? `${owner.getFullName()} (username: ${owner.username}${owner.email ? `, email: ${owner.email}` : ''})`
+            : `học sinh #${existingStudent.studentId}`
+          throw new ConflictException(
+            `Số điện thoại học sinh và số điện thoại phụ huynh này đã được sử dụng bởi ${ownerLabel}`,
+          )
+        }
+      }
+
       if (dto.courseIds && dto.courseIds.length > 0) {
         const courses = await courseRepository.findByIds(dto.courseIds)
         if (courses.length !== dto.courseIds.length) {

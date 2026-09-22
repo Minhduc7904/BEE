@@ -32,6 +32,18 @@ export class RegisterStudentUseCase {
         }
       }
 
+      if (dto.studentPhone && dto.parentPhone) {
+        const existingStudent = await repos.studentRepository.findByStudentPhoneAndParentPhone(
+          dto.studentPhone,
+          dto.parentPhone,
+        )
+        if (existingStudent) {
+          throw new ConflictException(
+            'Số điện thoại học sinh và số điện thoại phụ huynh này đã có tài khoản sử dụng',
+          )
+        }
+      }
+
       // Hash password
       const passwordHash = await this.passwordService.hashPassword(dto.password)
       // Create user (trong transaction)

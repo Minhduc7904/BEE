@@ -372,6 +372,34 @@ export class PrismaStudentRepository implements IStudentRepository {
     return StudentMapper.toDomainStudent(prismaStudent)!
   }
 
+  async findByStudentPhoneAndParentPhone(studentPhone: string, parentPhone: string): Promise<Student | null> {
+    const prismaStudent = await this.prisma.student.findFirst({
+      where: {
+        studentPhone,
+        parentPhone,
+      },
+      include: {
+        user: {
+          select: {
+            userId: true,
+            username: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            isActive: true,
+            createdAt: true,
+            updatedAt: true,
+            lastLoginAt: true,
+          },
+        },
+      },
+      orderBy: { studentId: 'desc' },
+    })
+
+    if (!prismaStudent) return null
+    return StudentMapper.toDomainStudent(prismaStudent)!
+  }
+
   async findAllByStudentOrParentPhone(phone: string): Promise<Student[]> {
     const students = await this.prisma.student.findMany({
       where: {
