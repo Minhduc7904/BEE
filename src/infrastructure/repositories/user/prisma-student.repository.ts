@@ -687,10 +687,10 @@ export class PrismaStudentRepository implements IStudentRepository {
       const reverseFullNameNoAccent = this.buildRemoveAccentsSQL('CONCAT(u.first_name, " ", u.last_name)')
 
       conditions.push(`(
-                LOWER(u.username) LIKE LOWER(?) OR 
-                LOWER(u.email) LIKE LOWER(?) OR 
-                LOWER(u.first_name) LIKE LOWER(?) OR 
-                LOWER(u.last_name) LIKE LOWER(?) OR 
+                LOWER(u.username) LIKE LOWER(?) OR
+                LOWER(u.email) LIKE LOWER(?) OR
+                LOWER(u.first_name) LIKE LOWER(?) OR
+                LOWER(u.last_name) LIKE LOWER(?) OR
                 LOWER(s.school) LIKE LOWER(?) OR
                 LOWER(CONCAT(u.last_name, ' ', u.first_name)) LIKE LOWER(?) OR
                 LOWER(CONCAT(u.first_name, ' ', u.last_name)) LIKE LOWER(?) OR
@@ -700,7 +700,9 @@ export class PrismaStudentRepository implements IStudentRepository {
                 LOWER(${lastNameNoAccent}) LIKE LOWER(?) OR
                 LOWER(${schoolNoAccent}) LIKE LOWER(?) OR
                 LOWER(${fullNameNoAccent}) LIKE LOWER(?) OR
-                LOWER(${reverseFullNameNoAccent}) LIKE LOWER(?)
+                LOWER(${reverseFullNameNoAccent}) LIKE LOWER(?) OR
+                s.student_phone LIKE ? OR
+                s.parent_phone LIKE ?
             )`)
       // Push original search pattern for original text search (7 params)
       params.push(
@@ -722,7 +724,9 @@ export class PrismaStudentRepository implements IStudentRepository {
         normalizedSearch,
         normalizedSearch,
       )
-      paramIndex += 14
+      // Push search pattern for student/parent phone (2 params)
+      params.push(searchPattern, searchPattern)
+      paramIndex += 16
     }
 
     // Other filters
