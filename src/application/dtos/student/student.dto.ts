@@ -4,7 +4,13 @@ import { PaginationResponseDto } from '../pagination/pagination-response.dto'
 import { RoleResponseDto } from '../role/role.dto'
 import { Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
-import { IsOptionalEnumValue, IsOptionalInt, IsOptionalPhoneVN, IsOptionalString } from 'src/shared/decorators/validate'
+import {
+  IsOptionalEnumValue,
+  IsOptionalInt,
+  IsNullableInt,
+  IsNullablePhoneVN,
+  IsNullableString,
+} from 'src/shared/decorators/validate'
 import { CourseEnrollmentResponseDto } from '../course-enrollment/course-enrollment.dto'
 import { ClassStudentResponseDto } from '../class-student/class-student.dto'
 import { StudentType } from '../../../shared/enums'
@@ -112,20 +118,20 @@ export class StudentListResponseDto extends PaginationResponseDto<StudentRespons
  */
 export class UpdateStudentDto extends UpdateUserDto {
   /**
-   * Số điện thoại sinh viên (10-11 số)
+   * Số điện thoại sinh viên (10-11 số). Truyền null để xóa giá trị hiện tại.
    * @optional
    * @example "0987654321"
    */
-  @IsOptionalPhoneVN('Số điện thoại sinh viên')
-  studentPhone?: string
+  @IsNullablePhoneVN('Số điện thoại sinh viên')
+  studentPhone?: string | null
 
   /**
-   * Số điện thoại phụ huynh (10-11 số)
+   * Số điện thoại phụ huynh (10-11 số). Truyền null để xóa giá trị hiện tại.
    * @optional
    * @example "0912345678"
    */
-  @IsOptionalPhoneVN('Số điện thoại phụ huynh')
-  parentPhone?: string
+  @IsNullablePhoneVN('Số điện thoại phụ huynh')
+  parentPhone?: string | null
 
   /**
    * Khối lớp (1-12)
@@ -136,20 +142,20 @@ export class UpdateStudentDto extends UpdateUserDto {
   grade?: number
 
   /**
-   * Trường học
+   * Trường học. Truyền null để xóa giá trị hiện tại.
    * @optional
    * @example "THPT Chuyên Lê Hồng Phong"
    */
-  @IsOptionalString('Trường học')
-  school?: string
+  @IsNullableString('Trường học')
+  school?: string | null
 
   /**
-   * Năm tốt nghiệp cấp 3
+   * Năm tốt nghiệp cấp 3. Truyền null để xóa giá trị hiện tại.
    * @optional
    * @example 2026
    */
-  @IsOptionalInt('Năm tốt nghiệp cấp 3', 1900, 2100)
-  highSchoolGraduationYear?: number
+  @IsNullableInt('Năm tốt nghiệp cấp 3', 1900, 2100)
+  highSchoolGraduationYear?: number | null
 
   @IsOptionalEnumValue(StudentType, 'Loại học sinh')
   studentType?: StudentType

@@ -1,4 +1,4 @@
-import { IsOptional, Matches, IsNotEmpty } from 'class-validator'
+import { IsOptional, Matches, IsNotEmpty, ValidateIf } from 'class-validator'
 import { applyDecorators } from '@nestjs/common'
 import { VALIDATION_MESSAGES, PHONE_VN_REGEX } from 'src/shared/constants'
 import { Trim, EmptyToUndefined } from '../'
@@ -14,6 +14,25 @@ export function IsOptionalPhoneVN(label: string) {
     Trim(),
     EmptyToUndefined(),
     IsOptional(),
+    Matches(PHONE_VN_REGEX, {
+      message: VALIDATION_MESSAGES.FIELD_INVALID(label),
+    }),
+  )
+}
+
+/**
+ * Decorator cho số điện thoại Việt Nam nullable (cho phép null để xóa giá trị).
+ *
+ * Khác với IsOptionalPhoneVN:
+ * - IsOptionalPhoneVN: null/'' → undefined → field bị bỏ qua (không update)
+ * - IsNullablePhoneVN: null → null → field được update thành null trong DB
+ */
+export function IsNullablePhoneVN(label: string) {
+  return applyDecorators(
+    Trim(),
+    EmptyToUndefined(),
+    IsOptional(),
+    ValidateIf((_object, value: unknown) => value !== null && value !== undefined),
     Matches(PHONE_VN_REGEX, {
       message: VALIDATION_MESSAGES.FIELD_INVALID(label),
     }),

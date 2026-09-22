@@ -1,5 +1,5 @@
 import { PaginationOptions, PaginationResult, BaseFilterOptions, SortOptions } from '../common/pagination.interface'
-import { StudentType } from '../../../shared/enums'
+import { StudentType, ConversationMode } from '../../../shared/enums'
 // Note: Import Student entity when needed, avoiding circular dependency
 
 export interface CreateStudentData {
@@ -13,6 +13,25 @@ export interface CreateStudentData {
   studentType?: StudentType
   school?: string
   highSchoolGraduationYear?: number
+}
+
+/**
+ * Dữ liệu cập nhật Student.
+ *
+ * studentPhone/parentPhone/school/highSchoolGraduationYear chấp nhận `null`
+ * để xóa giá trị hiện tại (khác với `undefined`, nghĩa là không đụng tới field).
+ */
+export interface UpdateStudentData {
+  studentPhone?: string | null
+  parentPhone?: string | null
+  studentZaloId?: string
+  parentZaloId?: string
+  grade?: number
+  studentType?: StudentType
+  school?: string | null
+  highSchoolGraduationYear?: number | null
+  conversationMode?: ConversationMode
+  lastAdminReplyAt?: Date
 }
 
 // Student-specific sort fields

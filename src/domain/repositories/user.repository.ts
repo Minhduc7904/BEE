@@ -22,7 +22,7 @@ export interface CreateUserData {
 
 export interface UpdateUserData {
   username?: string
-  email?: string
+  email?: string | null
   firstName?: string
   lastName?: string
   isActive?: boolean
@@ -31,8 +31,8 @@ export interface UpdateUserData {
   isEmailVerified?: boolean
   emailVerifiedAt?: Date
   lastLoginAt?: Date
-  gender?: Gender
-  dateOfBirth?: Date
+  gender?: Gender | null
+  dateOfBirth?: Date | null
 }
 
 export interface IUserRepository {

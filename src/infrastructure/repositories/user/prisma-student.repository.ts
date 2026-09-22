@@ -3,6 +3,7 @@ import { PrismaService } from '../../../prisma/prisma.service'
 import type { IStudentRepository } from '../../../domain/repositories'
 import type {
   CreateStudentData,
+  UpdateStudentData,
   StudentFilterOptions,
   StudentPaginationOptions,
   StudentListResult,
@@ -480,7 +481,7 @@ export class PrismaStudentRepository implements IStudentRepository {
     return StudentMapper.toDomainStudent(prismaStudent)!
   }
 
-  async update(id: number, data: Partial<Student>): Promise<Student> {
+  async update(id: number, data: UpdateStudentData): Promise<Student> {
     const numericId = NumberUtil.ensureValidId(id, 'Student ID')
 
     const prismaStudent = await this.prisma.student.update({

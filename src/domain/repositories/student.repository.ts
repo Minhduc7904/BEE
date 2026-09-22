@@ -2,6 +2,7 @@
 import { Student } from '../entities/user/student.entity'
 import {
   CreateStudentData,
+  UpdateStudentData,
   StudentFilterOptions,
   StudentPaginationOptions,
   StudentListResult,
@@ -21,7 +22,7 @@ export interface IStudentRepository {
   findAllByIdsAndParentPhoneVariants(studentIds: number[], phoneVariants: string[]): Promise<Student[]>
   findRandomDistinctSchools(excludedSchool: string, limit: number): Promise<string[]>
   unlinkParentZaloId(studentId: number): Promise<Student>
-  update(id: number, data: Partial<Student>): Promise<Student>
+  update(id: number, data: UpdateStudentData): Promise<Student>
   updateMissingGraduationYearByGrade(grade: number, highSchoolGraduationYear: number): Promise<number>
   promoteGradeByGraduationYear(highSchoolGraduationYear: number): Promise<{
     totalStudents: number

@@ -3,7 +3,13 @@ import { Trim } from '../../../shared/decorators'
 import { VALIDATION_MESSAGES } from '../../../shared/constants'
 import { User } from '../../../domain/entities'
 import { Gender } from '../../../shared/enums'
-import { IsOptionalString, IsOptionalEmail, IsOptionalEnumValue, IsOptionalDate, IsOptionalBoolean } from 'src/shared/decorators/validate'
+import {
+  IsOptionalString,
+  IsOptionalBoolean,
+  IsNullableEmail,
+  IsNullableEnumValue,
+  IsNullableDate,
+} from 'src/shared/decorators/validate'
 
 export class UserResponseDto {
   userId: number
@@ -81,12 +87,12 @@ export class UpdateUserDto {
   username?: string
 
   /**
-   * Địa chỉ email (tối đa 120 ký tự)
+   * Địa chỉ email (tối đa 120 ký tự). Truyền null để xóa email hiện tại.
    * @optional
    * @example "user@example.com"
    */
-  @IsOptionalEmail('Email', 120)
-  email?: string
+  @IsNullableEmail('Email', 120)
+  email?: string | null
 
   /**
    * Họ (tối đa 100 ký tự)
@@ -105,20 +111,20 @@ export class UpdateUserDto {
   firstName?: string
 
   /**
-   * Giới tính
+   * Giới tính. Truyền null để xóa giá trị hiện tại.
    * @optional
    * @example "MALE"
    */
-  @IsOptionalEnumValue(Gender, 'Giới tính')
-  gender?: Gender
+  @IsNullableEnumValue(Gender, 'Giới tính')
+  gender?: Gender | null
 
   /**
-   * Ngày sinh
+   * Ngày sinh. Truyền null để xóa giá trị hiện tại.
    * @optional
    * @example "2000-01-01"
    */
-  @IsOptionalDate('Ngày sinh')
-  dateOfBirth?: Date
+  @IsNullableDate('Ngày sinh')
+  dateOfBirth?: Date | null
 
   /**
    * Trạng thái xác thực email
