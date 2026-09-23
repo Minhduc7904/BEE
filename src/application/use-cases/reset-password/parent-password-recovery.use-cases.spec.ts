@@ -3,11 +3,18 @@ import { Parent, ParentStudent, ResetPasswordToken, Student, User } from '../../
 import { GetParentRecoveryStudentsUseCase } from './get-parent-recovery-students.use-case'
 import { VerifyParentRecoveryUseCase } from './verify-parent-recovery.use-case'
 import { ResetParentPasswordUseCase } from './reset-parent-password.use-case'
+import { ParentStudentSummaryService } from '../auth/parent'
 
 function unitOfWork(repos: Partial<UnitOfWorkRepos>): IUnitOfWork {
   return {
     executeInTransaction: (work) => work(repos as UnitOfWorkRepos),
   }
+}
+
+function noAvatarSummaryService(): ParentStudentSummaryService {
+  return {
+    findAvatarUrlsByUserIds: jest.fn().mockResolvedValue(new Map()),
+  } as never
 }
 
 function linkedParent() {
@@ -54,6 +61,7 @@ describe('Parent password recovery', () => {
           findRandomDistinctSchools: jest.fn().mockResolvedValue(['Trường B', 'Trường C', 'Trường D', 'Trường E']),
         } as never,
       }),
+      noAvatarSummaryService(),
     )
 
     const result = await useCase.execute({ phone: '0392923661' })
@@ -70,6 +78,7 @@ describe('Parent password recovery', () => {
       unitOfWork({
         parentRepository: { findByPhone: jest.fn().mockResolvedValue(parent) } as never,
       }),
+      noAvatarSummaryService(),
     )
 
     await expect(useCase.execute({ phone: '0392923661' })).rejects.toMatchObject({ status: 400 })
@@ -84,6 +93,7 @@ describe('Parent password recovery', () => {
           findRandomDistinctSchools: jest.fn().mockResolvedValue(['Trường B', 'Trường B', 'Trường C']),
         } as never,
       }),
+      noAvatarSummaryService(),
     )
 
     await expect(useCase.execute({ phone: '0392923661' })).rejects.toMatchObject({ status: 400 })

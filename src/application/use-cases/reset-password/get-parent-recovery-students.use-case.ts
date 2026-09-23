@@ -3,13 +3,17 @@ import type { IUnitOfWork } from '../../../domain/repositories'
 import { BaseResponseDto, GetParentRecoveryStudentsDto, GetParentRecoveryStudentsResultDto } from '../../dtos'
 import { BusinessLogicException, NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 import { PhoneUtil } from '../../../shared/utils'
+import { ParentStudentSummaryService } from '../auth/parent'
 
 @Injectable()
 export class GetParentRecoveryStudentsUseCase {
-  constructor(@Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork) {}
+  constructor(
+    @Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork,
+    private readonly studentSummaryService: ParentStudentSummaryService,
+  ) {}
 
   async execute(dto: GetParentRecoveryStudentsDto): Promise<BaseResponseDto<GetParentRecoveryStudentsResultDto>> {
-    const students = await this.unitOfWork.executeInTransaction(async (repos) => {
+    const verificationStudents = await this.unitOfWork.executeInTransaction(async (repos) => {
       const phone = PhoneUtil.normalizeVietnamesePhone(dto.phone)
       const parent = await repos.parentRepository.findByPhone(phone, {
         includeUser: true,
@@ -43,12 +47,22 @@ export class GetParentRecoveryStudentsUseCase {
 
           return {
             studentId: student.studentId,
+            userId: student.userId,
             fullName: `${student.user.lastName} ${student.user.firstName}`.trim(),
             schoolOptions: this.shuffle([actualSchool, ...decoys]),
           }
         }),
       )
     })
+
+    const avatarUrlByUserId = await this.studentSummaryService.findAvatarUrlsByUserIds(
+      verificationStudents.map((student) => student.userId),
+    )
+
+    const students = verificationStudents.map(({ userId, ...student }) => ({
+      ...student,
+      avatarUrl: avatarUrlByUserId.get(userId) ?? null,
+    }))
 
     return BaseResponseDto.success('Lấy danh sách học sinh xác minh thành công', { students })
   }

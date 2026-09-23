@@ -7,13 +7,16 @@ import {
   Param,
   Body,
   Query,
+  Res,
   UseInterceptors,
   UploadedFile,
   ParseIntPipe,
   HttpCode,
   HttpStatus,
   DefaultValuePipe,
+  StreamableFile,
 } from '@nestjs/common'
+import type { Response } from 'express'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { FileSizeByRoleInterceptor } from '../../shared/interceptors/file-size-by-role.interceptor'
 import { Injectable } from '@nestjs/common'
@@ -37,6 +40,7 @@ import {
   ExtractMediaTextUseCase,
   GetAdminMediaRawContentUseCase,
   GetMyMediaRawContentUseCase,
+  GetPublicMediaUsageContentUseCase,
 } from '../../application/use-cases'
 import {
   UploadMediaDto,
@@ -85,6 +89,7 @@ export class MediaController {
     private readonly extractMediaTextUseCase: ExtractMediaTextUseCase,
     private readonly getAdminMediaRawContentUseCase: GetAdminMediaRawContentUseCase,
     private readonly getMyMediaRawContentUseCase: GetMyMediaRawContentUseCase,
+    private readonly getPublicMediaUsageContentUseCase: GetPublicMediaUsageContentUseCase,
   ) { }
 
   @UseInterceptors(
@@ -160,6 +165,32 @@ export class MediaController {
     BaseResponseDto<{ data: Array<{ name: string; label: string; description: string }>; total: number }>
   > {
     return ExceptionHandler.execute(() => this.getBucketsListUseCase.execute())
+  }
+
+  /**
+   * Serve raw content of a PUBLIC media usage (e.g. student avatar).
+   * No auth: access is gated by MediaUsage.visibility === PUBLIC, not by mediaId.
+   * URL is stable and never expires, unlike presigned view/download URLs.
+   */
+  @Get('usage/:usageId/content')
+  @HttpCode(HttpStatus.OK)
+  async getPublicMediaUsageContent(
+    @Param('usageId', ParseIntPipe) usageId: number,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<StreamableFile> {
+    return ExceptionHandler.execute(async () => {
+      const { stream, contentType, size, filename } =
+        await this.getPublicMediaUsageContentUseCase.execute(usageId)
+
+      res.set({
+        'Content-Type': contentType,
+        'Content-Length': size.toString(),
+        'Content-Disposition': `inline; filename="${filename}"`,
+        'Cache-Control': 'public, max-age=31536000, immutable',
+      })
+
+      return new StreamableFile(stream)
+    })
   }
 
   @Get(':id')

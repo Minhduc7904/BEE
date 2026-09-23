@@ -9,6 +9,7 @@ export class ParentRecoveryStudentDto {
   studentId: number
   fullName: string
   schoolOptions: string[]
+  avatarUrl: string | null
 }
 
 export class GetParentRecoveryStudentsResultDto {

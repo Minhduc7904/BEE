@@ -14,6 +14,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR
     let message = 'Đã xảy ra lỗi không mong muốn'
+    let code: string | undefined
 
     if (exception instanceof HttpException) {
       status = exception.getStatus()
@@ -25,6 +26,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
         message = Array.isArray(exceptionResponse['message'])
           ? exceptionResponse['message'].join(', ')
           : exceptionResponse['message']
+        if (typeof exceptionResponse['code'] === 'string') {
+          code = exceptionResponse['code']
+        }
       }
     } else if (exception instanceof Error) {
       // Xử lý các lỗi không phải HttpException
@@ -43,7 +47,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       this.logger.warn(`${request.method} ${request.url} - Status: ${status} - Message: ${message}`)
     }
 
-    const errorResponse = new ErrorResponseDto(message, status, request.url)
+    const errorResponse = new ErrorResponseDto(message, status, request.url, code)
 
     response.status(status).json(errorResponse)
   }

@@ -180,6 +180,7 @@ export class PrismaMediaUsageRepository implements IMediaUsageRepository {
   async findById(usageId: number): Promise<MediaUsageEntity | null> {
     const usage = await this.prisma.mediaUsage.findUnique({
       where: { usageId },
+      include: { media: true },
     })
 
     return usage ? MediaUsageMapper.toDomain(usage) : null

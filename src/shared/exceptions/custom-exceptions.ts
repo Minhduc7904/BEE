@@ -64,9 +64,12 @@ export class ValidationException extends HttpException {
  * HTTP 409
  */
 export class ConflictException extends HttpException {
-  constructor(message: string) {
-    super(message, HttpStatus.CONFLICT)
+  readonly code?: string
+
+  constructor(message: string, code?: string) {
+    super(code ? { message, code } : message, HttpStatus.CONFLICT)
     this.name = 'ConflictException'
+    this.code = code
   }
 }
 

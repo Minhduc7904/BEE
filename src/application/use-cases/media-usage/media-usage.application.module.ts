@@ -10,6 +10,7 @@ const MEDIA_USAGE_USE_CASES = [
   mediaUsageUseCase.GetMediaUsagesByMediaUseCase,
   mediaUsageUseCase.GetMediaUsagesByEntityUseCase,
   mediaUsageUseCase.GetMediaUsagesUseCase,
+  mediaUsageUseCase.GetPublicMediaUsageContentUseCase,
 ]
 
 @Module({

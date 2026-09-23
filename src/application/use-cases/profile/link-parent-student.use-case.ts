@@ -37,7 +37,7 @@ export class LinkParentStudentUseCase {
       }
 
       if (await repos.parentStudentRepository.exists(parent.parentId, studentId)) {
-        throw new ConflictException('Học sinh đã được liên kết với tài khoản phụ huynh')
+        throw new ConflictException('Học sinh đã được liên kết với tài khoản phụ huynh', 'ALREADY_LINKED')
       }
 
       const [matchedStudent] = await repos.studentRepository.findAllByIdsAndParentPhoneVariants(
