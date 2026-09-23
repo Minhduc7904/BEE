@@ -70,7 +70,7 @@ export class CorsConfig {
   private static getProductionOptions(): CorsOptions {
     const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
       ? process.env.CORS_ALLOWED_ORIGINS.split(',').map((origin) => origin.trim())
-      : ['https://beeedu.vn']
+      : ['https://beeedu.vn', 'http://localhost:7904']
 
     return {
       origin: (origin, callback) => {
