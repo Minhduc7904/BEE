@@ -148,7 +148,9 @@ export class PrismaParentStudentResultsReadService extends ParentStudentResultsR
       maxPoints: row.competitionSubmit
         ? this.toNumber(row.competitionSubmit.maxPoints)
         : this.homeworkMaxPoints(row.points),
-      feedback: row.competitionSubmit ? row.competitionSubmit.feedback : row.feedback,
+      // AI feedback được ghi vào homework_submits.feedback khi bài nộp gắn với BTVN
+      // (competition_submits.feedback chỉ được set cho bài thi độc lập) → ưu tiên feedback của homework trước.
+      feedback: row.feedback ?? row.competitionSubmit?.feedback ?? null,
       sectionScores: this.toSectionScores(
         row.competitionSubmit?.competitionAnswers ?? [],
         row.competitionSubmit?.competition.examId,
