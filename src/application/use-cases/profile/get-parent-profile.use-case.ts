@@ -39,7 +39,7 @@ export class GetParentProfileUseCase {
 
     const linkedStudents = (parent.studentLinks ?? [])
       .map((link) => link.student)
-      .filter((student): student is NonNullable<typeof student> => Boolean(student))
+      .filter((student): student is NonNullable<typeof student> => student != null && student.isActive())
       .sort((left, right) => left.studentId - right.studentId)
     const students = await this.studentSummaryService.createMany(linkedStudents)
 

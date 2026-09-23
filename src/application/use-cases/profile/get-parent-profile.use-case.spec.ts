@@ -25,7 +25,7 @@ const parentIdentity: AuthenticatedUser = {
 
 describe('GetParentProfileUseCase', () => {
   it('trả Parent cùng toàn bộ học sinh liên kết theo thứ tự ổn định', async () => {
-    const students = [15, 12].map(
+    const students = [15, 12, 18].map(
       (studentId) =>
         new Student({
           studentId,
@@ -38,6 +38,7 @@ describe('GetParentProfileUseCase', () => {
             passwordHash: 'hash',
             firstName: `Học sinh ${studentId}`,
             lastName: 'Nguyễn',
+            isActive: studentId != 18,
           }),
         }),
     )

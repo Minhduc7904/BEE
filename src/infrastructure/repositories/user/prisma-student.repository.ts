@@ -430,7 +430,10 @@ export class PrismaStudentRepository implements IStudentRepository {
 
   async findAllByParentPhoneVariants(phoneVariants: string[]): Promise<Student[]> {
     const students = await this.prisma.student.findMany({
-      where: { parentPhone: { in: phoneVariants } },
+      where: {
+        parentPhone: { in: phoneVariants },
+        user: { isActive: true },
+      },
       include: { user: true },
       orderBy: { studentId: 'asc' },
     })
@@ -445,6 +448,7 @@ export class PrismaStudentRepository implements IStudentRepository {
       where: {
         studentId: { in: studentIds },
         parentPhone: { in: phoneVariants },
+        user: { isActive: true },
       },
       include: { user: true },
       orderBy: { studentId: 'asc' },
