@@ -1,6 +1,7 @@
 import { Parent } from '../../../domain/entities/user/parent.entity'
 import { Student } from '../../../domain/entities/user/student.entity'
 import { Gender } from '../../../shared/enums'
+import { UpdateUserDto } from '../user/user.dto'
 import {
   IsOptionalString,
   IsRequiredLocalPhoneVN,
@@ -86,6 +87,9 @@ export class ParentResponseDto {
   firstName: string
   lastName: string
   fullName: string
+  email?: string
+  gender?: Gender
+  dateOfBirth?: Date
   isActive: boolean
   students: ParentStudentSummaryDto[]
 
@@ -105,8 +109,18 @@ export class ParentResponseDto {
       firstName: parent.user.firstName,
       lastName: parent.user.lastName,
       fullName: `${parent.user.lastName} ${parent.user.firstName}`.trim(),
+      email: parent.user.email,
+      gender: parent.user.gender,
+      dateOfBirth: parent.user.dateOfBirth,
       isActive: parent.user.isActive,
       students: students ?? ParentStudentSummaryDto.fromStudents(linkedStudents),
     }
   }
 }
+
+/**
+ * DTO cập nhật thông tin phụ huynh
+ * @description Chứa các trường có thể tự cập nhật của phụ huynh (extends UpdateUserDto).
+ * Số điện thoại (phone) là định danh đăng nhập nên không cho tự đổi qua endpoint này.
+ */
+export class UpdateParentDto extends UpdateUserDto {}

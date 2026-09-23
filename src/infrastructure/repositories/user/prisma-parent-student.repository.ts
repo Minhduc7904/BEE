@@ -44,4 +44,20 @@ export class PrismaParentStudentRepository implements IParentStudentRepository {
 
     return count > 0
   }
+
+  async delete(parentId: number, studentId: number): Promise<boolean> {
+    const pId = NumberUtil.ensureValidId(parentId, 'Parent ID')
+    const sId = NumberUtil.ensureValidId(studentId, 'Student ID')
+
+    await this.prisma.parentStudent.delete({
+      where: {
+        parentId_studentId: {
+          parentId: pId,
+          studentId: sId,
+        },
+      },
+    })
+
+    return true
+  }
 }
