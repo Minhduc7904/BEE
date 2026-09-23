@@ -30,6 +30,8 @@ export class CompetitionSubmit {
     competition?: Competition | null
     student?: Student | null
     competitionAnswers?: CompetitionAnswer[]
+    /** Bài nộp BTVN liên kết (nếu competition này được làm trong flow bài tập về nhà) */
+    homeworkSubmit?: { homeworkSubmitId: number; feedback?: string | null } | null
 
     constructor(data: {
         competitionSubmitId: number
@@ -51,6 +53,7 @@ export class CompetitionSubmit {
         competition?: Competition | null | undefined
         student?: Student | null | undefined
         competitionAnswers?: CompetitionAnswer[]
+        homeworkSubmit?: { homeworkSubmitId: number; feedback?: string | null } | null
     }) {
         this.competitionSubmitId = data.competitionSubmitId
         this.competitionId = data.competitionId
@@ -71,6 +74,7 @@ export class CompetitionSubmit {
         this.competition = data.competition
         this.student = data.student
         this.competitionAnswers = data.competitionAnswers
+        this.homeworkSubmit = data.homeworkSubmit
     }
 
     /* ===================== STATUS CHECK METHODS ===================== */
@@ -215,6 +219,7 @@ export class CompetitionSubmit {
             competition: this.competition,
             student: this.student,
             competitionAnswers: this.competitionAnswers,
+            homeworkSubmit: this.homeworkSubmit,
         })
     }
 }

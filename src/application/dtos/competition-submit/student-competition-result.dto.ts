@@ -101,6 +101,15 @@ export class StudentCompetitionResultDto {
     /** null khi allowViewScore = false */
     scorePercentage?: number | null
 
+    /**
+     * Nhận xét (do AI sinh hoặc giáo viên chỉnh sửa) – null khi allowViewScore = false.
+     * Ưu tiên nhận xét của homeworkSubmit (nếu bài nộp này thuộc 1 BTVN), fallback về
+     * nhận xét của chính competitionSubmit.
+     */
+    feedback?: string | null
+    /** Nguồn của `feedback` ở trên, giúp FE biết đang hiển thị nhận xét BTVN hay của cuộc thi */
+    feedbackSource?: 'homework_submit' | 'competition_submit' | null
+
     createdAt: Date
     updatedAt: Date
 
@@ -184,6 +193,16 @@ export class StudentCompetitionResultDto {
                     ? Math.round((Number(submit.totalPoints) / Number(submit.maxPoints)) * 100)
                     : null
             )
+
+            // Ưu tiên nhận xét của homeworkSubmit, fallback về nhận xét của competitionSubmit
+            const homeworkFeedback = submit.homeworkSubmit?.feedback ?? null
+            const competitionFeedback = submit.feedback ?? null
+            dto.feedback = homeworkFeedback ?? competitionFeedback
+            dto.feedbackSource = homeworkFeedback
+                ? 'homework_submit'
+                : competitionFeedback
+                    ? 'competition_submit'
+                    : null
         }
 
         // ─── Rule 2: showResultDetail ────────────────────────────────────────

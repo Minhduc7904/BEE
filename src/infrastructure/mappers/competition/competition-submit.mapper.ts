@@ -51,6 +51,13 @@ export class CompetitionSubmitMapper {
                     (a: any) => CompetitionAnswerMapper.toDomainCompetitionAnswer(a),
                 ).filter(Boolean)
                 : undefined,
+
+            homeworkSubmit: prismaSubmit.homeworkSubmit
+                ? {
+                    homeworkSubmitId: prismaSubmit.homeworkSubmit.homeworkSubmitId,
+                    feedback: prismaSubmit.homeworkSubmit.feedback ?? undefined,
+                }
+                : undefined,
         })
     }
 

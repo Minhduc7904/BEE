@@ -1215,6 +1215,12 @@ export class PrismaCompetitionSubmitRepository implements ICompetitionSubmitRepo
             user: true,
           },
         },
+        homeworkSubmit: {
+          select: {
+            homeworkSubmitId: true,
+            feedback: true,
+          },
+        },
         competitionAnswers: {
           orderBy: { questionId: 'asc' },
           include: {
