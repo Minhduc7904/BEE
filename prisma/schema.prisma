@@ -63,6 +63,7 @@ enum BackgroundJobCode {
   AUDIT_LOG_RETENTION_CLEANUP
   BACKGROUND_JOB_RUN_RETENTION_CLEANUP
   COMPETITION_SUBMISSION_AUTO_SUBMIT
+  USER_REFRESH_TOKEN_CLEANUP
 }
 
 // Vòng đời của một lần chạy job; chỉ application/scheduler được phép chuyển trạng thái.

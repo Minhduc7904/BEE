@@ -7,6 +7,8 @@ export enum BackgroundJobCode {
   ASSISTANT_SHIFT_REMINDER = 'ASSISTANT_SHIFT_REMINDER',
   AUDIT_LOG_RETENTION_CLEANUP = 'AUDIT_LOG_RETENTION_CLEANUP',
   BACKGROUND_JOB_RUN_RETENTION_CLEANUP = 'BACKGROUND_JOB_RUN_RETENTION_CLEANUP',
+  COMPETITION_SUBMISSION_AUTO_SUBMIT = 'COMPETITION_SUBMISSION_AUTO_SUBMIT',
+  USER_REFRESH_TOKEN_CLEANUP = 'USER_REFRESH_TOKEN_CLEANUP',
 }
 
 export const BackgroundJobCodeLabels: Record<BackgroundJobCode, string> = {
@@ -14,4 +16,6 @@ export const BackgroundJobCodeLabels: Record<BackgroundJobCode, string> = {
   [BackgroundJobCode.ASSISTANT_SHIFT_REMINDER]: 'Nhắc lịch và xác nhận vắng trợ giảng',
   [BackgroundJobCode.AUDIT_LOG_RETENTION_CLEANUP]: 'Dọn audit log quá hạn',
   [BackgroundJobCode.BACKGROUND_JOB_RUN_RETENTION_CLEANUP]: 'Dọn lịch sử chạy job quá hạn',
+  [BackgroundJobCode.COMPETITION_SUBMISSION_AUTO_SUBMIT]: 'Tự động nộp bài thi khi hết giờ',
+  [BackgroundJobCode.USER_REFRESH_TOKEN_CLEANUP]: 'Dọn refresh token hết hạn',
 }

@@ -40,9 +40,33 @@ export class RetentionCleanupScheduler {
         this.logger.debug('Bỏ qua dọn lịch sử chạy job vì job đang tắt')
         return
       }
-      this.logger.log(`Dọn lịch sử chạy job thành công: xóa ${result.deletedCount} bản ghi, job #${result.backgroundJobRunId}`)
+      this.logger.log(
+        `Dọn lịch sử chạy job thành công: xóa ${result.deletedCount} bản ghi, job #${result.backgroundJobRunId}`,
+      )
     } catch (error) {
       this.logError('Dọn lịch sử chạy job theo lịch thất bại', error)
+    }
+  }
+
+  @Cron('0 20 3 * * *', {
+    name: 'user-refresh-token-cleanup',
+    timeZone: 'Asia/Ho_Chi_Minh',
+    waitForCompletion: true,
+  })
+  async cleanUserRefreshTokens(): Promise<void> {
+    try {
+      const result = await this.retentionCleanupService.executeUserRefreshTokenCleanup(
+        'SCHEDULER:USER_REFRESH_TOKEN_CLEANUP',
+      )
+      if (!result) {
+        this.logger.debug('Bỏ qua dọn refresh token vì job đang tắt')
+        return
+      }
+      this.logger.log(
+        `Dọn refresh token thành công: xóa ${result.deletedCount} bản ghi trong ${result.batchCount} batch, job #${result.backgroundJobRunId}, còn dữ liệu=${result.hasMore}`,
+      )
+    } catch (error) {
+      this.logError('Dọn refresh token theo lịch thất bại', error)
     }
   }
 

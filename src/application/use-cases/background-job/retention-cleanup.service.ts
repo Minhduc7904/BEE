@@ -1,12 +1,14 @@
 import { ConflictException, Inject, Injectable } from '@nestjs/common'
 import { randomUUID } from 'crypto'
 
-import type { CreateBackgroundJobData } from '../../../domain/interface/background-job'
-import type { IUnitOfWork, UnitOfWorkRepos } from '../../../domain/repositories'
+import type { BackgroundJobRunResultSummary, CreateBackgroundJobData } from '../../../domain/interface/background-job'
+import type { IUnitOfWork } from '../../../domain/repositories'
 import { BackgroundJobCode, BackgroundJobRunStatus } from '../../../shared/enums'
 
 const AUDIT_LOG_RETENTION_DAYS = 30
 const BACKGROUND_JOB_RUN_RETENTION_DAYS = 7
+const USER_REFRESH_TOKEN_BATCH_SIZE = 1_000
+const CLEANUP_DEADLINE_RESERVE_MILLISECONDS = 60_000
 
 export const AUDIT_LOG_RETENTION_CLEANUP_JOB: CreateBackgroundJobData = {
   code: BackgroundJobCode.AUDIT_LOG_RETENTION_CLEANUP,
@@ -26,6 +28,15 @@ export const BACKGROUND_JOB_RUN_RETENTION_CLEANUP_JOB: CreateBackgroundJobData =
   maxRuntimeSeconds: 900,
 }
 
+export const USER_REFRESH_TOKEN_CLEANUP_JOB: CreateBackgroundJobData = {
+  code: BackgroundJobCode.USER_REFRESH_TOKEN_CLEANUP,
+  displayName: 'Dọn refresh token hết hạn',
+  cronExpression: '0 20 3 * * *',
+  timezone: 'Asia/Ho_Chi_Minh',
+  isEnabled: true,
+  maxRuntimeSeconds: 900,
+}
+
 export interface RetentionCleanupResult {
   backgroundJobRunId: number
   deletedCount: number
@@ -33,48 +44,82 @@ export interface RetentionCleanupResult {
   cutoffAt: string
 }
 
-type CleanupOperation = (repos: UnitOfWorkRepos, cutoff: Date) => Promise<number>
+export interface UserRefreshTokenCleanupResult {
+  backgroundJobRunId: number
+  deletedCount: number
+  batchCount: number
+  batchSize: number
+  cutoffAt: string
+  hasMore: boolean
+}
+
+interface CleanupTiming {
+  startedAt: Date
+  stopAt: Date
+}
+
+interface CleanupExecution {
+  backgroundJobId: number
+  backgroundJobRunId: number
+  lockToken: string
+  startedAt: Date
+  leaseExpiresAt: Date
+}
+
+type CleanupOperation<TSummary extends BackgroundJobRunResultSummary> = (timing: CleanupTiming) => Promise<TSummary>
 
 @Injectable()
 export class RetentionCleanupService {
   constructor(@Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork) {}
 
   executeAuditLogCleanup(workerId: string): Promise<RetentionCleanupResult | null> {
-    return this.executeScheduled(
-      AUDIT_LOG_RETENTION_CLEANUP_JOB,
-      AUDIT_LOG_RETENTION_DAYS,
-      workerId,
-      (repos, cutoff) => repos.adminAuditLogRepository.deleteOlderThan(cutoff),
-    )
+    return this.executeScheduled(AUDIT_LOG_RETENTION_CLEANUP_JOB, workerId, async ({ startedAt }) => {
+      const cutoff = new Date(startedAt.getTime() - AUDIT_LOG_RETENTION_DAYS * 24 * 60 * 60 * 1000)
+      const deletedCount = await this.unitOfWork.executeInTransaction((repos) =>
+        repos.adminAuditLogRepository.deleteOlderThan(cutoff),
+      )
+      return {
+        deletedCount,
+        retentionDays: AUDIT_LOG_RETENTION_DAYS,
+        cutoffAt: cutoff.toISOString(),
+      }
+    })
   }
 
   executeBackgroundJobRunCleanup(workerId: string): Promise<RetentionCleanupResult | null> {
-    return this.executeScheduled(
-      BACKGROUND_JOB_RUN_RETENTION_CLEANUP_JOB,
-      BACKGROUND_JOB_RUN_RETENTION_DAYS,
-      workerId,
-      (repos, cutoff) => repos.backgroundJobRunRepository.deleteFinishedBefore(cutoff),
+    return this.executeScheduled(BACKGROUND_JOB_RUN_RETENTION_CLEANUP_JOB, workerId, async ({ startedAt }) => {
+      const cutoff = new Date(startedAt.getTime() - BACKGROUND_JOB_RUN_RETENTION_DAYS * 24 * 60 * 60 * 1000)
+      const deletedCount = await this.unitOfWork.executeInTransaction((repos) =>
+        repos.backgroundJobRunRepository.deleteFinishedBefore(cutoff),
+      )
+      return {
+        deletedCount,
+        retentionDays: BACKGROUND_JOB_RUN_RETENTION_DAYS,
+        cutoffAt: cutoff.toISOString(),
+      }
+    })
+  }
+
+  executeUserRefreshTokenCleanup(workerId: string): Promise<UserRefreshTokenCleanupResult | null> {
+    return this.executeScheduled(USER_REFRESH_TOKEN_CLEANUP_JOB, workerId, ({ startedAt, stopAt }) =>
+      this.deleteExpiredUserRefreshTokens(startedAt, stopAt),
     )
   }
 
-  private async executeScheduled(
+  private async executeScheduled<TSummary extends BackgroundJobRunResultSummary>(
     jobConfig: CreateBackgroundJobData,
-    retentionDays: number,
     workerId: string,
-    cleanup: CleanupOperation,
-  ): Promise<RetentionCleanupResult | null> {
-    const job = await this.unitOfWork.executeInTransaction((repos) =>
-      repos.backgroundJobRepository.upsert(jobConfig),
-    )
+    cleanup: CleanupOperation<TSummary>,
+  ): Promise<(TSummary & { backgroundJobRunId: number }) | null> {
+    const job = await this.unitOfWork.executeInTransaction((repos) => repos.backgroundJobRepository.upsert(jobConfig))
     if (!job.canRun()) return null
 
     const execution = await this.acquireExecution(job.backgroundJobId, job.maxRuntimeSeconds, workerId)
     if (!execution) throw new ConflictException('RETENTION_CLEANUP_ALREADY_RUNNING')
 
-    const cutoff = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000)
+    const stopAt = new Date(execution.leaseExpiresAt.getTime() - CLEANUP_DEADLINE_RESERVE_MILLISECONDS)
     try {
-      const deletedCount = await this.unitOfWork.executeInTransaction((repos) => cleanup(repos, cutoff))
-      const result = { deletedCount, retentionDays, cutoffAt: cutoff.toISOString() }
+      const result = await cleanup({ startedAt: execution.startedAt, stopAt })
       await this.completeExecution(execution.backgroundJobRunId, result)
       return { backgroundJobRunId: execution.backgroundJobRunId, ...result }
     } catch (error) {
@@ -87,7 +132,45 @@ export class RetentionCleanupService {
     }
   }
 
-  private async acquireExecution(backgroundJobId: number, maxRuntimeSeconds: number, workerId: string) {
+  private async deleteExpiredUserRefreshTokens(
+    cutoffAt: Date,
+    stopAt: Date,
+  ): Promise<Omit<UserRefreshTokenCleanupResult, 'backgroundJobRunId'>> {
+    let deletedCount = 0
+    let batchCount = 0
+    let hasMore = true
+
+    while (Date.now() < stopAt.getTime()) {
+      const currentBatchCount = await this.unitOfWork.executeInTransaction((repos) =>
+        repos.userRefreshTokenRepository.deleteExpiredTokens(cutoffAt, USER_REFRESH_TOKEN_BATCH_SIZE),
+      )
+
+      if (currentBatchCount === 0) {
+        hasMore = false
+        break
+      }
+
+      deletedCount += currentBatchCount
+      batchCount += 1
+      hasMore = currentBatchCount === USER_REFRESH_TOKEN_BATCH_SIZE
+
+      if (!hasMore) break
+    }
+
+    return {
+      deletedCount,
+      batchCount,
+      batchSize: USER_REFRESH_TOKEN_BATCH_SIZE,
+      cutoffAt: cutoffAt.toISOString(),
+      hasMore,
+    }
+  }
+
+  private async acquireExecution(
+    backgroundJobId: number,
+    maxRuntimeSeconds: number,
+    workerId: string,
+  ): Promise<CleanupExecution | null> {
     return this.unitOfWork.executeInTransaction(async (repos) => {
       const now = new Date()
       const lockToken = randomUUID()
@@ -115,14 +198,17 @@ export class RetentionCleanupService {
         lockToken,
         leaseExpiresAt: lock.leaseExpiresAt,
       })
-      return { backgroundJobId, backgroundJobRunId: run.backgroundJobRunId, lockToken }
+      return {
+        backgroundJobId,
+        backgroundJobRunId: run.backgroundJobRunId,
+        lockToken,
+        startedAt: now,
+        leaseExpiresAt: lock.leaseExpiresAt,
+      }
     })
   }
 
-  private async completeExecution(
-    backgroundJobRunId: number,
-    result: Omit<RetentionCleanupResult, 'backgroundJobRunId'>,
-  ): Promise<void> {
+  private async completeExecution(backgroundJobRunId: number, result: BackgroundJobRunResultSummary): Promise<void> {
     await this.unitOfWork.executeInTransaction((repos) =>
       repos.backgroundJobRunRepository.update(backgroundJobRunId, {
         status: BackgroundJobRunStatus.SUCCEEDED,

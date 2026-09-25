@@ -1,9 +1,6 @@
 // src/infrastructure/repositories/prisma-user-refresh-token.repository.ts
 import { PrismaService } from '../../../prisma/prisma.service'
-import type {
-  IUserRefreshTokenRepository,
-  CreateRefreshTokenData,
-} from '../../../domain/repositories'
+import type { IUserRefreshTokenRepository, CreateRefreshTokenData } from '../../../domain/repositories'
 import { UserRefreshToken } from '../../../domain/entities'
 import { RefreshTokenMapper } from '../../mappers'
 import { NumberUtil } from '../../../shared/utils'
@@ -82,12 +79,23 @@ export class PrismaUserRefreshTokenRepository implements IUserRefreshTokenReposi
     })
   }
 
-  async deleteExpiredTokens(): Promise<number> {
-    const result = await this.prisma.userRefreshToken.deleteMany({
+  async deleteExpiredTokens(cutoffAt: Date, limit: number): Promise<number> {
+    const expiredTokens = await this.prisma.userRefreshToken.findMany({
       where: {
         expiresAt: {
-          lt: new Date(),
+          lt: cutoffAt,
         },
+      },
+      orderBy: [{ expiresAt: 'asc' }, { tokenId: 'asc' }],
+      take: limit,
+      select: { tokenId: true },
+    })
+
+    if (expiredTokens.length === 0) return 0
+
+    const result = await this.prisma.userRefreshToken.deleteMany({
+      where: {
+        tokenId: { in: expiredTokens.map(({ tokenId }) => tokenId) },
       },
     })
     return result.count
