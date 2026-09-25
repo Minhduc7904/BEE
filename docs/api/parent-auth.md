@@ -76,9 +76,14 @@ Thành công: `201 Created`, `data` gồm `userId`, `parentId`, `phone`, tên, t
 {
   "phone": "0392923661",
   "password": "Example123",
-  "deviceFingerprint": "device-example"
+  "deviceFingerprint": "device-example",
+  "deviceId": "3f1c9c62-5f3e-4e1b-9a4e-2f7f4f8a1c11"
 }
 ```
+
+`deviceId` là mã cài đặt ứng dụng (UUID do app sinh một lần, tối đa 128 ký tự, không bắt buộc). Đăng nhập thu hồi mọi
+phiên cũ nên đồng thời gỡ mọi thiết bị nhận thông báo đẩy của tài khoản, **trừ** thiết bị có `deviceId` khớp; không gửi
+`deviceId` thì gỡ hết. Chi tiết ở [parent-notifications.md](parent-notifications.md).
 
 Thành công: `200 OK`:
 
@@ -100,11 +105,21 @@ Thành công: `200 OK`:
       "lastName": "Nguyễn",
       "fullName": "An Nguyễn",
       "isActive": true,
-      "students": []
+      "students": [],
+      "notificationSettings": {
+        "isEnabled": null,
+        "attendanceEnabled": true,
+        "resultEnabled": true,
+        "tuitionEnabled": true
+      }
     }
   }
 }
 ```
+
+`notificationSettings` cũng có trong response của register, `GET /api/parent/profile` và `PUT /api/parent/profile`.
+`isEnabled` là `null` khi phụ huynh chưa được hỏi nhận thông báo; app dùng giá trị này để quyết định có hiện popup xin
+quyền hay không.
 
 Sai số điện thoại hoặc mật khẩu trả cùng lỗi `401`; tài khoản bị khóa cũng trả `401` với hướng dẫn liên hệ admin.
 
@@ -132,7 +147,10 @@ kèm `Retry-After`.
 ## Refresh và logout
 
 - `POST /api/auth/refresh`: body `{ "refreshToken": "..." }`; trả token pair mới và giữ `parentId` trong JWT.
-- `POST /api/auth/logout`: body `{ "refreshToken": "..." }`; revoke refresh token hiện tại.
+- `POST /api/auth/logout`: body `{ "refreshToken": "...", "deviceId": "..." }` (`deviceId` không bắt buộc); revoke refresh
+  token hiện tại và gỡ thiết bị nhận thông báo đẩy: đúng `deviceId` nếu có, không có thì gỡ mọi thiết bị của tài khoản. Chỉ
+  chạy khi refresh token còn hiệu lực, nên máy cũ đã bị đăng xuất gọi logout muộn (nhận `401`) không gỡ nhầm máy mới.
+- Đặt lại mật khẩu và logout-all cũng gỡ mọi thiết bị nhận thông báo đẩy.
 - Mobile chỉ lưu token qua `TokenStore`; không đưa token, mật khẩu hoặc số điện thoại vào URL/log/analytics.
 
 Error envelope chung:

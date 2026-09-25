@@ -1,7 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common'
 import type { IUnitOfWork } from '../../../../domain/repositories'
 import { PasswordService } from '../../../interfaces'
-import { BaseResponseDto, ParentResponseDto, RegisterParentDto } from '../../../dtos'
+import {
+  BaseResponseDto,
+  ParentNotificationSettingsResponseDto,
+  ParentResponseDto,
+  RegisterParentDto,
+} from '../../../dtos'
 import {
   ConflictException,
   UniqueConstraintException,
@@ -79,7 +84,8 @@ export class RegisterParentUseCase {
         : undefined
       return BaseResponseDto.success(
         'Tạo tài khoản phụ huynh thành công',
-        ParentResponseDto.fromParent(created, students),
+        // Phụ huynh vừa tạo chưa có lựa chọn nào nên dùng cài đặt thông báo mặc định.
+        ParentResponseDto.fromParent(created, students, ParentNotificationSettingsResponseDto.from(null, null)),
       )
     } catch (error) {
       if (error instanceof UniqueConstraintException) {

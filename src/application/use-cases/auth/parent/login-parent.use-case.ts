@@ -6,6 +6,7 @@ import { BaseResponseDto, LoginParentRequestDto, LoginResponseDto, ParentRespons
 import { UnauthorizedException } from '../../../../shared/exceptions/custom-exceptions'
 import { PhoneUtil } from '../../../../shared/utils'
 import { ParentStudentSummaryService } from './parent-student-summary.service'
+import { loadParentNotificationSettings } from '../../parent-notification/parent-notification-access'
 
 @Injectable()
 export class LoginParentUseCase {
@@ -40,6 +41,8 @@ export class LoginParentUseCase {
       }
 
       await repos.userRefreshTokenRepository.revokeAllUserTokens(parent.userId)
+      // Chỉ thiết bị vừa đăng nhập (cùng deviceId) được giữ lại nhận thông báo; thiết bị khác đã bị đăng xuất.
+      await repos.userDeviceRepository.deleteByUserIdExceptDevice(parent.userId, dto.deviceId)
       await repos.userRepository.update(parent.userId, { lastLoginAt: new Date() })
 
       const payload = {
@@ -70,7 +73,8 @@ export class LoginParentUseCase {
         refreshToken,
         expiresIn: this.jwtTokenService.getAccessTokenExpirationTime(),
       }
-      return { tokens, parent }
+      const notificationSettings = await loadParentNotificationSettings(repos, parent.userId, parent.parentId)
+      return { tokens, parent, notificationSettings }
     })
     const linkedStudents = (result.parent.studentLinks ?? [])
       .map((link) => link.student)
@@ -78,7 +82,7 @@ export class LoginParentUseCase {
     const students = this.studentSummaryService
       ? await this.studentSummaryService.createMany(linkedStudents)
       : undefined
-    const user = ParentResponseDto.fromParent(result.parent, students)
+    const user = ParentResponseDto.fromParent(result.parent, students, result.notificationSettings)
     return BaseResponseDto.success('Đăng nhập thành công', {
       tokens: result.tokens,
       user,

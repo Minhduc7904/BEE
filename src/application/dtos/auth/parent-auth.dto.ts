@@ -2,6 +2,7 @@ import { Parent } from '../../../domain/entities/user/parent.entity'
 import { Student } from '../../../domain/entities/user/student.entity'
 import { Gender } from '../../../shared/enums'
 import { UpdateUserDto } from '../user/user.dto'
+import { ParentNotificationSettingsResponseDto } from '../parent-notification/parent-notification-settings-response.dto'
 import {
   IsOptionalString,
   IsRequiredLocalPhoneVN,
@@ -46,6 +47,10 @@ export class LoginParentRequestDto {
 
   @IsOptionalString('Dấu vân tay thiết bị', 128)
   deviceFingerprint?: string
+
+  /** Mã cài đặt ứng dụng; các thiết bị khác của tài khoản bị gỡ khỏi danh sách nhận thông báo khi đăng nhập. */
+  @IsOptionalString('Mã thiết bị', 128)
+  deviceId?: string
 }
 
 export class ParentStudentSummaryDto {
@@ -92,8 +97,13 @@ export class ParentResponseDto {
   dateOfBirth?: Date
   isActive: boolean
   students: ParentStudentSummaryDto[]
+  notificationSettings?: ParentNotificationSettingsResponseDto
 
-  static fromParent(parent: Parent, students?: ParentStudentSummaryDto[]): ParentResponseDto {
+  static fromParent(
+    parent: Parent,
+    students?: ParentStudentSummaryDto[],
+    notificationSettings?: ParentNotificationSettingsResponseDto,
+  ): ParentResponseDto {
     if (!parent.user) {
       throw new Error('Parent entity must include user details')
     }
@@ -114,6 +124,7 @@ export class ParentResponseDto {
       dateOfBirth: parent.user.dateOfBirth,
       isActive: parent.user.isActive,
       students: students ?? ParentStudentSummaryDto.fromStudents(linkedStudents),
+      notificationSettings,
     }
   }
 }

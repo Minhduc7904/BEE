@@ -98,6 +98,7 @@ import {
   AssistantShiftAssignmentExchangeEmailService,
   AssistantShiftReminderEmailService,
   ZaloService,
+  FirebasePushService,
   // SupabaseStorageService, // Disabled: not using Supabase anymore
   MediaProcessingService,
   DocumentThumbnailService,
@@ -127,6 +128,7 @@ import { GoogleStudentStrategy } from './strategies/google-student.strategy'
 import jwtConfig from '../config/jwt.config'
 import googleOAuthConfig from '../config/google-oauth.config'
 import emailConfig from '../config/email.config'
+import firebaseConfig from '../config/firebase.config'
 import httpClientConfig from '../config/http-client.config'
 import supabaseConfig from '../config/supabase.config'
 import mistralConfig from '../config/mistral.config'
@@ -161,6 +163,7 @@ import {
   TeacherProfileSeoAiService as TeacherProfileSeoAiServicePort,
   TokenHashService as TokenHashServicePort,
   TokenService as TokenServicePort,
+  PushNotificationService as PushNotificationServicePort,
   ZaloService as ZaloServicePort,
   ParentStudentResultsReadService as ParentStudentResultsReadServicePort,
 } from 'src/application/interfaces'
@@ -172,6 +175,7 @@ import {
     ConfigModule.forFeature(jwtConfig),
     ConfigModule.forFeature(googleOAuthConfig),
     ConfigModule.forFeature(emailConfig),
+    ConfigModule.forFeature(firebaseConfig),
     ConfigModule.forFeature(httpClientConfig),
     ConfigModule.forFeature(mistralConfig),
     ConfigModule.forFeature(openaiConfig),
@@ -219,6 +223,7 @@ import {
     { provide: TokenHashServicePort, useExisting: 'TOKEN_HASH_SERVICE' },
     { provide: TokenServicePort, useExisting: TokenService },
     { provide: ZaloServicePort, useExisting: ZaloService },
+    { provide: PushNotificationServicePort, useExisting: FirebasePushService },
     {
       provide: 'UNIT_OF_WORK',
       useClass: PrismaUnitOfWork,
@@ -681,6 +686,7 @@ import {
     QuestionChapterClassificationService,
     FileConverterService,
     ZaloService,
+    FirebasePushService,
     GoogleAdminStrategy,
     GoogleStudentStrategy,
     ImageExportService,
@@ -717,6 +723,7 @@ import {
     TokenHashServicePort,
     TokenServicePort,
     ZaloServicePort,
+    PushNotificationServicePort,
     'UNIT_OF_WORK',
     'IUserRepository',
     'IAdminRepository',

@@ -27,6 +27,9 @@ import { IHomeworkSubmitRepository } from './homework-submit.repository'
 import { IVideoContentRepository } from './video-content.repository'
 import { IYoutubeContentRepository } from './youtube-content.repository'
 import { INotificationRepository } from './notification.repository'
+import { IUserDeviceRepository } from './user-device.repository'
+import { IUserNotificationSettingRepository } from './user-notification-setting.repository'
+import { IParentNotificationSettingRepository } from './parent-notification-setting.repository'
 import { IBackgroundJobRepository } from './background-job.repository'
 import { IBackgroundJobRunRepository } from './background-job-run.repository'
 import { IBackgroundJobLockRepository } from './background-job-lock.repository'
@@ -107,6 +110,9 @@ export interface UnitOfWorkRepos {
   videoContentRepository: IVideoContentRepository
   youtubeContentRepository: IYoutubeContentRepository
   notificationRepository: INotificationRepository
+  userDeviceRepository: IUserDeviceRepository
+  userNotificationSettingRepository: IUserNotificationSettingRepository
+  parentNotificationSettingRepository: IParentNotificationSettingRepository
   backgroundJobRepository: IBackgroundJobRepository
   backgroundJobRunRepository: IBackgroundJobRunRepository
   backgroundJobLockRepository: IBackgroundJobLockRepository

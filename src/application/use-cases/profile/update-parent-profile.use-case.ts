@@ -9,6 +9,7 @@ import {
   BusinessLogicException,
   ForbiddenException,
 } from '../../../shared/exceptions/custom-exceptions'
+import { loadParentNotificationSettings } from '../parent-notification/parent-notification-access'
 
 @Injectable()
 export class UpdateParentProfileUseCase {
@@ -37,6 +38,7 @@ export class UpdateParentProfileUseCase {
       }
 
       await this.validateUniqueConstraints(repos, parent.user.userId, dto)
+      const notificationSettings = await loadParentNotificationSettings(repos, parent.userId, parent.parentId)
 
       const userUpdateData: UpdateUserData = {}
       if (dto.email !== undefined) userUpdateData.email = dto.email
@@ -47,7 +49,10 @@ export class UpdateParentProfileUseCase {
 
       const hasChanges = this.hasRealChanges(parent.user, userUpdateData)
       if (!hasChanges) {
-        return BaseResponseDto.success('No changes detected', ParentResponseDto.fromParent(parent))
+        return BaseResponseDto.success(
+          'No changes detected',
+          ParentResponseDto.fromParent(parent, undefined, notificationSettings),
+        )
       }
 
       if ('email' in userUpdateData && userUpdateData.email !== (parent.user.email ?? null)) {
@@ -66,7 +71,10 @@ export class UpdateParentProfileUseCase {
         throw new BusinessLogicException('Unable to retrieve parent profile after update')
       }
 
-      return BaseResponseDto.success('Cập nhật hồ sơ phụ huynh thành công', ParentResponseDto.fromParent(updatedParent))
+      return BaseResponseDto.success(
+        'Cập nhật hồ sơ phụ huynh thành công',
+        ParentResponseDto.fromParent(updatedParent, undefined, notificationSettings),
+      )
     })
   }
 

@@ -32,6 +32,7 @@ import { SeoMediaController } from './controllers/seo-media.controller'
 import { ProfileAdminController } from './controllers/profile.admin.controller'
 import { ProfileStudentController } from './controllers/profile.student.controller'
 import { ProfileParentController } from './controllers/profile.parent.controller'
+import { ParentNotificationController } from './controllers/parent-notification.parent.controller'
 import { ParentStudentResultsController } from './controllers/parent-student-results.controller'
 import { PermissionController } from './controllers/permission.controller'
 import { AdminController } from './controllers/admin.controller'
@@ -135,6 +136,7 @@ import { SocketLifecycleGateway } from './gateways/socket-lifecycle.gateway'
     ProfileAdminController,
     ProfileStudentController,
     ProfileParentController,
+    ParentNotificationController,
     ParentStudentResultsController,
     PermissionController,
     AdminController,

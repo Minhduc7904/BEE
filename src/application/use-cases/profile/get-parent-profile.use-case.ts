@@ -4,6 +4,7 @@ import type { AuthenticatedUser } from '../../interfaces'
 import type { IUnitOfWork } from '../../../domain/repositories'
 import { BaseResponseDto, ParentResponseDto } from '../../dtos'
 import { ParentStudentSummaryService } from '../auth/parent'
+import { loadParentNotificationSettings } from '../parent-notification/parent-notification-access'
 import { ForbiddenException, NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 
 @Injectable()
@@ -18,12 +19,15 @@ export class GetParentProfileUseCase {
       throw new ForbiddenException('Chỉ tài khoản phụ huynh mới có thể truy cập hồ sơ này')
     }
 
-    const parent = await this.unitOfWork.executeInTransaction((repos) =>
-      repos.parentRepository.findByUserId(identity.userId, {
+    const { parent, notificationSettings } = await this.unitOfWork.executeInTransaction(async (repos) => {
+      const found = await repos.parentRepository.findByUserId(identity.userId, {
         includeUser: true,
         includeStudents: true,
-      }),
-    )
+      })
+      const settings = found ? await loadParentNotificationSettings(repos, found.userId, found.parentId) : undefined
+
+      return { parent: found, notificationSettings: settings }
+    })
 
     if (!parent?.user) {
       throw new NotFoundException('Không tìm thấy hồ sơ phụ huynh')
@@ -43,6 +47,9 @@ export class GetParentProfileUseCase {
       .sort((left, right) => left.studentId - right.studentId)
     const students = await this.studentSummaryService.createMany(linkedStudents)
 
-    return BaseResponseDto.success('Lấy thông tin phụ huynh thành công', ParentResponseDto.fromParent(parent, students))
+    return BaseResponseDto.success(
+      'Lấy thông tin phụ huynh thành công',
+      ParentResponseDto.fromParent(parent, students, notificationSettings),
+    )
   }
 }

@@ -71,6 +71,14 @@ export class LogoutUseCase {
       // 6. Revoke token hiện tại
       await repos.userRefreshTokenRepository.revokeToken(matchedToken.tokenHash)
 
+      // Gỡ thiết bị nhận thông báo đẩy: theo deviceId nếu client gửi lên, không thì gỡ mọi thiết bị của tài khoản.
+      // Chỉ chạy khi refresh token còn hợp lệ (đã kiểm tra ở trên) nên máy cũ bị đá gọi logout muộn sẽ không gỡ nhầm máy mới.
+      if (logoutDto.deviceId) {
+        await repos.userDeviceRepository.deleteByUserIdAndDeviceId(userId, logoutDto.deviceId)
+      } else {
+        await repos.userDeviceRepository.deleteByUserId(userId)
+      }
+
       // 7. Option: Revoke all tokens in same family (logout from all devices with same session)
       // Uncomment dòng dưới nếu muốn logout khỏi tất cả devices cùng family
       // await repos.userRefreshTokenRepository.revokeTokenFamily(matchedToken.familyId);
@@ -114,6 +122,7 @@ export class LogoutUseCase {
 
       // 3. Revoke tất cả tokens của user
       await repos.userRefreshTokenRepository.revokeAllUserTokens(userId)
+      await repos.userDeviceRepository.deleteByUserId(userId)
 
       // 4. Tạo response
       const logoutResponse: LogoutResponseDto = {

@@ -31,6 +31,7 @@ import { PasswordRecoveryApplicationModule } from './use-cases/reset-password/pa
 import { AdminProfileApplicationModule } from './use-cases/profile/admin-profile.application.module'
 import { StudentProfileApplicationModule } from './use-cases/profile/student-profile.application.module'
 import { ParentProfileApplicationModule } from './use-cases/profile/parent-profile.application.module'
+import { ParentNotificationApplicationModule } from './use-cases/parent-notification/parent-notification.application.module'
 import { RoleApplicationModule } from './use-cases/role/role.application.module'
 import { StudentApplicationModule } from './use-cases/student/student.application.module'
 import { SubjectApplicationModule } from './use-cases/subject/subject.application.module'
@@ -90,6 +91,7 @@ const modules = [
   AdminProfileApplicationModule,
   StudentProfileApplicationModule,
   ParentProfileApplicationModule,
+  ParentNotificationApplicationModule,
   ParentStudentResultsApplicationModule,
   AdminApplicationModule,
 

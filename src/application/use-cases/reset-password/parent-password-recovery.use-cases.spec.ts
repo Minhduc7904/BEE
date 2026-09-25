@@ -189,6 +189,7 @@ describe('Parent password recovery', () => {
     const { parent } = linkedParent()
     const update = jest.fn().mockResolvedValue(parent.user)
     const revoke = jest.fn().mockResolvedValue(2)
+    const deleteDevices = jest.fn().mockResolvedValue(1)
     const consume = jest.fn().mockResolvedValue(true)
     const token = new ResetPasswordToken({
       id: 4,
@@ -206,6 +207,7 @@ describe('Parent password recovery', () => {
         parentRepository: { findByUserId: jest.fn().mockResolvedValue(parent) } as never,
         userRepository: { update } as never,
         userRefreshTokenRepository: { revokeAllUserTokens: revoke } as never,
+        userDeviceRepository: { deleteByUserId: deleteDevices } as never,
       }),
       { hashToken: jest.fn().mockReturnValue('hashed') } as never,
       { hashPassword: jest.fn().mockResolvedValue('new-hash') },
@@ -221,6 +223,7 @@ describe('Parent password recovery', () => {
     expect(consume).toHaveBeenCalledWith(4, expect.any(Date))
     expect(update).toHaveBeenCalledWith(1, { passwordHash: 'new-hash' })
     expect(revoke).toHaveBeenCalledWith(1)
+    expect(deleteDevices).toHaveBeenCalledWith(1)
   })
 
   it('từ chối token hết hạn trước khi thay đổi mật khẩu', async () => {
@@ -294,6 +297,7 @@ describe('Parent password recovery', () => {
         parentRepository: { findByUserId: jest.fn().mockResolvedValue(parent) } as never,
         userRepository: { update } as never,
         userRefreshTokenRepository: { revokeAllUserTokens: jest.fn() } as never,
+        userDeviceRepository: { deleteByUserId: jest.fn() } as never,
       }),
       { hashToken: jest.fn().mockReturnValue('hashed') } as never,
       { hashPassword: jest.fn().mockResolvedValue('new-hash') },

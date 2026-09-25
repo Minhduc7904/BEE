@@ -14,6 +14,15 @@ function createUnitOfWork(repos: Partial<UnitOfWorkRepos>): IUnitOfWork {
   }
 }
 
+const emptyNotificationSettingRepos = {
+  userNotificationSettingRepository: {
+    findByUserId: jest.fn().mockResolvedValue(null),
+  } as unknown as UnitOfWorkRepos['userNotificationSettingRepository'],
+  parentNotificationSettingRepository: {
+    findByParentId: jest.fn().mockResolvedValue(null),
+  } as unknown as UnitOfWorkRepos['parentNotificationSettingRepository'],
+}
+
 const parentIdentity: AuthenticatedUser = {
   userId: 20,
   username: '0392923661',
@@ -71,6 +80,7 @@ describe('GetParentProfileUseCase', () => {
         parentRepository: {
           findByUserId,
         } as UnitOfWorkRepos['parentRepository'],
+        ...emptyNotificationSettingRepos,
       }),
       { createMany } as ParentStudentSummaryService,
     )
@@ -84,6 +94,54 @@ describe('GetParentProfileUseCase', () => {
     expect(createMany.mock.calls[0][0].map((student) => student.studentId)).toEqual([12, 15])
     expect(result.data?.parentId).toBe(7)
     expect(result.data?.students.map((student) => student.studentId)).toEqual([12, 15])
+    // Chưa có bản ghi cài đặt: chưa hỏi (null) và bật cả ba loại thông báo.
+    expect(result.data?.notificationSettings).toEqual({
+      isEnabled: null,
+      attendanceEnabled: true,
+      resultEnabled: true,
+      tuitionEnabled: true,
+    })
+  })
+
+  it('trả cài đặt thông báo đã lưu của phụ huynh', async () => {
+    const parent = new Parent({
+      parentId: 7,
+      userId: 20,
+      phone: '0392923661',
+      user: new User({
+        userId: 20,
+        username: '0392923661',
+        passwordHash: 'hash',
+        firstName: 'Lan',
+        lastName: 'Nguyễn',
+      }),
+      studentLinks: [],
+    })
+    const useCase = new GetParentProfileUseCase(
+      createUnitOfWork({
+        parentRepository: {
+          findByUserId: jest.fn().mockResolvedValue(parent),
+        } as UnitOfWorkRepos['parentRepository'],
+        userNotificationSettingRepository: {
+          findByUserId: jest.fn().mockResolvedValue({ isEnabled: true }),
+        } as unknown as UnitOfWorkRepos['userNotificationSettingRepository'],
+        parentNotificationSettingRepository: {
+          findByParentId: jest
+            .fn()
+            .mockResolvedValue({ attendanceEnabled: true, resultEnabled: false, tuitionEnabled: true }),
+        } as unknown as UnitOfWorkRepos['parentNotificationSettingRepository'],
+      }),
+      { createMany: jest.fn().mockResolvedValue([]) } as unknown as ParentStudentSummaryService,
+    )
+
+    const result = await useCase.execute(parentIdentity)
+
+    expect(result.data?.notificationSettings).toEqual({
+      isEnabled: true,
+      attendanceEnabled: true,
+      resultEnabled: false,
+      tuitionEnabled: true,
+    })
   })
 
   it('từ chối token không phải Parent trước khi truy vấn DB', async () => {
@@ -119,6 +177,7 @@ describe('GetParentProfileUseCase', () => {
         parentRepository: {
           findByUserId: jest.fn().mockResolvedValue(parent),
         } as UnitOfWorkRepos['parentRepository'],
+        ...emptyNotificationSettingRepos,
       }),
       { createMany: jest.fn() } as unknown as ParentStudentSummaryService,
     )

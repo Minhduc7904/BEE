@@ -134,6 +134,7 @@ describe('Parent authentication', () => {
     const generateAccessToken = jest.fn().mockReturnValue('access')
     const generateRefreshToken = jest.fn().mockReturnValue('refresh')
     const createRefreshToken = jest.fn().mockResolvedValue(undefined)
+    const deleteOtherDevices = jest.fn().mockResolvedValue(1)
     const useCase = new LoginParentUseCase(
       createUnitOfWork({
         parentRepository: {
@@ -146,6 +147,15 @@ describe('Parent authentication', () => {
           revokeAllUserTokens: jest.fn().mockResolvedValue(undefined),
           create: createRefreshToken,
         } as UnitOfWorkRepos['userRefreshTokenRepository'],
+        userDeviceRepository: {
+          deleteByUserIdExceptDevice: deleteOtherDevices,
+        } as unknown as UnitOfWorkRepos['userDeviceRepository'],
+        userNotificationSettingRepository: {
+          findByUserId: jest.fn().mockResolvedValue(null),
+        } as unknown as UnitOfWorkRepos['userNotificationSettingRepository'],
+        parentNotificationSettingRepository: {
+          findByParentId: jest.fn().mockResolvedValue(null),
+        } as unknown as UnitOfWorkRepos['parentNotificationSettingRepository'],
       }),
       { comparePassword: jest.fn().mockResolvedValue(true) },
       {
@@ -156,8 +166,13 @@ describe('Parent authentication', () => {
       { hashToken: jest.fn().mockResolvedValue('refresh-hash') },
     )
 
-    const result = await useCase.execute({ phone: '0392923661', password: 'Example123' })
+    const result = await useCase.execute({ phone: '0392923661', password: 'Example123', deviceId: 'device-a' })
 
+    // Đăng nhập gỡ mọi thiết bị khác, chỉ giữ thiết bị vừa gửi deviceId.
+    expect(deleteOtherDevices).toHaveBeenCalledWith(2, 'device-a')
+    expect((result.data?.user as { notificationSettings?: { isEnabled: boolean | null } }).notificationSettings).toEqual(
+      expect.objectContaining({ isEnabled: null }),
+    )
     expect(generateAccessToken).toHaveBeenCalledWith(expect.objectContaining({ userType: 'parent', parentId: 7 }))
     expect(createRefreshToken).toHaveBeenCalledWith(expect.objectContaining({ userId: 2, tokenHash: 'refresh-hash' }))
     expect(result.data?.tokens).toEqual({ accessToken: 'access', refreshToken: 'refresh', expiresIn: 3600 })

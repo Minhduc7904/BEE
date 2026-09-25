@@ -171,6 +171,9 @@ model User {
   EmailVerificationToken         EmailVerificationToken[]
   PasswordResetToken             PasswordResetToken[]
   notifications                  Notification[]
+  // Thiết bị nhận thông báo đẩy và lựa chọn nhận thông báo tổng của tài khoản.
+  devices                        UserDevice[]
+  notificationSetting            UserNotificationSetting?
   questionChats                  QuestionChat[]
   createdDocuments               Document[]               @relation("DocumentCreator")
   updatedDocuments               Document[]               @relation("DocumentUpdater")
@@ -2257,8 +2260,75 @@ model Parent {
 
   user     User            @relation("UserParent", fields: [userId], references: [userId], onDelete: Cascade)
   students ParentStudent[]
+  // Lựa chọn nhận từng loại thông báo của phụ huynh; chưa có bản ghi nghĩa là dùng mặc định (bật tất cả).
+  notificationSetting ParentNotificationSetting?
 
   @@map("parents")
+}
+
+// Nền tảng của thiết bị nhận thông báo đẩy; giá trị đồng bộ với shared enum DevicePlatform.
+enum DevicePlatform {
+  ANDROID
+  IOS
+}
+
+// Thiết bị đang đăng ký nhận thông báo đẩy (FCM) của một tài khoản.
+// Hệ thống hiện chỉ cho một phiên đăng nhập trên mỗi tài khoản nên thường chỉ có một bản ghi, nhưng bảng để dạng danh sách để không bị khóa cứng khi mở đa thiết bị.
+// Đây là dữ liệu tạm (FCM token có thể đổi hoặc hết hiệu lực) nên xóa cứng khi gỡ thiết bị, không giữ lịch sử.
+model UserDevice {
+  id     Int @id @default(autoincrement()) @map("id")
+  userId Int @map("user_id")
+
+  // Mã cài đặt ứng dụng do client sinh, giữ ổn định giữa các lần đăng nhập để nhận biết "cùng một thiết bị".
+  deviceId String @map("device_id") @db.VarChar(128)
+  // FCM token là duy nhất toàn bảng: một token chỉ thuộc một tài khoản tại một thời điểm, đổi tài khoản trên cùng máy sẽ chuyển quyền sở hữu.
+  fcmToken   String         @map("fcm_token") @db.VarChar(512)
+  platform   DevicePlatform @map("platform")
+  appVersion String?        @map("app_version") @db.VarChar(32)
+  // Lần cuối client báo thiết bị còn dùng, phục vụ dọn thiết bị cũ về sau.
+  lastSeenAt DateTime       @default(now()) @map("last_seen_at") @db.Timestamp(0)
+  createdAt  DateTime       @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt  DateTime       @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@unique([userId, deviceId], map: "uq_user_devices_user_device")
+  @@unique([fcmToken], map: "uq_user_devices_fcm_token")
+  @@map("user_devices")
+}
+
+// Lựa chọn bật/tắt thông báo tổng của tài khoản (dùng chung cho mọi loại người dùng).
+// isEnabled: null = chưa hỏi người dùng, true = đồng ý nhận, false = không nhận.
+// Chưa có bản ghi được hiểu là chưa hỏi (null); bản ghi chỉ tạo khi người dùng đưa ra lựa chọn.
+model UserNotificationSetting {
+  settingId Int      @id @default(autoincrement()) @map("setting_id")
+  userId    Int      @unique @map("user_id")
+  isEnabled Boolean? @map("is_enabled")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@map("user_notification_settings")
+}
+
+// Lựa chọn nhận từng loại thông báo của phụ huynh; mặc định bật cả ba loại.
+// Chỉ có tác dụng khi thông báo tổng (UserNotificationSetting.isEnabled) đang bật.
+model ParentNotificationSetting {
+  settingId Int  @id @default(autoincrement()) @map("setting_id")
+  parentId  Int  @unique @map("parent_id")
+  // Thông báo điểm danh của học sinh.
+  attendanceEnabled Boolean @default(true) @map("attendance_enabled")
+  // Thông báo điểm và kết quả học tập.
+  resultEnabled     Boolean @default(true) @map("result_enabled")
+  // Thông báo học phí (nhắc đóng và đã đóng).
+  tuitionEnabled    Boolean @default(true) @map("tuition_enabled")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  parent Parent @relation(fields: [parentId], references: [parentId], onDelete: Cascade)
+
+  @@map("parent_notification_settings")
 }
 
 // Liên kết các học sinh mà phụ huynh được phép quản lý; bản ghi phụ thuộc hoàn toàn vào hai đầu quan hệ.

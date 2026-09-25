@@ -70,6 +70,9 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _videoContentRepository: any
     let _youtubeContentRepository: any
     let _notificationRepository: any
+    let _userDeviceRepository: UnitOfWorkRepos['userDeviceRepository'] | undefined
+    let _userNotificationSettingRepository: UnitOfWorkRepos['userNotificationSettingRepository'] | undefined
+    let _parentNotificationSettingRepository: UnitOfWorkRepos['parentNotificationSettingRepository'] | undefined
     let _backgroundJobRepository: UnitOfWorkRepos['backgroundJobRepository'] | undefined
     let _backgroundJobRunRepository: UnitOfWorkRepos['backgroundJobRunRepository'] | undefined
     let _backgroundJobLockRepository: UnitOfWorkRepos['backgroundJobLockRepository'] | undefined
@@ -247,6 +250,23 @@ export class PrismaUnitOfWork implements IUnitOfWork {
 
     Object.defineProperty(repos, 'notificationRepository', {
       get: () => (_notificationRepository ??= new Repositories.PrismaNotificationRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'userDeviceRepository', {
+      get: () => (_userDeviceRepository ??= new Repositories.PrismaUserDeviceRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'userNotificationSettingRepository', {
+      get: () =>
+        (_userNotificationSettingRepository ??= new Repositories.PrismaUserNotificationSettingRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'parentNotificationSettingRepository', {
+      get: () =>
+        (_parentNotificationSettingRepository ??= new Repositories.PrismaParentNotificationSettingRepository(client)),
       enumerable: true,
     })
 

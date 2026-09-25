@@ -41,6 +41,8 @@ export class ResetParentPasswordUseCase {
 
         await repos.userRepository.update(parent.userId, { passwordHash })
         await repos.userRefreshTokenRepository.revokeAllUserTokens(parent.userId)
+        // Mọi phiên đăng nhập đã bị thu hồi nên không còn thiết bị nào được nhận thông báo.
+        await repos.userDeviceRepository.deleteByUserId(parent.userId)
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
     )
