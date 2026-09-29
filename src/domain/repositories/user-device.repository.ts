@@ -21,4 +21,8 @@ export interface IUserDeviceRepository {
   deleteByUserIdExceptDevice(userId: number, keepDeviceId?: string): Promise<number>
   /** Xóa một thiết bị của tài khoản theo deviceId. */
   deleteByUserIdAndDeviceId(userId: number, deviceId: string): Promise<number>
+  /** Lấy các thiết bị hiện tại của một nhóm tài khoản để dispatcher gửi FCM. */
+  findByUserIds(userIds: number[]): Promise<UserDevice[]>
+  /** Xóa token FCM đã bị provider xác nhận không còn hợp lệ. */
+  deleteByTokens(tokens: string[]): Promise<number>
 }

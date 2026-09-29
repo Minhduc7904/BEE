@@ -99,6 +99,7 @@ import { ReportController } from './controllers/report.controller'
 import { BankTransferTransactionScheduler } from './scheduler/bank-transfer-transaction.scheduler'
 import { AssistantShiftReminderScheduler } from './scheduler/assistant-shift-reminder.scheduler'
 import { RetentionCleanupScheduler } from './scheduler/retention-cleanup.scheduler'
+import { NotificationDeliveryScheduler } from './scheduler/notification-delivery.scheduler'
 import { AssistantShiftSeriesController } from './controllers/assistant-shift-series.controller'
 import { AssistantShiftController } from './controllers/assistant-shift.controller'
 import { AssistantShiftAssignmentController } from './controllers/assistant-shift-assignment.controller'
@@ -222,6 +223,7 @@ import { SocketLifecycleGateway } from './gateways/socket-lifecycle.gateway'
     BankTransferTransactionScheduler,
     AssistantShiftReminderScheduler,
     RetentionCleanupScheduler,
+    NotificationDeliveryScheduler,
   ],
   exports: [
     // Export gateways for use cases to inject

@@ -7,10 +7,20 @@ export interface PushNotificationMessage {
 }
 
 export interface PushNotificationSendResult {
+  providerAvailable: boolean
   successCount: number
   failureCount: number
   /** FCM token không còn hợp lệ (đã gỡ app hoặc token hết hiệu lực); nơi gọi nên xóa thiết bị tương ứng. */
   invalidTokens: string[]
+  outcomes: PushNotificationTokenOutcome[]
+}
+
+export interface PushNotificationTokenOutcome {
+  token: string
+  success: boolean
+  messageId?: string
+  errorCode?: string
+  retryable: boolean
 }
 
 /** Application port and Nest injection token for the push notification (FCM) service. */

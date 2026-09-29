@@ -27,6 +27,9 @@ import { IHomeworkSubmitRepository } from './homework-submit.repository'
 import { IVideoContentRepository } from './video-content.repository'
 import { IYoutubeContentRepository } from './youtube-content.repository'
 import { INotificationRepository } from './notification.repository'
+import { INotificationDispatchJobRepository } from './notification-dispatch-job.repository'
+import { INotificationDispatchRecipientRepository } from './notification-dispatch-recipient.repository'
+import { INotificationDeliveryRepository } from './notification-delivery.repository'
 import { IUserDeviceRepository } from './user-device.repository'
 import { IUserNotificationSettingRepository } from './user-notification-setting.repository'
 import { IParentNotificationSettingRepository } from './parent-notification-setting.repository'
@@ -110,6 +113,9 @@ export interface UnitOfWorkRepos {
   videoContentRepository: IVideoContentRepository
   youtubeContentRepository: IYoutubeContentRepository
   notificationRepository: INotificationRepository
+  notificationDispatchJobRepository: INotificationDispatchJobRepository
+  notificationDispatchRecipientRepository: INotificationDispatchRecipientRepository
+  notificationDeliveryRepository: INotificationDeliveryRepository
   userDeviceRepository: IUserDeviceRepository
   userNotificationSettingRepository: IUserNotificationSettingRepository
   parentNotificationSettingRepository: IParentNotificationSettingRepository

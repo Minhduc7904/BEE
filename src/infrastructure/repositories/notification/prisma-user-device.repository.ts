@@ -65,4 +65,21 @@ export class PrismaUserDeviceRepository implements IUserDeviceRepository {
 
     return result.count
   }
+
+  async findByUserIds(userIds: number[]): Promise<UserDevice[]> {
+    if (userIds.length === 0) return []
+    const records = await this.prisma.userDevice.findMany({
+      where: { userId: { in: Array.from(new Set(userIds)) } },
+      orderBy: { id: 'asc' },
+    })
+    return records.map((record) => UserDeviceMapper.toDomain(record))
+  }
+
+  async deleteByTokens(tokens: string[]): Promise<number> {
+    if (tokens.length === 0) return 0
+    const result = await this.prisma.userDevice.deleteMany({
+      where: { fcmToken: { in: Array.from(new Set(tokens)) } },
+    })
+    return result.count
+  }
 }

@@ -14,9 +14,11 @@ describe('FirebasePushService', () => {
     const service = new FirebasePushService(baseConfig)
 
     await expect(service.sendToTokens(['token-a'], { title: 'Tiêu đề', body: 'Nội dung' })).resolves.toEqual({
+      providerAvailable: false,
       successCount: 0,
       failureCount: 0,
       invalidTokens: [],
+      outcomes: [],
     })
   })
 

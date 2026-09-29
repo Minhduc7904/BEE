@@ -17,6 +17,12 @@ const INVALID_TOKEN_ERROR_CODES = new Set([
   'messaging/registration-token-not-registered',
   'messaging/invalid-registration-token',
 ])
+const RETRYABLE_ERROR_CODES = new Set([
+  'messaging/internal-error',
+  'messaging/server-unavailable',
+  'messaging/quota-exceeded',
+  'messaging/unknown-error',
+])
 
 @Injectable()
 export class FirebasePushService implements PushNotificationService {
@@ -56,7 +62,13 @@ export class FirebasePushService implements PushNotificationService {
 
   async sendToTokens(tokens: string[], message: PushNotificationMessage): Promise<PushNotificationSendResult> {
     const uniqueTokens = Array.from(new Set(tokens.filter((token) => token.length > 0)))
-    const result: PushNotificationSendResult = { successCount: 0, failureCount: 0, invalidTokens: [] }
+    const result: PushNotificationSendResult = {
+      providerAvailable: this.messaging !== null,
+      successCount: 0,
+      failureCount: 0,
+      invalidTokens: [],
+      outcomes: [],
+    }
 
     if (!this.messaging || uniqueTokens.length === 0) {
       return result
@@ -69,8 +81,17 @@ export class FirebasePushService implements PushNotificationService {
       result.successCount += response.successCount
       result.failureCount += response.failureCount
       response.responses.forEach((sendResponse, index) => {
+        const token = chunk[index]
+        const errorCode = sendResponse.error?.code
+        result.outcomes.push({
+          token,
+          success: sendResponse.success,
+          messageId: sendResponse.messageId,
+          errorCode,
+          retryable: errorCode ? RETRYABLE_ERROR_CODES.has(errorCode) : false,
+        })
         if (!sendResponse.success && sendResponse.error && INVALID_TOKEN_ERROR_CODES.has(sendResponse.error.code)) {
-          result.invalidTokens.push(chunk[index])
+          result.invalidTokens.push(token)
         }
       })
     }

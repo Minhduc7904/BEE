@@ -70,6 +70,9 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _videoContentRepository: any
     let _youtubeContentRepository: any
     let _notificationRepository: any
+    let _notificationDispatchJobRepository: UnitOfWorkRepos['notificationDispatchJobRepository'] | undefined
+    let _notificationDispatchRecipientRepository: UnitOfWorkRepos['notificationDispatchRecipientRepository'] | undefined
+    let _notificationDeliveryRepository: UnitOfWorkRepos['notificationDeliveryRepository'] | undefined
     let _userDeviceRepository: UnitOfWorkRepos['userDeviceRepository'] | undefined
     let _userNotificationSettingRepository: UnitOfWorkRepos['userNotificationSettingRepository'] | undefined
     let _parentNotificationSettingRepository: UnitOfWorkRepos['parentNotificationSettingRepository'] | undefined
@@ -250,6 +253,25 @@ export class PrismaUnitOfWork implements IUnitOfWork {
 
     Object.defineProperty(repos, 'notificationRepository', {
       get: () => (_notificationRepository ??= new Repositories.PrismaNotificationRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'notificationDispatchJobRepository', {
+      get: () =>
+        (_notificationDispatchJobRepository ??= new Repositories.PrismaNotificationDispatchJobRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'notificationDispatchRecipientRepository', {
+      get: () =>
+        (_notificationDispatchRecipientRepository ??= new Repositories.PrismaNotificationDispatchRecipientRepository(
+          client,
+        )),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'notificationDeliveryRepository', {
+      get: () => (_notificationDeliveryRepository ??= new Repositories.PrismaNotificationDeliveryRepository(client)),
       enumerable: true,
     })
 

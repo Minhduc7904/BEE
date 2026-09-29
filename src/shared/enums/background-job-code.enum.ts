@@ -9,6 +9,7 @@ export enum BackgroundJobCode {
   BACKGROUND_JOB_RUN_RETENTION_CLEANUP = 'BACKGROUND_JOB_RUN_RETENTION_CLEANUP',
   COMPETITION_SUBMISSION_AUTO_SUBMIT = 'COMPETITION_SUBMISSION_AUTO_SUBMIT',
   USER_REFRESH_TOKEN_CLEANUP = 'USER_REFRESH_TOKEN_CLEANUP',
+  NOTIFICATION_DELIVERY_DISPATCHER = 'NOTIFICATION_DELIVERY_DISPATCHER',
 }
 
 export const BackgroundJobCodeLabels: Record<BackgroundJobCode, string> = {
@@ -18,4 +19,5 @@ export const BackgroundJobCodeLabels: Record<BackgroundJobCode, string> = {
   [BackgroundJobCode.BACKGROUND_JOB_RUN_RETENTION_CLEANUP]: 'Dọn lịch sử chạy job quá hạn',
   [BackgroundJobCode.COMPETITION_SUBMISSION_AUTO_SUBMIT]: 'Tự động nộp bài thi khi hết giờ',
   [BackgroundJobCode.USER_REFRESH_TOKEN_CLEANUP]: 'Dọn refresh token hết hạn',
+  [BackgroundJobCode.NOTIFICATION_DELIVERY_DISPATCHER]: 'Điều phối notification nền',
 }

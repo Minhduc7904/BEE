@@ -64,6 +64,7 @@ enum BackgroundJobCode {
   BACKGROUND_JOB_RUN_RETENTION_CLEANUP
   COMPETITION_SUBMISSION_AUTO_SUBMIT
   USER_REFRESH_TOKEN_CLEANUP
+  NOTIFICATION_DELIVERY_DISPATCHER
 }
 
 // Vòng đời của một lần chạy job; chỉ application/scheduler được phép chuyển trạng thái.
@@ -162,28 +163,29 @@ model User {
   emailVerifiedAt DateTime? @map("email_verified_at") @db.Timestamp(0)
 
   // Relations
-  uploadedMedia                  Media[]                  @relation("MediaUploader")
-  student                        Student?                 @relation("UserStudent")
-  admin                          Admin?                   @relation("UserAdmin")
-  parent                         Parent?                  @relation("UserParent")
+  uploadedMedia                  Media[]                         @relation("MediaUploader")
+  student                        Student?                        @relation("UserStudent")
+  admin                          Admin?                          @relation("UserAdmin")
+  parent                         Parent?                         @relation("UserParent")
   UserRefreshToken               UserRefreshToken[]
   userRoles                      UserRole[]
-  assignedUserRoles              UserRole[]               @relation("UserRoleAssigner")
+  assignedUserRoles              UserRole[]                      @relation("UserRoleAssigner")
   EmailVerificationToken         EmailVerificationToken[]
   PasswordResetToken             PasswordResetToken[]
   notifications                  Notification[]
   // Thiết bị nhận thông báo đẩy và lựa chọn nhận thông báo tổng của tài khoản.
   devices                        UserDevice[]
   notificationSetting            UserNotificationSetting?
+  notificationDispatchRecipients NotificationDispatchRecipient[]
   questionChats                  QuestionChat[]
-  createdDocuments               Document[]               @relation("DocumentCreator")
-  updatedDocuments               Document[]               @relation("DocumentUpdater")
-  createdTeacherProfiles         TeacherProfile[]         @relation("TeacherProfileCreator")
-  updatedTeacherProfiles         TeacherProfile[]         @relation("TeacherProfileUpdater")
-  submittedReports               Report[]                 @relation("ReportReporter")
+  createdDocuments               Document[]                      @relation("DocumentCreator")
+  updatedDocuments               Document[]                      @relation("DocumentUpdater")
+  createdTeacherProfiles         TeacherProfile[]                @relation("TeacherProfileCreator")
+  updatedTeacherProfiles         TeacherProfile[]                @relation("TeacherProfileUpdater")
+  submittedReports               Report[]                        @relation("ReportReporter")
   // Đề nghị hành động do người dùng gửi hoặc nhận; giữ lịch sử quyết định độc lập với từng module nghiệp vụ.
-  sentActionApprovalRequests     ActionApprovalRequest[]  @relation("ActionApprovalRequestRequester")
-  receivedActionApprovalRequests ActionApprovalRequest[]  @relation("ActionApprovalRequestRecipient")
+  sentActionApprovalRequests     ActionApprovalRequest[]         @relation("ActionApprovalRequestRequester")
+  receivedActionApprovalRequests ActionApprovalRequest[]         @relation("ActionApprovalRequestRecipient")
 
   @@index([lastName, firstName], map: "idx_users_name")
   @@map("users")
@@ -204,6 +206,39 @@ enum NotificationLevel {
   SUCCESS
   WARNING
   ERROR
+}
+
+// Loại một yêu cầu gửi thông báo; SINGLE và BATCH dùng chung một pipeline giao nhận.
+enum NotificationDispatchJobType {
+  SINGLE
+  BATCH
+}
+
+// Vòng đời tổng hợp của một job gửi thông báo; Application cập nhật từ trạng thái delivery.
+enum NotificationDispatchJobStatus {
+  QUEUED
+  PROCESSING
+  SUCCEEDED
+  PARTIAL_FAILED
+  FAILED
+  CANCELLED
+}
+
+// Kênh giao nhận được hỗ trợ ở phase nền hiện tại; Socket là transport realtime của IN_APP.
+enum NotificationDeliveryChannel {
+  IN_APP
+  PUSH
+}
+
+// Vòng đời của một lần giao tới một người nhận qua một kênh.
+enum NotificationDeliveryStatus {
+  PENDING
+  PROCESSING
+  RETRY_WAIT
+  SENT
+  SKIPPED
+  DEAD
+  CANCELLED
 }
 
 model Notification {
@@ -231,9 +266,92 @@ model Notification {
   // Thá»i gian
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
 
+  // Liên kết idempotency nullable cho pipeline nền; notification cũ và luồng đồng bộ hiện tại không cần giá trị này.
+  notificationDispatchRecipientId Int?                           @unique(map: "uq_notifications_dispatch_recipient") @map("notification_dispatch_recipient_id")
+  notificationDispatchRecipient   NotificationDispatchRecipient? @relation(fields: [notificationDispatchRecipientId], references: [notificationDispatchRecipientId], onDelete: SetNull)
+
   @@index([userId, isRead], map: "idx_notifications_user_read")
   @@index([userId, createdAt], map: "idx_notifications_user_created")
   @@map("notifications")
+}
+
+// Yêu cầu gửi notification đơn hoặc batch; nội dung dùng chung cho IN_APP và PUSH ở phase hiện tại.
+model NotificationDispatchJob {
+  notificationDispatchJobId Int                           @id @default(autoincrement()) @map("notification_dispatch_job_id")
+  jobType                   NotificationDispatchJobType   @map("job_type")
+  status                    NotificationDispatchJobStatus @default(QUEUED) @map("status")
+  title                     String                        @db.VarChar(255)
+  message                   String                        @db.Text
+  type                      NotificationType              @default(SYSTEM)
+  level                     NotificationLevel             @default(INFO)
+  data                      Json?
+  scheduledAt               DateTime                      @default(now()) @map("scheduled_at") @db.Timestamp(0)
+  startedAt                 DateTime?                     @map("started_at") @db.Timestamp(0)
+  finishedAt                DateTime?                     @map("finished_at") @db.Timestamp(0)
+  priority                  Int                           @default(0) @db.SmallInt
+  idempotencyKey            String                        @unique(map: "uq_notification_dispatch_jobs_idempotency") @map("idempotency_key") @db.VarChar(100)
+  recipientCount            Int                           @default(0) @map("recipient_count") @db.UnsignedInt
+  totalDeliveryCount        Int                           @default(0) @map("total_delivery_count") @db.UnsignedInt
+  sentDeliveryCount         Int                           @default(0) @map("sent_delivery_count") @db.UnsignedInt
+  skippedDeliveryCount      Int                           @default(0) @map("skipped_delivery_count") @db.UnsignedInt
+  deadDeliveryCount         Int                           @default(0) @map("dead_delivery_count") @db.UnsignedInt
+  createdByAdminId          Int?                          @map("created_by_admin_id")
+  createdAt                 DateTime                      @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                 DateTime                      @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  createdByAdmin Admin?                          @relation(fields: [createdByAdminId], references: [adminId], onDelete: SetNull)
+  recipients     NotificationDispatchRecipient[]
+
+  @@index([status, scheduledAt, priority], map: "idx_notification_dispatch_jobs_due")
+  @@index([createdByAdminId, createdAt], map: "idx_notification_dispatch_jobs_creator_created")
+  @@map("notification_dispatch_jobs")
+}
+
+// Snapshot một người nhận thuộc job; giữ lại lịch sử khi tài khoản bị xóa.
+model NotificationDispatchRecipient {
+  notificationDispatchRecipientId Int      @id @default(autoincrement()) @map("notification_dispatch_recipient_id")
+  notificationDispatchJobId       Int      @map("notification_dispatch_job_id")
+  userId                          Int?     @map("user_id")
+  createdAt                       DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                       DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  job          NotificationDispatchJob @relation(fields: [notificationDispatchJobId], references: [notificationDispatchJobId], onDelete: Cascade)
+  user         User?                   @relation(fields: [userId], references: [userId], onDelete: SetNull)
+  notification Notification?
+  deliveries   NotificationDelivery[]
+
+  @@unique([notificationDispatchJobId, userId], map: "uq_notification_dispatch_recipients_job_user")
+  @@index([userId, createdAt], map: "idx_notification_dispatch_recipients_user_created")
+  @@map("notification_dispatch_recipients")
+}
+
+// Hàng đợi giao nhận bền vững cho từng recipient/channel, được worker claim bằng lease.
+model NotificationDelivery {
+  notificationDeliveryId          Int                         @id @default(autoincrement()) @map("notification_delivery_id")
+  notificationDispatchRecipientId Int                         @map("notification_dispatch_recipient_id")
+  channel                         NotificationDeliveryChannel @map("channel")
+  status                          NotificationDeliveryStatus  @default(PENDING) @map("status")
+  attemptCount                    Int                         @default(0) @map("attempt_count") @db.UnsignedInt
+  maxAttempts                     Int                         @default(3) @map("max_attempts") @db.UnsignedInt
+  availableAt                     DateTime                    @default(now()) @map("available_at") @db.Timestamp(0)
+  claimedBy                       String?                     @map("claimed_by") @db.VarChar(100)
+  claimedAt                       DateTime?                   @map("claimed_at") @db.Timestamp(0)
+  leaseExpiresAt                  DateTime?                   @map("lease_expires_at") @db.Timestamp(0)
+  providerMessageId               String?                     @map("provider_message_id") @db.VarChar(255)
+  lastErrorCode                   String?                     @map("last_error_code") @db.VarChar(100)
+  lastErrorMessage                String?                     @map("last_error_message") @db.Text
+  skipReason                      String?                     @map("skip_reason") @db.VarChar(100)
+  sentAt                          DateTime?                   @map("sent_at") @db.Timestamp(0)
+  createdAt                       DateTime                    @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                       DateTime                    @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  recipient NotificationDispatchRecipient @relation(fields: [notificationDispatchRecipientId], references: [notificationDispatchRecipientId], onDelete: Cascade)
+
+  @@unique([notificationDispatchRecipientId, channel], map: "uq_notification_deliveries_recipient_channel")
+  @@index([status, availableAt, notificationDeliveryId], map: "idx_notification_deliveries_due")
+  @@index([status, leaseExpiresAt], map: "idx_notification_deliveries_lease")
+  @@index([notificationDispatchRecipientId, status], map: "idx_notification_deliveries_recipient_status")
+  @@map("notification_deliveries")
 }
 
 model PasswordResetToken {
@@ -368,6 +486,7 @@ model Admin {
   gradedExamAttempts        ExamAttempt[]              @relation("ExamAttemptGrader")
   gradedCompetitionSubmits  CompetitionSubmit[]        @relation("CompetitionSubmitGrader")
   assignedAssistantTasks    AssistantTask[]            @relation("AssistantTaskAssignee")
+  notificationDispatchJobs  NotificationDispatchJob[]
   assistantTaskProducts     AssistantTaskProduct[]     @relation("AssistantTaskProductOwner")
   assistantShiftAssignments AssistantShiftAssignment[]
   reportsAbout              Report[]                   @relation("ReportTargetAdmin")
@@ -2259,8 +2378,8 @@ model Parent {
   userId   Int    @unique @map("user_id")
   phone    String @unique @map("phone") @db.VarChar(15)
 
-  user     User            @relation("UserParent", fields: [userId], references: [userId], onDelete: Cascade)
-  students ParentStudent[]
+  user                User                       @relation("UserParent", fields: [userId], references: [userId], onDelete: Cascade)
+  students            ParentStudent[]
   // Lựa chọn nhận từng loại thông báo của phụ huynh; chưa có bản ghi nghĩa là dùng mặc định (bật tất cả).
   notificationSetting ParentNotificationSetting?
 
@@ -2281,7 +2400,7 @@ model UserDevice {
   userId Int @map("user_id")
 
   // Mã cài đặt ứng dụng do client sinh, giữ ổn định giữa các lần đăng nhập để nhận biết "cùng một thiết bị".
-  deviceId String @map("device_id") @db.VarChar(128)
+  deviceId   String         @map("device_id") @db.VarChar(128)
   // FCM token là duy nhất toàn bảng: một token chỉ thuộc một tài khoản tại một thời điểm, đổi tài khoản trên cùng máy sẽ chuyển quyền sở hữu.
   fcmToken   String         @map("fcm_token") @db.VarChar(512)
   platform   DevicePlatform @map("platform")
@@ -2316,16 +2435,16 @@ model UserNotificationSetting {
 // Lựa chọn nhận từng loại thông báo của phụ huynh; mặc định bật cả ba loại.
 // Chỉ có tác dụng khi thông báo tổng (UserNotificationSetting.isEnabled) đang bật.
 model ParentNotificationSetting {
-  settingId Int  @id @default(autoincrement()) @map("setting_id")
-  parentId  Int  @unique @map("parent_id")
+  settingId         Int      @id @default(autoincrement()) @map("setting_id")
+  parentId          Int      @unique @map("parent_id")
   // Thông báo điểm danh của học sinh.
-  attendanceEnabled Boolean @default(true) @map("attendance_enabled")
+  attendanceEnabled Boolean  @default(true) @map("attendance_enabled")
   // Thông báo điểm và kết quả học tập.
-  resultEnabled     Boolean @default(true) @map("result_enabled")
+  resultEnabled     Boolean  @default(true) @map("result_enabled")
   // Thông báo học phí (nhắc đóng và đã đóng).
-  tuitionEnabled    Boolean @default(true) @map("tuition_enabled")
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+  tuitionEnabled    Boolean  @default(true) @map("tuition_enabled")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
   parent Parent @relation(fields: [parentId], references: [parentId], onDelete: Cascade)
 
