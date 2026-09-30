@@ -1,4 +1,4 @@
-import { ConflictException, Inject, Injectable } from '@nestjs/common'
+import { ConflictException, Inject, Injectable, Logger } from '@nestjs/common'
 import { randomUUID } from 'crypto'
 import type { NotificationDelivery } from '../../../domain/entities/notification'
 import type { BackgroundJobRunResultSummary } from '../../../domain/interface/background-job'
@@ -36,6 +36,8 @@ export interface NotificationDispatchRunResult {
 
 @Injectable()
 export class DispatchNotificationDeliveriesUseCase {
+  private readonly logger = new Logger(DispatchNotificationDeliveriesUseCase.name)
+
   constructor(
     @Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork,
     private readonly realtimeService: NotificationRealtimeService,
@@ -110,18 +112,29 @@ export class DispatchNotificationDeliveriesUseCase {
     concurrency: number,
   ): Promise<Array<'sent' | 'skipped' | 'retried' | 'dead'>> {
     const outcomes: Array<'sent' | 'skipped' | 'retried' | 'dead'> = []
-    for (let offset = 0; offset < deliveries.length; offset += concurrency) {
-      outcomes.push(
-        ...(await Promise.all(deliveries.slice(offset, offset + concurrency).map((item) => this.process(item)))),
-      )
+    const deliveryPhases = [
+      deliveries.filter((delivery) => delivery.channel === NotificationDeliveryChannel.IN_APP),
+      deliveries.filter((delivery) => delivery.channel !== NotificationDeliveryChannel.IN_APP),
+    ]
+
+    for (const phase of deliveryPhases) {
+      for (let offset = 0; offset < phase.length; offset += concurrency) {
+        outcomes.push(
+          ...(await Promise.all(phase.slice(offset, offset + concurrency).map((item) => this.process(item)))),
+        )
+      }
     }
     return outcomes
   }
 
-  private process(delivery: NotificationDelivery): Promise<'sent' | 'skipped' | 'retried' | 'dead'> {
+  private async process(delivery: NotificationDelivery): Promise<'sent' | 'skipped' | 'retried' | 'dead'> {
     if (!delivery.recipient?.userId || !delivery.job) {
       return this.skip(delivery, 'RECIPIENT_UNAVAILABLE')
     }
+    const setting = await this.unitOfWork.executeInTransaction((repos) =>
+      repos.userNotificationSettingRepository.findByUserId(delivery.recipient!.userId!),
+    )
+    if (setting?.isEnabled !== true) return this.skip(delivery, 'NOTIFICATION_NOT_CONSENTED')
     if (delivery.channel === NotificationDeliveryChannel.IN_APP) return this.processInApp(delivery)
     return this.processPush(delivery)
   }
@@ -129,18 +142,38 @@ export class DispatchNotificationDeliveriesUseCase {
   private async processInApp(delivery: NotificationDelivery): Promise<'sent'> {
     const userId = delivery.recipient!.userId!
     const job = delivery.job!
-    const notification = await this.unitOfWork.executeInTransaction((repos) =>
-      repos.notificationRepository.createForDispatchRecipient(delivery.notificationDispatchRecipientId, {
-        userId,
-        title: job.title,
-        message: job.message,
-        type: job.type,
-        level: job.level,
-        data: job.data,
-      }),
-    )
-    this.realtimeService.notifyUser(userId, notification)
-    await this.markSent(delivery.notificationDeliveryId)
+    const notification = await this.unitOfWork.executeInTransaction(async (repos) => {
+      const created = await repos.notificationRepository.createForDispatchRecipient(
+        delivery.notificationDispatchRecipientId,
+        {
+          userId,
+          title: job.title,
+          message: job.message,
+          type: job.type,
+          level: job.level,
+          data: job.data,
+        },
+      )
+      await repos.notificationDeliveryRepository.update(delivery.notificationDeliveryId, {
+        status: NotificationDeliveryStatus.SENT,
+        sentAt: new Date(),
+        providerMessageId: null,
+        lastErrorCode: null,
+        lastErrorMessage: null,
+        claimedBy: null,
+        claimedAt: null,
+        leaseExpiresAt: null,
+      })
+      return created
+    })
+    try {
+      this.realtimeService.notifyUser(userId, notification)
+    } catch (error) {
+      this.logger.warn(
+        `Không thể phát realtime notification #${notification.notificationId}; dữ liệu IN_APP đã được lưu`,
+        error instanceof Error ? error.stack : undefined,
+      )
+    }
     return 'sent'
   }
 
@@ -148,13 +181,11 @@ export class DispatchNotificationDeliveriesUseCase {
     const userId = delivery.recipient!.userId!
     const job = delivery.job!
     const context = await this.unitOfWork.executeInTransaction(async (repos) => ({
-      setting: await repos.userNotificationSettingRepository.findByUserId(userId),
       devices: await repos.userDeviceRepository.findByUserIds([userId]),
       notification: await repos.notificationRepository.findByDispatchRecipientId(
         delivery.notificationDispatchRecipientId,
       ),
     }))
-    if (context.setting?.isEnabled !== true) return this.skip(delivery, 'PUSH_NOT_CONSENTED')
     if (context.devices.length === 0) return this.skip(delivery, 'NO_ACTIVE_DEVICE')
 
     const result = await this.pushService.sendToTokens(

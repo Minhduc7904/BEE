@@ -138,7 +138,7 @@ describe('PrismaParentStudentResultsReadService', () => {
     )
   })
 
-  it('homework detail liên kết dùng điểm và nhận xét competition, giữ tên/ngày homework', async () => {
+  it('homework detail liên kết dùng điểm competition nhưng ưu tiên nhận xét homework', async () => {
     const homeworkDate = new Date('2026-09-20T10:00:00Z')
     const competitionGradedAt = new Date('2026-09-21T10:00:00Z')
     const row = {
@@ -168,7 +168,7 @@ describe('PrismaParentStudentResultsReadService', () => {
       gradedAt: competitionGradedAt,
       points: 8,
       maxPoints: 10,
-      feedback: 'Nhận xét bài thi',
+      feedback: 'Nhận xét bài tập',
       sectionScores: [],
     })
   })

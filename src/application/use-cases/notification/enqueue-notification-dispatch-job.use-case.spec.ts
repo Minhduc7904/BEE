@@ -55,6 +55,25 @@ describe('EnqueueNotificationDispatchJobUseCase', () => {
     expect(createJob).not.toHaveBeenCalled()
   })
 
+  it('chuẩn hóa idempotency key trước khi tìm job cũ', async () => {
+    findByIdempotencyKey.mockResolvedValue({
+      notificationDispatchJobId: 18,
+      recipientCount: 1,
+      totalDeliveryCount: 1,
+    })
+
+    await useCase.execute({
+      idempotencyKey: '  campaign-18  ',
+      userIds: [1],
+      channels: [NotificationDeliveryChannel.IN_APP],
+      title: 'Thông báo',
+      message: 'Nội dung',
+    })
+
+    expect(findByIdempotencyKey).toHaveBeenCalledWith('campaign-18')
+    expect(createJob).not.toHaveBeenCalled()
+  })
+
   it('lọc người dùng, loại trùng kênh và tạo delivery theo từng người nhận', async () => {
     const scheduledAt = new Date('2026-09-29T03:00:00.000Z')
     findByIdempotencyKey.mockResolvedValue(null)

@@ -37,9 +37,10 @@ export class EnqueueNotificationDispatchJobUseCase {
 
   async execute(input: EnqueueNotificationDispatchJobInput): Promise<EnqueueNotificationDispatchJobResult> {
     this.validate(input)
+    const idempotencyKey = input.idempotencyKey.trim()
 
     return this.unitOfWork.executeInTransaction(async (repos) => {
-      const existing = await repos.notificationDispatchJobRepository.findByIdempotencyKey(input.idempotencyKey)
+      const existing = await repos.notificationDispatchJobRepository.findByIdempotencyKey(idempotencyKey)
       if (existing) {
         return {
           notificationDispatchJobId: existing.notificationDispatchJobId,
@@ -64,7 +65,7 @@ export class EnqueueNotificationDispatchJobUseCase {
         data: input.data,
         scheduledAt: input.scheduledAt ?? new Date(),
         priority: input.priority ?? 0,
-        idempotencyKey: input.idempotencyKey.trim(),
+        idempotencyKey,
         recipientCount: userIds.length,
         totalDeliveryCount: deliveryCount,
         createdByAdminId: input.createdByAdminId,
