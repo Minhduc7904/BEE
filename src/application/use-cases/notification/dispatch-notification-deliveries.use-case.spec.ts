@@ -3,6 +3,7 @@ import type { IUnitOfWork } from '../../../domain/repositories'
 import { NotificationDeliveryChannel, NotificationDeliveryStatus } from '../../../shared/enums'
 import type { NotificationRealtimeService, PushNotificationService } from '../../interfaces'
 import { DispatchNotificationDeliveriesUseCase } from './dispatch-notification-deliveries.use-case'
+import type { PushNotificationEligibilityService } from './push-notification-eligibility.service'
 
 type DispatcherHarness = {
   process(delivery: NotificationDelivery): Promise<'sent' | 'skipped' | 'retried' | 'dead'>
@@ -14,12 +15,10 @@ type DispatcherHarness = {
 }
 
 describe('DispatchNotificationDeliveriesUseCase', () => {
-  const findSetting = jest.fn()
   const createNotification = jest.fn()
   const updateDelivery = jest.fn()
   const notifyUser = jest.fn()
   const repos = {
-    userNotificationSettingRepository: { findByUserId: findSetting },
     notificationRepository: { createForDispatchRecipient: createNotification },
     notificationDeliveryRepository: { update: updateDelivery },
   }
@@ -28,7 +27,11 @@ describe('DispatchNotificationDeliveriesUseCase', () => {
   } as unknown as IUnitOfWork
   const realtimeService = { notifyUser } as unknown as NotificationRealtimeService
   const pushService = { sendToTokens: jest.fn() } as unknown as PushNotificationService
-  const useCase = new DispatchNotificationDeliveriesUseCase(unitOfWork, realtimeService, pushService)
+  const evaluatePushEligibility = jest.fn()
+  const pushEligibility = {
+    evaluate: evaluatePushEligibility,
+  } as unknown as PushNotificationEligibilityService
+  const useCase = new DispatchNotificationDeliveriesUseCase(unitOfWork, realtimeService, pushService, pushEligibility)
   const harness = useCase as unknown as DispatcherHarness
 
   const delivery = {
@@ -48,21 +51,42 @@ describe('DispatchNotificationDeliveriesUseCase', () => {
     jest.clearAllMocks()
   })
 
-  it('bỏ qua mọi kênh khi người dùng chưa đồng ý nhận notification', async () => {
-    findSetting.mockResolvedValue({ isEnabled: false })
+  it('luôn lưu IN_APP và phát realtime mà không kiểm tra PUSH setting', async () => {
+    const notification = { notificationId: 41 }
+    createNotification.mockResolvedValue(notification)
     updateDelivery.mockResolvedValue(delivery)
 
-    await expect(harness.process(delivery)).resolves.toBe('skipped')
+    await expect(harness.process(delivery)).resolves.toBe('sent')
 
+    expect(evaluatePushEligibility).not.toHaveBeenCalled()
+    expect(createNotification).toHaveBeenCalledTimes(1)
     expect(updateDelivery).toHaveBeenCalledWith(
       delivery.notificationDeliveryId,
       expect.objectContaining({
+        status: NotificationDeliveryStatus.SENT,
+      }),
+    )
+    expect(notifyUser).toHaveBeenCalledWith(delivery.recipient!.userId, notification)
+  })
+
+  it('chỉ bỏ qua PUSH khi policy không cho phép', async () => {
+    const pushDelivery = { ...delivery, channel: NotificationDeliveryChannel.PUSH }
+    evaluatePushEligibility.mockResolvedValue({
+      allowed: false,
+      skipReason: 'PARENT_ATTENDANCE_NOTIFICATION_DISABLED',
+    })
+    updateDelivery.mockResolvedValue(pushDelivery)
+
+    await expect(harness.process(pushDelivery)).resolves.toBe('skipped')
+
+    expect(updateDelivery).toHaveBeenCalledWith(
+      pushDelivery.notificationDeliveryId,
+      expect.objectContaining({
         status: NotificationDeliveryStatus.SKIPPED,
-        skipReason: 'NOTIFICATION_NOT_CONSENTED',
+        skipReason: 'PARENT_ATTENDANCE_NOTIFICATION_DISABLED',
       }),
     )
     expect(createNotification).not.toHaveBeenCalled()
-    expect(notifyUser).not.toHaveBeenCalled()
   })
 
   it('lưu notification và đánh dấu SENT trong cùng transaction trước khi phát realtime', async () => {

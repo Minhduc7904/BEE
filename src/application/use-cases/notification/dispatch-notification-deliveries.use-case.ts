@@ -11,6 +11,7 @@ import {
   NotificationDispatchJobStatus,
 } from '../../../shared/enums'
 import { NotificationRealtimeService, PushNotificationService } from '../../interfaces'
+import { PushNotificationEligibilityService } from './push-notification-eligibility.service'
 
 const JOB_CONFIG = {
   code: BackgroundJobCode.NOTIFICATION_DELIVERY_DISPATCHER,
@@ -42,6 +43,7 @@ export class DispatchNotificationDeliveriesUseCase {
     @Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork,
     private readonly realtimeService: NotificationRealtimeService,
     private readonly pushService: PushNotificationService,
+    private readonly pushEligibility: PushNotificationEligibilityService,
   ) {}
 
   async executeScheduled(workerId: string): Promise<NotificationDispatchRunResult | null> {
@@ -131,11 +133,11 @@ export class DispatchNotificationDeliveriesUseCase {
     if (!delivery.recipient?.userId || !delivery.job) {
       return this.skip(delivery, 'RECIPIENT_UNAVAILABLE')
     }
-    const setting = await this.unitOfWork.executeInTransaction((repos) =>
-      repos.userNotificationSettingRepository.findByUserId(delivery.recipient!.userId!),
-    )
-    if (setting?.isEnabled !== true) return this.skip(delivery, 'NOTIFICATION_NOT_CONSENTED')
     if (delivery.channel === NotificationDeliveryChannel.IN_APP) return this.processInApp(delivery)
+
+    const eligibility = await this.pushEligibility.evaluate(delivery.recipient.userId, delivery.job.type)
+    if (!eligibility.allowed) return this.skip(delivery, eligibility.skipReason ?? 'PUSH_NOT_ALLOWED')
+
     return this.processPush(delivery)
   }
 

@@ -5,6 +5,8 @@ import {
   NotificationDispatchJobType,
   NotificationLevel,
   NotificationType,
+  NotificationAudienceType,
+  NotificationRecipientType,
 } from '../../../shared/enums'
 
 export interface CreateNotificationDispatchJobData {
@@ -17,6 +19,10 @@ export interface CreateNotificationDispatchJobData {
   scheduledAt: Date
   priority: number
   idempotencyKey: string
+  requestFingerprint: string
+  audienceType: NotificationAudienceType
+  audienceRecipientType?: NotificationRecipientType
+  requestedChannels: NotificationDeliveryChannel[]
   recipientCount: number
   totalDeliveryCount: number
   createdByAdminId?: number
@@ -34,6 +40,49 @@ export interface UpdateNotificationDispatchJobData {
 export interface CreateNotificationDispatchRecipientData {
   notificationDispatchJobId: number
   userId: number
+  recipientType: NotificationRecipientType
+  profileId?: number
+  displayName?: string
+  email?: string
+  phone?: string
+}
+
+export interface NotificationRecipientSnapshot {
+  userId: number
+  profileId: number
+  recipientType: NotificationRecipientType
+  displayName: string
+  email?: string
+  phone?: string
+  grade?: number
+}
+
+export interface NotificationRecipientSearchOptions {
+  recipientType: NotificationRecipientType
+  search: string
+  page: number
+  limit: number
+  grade?: number
+}
+
+export interface NotificationDispatchJobListOptions {
+  page: number
+  limit: number
+  status?: NotificationDispatchJobStatus
+  type?: NotificationType
+  creatorId?: number
+  search?: string
+  from?: Date
+  to?: Date
+}
+
+export interface NotificationDispatchRecipientListOptions {
+  page: number
+  limit: number
+  recipientType?: NotificationRecipientType
+  channel?: NotificationDeliveryChannel
+  deliveryStatus?: NotificationDeliveryStatus
+  search?: string
 }
 
 export interface CreateNotificationDeliveryData {

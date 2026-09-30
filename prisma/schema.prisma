@@ -198,6 +198,7 @@ enum NotificationType {
   ATTENDANCE
   TUITION
   MESSAGE
+  RESULT
   OTHER
 }
 
@@ -239,6 +240,20 @@ enum NotificationDeliveryStatus {
   SKIPPED
   DEAD
   CANCELLED
+}
+
+enum NotificationAudienceType {
+  SPECIFIC_USERS
+  ROLE
+  ALL_USERS
+  UNPAID_TUITION_STUDENTS
+}
+
+enum NotificationRecipientType {
+  STUDENT
+  ADMIN
+  PARENT
+  UNKNOWN
 }
 
 model Notification {
@@ -290,6 +305,10 @@ model NotificationDispatchJob {
   finishedAt                DateTime?                     @map("finished_at") @db.Timestamp(0)
   priority                  Int                           @default(0) @db.SmallInt
   idempotencyKey            String                        @unique(map: "uq_notification_dispatch_jobs_idempotency") @map("idempotency_key") @db.VarChar(100)
+  requestFingerprint        String?                       @map("request_fingerprint") @db.VarChar(64)
+  audienceType              NotificationAudienceType      @default(SPECIFIC_USERS) @map("audience_type")
+  audienceRecipientType     NotificationRecipientType?    @map("audience_recipient_type")
+  requestedChannels         Json?                         @map("requested_channels")
   recipientCount            Int                           @default(0) @map("recipient_count") @db.UnsignedInt
   totalDeliveryCount        Int                           @default(0) @map("total_delivery_count") @db.UnsignedInt
   sentDeliveryCount         Int                           @default(0) @map("sent_delivery_count") @db.UnsignedInt
@@ -304,6 +323,7 @@ model NotificationDispatchJob {
 
   @@index([status, scheduledAt, priority], map: "idx_notification_dispatch_jobs_due")
   @@index([createdByAdminId, createdAt], map: "idx_notification_dispatch_jobs_creator_created")
+  @@index([status, createdAt], map: "idx_notification_dispatch_jobs_status_created")
   @@map("notification_dispatch_jobs")
 }
 
@@ -312,6 +332,11 @@ model NotificationDispatchRecipient {
   notificationDispatchRecipientId Int      @id @default(autoincrement()) @map("notification_dispatch_recipient_id")
   notificationDispatchJobId       Int      @map("notification_dispatch_job_id")
   userId                          Int?     @map("user_id")
+  recipientType                   NotificationRecipientType @default(UNKNOWN) @map("recipient_type")
+  profileId                       Int?     @map("profile_id")
+  displayName                     String?  @map("display_name") @db.VarChar(255)
+  email                           String?  @db.VarChar(120)
+  phone                           String?  @db.VarChar(30)
   createdAt                       DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt                       DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
@@ -322,6 +347,7 @@ model NotificationDispatchRecipient {
 
   @@unique([notificationDispatchJobId, userId], map: "uq_notification_dispatch_recipients_job_user")
   @@index([userId, createdAt], map: "idx_notification_dispatch_recipients_user_created")
+  @@index([notificationDispatchJobId, recipientType], map: "idx_notification_dispatch_recipients_job_type")
   @@map("notification_dispatch_recipients")
 }
 

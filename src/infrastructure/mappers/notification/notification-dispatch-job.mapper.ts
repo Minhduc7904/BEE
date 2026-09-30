@@ -5,6 +5,9 @@ import {
   NotificationDispatchJobType,
   NotificationLevel,
   NotificationType,
+  NotificationAudienceType,
+  NotificationRecipientType,
+  NotificationDeliveryChannel,
 } from '../../../shared/enums'
 
 export class NotificationDispatchJobMapper {
@@ -25,6 +28,10 @@ export class NotificationDispatchJobMapper {
       finishedAt: record.finishedAt ?? undefined,
       priority: record.priority,
       idempotencyKey: record.idempotencyKey,
+      requestFingerprint: record.requestFingerprint ?? undefined,
+      audienceType: record.audienceType as NotificationAudienceType,
+      audienceRecipientType: (record.audienceRecipientType as NotificationRecipientType | null) ?? undefined,
+      requestedChannels: (record.requestedChannels as NotificationDeliveryChannel[] | null) ?? [],
       recipientCount: record.recipientCount,
       totalDeliveryCount: record.totalDeliveryCount,
       sentDeliveryCount: record.sentDeliveryCount,

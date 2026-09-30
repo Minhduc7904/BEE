@@ -3,6 +3,9 @@ import {
   NotificationDispatchJobType,
   NotificationLevel,
   NotificationType,
+  NotificationAudienceType,
+  NotificationRecipientType,
+  NotificationDeliveryChannel,
 } from '../../../shared/enums'
 
 export class NotificationDispatchJob {
@@ -16,6 +19,10 @@ export class NotificationDispatchJob {
   scheduledAt: Date
   priority: number
   idempotencyKey: string
+  requestFingerprint?: string
+  audienceType: NotificationAudienceType
+  audienceRecipientType?: NotificationRecipientType
+  requestedChannels: NotificationDeliveryChannel[]
   recipientCount: number
   totalDeliveryCount: number
   sentDeliveryCount: number
@@ -39,6 +46,10 @@ export class NotificationDispatchJob {
     scheduledAt: Date
     priority: number
     idempotencyKey: string
+    requestFingerprint?: string
+    audienceType: NotificationAudienceType
+    audienceRecipientType?: NotificationRecipientType
+    requestedChannels: NotificationDeliveryChannel[]
     recipientCount: number
     totalDeliveryCount: number
     sentDeliveryCount: number

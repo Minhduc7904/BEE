@@ -1,0 +1,6 @@
+export enum NotificationAudienceType {
+  SPECIFIC_USERS = 'SPECIFIC_USERS',
+  ROLE = 'ROLE',
+  ALL_USERS = 'ALL_USERS',
+  UNPAID_TUITION_STUDENTS = 'UNPAID_TUITION_STUDENTS',
+}

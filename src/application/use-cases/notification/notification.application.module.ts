@@ -16,6 +16,11 @@ const NOTIFICATION_USE_CASES = [
   notification.CreateAndNotifyManyUseCase,
   notification.EnqueueNotificationDispatchJobUseCase,
   notification.DispatchNotificationDeliveriesUseCase,
+  notification.PushNotificationEligibilityService,
+  notification.SearchNotificationRecipientsUseCase,
+  notification.GetNotificationDispatchJobsUseCase,
+  notification.GetNotificationDispatchJobUseCase,
+  notification.GetNotificationDispatchRecipientsUseCase,
 ]
 
 @Module({

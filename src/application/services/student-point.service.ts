@@ -123,9 +123,7 @@ export class StudentPointService {
       learnedAt?: Date | null
     },
   ) {
-    const points = studentPointConfig.learningItemLearned.enabled
-      ? studentPointConfig.learningItemLearned.points
-      : 0
+    const points = studentPointConfig.learningItemLearned.enabled ? studentPointConfig.learningItemLearned.points : 0
 
     return this.awardStudentPoints(repos, {
       studentId: input.studentId,
@@ -141,10 +139,7 @@ export class StudentPointService {
     })
   }
 
-  async createStudentPointLog(
-    repos: UnitOfWorkRepos,
-    input: CreateStudentPointLogData,
-  ): Promise<StudentPointLog> {
+  async createStudentPointLog(repos: UnitOfWorkRepos, input: CreateStudentPointLogData): Promise<StudentPointLog> {
     const pointLog = await repos.studentPointLogRepository.createAndApply(input)
 
     await this.notifyPositivePointDelta(
@@ -259,16 +254,17 @@ export class StudentPointService {
       const totalPoints = input.metadata?.totalPoints
       const maxPoints = input.metadata?.maxPoints
       const scorePercentage = input.metadata?.scorePercentage
-      const scoreText = totalPoints !== undefined && maxPoints !== undefined
-        ? `${totalPoints}/${maxPoints} điểm`
-        : scorePercentage !== undefined
-          ? `${scorePercentage}%`
-          : 'kết quả tốt'
+      const scoreText =
+        totalPoints !== undefined && maxPoints !== undefined
+          ? `${totalPoints}/${maxPoints} điểm`
+          : scorePercentage !== undefined
+            ? `${scorePercentage}%`
+            : 'kết quả tốt'
 
       return {
         title: 'Chúc mừng bạn được cộng điểm',
         message: `Chúc mừng bạn đã được cộng ${pointText} khi làm bài đạt ${scoreText}.`,
-        type: NotificationType.OTHER,
+        type: NotificationType.RESULT,
       }
     }
 
