@@ -1,16 +1,17 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { ZaloService } from 'src/application/interfaces'
+import { createHash } from 'crypto'
 import { AttendanceParentMessageTemplate } from 'src/infrastructure/templates/attendance-parent-message.template'
-import { AttendanceStatus, AttendanceStatusLabels } from 'src/shared/enums'
+import { AttendanceStatus, AttendanceStatusLabels, NotificationLevel, NotificationType } from 'src/shared/enums'
 import { formatVnDate, formatVnDateTime, formatVnTime } from 'src/shared/utils/vietnam-date.util'
 import type { IUnitOfWork } from 'src/domain/repositories'
-import { GetValidZaloAccessTokenUseCase } from '../zalo/get-valid-zalo-access-token.use-case'
+import { BusinessNotificationQueueService } from '../notification/business-notification-queue.service'
 
 interface SendBulkAttendanceToParentInput {
   attendanceIds: number[]
   appId?: string
   note?: string
   concurrency?: number
+  includeZalo?: boolean
 }
 
 interface SendBulkAttendanceToParentResult {
@@ -22,21 +23,18 @@ interface SendBulkAttendanceToParentResult {
 interface AttendanceNotificationJob {
   attendanceId: number
   studentId: number
-  parentZaloId: string
-  alreadyParentNotified: boolean
+  parentZaloId: string | undefined
   messageText: string
 }
 
 @Injectable()
 export class SendBulkAttendanceToParentUseCase {
   private static readonly DEFAULT_APP_ID = '443601004373365149'
-  private static readonly DEFAULT_CONCURRENCY = 10
 
   constructor(
     @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
-    private readonly zaloService: ZaloService,
-    private readonly getValidZaloAccessTokenUseCase: GetValidZaloAccessTokenUseCase,
+    private readonly queue: BusinessNotificationQueueService,
   ) { }
 
   async execute(input: SendBulkAttendanceToParentInput): Promise<SendBulkAttendanceToParentResult> {
@@ -52,17 +50,6 @@ export class SendBulkAttendanceToParentUseCase {
     }
 
     const appId = input.appId || process.env.ZALO_APP_ID || SendBulkAttendanceToParentUseCase.DEFAULT_APP_ID
-    const accessToken = await this.getValidZaloAccessTokenUseCase.execute({ appId })
-
-    if (!accessToken) {
-      console.warn(`[Attendance->Parent][Bulk] Không tìm thấy access token cho app_id=${appId}`)
-      return {
-        requestedCount: uniqueAttendanceIds.length,
-        sentCount: 0,
-        failedCount: uniqueAttendanceIds.length,
-      }
-    }
-
     const jobs = await this.buildJobs(uniqueAttendanceIds, input.note)
     if (jobs.length === 0) {
       return {
@@ -72,54 +59,39 @@ export class SendBulkAttendanceToParentUseCase {
       }
     }
 
-    const concurrency = Math.max(1, input.concurrency || SendBulkAttendanceToParentUseCase.DEFAULT_CONCURRENCY)
-    let sentCount = 0
-    let failedCount = 0
-    const successAttendanceIds: number[] = []
-
-    for (let i = 0; i < jobs.length; i += concurrency) {
-      const chunk = jobs.slice(i, i + concurrency)
-      const settled = await Promise.allSettled(
-        chunk.map((job) =>
-          this.zaloService.sendMessage(accessToken, {
-            recipient: { user_id: job.parentZaloId },
-            message: { text: job.messageText },
-          }),
-        ),
-      )
-
-      settled.forEach((result, index) => {
-        const job = chunk[index]
-        if (result.status === 'fulfilled') {
-          sentCount += 1
-          successAttendanceIds.push(job.attendanceId)
-          return
+    const digest = createHash('sha256')
+      .update(jobs.map((job) => `${job.attendanceId}:${job.messageText}`).sort().join('|'))
+      .digest('hex').slice(0, 24)
+    const queued = await this.queue.enqueueStudentAndParents({
+      idempotencyKey: `attendance-bulk:${digest}`,
+      sourceType: 'ATTENDANCE',
+      sourceId: `bulk:${digest}`,
+      sourceEvent: 'BULK_PARENT_NOTIFY',
+      title: 'Thông báo điểm danh',
+      message: `Thông báo điểm danh cho ${jobs.length} học sinh`,
+      type: NotificationType.ATTENDANCE,
+      level: NotificationLevel.INFO,
+      targets: jobs.map((job) => {
+        const payload = {
+          title: 'Thông báo điểm danh',
+          message: job.messageText,
+          type: NotificationType.ATTENDANCE,
+          level: NotificationLevel.INFO,
+          data: { attendanceId: String(job.attendanceId), studentId: String(job.studentId) },
         }
-
-        failedCount += 1
-        const reason: any = result.reason
-        const errorMessage =
-          reason?.response?.data?.error_description ||
-          reason?.response?.data?.message ||
-          reason?.message ||
-          'Unknown Zalo send error'
-
-        console.warn('[Attendance->Parent][Bulk] Gửi Zalo thất bại:', {
-          attendanceId: job.attendanceId,
+        return {
           studentId: job.studentId,
+          parentPayload: payload,
           parentZaloId: job.parentZaloId,
-          errorMessage,
-        })
-      })
-    }
-
-    await this.markParentNotifiedForSuccessfulJobs(jobs, successAttendanceIds)
-
-    const skippedCount = uniqueAttendanceIds.length - jobs.length
+          zaloPayload: input.includeZalo === false ? undefined : payload,
+          zaloAppId: appId,
+        }
+      }),
+    })
     return {
       requestedCount: uniqueAttendanceIds.length,
-      sentCount,
-      failedCount: failedCount + skippedCount,
+      sentCount: queued ? jobs.length : 0,
+      failedCount: queued ? uniqueAttendanceIds.length - jobs.length : uniqueAttendanceIds.length,
     }
   }
 
@@ -133,10 +105,7 @@ export class SendBulkAttendanceToParentUseCase {
         attendances
           .filter((attendance): attendance is NonNullable<typeof attendance> => Boolean(attendance))
           .map(async (attendance) => {
-            const parentZaloId = attendance.student?.parentZaloId
-            if (!parentZaloId) {
-              return null
-            }
+            const parentZaloId = attendance.student?.parentZaloId || undefined
 
             const studentName = attendance.student?.user
               ? `${attendance.student.user.lastName || ''} ${attendance.student.user.firstName || ''}`.trim()
@@ -170,7 +139,6 @@ export class SendBulkAttendanceToParentUseCase {
               attendanceId: attendance.attendanceId,
               studentId: attendance.studentId,
               parentZaloId,
-              alreadyParentNotified: attendance.parentNotified || false,
               messageText: AttendanceParentMessageTemplate.render({
                 studentName,
                 className,
@@ -229,26 +197,4 @@ export class SendBulkAttendanceToParentUseCase {
     return `📚 BTVN: Đã nộp lúc ${formatVnDateTime(homeworkSubmit.submitAt)}${pointsText}${feedbackText}`
   }
 
-  private async markParentNotifiedForSuccessfulJobs(jobs: AttendanceNotificationJob[], successAttendanceIds: number[]): Promise<void> {
-    if (successAttendanceIds.length === 0) {
-      return
-    }
-
-    const idsToUpdate = new Set(successAttendanceIds)
-    const jobsToUpdate = jobs.filter((job) => idsToUpdate.has(job.attendanceId) && !job.alreadyParentNotified)
-
-    if (jobsToUpdate.length === 0) {
-      return
-    }
-
-    await this.unitOfWork.executeInTransaction(async (repos) => {
-      await Promise.all(
-        jobsToUpdate.map((job) =>
-          repos.attendanceRepository.update(job.attendanceId, {
-            parentNotified: true,
-          }),
-        ),
-      )
-    })
-  }
 }

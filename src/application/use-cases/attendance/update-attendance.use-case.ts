@@ -89,6 +89,7 @@ export class UpdateAttendanceUseCase {
           response: new AttendanceResponseDto(existing),
           attendanceId: existing.attendanceId,
           statusChanged: false,
+          notification: null,
         }
       }
 
@@ -114,21 +115,31 @@ export class UpdateAttendanceUseCase {
 
       // Gửi thông báo cho học sinh
       const statusLabel = AttendanceStatusLabels[attendance.status] || attendance.status
-      this.createAndNotifyOne.execute({
+      const notification = {
         userId: student.userId,
         title: 'Cập nhật điểm danh',
         message: `Điểm danh của bạn đã được cập nhật thành: ${statusLabel}`,
         type: NotificationType.ATTENDANCE,
         level: NotificationLevel.INFO,
         data: { attendanceId: attendance.attendanceId, sessionId: attendance.sessionId, status: attendance.status },
-      }).catch(() => { /* ignore notification error */ })
+      }
 
       return {
         response: new AttendanceResponseDto(attendance),
         attendanceId: attendance.attendanceId,
         statusChanged,
+        notification,
       }
     })
+
+    if (result.notification) {
+      await this.createAndNotifyOne.execute(result.notification, {
+        sourceType: 'ATTENDANCE',
+        sourceId: String(result.attendanceId),
+        sourceEvent: 'UPDATED',
+        idempotencyKey: `attendance:${result.attendanceId}:student:updated:${result.notification.data.status}`,
+      })
+    }
 
     // Chỉ gửi Zalo khi trạng thái điểm danh thay đổi và sau khi transaction đã commit
     if (result.statusChanged) {

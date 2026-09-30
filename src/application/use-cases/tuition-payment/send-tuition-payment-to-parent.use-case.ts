@@ -1,8 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common'
+import { createHash } from 'crypto'
 import type { IUnitOfWork } from 'src/domain/repositories'
-import { ZaloService } from 'src/application/interfaces'
 import { TuitionPaymentParentMessageTemplate } from 'src/infrastructure/templates/tuition-payment-parent-message.template'
-import { GetValidZaloAccessTokenUseCase } from '../zalo/get-valid-zalo-access-token.use-case'
+import { BusinessNotificationQueueService } from '../notification/business-notification-queue.service'
+import { NotificationLevel, NotificationType } from 'src/shared/enums'
 
 interface SendTuitionPaymentToParentInput {
   paymentId: number
@@ -16,8 +17,7 @@ export class SendTuitionPaymentToParentUseCase {
   constructor(
     @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
-    private readonly zaloService: ZaloService,
-    private readonly getValidZaloAccessTokenUseCase: GetValidZaloAccessTokenUseCase,
+    private readonly queue: BusinessNotificationQueueService,
   ) { }
 
   async execute(input: SendTuitionPaymentToParentInput): Promise<boolean> {
@@ -31,44 +31,36 @@ export class SendTuitionPaymentToParentUseCase {
       return false
     }
 
-    const parentZaloId = payment.student?.parentZaloId
-    if (!parentZaloId) {
-      return false
-    }
-
-    const accessToken = await this.getValidZaloAccessTokenUseCase.execute({ appId })
-
-    if (!accessToken) {
-      console.warn(`[Tuition->Parent] Không tìm thấy access token cho app_id=${appId}`)
-      return false
-    }
-
     const messageText = TuitionPaymentParentMessageTemplate.render(payment)
-
-    try {
-      await this.zaloService.sendMessage(accessToken, {
-        recipient: { user_id: parentZaloId },
-        message: {
-          text: messageText,
-        },
-      })
-    } catch (error: any) {
-      const errorMessage =
-        error?.response?.data?.error_description ||
-        error?.response?.data?.message ||
-        error?.message ||
-        'Unknown Zalo send error'
-
-      console.warn('[Tuition->Parent] Gửi Zalo thất bại, bỏ qua để không ảnh hưởng luồng chính:', {
-        paymentId: payment.paymentId,
-        studentId: payment.studentId,
-        parentZaloId,
-        errorMessage,
-      })
-
-      return false
+    const studentName = payment.student?.user
+      ? `${payment.student.user.lastName || ''} ${payment.student.user.firstName || ''}`.trim()
+      : `#${payment.studentId}`
+    const payload = {
+      title: `Thông báo học phí: ${studentName}`,
+      message: messageText,
+      type: NotificationType.TUITION,
+      level: NotificationLevel.INFO,
+      data: { paymentId: String(payment.paymentId), studentId: String(payment.studentId), status: payment.status },
     }
-
-    return true
+    const digest = createHash('sha256').update(messageText).digest('hex').slice(0, 24)
+    const queued = await this.queue.enqueueStudentAndParents({
+      idempotencyKey: `tuition:${payment.paymentId}:${payment.status}:${digest}`,
+      sourceType: 'TUITION_PAYMENT',
+      sourceId: String(payment.paymentId),
+      sourceEvent: 'PARENT_NOTIFY',
+      title: payload.title,
+      message: payload.message,
+      type: payload.type,
+      level: payload.level,
+      data: payload.data,
+      targets: [{
+        studentId: payment.studentId,
+        parentPayload: payload,
+        parentZaloId: payment.student?.parentZaloId,
+        zaloPayload: payload,
+        zaloAppId: appId,
+      }],
+    })
+    return Boolean(queued)
   }
 }

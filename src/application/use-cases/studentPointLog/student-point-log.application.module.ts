@@ -6,6 +6,7 @@ import { DeleteStudentPointLogUseCase } from './delete-student-point-log.use-cas
 import { GetMyStudentPointLogsUseCase } from './get-my-student-point-logs.use-case'
 import { GetStudentPointLogsByAdminUseCase } from './get-student-point-logs-by-admin.use-case'
 import { UpdateStudentPointLogUseCase } from './update-student-point-log.use-case'
+import { NotificationApplicationModule } from '../notification/notification.application.module'
 
 const STUDENT_POINT_LOG_USE_CASES = [
   CreateStudentPointLogUseCase,
@@ -17,7 +18,7 @@ const STUDENT_POINT_LOG_USE_CASES = [
 ]
 
 @Module({
-  imports: [InfrastructureModule],
+  imports: [InfrastructureModule, NotificationApplicationModule],
   providers: STUDENT_POINT_LOG_USE_CASES,
   exports: STUDENT_POINT_LOG_USE_CASES,
 })

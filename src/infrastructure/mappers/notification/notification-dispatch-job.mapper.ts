@@ -40,6 +40,9 @@ export class NotificationDispatchJobMapper {
       createdByAdminId: record.createdByAdminId ?? undefined,
       createdAt: record.createdAt,
       updatedAt: record.updatedAt,
+      sourceType: record.sourceType ?? undefined,
+      sourceId: record.sourceId ?? undefined,
+      sourceEvent: record.sourceEvent ?? undefined,
     })
   }
 }

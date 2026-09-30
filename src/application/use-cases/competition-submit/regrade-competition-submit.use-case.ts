@@ -14,6 +14,8 @@ import {
     parseNumericAnswer,
 } from '../../../shared/constants/grading-rules.constants'
 import { StudentPointService } from '../../services/student-point.service'
+import { BusinessNotificationQueueService } from '../notification/business-notification-queue.service'
+import { NotificationLevel, NotificationType } from '../../../shared/enums'
 
 interface GradeResult {
     isCorrect: boolean | null
@@ -46,6 +48,7 @@ export class RegradeCompetitionSubmitUseCase {
         @Inject('UNIT_OF_WORK')
         private readonly unitOfWork: IUnitOfWork,
         private readonly studentPointService: StudentPointService,
+        private readonly notificationQueue: BusinessNotificationQueueService,
     ) { }
 
     async execute(submitId: number): Promise<BaseResponseDto<any>> {
@@ -218,6 +221,29 @@ export class RegradeCompetitionSubmitUseCase {
                 scorePercentage,
             }),
         )
+
+        const student = await this.unitOfWork.executeInTransaction((repos) => repos.studentRepository.findById(submit.studentId))
+        if (student?.userId) {
+            const payload = {
+                title: 'Kết quả bài thi đã được cập nhật',
+                message: `Kết quả bài thi mới: ${totalPoints}/${maxPoints} điểm (${scorePercentage}%).`,
+                type: NotificationType.RESULT,
+                level: NotificationLevel.INFO,
+                data: { competitionSubmitId: String(submitId), totalPoints: String(totalPoints), maxPoints: String(maxPoints), scorePercentage: String(scorePercentage) },
+            }
+            await this.notificationQueue.enqueueStudentAndParents({
+                idempotencyKey: `competition-regrade:${submitId}:${totalPoints}:${maxPoints}`,
+                sourceType: 'COMPETITION_SUBMIT',
+                sourceId: String(submitId),
+                sourceEvent: 'REGRADED',
+                title: payload.title,
+                message: payload.message,
+                type: payload.type,
+                level: payload.level,
+                data: payload.data,
+                targets: [{ studentId: submit.studentId, studentUserId: student.userId, studentPayload: payload, parentPayload: payload }],
+            })
+        }
 
         // 10. Cập nhật điểm HomeworkSubmit liên kết (nếu có)
         let homeworkSubmitUpdated: { homeworkSubmitId: number; points: number } | null = null

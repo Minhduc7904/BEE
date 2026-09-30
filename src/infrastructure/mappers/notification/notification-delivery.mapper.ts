@@ -3,6 +3,7 @@ import { NotificationDelivery } from '../../../domain/entities/notification'
 import { NotificationDeliveryChannel, NotificationDeliveryStatus } from '../../../shared/enums'
 import { NotificationDispatchJobMapper } from './notification-dispatch-job.mapper'
 import { NotificationDispatchRecipientMapper } from './notification-dispatch-recipient.mapper'
+import type { NotificationDeliveryPayload } from '../../../domain/interface/notification-dispatch'
 
 export type PrismaNotificationDeliveryWithContext = Prisma.NotificationDeliveryGetPayload<{
   include: { recipient: { include: { job: true } } }
@@ -27,6 +28,9 @@ export class NotificationDeliveryMapper {
       claimedAt: record.claimedAt ?? undefined,
       leaseExpiresAt: record.leaseExpiresAt ?? undefined,
       providerMessageId: record.providerMessageId ?? undefined,
+      payload: (record.payload as unknown as NotificationDeliveryPayload | null) ?? undefined,
+      destination: record.destination ?? undefined,
+      providerAppId: record.providerAppId ?? undefined,
       lastErrorCode: record.lastErrorCode ?? undefined,
       lastErrorMessage: record.lastErrorMessage ?? undefined,
       skipReason: record.skipReason ?? undefined,

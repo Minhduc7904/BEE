@@ -21,9 +21,8 @@ describe('SendNotificationUseCase', () => {
     adminAuditLogRepository: { create: createAuditLog },
     notificationDispatchJobRepository: { findByIdempotencyKey },
   }
-  const unitOfWork = {
-    executeInTransaction: jest.fn((callback) => callback(repos)),
-  } as unknown as IUnitOfWork
+  const executeInTransaction = jest.fn((callback) => callback(repos))
+  const unitOfWork = { executeInTransaction } as unknown as IUnitOfWork
   const enqueueUseCase = { executeWithRepos: enqueue } as unknown as EnqueueNotificationDispatchJobUseCase
   const useCase = new SendNotificationUseCase(unitOfWork, enqueueUseCase)
 
@@ -110,7 +109,7 @@ describe('SendNotificationUseCase', () => {
     await expect(
       useCase.execute({ userIds: [1], title: 'Thông báo', message: 'Nội dung' }, 7, 'request-52'),
     ).rejects.toThrow('audit unavailable')
-    expect(unitOfWork.executeInTransaction).toHaveBeenCalledTimes(1)
+    expect(executeInTransaction).toHaveBeenCalledTimes(1)
   })
 
   it('đọc lại job khi hai request cùng idempotency key bị unique race', async () => {
@@ -138,5 +137,16 @@ describe('SendNotificationUseCase', () => {
       skippedDeliveryCount: 1,
       deadDeliveryCount: 0,
     })
+  })
+
+  it('không cho Admin gửi thủ công qua ZALO_OA', async () => {
+    await expect(useCase.execute({
+      userIds: [1],
+      title: 'Thông báo',
+      message: 'Nội dung',
+      channels: [NotificationDeliveryChannel.ZALO_OA],
+    }, 7, 'request-zalo')).rejects.toMatchObject({ status: 400 })
+
+    expect(enqueue).not.toHaveBeenCalled()
   })
 })

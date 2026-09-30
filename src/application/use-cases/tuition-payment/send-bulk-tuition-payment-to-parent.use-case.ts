@@ -1,8 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { ZaloService } from 'src/application/interfaces'
+import { createHash } from 'crypto'
 import { TuitionPaymentParentMessageTemplate } from 'src/infrastructure/templates/tuition-payment-parent-message.template'
-import { GetValidZaloAccessTokenUseCase } from '../zalo/get-valid-zalo-access-token.use-case'
 import type { IUnitOfWork } from 'src/domain/repositories'
+import { BusinessNotificationQueueService } from '../notification/business-notification-queue.service'
+import { NotificationLevel, NotificationType } from 'src/shared/enums'
 
 interface SendBulkTuitionPaymentToParentInput {
     paymentIds: number[]
@@ -19,20 +20,18 @@ interface SendBulkTuitionPaymentToParentResult {
 interface TuitionPaymentNotificationJob {
     paymentId: number
     studentId: number
-    parentZaloId: string
+    parentZaloId: string | undefined
     messageText: string
 }
 
 @Injectable()
 export class SendBulkTuitionPaymentToParentUseCase {
     private static readonly DEFAULT_APP_ID = '443601004373365149'
-    private static readonly DEFAULT_CONCURRENCY = 10
 
     constructor(
         @Inject('UNIT_OF_WORK')
         private readonly unitOfWork: IUnitOfWork,
-        private readonly zaloService: ZaloService,
-        private readonly getValidZaloAccessTokenUseCase: GetValidZaloAccessTokenUseCase,
+        private readonly queue: BusinessNotificationQueueService,
     ) { }
 
     async execute(input: SendBulkTuitionPaymentToParentInput): Promise<SendBulkTuitionPaymentToParentResult> {
@@ -47,17 +46,6 @@ export class SendBulkTuitionPaymentToParentUseCase {
         }
 
         const appId = input.appId || process.env.ZALO_APP_ID || SendBulkTuitionPaymentToParentUseCase.DEFAULT_APP_ID
-        const accessToken = await this.getValidZaloAccessTokenUseCase.execute({ appId })
-
-        if (!accessToken) {
-            console.warn(`[Tuition->Parent][Bulk] Không tìm thấy access token cho app_id=${appId}`)
-            return {
-                requestedCount: uniquePaymentIds.length,
-                sentCount: 0,
-                failedCount: uniquePaymentIds.length,
-            }
-        }
-
         const jobs = await this.buildJobs(uniquePaymentIds)
         if (jobs.length === 0) {
             return {
@@ -67,50 +55,39 @@ export class SendBulkTuitionPaymentToParentUseCase {
             }
         }
 
-        const concurrency = Math.max(1, input.concurrency || SendBulkTuitionPaymentToParentUseCase.DEFAULT_CONCURRENCY)
-        let sentCount = 0
-        let failedCount = 0
-
-        for (let i = 0; i < jobs.length; i += concurrency) {
-            const chunk = jobs.slice(i, i + concurrency)
-            const settled = await Promise.allSettled(
-                chunk.map((job) =>
-                    this.zaloService.sendMessage(accessToken, {
-                        recipient: { user_id: job.parentZaloId },
-                        message: { text: job.messageText },
-                    }),
-                ),
-            )
-
-            settled.forEach((result, index) => {
-                if (result.status === 'fulfilled') {
-                    sentCount += 1
-                    return
+        const digest = createHash('sha256')
+            .update(jobs.map((job) => `${job.paymentId}:${job.messageText}`).sort().join('|'))
+            .digest('hex').slice(0, 24)
+        const queued = await this.queue.enqueueStudentAndParents({
+            idempotencyKey: `tuition-bulk:${digest}`,
+            sourceType: 'TUITION_PAYMENT',
+            sourceId: `bulk:${digest}`,
+            sourceEvent: 'BULK_PARENT_NOTIFY',
+            title: 'Thông báo học phí',
+            message: `Thông báo học phí cho ${jobs.length} học sinh`,
+            type: NotificationType.TUITION,
+            level: NotificationLevel.INFO,
+            targets: jobs.map((job) => {
+                const payload = {
+                    title: 'Thông báo học phí',
+                    message: job.messageText,
+                    type: NotificationType.TUITION,
+                    level: NotificationLevel.INFO,
+                    data: { paymentId: String(job.paymentId), studentId: String(job.studentId) },
                 }
-
-                failedCount += 1
-                const job = chunk[index]
-                const reason: any = result.reason
-                const errorMessage =
-                    reason?.response?.data?.error_description ||
-                    reason?.response?.data?.message ||
-                    reason?.message ||
-                    'Unknown Zalo send error'
-
-                console.warn('[Tuition->Parent][Bulk] Gửi Zalo thất bại, bỏ qua để không ảnh hưởng luồng chính:', {
-                    paymentId: job.paymentId,
+                return {
                     studentId: job.studentId,
+                    parentPayload: payload,
                     parentZaloId: job.parentZaloId,
-                    errorMessage,
-                })
-            })
-        }
-
-        const skippedCount = uniquePaymentIds.length - jobs.length
+                    zaloPayload: payload,
+                    zaloAppId: appId,
+                }
+            }),
+        })
         return {
             requestedCount: uniquePaymentIds.length,
-            sentCount,
-            failedCount: failedCount + skippedCount,
+            sentCount: queued ? jobs.length : 0,
+            failedCount: queued ? uniquePaymentIds.length - jobs.length : uniquePaymentIds.length,
         }
     }
 
@@ -122,15 +99,10 @@ export class SendBulkTuitionPaymentToParentUseCase {
         return payments
             .filter((payment): payment is NonNullable<typeof payment> => Boolean(payment))
             .map((payment) => {
-                const parentZaloId = payment.student?.parentZaloId
-                if (!parentZaloId) {
-                    return null
-                }
-
                 return {
                     paymentId: payment.paymentId,
                     studentId: payment.studentId,
-                    parentZaloId,
+                    parentZaloId: payment.student?.parentZaloId || undefined,
                     messageText: TuitionPaymentParentMessageTemplate.render(payment),
                 }
             })

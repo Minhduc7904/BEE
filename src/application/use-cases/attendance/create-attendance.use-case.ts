@@ -106,27 +106,34 @@ export class CreateAttendanceUseCase {
 
             // Gửi thông báo cho học sinh
             const statusLabel = AttendanceStatusLabels[attendance.status] || attendance.status
-            this.createAndNotifyOne.execute({
+            const notification = {
                 userId: student.userId,
                 title: 'Điểm danh mới',
                 message: `Bạn đã được điểm danh với trạng thái: ${statusLabel}`,
                 type: NotificationType.ATTENDANCE,
                 level: NotificationLevel.INFO,
                 data: { attendanceId: attendance.attendanceId, sessionId: attendance.sessionId, status: attendance.status },
-            }).catch(() => { /* ignore notification error */ })
+            }
 
             return {
                 response: new AttendanceResponseDto(attendance),
                 attendanceId: attendance.attendanceId,
+                notification,
             }
         })
 
-        // Gửi Zalo sau khi transaction đã commit để tránh đọc dữ liệu cũ/chưa commit
-        if (dto.status !== AttendanceStatus.ABSENT) {
-            await this.sendAttendanceToParentUseCase.execute({
-                attendanceId: result.attendanceId,
-            }).catch(() => { /* ignore zalo notify error */ })
-        }
+        await this.createAndNotifyOne.execute(result.notification, {
+            sourceType: 'ATTENDANCE',
+            sourceId: String(result.attendanceId),
+            sourceEvent: 'CREATED',
+            idempotencyKey: `attendance:${result.attendanceId}:student:created`,
+        })
+
+        // Resolve linked parents and enqueue after the business transaction commits.
+        await this.sendAttendanceToParentUseCase.execute({
+            attendanceId: result.attendanceId,
+            includeZalo: dto.status !== AttendanceStatus.ABSENT,
+        }).catch(() => { /* notification is a non-blocking side effect */ })
 
         return BaseResponseDto.success('Tạo điểm danh thành công', result.response)
     }

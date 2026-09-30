@@ -1,59 +1,19 @@
 // src/application/use-cases/notification/create-and-notify-many.use-case.ts
-import { Injectable, Inject } from '@nestjs/common'
-import type { INotificationRepository } from '../../../domain/repositories/notification.repository'
+import { Injectable } from '@nestjs/common'
 import type { CreateNotificationData } from '../../../domain/interface/notification/notification.interface'
-import { Notification } from '../../../domain/entities'
-import { NotificationRealtimeService } from 'src/application/interfaces'
+import type { BusinessNotificationSource } from './business-notification-queue.service'
+import { BusinessNotificationQueueService } from './business-notification-queue.service'
 
 /**
  * CreateAndNotifyManyUseCase
  *
- * Tạo nhiều notification trong DB và gửi realtime cho từng user.
- * Dùng khi cần gửi thông báo hàng loạt (ví dụ: gửi theo role, gửi tất cả, ...).
+ * Compatibility adapter: a bulk call creates one dispatch job with per-recipient payloads.
  */
 @Injectable()
 export class CreateAndNotifyManyUseCase {
-    constructor(
-        @Inject('UNIT_OF_WORK')
-        private readonly unitOfWork: { executeInTransaction: Function },
-        private readonly notificationRealtimeService: NotificationRealtimeService,
-    ) { }
+    constructor(private readonly queue: BusinessNotificationQueueService) {}
 
-    /**
-     * Tạo nhiều notification trong DB + gửi realtime cho từng user
-     * @param dataList - Danh sách dữ liệu notification cần tạo
-     * @returns Danh sách notification đã tạo
-     */
-    async execute(dataList: CreateNotificationData[]): Promise<Notification[]> {
-        if (dataList.length === 0) return []
-
-        const createdNotifications = await this.unitOfWork.executeInTransaction(
-            async (repos: { notificationRepository: INotificationRepository }) => {
-                return repos.notificationRepository.createMany(dataList)
-            },
-        )
-
-        // Gửi realtime notification + cập nhật stats cho từng user
-        await this.unitOfWork.executeInTransaction(
-            async (repos: { notificationRepository: INotificationRepository }) => {
-                for (let i = 0; i < dataList.length; i++) {
-                    const userId = dataList[i].userId
-                    const notification = createdNotifications[i]
-
-                    // Gửi realtime notification
-                    this.notificationRealtimeService.notifyUser(userId, notification)
-
-                    // Cập nhật stats realtime
-                    const stats = await repos.notificationRepository.getStatsByUserId(userId)
-                    this.notificationRealtimeService.notifyStatsUpdated(userId, {
-                        total: stats.total,
-                        unread: stats.unread,
-                        read: stats.read,
-                    })
-                }
-            },
-        )
-
-        return createdNotifications
+    execute(dataList: CreateNotificationData[], source?: Partial<BusinessNotificationSource>) {
+        return this.queue.enqueueInApp(dataList, source)
     }
 }

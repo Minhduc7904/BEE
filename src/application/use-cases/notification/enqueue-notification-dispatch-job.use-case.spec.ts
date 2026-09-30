@@ -8,6 +8,7 @@ import {
   NotificationType,
   NotificationAudienceType,
   NotificationRecipientType,
+  NotificationRecipientKind,
 } from '../../../shared/enums'
 import { EnqueueNotificationDispatchJobUseCase } from './enqueue-notification-dispatch-job.use-case'
 
@@ -143,6 +144,8 @@ describe('EnqueueNotificationDispatchJobUseCase', () => {
         notificationDispatchRecipientId: 101,
         notificationDispatchJobId: 31,
         userId: 1,
+        recipientKey: 'USER:1',
+        recipientKind: NotificationRecipientKind.USER,
         recipientType: NotificationRecipientType.PARENT,
         createdAt: scheduledAt,
         updatedAt: scheduledAt,
@@ -151,6 +154,8 @@ describe('EnqueueNotificationDispatchJobUseCase', () => {
         notificationDispatchRecipientId: 102,
         notificationDispatchJobId: 31,
         userId: 2,
+        recipientKey: 'USER:2',
+        recipientKind: NotificationRecipientKind.USER,
         recipientType: NotificationRecipientType.STUDENT,
         createdAt: scheduledAt,
         updatedAt: scheduledAt,
@@ -186,16 +191,19 @@ describe('EnqueueNotificationDispatchJobUseCase', () => {
       {
         notificationDispatchRecipientId: 101,
         channel: NotificationDeliveryChannel.IN_APP,
+        payload: expect.objectContaining({ title: 'Thông báo', message: 'Nội dung' }),
         availableAt: scheduledAt,
       },
       {
         notificationDispatchRecipientId: 101,
         channel: NotificationDeliveryChannel.PUSH,
+        payload: expect.objectContaining({ title: 'Thông báo', message: 'Nội dung' }),
         availableAt: scheduledAt,
       },
       {
         notificationDispatchRecipientId: 102,
         channel: NotificationDeliveryChannel.IN_APP,
+        payload: expect.objectContaining({ title: 'Thông báo', message: 'Nội dung' }),
         availableAt: scheduledAt,
       },
     ])

@@ -1,15 +1,16 @@
 import { Inject, Injectable } from '@nestjs/common'
+import { createHash } from 'crypto'
 import type { IUnitOfWork } from 'src/domain/repositories'
-import { AttendanceStatusLabels, AttendanceStatus } from 'src/shared/enums'
+import { AttendanceStatusLabels, AttendanceStatus, NotificationLevel, NotificationType } from 'src/shared/enums'
 import { formatVnDate, formatVnDateTime, formatVnTime } from 'src/shared/utils/vietnam-date.util'
-import { ZaloService } from 'src/application/interfaces'
 import { AttendanceParentMessageTemplate } from 'src/infrastructure/templates/attendance-parent-message.template'
-import { GetValidZaloAccessTokenUseCase } from '../zalo/get-valid-zalo-access-token.use-case'
+import { BusinessNotificationQueueService } from '../notification/business-notification-queue.service'
 
 interface SendAttendanceToParentInput {
     attendanceId: number
     appId?: string
     note?: string
+    includeZalo?: boolean
 }
 
 export interface SendAttendanceToParentResult {
@@ -25,8 +26,7 @@ export class SendAttendanceToParentUseCase {
     constructor(
         @Inject('UNIT_OF_WORK')
         private readonly unitOfWork: IUnitOfWork,
-        private readonly zaloService: ZaloService,
-        private readonly getValidZaloAccessTokenUseCase: GetValidZaloAccessTokenUseCase,
+        private readonly queue: BusinessNotificationQueueService,
     ) { }
 
     async execute(input: SendAttendanceToParentInput): Promise<SendAttendanceToParentResult> {
@@ -141,73 +141,41 @@ export class SendAttendanceToParentUseCase {
             note: input.note,
         })
 
-        const parentZaloId = attendance.student?.parentZaloId
-        if (!parentZaloId) {
-            return {
-                sent: false,
-                messageText,
-                errorMessage: 'Phụ huynh chưa có Zalo ID',
-            }
+        const payload = {
+            title: `Điểm danh: ${studentName}`,
+            message: messageText,
+            type: NotificationType.ATTENDANCE,
+            level: NotificationLevel.INFO,
+            data: {
+                attendanceId: String(attendance.attendanceId),
+                studentId: String(attendance.studentId),
+                status: attendance.status,
+            },
         }
-
-        const accessToken =
-            await this.getValidZaloAccessTokenUseCase.execute({ appId })
-
-        if (!accessToken) {
-            const errorMessage = `Không tìm thấy access token cho app_id=${appId}`
-            console.warn(`[Attendance->Parent] ${errorMessage}`)
-            return {
-                sent: false,
-                messageText,
-                errorMessage,
-            }
-        }
-
-        try {
-            await this.zaloService.sendMessage(accessToken, {
-                recipient: { user_id: parentZaloId },
-                message: {
-                    text: messageText,
-                },
-            })
-        } catch (error: any) {
-            const errorMessage =
-                error?.response?.data?.error_description ||
-                error?.response?.data?.message ||
-                error?.message ||
-                'Unknown Zalo send error'
-
-            console.warn(
-                '[Attendance->Parent] Gửi Zalo thất bại:',
-                {
-                    attendanceId: attendance.attendanceId,
-                    studentId: attendance.studentId,
-                    parentZaloId,
-                    errorMessage,
-                },
-            )
-
-            return {
-                sent: false,
-                messageText,
-                errorMessage,
-            }
-        }
-
-        if (!attendance.parentNotified) {
-            await this.unitOfWork.executeInTransaction(async (repos) => {
-                await repos.attendanceRepository.update(
-                    attendance.attendanceId,
-                    {
-                        parentNotified: true,
-                    },
-                )
-            })
-        }
+        const digest = createHash('sha256').update(messageText).digest('hex').slice(0, 24)
+        const queued = await this.queue.enqueueStudentAndParents({
+            idempotencyKey: `attendance:${attendance.attendanceId}:${attendance.status}:${digest}`,
+            sourceType: 'ATTENDANCE',
+            sourceId: String(attendance.attendanceId),
+            sourceEvent: 'PARENT_NOTIFY',
+            title: payload.title,
+            message: payload.message,
+            type: payload.type,
+            level: payload.level,
+            data: payload.data,
+            targets: [{
+                studentId: attendance.studentId,
+                parentPayload: payload,
+                parentZaloId: attendance.student?.parentZaloId,
+                zaloPayload: input.includeZalo === false ? undefined : payload,
+                zaloAppId: appId,
+            }],
+        })
 
         return {
-            sent: true,
+            sent: Boolean(queued),
             messageText,
+            ...(!queued && { errorMessage: 'Không thể xếp hàng notification' }),
         }
     }
 }

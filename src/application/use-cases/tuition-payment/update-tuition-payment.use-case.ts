@@ -122,7 +122,7 @@ export class UpdateTuitionPaymentUseCase {
     })
 
     if (result.studentUserId) {
-      this.createAndNotifyOne.execute({
+      await this.createAndNotifyOne.execute({
         userId: result.studentUserId,
         title: 'Cập nhật học phí',
         message: `Học phí tháng ${result.response.month}/${result.response.year} đã được cập nhật - Số tiền: ${result.response.amount?.toLocaleString('vi-VN')}đ - Trạng thái: ${result.response.statusLabel}`,
@@ -136,7 +136,12 @@ export class UpdateTuitionPaymentUseCase {
           status: result.response.status,
           shouldShowReminderModal: true,
         },
-      }).catch(() => { /* ignore notification error */ })
+      }, {
+        sourceType: 'TUITION_PAYMENT',
+        sourceId: String(result.response.paymentId),
+        sourceEvent: 'UPDATED',
+        idempotencyKey: `tuition:${result.response.paymentId}:student:updated:${result.response.amount}:${result.response.month}:${result.response.year}`,
+      })
     }
 
     return BaseResponseDto.success('Cập nhật học phí thành công', result.response)

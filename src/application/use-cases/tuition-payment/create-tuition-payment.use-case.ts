@@ -81,7 +81,7 @@ export class CreateTuitionPaymentUseCase {
         const statusLabel = TuitionPaymentStatusLabels[payment.status] || payment.status
         const notificationLevel =
           payment.status === TuitionPaymentStatus.PAID ? NotificationLevel.SUCCESS : NotificationLevel.INFO
-        this.createAndNotifyOne.execute({
+        const notification = {
           userId: student.userId,
           title: 'Học phí mới',
           message: `Học phí tháng ${payment.month}/${payment.year} đã được tạo - Số tiền: ${payment.amount?.toLocaleString('vi-VN')}đ - Trạng thái: ${statusLabel}`,
@@ -95,15 +95,32 @@ export class CreateTuitionPaymentUseCase {
             status: payment.status,
             shouldShowReminderModal: true,
           },
-        }).catch(() => { /* ignore notification error */ })
+        }
+
+        return {
+          response: new TuitionPaymentResponseDto(payment),
+          paymentId: payment.paymentId,
+          shouldNotifyParent: payment.status === TuitionPaymentStatus.PAID,
+          notification,
+        }
       }
 
       return {
         response: new TuitionPaymentResponseDto(payment),
         paymentId: payment.paymentId,
         shouldNotifyParent: payment.status === TuitionPaymentStatus.PAID,
+        notification: null,
       }
     })
+
+    if (result.notification) {
+      await this.createAndNotifyOne.execute(result.notification, {
+        sourceType: 'TUITION_PAYMENT',
+        sourceId: String(result.paymentId),
+        sourceEvent: 'CREATED',
+        idempotencyKey: `tuition:${result.paymentId}:student:created`,
+      })
+    }
 
     // Chỉ gửi Zalo sau commit khi học phí tạo mới có trạng thái PAID
     if (result.shouldNotifyParent) {

@@ -7,7 +7,7 @@ import type { IHomeworkContentRepository } from '../../../domain/repositories/ho
 import type { IHomeworkSubmitRepository } from '../../../domain/repositories/homework-submit.repository'
 import { NotFoundException, ForbiddenException } from '../../../shared/exceptions/custom-exceptions'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
-import { QuestionType } from '../../../shared/enums'
+import { NotificationLevel, NotificationType, QuestionType } from '../../../shared/enums'
 import { CompetitionSubmitStatus } from '../../../shared/enums/competition-submit-status.enum'
 import { HandleHomeworkSubmitByCompetitionUseCase } from './handle-homework-submit-by-competition.use-case'
 import {
@@ -16,6 +16,7 @@ import {
     parseNumericAnswer,
 } from '../../../shared/constants/grading-rules.constants'
 import { StudentPointService } from '../../services/student-point.service'
+import { BusinessNotificationQueueService } from '../notification/business-notification-queue.service'
 
 interface GradeResult {
     isCorrect: boolean | null
@@ -54,6 +55,7 @@ export class FinishCompetitionSubmitUseCase {
         @Inject('UNIT_OF_WORK')
         private readonly unitOfWork: IUnitOfWork,
         private readonly studentPointService: StudentPointService,
+        private readonly notificationQueue: BusinessNotificationQueueService,
         private readonly handleHomeworkSubmitByCompetitionUseCase: HandleHomeworkSubmitByCompetitionUseCase,
     ) { }
 
@@ -398,6 +400,30 @@ export class FinishCompetitionSubmitUseCase {
                 scorePercentage,
             }),
         )
+
+        const student = await this.unitOfWork.executeInTransaction((repos) => repos.studentRepository.findById(studentId))
+        if (student?.userId) {
+            const scoreMessage = `Kết quả bài thi của bạn: ${totalPoints}/${maxPoints} điểm (${scorePercentage}%).`
+            const payload = {
+                title: 'Kết quả bài thi',
+                message: scoreMessage,
+                type: NotificationType.RESULT,
+                level: NotificationLevel.INFO,
+                data: { competitionSubmitId: String(submitId), totalPoints: String(totalPoints), maxPoints: String(maxPoints), scorePercentage: String(scorePercentage) },
+            }
+            await this.notificationQueue.enqueueStudentAndParents({
+                idempotencyKey: `competition-result:${submitId}:${totalPoints}:${maxPoints}`,
+                sourceType: 'COMPETITION_SUBMIT',
+                sourceId: String(submitId),
+                sourceEvent: 'FINISHED',
+                title: payload.title,
+                message: payload.message,
+                type: payload.type,
+                level: payload.level,
+                data: payload.data,
+                targets: [{ studentId, studentUserId: student.userId, studentPayload: payload, parentPayload: payload }],
+            })
+        }
 
         const allowViewSolutionYoutubeUrl = competition.allowViewSolutionYoutubeUrl
 

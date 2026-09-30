@@ -4,11 +4,13 @@ import type {
   NotificationDispatchRecipientListOptions,
   NotificationRecipientSearchOptions,
   NotificationRecipientSnapshot,
+  NotificationParentTarget,
 } from '../interface/notification-dispatch'
 
 export interface INotificationDispatchRecipientRepository {
   createMany(data: CreateNotificationDispatchRecipientData[]): Promise<NotificationDispatchRecipient[]>
   resolveSnapshots(userIds: number[]): Promise<NotificationRecipientSnapshot[]>
+  resolveParentTargetsByStudentIds(studentIds: number[]): Promise<NotificationParentTarget[]>
   search(
     options: NotificationRecipientSearchOptions,
   ): Promise<{ items: NotificationRecipientSnapshot[]; total: number }>

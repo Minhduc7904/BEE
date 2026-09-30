@@ -1,4 +1,4 @@
-import { NotificationRecipientType } from '../../../shared/enums'
+import { NotificationRecipientKind, NotificationRecipientType } from '../../../shared/enums'
 
 export class NotificationDispatchRecipient {
   notificationDispatchRecipientId: number
@@ -6,7 +6,10 @@ export class NotificationDispatchRecipient {
   createdAt: Date
   updatedAt: Date
   userId?: number
+  recipientKey?: string
+  recipientKind: NotificationRecipientKind
   recipientType: NotificationRecipientType
+  sourceStudentId?: number
   profileId?: number
   displayName?: string
   email?: string
@@ -18,7 +21,10 @@ export class NotificationDispatchRecipient {
     createdAt: Date
     updatedAt: Date
     userId?: number
+    recipientKey?: string
+    recipientKind: NotificationRecipientKind
     recipientType: NotificationRecipientType
+    sourceStudentId?: number
     profileId?: number
     displayName?: string
     email?: string

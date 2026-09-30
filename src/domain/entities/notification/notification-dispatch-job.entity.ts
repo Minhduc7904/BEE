@@ -34,6 +34,9 @@ export class NotificationDispatchJob {
   startedAt?: Date
   finishedAt?: Date
   createdByAdminId?: number
+  sourceType?: string
+  sourceId?: string
+  sourceEvent?: string
 
   constructor(data: {
     notificationDispatchJobId: number
@@ -61,6 +64,9 @@ export class NotificationDispatchJob {
     startedAt?: Date
     finishedAt?: Date
     createdByAdminId?: number
+    sourceType?: string
+    sourceId?: string
+    sourceEvent?: string
   }) {
     Object.assign(this, data)
   }

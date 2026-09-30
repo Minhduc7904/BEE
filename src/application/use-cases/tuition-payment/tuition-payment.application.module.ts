@@ -4,7 +4,6 @@ import * as tuitionPaymentUseCase from './'
 import { InfrastructureModule } from 'src/infrastructure/infrastructure.module'
 import { SocketModule } from 'src/infrastructure/socket.module'
 import { NotificationApplicationModule } from '../notification/notification.application.module'
-import { GetValidZaloAccessTokenUseCase } from '../zalo/get-valid-zalo-access-token.use-case'
 
 const TUITION_PAYMENT_USE_CASES = [
   tuitionPaymentUseCase.CreateTuitionPaymentUseCase,
@@ -35,7 +34,6 @@ const TUITION_PAYMENT_USE_CASES = [
   tuitionPaymentUseCase.ExportTuitionPaymentListUseCase,
   tuitionPaymentUseCase.SendTuitionPaymentToParentUseCase,
   tuitionPaymentUseCase.SendBulkTuitionPaymentToParentUseCase,
-  GetValidZaloAccessTokenUseCase,
 ]
 @Module({
   imports: [

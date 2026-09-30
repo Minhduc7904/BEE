@@ -16,7 +16,13 @@ export class PrismaNotificationDeliveryRepository implements INotificationDelive
 
   async createMany(data: CreateNotificationDeliveryData[]): Promise<number> {
     if (data.length === 0) return 0
-    const result = await this.prisma.notificationDelivery.createMany({ data, skipDuplicates: true })
+    const result = await this.prisma.notificationDelivery.createMany({
+      data: data.map((item) => ({
+        ...item,
+        payload: item.payload as Prisma.InputJsonValue | undefined,
+      })),
+      skipDuplicates: true,
+    })
     return result.count
   }
 

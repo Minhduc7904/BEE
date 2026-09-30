@@ -3,7 +3,7 @@ import { studentPointConfig } from 'src/config'
 import type { CreateStudentPointLogData, UnitOfWorkRepos } from 'src/domain/repositories'
 import { AttendanceStatus, NotificationLevel, NotificationType, PointType } from 'src/shared/enums'
 import type { StudentPointLog } from 'src/domain/entities'
-import { NotificationRealtimeService } from 'src/application/interfaces'
+import { BusinessNotificationQueueService } from 'src/application/use-cases/notification/business-notification-queue.service'
 
 interface AwardStudentPointsInput {
   studentId: number
@@ -25,7 +25,7 @@ interface PointNotificationContent {
 export class StudentPointService {
   constructor(
     @Optional()
-    private readonly notificationRealtimeService?: NotificationRealtimeService,
+    private readonly notificationQueue?: BusinessNotificationQueueService,
   ) {}
 
   getCompetitionSubmitPoints(scorePercentage: number): number {
@@ -212,7 +212,7 @@ export class StudentPointService {
 
     const content = this.buildPointNotificationContent(input, awardedPoints)
 
-    const notification = await repos.notificationRepository.create({
+    const notificationData = {
       userId: student.userId,
       title: content.title,
       message: content.message,
@@ -225,19 +225,20 @@ export class StudentPointService {
         source: input.source,
         referenceType: input.referenceType,
         referenceId: input.referenceId,
-        metadata: input.metadata,
+        metadata: JSON.stringify(input.metadata ?? {}),
       },
-    })
-
-    if (this.notificationRealtimeService) {
-      const stats = await repos.notificationRepository.getStatsByUserId(student.userId)
-      this.notificationRealtimeService.notifyUser(student.userId, notification)
-      this.notificationRealtimeService.notifyStatsUpdated(student.userId, {
-        total: stats.total,
-        unread: stats.unread,
-        read: stats.read,
-      })
     }
+
+    // The point mutation owns the surrounding transaction. Defer the side effect so
+    // enqueue cannot roll it back and never write notifications directly in that transaction.
+    setImmediate(() => {
+      void this.notificationQueue?.enqueueInApp([notificationData], {
+        sourceType: input.referenceType || 'STUDENT_POINT',
+        sourceId: String(input.referenceId),
+        sourceEvent: 'POINT_AWARDED',
+        idempotencyKey: `point:${currentLog.pointLogId}:${awardedPoints}`,
+      })
+    })
   }
 
   private toSignedPoints(pointLog: StudentPointLog): number {

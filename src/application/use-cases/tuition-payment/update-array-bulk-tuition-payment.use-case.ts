@@ -294,7 +294,7 @@ export class UpdateArrayBulkTuitionPaymentUseCase {
     if (result.parentNotifyPaymentIds.length > 0) {
       await this.sendBulkTuitionPaymentToParentUseCase.execute({
         paymentIds: result.parentNotifyPaymentIds,
-      })
+      }).catch(() => undefined)
     }
 
     return BaseResponseDto.success('Cập nhật học phí hàng loạt thành công', result.responses)

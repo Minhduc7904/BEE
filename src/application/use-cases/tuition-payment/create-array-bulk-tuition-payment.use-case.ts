@@ -220,7 +220,7 @@ export class CreateArrayBulkTuitionPaymentUseCase {
     if (result.paymentIds.length > 0) {
       await this.sendBulkTuitionPaymentToParentUseCase.execute({
         paymentIds: result.paymentIds,
-      })
+      }).catch(() => undefined)
     }
 
     return BaseResponseDto.success('Tạo học phí hàng loạt thành công', result.responses)

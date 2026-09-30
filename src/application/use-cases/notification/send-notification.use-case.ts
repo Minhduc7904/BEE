@@ -54,6 +54,9 @@ export class SendNotificationUseCase {
     const channels = dto.channels?.length
       ? Array.from(new Set(dto.channels))
       : [NotificationDeliveryChannel.IN_APP, NotificationDeliveryChannel.PUSH]
+    if (channels.includes(NotificationDeliveryChannel.ZALO_OA)) {
+      throw new BadRequestException('Admin không được gửi trực tiếp qua kênh ZALO_OA')
+    }
     const requestFingerprint = this.fingerprint(dto, channels)
 
     let dispatch: EnqueueNotificationDispatchJobResult
@@ -73,6 +76,9 @@ export class SendNotificationUseCase {
           createdByAdminId: adminId,
           audienceType: targets.audienceType,
           audienceRecipientType: targets.audienceRecipientType,
+          sourceType: 'ADMIN',
+          sourceId: adminId ? String(adminId) : undefined,
+          sourceEvent: 'MANUAL_SEND',
         })
 
         if (adminId && !queued.reused) {

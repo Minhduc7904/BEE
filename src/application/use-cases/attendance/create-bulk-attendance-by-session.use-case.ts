@@ -16,6 +16,7 @@ import { RESOURCE_TYPES } from '../../../shared/constants/resource-type.constant
 import { CreateAndNotifyManyUseCase } from '../notification/create-and-notify-many.use-case'
 import { SendBulkAttendanceToParentUseCase } from './send-bulk-attendance-to-parent.use-case'
 import { StudentPointService } from 'src/application/services/student-point.service'
+import { createHash } from 'crypto'
 
 @Injectable()
 export class CreateBulkAttendanceBySessionUseCase {
@@ -112,6 +113,7 @@ Nếu con đăng ký nhầm lớp, hãy chọn "Liên hệ hỗ trợ" để tr�
           return {
             responses: [] as AttendanceResponseDto[],
             attendanceIds: [] as number[],
+            notifications: [],
           }
         }
 
@@ -179,7 +181,11 @@ Nếu con đăng ký nhầm lớp, hãy chọn "Liên hệ hỗ trợ" để tr�
             data: { sessionId: dto.sessionId, status: defaultStatus },
           }))
 
-          this.createAndNotifyMany.execute(notificationDataList).catch(() => { /* ignore notification error */ })
+          return {
+            responses: createdAttendances.map((attendance) => AttendanceResponseDto.fromEntity(attendance)),
+            attendanceIds: createdAttendances.map((attendance) => attendance.attendanceId),
+            notifications: notificationDataList,
+          }
         }
 
         return {
@@ -187,6 +193,7 @@ Nếu con đăng ký nhầm lớp, hãy chọn "Liên hệ hỗ trợ" để tr�
             AttendanceResponseDto.fromEntity(attendance),
           ),
           attendanceIds: createdAttendances.map((attendance) => attendance.attendanceId),
+          notifications: [],
         }
       } catch (error) {
         /**
@@ -208,13 +215,25 @@ Nếu con đăng ký nhầm lớp, hãy chọn "Liên hệ hỗ trợ" để tr�
       }
     })
 
-    // Gửi Zalo sau khi transaction đã commit để đảm bảo đọc đúng dữ liệu mới tạo
-    // if (result.attendanceIds.length > 0) {
-    //   await this.sendBulkAttendanceToParentUseCase.execute({
-    //     attendanceIds: result.attendanceIds,
-    //     note: CreateBulkAttendanceBySessionUseCase.FIRST_ATTENDANCE_NOTE,
-    //   })
-    // }
+    if (result.notifications.length > 0) {
+      const ids = [...result.attendanceIds].sort((a, b) => a - b)
+      const digest = createHash('sha256').update(ids.join(',')).digest('hex').slice(0, 24)
+      await this.createAndNotifyMany.execute(result.notifications, {
+        sourceType: 'ATTENDANCE',
+        sourceId: `session:${dto.sessionId}:bulk:${digest}`,
+        sourceEvent: 'BULK_CREATED',
+        idempotencyKey: `attendance-bulk:${dto.sessionId}:${digest}:students`,
+      })
+    }
+
+    // Parent accounts still receive IN_APP/PUSH; legacy bulk Zalo remains disabled.
+    if (result.attendanceIds.length > 0) {
+      await this.sendBulkAttendanceToParentUseCase.execute({
+        attendanceIds: result.attendanceIds,
+        note: CreateBulkAttendanceBySessionUseCase.FIRST_ATTENDANCE_NOTE,
+        includeZalo: false,
+      }).catch(() => undefined)
+    }
 
     return BaseResponseDto.success(
       result.responses.length > 0

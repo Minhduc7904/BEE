@@ -3,6 +3,7 @@ import { Module } from '@nestjs/common'
 import * as notification from './'
 import { InfrastructureModule } from 'src/infrastructure/infrastructure.module'
 import { SocketModule } from 'src/infrastructure/socket.module'
+import { GetValidZaloAccessTokenUseCase } from '../zalo/get-valid-zalo-access-token.use-case'
 
 const NOTIFICATION_USE_CASES = [
   notification.DeleteNotificationUseCase,
@@ -21,6 +22,8 @@ const NOTIFICATION_USE_CASES = [
   notification.GetNotificationDispatchJobsUseCase,
   notification.GetNotificationDispatchJobUseCase,
   notification.GetNotificationDispatchRecipientsUseCase,
+  notification.BusinessNotificationQueueService,
+  GetValidZaloAccessTokenUseCase,
 ]
 
 @Module({

@@ -1,7 +1,6 @@
 import { ConflictException, Inject, Injectable, Logger } from '@nestjs/common'
 import { randomUUID } from 'crypto'
 import type { NotificationDelivery } from '../../../domain/entities/notification'
-import type { BackgroundJobRunResultSummary } from '../../../domain/interface/background-job'
 import type { IUnitOfWork } from '../../../domain/repositories'
 import {
   BackgroundJobCode,
@@ -10,8 +9,9 @@ import {
   NotificationDeliveryStatus,
   NotificationDispatchJobStatus,
 } from '../../../shared/enums'
-import { NotificationRealtimeService, PushNotificationService } from '../../interfaces'
+import { NotificationRealtimeService, PushNotificationService, ZaloService } from '../../interfaces'
 import { PushNotificationEligibilityService } from './push-notification-eligibility.service'
+import { GetValidZaloAccessTokenUseCase } from '../zalo/get-valid-zalo-access-token.use-case'
 
 const JOB_CONFIG = {
   code: BackgroundJobCode.NOTIFICATION_DELIVERY_DISPATCHER,
@@ -44,6 +44,8 @@ export class DispatchNotificationDeliveriesUseCase {
     private readonly realtimeService: NotificationRealtimeService,
     private readonly pushService: PushNotificationService,
     private readonly pushEligibility: PushNotificationEligibilityService,
+    private readonly zaloService: ZaloService,
+    private readonly getValidZaloAccessToken: GetValidZaloAccessTokenUseCase,
   ) {}
 
   async executeScheduled(workerId: string): Promise<NotificationDispatchRunResult | null> {
@@ -130,30 +132,39 @@ export class DispatchNotificationDeliveriesUseCase {
   }
 
   private async process(delivery: NotificationDelivery): Promise<'sent' | 'skipped' | 'retried' | 'dead'> {
-    if (!delivery.recipient?.userId || !delivery.job) {
-      return this.skip(delivery, 'RECIPIENT_UNAVAILABLE')
+    try {
+      if (!delivery.job) return this.skip(delivery, 'JOB_UNAVAILABLE')
+      if (delivery.channel === NotificationDeliveryChannel.ZALO_OA) return this.processZalo(delivery)
+      if (!delivery.recipient?.userId) return this.skip(delivery, 'RECIPIENT_UNAVAILABLE')
+      if (delivery.channel === NotificationDeliveryChannel.IN_APP) return this.processInApp(delivery)
+
+      const eligibility = await this.pushEligibility.evaluate(delivery.recipient.userId, delivery.job.type)
+      if (!eligibility.allowed) return this.skip(delivery, eligibility.skipReason ?? 'PUSH_NOT_ALLOWED')
+
+      return this.processPush(delivery)
+    } catch (error) {
+      return this.retryOrDead(
+        delivery,
+        `${delivery.channel}_UNEXPECTED_ERROR`,
+        error instanceof Error ? error.message : String(error),
+      )
     }
-    if (delivery.channel === NotificationDeliveryChannel.IN_APP) return this.processInApp(delivery)
-
-    const eligibility = await this.pushEligibility.evaluate(delivery.recipient.userId, delivery.job.type)
-    if (!eligibility.allowed) return this.skip(delivery, eligibility.skipReason ?? 'PUSH_NOT_ALLOWED')
-
-    return this.processPush(delivery)
   }
 
   private async processInApp(delivery: NotificationDelivery): Promise<'sent'> {
     const userId = delivery.recipient!.userId!
     const job = delivery.job!
+    const payload = delivery.payload ?? job
     const notification = await this.unitOfWork.executeInTransaction(async (repos) => {
       const created = await repos.notificationRepository.createForDispatchRecipient(
         delivery.notificationDispatchRecipientId,
         {
           userId,
-          title: job.title,
-          message: job.message,
-          type: job.type,
-          level: job.level,
-          data: job.data,
+          title: payload.title,
+          message: payload.message,
+          type: payload.type,
+          level: payload.level,
+          data: payload.data,
         },
       )
       await repos.notificationDeliveryRepository.update(delivery.notificationDeliveryId, {
@@ -170,6 +181,10 @@ export class DispatchNotificationDeliveriesUseCase {
     })
     try {
       this.realtimeService.notifyUser(userId, notification)
+      const stats = await this.unitOfWork.executeInTransaction((repos) =>
+        repos.notificationRepository.getStatsByUserId(userId),
+      )
+      this.realtimeService.notifyStatsUpdated(userId, stats)
     } catch (error) {
       this.logger.warn(
         `Không thể phát realtime notification #${notification.notificationId}; dữ liệu IN_APP đã được lưu`,
@@ -182,6 +197,7 @@ export class DispatchNotificationDeliveriesUseCase {
   private async processPush(delivery: NotificationDelivery): Promise<'sent' | 'skipped' | 'retried' | 'dead'> {
     const userId = delivery.recipient!.userId!
     const job = delivery.job!
+    const payload = delivery.payload ?? job
     const context = await this.unitOfWork.executeInTransaction(async (repos) => ({
       devices: await repos.userDeviceRepository.findByUserIds([userId]),
       notification: await repos.notificationRepository.findByDispatchRecipientId(
@@ -193,10 +209,10 @@ export class DispatchNotificationDeliveriesUseCase {
     const result = await this.pushService.sendToTokens(
       context.devices.map((device) => device.fcmToken),
       {
-        title: job.title,
-        body: job.message,
+        title: payload.title,
+        body: payload.message,
         data: {
-          ...job.data,
+          ...payload.data,
           notificationDispatchJobId: String(job.notificationDispatchJobId),
           ...(context.notification && { notificationId: String(context.notification.notificationId) }),
         },
@@ -225,6 +241,47 @@ export class DispatchNotificationDeliveriesUseCase {
     const errorCode = result.outcomes.find((outcome) => outcome.errorCode)?.errorCode ?? 'PUSH_SEND_FAILED'
     if (!retryable) return this.markDead(delivery, errorCode, 'FCM từ chối delivery vĩnh viễn')
     return this.retryOrDead(delivery, errorCode, 'FCM tạm thời không gửi được notification')
+  }
+
+  private async processZalo(delivery: NotificationDelivery): Promise<'sent' | 'skipped' | 'retried' | 'dead'> {
+    if (!delivery.destination) return this.skip(delivery, 'NO_ZALO_RECIPIENT_ID')
+    const appId = delivery.providerAppId || process.env.ZALO_APP_ID || '443601004373365149'
+    const accessToken = await this.getValidZaloAccessToken.execute({ appId })
+    if (!accessToken) {
+      return this.retryOrDead(delivery, 'ZALO_ACCESS_TOKEN_UNAVAILABLE', `Không có access token cho app_id=${appId}`)
+    }
+    const payload = delivery.payload ?? delivery.job!
+    try {
+      const response = await this.zaloService.sendMessage(accessToken, {
+        recipient: { user_id: delivery.destination },
+        message: { text: payload.message },
+      })
+      await this.markSent(delivery.notificationDeliveryId, response?.data?.message_id)
+      await this.markAttendanceParentNotified(delivery)
+      return 'sent'
+    } catch (error: any) {
+      const status = error?.response?.status ?? error?.status
+      const message = error?.response?.data?.error_description || error?.response?.data?.message || error?.message || 'Zalo OA gửi thất bại'
+      const providerError = error?.response?.data?.error ?? /error=(-?\d+)/.exec(message)?.[1]
+      const permanent = (status >= 400 && status < 500 && status !== 429) || message.includes('Zalo API từ chối')
+      if (permanent) return this.markDead(delivery, providerError ? `ZALO_${providerError}` : 'ZALO_PROVIDER_REJECTED', message)
+      return this.retryOrDead(delivery, status === 429 ? 'ZALO_RATE_LIMITED' : 'ZALO_SEND_FAILED', message)
+    }
+  }
+
+  private async markAttendanceParentNotified(delivery: NotificationDelivery): Promise<void> {
+    const job = delivery.job
+    if (job?.sourceType !== 'ATTENDANCE' || !job.sourceId || !/^\d+$/.test(job.sourceId)) return
+    try {
+      await this.unitOfWork.executeInTransaction((repos) =>
+        repos.attendanceRepository.update(Number(job.sourceId), { parentNotified: true }),
+      )
+    } catch (error) {
+      this.logger.warn(
+        `Zalo đã gửi nhưng không cập nhật được parentNotified cho attendance #${job.sourceId}`,
+        error instanceof Error ? error.stack : undefined,
+      )
+    }
   }
 
   private async markSent(notificationDeliveryId: number, providerMessageId?: string): Promise<void> {
@@ -355,7 +412,7 @@ export class DispatchNotificationDeliveriesUseCase {
       repos.backgroundJobRunRepository.update(backgroundJobRunId, {
         status: BackgroundJobRunStatus.SUCCEEDED,
         finishedAt: new Date(),
-        resultSummary: { ...result } as BackgroundJobRunResultSummary,
+        resultSummary: { ...result },
       }),
     )
   }

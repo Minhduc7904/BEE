@@ -16,7 +16,7 @@ export class PrismaNotificationDispatchJobRepository implements INotificationDis
     const created = await this.prisma.notificationDispatchJob.create({
       data: {
         ...data,
-        data: data.data as Prisma.InputJsonValue | undefined,
+        data: data.data,
       },
     })
     return NotificationDispatchJobMapper.toDomain(created)!
@@ -56,6 +56,9 @@ export class PrismaNotificationDispatchJobRepository implements INotificationDis
             { title: { contains: options.search } },
             { message: { contains: options.search } },
             { idempotencyKey: { contains: options.search } },
+            { sourceType: { contains: options.search } },
+            { sourceId: { contains: options.search } },
+            { sourceEvent: { contains: options.search } },
           ]
         : undefined,
     }

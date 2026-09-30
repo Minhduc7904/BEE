@@ -229,6 +229,12 @@ enum NotificationDispatchJobStatus {
 enum NotificationDeliveryChannel {
   IN_APP
   PUSH
+  ZALO_OA
+}
+
+enum NotificationRecipientKind {
+  USER
+  EXTERNAL_CONTACT
 }
 
 // Vòng đời của một lần giao tới một người nhận qua một kênh.
@@ -290,7 +296,7 @@ model Notification {
   @@map("notifications")
 }
 
-// Yêu cầu gửi notification đơn hoặc batch; nội dung dùng chung cho IN_APP và PUSH ở phase hiện tại.
+// Yêu cầu gửi notification đơn hoặc batch; delivery có thể snapshot payload riêng theo từng channel.
 model NotificationDispatchJob {
   notificationDispatchJobId Int                           @id @default(autoincrement()) @map("notification_dispatch_job_id")
   jobType                   NotificationDispatchJobType   @map("job_type")
@@ -309,6 +315,9 @@ model NotificationDispatchJob {
   audienceType              NotificationAudienceType      @default(SPECIFIC_USERS) @map("audience_type")
   audienceRecipientType     NotificationRecipientType?    @map("audience_recipient_type")
   requestedChannels         Json?                         @map("requested_channels")
+  sourceType                String?                       @map("source_type") @db.VarChar(80)
+  sourceId                  String?                       @map("source_id") @db.VarChar(120)
+  sourceEvent               String?                       @map("source_event") @db.VarChar(80)
   recipientCount            Int                           @default(0) @map("recipient_count") @db.UnsignedInt
   totalDeliveryCount        Int                           @default(0) @map("total_delivery_count") @db.UnsignedInt
   sentDeliveryCount         Int                           @default(0) @map("sent_delivery_count") @db.UnsignedInt
@@ -324,28 +333,33 @@ model NotificationDispatchJob {
   @@index([status, scheduledAt, priority], map: "idx_notification_dispatch_jobs_due")
   @@index([createdByAdminId, createdAt], map: "idx_notification_dispatch_jobs_creator_created")
   @@index([status, createdAt], map: "idx_notification_dispatch_jobs_status_created")
+  @@index([sourceType, sourceId], map: "idx_notification_dispatch_jobs_source")
   @@map("notification_dispatch_jobs")
 }
 
 // Snapshot một người nhận thuộc job; giữ lại lịch sử khi tài khoản bị xóa.
 model NotificationDispatchRecipient {
-  notificationDispatchRecipientId Int      @id @default(autoincrement()) @map("notification_dispatch_recipient_id")
-  notificationDispatchJobId       Int      @map("notification_dispatch_job_id")
-  userId                          Int?     @map("user_id")
+  notificationDispatchRecipientId Int                       @id @default(autoincrement()) @map("notification_dispatch_recipient_id")
+  notificationDispatchJobId       Int                       @map("notification_dispatch_job_id")
+  userId                          Int?                      @map("user_id")
+  recipientKey                    String?                   @map("recipient_key") @db.VarChar(180)
+  recipientKind                   NotificationRecipientKind @default(USER) @map("recipient_kind")
   recipientType                   NotificationRecipientType @default(UNKNOWN) @map("recipient_type")
-  profileId                       Int?     @map("profile_id")
-  displayName                     String?  @map("display_name") @db.VarChar(255)
-  email                           String?  @db.VarChar(120)
-  phone                           String?  @db.VarChar(30)
-  createdAt                       DateTime @default(now()) @map("created_at") @db.Timestamp(0)
-  updatedAt                       DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+  sourceStudentId                 Int?                      @map("source_student_id")
+  profileId                       Int?                      @map("profile_id")
+  displayName                     String?                   @map("display_name") @db.VarChar(255)
+  email                           String?                   @db.VarChar(120)
+  phone                           String?                   @db.VarChar(30)
+  createdAt                       DateTime                  @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                       DateTime                  @updatedAt @map("updated_at") @db.Timestamp(0)
 
   job          NotificationDispatchJob @relation(fields: [notificationDispatchJobId], references: [notificationDispatchJobId], onDelete: Cascade)
   user         User?                   @relation(fields: [userId], references: [userId], onDelete: SetNull)
   notification Notification?
   deliveries   NotificationDelivery[]
 
-  @@unique([notificationDispatchJobId, userId], map: "uq_notification_dispatch_recipients_job_user")
+  @@unique([notificationDispatchJobId, recipientKey], map: "uq_notification_dispatch_recipients_job_key")
+  @@index([notificationDispatchJobId, userId], map: "idx_notification_dispatch_recipients_job_user")
   @@index([userId, createdAt], map: "idx_notification_dispatch_recipients_user_created")
   @@index([notificationDispatchJobId, recipientType], map: "idx_notification_dispatch_recipients_job_type")
   @@map("notification_dispatch_recipients")
@@ -356,6 +370,9 @@ model NotificationDelivery {
   notificationDeliveryId          Int                         @id @default(autoincrement()) @map("notification_delivery_id")
   notificationDispatchRecipientId Int                         @map("notification_dispatch_recipient_id")
   channel                         NotificationDeliveryChannel @map("channel")
+  payload                         Json?
+  destination                     String?                     @db.VarChar(255)
+  providerAppId                   String?                     @map("provider_app_id") @db.VarChar(100)
   status                          NotificationDeliveryStatus  @default(PENDING) @map("status")
   attemptCount                    Int                         @default(0) @map("attempt_count") @db.UnsignedInt
   maxAttempts                     Int                         @default(3) @map("max_attempts") @db.UnsignedInt

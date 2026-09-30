@@ -1,4 +1,5 @@
 import { NotificationDeliveryChannel, NotificationDeliveryStatus } from '../../../shared/enums'
+import type { NotificationDeliveryPayload } from '../../interface/notification-dispatch'
 import { NotificationDispatchJob } from './notification-dispatch-job.entity'
 import { NotificationDispatchRecipient } from './notification-dispatch-recipient.entity'
 
@@ -16,6 +17,9 @@ export class NotificationDelivery {
   claimedAt?: Date
   leaseExpiresAt?: Date
   providerMessageId?: string
+  payload?: NotificationDeliveryPayload
+  destination?: string
+  providerAppId?: string
   lastErrorCode?: string
   lastErrorMessage?: string
   skipReason?: string
@@ -37,6 +41,9 @@ export class NotificationDelivery {
     claimedAt?: Date
     leaseExpiresAt?: Date
     providerMessageId?: string
+    payload?: NotificationDeliveryPayload
+    destination?: string
+    providerAppId?: string
     lastErrorCode?: string
     lastErrorMessage?: string
     skipReason?: string

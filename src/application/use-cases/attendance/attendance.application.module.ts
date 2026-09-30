@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common'
 import * as attendanceUseCases from './'
 import { InfrastructureModule } from 'src/infrastructure/infrastructure.module'
 import { NotificationApplicationModule } from '../notification/notification.application.module'
-import { GetValidZaloAccessTokenUseCase } from '../zalo/get-valid-zalo-access-token.use-case'
 import { StudentPointService } from 'src/application/services/student-point.service'
 
 const ATTENDANCE_USE_CASES = [
@@ -20,7 +19,6 @@ const ATTENDANCE_USE_CASES = [
   attendanceUseCases.GetAttendanceStatisticsBySessionUseCase,
   attendanceUseCases.UpdateAttendanceUseCase,
   attendanceUseCases.ToggleParentNotifiedUseCase,
-  GetValidZaloAccessTokenUseCase,
   StudentPointService,
 ]
 

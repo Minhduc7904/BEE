@@ -7,7 +7,16 @@ import {
   NotificationType,
   NotificationAudienceType,
   NotificationRecipientType,
+  NotificationRecipientKind,
 } from '../../../shared/enums'
+
+export interface NotificationDeliveryPayload {
+  title: string
+  message: string
+  type: NotificationType
+  level: NotificationLevel
+  data?: Record<string, string>
+}
 
 export interface CreateNotificationDispatchJobData {
   jobType: NotificationDispatchJobType
@@ -23,6 +32,9 @@ export interface CreateNotificationDispatchJobData {
   audienceType: NotificationAudienceType
   audienceRecipientType?: NotificationRecipientType
   requestedChannels: NotificationDeliveryChannel[]
+  sourceType?: string
+  sourceId?: string
+  sourceEvent?: string
   recipientCount: number
   totalDeliveryCount: number
   createdByAdminId?: number
@@ -39,8 +51,11 @@ export interface UpdateNotificationDispatchJobData {
 
 export interface CreateNotificationDispatchRecipientData {
   notificationDispatchJobId: number
-  userId: number
+  recipientKey: string
+  recipientKind: NotificationRecipientKind
+  userId?: number
   recipientType: NotificationRecipientType
+  sourceStudentId?: number
   profileId?: number
   displayName?: string
   email?: string
@@ -55,6 +70,10 @@ export interface NotificationRecipientSnapshot {
   email?: string
   phone?: string
   grade?: number
+}
+
+export interface NotificationParentTarget extends NotificationRecipientSnapshot {
+  studentId: number
 }
 
 export interface NotificationRecipientSearchOptions {
@@ -90,6 +109,30 @@ export interface CreateNotificationDeliveryData {
   channel: NotificationDeliveryChannel
   availableAt: Date
   maxAttempts?: number
+  payload?: NotificationDeliveryPayload
+  destination?: string
+  providerAppId?: string
+}
+
+export interface NotificationDeliveryCommand {
+  channel: NotificationDeliveryChannel
+  payload: NotificationDeliveryPayload
+  destination?: string
+  providerAppId?: string
+  maxAttempts?: number
+}
+
+export interface NotificationDispatchRecipientCommand {
+  recipientKey: string
+  recipientKind: NotificationRecipientKind
+  recipientType: NotificationRecipientType
+  userId?: number
+  profileId?: number
+  sourceStudentId?: number
+  displayName?: string
+  email?: string
+  phone?: string
+  deliveries: NotificationDeliveryCommand[]
 }
 
 export interface UpdateNotificationDeliveryData {

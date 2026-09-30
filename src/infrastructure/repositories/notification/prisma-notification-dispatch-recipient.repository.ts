@@ -5,6 +5,7 @@ import type {
   NotificationDispatchRecipientListOptions,
   NotificationRecipientSearchOptions,
   NotificationRecipientSnapshot,
+  NotificationParentTarget,
 } from '../../../domain/interface/notification-dispatch'
 import type { INotificationDispatchRecipientRepository } from '../../../domain/repositories'
 import { NotificationRecipientType } from '../../../shared/enums'
@@ -18,11 +19,11 @@ export class PrismaNotificationDispatchRecipientRepository implements INotificat
     if (data.length === 0) return []
     await this.prisma.notificationDispatchRecipient.createMany({ data, skipDuplicates: true })
     const jobIds = Array.from(new Set(data.map((item) => item.notificationDispatchJobId)))
-    const userIds = Array.from(new Set(data.map((item) => item.userId)))
+    const recipientKeys = Array.from(new Set(data.map((item) => item.recipientKey)))
     const records = await this.prisma.notificationDispatchRecipient.findMany({
       where: {
         notificationDispatchJobId: { in: jobIds },
-        userId: { in: userIds },
+        recipientKey: { in: recipientKeys },
       },
       orderBy: { notificationDispatchRecipientId: 'asc' },
     })
@@ -36,6 +37,23 @@ export class PrismaNotificationDispatchRecipientRepository implements INotificat
       include: { student: true, admin: true, parent: true },
     })
     return users.map((user) => this.toSnapshot(user)).filter((item): item is NotificationRecipientSnapshot => !!item)
+  }
+
+  async resolveParentTargetsByStudentIds(studentIds: number[]): Promise<NotificationParentTarget[]> {
+    if (studentIds.length === 0) return []
+    const links = await this.prisma.parentStudent.findMany({
+      where: { studentId: { in: Array.from(new Set(studentIds)) }, parent: { user: { isActive: true } } },
+      include: { parent: { include: { user: true } } },
+    })
+    return links.map((link) => ({
+      studentId: link.studentId,
+      userId: link.parent.userId,
+      profileId: link.parent.parentId,
+      recipientType: NotificationRecipientType.PARENT,
+      displayName: `${link.parent.user.lastName} ${link.parent.user.firstName}`.trim(),
+      email: link.parent.user.email ?? undefined,
+      phone: link.parent.phone,
+    }))
   }
 
   async search(
@@ -112,7 +130,16 @@ export class PrismaNotificationDispatchRecipientRepository implements INotificat
       }),
       this.prisma.notificationDispatchRecipient.count({ where }),
     ])
-    return { items: records, total }
+    return {
+      items: records.map((record) => ({
+        ...record,
+        deliveries: record.deliveries.map((delivery) => ({
+          ...delivery,
+          destination: delivery.destination ? this.maskDestination(delivery.destination) : null,
+        })),
+      })),
+      total,
+    }
   }
 
   private toSnapshot(user: {
@@ -159,5 +186,10 @@ export class PrismaNotificationDispatchRecipientRepository implements INotificat
       displayName,
       email: user.email ?? undefined,
     }
+  }
+
+  private maskDestination(value: string): string {
+    if (value.length <= 4) return '*'.repeat(value.length)
+    return `${value.slice(0, 2)}${'*'.repeat(Math.min(8, value.length - 4))}${value.slice(-2)}`
   }
 }
