@@ -7,6 +7,7 @@ import {
 } from '../../../shared/enums'
 import { BusinessNotificationQueueService } from './business-notification-queue.service'
 import type { EnqueueNotificationDispatchJobUseCase } from './enqueue-notification-dispatch-job.use-case'
+import { NotificationDeliveryChannelPolicyService } from './notification-delivery-channel-policy.service'
 
 describe('BusinessNotificationQueueService', () => {
   const resolveSnapshots = jest.fn()
@@ -20,9 +21,15 @@ describe('BusinessNotificationQueueService', () => {
   const unitOfWork = {
     executeInTransaction: jest.fn((callback) => callback(repos)),
   } as unknown as IUnitOfWork
-  const service = new BusinessNotificationQueueService(unitOfWork, {
-    execute,
-  } as unknown as EnqueueNotificationDispatchJobUseCase)
+  const service = new BusinessNotificationQueueService(
+    unitOfWork,
+    {
+      execute,
+    } as unknown as EnqueueNotificationDispatchJobUseCase,
+    new NotificationDeliveryChannelPolicyService({
+      pushEnabled: false,
+    }),
+  )
 
   beforeEach(() => {
     jest.clearAllMocks()
@@ -32,7 +39,7 @@ describe('BusinessNotificationQueueService', () => {
     resolveParentTargetsByStudentIds.mockResolvedValue([])
   })
 
-  it('tạo IN_APP/PUSH cho parent account và ZALO_OA cho external contact', async () => {
+  it('chỉ tạo IN_APP cho parent account khi PUSH tắt và giữ ZALO_OA cho external contact', async () => {
     resolveParentTargetsByStudentIds.mockResolvedValue([
       {
         studentId: 10,
@@ -63,7 +70,6 @@ describe('BusinessNotificationQueueService', () => {
     expect(recipients).toHaveLength(2)
     expect(recipients.find((item: any) => item.userId === 20).deliveries.map((item: any) => item.channel)).toEqual([
       NotificationDeliveryChannel.IN_APP,
-      NotificationDeliveryChannel.PUSH,
     ])
     expect(recipients.find((item: any) => item.recipientKey === 'ZALO:zalo-1').deliveries[0]).toEqual(
       expect.objectContaining({ channel: NotificationDeliveryChannel.ZALO_OA, destination: 'zalo-1', maxAttempts: 3 }),

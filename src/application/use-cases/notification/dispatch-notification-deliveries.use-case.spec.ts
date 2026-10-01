@@ -5,6 +5,7 @@ import type { NotificationRealtimeService, PushNotificationService } from '../..
 import type { ZaloService } from '../../interfaces'
 import { DispatchNotificationDeliveriesUseCase } from './dispatch-notification-deliveries.use-case'
 import type { PushNotificationEligibilityService } from './push-notification-eligibility.service'
+import type { NotificationDeliveryChannelPolicyService } from './notification-delivery-channel-policy.service'
 import type { GetValidZaloAccessTokenUseCase } from '../zalo/get-valid-zalo-access-token.use-case'
 
 type DispatcherHarness = {
@@ -36,15 +37,29 @@ describe('DispatchNotificationDeliveriesUseCase', () => {
     executeInTransaction: jest.fn((callback) => callback(repos)),
   } as unknown as IUnitOfWork
   const realtimeService = { notifyUser, notifyStatsUpdated: jest.fn() } as unknown as NotificationRealtimeService
-  const pushService = { sendToTokens: jest.fn() } as unknown as PushNotificationService
+  const sendToTokens = jest.fn()
+  const pushService = { sendToTokens } as unknown as PushNotificationService
   const evaluatePushEligibility = jest.fn()
   const pushEligibility = {
     evaluate: evaluatePushEligibility,
   } as unknown as PushNotificationEligibilityService
+  const channelPolicy = {
+    isEnabled: jest.fn().mockReturnValue(true),
+  } as unknown as NotificationDeliveryChannelPolicyService
   const sendZaloMessage = jest.fn()
   const zaloService = { sendMessage: sendZaloMessage } as unknown as ZaloService
-  const getValidZaloAccessToken = { execute: jest.fn().mockResolvedValue('token') } as unknown as GetValidZaloAccessTokenUseCase
-  const useCase = new DispatchNotificationDeliveriesUseCase(unitOfWork, realtimeService, pushService, pushEligibility, zaloService, getValidZaloAccessToken)
+  const getValidZaloAccessToken = {
+    execute: jest.fn().mockResolvedValue('token'),
+  } as unknown as GetValidZaloAccessTokenUseCase
+  const useCase = new DispatchNotificationDeliveriesUseCase(
+    unitOfWork,
+    realtimeService,
+    pushService,
+    pushEligibility,
+    channelPolicy,
+    zaloService,
+    getValidZaloAccessToken,
+  )
   const harness = useCase as unknown as DispatcherHarness
 
   const delivery = new NotificationDelivery({
@@ -114,6 +129,35 @@ describe('DispatchNotificationDeliveriesUseCase', () => {
     expect(createNotification).not.toHaveBeenCalled()
   })
 
+  it('bỏ qua PUSH tồn đọng khi channel tắt mà không gọi eligibility hoặc FCM', async () => {
+    const pushDelivery = new NotificationDelivery({ ...delivery, channel: NotificationDeliveryChannel.PUSH })
+    const disabledPolicy = {
+      isEnabled: jest.fn().mockReturnValue(false),
+    } as unknown as NotificationDeliveryChannelPolicyService
+    const disabledUseCase = new DispatchNotificationDeliveriesUseCase(
+      unitOfWork,
+      realtimeService,
+      pushService,
+      pushEligibility,
+      disabledPolicy,
+      zaloService,
+      getValidZaloAccessToken,
+    ) as unknown as DispatcherHarness
+    updateDelivery.mockResolvedValue(pushDelivery)
+
+    await expect(disabledUseCase.process(pushDelivery)).resolves.toBe('skipped')
+
+    expect(updateDelivery).toHaveBeenCalledWith(
+      pushDelivery.notificationDeliveryId,
+      expect.objectContaining({
+        status: NotificationDeliveryStatus.SKIPPED,
+        skipReason: 'CHANNEL_DISABLED',
+      }),
+    )
+    expect(evaluatePushEligibility).not.toHaveBeenCalled()
+    expect(sendToTokens).not.toHaveBeenCalled()
+  })
+
   it('chỉ stringify metadata tại boundary gửi PUSH', async () => {
     const pushDelivery = new NotificationDelivery({
       ...delivery,
@@ -133,7 +177,7 @@ describe('DispatchNotificationDeliveriesUseCase', () => {
     evaluatePushEligibility.mockResolvedValue({ allowed: true })
     findDevices.mockResolvedValue([{ fcmToken: 'token-1' }])
     findNotification.mockResolvedValue({ notificationId: 41 })
-    ;(pushService.sendToTokens as jest.Mock).mockResolvedValue({
+    sendToTokens.mockResolvedValue({
       providerAvailable: true,
       successCount: 1,
       failureCount: 0,
@@ -144,15 +188,18 @@ describe('DispatchNotificationDeliveriesUseCase', () => {
 
     await expect(harness.process(pushDelivery)).resolves.toBe('sent')
 
-    expect(pushService.sendToTokens).toHaveBeenCalledWith(['token-1'], expect.objectContaining({
-      data: {
-        paymentId: '12',
-        shouldShowReminderModal: 'true',
-        context: '{"tab":"payments"}',
-        notificationDispatchJobId: '1',
-        notificationId: '41',
-      },
-    }))
+    expect(sendToTokens).toHaveBeenCalledWith(
+      ['token-1'],
+      expect.objectContaining({
+        data: {
+          paymentId: '12',
+          shouldShowReminderModal: 'true',
+          context: '{"tab":"payments"}',
+          notificationDispatchJobId: '1',
+          notificationId: '41',
+        },
+      }),
+    )
   })
 
   it('chỉ retry token lỗi tạm thời sau multi-device partial success', async () => {
@@ -171,7 +218,7 @@ describe('DispatchNotificationDeliveriesUseCase', () => {
     evaluatePushEligibility.mockResolvedValue({ allowed: true })
     findDevices.mockResolvedValue([{ fcmToken: 'token-1' }, { fcmToken: 'token-2' }])
     findNotification.mockResolvedValue(null)
-    ;(pushService.sendToTokens as jest.Mock)
+    sendToTokens
       .mockResolvedValueOnce({
         providerAvailable: true,
         successCount: 1,
@@ -192,19 +239,25 @@ describe('DispatchNotificationDeliveriesUseCase', () => {
     updateDelivery.mockResolvedValue(firstAttempt)
 
     await expect(harness.process(firstAttempt)).resolves.toBe('retried')
-    expect(pushService.sendToTokens).toHaveBeenNthCalledWith(1, ['token-1', 'token-2'], expect.any(Object))
-    expect(updateDelivery).toHaveBeenLastCalledWith(firstAttempt.notificationDeliveryId, expect.objectContaining({
-      status: NotificationDeliveryStatus.RETRY_WAIT,
-      pendingPushTokens: ['token-2'],
-    }))
+    expect(sendToTokens).toHaveBeenNthCalledWith(1, ['token-1', 'token-2'], expect.any(Object))
+    expect(updateDelivery).toHaveBeenLastCalledWith(
+      firstAttempt.notificationDeliveryId,
+      expect.objectContaining({
+        status: NotificationDeliveryStatus.RETRY_WAIT,
+        pendingPushTokens: ['token-2'],
+      }),
+    )
 
     updateDelivery.mockResolvedValue(retryAttempt)
     await expect(harness.process(retryAttempt)).resolves.toBe('sent')
-    expect(pushService.sendToTokens).toHaveBeenNthCalledWith(2, ['token-2'], expect.any(Object))
-    expect(updateDelivery).toHaveBeenLastCalledWith(retryAttempt.notificationDeliveryId, expect.objectContaining({
-      status: NotificationDeliveryStatus.SENT,
-      pendingPushTokens: null,
-    }))
+    expect(sendToTokens).toHaveBeenNthCalledWith(2, ['token-2'], expect.any(Object))
+    expect(updateDelivery).toHaveBeenLastCalledWith(
+      retryAttempt.notificationDeliveryId,
+      expect.objectContaining({
+        status: NotificationDeliveryStatus.SENT,
+        pendingPushTokens: null,
+      }),
+    )
   })
 
   it('không đánh dấu SENT khi một thiết bị bị FCM từ chối vĩnh viễn', async () => {
@@ -216,7 +269,7 @@ describe('DispatchNotificationDeliveriesUseCase', () => {
     evaluatePushEligibility.mockResolvedValue({ allowed: true })
     findDevices.mockResolvedValue([{ fcmToken: 'token-1' }, { fcmToken: 'token-2' }])
     findNotification.mockResolvedValue(null)
-    ;(pushService.sendToTokens as jest.Mock).mockResolvedValue({
+    sendToTokens.mockResolvedValue({
       providerAvailable: true,
       successCount: 1,
       failureCount: 1,
@@ -229,11 +282,14 @@ describe('DispatchNotificationDeliveriesUseCase', () => {
     updateDelivery.mockResolvedValue(pushDelivery)
 
     await expect(harness.process(pushDelivery)).resolves.toBe('dead')
-    expect(updateDelivery).toHaveBeenLastCalledWith(pushDelivery.notificationDeliveryId, expect.objectContaining({
-      status: NotificationDeliveryStatus.DEAD,
-      pendingPushTokens: null,
-      lastErrorCode: 'messaging/sender-id-mismatch',
-    }))
+    expect(updateDelivery).toHaveBeenLastCalledWith(
+      pushDelivery.notificationDeliveryId,
+      expect.objectContaining({
+        status: NotificationDeliveryStatus.DEAD,
+        pendingPushTokens: null,
+        lastErrorCode: 'messaging/sender-id-mismatch',
+      }),
+    )
   })
 
   it('lưu notification và đánh dấu SENT trong cùng transaction trước khi phát realtime', async () => {
@@ -252,8 +308,16 @@ describe('DispatchNotificationDeliveriesUseCase', () => {
   })
 
   it('xử lý toàn bộ IN_APP trước PUSH để PUSH lấy được notificationId đã lưu', async () => {
-    const inApp = new NotificationDelivery({ ...delivery, notificationDeliveryId: 12, channel: NotificationDeliveryChannel.IN_APP })
-    const push = new NotificationDelivery({ ...delivery, notificationDeliveryId: 13, channel: NotificationDeliveryChannel.PUSH })
+    const inApp = new NotificationDelivery({
+      ...delivery,
+      notificationDeliveryId: 12,
+      channel: NotificationDeliveryChannel.IN_APP,
+    })
+    const push = new NotificationDelivery({
+      ...delivery,
+      notificationDeliveryId: 13,
+      channel: NotificationDeliveryChannel.PUSH,
+    })
     const order: NotificationDeliveryChannel[] = []
     const processSpy = jest.spyOn(harness, 'process').mockImplementation((item) => {
       order.push(item.channel)
@@ -279,10 +343,13 @@ describe('DispatchNotificationDeliveriesUseCase', () => {
     await expect(harness.process(zalo)).resolves.toBe('retried')
 
     expect(evaluatePushEligibility).not.toHaveBeenCalled()
-    expect(updateDelivery).toHaveBeenCalledWith(zalo.notificationDeliveryId, expect.objectContaining({
-      status: NotificationDeliveryStatus.RETRY_WAIT,
-      lastErrorCode: 'ZALO_RATE_LIMITED',
-    }))
+    expect(updateDelivery).toHaveBeenCalledWith(
+      zalo.notificationDeliveryId,
+      expect.objectContaining({
+        status: NotificationDeliveryStatus.RETRY_WAIT,
+        lastErrorCode: 'ZALO_RATE_LIMITED',
+      }),
+    )
   })
 
   it('bỏ qua ZALO_OA khi không có destination', async () => {
@@ -294,10 +361,13 @@ describe('DispatchNotificationDeliveriesUseCase', () => {
     })
 
     await expect(harness.process(zalo)).resolves.toBe('skipped')
-    expect(updateDelivery).toHaveBeenCalledWith(zalo.notificationDeliveryId, expect.objectContaining({
-      status: NotificationDeliveryStatus.SKIPPED,
-      skipReason: 'NO_ZALO_RECIPIENT_ID',
-    }))
+    expect(updateDelivery).toHaveBeenCalledWith(
+      zalo.notificationDeliveryId,
+      expect.objectContaining({
+        status: NotificationDeliveryStatus.SKIPPED,
+        skipReason: 'NO_ZALO_RECIPIENT_ID',
+      }),
+    )
   })
 
   it('chuyển ZALO_OA sang DEAD sau lần thử thứ ba', async () => {
@@ -313,9 +383,12 @@ describe('DispatchNotificationDeliveriesUseCase', () => {
     sendZaloMessage.mockRejectedValueOnce(new Error('network timeout'))
 
     await expect(harness.process(zalo)).resolves.toBe('dead')
-    expect(updateDelivery).toHaveBeenCalledWith(zalo.notificationDeliveryId, expect.objectContaining({
-      status: NotificationDeliveryStatus.DEAD,
-      lastErrorCode: 'ZALO_SEND_FAILED',
-    }))
+    expect(updateDelivery).toHaveBeenCalledWith(
+      zalo.notificationDeliveryId,
+      expect.objectContaining({
+        status: NotificationDeliveryStatus.DEAD,
+        lastErrorCode: 'ZALO_SEND_FAILED',
+      }),
+    )
   })
 })

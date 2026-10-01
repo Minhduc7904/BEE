@@ -21,6 +21,7 @@ import {
   EnqueueNotificationDispatchJobUseCase,
   type EnqueueNotificationDispatchJobResult,
 } from './enqueue-notification-dispatch-job.use-case'
+import { NotificationDeliveryChannelPolicyService } from './notification-delivery-channel-policy.service'
 
 export interface BusinessNotificationSource {
   sourceType: string
@@ -62,6 +63,7 @@ export class BusinessNotificationQueueService {
   constructor(
     @Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork,
     private readonly enqueueJob: EnqueueNotificationDispatchJobUseCase,
+    private readonly channelPolicy: NotificationDeliveryChannelPolicyService,
   ) {}
 
   async enqueueInApp(
@@ -147,14 +149,15 @@ export class BusinessNotificationQueueService {
       }
       if (target.parentPayload) {
         for (const parent of parentsByStudentId.get(target.studentId) ?? []) {
+          const deliveries = this.channelPolicy.enabledInAppChannels().map((channel) => ({
+            channel,
+            payload: target.parentPayload!,
+          }))
           recipients.push(
             this.userCommand(
               parent,
               `USER:${parent.userId}:STUDENT:${target.studentId}:${index}`,
-              [
-                { channel: NotificationDeliveryChannel.IN_APP, payload: target.parentPayload },
-                { channel: NotificationDeliveryChannel.PUSH, payload: target.parentPayload },
-              ],
+              deliveries,
               target.studentId,
             ),
           )

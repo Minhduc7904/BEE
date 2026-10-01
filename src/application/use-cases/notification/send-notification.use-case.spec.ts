@@ -9,6 +9,7 @@ import {
   NotificationType,
 } from '../../../shared/enums'
 import type { EnqueueNotificationDispatchJobUseCase } from './enqueue-notification-dispatch-job.use-case'
+import { NotificationDeliveryChannelPolicyService } from './notification-delivery-channel-policy.service'
 import { SendNotificationUseCase } from './send-notification.use-case'
 
 describe('SendNotificationUseCase', () => {
@@ -24,18 +25,19 @@ describe('SendNotificationUseCase', () => {
   const executeInTransaction = jest.fn((callback) => callback(repos))
   const unitOfWork = { executeInTransaction } as unknown as IUnitOfWork
   const enqueueUseCase = { executeWithRepos: enqueue } as unknown as EnqueueNotificationDispatchJobUseCase
-  const useCase = new SendNotificationUseCase(unitOfWork, enqueueUseCase)
+  const channelPolicy = new NotificationDeliveryChannelPolicyService({ pushEnabled: false })
+  const useCase = new SendNotificationUseCase(unitOfWork, enqueueUseCase, channelPolicy)
 
   beforeEach(() => {
     jest.clearAllMocks()
   })
 
-  it('xếp notification admin vào cả IN_APP và PUSH rồi ghi audit theo job', async () => {
+  it('chỉ xếp notification admin vào IN_APP mặc định khi PUSH tắt rồi ghi audit theo job', async () => {
     filterActiveUserIds.mockResolvedValue([1, 2])
     enqueue.mockResolvedValue({
       notificationDispatchJobId: 51,
       recipientCount: 2,
-      deliveryCount: 4,
+      deliveryCount: 2,
       reused: false,
       status: NotificationDispatchJobStatus.QUEUED,
       sentDeliveryCount: 0,
@@ -66,7 +68,7 @@ describe('SendNotificationUseCase', () => {
       expect.objectContaining({
         idempotencyKey: 'request-51',
         userIds: [1, 2],
-        channels: [NotificationDeliveryChannel.IN_APP, NotificationDeliveryChannel.PUSH],
+        channels: [NotificationDeliveryChannel.IN_APP],
         data: {
           courseId: 12,
           action: 'view',
@@ -92,7 +94,7 @@ describe('SendNotificationUseCase', () => {
           jobId: 51,
           status: NotificationDispatchJobStatus.QUEUED,
           recipientCount: 2,
-          totalDeliveryCount: 4,
+          totalDeliveryCount: 2,
           reused: false,
           sentDeliveryCount: 0,
           skippedDeliveryCount: 0,
@@ -150,12 +152,35 @@ describe('SendNotificationUseCase', () => {
   })
 
   it('không cho Admin gửi thủ công qua ZALO_OA', async () => {
-    await expect(useCase.execute({
-      userIds: [1],
-      title: 'Thông báo',
-      message: 'Nội dung',
-      channels: [NotificationDeliveryChannel.ZALO_OA],
-    }, 7, 'request-zalo')).rejects.toMatchObject({ status: 400 })
+    await expect(
+      useCase.execute(
+        {
+          userIds: [1],
+          title: 'Thông báo',
+          message: 'Nội dung',
+          channels: [NotificationDeliveryChannel.ZALO_OA],
+        },
+        7,
+        'request-zalo',
+      ),
+    ).rejects.toMatchObject({ status: 400 })
+
+    expect(enqueue).not.toHaveBeenCalled()
+  })
+
+  it('trả CHANNEL_DISABLED khi Admin yêu cầu PUSH tường minh', async () => {
+    await expect(
+      useCase.execute(
+        {
+          userIds: [1],
+          title: 'Thông báo',
+          message: 'Nội dung',
+          channels: [NotificationDeliveryChannel.PUSH],
+        },
+        7,
+        'request-push',
+      ),
+    ).rejects.toMatchObject({ response: { code: 'CHANNEL_DISABLED' } })
 
     expect(enqueue).not.toHaveBeenCalled()
   })

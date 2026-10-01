@@ -19,6 +19,7 @@ import {
   EnqueueNotificationDispatchJobUseCase,
   type EnqueueNotificationDispatchJobResult,
 } from './enqueue-notification-dispatch-job.use-case'
+import { NotificationDeliveryChannelPolicyService } from './notification-delivery-channel-policy.service'
 
 interface NotificationTargets {
   userIds: number[]
@@ -43,6 +44,7 @@ export class SendNotificationUseCase {
   constructor(
     @Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork,
     private readonly enqueueNotificationDispatchJob: EnqueueNotificationDispatchJobUseCase,
+    private readonly channelPolicy: NotificationDeliveryChannelPolicyService,
   ) {}
 
   async execute(
@@ -51,12 +53,12 @@ export class SendNotificationUseCase {
     requestedKey?: string,
   ): Promise<BaseResponseDto<SendNotificationResult>> {
     const idempotencyKey = requestedKey?.trim() || `legacy:${adminId ?? 'system'}:${randomUUID()}`
-    const channels = dto.channels?.length
-      ? Array.from(new Set(dto.channels))
-      : [NotificationDeliveryChannel.IN_APP, NotificationDeliveryChannel.PUSH]
+    const hasExplicitChannels = !!dto.channels?.length
+    const channels = hasExplicitChannels ? Array.from(new Set(dto.channels)) : this.channelPolicy.enabledInAppChannels()
     if (channels.includes(NotificationDeliveryChannel.ZALO_OA)) {
       throw new BadRequestException('Admin không được gửi trực tiếp qua kênh ZALO_OA')
     }
+    if (hasExplicitChannels) this.channelPolicy.assertExplicitChannelsEnabled(channels)
     const requestFingerprint = this.fingerprint(dto, channels)
 
     let dispatch: EnqueueNotificationDispatchJobResult

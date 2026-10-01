@@ -63,6 +63,9 @@ Cài đặt cũng được trả kèm ở login, register và `GET/PUT /api/pare
 
 ## Cấu hình môi trường
 
+`NOTIFICATION_PUSH_ENABLED` điều khiển việc tạo và xử lý delivery `PUSH`; giữ `false` cho tới khi luồng Push
+được triển khai. `FIREBASE_ENABLED` chỉ điều khiển provider FCM và không tự kích hoạt channel `PUSH`.
+
 Xem khối `Firebase Cloud Messaging` trong `.env.example`: `FIREBASE_ENABLED`, `FIREBASE_PROJECT_ID`,
 `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`, `FCM_DRY_RUN`, `FCM_ANDROID_CHANNEL_ID`. Kiểm tra cấu hình bằng script:
 

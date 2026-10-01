@@ -11,6 +11,7 @@ import {
 } from '../../../shared/enums'
 import { NotificationRealtimeService, PushNotificationService, ZaloService } from '../../interfaces'
 import { PushNotificationEligibilityService } from './push-notification-eligibility.service'
+import { NotificationDeliveryChannelPolicyService } from './notification-delivery-channel-policy.service'
 import { GetValidZaloAccessTokenUseCase } from '../zalo/get-valid-zalo-access-token.use-case'
 
 const JOB_CONFIG = {
@@ -44,6 +45,7 @@ export class DispatchNotificationDeliveriesUseCase {
     private readonly realtimeService: NotificationRealtimeService,
     private readonly pushService: PushNotificationService,
     private readonly pushEligibility: PushNotificationEligibilityService,
+    private readonly channelPolicy: NotificationDeliveryChannelPolicyService,
     private readonly zaloService: ZaloService,
     private readonly getValidZaloAccessToken: GetValidZaloAccessTokenUseCase,
   ) {}
@@ -137,6 +139,7 @@ export class DispatchNotificationDeliveriesUseCase {
       if (delivery.channel === NotificationDeliveryChannel.ZALO_OA) return this.processZalo(delivery)
       if (!delivery.recipient?.userId) return this.skip(delivery, 'RECIPIENT_UNAVAILABLE')
       if (delivery.channel === NotificationDeliveryChannel.IN_APP) return this.processInApp(delivery)
+      if (!this.channelPolicy.isEnabled(delivery.channel)) return this.skip(delivery, 'CHANNEL_DISABLED')
 
       const eligibility = await this.pushEligibility.evaluate(delivery.recipient.userId, delivery.job.type)
       if (!eligibility.allowed) return this.skip(delivery, eligibility.skipReason ?? 'PUSH_NOT_ALLOWED')
@@ -212,18 +215,15 @@ export class DispatchNotificationDeliveriesUseCase {
       : Array.from(activeTokens)
     if (tokens.length === 0) return this.skip(delivery, 'NO_ACTIVE_DEVICE')
 
-    const result = await this.pushService.sendToTokens(
-      tokens,
-      {
-        title: payload.title,
-        body: payload.message,
-        data: {
-          ...this.toPushData(payload.data),
-          notificationDispatchJobId: String(job.notificationDispatchJobId),
-          ...(context.notification && { notificationId: String(context.notification.notificationId) }),
-        },
+    const result = await this.pushService.sendToTokens(tokens, {
+      title: payload.title,
+      body: payload.message,
+      data: {
+        ...this.toPushData(payload.data),
+        notificationDispatchJobId: String(job.notificationDispatchJobId),
+        ...(context.notification && { notificationId: String(context.notification.notificationId) }),
       },
-    )
+    })
     if (result.invalidTokens.length > 0) {
       await this.unitOfWork.executeInTransaction((repos) =>
         repos.userDeviceRepository.deleteByTokens(result.invalidTokens),
@@ -242,11 +242,7 @@ export class DispatchNotificationDeliveriesUseCase {
     )
     if (permanentFailures.length > 0) {
       const errorCode = permanentFailures.find((outcome) => outcome.errorCode)?.errorCode ?? 'PUSH_SEND_FAILED'
-      return this.markDead(
-        delivery,
-        errorCode,
-        `FCM từ chối vĩnh viễn ${permanentFailures.length} thiết bị`,
-      )
+      return this.markDead(delivery, errorCode, `FCM từ chối vĩnh viễn ${permanentFailures.length} thiết bị`)
     }
     if (retryableFailures.length > 0) {
       const errorCode = retryableFailures.find((outcome) => outcome.errorCode)?.errorCode ?? 'PUSH_SEND_FAILED'
@@ -297,10 +293,15 @@ export class DispatchNotificationDeliveriesUseCase {
       return 'sent'
     } catch (error: any) {
       const status = error?.response?.status ?? error?.status
-      const message = error?.response?.data?.error_description || error?.response?.data?.message || error?.message || 'Zalo OA gửi thất bại'
+      const message =
+        error?.response?.data?.error_description ||
+        error?.response?.data?.message ||
+        error?.message ||
+        'Zalo OA gửi thất bại'
       const providerError = error?.response?.data?.error ?? /error=(-?\d+)/.exec(message)?.[1]
       const permanent = (status >= 400 && status < 500 && status !== 429) || message.includes('Zalo API từ chối')
-      if (permanent) return this.markDead(delivery, providerError ? `ZALO_${providerError}` : 'ZALO_PROVIDER_REJECTED', message)
+      if (permanent)
+        return this.markDead(delivery, providerError ? `ZALO_${providerError}` : 'ZALO_PROVIDER_REJECTED', message)
       return this.retryOrDead(delivery, status === 429 ? 'ZALO_RATE_LIMITED' : 'ZALO_SEND_FAILED', message)
     }
   }
