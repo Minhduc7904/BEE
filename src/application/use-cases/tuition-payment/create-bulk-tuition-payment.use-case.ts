@@ -3,13 +3,20 @@ import { BaseResponseDto, TuitionPaymentResponseDto } from 'src/application/dtos
 import { CreateBulkTuitionPaymentDto } from 'src/application/dtos/tuition-payment/create-bulk-tuition-payment.dto'
 import type { IUnitOfWork } from 'src/domain/repositories'
 import { ValidationException, NotFoundException } from 'src/shared/exceptions/custom-exceptions'
-import { AuditStatus, NotificationType, NotificationLevel, TuitionPaymentStatusLabels, TuitionPaymentStatus } from 'src/shared/enums'
+import {
+  AuditStatus,
+  NotificationType,
+  NotificationLevel,
+  TuitionPaymentStatusLabels,
+  TuitionPaymentStatus,
+} from 'src/shared/enums'
 import { RESOURCE_TYPES, ACTION_KEYS } from 'src/shared/constants'
 import { CreateTuitionPaymentData } from 'src/domain/interface'
 import { TuitionPayment } from 'src/domain/entities/tuition-payment/tuition-payment.entity'
 import { CreateAndNotifyManyUseCase } from '../notification/create-and-notify-many.use-case'
 import { CreatePaymentIntentForCreatedTuitionPayment } from '../payment-intent/create-payment-intent-for-created-tuition-payment'
 import { SendBulkTuitionPaymentToParentUseCase } from './send-bulk-tuition-payment-to-parent.use-case'
+import { createHash } from 'crypto'
 
 @Injectable()
 export class CreateBulkTuitionPaymentUseCase {
@@ -18,7 +25,7 @@ export class CreateBulkTuitionPaymentUseCase {
     private readonly unitOfWork: IUnitOfWork,
     private readonly createAndNotifyMany: CreateAndNotifyManyUseCase,
     private readonly sendBulkTuitionPaymentToParentUseCase: SendBulkTuitionPaymentToParentUseCase,
-  ) { }
+  ) {}
 
   async execute(
     dto: CreateBulkTuitionPaymentDto,
@@ -142,7 +149,7 @@ export class CreateBulkTuitionPaymentUseCase {
           }
 
           if (students.length > 0) {
-            const statusLabel = dto.status ? (TuitionPaymentStatusLabels[dto.status] || dto.status) : 'Chưa nộp'
+            const statusLabel = dto.status ? TuitionPaymentStatusLabels[dto.status] || dto.status : 'Chưa nộp'
             const notificationDataList = students.map((s) => {
               const payment = createdPayments.find((p) => p.studentId === s.studentId)
               const notificationLevel =
@@ -163,15 +170,28 @@ export class CreateBulkTuitionPaymentUseCase {
                 },
               }
             })
-            this.createAndNotifyMany.execute(notificationDataList).catch(() => { /* ignore notification error */ })
+            const ids = createdPayments.map((payment) => payment.paymentId).sort((a, b) => a - b)
+            const digest = createHash('sha256').update(ids.join(',')).digest('hex').slice(0, 24)
+            await this.createAndNotifyMany.executeWithRepos(repos, notificationDataList, {
+              sourceType: 'TUITION_PAYMENT',
+              sourceId: `bulk:${digest}`,
+              sourceEvent: 'BULK_CREATED',
+              idempotencyKey: `tuition-bulk-created:${digest}`,
+            })
           }
+        }
+
+        const parentNotifyPaymentIds = createdPayments
+          .filter((payment) => payment.status === TuitionPaymentStatus.PAID)
+          .map((payment) => payment.paymentId)
+        if (parentNotifyPaymentIds.length > 0) {
+          await this.sendBulkTuitionPaymentToParentUseCase.executeWithRepos(repos, {
+            paymentIds: parentNotifyPaymentIds,
+          })
         }
 
         return {
           responses: createdPayments.map((p) => TuitionPaymentResponseDto.fromEntity(p)),
-          parentNotifyPaymentIds: createdPayments
-            .filter((p) => p.status === TuitionPaymentStatus.PAID)
-            .map((p) => p.paymentId),
         }
       } catch (error) {
         /**
@@ -191,13 +211,6 @@ export class CreateBulkTuitionPaymentUseCase {
         throw error
       }
     })
-
-    // Chỉ gửi Zalo sau commit cho các học phí tạo mới có trạng thái PAID
-    if (result.parentNotifyPaymentIds.length > 0) {
-      await this.sendBulkTuitionPaymentToParentUseCase.execute({
-        paymentIds: result.parentNotifyPaymentIds,
-      }).catch(() => undefined)
-    }
 
     return BaseResponseDto.success('Tạo học phí hàng loạt thành công', result.responses)
   }

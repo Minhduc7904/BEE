@@ -153,10 +153,39 @@ export class ConfirmManualTuitionPaymentUseCase {
         })
 
         const student = await repos.studentRepository.findById(updatedTuitionPayment.studentId)
-        return {
-          response: new TuitionPaymentResponseDto(updatedTuitionPayment),
+        const response = new TuitionPaymentResponseDto(updatedTuitionPayment)
+        if (student?.userId) {
+          await this.createAndNotifyOne.executeWithRepos(
+            repos,
+            {
+              userId: student.userId,
+              title: 'Xác nhận đã thu học phí',
+              message: `Học phí tháng ${response.month}/${response.year} đã được xác nhận thanh toán - Số tiền: ${response.amount?.toLocaleString('vi-VN')}đ`,
+              type: NotificationType.TUITION,
+              level: NotificationLevel.SUCCESS,
+              data: {
+                paymentId: response.paymentId,
+                amount: response.amount,
+                month: response.month,
+                year: response.year,
+                status: response.status,
+                shouldShowReminderModal: true,
+              },
+            },
+            {
+              sourceType: 'TUITION_PAYMENT',
+              sourceId: String(response.paymentId),
+              sourceEvent: 'MANUALLY_CONFIRMED',
+              idempotencyKey: `tuition:${response.paymentId}:manual-confirmed`,
+            },
+          )
+        }
+        await this.sendTuitionPaymentToParentUseCase.executeWithRepos(repos, {
           paymentId: updatedTuitionPayment.paymentId,
-          studentUserId: student?.userId,
+        })
+        return {
+          response,
+          paymentId: updatedTuitionPayment.paymentId,
           paymentIntentId: updatedPaymentIntent.paymentIntentId,
           paidAt: updatedTuitionPayment.paidAt ?? null,
           intentUpdatedAt: updatedPaymentIntent.updatedAt,
@@ -172,32 +201,6 @@ export class ConfirmManualTuitionPaymentUseCase {
       intentStatus: PaymentIntentStatus.PAID,
       paidAt: result.paidAt,
       intentUpdatedAt: result.intentUpdatedAt,
-    })
-
-    if (result.studentUserId) {
-      this.createAndNotifyOne
-        .execute({
-          userId: result.studentUserId,
-          title: 'Xác nhận đã thu học phí',
-          message: `Học phí tháng ${result.response.month}/${result.response.year} đã được xác nhận thanh toán - Số tiền: ${result.response.amount?.toLocaleString('vi-VN')}đ`,
-          type: NotificationType.TUITION,
-          level: NotificationLevel.SUCCESS,
-          data: {
-            paymentId: result.response.paymentId,
-            amount: result.response.amount,
-            month: result.response.month,
-            year: result.response.year,
-            status: result.response.status,
-            shouldShowReminderModal: true,
-          },
-        })
-        .catch(() => {
-          /* ignore notification error */
-        })
-    }
-
-    await this.sendTuitionPaymentToParentUseCase.execute({ paymentId: result.paymentId }).catch(() => {
-      /* ignore parent notification error */
     })
 
     return BaseResponseDto.success('Xác nhận thanh toán học phí thủ công thành công', result.response)

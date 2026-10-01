@@ -65,6 +65,7 @@ enum BackgroundJobCode {
   COMPETITION_SUBMISSION_AUTO_SUBMIT
   USER_REFRESH_TOKEN_CLEANUP
   NOTIFICATION_DELIVERY_DISPATCHER
+  BUSINESS_NOTIFICATION_OUTBOX_RELAY
 }
 
 // Vòng đời của một lần chạy job; chỉ application/scheduler được phép chuyển trạng thái.
@@ -262,6 +263,42 @@ enum NotificationRecipientType {
   UNKNOWN
 }
 
+// Vòng đời của ý định notification được ghi cùng transaction nghiệp vụ.
+enum BusinessNotificationOutboxStatus {
+  PENDING
+  PROCESSING
+  RETRY_WAIT
+  PUBLISHED
+  DEAD
+}
+
+// Payload outbox đã được chuẩn hóa thành dispatch job, không chứa thao tác với provider.
+model BusinessNotificationOutbox {
+  businessNotificationOutboxId Int                              @id @default(autoincrement()) @map("business_notification_outbox_id")
+  status                       BusinessNotificationOutboxStatus @default(PENDING)
+  sourceType                   String                           @map("source_type") @db.VarChar(80)
+  sourceId                     String                           @map("source_id") @db.VarChar(120)
+  sourceEvent                  String                           @map("source_event") @db.VarChar(80)
+  idempotencyKey               String                           @unique(map: "uq_business_notification_outbox_idempotency") @map("idempotency_key") @db.VarChar(100)
+  payload                      Json
+  attemptCount                 Int                              @default(0) @map("attempt_count") @db.UnsignedInt
+  maxAttempts                  Int                              @default(10) @map("max_attempts") @db.UnsignedInt
+  availableAt                  DateTime                         @default(now()) @map("available_at") @db.Timestamp(0)
+  claimedBy                    String?                          @map("claimed_by") @db.VarChar(120)
+  claimedAt                    DateTime?                        @map("claimed_at") @db.Timestamp(0)
+  leaseExpiresAt               DateTime?                        @map("lease_expires_at") @db.Timestamp(0)
+  lastErrorCode                String?                          @map("last_error_code") @db.VarChar(100)
+  lastErrorMessage             String?                          @map("last_error_message") @db.Text
+  publishedAt                  DateTime?                        @map("published_at") @db.Timestamp(0)
+  createdAt                    DateTime                         @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt                    DateTime                         @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@index([status, availableAt, businessNotificationOutboxId], map: "idx_business_notification_outbox_due")
+  @@index([status, leaseExpiresAt], map: "idx_business_notification_outbox_lease")
+  @@index([sourceType, sourceId], map: "idx_business_notification_outbox_source")
+  @@map("business_notification_outbox")
+}
+
 model Notification {
   notificationId Int @id @default(autoincrement()) @map("notification_id")
 
@@ -373,6 +410,8 @@ model NotificationDelivery {
   payload                         Json?
   destination                     String?                     @db.VarChar(255)
   providerAppId                   String?                     @map("provider_app_id") @db.VarChar(100)
+  // Với PUSH retry từng phần, chỉ lưu tạm các FCM token chưa giao thành công; xóa khi delivery kết thúc.
+  pendingPushTokens               Json?                       @map("pending_push_tokens")
   status                          NotificationDeliveryStatus  @default(PENDING) @map("status")
   attemptCount                    Int                         @default(0) @map("attempt_count") @db.UnsignedInt
   maxAttempts                     Int                         @default(3) @map("max_attempts") @db.UnsignedInt

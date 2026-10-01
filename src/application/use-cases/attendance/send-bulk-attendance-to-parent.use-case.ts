@@ -3,7 +3,7 @@ import { createHash } from 'crypto'
 import { AttendanceParentMessageTemplate } from 'src/infrastructure/templates/attendance-parent-message.template'
 import { AttendanceStatus, AttendanceStatusLabels, NotificationLevel, NotificationType } from 'src/shared/enums'
 import { formatVnDate, formatVnDateTime, formatVnTime } from 'src/shared/utils/vietnam-date.util'
-import type { IUnitOfWork } from 'src/domain/repositories'
+import type { IUnitOfWork, UnitOfWorkRepos } from 'src/domain/repositories'
 import { BusinessNotificationQueueService } from '../notification/business-notification-queue.service'
 
 interface SendBulkAttendanceToParentInput {
@@ -35,11 +35,19 @@ export class SendBulkAttendanceToParentUseCase {
     @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
     private readonly queue: BusinessNotificationQueueService,
-  ) { }
+  ) {}
 
   async execute(input: SendBulkAttendanceToParentInput): Promise<SendBulkAttendanceToParentResult> {
-    const uniqueAttendanceIds = [...new Set(input.attendanceIds)]
-      .filter((attendanceId) => Number.isInteger(attendanceId) && attendanceId > 0)
+    return this.unitOfWork.executeInTransaction((repos) => this.executeWithRepos(repos, input))
+  }
+
+  async executeWithRepos(
+    repos: UnitOfWorkRepos,
+    input: SendBulkAttendanceToParentInput,
+  ): Promise<SendBulkAttendanceToParentResult> {
+    const uniqueAttendanceIds = [...new Set(input.attendanceIds)].filter(
+      (attendanceId) => Number.isInteger(attendanceId) && attendanceId > 0,
+    )
 
     if (uniqueAttendanceIds.length === 0) {
       return {
@@ -50,7 +58,7 @@ export class SendBulkAttendanceToParentUseCase {
     }
 
     const appId = input.appId || process.env.ZALO_APP_ID || SendBulkAttendanceToParentUseCase.DEFAULT_APP_ID
-    const jobs = await this.buildJobs(uniqueAttendanceIds, input.note)
+    const jobs = await this.buildJobs(repos, uniqueAttendanceIds, input.note)
     if (jobs.length === 0) {
       return {
         requestedCount: uniqueAttendanceIds.length,
@@ -60,9 +68,15 @@ export class SendBulkAttendanceToParentUseCase {
     }
 
     const digest = createHash('sha256')
-      .update(jobs.map((job) => `${job.attendanceId}:${job.messageText}`).sort().join('|'))
-      .digest('hex').slice(0, 24)
-    const queued = await this.queue.enqueueStudentAndParents({
+      .update(
+        jobs
+          .map((job) => `${job.attendanceId}:${job.messageText}`)
+          .sort()
+          .join('|'),
+      )
+      .digest('hex')
+      .slice(0, 24)
+    const queued = await this.queue.enqueueStudentAndParentsWithRepos(repos, {
       idempotencyKey: `attendance-bulk:${digest}`,
       sourceType: 'ATTENDANCE',
       sourceId: `bulk:${digest}`,
@@ -95,69 +109,70 @@ export class SendBulkAttendanceToParentUseCase {
     }
   }
 
-  private async buildJobs(attendanceIds: number[], note?: string): Promise<AttendanceNotificationJob[]> {
-    return this.unitOfWork.executeInTransaction(async (repos) => {
-      const attendances = await Promise.all(
-        attendanceIds.map((attendanceId) => repos.attendanceRepository.findById(attendanceId)),
-      )
+  private async buildJobs(
+    repos: UnitOfWorkRepos,
+    attendanceIds: number[],
+    note?: string,
+  ): Promise<AttendanceNotificationJob[]> {
+    const attendances = await Promise.all(
+      attendanceIds.map((attendanceId) => repos.attendanceRepository.findById(attendanceId)),
+    )
 
-      const jobs = await Promise.all(
-        attendances
-          .filter((attendance): attendance is NonNullable<typeof attendance> => Boolean(attendance))
-          .map(async (attendance) => {
-            const parentZaloId = attendance.student?.parentZaloId || undefined
+    const jobs = await Promise.all(
+      attendances
+        .filter((attendance): attendance is NonNullable<typeof attendance> => Boolean(attendance))
+        .map(async (attendance) => {
+          const parentZaloId = attendance.student?.parentZaloId || undefined
 
-            const studentName = attendance.student?.user
-              ? `${attendance.student.user.lastName || ''} ${attendance.student.user.firstName || ''}`.trim()
-              : `#${attendance.studentId}`
+          const studentName = attendance.student?.user
+            ? `${attendance.student.user.lastName || ''} ${attendance.student.user.firstName || ''}`.trim()
+            : `#${attendance.studentId}`
 
-            const className = attendance.classSession?.courseClass?.className || 'N/A'
-            const sessionDate = attendance.classSession?.sessionDate
-              ? formatVnDate(attendance.classSession.sessionDate)
-              : 'N/A'
+          const className = attendance.classSession?.courseClass?.className || 'N/A'
+          const sessionDate = attendance.classSession?.sessionDate
+            ? formatVnDate(attendance.classSession.sessionDate)
+            : 'N/A'
 
-            const sessionTime = attendance.classSession?.startTime && attendance.classSession?.endTime
+          const sessionTime =
+            attendance.classSession?.startTime && attendance.classSession?.endTime
               ? `${formatVnTime(attendance.classSession.startTime)} - ${formatVnTime(attendance.classSession.endTime)}`
               : ''
 
-            const arrivalTime = attendance.markedAt
-              ? formatVnDateTime(attendance.markedAt)
-              : 'Chưa có dữ liệu'
+          const arrivalTime = attendance.markedAt ? formatVnDateTime(attendance.markedAt) : 'Chưa có dữ liệu'
 
-            const statusLabel = AttendanceStatusLabels[attendance.status] || attendance.status
-            const attendanceTimeLabel = attendance.status === AttendanceStatus.ABSENT
-              ? '⏰ THỜI GIAN ĐIỂM DANH'
-              : '⏰ THỜI GIAN ĐẾN LỚP'
+          const statusLabel = AttendanceStatusLabels[attendance.status] || attendance.status
+          const attendanceTimeLabel =
+            attendance.status === AttendanceStatus.ABSENT ? '⏰ THỜI GIAN ĐIỂM DANH' : '⏰ THỜI GIAN ĐẾN LỚP'
 
-            const makeupLine = attendance.status === AttendanceStatus.ABSENT && attendance.classSession?.makeupNote
+          const makeupLine =
+            attendance.status === AttendanceStatus.ABSENT && attendance.classSession?.makeupNote
               ? `🔁 LỊCH HỌC BÙ: ${attendance.classSession.makeupNote}`
               : ''
 
-            const homeworkLine = await this.buildHomeworkLine(attendance, repos)
+          const homeworkLine = await this.buildHomeworkLine(attendance, repos)
 
-            return {
-              attendanceId: attendance.attendanceId,
-              studentId: attendance.studentId,
-              parentZaloId,
-              messageText: AttendanceParentMessageTemplate.render({
-                studentName,
-                className,
-                sessionDate,
-                sessionTime,
-                attendanceTimeLabel,
-                arrivalTime,
-                statusLabel,
-                makeupLine,
-                homeworkLine,
-                notes: attendance.notes || undefined,
-                note,
-              }),
-            }
-          }),
-      )
+          return {
+            attendanceId: attendance.attendanceId,
+            studentId: attendance.studentId,
+            parentZaloId,
+            messageText: AttendanceParentMessageTemplate.render({
+              studentName,
+              className,
+              sessionDate,
+              sessionTime,
+              attendanceTimeLabel,
+              arrivalTime,
+              statusLabel,
+              makeupLine,
+              homeworkLine,
+              notes: attendance.notes || undefined,
+              note,
+            }),
+          }
+        }),
+    )
 
-      return jobs.filter((job): job is AttendanceNotificationJob => Boolean(job))
-    })
+    return jobs.filter((job): job is AttendanceNotificationJob => Boolean(job))
   }
 
   private async buildHomeworkLine(attendance: any, repos: any): Promise<string> {
@@ -171,10 +186,7 @@ export class SendBulkAttendanceToParentUseCase {
       return '📚 BTVN: Buổi học này chưa có bài tập về nhà'
     }
 
-    const homeworkSubmit = await repos.homeworkSubmitRepository.findByHomeworkAndStudent(
-      homeworkId,
-      studentId,
-    )
+    const homeworkSubmit = await repos.homeworkSubmitRepository.findByHomeworkAndStudent(homeworkId, studentId)
 
     if (!homeworkSubmit) {
       return '📚 BTVN: Chưa nộp'
@@ -190,11 +202,8 @@ export class SendBulkAttendanceToParentUseCase {
           ? ` | 🎯 ${pts}/${maxPts}`
           : ` | 🎯 ${pts}`
 
-    const feedbackText = homeworkSubmit.feedback
-      ? `\n💬 NHẬN XÉT: ${homeworkSubmit.feedback}`
-      : ''
+    const feedbackText = homeworkSubmit.feedback ? `\n💬 NHẬN XÉT: ${homeworkSubmit.feedback}` : ''
 
     return `📚 BTVN: Đã nộp lúc ${formatVnDateTime(homeworkSubmit.submitAt)}${pointsText}${feedbackText}`
   }
-
 }

@@ -20,6 +20,7 @@ export class NotificationDelivery {
   payload?: NotificationDeliveryPayload
   destination?: string
   providerAppId?: string
+  pendingPushTokens?: string[]
   lastErrorCode?: string
   lastErrorMessage?: string
   skipReason?: string
@@ -44,6 +45,7 @@ export class NotificationDelivery {
     payload?: NotificationDeliveryPayload
     destination?: string
     providerAppId?: string
+    pendingPushTokens?: string[]
     lastErrorCode?: string
     lastErrorMessage?: string
     skipReason?: string

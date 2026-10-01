@@ -1,6 +1,7 @@
 // src/application/use-cases/notification/create-and-notify-one.use-case.ts
 import { Injectable } from '@nestjs/common'
 import type { CreateNotificationData } from '../../../domain/interface/notification/notification.interface'
+import type { UnitOfWorkRepos } from '../../../domain/repositories'
 import type { BusinessNotificationSource } from './business-notification-queue.service'
 import { BusinessNotificationQueueService } from './business-notification-queue.service'
 
@@ -11,9 +12,13 @@ import { BusinessNotificationQueueService } from './business-notification-queue.
  */
 @Injectable()
 export class CreateAndNotifyOneUseCase {
-    constructor(private readonly queue: BusinessNotificationQueueService) {}
+  constructor(private readonly queue: BusinessNotificationQueueService) {}
 
-    execute(data: CreateNotificationData, source?: Partial<BusinessNotificationSource>) {
-        return this.queue.enqueueInApp([data], source)
-    }
+  execute(data: CreateNotificationData, source?: Partial<BusinessNotificationSource>) {
+    return this.queue.enqueueInApp([data], source)
+  }
+
+  executeWithRepos(repos: UnitOfWorkRepos, data: CreateNotificationData, source?: Partial<BusinessNotificationSource>) {
+    return this.queue.enqueueInAppWithRepos(repos, [data], source)
+  }
 }

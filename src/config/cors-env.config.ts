@@ -11,6 +11,7 @@ export default registerAs('cors', () => ({
     'Content-Type',
     'Accept',
     'Authorization',
+    'Idempotency-Key',
     'X-API-Key',
   ],
   exposedHeaders: process.env.CORS_EXPOSED_HEADERS?.split(',') || ['X-Total-Count', 'X-Page-Count', 'X-Current-Page'],

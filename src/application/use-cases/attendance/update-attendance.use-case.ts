@@ -21,7 +21,7 @@ export class UpdateAttendanceUseCase {
     private readonly createAndNotifyOne: CreateAndNotifyOneUseCase,
     private readonly sendAttendanceToParentUseCase: SendAttendanceToParentUseCase,
     private readonly studentPointService: StudentPointService,
-  ) { }
+  ) {}
 
   async execute(
     attendanceId: number,
@@ -124,29 +124,20 @@ export class UpdateAttendanceUseCase {
         data: { attendanceId: attendance.attendanceId, sessionId: attendance.sessionId, status: attendance.status },
       }
 
+      await this.createAndNotifyOne.executeWithRepos(repos, notification, {
+        sourceType: 'ATTENDANCE',
+        sourceId: String(attendance.attendanceId),
+        sourceEvent: 'UPDATED',
+        idempotencyKey: `attendance:${attendance.attendanceId}:student:updated:${attendance.status}`,
+      })
+      if (statusChanged) {
+        await this.sendAttendanceToParentUseCase.executeWithRepos(repos, { attendanceId: attendance.attendanceId })
+      }
+
       return {
         response: new AttendanceResponseDto(attendance),
-        attendanceId: attendance.attendanceId,
-        statusChanged,
-        notification,
       }
     })
-
-    if (result.notification) {
-      await this.createAndNotifyOne.execute(result.notification, {
-        sourceType: 'ATTENDANCE',
-        sourceId: String(result.attendanceId),
-        sourceEvent: 'UPDATED',
-        idempotencyKey: `attendance:${result.attendanceId}:student:updated:${result.notification.data.status}`,
-      })
-    }
-
-    // Chỉ gửi Zalo khi trạng thái điểm danh thay đổi và sau khi transaction đã commit
-    if (result.statusChanged) {
-      await this.sendAttendanceToParentUseCase.execute({
-        attendanceId: result.attendanceId,
-      }).catch(() => { /* ignore zalo notify error */ })
-    }
 
     return BaseResponseDto.success('Cập nhật điểm danh thành công', result.response)
   }

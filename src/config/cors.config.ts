@@ -51,6 +51,7 @@ export class CorsConfig {
         'Content-Type',
         'Accept',
         'Authorization',
+        'Idempotency-Key',
         'X-API-Key',
         'X-Client-Version',
         'Cache-Control',
@@ -84,7 +85,7 @@ export class CorsConfig {
         }
       },
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-      allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+      allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'Idempotency-Key'],
       exposedHeaders: ['X-Total-Count', 'X-Page-Count', 'X-Current-Page'],
       credentials: true,
       maxAge: 86400, // 24 hours
@@ -100,7 +101,7 @@ export class CorsConfig {
     return {
       origin: customOrigins || ['*'],
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-      allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+      allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'Idempotency-Key'],
       credentials: true,
     }
   }

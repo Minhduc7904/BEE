@@ -206,13 +206,19 @@ export class DispatchNotificationDeliveriesUseCase {
     }))
     if (context.devices.length === 0) return this.skip(delivery, 'NO_ACTIVE_DEVICE')
 
+    const activeTokens = new Set(context.devices.map((device) => device.fcmToken))
+    const tokens = delivery.pendingPushTokens?.length
+      ? delivery.pendingPushTokens.filter((token) => activeTokens.has(token))
+      : Array.from(activeTokens)
+    if (tokens.length === 0) return this.skip(delivery, 'NO_ACTIVE_DEVICE')
+
     const result = await this.pushService.sendToTokens(
-      context.devices.map((device) => device.fcmToken),
+      tokens,
       {
         title: payload.title,
         body: payload.message,
         data: {
-          ...payload.data,
+          ...this.toPushData(payload.data),
           notificationDispatchJobId: String(job.notificationDispatchJobId),
           ...(context.notification && { notificationId: String(context.notification.notificationId) }),
         },
@@ -226,21 +232,51 @@ export class DispatchNotificationDeliveriesUseCase {
     if (!result.providerAvailable) {
       return this.retryOrDead(delivery, 'PUSH_PROVIDER_DISABLED', 'Firebase Cloud Messaging đang tắt')
     }
+
+    const invalidTokens = new Set(result.invalidTokens)
+    const retryableFailures = result.outcomes.filter(
+      (outcome) => !outcome.success && outcome.retryable && !invalidTokens.has(outcome.token),
+    )
+    const permanentFailures = result.outcomes.filter(
+      (outcome) => !outcome.success && !outcome.retryable && !invalidTokens.has(outcome.token),
+    )
+    if (permanentFailures.length > 0) {
+      const errorCode = permanentFailures.find((outcome) => outcome.errorCode)?.errorCode ?? 'PUSH_SEND_FAILED'
+      return this.markDead(
+        delivery,
+        errorCode,
+        `FCM từ chối vĩnh viễn ${permanentFailures.length} thiết bị`,
+      )
+    }
+    if (retryableFailures.length > 0) {
+      const errorCode = retryableFailures.find((outcome) => outcome.errorCode)?.errorCode ?? 'PUSH_SEND_FAILED'
+      return this.retryOrDead(
+        delivery,
+        errorCode,
+        `FCM tạm thời không gửi được tới ${retryableFailures.length} thiết bị`,
+        retryableFailures.map((outcome) => outcome.token),
+      )
+    }
     if (result.successCount > 0) {
       const providerMessageId = result.outcomes.find((outcome) => outcome.success)?.messageId
       await this.markSent(delivery.notificationDeliveryId, providerMessageId)
       return 'sent'
     }
-    if (
-      result.outcomes.length > 0 &&
-      result.outcomes.every((outcome) => result.invalidTokens.includes(outcome.token))
-    ) {
+    if (result.outcomes.length > 0 && result.outcomes.every((outcome) => invalidTokens.has(outcome.token))) {
       return this.skip(delivery, 'NO_ACTIVE_DEVICE')
     }
-    const retryable = result.outcomes.some((outcome) => outcome.retryable)
     const errorCode = result.outcomes.find((outcome) => outcome.errorCode)?.errorCode ?? 'PUSH_SEND_FAILED'
-    if (!retryable) return this.markDead(delivery, errorCode, 'FCM từ chối delivery vĩnh viễn')
-    return this.retryOrDead(delivery, errorCode, 'FCM tạm thời không gửi được notification')
+    return this.markDead(delivery, errorCode, 'FCM không trả về kết quả giao nhận hợp lệ')
+  }
+
+  private toPushData(data?: Record<string, unknown>): Record<string, string> {
+    if (!data) return {}
+    return Object.fromEntries(
+      Object.entries(data).map(([key, value]) => [
+        key,
+        typeof value === 'string' ? value : (JSON.stringify(value) ?? String(value)),
+      ]),
+    )
   }
 
   private async processZalo(delivery: NotificationDelivery): Promise<'sent' | 'skipped' | 'retried' | 'dead'> {
@@ -289,6 +325,7 @@ export class DispatchNotificationDeliveriesUseCase {
       repos.notificationDeliveryRepository.update(notificationDeliveryId, {
         status: NotificationDeliveryStatus.SENT,
         sentAt: new Date(),
+        pendingPushTokens: null,
         providerMessageId: providerMessageId ?? null,
         lastErrorCode: null,
         lastErrorMessage: null,
@@ -304,6 +341,7 @@ export class DispatchNotificationDeliveriesUseCase {
       repos.notificationDeliveryRepository.update(delivery.notificationDeliveryId, {
         status: NotificationDeliveryStatus.SKIPPED,
         skipReason: reason,
+        pendingPushTokens: null,
         claimedBy: null,
         claimedAt: null,
         leaseExpiresAt: null,
@@ -316,6 +354,7 @@ export class DispatchNotificationDeliveriesUseCase {
     delivery: NotificationDelivery,
     errorCode: string,
     errorMessage: string,
+    pendingPushTokens?: string[],
   ): Promise<'retried' | 'dead'> {
     if (!delivery.canRetry()) return this.markDead(delivery, errorCode, errorMessage)
     const delayMs = delivery.attemptCount <= 1 ? 60_000 : 300_000
@@ -323,6 +362,7 @@ export class DispatchNotificationDeliveriesUseCase {
       repos.notificationDeliveryRepository.update(delivery.notificationDeliveryId, {
         status: NotificationDeliveryStatus.RETRY_WAIT,
         availableAt: new Date(Date.now() + delayMs),
+        ...(pendingPushTokens && { pendingPushTokens }),
         lastErrorCode: errorCode.slice(0, 100),
         lastErrorMessage: errorMessage.slice(0, 1_000),
         claimedBy: null,
@@ -337,6 +377,7 @@ export class DispatchNotificationDeliveriesUseCase {
     await this.unitOfWork.executeInTransaction((repos) =>
       repos.notificationDeliveryRepository.update(delivery.notificationDeliveryId, {
         status: NotificationDeliveryStatus.DEAD,
+        pendingPushTokens: null,
         lastErrorCode: errorCode.slice(0, 100),
         lastErrorMessage: errorMessage.slice(0, 1_000),
         claimedBy: null,

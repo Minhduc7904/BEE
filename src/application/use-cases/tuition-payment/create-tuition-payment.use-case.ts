@@ -3,7 +3,13 @@ import { BaseResponseDto, TuitionPaymentResponseDto } from 'src/application/dtos
 import { CreateTuitionPaymentDto } from 'src/application/dtos/tuition-payment/create-tuition-payment.dto'
 import type { IUnitOfWork } from 'src/domain/repositories'
 import { ConflictException, NotFoundException, ForbiddenException } from 'src/shared/exceptions/custom-exceptions'
-import { AuditStatus, NotificationType, NotificationLevel, TuitionPaymentStatusLabels, TuitionPaymentStatus } from 'src/shared/enums'
+import {
+  AuditStatus,
+  NotificationType,
+  NotificationLevel,
+  TuitionPaymentStatusLabels,
+  TuitionPaymentStatus,
+} from 'src/shared/enums'
 import { RESOURCE_TYPES, ACTION_KEYS } from 'src/shared/constants'
 import { CreateTuitionPaymentData } from 'src/domain/interface'
 import { CreateAndNotifyOneUseCase } from '../notification/create-and-notify-one.use-case'
@@ -17,7 +23,7 @@ export class CreateTuitionPaymentUseCase {
     private readonly unitOfWork: IUnitOfWork,
     private readonly createAndNotifyOne: CreateAndNotifyOneUseCase,
     private readonly sendTuitionPaymentToParentUseCase: SendTuitionPaymentToParentUseCase,
-  ) { }
+  ) {}
 
   async execute(dto: CreateTuitionPaymentDto, adminId?: number): Promise<BaseResponseDto<TuitionPaymentResponseDto>> {
     const result = await this.unitOfWork.executeInTransaction(async (repos) => {
@@ -97,37 +103,25 @@ export class CreateTuitionPaymentUseCase {
           },
         }
 
+        await this.createAndNotifyOne.executeWithRepos(repos, notification, {
+          sourceType: 'TUITION_PAYMENT',
+          sourceId: String(payment.paymentId),
+          sourceEvent: 'CREATED',
+          idempotencyKey: `tuition:${payment.paymentId}:student:created`,
+        })
+        if (payment.status === TuitionPaymentStatus.PAID) {
+          await this.sendTuitionPaymentToParentUseCase.executeWithRepos(repos, { paymentId: payment.paymentId })
+        }
+
         return {
           response: new TuitionPaymentResponseDto(payment),
-          paymentId: payment.paymentId,
-          shouldNotifyParent: payment.status === TuitionPaymentStatus.PAID,
-          notification,
         }
       }
 
       return {
         response: new TuitionPaymentResponseDto(payment),
-        paymentId: payment.paymentId,
-        shouldNotifyParent: payment.status === TuitionPaymentStatus.PAID,
-        notification: null,
       }
     })
-
-    if (result.notification) {
-      await this.createAndNotifyOne.execute(result.notification, {
-        sourceType: 'TUITION_PAYMENT',
-        sourceId: String(result.paymentId),
-        sourceEvent: 'CREATED',
-        idempotencyKey: `tuition:${result.paymentId}:student:created`,
-      })
-    }
-
-    // Chỉ gửi Zalo sau commit khi học phí tạo mới có trạng thái PAID
-    if (result.shouldNotifyParent) {
-      await this.sendTuitionPaymentToParentUseCase.execute({
-        paymentId: result.paymentId,
-      }).catch(() => { /* ignore zalo notify error */ })
-    }
 
     return BaseResponseDto.success('Tạo học phí thành công', result.response)
   }

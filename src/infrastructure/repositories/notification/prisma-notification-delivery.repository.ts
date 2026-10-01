@@ -59,6 +59,7 @@ export class PrismaNotificationDeliveryRepository implements INotificationDelive
     const dead = await this.prisma.$executeRaw(Prisma.sql`
       UPDATE notification_deliveries
       SET status = 'DEAD', claimed_by = NULL, claimed_at = NULL, lease_expires_at = NULL,
+          pending_push_tokens = NULL,
           last_error_code = 'DELIVERY_LEASE_EXPIRED',
           last_error_message = 'Worker dừng trước khi hoàn tất delivery'
       WHERE status = 'PROCESSING' AND lease_expires_at <= ${now} AND attempt_count >= max_attempts
@@ -120,7 +121,13 @@ export class PrismaNotificationDeliveryRepository implements INotificationDelive
   async update(notificationDeliveryId: number, data: UpdateNotificationDeliveryData): Promise<NotificationDelivery> {
     const updated = await this.prisma.notificationDelivery.update({
       where: { notificationDeliveryId },
-      data,
+      data: {
+        ...data,
+        pendingPushTokens:
+          data.pendingPushTokens === null
+            ? Prisma.DbNull
+            : data.pendingPushTokens as Prisma.InputJsonValue | undefined,
+      },
     })
     return NotificationDeliveryMapper.toDomain(updated)!
   }

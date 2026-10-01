@@ -16,125 +16,116 @@ import { StudentPointService } from 'src/application/services/student-point.serv
 
 @Injectable()
 export class CreateAttendanceUseCase {
-    constructor(
-        @Inject('UNIT_OF_WORK')
-        private readonly unitOfWork: IUnitOfWork,
-        private readonly createAndNotifyOne: CreateAndNotifyOneUseCase,
-        private readonly sendAttendanceToParentUseCase: SendAttendanceToParentUseCase,
-        private readonly studentPointService: StudentPointService,
-    ) { }
+  constructor(
+    @Inject('UNIT_OF_WORK')
+    private readonly unitOfWork: IUnitOfWork,
+    private readonly createAndNotifyOne: CreateAndNotifyOneUseCase,
+    private readonly sendAttendanceToParentUseCase: SendAttendanceToParentUseCase,
+    private readonly studentPointService: StudentPointService,
+  ) {}
 
-    async execute(
-        dto: CreateAttendanceDto,
-        markerId?: number,
-        adminId?: number,
-    ): Promise<BaseResponseDto<AttendanceResponseDto>> {
-        const result = await this.unitOfWork.executeInTransaction(async (repos) => {
-            const attendanceRepository = repos.attendanceRepository
-            const classSessionRepository = repos.classSessionRepository
-            const adminAuditLogRepository = repos.adminAuditLogRepository
+  async execute(
+    dto: CreateAttendanceDto,
+    markerId?: number,
+    adminId?: number,
+  ): Promise<BaseResponseDto<AttendanceResponseDto>> {
+    const result = await this.unitOfWork.executeInTransaction(async (repos) => {
+      const attendanceRepository = repos.attendanceRepository
+      const classSessionRepository = repos.classSessionRepository
+      const adminAuditLogRepository = repos.adminAuditLogRepository
 
-            const session = await classSessionRepository.findById(dto.sessionId)
-            if (!session) {
-                throw new NotFoundException(`Buổi học với ID ${dto.sessionId} không tồn tại`)
-            }
+      const session = await classSessionRepository.findById(dto.sessionId)
+      if (!session) {
+        throw new NotFoundException(`Buổi học với ID ${dto.sessionId} không tồn tại`)
+      }
 
-            if (session.courseClass?.course?.isEnded) {
-                throw new ConflictException('Khóa học đã kết thúc, không thể điểm danh')
-            }
+      if (session.courseClass?.course?.isEnded) {
+        throw new ConflictException('Khóa học đã kết thúc, không thể điểm danh')
+      }
 
-            // Check if attendance already exists
-            const existing = await attendanceRepository.findBySessionAndStudent(
-                dto.sessionId,
-                dto.studentId,
-            )
+      // Check if attendance already exists
+      const existing = await attendanceRepository.findBySessionAndStudent(dto.sessionId, dto.studentId)
 
-            if (existing) {
-                if (adminId) {
-                    await adminAuditLogRepository.create({
-                        adminId,
-                        actionKey: ACTION_KEYS.ATTENDANCE.CREATE,
-                        status: AuditStatus.FAIL,
-                        resourceType: RESOURCE_TYPES.ATTENDANCE,
-                        errorMessage: 'Điểm danh cho học sinh này trong buổi học đã tồn tại',
-                    })
-                }
-                throw new ConflictException(
-                    'Điểm danh cho học sinh này trong buổi học đã tồn tại',
-                )
-            }
+      if (existing) {
+        if (adminId) {
+          await adminAuditLogRepository.create({
+            adminId,
+            actionKey: ACTION_KEYS.ATTENDANCE.CREATE,
+            status: AuditStatus.FAIL,
+            resourceType: RESOURCE_TYPES.ATTENDANCE,
+            errorMessage: 'Điểm danh cho học sinh này trong buổi học đã tồn tại',
+          })
+        }
+        throw new ConflictException('Điểm danh cho học sinh này trong buổi học đã tồn tại')
+      }
 
-            const student = await repos.studentRepository.findById(dto.studentId)
-            if (!student) {
-                throw new NotFoundException(`Học sinh với ID ${dto.studentId} không tồn tại`)
-            }
+      const student = await repos.studentRepository.findById(dto.studentId)
+      if (!student) {
+        throw new NotFoundException(`Học sinh với ID ${dto.studentId} không tồn tại`)
+      }
 
-            if (!student.user?.isActive) {
-                throw new ForbiddenException('Học sinh đã bị vô hiệu hóa, không thể điểm danh')
-            }
+      if (!student.user?.isActive) {
+        throw new ForbiddenException('Học sinh đã bị vô hiệu hóa, không thể điểm danh')
+      }
 
-            const data: CreateAttendanceData = {
-                sessionId: dto.sessionId,
-                studentId: dto.studentId,
-                status: dto.status,
-                notes: dto.notes,
-                markerId,
-            }
+      const data: CreateAttendanceData = {
+        sessionId: dto.sessionId,
+        studentId: dto.studentId,
+        status: dto.status,
+        notes: dto.notes,
+        markerId,
+      }
 
-            const attendance = await attendanceRepository.create(data)
-            await this.studentPointService.awardAttendancePoints(repos, {
-                studentId: attendance.studentId,
-                attendanceId: attendance.attendanceId,
-                status: attendance.status,
-                sessionId: attendance.sessionId,
-            })
+      const attendance = await attendanceRepository.create(data)
+      await this.studentPointService.awardAttendancePoints(repos, {
+        studentId: attendance.studentId,
+        attendanceId: attendance.attendanceId,
+        status: attendance.status,
+        sessionId: attendance.sessionId,
+      })
 
-            if (adminId) {
-                await adminAuditLogRepository.create({
-                    adminId,
-                    actionKey: ACTION_KEYS.ATTENDANCE.CREATE,
-                    status: AuditStatus.SUCCESS,
-                    resourceType: RESOURCE_TYPES.ATTENDANCE,
-                    resourceId: attendance.attendanceId.toString(),
-                    afterData: {
-                        sessionId: attendance.sessionId,
-                        studentId: attendance.studentId,
-                        status: attendance.status,
-                    },
-                })
-            }
-
-            // Gửi thông báo cho học sinh
-            const statusLabel = AttendanceStatusLabels[attendance.status] || attendance.status
-            const notification = {
-                userId: student.userId,
-                title: 'Điểm danh mới',
-                message: `Bạn đã được điểm danh với trạng thái: ${statusLabel}`,
-                type: NotificationType.ATTENDANCE,
-                level: NotificationLevel.INFO,
-                data: { attendanceId: attendance.attendanceId, sessionId: attendance.sessionId, status: attendance.status },
-            }
-
-            return {
-                response: new AttendanceResponseDto(attendance),
-                attendanceId: attendance.attendanceId,
-                notification,
-            }
+      if (adminId) {
+        await adminAuditLogRepository.create({
+          adminId,
+          actionKey: ACTION_KEYS.ATTENDANCE.CREATE,
+          status: AuditStatus.SUCCESS,
+          resourceType: RESOURCE_TYPES.ATTENDANCE,
+          resourceId: attendance.attendanceId.toString(),
+          afterData: {
+            sessionId: attendance.sessionId,
+            studentId: attendance.studentId,
+            status: attendance.status,
+          },
         })
+      }
 
-        await this.createAndNotifyOne.execute(result.notification, {
-            sourceType: 'ATTENDANCE',
-            sourceId: String(result.attendanceId),
-            sourceEvent: 'CREATED',
-            idempotencyKey: `attendance:${result.attendanceId}:student:created`,
-        })
+      // Gửi thông báo cho học sinh
+      const statusLabel = AttendanceStatusLabels[attendance.status] || attendance.status
+      const notification = {
+        userId: student.userId,
+        title: 'Điểm danh mới',
+        message: `Bạn đã được điểm danh với trạng thái: ${statusLabel}`,
+        type: NotificationType.ATTENDANCE,
+        level: NotificationLevel.INFO,
+        data: { attendanceId: attendance.attendanceId, sessionId: attendance.sessionId, status: attendance.status },
+      }
 
-        // Resolve linked parents and enqueue after the business transaction commits.
-        await this.sendAttendanceToParentUseCase.execute({
-            attendanceId: result.attendanceId,
-            includeZalo: dto.status !== AttendanceStatus.ABSENT,
-        }).catch(() => { /* notification is a non-blocking side effect */ })
+      await this.createAndNotifyOne.executeWithRepos(repos, notification, {
+        sourceType: 'ATTENDANCE',
+        sourceId: String(attendance.attendanceId),
+        sourceEvent: 'CREATED',
+        idempotencyKey: `attendance:${attendance.attendanceId}:student:created`,
+      })
+      await this.sendAttendanceToParentUseCase.executeWithRepos(repos, {
+        attendanceId: attendance.attendanceId,
+        includeZalo: dto.status !== AttendanceStatus.ABSENT,
+      })
 
-        return BaseResponseDto.success('Tạo điểm danh thành công', result.response)
-    }
+      return {
+        response: new AttendanceResponseDto(attendance),
+      }
+    })
+
+    return BaseResponseDto.success('Tạo điểm danh thành công', result.response)
+  }
 }

@@ -11,7 +11,11 @@ import {
   PaymentConfirmationMode,
   PaymentIntentStatus,
   TuitionPaymentStatus,
+  NotificationLevel,
+  NotificationType,
 } from 'src/shared/enums'
+import { CreateAndNotifyOneUseCase } from '../../notification/create-and-notify-one.use-case'
+import { SendTuitionPaymentToParentUseCase } from '../../tuition-payment/send-tuition-payment-to-parent.use-case'
 import { extractPaymentInstructionReference } from './payment-instruction-reference.util'
 import type {
   IncomingSepayTransaction,
@@ -21,7 +25,11 @@ import type {
 
 @Injectable()
 export class SepayTransactionProcessorService {
-  constructor(@Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork) {}
+  constructor(
+    @Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork,
+    private readonly createAndNotifyOne: CreateAndNotifyOneUseCase,
+    private readonly sendTuitionPaymentToParent: SendTuitionPaymentToParentUseCase,
+  ) {}
 
   async process(input: IncomingSepayTransaction): Promise<ProcessSepayTransactionResult> {
     return this.unitOfWork.executeInTransaction((repos) => this.processInTransaction(repos, input), {
@@ -180,6 +188,26 @@ export class SepayTransactionProcessorService {
     const student = updatedTuitionPayment
       ? await repos.studentRepository.findById(updatedTuitionPayment.studentId)
       : null
+    if (updatedTuitionPayment && student?.userId) {
+      await this.createAndNotifyOne.executeWithRepos(
+        repos,
+        {
+          userId: student.userId,
+          title: 'Xác nhận thanh toán học phí',
+          message: 'Học phí của bạn đã được SePay xác nhận thanh toán thành công.',
+          type: NotificationType.TUITION,
+          level: NotificationLevel.SUCCESS,
+          data: { paymentId: updatedTuitionPayment.paymentId, status: TuitionPaymentStatus.PAID },
+        },
+        {
+          sourceType: 'TUITION_PAYMENT',
+          sourceId: String(updatedTuitionPayment.paymentId),
+          sourceEvent: 'SEPAY_CONFIRMED',
+          idempotencyKey: `tuition:${updatedTuitionPayment.paymentId}:sepay-confirmed`,
+        },
+      )
+      await this.sendTuitionPaymentToParent.executeWithRepos(repos, { paymentId: updatedTuitionPayment.paymentId })
+    }
     return {
       duplicate: false,
       processingStatus: BankTransferProcessingStatus.MATCHED,

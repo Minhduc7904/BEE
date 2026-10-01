@@ -73,6 +73,7 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _notificationDispatchJobRepository: UnitOfWorkRepos['notificationDispatchJobRepository'] | undefined
     let _notificationDispatchRecipientRepository: UnitOfWorkRepos['notificationDispatchRecipientRepository'] | undefined
     let _notificationDeliveryRepository: UnitOfWorkRepos['notificationDeliveryRepository'] | undefined
+    let _businessNotificationOutboxRepository: UnitOfWorkRepos['businessNotificationOutboxRepository'] | undefined
     let _userDeviceRepository: UnitOfWorkRepos['userDeviceRepository'] | undefined
     let _userNotificationSettingRepository: UnitOfWorkRepos['userNotificationSettingRepository'] | undefined
     let _parentNotificationSettingRepository: UnitOfWorkRepos['parentNotificationSettingRepository'] | undefined
@@ -83,11 +84,9 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _tuitionPaymentRepository: any
     let _receivingBankAccountRepository: UnitOfWorkRepos['receivingBankAccountRepository'] | undefined
     let _tuitionGradeReceivingBankAccountRepository:
-      | UnitOfWorkRepos['tuitionGradeReceivingBankAccountRepository']
-      | undefined
+      UnitOfWorkRepos['tuitionGradeReceivingBankAccountRepository'] | undefined
     let _tuitionCollectionConfigurationRepository:
-      | UnitOfWorkRepos['tuitionCollectionConfigurationRepository']
-      | undefined
+      UnitOfWorkRepos['tuitionCollectionConfigurationRepository'] | undefined
     let _coursePaymentConfigurationRepository: UnitOfWorkRepos['coursePaymentConfigurationRepository'] | undefined
     let _paymentIntentRepository: UnitOfWorkRepos['paymentIntentRepository'] | undefined
     let _paymentAttemptRepository: UnitOfWorkRepos['paymentAttemptRepository'] | undefined
@@ -101,6 +100,7 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _mediaUsageRepository: any
     let _examRepository: any
     let _competitionRepository: any
+    let _competitionSubmitRepository: UnitOfWorkRepos['competitionSubmitRepository'] | undefined
     let _sectionRepository: any
     let _questionRepository: any
     let _statementRepository: any
@@ -119,8 +119,7 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _assistantTaskRepository: UnitOfWorkRepos['assistantTaskRepository'] | undefined
     let _assistantTaskProductRepository: UnitOfWorkRepos['assistantTaskProductRepository'] | undefined
     let _assistantTaskProductSubmissionRepository:
-      | UnitOfWorkRepos['assistantTaskProductSubmissionRepository']
-      | undefined
+      UnitOfWorkRepos['assistantTaskProductSubmissionRepository'] | undefined
     let _actionApprovalRequestRepository: UnitOfWorkRepos['actionApprovalRequestRepository'] | undefined
     let _bookRepository: UnitOfWorkRepos['bookRepository'] | undefined
     let _bookCategoryRepository: UnitOfWorkRepos['bookCategoryRepository'] | undefined
@@ -275,6 +274,12 @@ export class PrismaUnitOfWork implements IUnitOfWork {
       enumerable: true,
     })
 
+    Object.defineProperty(repos, 'businessNotificationOutboxRepository', {
+      get: () =>
+        (_businessNotificationOutboxRepository ??= new Repositories.PrismaBusinessNotificationOutboxRepository(client)),
+      enumerable: true,
+    })
+
     Object.defineProperty(repos, 'userDeviceRepository', {
       get: () => (_userDeviceRepository ??= new Repositories.PrismaUserDeviceRepository(client)),
       enumerable: true,
@@ -402,6 +407,11 @@ export class PrismaUnitOfWork implements IUnitOfWork {
 
     Object.defineProperty(repos, 'competitionRepository', {
       get: () => (_competitionRepository ??= new Repositories.PrismaCompetitionRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'competitionSubmitRepository', {
+      get: () => (_competitionSubmitRepository ??= new Repositories.PrismaCompetitionSubmitRepository(client)),
       enumerable: true,
     })
 

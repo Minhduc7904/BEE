@@ -2,8 +2,9 @@ import type { JwtTokenService as JwtTokenServicePort } from 'src/application/int
 // src/infrastructure/services/jwt.service.ts
 
 import { Injectable, Inject } from '@nestjs/common'
-import { JwtService } from '@nestjs/jwt'
+import { JwtService, type JwtSignOptions } from '@nestjs/jwt'
 import type { ConfigType } from '@nestjs/config'
+import { randomUUID } from 'crypto'
 import jwtConfig from '../../config/jwt.config'
 
 export interface JwtPayload {
@@ -33,12 +34,12 @@ export class JwtTokenService {
       ...payload,
       aud: this.jwtConfiguration.audienceApi,
       iss: this.jwtConfiguration.issuer,
-      jti: require('crypto').randomUUID(), // Đảm bảo mỗi token là unique
+      jti: randomUUID(), // Đảm bảo mỗi token là unique
     }
 
     return this.jwtService.sign(tokenPayload, {
       secret: this.jwtConfiguration.accessSecret,
-      expiresIn: this.jwtConfiguration.accessExpiresIn,
+      expiresIn: this.jwtConfiguration.accessExpiresIn as JwtSignOptions['expiresIn'],
       // Không cần issuer và audience ở đây vì đã có trong payload
     })
   }
@@ -48,12 +49,12 @@ export class JwtTokenService {
       ...payload,
       aud: this.jwtConfiguration.audienceRefresh,
       iss: this.jwtConfiguration.issuer,
-      jti: require('crypto').randomUUID(), // Đảm bảo mỗi token là unique
+      jti: randomUUID(), // Đảm bảo mỗi token là unique
     }
 
     return this.jwtService.sign(tokenPayload, {
       secret: this.jwtConfiguration.refreshSecret,
-      expiresIn: this.jwtConfiguration.refreshExpiresIn,
+      expiresIn: this.jwtConfiguration.refreshExpiresIn as JwtSignOptions['expiresIn'],
       // Không cần issuer và audience ở đây vì đã có trong payload
     })
   }

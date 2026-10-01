@@ -31,6 +31,7 @@ export class NotificationDeliveryMapper {
       payload: (record.payload as unknown as NotificationDeliveryPayload | null) ?? undefined,
       destination: record.destination ?? undefined,
       providerAppId: record.providerAppId ?? undefined,
+      pendingPushTokens: (record.pendingPushTokens as string[] | null) ?? undefined,
       lastErrorCode: record.lastErrorCode ?? undefined,
       lastErrorMessage: record.lastErrorMessage ?? undefined,
       skipReason: record.skipReason ?? undefined,

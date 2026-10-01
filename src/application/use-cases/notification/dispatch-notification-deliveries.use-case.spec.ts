@@ -20,9 +20,17 @@ describe('DispatchNotificationDeliveriesUseCase', () => {
   const createNotification = jest.fn()
   const updateDelivery = jest.fn()
   const notifyUser = jest.fn()
+  const findDevices = jest.fn()
+  const deleteDevices = jest.fn()
+  const findNotification = jest.fn()
   const repos = {
-    notificationRepository: { createForDispatchRecipient: createNotification, getStatsByUserId: jest.fn().mockResolvedValue({ total: 1, unread: 1, read: 0 }) },
+    notificationRepository: {
+      createForDispatchRecipient: createNotification,
+      findByDispatchRecipientId: findNotification,
+      getStatsByUserId: jest.fn().mockResolvedValue({ total: 1, unread: 1, read: 0 }),
+    },
     notificationDeliveryRepository: { update: updateDelivery },
+    userDeviceRepository: { findByUserIds: findDevices, deleteByTokens: deleteDevices },
   }
   const unitOfWork = {
     executeInTransaction: jest.fn((callback) => callback(repos)),
@@ -51,12 +59,14 @@ describe('DispatchNotificationDeliveriesUseCase', () => {
     updatedAt: new Date(),
     recipient: { userId: 31 },
     job: {
+      notificationDispatchJobId: 1,
       title: 'Thông báo',
       message: 'Nội dung',
       type: 'SYSTEM',
       level: 'INFO',
+      data: { shouldShowReminderModal: true },
     },
-  } as ConstructorParameters<typeof NotificationDelivery>[0])
+  } as unknown as ConstructorParameters<typeof NotificationDelivery>[0])
 
   beforeEach(() => {
     jest.clearAllMocks()
@@ -71,6 +81,10 @@ describe('DispatchNotificationDeliveriesUseCase', () => {
 
     expect(evaluatePushEligibility).not.toHaveBeenCalled()
     expect(createNotification).toHaveBeenCalledTimes(1)
+    expect(createNotification).toHaveBeenCalledWith(
+      delivery.notificationDispatchRecipientId,
+      expect.objectContaining({ data: { shouldShowReminderModal: true } }),
+    )
     expect(updateDelivery).toHaveBeenCalledWith(
       delivery.notificationDeliveryId,
       expect.objectContaining({
@@ -98,6 +112,128 @@ describe('DispatchNotificationDeliveriesUseCase', () => {
       }),
     )
     expect(createNotification).not.toHaveBeenCalled()
+  })
+
+  it('chỉ stringify metadata tại boundary gửi PUSH', async () => {
+    const pushDelivery = new NotificationDelivery({
+      ...delivery,
+      channel: NotificationDeliveryChannel.PUSH,
+      payload: {
+        title: 'Nhắc học phí',
+        message: 'Nội dung',
+        type: 'TUITION' as any,
+        level: 'INFO' as any,
+        data: {
+          paymentId: 12,
+          shouldShowReminderModal: true,
+          context: { tab: 'payments' },
+        },
+      },
+    })
+    evaluatePushEligibility.mockResolvedValue({ allowed: true })
+    findDevices.mockResolvedValue([{ fcmToken: 'token-1' }])
+    findNotification.mockResolvedValue({ notificationId: 41 })
+    ;(pushService.sendToTokens as jest.Mock).mockResolvedValue({
+      providerAvailable: true,
+      successCount: 1,
+      failureCount: 0,
+      invalidTokens: [],
+      outcomes: [{ token: 'token-1', success: true, messageId: 'message-1', retryable: false }],
+    })
+    updateDelivery.mockResolvedValue(pushDelivery)
+
+    await expect(harness.process(pushDelivery)).resolves.toBe('sent')
+
+    expect(pushService.sendToTokens).toHaveBeenCalledWith(['token-1'], expect.objectContaining({
+      data: {
+        paymentId: '12',
+        shouldShowReminderModal: 'true',
+        context: '{"tab":"payments"}',
+        notificationDispatchJobId: '1',
+        notificationId: '41',
+      },
+    }))
+  })
+
+  it('chỉ retry token lỗi tạm thời sau multi-device partial success', async () => {
+    const firstAttempt = new NotificationDelivery({
+      ...delivery,
+      notificationDeliveryId: 22,
+      channel: NotificationDeliveryChannel.PUSH,
+    })
+    const retryAttempt = new NotificationDelivery({
+      ...delivery,
+      notificationDeliveryId: 22,
+      channel: NotificationDeliveryChannel.PUSH,
+      attemptCount: 2,
+      pendingPushTokens: ['token-2'],
+    })
+    evaluatePushEligibility.mockResolvedValue({ allowed: true })
+    findDevices.mockResolvedValue([{ fcmToken: 'token-1' }, { fcmToken: 'token-2' }])
+    findNotification.mockResolvedValue(null)
+    ;(pushService.sendToTokens as jest.Mock)
+      .mockResolvedValueOnce({
+        providerAvailable: true,
+        successCount: 1,
+        failureCount: 1,
+        invalidTokens: [],
+        outcomes: [
+          { token: 'token-1', success: true, messageId: 'message-1', retryable: false },
+          { token: 'token-2', success: false, errorCode: 'messaging/server-unavailable', retryable: true },
+        ],
+      })
+      .mockResolvedValueOnce({
+        providerAvailable: true,
+        successCount: 1,
+        failureCount: 0,
+        invalidTokens: [],
+        outcomes: [{ token: 'token-2', success: true, messageId: 'message-2', retryable: false }],
+      })
+    updateDelivery.mockResolvedValue(firstAttempt)
+
+    await expect(harness.process(firstAttempt)).resolves.toBe('retried')
+    expect(pushService.sendToTokens).toHaveBeenNthCalledWith(1, ['token-1', 'token-2'], expect.any(Object))
+    expect(updateDelivery).toHaveBeenLastCalledWith(firstAttempt.notificationDeliveryId, expect.objectContaining({
+      status: NotificationDeliveryStatus.RETRY_WAIT,
+      pendingPushTokens: ['token-2'],
+    }))
+
+    updateDelivery.mockResolvedValue(retryAttempt)
+    await expect(harness.process(retryAttempt)).resolves.toBe('sent')
+    expect(pushService.sendToTokens).toHaveBeenNthCalledWith(2, ['token-2'], expect.any(Object))
+    expect(updateDelivery).toHaveBeenLastCalledWith(retryAttempt.notificationDeliveryId, expect.objectContaining({
+      status: NotificationDeliveryStatus.SENT,
+      pendingPushTokens: null,
+    }))
+  })
+
+  it('không đánh dấu SENT khi một thiết bị bị FCM từ chối vĩnh viễn', async () => {
+    const pushDelivery = new NotificationDelivery({
+      ...delivery,
+      notificationDeliveryId: 23,
+      channel: NotificationDeliveryChannel.PUSH,
+    })
+    evaluatePushEligibility.mockResolvedValue({ allowed: true })
+    findDevices.mockResolvedValue([{ fcmToken: 'token-1' }, { fcmToken: 'token-2' }])
+    findNotification.mockResolvedValue(null)
+    ;(pushService.sendToTokens as jest.Mock).mockResolvedValue({
+      providerAvailable: true,
+      successCount: 1,
+      failureCount: 1,
+      invalidTokens: [],
+      outcomes: [
+        { token: 'token-1', success: true, messageId: 'message-1', retryable: false },
+        { token: 'token-2', success: false, errorCode: 'messaging/sender-id-mismatch', retryable: false },
+      ],
+    })
+    updateDelivery.mockResolvedValue(pushDelivery)
+
+    await expect(harness.process(pushDelivery)).resolves.toBe('dead')
+    expect(updateDelivery).toHaveBeenLastCalledWith(pushDelivery.notificationDeliveryId, expect.objectContaining({
+      status: NotificationDeliveryStatus.DEAD,
+      pendingPushTokens: null,
+      lastErrorCode: 'messaging/sender-id-mismatch',
+    }))
   })
 
   it('lưu notification và đánh dấu SENT trong cùng transaction trước khi phát realtime', async () => {

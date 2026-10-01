@@ -25,6 +25,7 @@ import { CreateAndNotifyManyUseCase } from '../notification/create-and-notify-ma
 import { CreatePaymentIntentForCreatedTuitionPayment } from '../payment-intent/create-payment-intent-for-created-tuition-payment'
 import { SendBulkTuitionPaymentToParentUseCase } from './send-bulk-tuition-payment-to-parent.use-case'
 import { ManualTuitionPaymentReconciliationService } from './manual-tuition-payment-reconciliation.service'
+import { createHash } from 'crypto'
 
 const EXPIRED_ATTEMPT_OFFSET_MS = 1000
 
@@ -259,15 +260,32 @@ export class UpdateArrayBulkTuitionPaymentUseCase {
             }
 
             if (notificationDataList.length > 0) {
-              this.createAndNotifyMany.execute(notificationDataList).catch(() => {
-                /* ignore notification error */
+              const digest = createHash('sha256')
+                .update(
+                  results.updated
+                    .map((payment) => payment.paymentId)
+                    .sort((a, b) => a - b)
+                    .join(','),
+                )
+                .digest('hex')
+                .slice(0, 24)
+              await this.createAndNotifyMany.executeWithRepos(repos, notificationDataList, {
+                sourceType: 'TUITION_PAYMENT',
+                sourceId: `array-bulk:${digest}`,
+                sourceEvent: 'ARRAY_BULK_UPDATED',
+                idempotencyKey: `tuition-array-bulk-updated:${digest}`,
               })
             }
           }
 
+          if (results.parentNotifyPaymentIds.length > 0) {
+            await this.sendBulkTuitionPaymentToParentUseCase.executeWithRepos(repos, {
+              paymentIds: results.parentNotifyPaymentIds,
+            })
+          }
+
           return {
             responses: results.updated.map((p) => TuitionPaymentResponseDto.fromEntity(p)),
-            parentNotifyPaymentIds: results.parentNotifyPaymentIds,
           }
         } catch (error) {
           /**
@@ -289,13 +307,6 @@ export class UpdateArrayBulkTuitionPaymentUseCase {
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
     )
-
-    // Chỉ gửi Zalo cho phụ huynh khi học phí được cập nhật sang trạng thái PAID và sau khi transaction đã commit
-    if (result.parentNotifyPaymentIds.length > 0) {
-      await this.sendBulkTuitionPaymentToParentUseCase.execute({
-        paymentIds: result.parentNotifyPaymentIds,
-      }).catch(() => undefined)
-    }
 
     return BaseResponseDto.success('Cập nhật học phí hàng loạt thành công', result.responses)
   }

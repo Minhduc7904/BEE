@@ -1,4 +1,4 @@
-import { Injectable, Optional } from '@nestjs/common'
+import { Injectable } from '@nestjs/common'
 import { studentPointConfig } from 'src/config'
 import type { CreateStudentPointLogData, UnitOfWorkRepos } from 'src/domain/repositories'
 import { AttendanceStatus, NotificationLevel, NotificationType, PointType } from 'src/shared/enums'
@@ -23,10 +23,7 @@ interface PointNotificationContent {
 
 @Injectable()
 export class StudentPointService {
-  constructor(
-    @Optional()
-    private readonly notificationQueue?: BusinessNotificationQueueService,
-  ) {}
+  constructor(private readonly notificationQueue: BusinessNotificationQueueService) {}
 
   getCompetitionSubmitPoints(scorePercentage: number): number {
     if (!studentPointConfig.competitionSubmit.enabled) return 0
@@ -229,15 +226,12 @@ export class StudentPointService {
       },
     }
 
-    // The point mutation owns the surrounding transaction. Defer the side effect so
-    // enqueue cannot roll it back and never write notifications directly in that transaction.
-    setImmediate(() => {
-      void this.notificationQueue?.enqueueInApp([notificationData], {
-        sourceType: input.referenceType || 'STUDENT_POINT',
-        sourceId: String(input.referenceId),
-        sourceEvent: 'POINT_AWARDED',
-        idempotencyKey: `point:${currentLog.pointLogId}:${awardedPoints}`,
-      })
+    // Chỉ ghi durable intent trong transaction điểm; provider được worker xử lý sau commit.
+    await this.notificationQueue.enqueueInAppWithRepos(repos, [notificationData], {
+      sourceType: input.referenceType || 'STUDENT_POINT',
+      sourceId: String(input.referenceId),
+      sourceEvent: 'POINT_AWARDED',
+      idempotencyKey: `point:${currentLog.pointLogId}:${awardedPoints}`,
     })
   }
 

@@ -50,7 +50,12 @@ describe('SendNotificationUseCase', () => {
         message: 'Nội dung',
         type: NotificationType.SYSTEM,
         level: NotificationLevel.INFO,
-        data: { courseId: 12, action: 'view' },
+        data: {
+          courseId: 12,
+          action: 'view',
+          shouldShowReminderModal: true,
+          context: { tab: 'payments' },
+        },
       },
       7,
       'request-51',
@@ -62,7 +67,12 @@ describe('SendNotificationUseCase', () => {
         idempotencyKey: 'request-51',
         userIds: [1, 2],
         channels: [NotificationDeliveryChannel.IN_APP, NotificationDeliveryChannel.PUSH],
-        data: { courseId: '12', action: 'view' },
+        data: {
+          courseId: 12,
+          action: 'view',
+          shouldShowReminderModal: true,
+          context: { tab: 'payments' },
+        },
         createdByAdminId: 7,
       }),
     )

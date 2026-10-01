@@ -30,6 +30,7 @@ import { INotificationRepository } from './notification.repository'
 import { INotificationDispatchJobRepository } from './notification-dispatch-job.repository'
 import { INotificationDispatchRecipientRepository } from './notification-dispatch-recipient.repository'
 import { INotificationDeliveryRepository } from './notification-delivery.repository'
+import { IBusinessNotificationOutboxRepository } from './business-notification-outbox.repository'
 import { IUserDeviceRepository } from './user-device.repository'
 import { IUserNotificationSettingRepository } from './user-notification-setting.repository'
 import { IParentNotificationSettingRepository } from './parent-notification-setting.repository'
@@ -56,6 +57,7 @@ import { ISeoMediaSlotRepository } from './seo-media-slot.repository'
 import { ISeoMediaItemRepository } from './seo-media-item.repository'
 import { IExamRepository } from './exam.repository'
 import { ICompetitionRepository } from './competition.repository'
+import { ICompetitionSubmitRepository } from './competition-submit.repository'
 import { ISectionRepository } from './section.repository'
 import { IQuestionRepository } from './question.repository'
 import { IStatementRepository } from './statement.repository'
@@ -116,6 +118,7 @@ export interface UnitOfWorkRepos {
   notificationDispatchJobRepository: INotificationDispatchJobRepository
   notificationDispatchRecipientRepository: INotificationDispatchRecipientRepository
   notificationDeliveryRepository: INotificationDeliveryRepository
+  businessNotificationOutboxRepository: IBusinessNotificationOutboxRepository
   userDeviceRepository: IUserDeviceRepository
   userNotificationSettingRepository: IUserNotificationSettingRepository
   parentNotificationSettingRepository: IParentNotificationSettingRepository
@@ -140,6 +143,7 @@ export interface UnitOfWorkRepos {
   mediaUsageRepository: IMediaUsageRepository
   examRepository: IExamRepository
   competitionRepository: ICompetitionRepository
+  competitionSubmitRepository: ICompetitionSubmitRepository
   sectionRepository: ISectionRepository
   questionRepository: IQuestionRepository
   statementRepository: IStatementRepository

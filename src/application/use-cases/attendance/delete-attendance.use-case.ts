@@ -18,10 +18,7 @@ export class DeleteAttendanceUseCase {
     private readonly studentPointService: StudentPointService,
   ) {}
 
-  async execute(
-    attendanceId: number,
-    adminId?: number,
-  ): Promise<BaseResponseDto<{ deleted: boolean }>> {
+  async execute(attendanceId: number, adminId?: number): Promise<BaseResponseDto<{ deleted: boolean }>> {
     const result = await this.unitOfWork.executeInTransaction(async (repos) => {
       const attendanceRepository = repos.attendanceRepository
       const adminAuditLogRepository = repos.adminAuditLogRepository
@@ -64,26 +61,28 @@ export class DeleteAttendanceUseCase {
 
       // Gửi thông báo cho học sinh
       const student = await repos.studentRepository.findById(existing.studentId)
-      const notification = student ? {
-          userId: student.userId,
-          title: 'Xóa điểm danh',
-          message: 'Điểm danh của bạn đã bị xóa',
-          type: NotificationType.ATTENDANCE,
-          level: NotificationLevel.WARNING,
-          data: { sessionId: existing.sessionId },
-        } : null
+      const notification = student
+        ? {
+            userId: student.userId,
+            title: 'Xóa điểm danh',
+            message: 'Điểm danh của bạn đã bị xóa',
+            type: NotificationType.ATTENDANCE,
+            level: NotificationLevel.WARNING,
+            data: { sessionId: existing.sessionId },
+          }
+        : null
 
-      return { deleted, notification, sourceStudentId: existing.studentId }
+      if (notification) {
+        await this.createAndNotifyOne.executeWithRepos(repos, notification, {
+          sourceType: 'ATTENDANCE',
+          sourceId: String(attendanceId),
+          sourceEvent: 'DELETED',
+          idempotencyKey: `attendance:${attendanceId}:student:deleted`,
+        })
+      }
+
+      return { deleted }
     })
-
-    if (result.notification) {
-      await this.createAndNotifyOne.execute(result.notification, {
-        sourceType: 'ATTENDANCE',
-        sourceId: String(attendanceId),
-        sourceEvent: 'DELETED',
-        idempotencyKey: `attendance:${attendanceId}:student:deleted`,
-      })
-    }
 
     return BaseResponseDto.success('Xóa điểm danh thành công', { deleted: result.deleted })
   }

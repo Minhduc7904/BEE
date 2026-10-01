@@ -16,7 +16,7 @@ export class PrismaNotificationDispatchJobRepository implements INotificationDis
     const created = await this.prisma.notificationDispatchJob.create({
       data: {
         ...data,
-        data: data.data,
+        data: data.data as Prisma.InputJsonValue | undefined,
       },
     })
     return NotificationDispatchJobMapper.toDomain(created)!

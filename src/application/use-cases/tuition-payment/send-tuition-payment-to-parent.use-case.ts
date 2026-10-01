@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { createHash } from 'crypto'
-import type { IUnitOfWork } from 'src/domain/repositories'
+import type { IUnitOfWork, UnitOfWorkRepos } from 'src/domain/repositories'
 import { TuitionPaymentParentMessageTemplate } from 'src/infrastructure/templates/tuition-payment-parent-message.template'
 import { BusinessNotificationQueueService } from '../notification/business-notification-queue.service'
 import { NotificationLevel, NotificationType } from 'src/shared/enums'
@@ -18,14 +18,16 @@ export class SendTuitionPaymentToParentUseCase {
     @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
     private readonly queue: BusinessNotificationQueueService,
-  ) { }
+  ) {}
 
   async execute(input: SendTuitionPaymentToParentInput): Promise<boolean> {
+    return this.unitOfWork.executeInTransaction((repos) => this.executeWithRepos(repos, input))
+  }
+
+  async executeWithRepos(repos: UnitOfWorkRepos, input: SendTuitionPaymentToParentInput): Promise<boolean> {
     const appId = input.appId || process.env.ZALO_APP_ID || SendTuitionPaymentToParentUseCase.DEFAULT_APP_ID
 
-    const payment = await this.unitOfWork.executeInTransaction(async (repos) => {
-      return repos.tuitionPaymentRepository.findById(input.paymentId)
-    })
+    const payment = await repos.tuitionPaymentRepository.findById(input.paymentId)
 
     if (!payment) {
       return false
@@ -43,7 +45,7 @@ export class SendTuitionPaymentToParentUseCase {
       data: { paymentId: String(payment.paymentId), studentId: String(payment.studentId), status: payment.status },
     }
     const digest = createHash('sha256').update(messageText).digest('hex').slice(0, 24)
-    const queued = await this.queue.enqueueStudentAndParents({
+    const queued = await this.queue.enqueueStudentAndParentsWithRepos(repos, {
       idempotencyKey: `tuition:${payment.paymentId}:${payment.status}:${digest}`,
       sourceType: 'TUITION_PAYMENT',
       sourceId: String(payment.paymentId),
@@ -53,13 +55,15 @@ export class SendTuitionPaymentToParentUseCase {
       type: payload.type,
       level: payload.level,
       data: payload.data,
-      targets: [{
-        studentId: payment.studentId,
-        parentPayload: payload,
-        parentZaloId: payment.student?.parentZaloId,
-        zaloPayload: payload,
-        zaloAppId: appId,
-      }],
+      targets: [
+        {
+          studentId: payment.studentId,
+          parentPayload: payload,
+          parentZaloId: payment.student?.parentZaloId,
+          zaloPayload: payload,
+          zaloAppId: appId,
+        },
+      ],
     })
     return Boolean(queued)
   }

@@ -23,6 +23,7 @@ const NOTIFICATION_USE_CASES = [
   notification.GetNotificationDispatchJobUseCase,
   notification.GetNotificationDispatchRecipientsUseCase,
   notification.BusinessNotificationQueueService,
+  notification.RelayBusinessNotificationOutboxUseCase,
   GetValidZaloAccessTokenUseCase,
 ]
 

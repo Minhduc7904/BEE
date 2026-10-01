@@ -62,9 +62,8 @@ export class UpdateTuitionPaymentUseCase {
       if (dto.month !== undefined) data.month = dto.month
       if (dto.year !== undefined) data.year = dto.year
 
-      const beforePaymentIntent = dto.amount === undefined
-        ? null
-        : await repos.paymentIntentRepository.findByTuitionPaymentId(tuitionPaymentId)
+      const beforePaymentIntent =
+        dto.amount === undefined ? null : await repos.paymentIntentRepository.findByTuitionPaymentId(tuitionPaymentId)
       const isAmountChanged = dto.amount !== undefined && dto.amount !== tuitionPayment.amount
 
       const updatedTuitionPayment = await repos.tuitionPaymentRepository.update(tuitionPaymentId, data)
@@ -115,34 +114,37 @@ export class UpdateTuitionPaymentUseCase {
       })
 
       const student = await repos.studentRepository.findById(updatedTuitionPayment.studentId)
+      const response = new TuitionPaymentResponseDto(updatedTuitionPayment)
+      if (student?.userId) {
+        await this.createAndNotifyOne.executeWithRepos(
+          repos,
+          {
+            userId: student.userId,
+            title: 'Cập nhật học phí',
+            message: `Học phí tháng ${response.month}/${response.year} đã được cập nhật - Số tiền: ${response.amount?.toLocaleString('vi-VN')}đ - Trạng thái: ${response.statusLabel}`,
+            type: NotificationType.TUITION,
+            level: NotificationLevel.INFO,
+            data: {
+              paymentId: response.paymentId,
+              amount: response.amount,
+              month: response.month,
+              year: response.year,
+              status: response.status,
+              shouldShowReminderModal: true,
+            },
+          },
+          {
+            sourceType: 'TUITION_PAYMENT',
+            sourceId: String(response.paymentId),
+            sourceEvent: 'UPDATED',
+            idempotencyKey: `tuition:${response.paymentId}:student:updated:${response.amount}:${response.month}:${response.year}`,
+          },
+        )
+      }
       return {
-        response: new TuitionPaymentResponseDto(updatedTuitionPayment),
-        studentUserId: student?.userId,
+        response,
       }
     })
-
-    if (result.studentUserId) {
-      await this.createAndNotifyOne.execute({
-        userId: result.studentUserId,
-        title: 'Cập nhật học phí',
-        message: `Học phí tháng ${result.response.month}/${result.response.year} đã được cập nhật - Số tiền: ${result.response.amount?.toLocaleString('vi-VN')}đ - Trạng thái: ${result.response.statusLabel}`,
-        type: NotificationType.TUITION,
-        level: NotificationLevel.INFO,
-        data: {
-          paymentId: result.response.paymentId,
-          amount: result.response.amount,
-          month: result.response.month,
-          year: result.response.year,
-          status: result.response.status,
-          shouldShowReminderModal: true,
-        },
-      }, {
-        sourceType: 'TUITION_PAYMENT',
-        sourceId: String(result.response.paymentId),
-        sourceEvent: 'UPDATED',
-        idempotencyKey: `tuition:${result.response.paymentId}:student:updated:${result.response.amount}:${result.response.month}:${result.response.year}`,
-      })
-    }
 
     return BaseResponseDto.success('Cập nhật học phí thành công', result.response)
   }

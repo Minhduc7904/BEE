@@ -69,18 +69,23 @@ export class DeleteTuitionPaymentUseCase {
       // Gửi thông báo cho học sinh
       const student = await repos.studentRepository.findById(existing.studentId)
       if (student) {
-        this.createAndNotifyOne
-          .execute({
+        await this.createAndNotifyOne.executeWithRepos(
+          repos,
+          {
             userId: student.userId,
             title: 'Xóa học phí',
             message: `Học phí tháng ${existing.month}/${existing.year} đã bị xóa`,
             type: NotificationType.TUITION,
             level: NotificationLevel.WARNING,
             data: { month: existing.month, year: existing.year },
-          })
-          .catch(() => {
-            /* ignore notification error */
-          })
+          },
+          {
+            sourceType: 'TUITION_PAYMENT',
+            sourceId: String(paymentId),
+            sourceEvent: 'DELETED',
+            idempotencyKey: `tuition:${paymentId}:student:deleted`,
+          },
+        )
       }
 
       return { deleted }

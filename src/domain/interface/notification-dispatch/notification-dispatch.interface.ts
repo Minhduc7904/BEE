@@ -15,7 +15,7 @@ export interface NotificationDeliveryPayload {
   message: string
   type: NotificationType
   level: NotificationLevel
-  data?: Record<string, string>
+  data?: Record<string, unknown>
 }
 
 export interface CreateNotificationDispatchJobData {
@@ -24,7 +24,7 @@ export interface CreateNotificationDispatchJobData {
   message: string
   type: NotificationType
   level: NotificationLevel
-  data?: Record<string, string>
+  data?: Record<string, unknown>
   scheduledAt: Date
   priority: number
   idempotencyKey: string
@@ -138,6 +138,7 @@ export interface NotificationDispatchRecipientCommand {
 export interface UpdateNotificationDeliveryData {
   status: NotificationDeliveryStatus
   availableAt?: Date
+  pendingPushTokens?: string[] | null
   providerMessageId?: string | null
   lastErrorCode?: string | null
   lastErrorMessage?: string | null

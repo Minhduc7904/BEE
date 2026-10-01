@@ -10,6 +10,7 @@ import { TuitionPayment } from 'src/domain/entities/tuition-payment/tuition-paym
 import { CreateAndNotifyManyUseCase } from '../notification/create-and-notify-many.use-case'
 import { CreatePaymentIntentForCreatedTuitionPayment } from '../payment-intent/create-payment-intent-for-created-tuition-payment'
 import { SendBulkTuitionPaymentToParentUseCase } from './send-bulk-tuition-payment-to-parent.use-case'
+import { createHash } from 'crypto'
 
 @Injectable()
 export class CreateArrayBulkTuitionPaymentUseCase {
@@ -34,12 +35,7 @@ export class CreateArrayBulkTuitionPaymentUseCase {
     adminId: number,
   ): Promise<BaseResponseDto<TuitionPaymentResponseDto[]>> {
     const result = await this.unitOfWork.executeInTransaction(async (repos) => {
-      const {
-        tuitionPaymentRepository,
-        adminAuditLogRepository,
-        studentRepository,
-        courseRepository,
-      } = repos
+      const { tuitionPaymentRepository, adminAuditLogRepository, studentRepository, courseRepository } = repos
 
       try {
         /**
@@ -50,7 +46,7 @@ export class CreateArrayBulkTuitionPaymentUseCase {
         const studentIds = dto.payments.map((p) => p.studentId)
         const uniqueStudentIds = [...new Set(studentIds)]
         const inactiveStudentIds = new Set<number>()
-        
+
         for (const studentId of uniqueStudentIds) {
           const student = await studentRepository.findById(studentId)
           if (!student) {
@@ -85,9 +81,7 @@ export class CreateArrayBulkTuitionPaymentUseCase {
          */
         const existingPayments = await tuitionPaymentRepository.findWithFilter({})
         const existingSet = new Set(
-          existingPayments.map(
-            (p) => `${p.studentId}-${p.month}-${p.year}-${p.courseId || 'null'}`,
-          ),
+          existingPayments.map((p) => `${p.studentId}-${p.month}-${p.year}-${p.courseId || 'null'}`),
         )
 
         const results: { created: TuitionPayment[]; skipped: any[] } = {
@@ -174,7 +168,13 @@ export class CreateArrayBulkTuitionPaymentUseCase {
               message: `Học phí tháng ${payment.month}/${payment.year} đã được tạo - Số tiền: ${payment.amount?.toLocaleString('vi-VN')}đ - Trạng thái: ${statusLabel}`,
               type: NotificationType.TUITION,
               level: NotificationLevel.INFO,
-              data: { paymentId: payment.paymentId, amount: payment.amount, month: payment.month, year: payment.year, status: payment.status },
+              data: {
+                paymentId: payment.paymentId,
+                amount: payment.amount,
+                month: payment.month,
+                year: payment.year,
+                status: payment.status,
+              },
             }
           })
 
@@ -189,13 +189,31 @@ export class CreateArrayBulkTuitionPaymentUseCase {
           }
 
           if (resolvedNotifications.length > 0) {
-            this.createAndNotifyMany.execute(resolvedNotifications).catch(() => { /* ignore notification error */ })
+            const digest = createHash('sha256')
+              .update(
+                results.created
+                  .map((payment) => payment.paymentId)
+                  .sort((a, b) => a - b)
+                  .join(','),
+              )
+              .digest('hex')
+              .slice(0, 24)
+            await this.createAndNotifyMany.executeWithRepos(repos, resolvedNotifications, {
+              sourceType: 'TUITION_PAYMENT',
+              sourceId: `array-bulk:${digest}`,
+              sourceEvent: 'ARRAY_BULK_CREATED',
+              idempotencyKey: `tuition-array-bulk-created:${digest}`,
+            })
           }
+        }
+
+        const paymentIds = results.created.map((payment) => payment.paymentId)
+        if (paymentIds.length > 0) {
+          await this.sendBulkTuitionPaymentToParentUseCase.executeWithRepos(repos, { paymentIds })
         }
 
         return {
           responses: results.created.map((p) => TuitionPaymentResponseDto.fromEntity(p)),
-          paymentIds: results.created.map((p) => p.paymentId),
         }
       } catch (error) {
         /**
@@ -215,13 +233,6 @@ export class CreateArrayBulkTuitionPaymentUseCase {
         throw error
       }
     })
-
-    // Gửi Zalo sau khi transaction đã commit để đảm bảo đọc đúng dữ liệu học phí vừa tạo
-    if (result.paymentIds.length > 0) {
-      await this.sendBulkTuitionPaymentToParentUseCase.execute({
-        paymentIds: result.paymentIds,
-      }).catch(() => undefined)
-    }
 
     return BaseResponseDto.success('Tạo học phí hàng loạt thành công', result.responses)
   }

@@ -22,7 +22,7 @@ export class NotificationDispatchJobMapper {
       message: record.message,
       type: record.type as NotificationType,
       level: record.level as NotificationLevel,
-      data: (record.data as Record<string, string> | null) ?? undefined,
+      data: (record.data as Record<string, unknown> | null) ?? undefined,
       scheduledAt: record.scheduledAt,
       startedAt: record.startedAt ?? undefined,
       finishedAt: record.finishedAt ?? undefined,

@@ -72,7 +72,7 @@ export class SendNotificationUseCase {
           message: dto.message,
           type: dto.type ?? NotificationType.SYSTEM,
           level: dto.level ?? NotificationLevel.INFO,
-          data: this.toStringData(dto.data),
+          data: dto.data,
           createdByAdminId: adminId,
           audienceType: targets.audienceType,
           audienceRecipientType: targets.audienceRecipientType,
@@ -221,16 +221,6 @@ export class SendNotificationUseCase {
     if (role === ROLE_NAMES.STUDENT) return NotificationRecipientType.STUDENT
     if (role === ROLE_NAMES.ADMIN) return NotificationRecipientType.ADMIN
     return undefined
-  }
-
-  private toStringData(data?: Record<string, unknown>): Record<string, string> | undefined {
-    if (!data) return undefined
-    return Object.fromEntries(
-      Object.entries(data).map(([key, value]) => [
-        key,
-        typeof value === 'string' ? value : (JSON.stringify(value) ?? String(value)),
-      ]),
-    )
   }
 
   private isUniqueConflict(error: unknown): boolean {

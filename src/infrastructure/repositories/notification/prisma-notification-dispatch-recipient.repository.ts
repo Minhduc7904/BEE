@@ -133,10 +133,13 @@ export class PrismaNotificationDispatchRecipientRepository implements INotificat
     return {
       items: records.map((record) => ({
         ...record,
-        deliveries: record.deliveries.map((delivery) => ({
-          ...delivery,
-          destination: delivery.destination ? this.maskDestination(delivery.destination) : null,
-        })),
+        deliveries: record.deliveries.map((delivery) => {
+          const { pendingPushTokens: _pendingPushTokens, ...safeDelivery } = delivery
+          return {
+            ...safeDelivery,
+            destination: delivery.destination ? this.maskDestination(delivery.destination) : null,
+          }
+        }),
       })),
       total,
     }

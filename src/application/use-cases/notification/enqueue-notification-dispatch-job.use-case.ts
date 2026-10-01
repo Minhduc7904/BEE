@@ -26,7 +26,7 @@ export interface EnqueueNotificationDispatchJobInput {
   message: string
   type?: NotificationType
   level?: NotificationLevel
-  data?: Record<string, string>
+  data?: Record<string, unknown>
   scheduledAt?: Date
   priority?: number
   createdByAdminId?: number

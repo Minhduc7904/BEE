@@ -6,10 +6,7 @@ import { AttendanceResponseDto } from '../../dtos/attendance/attendance.dto'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
 import { AttendanceStatus, NotificationType, NotificationLevel, AttendanceStatusLabels } from 'src/shared/enums'
 import type { CreateAttendanceData } from '../../../domain/interface/attendance/attendance.interface'
-import {
-  ValidationException,
-  NotFoundException,
-} from '../../../shared/exceptions/custom-exceptions'
+import { ValidationException, NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 import { ACTION_KEYS } from '../../../shared/constants/action-key.constants'
 import { AuditStatus } from '../../../shared/enums/audit-status.enum'
 import { RESOURCE_TYPES } from '../../../shared/constants/resource-type.constants'
@@ -20,10 +17,9 @@ import { createHash } from 'crypto'
 
 @Injectable()
 export class CreateBulkAttendanceBySessionUseCase {
-  private static readonly FIRST_ATTENDANCE_NOTE =
-    `Lưu ý: Đây là điểm danh lần thứ 1. Nếu con có đi học, phụ huynh sẽ nhận được điểm danh lần thứ 2 khi con vào lớp. 
-Nếu con đã học một buổi tương đương, vui lòng bỏ qua thông báo này. 
-Nếu con đăng ký nhầm lớp, hãy chọn "Liên hệ hỗ trợ" để trợ giảng sắp xếp lại lịch học phù hợp.`;
+  private static readonly FIRST_ATTENDANCE_NOTE = `Lưu ý: Đây là điểm danh lần thứ 1. Nếu con có đi học, phụ huynh sẽ nhận được điểm danh lần thứ 2 khi con vào lớp.
+Nếu con đã học một buổi tương đương, vui lòng bỏ qua thông báo này.
+Nếu con đăng ký nhầm lớp, hãy chọn "Liên hệ hỗ trợ" để trợ giảng sắp xếp lại lịch học phù hợp.`
 
   constructor(
     @Inject('UNIT_OF_WORK')
@@ -31,7 +27,7 @@ Nếu con đăng ký nhầm lớp, hãy chọn "Liên hệ hỗ trợ" để tr�
     private readonly createAndNotifyMany: CreateAndNotifyManyUseCase,
     private readonly sendBulkAttendanceToParentUseCase: SendBulkAttendanceToParentUseCase,
     private readonly studentPointService: StudentPointService,
-  ) { }
+  ) {}
 
   async execute(
     dto: CreateBulkAttendanceBySessionDto,
@@ -39,12 +35,7 @@ Nếu con đăng ký nhầm lớp, hãy chọn "Liên hệ hỗ trợ" để tr�
     adminId?: number,
   ): Promise<BaseResponseDto<AttendanceResponseDto[]>> {
     const result = await this.unitOfWork.executeInTransaction(async (repos) => {
-      const {
-        attendanceRepository,
-        adminAuditLogRepository,
-        classSessionRepository,
-        classStudentRepository,
-      } = repos
+      const { attendanceRepository, adminAuditLogRepository, classSessionRepository, classStudentRepository } = repos
 
       try {
         /**
@@ -54,9 +45,7 @@ Nếu con đăng ký nhầm lớp, hãy chọn "Liên hệ hỗ trợ" để tr�
          */
         const session = await classSessionRepository.findById(dto.sessionId)
         if (!session) {
-          throw new NotFoundException(
-            `Buổi học với ID ${dto.sessionId} không tồn tại`,
-          )
+          throw new NotFoundException(`Buổi học với ID ${dto.sessionId} không tồn tại`)
         }
 
         if (session.courseClass?.course?.isEnded) {
@@ -68,13 +57,10 @@ Nếu con đăng ký nhầm lớp, hãy chọn "Liên hệ hỗ trợ" để tr�
          * Get students in class
          * =========================
          */
-        const classStudents =
-          await classStudentRepository.findByClass(session.classId, true)
+        const classStudents = await classStudentRepository.findByClass(session.classId, true)
 
         if (classStudents.length === 0) {
-          throw new ValidationException(
-            'Lớp học không có học sinh để tạo attendance',
-          )
+          throw new ValidationException('Lớp học không có học sinh để tạo attendance')
         }
 
         const studentIds = classStudents.map((s) => s.studentId)
@@ -84,15 +70,12 @@ Nếu con đăng ký nhầm lớp, hãy chọn "Liên hệ hỗ trợ" để tr�
          * Check existing attendance
          * =========================
          */
-        const existingAttendances =
-          await attendanceRepository.findWithFilter({
-            sessionId: dto.sessionId,
-            studentIds,
-          })
+        const existingAttendances = await attendanceRepository.findWithFilter({
+          sessionId: dto.sessionId,
+          studentIds,
+        })
 
-        const existingStudentIds = new Set(
-          existingAttendances.map((a) => a.studentId),
-        )
+        const existingStudentIds = new Set(existingAttendances.map((a) => a.studentId))
 
         /**
          * =========================
@@ -122,8 +105,7 @@ Nếu con đăng ký nhầm lớp, hãy chọn "Liên hệ hỗ trợ" để tr�
          * Create bulk attendance
          * =========================
          */
-        const createdAttendances =
-          await attendanceRepository.createBulk(bulkData)
+        const createdAttendances = await attendanceRepository.createBulk(bulkData)
         await Promise.all(
           createdAttendances.map((attendance) =>
             this.studentPointService.awardAttendancePoints(repos, {
@@ -181,17 +163,30 @@ Nếu con đăng ký nhầm lớp, hãy chọn "Liên hệ hỗ trợ" để tr�
             data: { sessionId: dto.sessionId, status: defaultStatus },
           }))
 
+          const attendanceIds = createdAttendances.map((attendance) => attendance.attendanceId)
+          const digest = createHash('sha256')
+            .update([...attendanceIds].sort((a, b) => a - b).join(','))
+            .digest('hex')
+            .slice(0, 24)
+          await this.createAndNotifyMany.executeWithRepos(repos, notificationDataList, {
+            sourceType: 'ATTENDANCE',
+            sourceId: `session:${dto.sessionId}:bulk:${digest}`,
+            sourceEvent: 'BULK_CREATED',
+            idempotencyKey: `attendance-bulk:${dto.sessionId}:${digest}:students`,
+          })
+          await this.sendBulkAttendanceToParentUseCase.executeWithRepos(repos, {
+            attendanceIds,
+            note: CreateBulkAttendanceBySessionUseCase.FIRST_ATTENDANCE_NOTE,
+            includeZalo: false,
+          })
+
           return {
             responses: createdAttendances.map((attendance) => AttendanceResponseDto.fromEntity(attendance)),
-            attendanceIds: createdAttendances.map((attendance) => attendance.attendanceId),
-            notifications: notificationDataList,
           }
         }
 
         return {
-          responses: createdAttendances.map((attendance) =>
-            AttendanceResponseDto.fromEntity(attendance),
-          ),
+          responses: createdAttendances.map((attendance) => AttendanceResponseDto.fromEntity(attendance)),
           attendanceIds: createdAttendances.map((attendance) => attendance.attendanceId),
           notifications: [],
         }
@@ -207,33 +202,12 @@ Nếu con đăng ký nhầm lớp, hãy chọn "Liên hệ hỗ trợ" để tr�
             actionKey: ACTION_KEYS.ATTENDANCE.CREATE_BULK,
             status: AuditStatus.FAIL,
             resourceType: RESOURCE_TYPES.ATTENDANCE,
-            errorMessage:
-              error instanceof Error ? error.message : 'Unknown error',
+            errorMessage: error instanceof Error ? error.message : 'Unknown error',
           })
         }
         throw error
       }
     })
-
-    if (result.notifications.length > 0) {
-      const ids = [...result.attendanceIds].sort((a, b) => a - b)
-      const digest = createHash('sha256').update(ids.join(',')).digest('hex').slice(0, 24)
-      await this.createAndNotifyMany.execute(result.notifications, {
-        sourceType: 'ATTENDANCE',
-        sourceId: `session:${dto.sessionId}:bulk:${digest}`,
-        sourceEvent: 'BULK_CREATED',
-        idempotencyKey: `attendance-bulk:${dto.sessionId}:${digest}:students`,
-      })
-    }
-
-    // Parent accounts still receive IN_APP/PUSH; legacy bulk Zalo remains disabled.
-    if (result.attendanceIds.length > 0) {
-      await this.sendBulkAttendanceToParentUseCase.execute({
-        attendanceIds: result.attendanceIds,
-        note: CreateBulkAttendanceBySessionUseCase.FIRST_ATTENDANCE_NOTE,
-        includeZalo: false,
-      }).catch(() => undefined)
-    }
 
     return BaseResponseDto.success(
       result.responses.length > 0

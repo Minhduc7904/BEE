@@ -30,7 +30,7 @@ export class NotificationDispatchJob {
   deadDeliveryCount: number
   createdAt: Date
   updatedAt: Date
-  data?: Record<string, string>
+  data?: Record<string, unknown>
   startedAt?: Date
   finishedAt?: Date
   createdByAdminId?: number
@@ -60,7 +60,7 @@ export class NotificationDispatchJob {
     deadDeliveryCount: number
     createdAt: Date
     updatedAt: Date
-    data?: Record<string, string>
+    data?: Record<string, unknown>
     startedAt?: Date
     finishedAt?: Date
     createdByAdminId?: number
