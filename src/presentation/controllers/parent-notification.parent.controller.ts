@@ -1,21 +1,41 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Put } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common'
 
 import type { AuthenticatedUser } from '../../application/interfaces'
 import {
   BaseResponseDto,
   ParentDeviceResponseDto,
   ParentNotificationSettingsResponseDto,
+  ParentNotificationInboxItemDto,
+  ParentNotificationInboxQueryDto,
+  ParentNotificationStatsResponseDto,
   RegisterParentDeviceDto,
   UpdateParentNotificationPreferencesDto,
   UpdateUserNotificationEnabledDto,
 } from '../../application/dtos'
 import {
   GetParentNotificationSettingsUseCase,
+  GetParentNotificationStatsUseCase,
+  GetParentNotificationUseCase,
+  GetParentNotificationsUseCase,
+  MarkParentNotificationReadUseCase,
   RegisterParentDeviceUseCase,
   UnregisterParentDeviceUseCase,
   UpdateParentNotificationPreferencesUseCase,
   UpdateUserNotificationEnabledUseCase,
 } from '../../application/use-cases/parent-notification'
+import { CursorPageResponseDto } from '../../application/dtos/pagination/cursor-page-response.dto'
 import { AuthOnly, CurrentUser } from '../../shared/decorators'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 
@@ -27,7 +47,50 @@ export class ParentNotificationController {
     private readonly getParentNotificationSettingsUseCase: GetParentNotificationSettingsUseCase,
     private readonly updateUserNotificationEnabledUseCase: UpdateUserNotificationEnabledUseCase,
     private readonly updateParentNotificationPreferencesUseCase: UpdateParentNotificationPreferencesUseCase,
+    private readonly getParentNotificationsUseCase: GetParentNotificationsUseCase,
+    private readonly getParentNotificationStatsUseCase: GetParentNotificationStatsUseCase,
+    private readonly getParentNotificationUseCase: GetParentNotificationUseCase,
+    private readonly markParentNotificationReadUseCase: MarkParentNotificationReadUseCase,
   ) {}
+
+  @Get('notifications')
+  @HttpCode(HttpStatus.OK)
+  @AuthOnly()
+  async getNotifications(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query() query: ParentNotificationInboxQueryDto,
+  ): Promise<CursorPageResponseDto<ParentNotificationInboxItemDto>> {
+    return ExceptionHandler.execute(() => this.getParentNotificationsUseCase.execute(user, query))
+  }
+
+  @Get('notifications/stats')
+  @HttpCode(HttpStatus.OK)
+  @AuthOnly()
+  async getNotificationStats(
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<BaseResponseDto<ParentNotificationStatsResponseDto>> {
+    return ExceptionHandler.execute(() => this.getParentNotificationStatsUseCase.execute(user))
+  }
+
+  @Get('notifications/:notificationId')
+  @HttpCode(HttpStatus.OK)
+  @AuthOnly()
+  async getNotification(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('notificationId', ParseIntPipe) notificationId: number,
+  ): Promise<BaseResponseDto<ParentNotificationInboxItemDto>> {
+    return ExceptionHandler.execute(() => this.getParentNotificationUseCase.execute(user, notificationId))
+  }
+
+  @Put('notifications/:notificationId/read')
+  @HttpCode(HttpStatus.OK)
+  @AuthOnly()
+  async markNotificationRead(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('notificationId', ParseIntPipe) notificationId: number,
+  ): Promise<BaseResponseDto<ParentNotificationInboxItemDto>> {
+    return ExceptionHandler.execute(() => this.markParentNotificationReadUseCase.execute(user, notificationId))
+  }
 
   @Post('devices')
   @HttpCode(HttpStatus.OK)

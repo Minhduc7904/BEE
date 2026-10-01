@@ -12,6 +12,7 @@ import type { CreateNotificationData } from '../../../domain/interface/notificat
 import {
   NotificationAudienceType,
   NotificationDeliveryChannel,
+  NotificationDestinationType,
   NotificationLevel,
   NotificationRecipientKind,
   NotificationRecipientType,
@@ -148,10 +149,11 @@ export class BusinessNotificationQueueService {
         }
       }
       if (target.parentPayload) {
+        const parentPayload = this.withDestination(target.parentPayload)
         for (const parent of parentsByStudentId.get(target.studentId) ?? []) {
           const deliveries = this.channelPolicy.enabledInAppChannels().map((channel) => ({
             channel,
-            payload: target.parentPayload!,
+            payload: parentPayload,
           }))
           recipients.push(
             this.userCommand(
@@ -258,6 +260,26 @@ export class BusinessNotificationQueueService {
   private mergePayloads(payloads: NotificationDeliveryPayload[]): NotificationDeliveryPayload {
     if (payloads.length === 1) return payloads[0]
     return { ...payloads[0], message: payloads.map((item) => item.message).join('\n\n---\n\n') }
+  }
+
+  private withDestination(payload: NotificationDeliveryPayload): NotificationDeliveryPayload {
+    const data = payload.data
+    if (!data || (data.destinationType && data.resourceId)) return payload
+
+    const mappings: Array<[NotificationDestinationType, unknown]> = [
+      [NotificationDestinationType.ATTENDANCE_RECORD, data.attendanceId],
+      [NotificationDestinationType.TUITION_PAYMENT, data.paymentId],
+      [NotificationDestinationType.HOMEWORK_RESULT, data.homeworkSubmitId],
+      [NotificationDestinationType.EXAM_RESULT, data.competitionSubmitId],
+      [NotificationDestinationType.SCHEDULE_SESSION, data.sessionId],
+    ]
+    for (const [destinationType, rawId] of mappings) {
+      const resourceId = typeof rawId === 'number' || typeof rawId === 'string' ? Number(rawId) : Number.NaN
+      if (Number.isSafeInteger(resourceId) && resourceId > 0) {
+        return { ...payload, data: { ...data, destinationType, resourceId } }
+      }
+    }
+    return payload
   }
 
   private groupParents(parents: NotificationParentTarget[]): Map<number, NotificationParentTarget[]> {

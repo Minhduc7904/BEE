@@ -1,23 +1,68 @@
-# Parent Notification API (FCM)
+# Parent Notification API
 
 ## Phạm vi
 
 - Base URL: `/api`. Mọi endpoint dưới `/api/parent` yêu cầu access token của Parent (`userType=parent`); token khác nhận `403`.
 - `userId` và `parentId` luôn lấy từ access token, không nhận từ body.
-- Đợt này chỉ dựng nền tảng: lưu thiết bị, lưu lựa chọn nhận thông báo và có sẵn dịch vụ FCM phía BE. **Chưa có luồng nào gửi
-  thông báo đẩy** (điểm danh, học phí, kết quả sẽ gắn ở pha sau). Thông báo Zalo hiện có không đổi.
+- IN_APP luôn được lưu và hiển thị, không phụ thuộc cài đặt nhận PUSH. `notification-settings` chỉ điều khiển PUSH.
+- PUSH vẫn bị khóa bởi `NOTIFICATION_PUSH_ENABLED=false`. Thông báo Zalo hiện có không đổi.
 
 ## Mô hình dữ liệu
 
-| Bảng | Ý nghĩa |
-| --- | --- |
-| `user_devices` | Thiết bị đăng ký nhận thông báo: `(user_id, device_id)` duy nhất; `fcm_token` duy nhất toàn bảng. |
-| `user_notification_settings` | Thông báo tổng của tài khoản. `is_enabled`: `null` chưa hỏi, `true` nhận, `false` không nhận. |
-| `parent_notification_settings` | Ba cờ loại thông báo của phụ huynh: điểm danh, kết quả, học phí. Mặc định bật cả ba. |
+| Bảng                           | Ý nghĩa                                                                                           |
+| ------------------------------ | ------------------------------------------------------------------------------------------------- |
+| `user_devices`                 | Thiết bị đăng ký nhận thông báo: `(user_id, device_id)` duy nhất; `fcm_token` duy nhất toàn bảng. |
+| `user_notification_settings`   | Thông báo tổng của tài khoản. `is_enabled`: `null` chưa hỏi, `true` nhận, `false` không nhận.     |
+| `parent_notification_settings` | Ba cờ loại thông báo của phụ huynh: điểm danh, kết quả, học phí. Mặc định bật cả ba.              |
 
 Chưa có bản ghi nghĩa là dùng mặc định (`isEnabled: null`, cả ba cờ `true`); bản ghi chỉ được tạo khi người dùng thay đổi.
 
-Điều kiện gửi thông báo về sau: `isEnabled = true` **và** cờ loại tương ứng bật **và** có thiết bị đã đăng ký token.
+Điều kiện gửi PUSH về sau: `isEnabled = true` **và** cờ loại tương ứng bật **và** có thiết bị đã đăng ký token. Các cờ này
+không được dùng để bỏ qua IN_APP.
+
+## Inbox IN_APP
+
+### `GET /api/parent/notifications`
+
+Query tùy chọn: `studentId`, `type`, `isRead`, `after`, `limit` (mặc định `20`, tối đa `100`). Cursor có dạng
+`<createdAtEpochMs>_<notificationId>`; kết quả sắp xếp giảm dần theo `createdAt`, rồi `notificationId`.
+
+Khi lọc `studentId`, học sinh phải thuộc phụ huynh trong token. Kết quả gồm notification của học sinh đó và notification
+toàn tài khoản (không có `sourceStudentId`). Việc lọc dùng cột `notification_dispatch_recipients.source_student_id`, không
+đọc JSON metadata.
+
+```json
+{
+  "success": true,
+  "message": "Lấy danh sách thông báo thành công",
+  "data": [
+    {
+      "notificationId": 42,
+      "studentId": 10,
+      "title": "Thông báo học phí",
+      "message": "Có khoản học phí mới",
+      "type": "TUITION",
+      "level": "INFO",
+      "isRead": false,
+      "readAt": null,
+      "createdAt": "2026-10-01T07:00:00.000Z",
+      "destination": { "type": "tuition_payment", "resourceId": 12 }
+    }
+  ],
+  "meta": { "hasNext": true, "nextCursor": "1790838000000_42", "limit": 20 }
+}
+```
+
+Destination hỗ trợ: `attendance_record`, `tuition_payment`, `exam_result`, `homework_result`, `schedule_session`,
+`notification`. Học phí luôn trả `resourceId` là `paymentId`; dữ liệu cũ có `invoiceId` chỉ được chuẩn hóa khi đọc và không
+được lộ ra response.
+
+### Các endpoint khác
+
+- `GET /api/parent/notifications/stats`: trả `{ total, unread, read }` cho toàn tài khoản.
+- `GET /api/parent/notifications/:notificationId`: chỉ trả notification thuộc `userId` trong token.
+- `PUT /api/parent/notifications/:notificationId/read`: idempotent; gọi lại vẫn trả notification đã đọc và không phát event
+  thay đổi lần hai.
 
 ## Thiết bị
 
@@ -27,13 +72,22 @@ Upsert theo `(userId, deviceId)`. Nếu `fcmToken` đang thuộc bản ghi khác
 bản ghi đó bị xóa và token chuyển sang tài khoản hiện tại. App gọi khi mở app đã đăng nhập và mỗi khi FCM token xoay.
 
 ```json
-{ "deviceId": "3f1c9c62-5f3e-4e1b-9a4e-2f7f4f8a1c11", "fcmToken": "<fcm-token>", "platform": "ANDROID", "appVersion": "1.0.0" }
+{
+  "deviceId": "3f1c9c62-5f3e-4e1b-9a4e-2f7f4f8a1c11",
+  "fcmToken": "<fcm-token>",
+  "platform": "ANDROID",
+  "appVersion": "1.0.0"
+}
 ```
 
 `platform`: `ANDROID` hoặc `IOS`. Trả `200`:
 
 ```json
-{ "success": true, "message": "Đăng ký thiết bị nhận thông báo thành công", "data": { "deviceId": "...", "platform": "ANDROID", "lastSeenAt": "2026-09-25T02:00:00.000Z" } }
+{
+  "success": true,
+  "message": "Đăng ký thiết bị nhận thông báo thành công",
+  "data": { "deviceId": "...", "platform": "ANDROID", "lastSeenAt": "2026-09-25T02:00:00.000Z" }
+}
 ```
 
 ### `DELETE /api/parent/devices/:deviceId`

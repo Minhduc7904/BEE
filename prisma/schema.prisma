@@ -398,6 +398,7 @@ model NotificationDispatchRecipient {
   @@unique([notificationDispatchJobId, recipientKey], map: "uq_notification_dispatch_recipients_job_key")
   @@index([notificationDispatchJobId, userId], map: "idx_notification_dispatch_recipients_job_user")
   @@index([userId, createdAt], map: "idx_notification_dispatch_recipients_user_created")
+  @@index([userId, sourceStudentId], map: "idx_notification_dispatch_recipients_user_student")
   @@index([notificationDispatchJobId, recipientType], map: "idx_notification_dispatch_recipients_job_type")
   @@map("notification_dispatch_recipients")
 }

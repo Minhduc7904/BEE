@@ -114,6 +114,7 @@ import {
   DocumentMediaAltTextAiService,
   ExcelService,
   PrismaParentStudentResultsReadService,
+  PrismaParentNotificationInboxRepository,
 } from './services'
 import { ImageExportService } from './services/image-export.service'
 import { MistralService } from './services/mistral.service'
@@ -169,6 +170,7 @@ import {
   PushNotificationService as PushNotificationServicePort,
   ZaloService as ZaloServicePort,
   ParentStudentResultsReadService as ParentStudentResultsReadServicePort,
+  ParentNotificationInboxRepository as ParentNotificationInboxRepositoryPort,
 } from 'src/application/interfaces'
 
 @Module({
@@ -187,6 +189,11 @@ import {
     JwtModule.register({}), // Empty config, sẽ override trong service
   ],
   providers: [
+    PrismaParentNotificationInboxRepository,
+    {
+      provide: ParentNotificationInboxRepositoryPort,
+      useExisting: PrismaParentNotificationInboxRepository,
+    },
     PrismaParentStudentResultsReadService,
     {
       provide: ParentStudentResultsReadServicePort,
@@ -712,6 +719,7 @@ import {
     SepayService,
   ],
   exports: [
+    ParentNotificationInboxRepositoryPort,
     ParentStudentResultsReadServicePort,
     AchievementBoardSeoAiServicePort,
     BookSeoAiServicePort,

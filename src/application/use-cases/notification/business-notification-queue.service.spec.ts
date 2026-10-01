@@ -1,6 +1,7 @@
 import type { IUnitOfWork } from '../../../domain/repositories'
 import {
   NotificationDeliveryChannel,
+  NotificationDestinationType,
   NotificationLevel,
   NotificationRecipientType,
   NotificationType,
@@ -98,6 +99,46 @@ describe('BusinessNotificationQueueService', () => {
     )
     expect(zaloRecipients).toHaveLength(1)
     expect(zaloRecipients[0].deliveries[0].payload.message).toContain('Nội dung A\n\n---\n\nNội dung B')
+  })
+
+  it('ghi destination canonical cho IN_APP parent mới và dùng paymentId', async () => {
+    resolveParentTargetsByStudentIds.mockResolvedValue([
+      {
+        studentId: 10,
+        userId: 20,
+        profileId: 30,
+        recipientType: NotificationRecipientType.PARENT,
+        displayName: 'Phụ huynh',
+      },
+    ])
+
+    await service.enqueueStudentAndParents({
+      idempotencyKey: 'tuition:12',
+      sourceType: 'TUITION_PAYMENT',
+      sourceId: '12',
+      sourceEvent: 'CREATED',
+      title: 'Học phí',
+      message: 'Có khoản học phí mới',
+      targets: [
+        {
+          studentId: 10,
+          parentPayload: {
+            title: 'Học phí',
+            message: 'Có khoản học phí mới',
+            type: NotificationType.TUITION,
+            data: { paymentId: '12' },
+          },
+        },
+      ],
+    })
+
+    const payload = createOrGet.mock.calls[0][0].payload.recipients[0].deliveries[0].payload
+    expect(payload.data).toEqual({
+      paymentId: '12',
+      destinationType: NotificationDestinationType.TUITION_PAYMENT,
+      resourceId: 12,
+    })
+    expect(payload.data).not.toHaveProperty('invoiceId')
   })
 
   it('lỗi ghi outbox được ném để transaction nghiệp vụ rollback thay vì mất notification', async () => {

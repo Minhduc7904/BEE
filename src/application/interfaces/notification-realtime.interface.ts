@@ -1,10 +1,16 @@
-/** Application port and Nest injection token for NotificationRealtimeService. */
-export abstract class NotificationRealtimeService {}
+import type { NotificationChangeReason } from '../../shared/enums'
 
-export interface NotificationRealtimeService {
-  notifyUser(...args: any[]): any
-  notifyStatsUpdated(...args: any[]): any
-  notifyNotificationRead(...args: any[]): any
-  notifyAllNotificationsRead(...args: any[]): any
-  notifyNotificationDeleted(...args: any[]): any
+export interface NotificationChangedEventInput {
+  reason: NotificationChangeReason
+  notificationId?: number
+}
+
+/** Application port and Nest injection token for NotificationRealtimeService. */
+export abstract class NotificationRealtimeService {
+  abstract notifyUser(...args: any[]): any
+  abstract notifyStatsUpdated(...args: any[]): any
+  abstract notifyNotificationRead(...args: any[]): any
+  abstract notifyAllNotificationsRead(...args: any[]): any
+  abstract notifyNotificationDeleted(...args: any[]): any
+  abstract notifyChanged(userId: number, change: NotificationChangedEventInput): void
 }
