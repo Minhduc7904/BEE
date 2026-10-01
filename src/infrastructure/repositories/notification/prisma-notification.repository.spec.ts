@@ -9,11 +9,7 @@ describe('PrismaNotificationRepository reminder filtering', () => {
     }
     const repository = new PrismaNotificationRepository(prisma)
 
-    await repository.findByUserIdWithPagination(
-      42,
-      { page: 1, limit: 50 },
-      { isRead: false, reminder: true },
-    )
+    await repository.findByUserIdWithPagination(42, { page: 1, limit: 50 }, { isRead: false, reminder: true })
 
     const query = findMany.mock.calls[0][0]
     expect(query.where).toEqual(
@@ -24,12 +20,37 @@ describe('PrismaNotificationRepository reminder filtering', () => {
         AND: [
           {
             OR: [
-              { data: { path: ['shouldShowReminderModal'], equals: true } },
-              { data: { path: ['shouldShowReminderModal'], equals: 'true' } },
+              { data: { path: '$.shouldShowReminderModal', equals: true } },
+              { data: { path: '$.shouldShowReminderModal', equals: 'true' } },
             ],
           },
         ],
       }),
     )
+  })
+
+  it('uses the MySQL JSON path syntax when counting reminders', async () => {
+    const count = jest.fn().mockResolvedValue(0)
+    const prisma = {
+      notification: { count },
+    }
+    const repository = new PrismaNotificationRepository(prisma)
+
+    await repository.countByUserId(42, { isRead: false, reminder: true })
+
+    expect(count).toHaveBeenCalledWith({
+      where: expect.objectContaining({
+        userId: 42,
+        isRead: false,
+        AND: [
+          {
+            OR: [
+              { data: { path: '$.shouldShowReminderModal', equals: true } },
+              { data: { path: '$.shouldShowReminderModal', equals: 'true' } },
+            ],
+          },
+        ],
+      }),
+    })
   })
 })

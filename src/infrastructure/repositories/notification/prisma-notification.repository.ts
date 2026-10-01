@@ -1,6 +1,6 @@
 // src/infrastructure/repositories/notification/prisma-notification.repository.ts
 import { Injectable } from '@nestjs/common'
-import { NotificationType, NotificationLevel } from '@prisma/client'
+import { NotificationType, NotificationLevel, Prisma } from '@prisma/client'
 import { PrismaService } from '../../../prisma/prisma.service'
 import type { INotificationRepository } from '../../../domain/repositories/notification.repository'
 import { Notification } from '../../../domain/entities'
@@ -167,10 +167,10 @@ export class PrismaNotificationRepository implements INotificationRepository {
 
     if (filters?.reminder !== undefined) {
       const reminderValues = filters.reminder ? [true, 'true'] : [false, 'false']
-      const reminderFilter = {
+      const reminderFilter: Prisma.NotificationWhereInput = {
         OR: reminderValues.map((value) => ({
           data: {
-            path: ['shouldShowReminderModal'],
+            path: '$.shouldShowReminderModal',
             equals: value,
           },
         })),
@@ -298,10 +298,10 @@ export class PrismaNotificationRepository implements INotificationRepository {
 
     if (filters?.reminder !== undefined) {
       const reminderValues = filters.reminder ? [true, 'true'] : [false, 'false']
-      const reminderFilter = {
+      const reminderFilter: Prisma.NotificationWhereInput = {
         OR: reminderValues.map((value) => ({
           data: {
-            path: ['shouldShowReminderModal'],
+            path: '$.shouldShowReminderModal',
             equals: value,
           },
         })),
