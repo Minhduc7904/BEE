@@ -1,15 +1,12 @@
-import {
-  OnGatewayConnection,
-  OnGatewayDisconnect,
-  OnGatewayInit,
-  WebSocketGateway,
-} from '@nestjs/websockets'
+import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, WebSocketGateway } from '@nestjs/websockets'
 import { Server, Socket } from 'socket.io'
 
 import { SocketAuthService } from '../../infrastructure/services/socket/socket-auth.service'
 import { SocketRoomService } from '../../infrastructure/services/socket/socket-room.service'
 import { SocketService } from '../../infrastructure/services/socket/socket.service'
 import { BaseGateway } from './base.gateway'
+
+const SOCKET_AUTH_FAILED = 'SOCKET_AUTH_FAILED'
 
 /**
  * Owns the root namespace connection lifecycle exactly once.
@@ -22,7 +19,10 @@ import { BaseGateway } from './base.gateway'
     credentials: true,
   },
 })
-export class SocketLifecycleGateway extends BaseGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+export class SocketLifecycleGateway
+  extends BaseGateway
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
   constructor(
     socketService: SocketService,
     socketAuthService: SocketAuthService,
@@ -39,7 +39,10 @@ export class SocketLifecycleGateway extends BaseGateway implements OnGatewayInit
     try {
       const token = this.socketAuthService.extractTokenFromHandshake(client.handshake)
       if (!token) {
-        client.emit('error', { message: 'Authentication required' })
+        client.emit('error', {
+          code: SOCKET_AUTH_FAILED,
+          message: 'Authentication required',
+        })
         client.disconnect()
         return
       }
@@ -60,7 +63,10 @@ export class SocketLifecycleGateway extends BaseGateway implements OnGatewayInit
       })
       setImmediate(() => this.broadcastOnlineStats())
     } catch {
-      client.emit('error', { message: 'Authentication failed' })
+      client.emit('error', {
+        code: SOCKET_AUTH_FAILED,
+        message: 'Authentication failed',
+      })
       client.disconnect()
     }
   }
