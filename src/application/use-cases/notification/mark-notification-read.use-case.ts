@@ -7,38 +7,41 @@ import { NotificationRealtimeService } from 'src/application/interfaces'
 
 @Injectable()
 export class MarkNotificationReadUseCase {
-    constructor(
-        @Inject('INotificationRepository')
-        private readonly notificationRepository: INotificationRepository,
-        private readonly notificationRealtimeService: NotificationRealtimeService,
-    ) {}
+  constructor(
+    @Inject('INotificationRepository')
+    private readonly notificationRepository: INotificationRepository,
+    private readonly notificationRealtimeService: NotificationRealtimeService,
+  ) {}
 
-    async execute(notificationId: number, userId: number): Promise<BaseResponseDto<NotificationResponseDto>> {
-        // Check notification exists and belongs to user
-        const notification = await this.notificationRepository.findById(notificationId)
+  async execute(notificationId: number, userId: number): Promise<BaseResponseDto<NotificationResponseDto>> {
+    // Check notification exists and belongs to user
+    const notification = await this.notificationRepository.findById(notificationId)
 
-        if (!notification) {
-            throw new NotFoundException(`Notification with ID ${notificationId} not found`)
-        }
-
-        if (notification.userId !== userId) {
-            throw new ForbiddenException('You do not have permission to mark this notification as read')
-        }
-
-        const updated = await this.notificationRepository.markAsRead(notificationId, userId)
-
-        // Emit updated stats to user
-        const stats = await this.notificationRepository.getStatsByUserId(userId)
-        this.notificationRealtimeService.notifyStatsUpdated(userId, {
-            total: stats.total,
-            unread: stats.unread,
-            read: stats.read,
-        })
-
-        return {
-            success: true,
-            message: 'Notification marked as read',
-            data: NotificationResponseDto.fromEntity(updated),
-        }
+    if (!notification) {
+      throw new NotFoundException(`Notification with ID ${notificationId} not found`)
     }
+
+    if (notification.userId !== userId) {
+      throw new ForbiddenException('You do not have permission to mark this notification as read')
+    }
+
+    const updated = await this.notificationRepository.markAsRead(notificationId, userId)
+    const notificationDto = NotificationResponseDto.fromEntity(updated)
+
+    this.notificationRealtimeService.notifyNotificationRead(userId, notificationDto)
+
+    // Emit updated stats to user
+    const stats = await this.notificationRepository.getStatsByUserId(userId)
+    this.notificationRealtimeService.notifyStatsUpdated(userId, {
+      total: stats.total,
+      unread: stats.unread,
+      read: stats.read,
+    })
+
+    return {
+      success: true,
+      message: 'Notification marked as read',
+      data: notificationDto,
+    }
+  }
 }

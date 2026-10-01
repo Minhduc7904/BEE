@@ -6,27 +6,32 @@ import { SOCKET_EVENTS } from 'src/shared/constants/socket-events.constant'
 
 @Injectable()
 export class NotificationRealtimeService {
-    constructor(
-        private readonly socketService: SocketService,
-    ) { }
+  constructor(private readonly socketService: SocketService) {}
 
-    notifyUser(userId: number, notification: any) {
-        this.socketService.emitToUser(
-            userId,
-            SOCKET_EVENTS.NOTIFICATION.NEW,
-            { notification }
-        )
-    }
+  notifyUser(userId: number, notification: any) {
+    this.socketService.emitToUser(userId, SOCKET_EVENTS.NOTIFICATION.NEW, { notification })
+  }
 
-    notifyStatsUpdated(userId: number, stats: {
-        total: number
-        unread: number
-        read: number
-    }) {
-        this.socketService.emitToUser(
-            userId,
-            SOCKET_EVENTS.NOTIFICATION.STATS_UPDATED,
-            stats
-        )
-    }
+  notifyStatsUpdated(
+    userId: number,
+    stats: {
+      total: number
+      unread: number
+      read: number
+    },
+  ) {
+    this.socketService.emitToUser(userId, SOCKET_EVENTS.NOTIFICATION.STATS_UPDATED, stats)
+  }
+
+  notifyNotificationRead(userId: number, notification: any) {
+    this.socketService.emitToUser(userId, SOCKET_EVENTS.NOTIFICATION.READ, { notification })
+  }
+
+  notifyAllNotificationsRead(userId: number) {
+    this.socketService.emitToUser(userId, SOCKET_EVENTS.NOTIFICATION.READ, { all: true })
+  }
+
+  notifyNotificationDeleted(userId: number, notificationId: number) {
+    this.socketService.emitToUser(userId, SOCKET_EVENTS.NOTIFICATION.DELETED, { notificationId })
+  }
 }

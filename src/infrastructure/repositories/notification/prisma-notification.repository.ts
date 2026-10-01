@@ -165,6 +165,19 @@ export class PrismaNotificationRepository implements INotificationRepository {
       where.isRead = filters.isRead
     }
 
+    if (filters?.reminder !== undefined) {
+      const reminderValues = filters.reminder ? [true, 'true'] : [false, 'false']
+      const reminderFilter = {
+        OR: reminderValues.map((value) => ({
+          data: {
+            path: ['shouldShowReminderModal'],
+            equals: value,
+          },
+        })),
+      }
+      where.AND = [...(where.AND || []), reminderFilter]
+    }
+
     if (filters?.search) {
       where.OR = [{ title: { contains: filters.search } }, { message: { contains: filters.search } }]
     }
@@ -281,6 +294,19 @@ export class PrismaNotificationRepository implements INotificationRepository {
 
     if (filters?.isRead !== undefined) {
       where.isRead = filters.isRead
+    }
+
+    if (filters?.reminder !== undefined) {
+      const reminderValues = filters.reminder ? [true, 'true'] : [false, 'false']
+      const reminderFilter = {
+        OR: reminderValues.map((value) => ({
+          data: {
+            path: ['shouldShowReminderModal'],
+            equals: value,
+          },
+        })),
+      }
+      where.AND = [...(where.AND || []), reminderFilter]
     }
 
     if (filters?.search) {

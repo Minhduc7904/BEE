@@ -6,27 +6,28 @@ import { NotificationRealtimeService } from 'src/application/interfaces'
 
 @Injectable()
 export class MarkAllNotificationsReadUseCase {
-    constructor(
-        @Inject('INotificationRepository')
-        private readonly notificationRepository: INotificationRepository,
-        private readonly notificationRealtimeService: NotificationRealtimeService,
-    ) {}
+  constructor(
+    @Inject('INotificationRepository')
+    private readonly notificationRepository: INotificationRepository,
+    private readonly notificationRealtimeService: NotificationRealtimeService,
+  ) {}
 
-    async execute(userId: number): Promise<BaseResponseDto<{ count: number }>> {
-        const count = await this.notificationRepository.markAllAsRead(userId)
+  async execute(userId: number): Promise<BaseResponseDto<{ count: number }>> {
+    const count = await this.notificationRepository.markAllAsRead(userId)
+    this.notificationRealtimeService.notifyAllNotificationsRead(userId)
 
-        // Emit updated stats to user
-        const stats = await this.notificationRepository.getStatsByUserId(userId)
-        this.notificationRealtimeService.notifyStatsUpdated(userId, {
-            total: stats.total,
-            unread: stats.unread,
-            read: stats.read,
-        })
+    // Emit updated stats to user
+    const stats = await this.notificationRepository.getStatsByUserId(userId)
+    this.notificationRealtimeService.notifyStatsUpdated(userId, {
+      total: stats.total,
+      unread: stats.unread,
+      read: stats.read,
+    })
 
-        return {
-            success: true,
-            message: `Marked ${count} notifications as read`,
-            data: { count },
-        }
+    return {
+      success: true,
+      message: `Marked ${count} notifications as read`,
+      data: { count },
     }
+  }
 }

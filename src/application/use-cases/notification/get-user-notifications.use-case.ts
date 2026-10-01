@@ -6,43 +6,33 @@ import { NotificationListResponseDto, NotificationResponseDto } from '../../dtos
 
 @Injectable()
 export class GetUserNotificationsUseCase {
-    constructor(
-        @Inject('INotificationRepository')
-        private readonly notificationRepository: INotificationRepository
-    ) {}
+  constructor(
+    @Inject('INotificationRepository')
+    private readonly notificationRepository: INotificationRepository,
+  ) {}
 
-    async execute(targetUserId: number, query: NotificationListQueryDto): Promise<NotificationListResponseDto> {
-        const pagination = {
-            page: query.page,
-            limit: query.limit,
-            sortBy: query.sortBy,
-            sortOrder: query.sortOrder,
-        }
-
-        const filters = {
-            type: query.type,
-            level: query.level,
-            isRead: query.isRead,
-            search: query.search,
-            fromDate: query.fromDate,
-            toDate: query.toDate,
-        }
-
-        const result = await this.notificationRepository.findByUserIdWithPagination(
-            targetUserId,
-            pagination,
-            filters,
-        )
-
-        const data = result.notifications.map(notification => 
-            NotificationResponseDto.fromEntity(notification)
-        )
-
-        return new NotificationListResponseDto(
-            data,
-            result.page,
-            result.limit,
-            result.total,
-        )
+  async execute(targetUserId: number, query: NotificationListQueryDto): Promise<NotificationListResponseDto> {
+    const pagination = {
+      page: query.page,
+      limit: query.limit,
+      sortBy: query.sortBy,
+      sortOrder: query.sortOrder,
     }
+
+    const filters = {
+      type: query.type,
+      level: query.level,
+      isRead: query.isRead,
+      reminder: query.reminder,
+      search: query.search,
+      fromDate: query.fromDate,
+      toDate: query.toDate,
+    }
+
+    const result = await this.notificationRepository.findByUserIdWithPagination(targetUserId, pagination, filters)
+
+    const data = result.notifications.map((notification) => NotificationResponseDto.fromEntity(notification))
+
+    return new NotificationListResponseDto(data, result.page, result.limit, result.total)
+  }
 }

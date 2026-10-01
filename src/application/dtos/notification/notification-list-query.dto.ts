@@ -1,11 +1,17 @@
 // src/application/dtos/notification/notification-list-query.dto.ts
-import { IsOptionalInt, IsOptionalEnumValue, IsOptionalBoolean, IsOptionalString, IsOptionalDate } from 'src/shared/decorators/validate'
+import {
+  IsOptionalInt,
+  IsOptionalEnumValue,
+  IsOptionalBoolean,
+  IsOptionalString,
+  IsOptionalDate,
+} from 'src/shared/decorators/validate'
 import { IsIn } from 'class-validator'
 import { NotificationType, NotificationLevel } from '../../../shared/enums'
 
 /**
  * DTO for querying notification list
- * 
+ *
  * @description Used to query and filter notifications with pagination and sorting
  */
 export class NotificationListQueryDto {
@@ -69,6 +75,13 @@ export class NotificationListQueryDto {
    */
   @IsOptionalBoolean('Đã đọc')
   isRead?: boolean
+
+  /**
+   * Filter notifications that are marked for the student reminder modal.
+   * @optional
+   */
+  @IsOptionalBoolean('Hiển thị nhắc nhở')
+  reminder?: boolean
 
   /**
    * Search keyword
