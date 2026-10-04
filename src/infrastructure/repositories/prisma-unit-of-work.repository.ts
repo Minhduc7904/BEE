@@ -60,6 +60,7 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _classStudentRepository: any
     let _courseRepository: any
     let _courseClassRepository: any
+    let _courseClassMakeupOptionRepository: UnitOfWorkRepos['courseClassMakeupOptionRepository'] | undefined
     let _courseEnrollmentRepository: any
     let _learningItemRepository: any
     let _studentLearningItemRepository: any
@@ -526,6 +527,12 @@ export class PrismaUnitOfWork implements IUnitOfWork {
 
     Object.defineProperty(repos, 'bookCategoryRepository', {
       get: () => (_bookCategoryRepository ??= new Repositories.PrismaBookCategoryRepository(client)),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'courseClassMakeupOptionRepository', {
+      get: () =>
+        (_courseClassMakeupOptionRepository ??= new Repositories.PrismaCourseClassMakeupOptionRepository(client)),
       enumerable: true,
     })
 

@@ -20,6 +20,8 @@ import {
     CourseClassResponseDto,
 } from '../../application/dtos/course-class/course-class.dto'
 import { CourseClassSearchQueryDto } from '../../application/dtos/course-class/course-class-search-query.dto'
+import { CourseClassMakeupOptionsResponseDto } from '../../application/dtos/course-class/course-class-makeup-options-response.dto'
+import { ReplaceCourseClassMakeupOptionsDto } from '../../application/dtos/course-class/replace-course-class-makeup-options.dto'
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
@@ -32,6 +34,8 @@ import {
     UpdateCourseClassUseCase,
     DeleteCourseClassUseCase,
     SearchCourseClassesUseCase,
+    GetCourseClassMakeupOptionsUseCase,
+    ReplaceCourseClassMakeupOptionsUseCase,
 } from '../../application/use-cases/course-class'
 import { Injectable } from '@nestjs/common'
 import { NormalizeArrayQueryPipe } from 'src/shared/pipes/normalize-array-query.pipe'
@@ -46,6 +50,8 @@ export class CourseClassController {
         private readonly updateCourseClassUseCase: UpdateCourseClassUseCase,
         private readonly deleteCourseClassUseCase: DeleteCourseClassUseCase,
         private readonly searchCourseClassesUseCase: SearchCourseClassesUseCase,
+        private readonly getCourseClassMakeupOptionsUseCase: GetCourseClassMakeupOptionsUseCase,
+        private readonly replaceCourseClassMakeupOptionsUseCase: ReplaceCourseClassMakeupOptionsUseCase,
     ) { }
 
     @Get()
@@ -103,6 +109,30 @@ export class CourseClassController {
     ): Promise<BaseResponseDto<CourseClassResponseDto>> {
         return ExceptionHandler.execute(() =>
             this.getCourseClassByIdUseCase.execute(id, studentId)
+        )
+    }
+
+    @Get(':id/makeup-options')
+    @RequirePermission(PERMISSION_CODES.COURSE_CLASS.GET_BY_ID)
+    @HttpCode(HttpStatus.OK)
+    async getMakeupOptions(
+        @Param('id', ParseIntPipe) id: number,
+    ): Promise<BaseResponseDto<CourseClassMakeupOptionsResponseDto>> {
+        return ExceptionHandler.execute(() =>
+            this.getCourseClassMakeupOptionsUseCase.execute(id)
+        )
+    }
+
+    @Put(':id/makeup-options')
+    @RequirePermission(PERMISSION_CODES.COURSE_CLASS.UPDATE)
+    @HttpCode(HttpStatus.OK)
+    async replaceMakeupOptions(
+        @Param('id', ParseIntPipe) id: number,
+        @Body() dto: ReplaceCourseClassMakeupOptionsDto,
+        @CurrentUser('adminId') adminId: number,
+    ): Promise<BaseResponseDto<CourseClassMakeupOptionsResponseDto>> {
+        return ExceptionHandler.execute(() =>
+            this.replaceCourseClassMakeupOptionsUseCase.execute(id, dto, adminId)
         )
     }
 

@@ -3,6 +3,7 @@ import {
   ArrayUnique,
   IsOptional,
   IsArray,
+  IsDefined,
   IsNotEmpty,
   IsInt,
   IsPositive,
@@ -90,6 +91,26 @@ export function IsOptionalIntArrayIncludingEmpty(label: string) {
     IsPositive({
       each: true,
       message: `${label} pháº£i lÃ  sá»‘ nguyÃªn dÆ°Æ¡ng`,
+    }),
+  )
+}
+
+/** Required positive integer array that accepts [] so callers can clear a collection. */
+export function IsRequiredIntArrayIncludingEmpty(label: string) {
+  return applyDecorators(
+    IsDefined({
+      message: VALIDATION_MESSAGES.FIELD_REQUIRED(label),
+    }),
+    IsArray({
+      message: VALIDATION_MESSAGES.FIELD_INVALID(label),
+    }),
+    IsInt({
+      each: true,
+      message: VALIDATION_MESSAGES.FIELD_INVALID(label),
+    }),
+    IsPositive({
+      each: true,
+      message: `${label} phải là số nguyên dương`,
     }),
   )
 }

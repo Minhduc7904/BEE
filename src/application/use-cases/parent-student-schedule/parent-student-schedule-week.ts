@@ -20,6 +20,17 @@ export function formatScheduleTime(value: Date): string {
   return value.toISOString().slice(11, 19)
 }
 
+/** Current calendar date in Asia/Ho_Chi_Minh, as date-only UTC midnight (same shape as @db.Date columns). */
+export function resolveVietnamToday(now: Date): Date {
+  const key = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(now)
+  return new Date(`${key}T00:00:00.000Z`)
+}
+
 export function resolveScheduleWeek(weekStart: string): ParentScheduleWeekRange {
   const match = DATE_ONLY.exec(weekStart)
   if (!match) {

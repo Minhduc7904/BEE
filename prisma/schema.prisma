@@ -1531,8 +1531,36 @@ model CourseClass {
   assistantShifts AssistantShift[]
   reports         Report[]
 
+  // Các lớp mà học sinh của lớp này có thể sang học bù (lớp này là lớp nguồn).
+  makeupOptionsFrom CourseClassMakeupOption[] @relation("MakeupSourceClass")
+  // Các cấu hình học bù đang dùng lớp này làm lớp học bù (lớp này là lớp đích).
+  makeupOptionsTo   CourseClassMakeupOption[] @relation("MakeupTargetClass")
+
   @@index([courseId], map: "idx_course_classes_course_id")
   @@map("courses_classes")
+}
+
+// Cấu hình lớp học bù: học sinh của lớp nguồn được phép sang học bù tại lớp đích.
+// Quan hệ có hướng (nguồn → đích); Admin quản lý, các ràng buộc cùng khóa học, không tự trỏ
+// và không tạo chu trình được kiểm tra ở use case vì MySQL/Prisma không biểu đạt được.
+model CourseClassMakeupOption {
+  // Lớp nguồn: lớp có học sinh cần học bù.
+  sourceClassId Int @map("source_class_id")
+  // Lớp đích: lớp học sinh có thể tham gia để học bù.
+  makeupClassId Int @map("makeup_class_id")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+
+  // Cascade: bản ghi liên kết không còn ý nghĩa khi lớp nguồn bị xóa.
+  sourceClass CourseClass @relation("MakeupSourceClass", fields: [sourceClassId], references: [classId], onDelete: Cascade)
+  // Cascade: bản ghi liên kết không còn ý nghĩa khi lớp đích bị xóa.
+  makeupClass CourseClass @relation("MakeupTargetClass", fields: [makeupClassId], references: [classId], onDelete: Cascade)
+
+  // Khóa chính ghép đảm bảo mỗi cặp nguồn → đích chỉ tồn tại một lần và phục vụ tra cứu theo lớp nguồn.
+  @@id([sourceClassId, makeupClassId])
+  // Phục vụ tra cứu ngược theo lớp đích (đọc graph và FK makeup_class_id).
+  @@index([makeupClassId], map: "idx_course_class_makeup_options_target")
+  @@map("course_class_makeup_options")
 }
 
 // Nhóm các ca trợ giảng có liên hệ tuần tự, ví dụ các buổi liên tiếp của cùng một lớp.

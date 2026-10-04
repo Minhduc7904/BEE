@@ -25,6 +25,7 @@ import {
   PrismaSeoMediaItemRepository,
   PrismaCourseRepository,
   PrismaCourseClassRepository,
+  PrismaCourseClassMakeupOptionRepository,
   PrismaLessonRepository,
   PrismaLearningItemRepository,
   PrismaStudentLearningItemRepository,
@@ -368,6 +369,11 @@ import {
     {
       provide: 'ICourseClassRepository',
       useFactory: (prisma: PrismaService) => new PrismaCourseClassRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'ICourseClassMakeupOptionRepository',
+      useFactory: (prisma: PrismaService) => new PrismaCourseClassMakeupOptionRepository(prisma),
       inject: [PrismaService],
     },
     {
@@ -792,6 +798,7 @@ import {
     'ISeoMediaItemRepository',
     'ICourseRepository',
     'ICourseClassRepository',
+    'ICourseClassMakeupOptionRepository',
     'ILessonRepository',
     'ILearningItemRepository',
     'IStudentLearningItemRepository',
