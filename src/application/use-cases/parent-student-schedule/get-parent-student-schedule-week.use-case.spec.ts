@@ -32,6 +32,7 @@ function session(overrides: Partial<ParentScheduleSession> = {}): ParentSchedule
     instructorName: null,
     makeupNote: null,
     attendance: null,
+    homework: null,
     ...overrides,
   }
 }
@@ -114,7 +115,28 @@ describe('GetParentStudentScheduleWeekUseCase', () => {
         instructorName: null,
         makeupNote: null,
         attendance: null,
+        homework: null,
       },
+    ])
+  })
+
+  it('serializes assigned homework and its optional submission score', async () => {
+    const result = await new GetParentStudentScheduleWeekUseCase(
+      service([
+        session({ homework: { homeworkId: 20, submission: null } }),
+        session({
+          sessionId: 2,
+          homework: {
+            homeworkId: 21,
+            submission: { homeworkSubmitId: 31, points: 8.5 },
+          },
+        }),
+      ]),
+    ).execute(parentIdentity, 12, query('2026-09-28'))
+
+    expect(result.data?.sessions.map((item) => item.homework)).toEqual([
+      { homeworkId: 20, submission: null },
+      { homeworkId: 21, submission: { homeworkSubmitId: 31, points: 8.5 } },
     ])
   })
 

@@ -7,6 +7,16 @@ export interface ParentScheduleAttendance {
   notes: string | null
 }
 
+export interface ParentScheduleHomeworkSubmission {
+  homeworkSubmitId: number
+  points: number | null
+}
+
+export interface ParentScheduleHomework {
+  homeworkId: number
+  submission: ParentScheduleHomeworkSubmission | null
+}
+
 export interface ParentScheduleSession {
   sessionId: number
   classId: number
@@ -21,14 +31,16 @@ export interface ParentScheduleSession {
   instructorName: string | null
   makeupNote: string | null
   attendance: ParentScheduleAttendance | null
+  homework: ParentScheduleHomework | null
 }
 
 export abstract class ParentStudentScheduleReadService {
   abstract isStudentLinked(parentId: number, studentId: number): Promise<boolean>
 
   /**
-   * Lists every session of the student's classes between the two inclusive date-only bounds,
-   * ordered by sessionDate, startTime, sessionId. Attendance is joined for that student only.
+   * Lists every session of the student's classes plus sessions attended by that student
+   * (for example, a makeup session in another class) between the two inclusive date-only bounds.
+   * Results are ordered by sessionDate, startTime, sessionId; Attendance is scoped to that student.
    */
   abstract listSessionsInRange(studentId: number, from: Date, to: Date): Promise<ParentScheduleSession[]>
 }

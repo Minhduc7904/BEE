@@ -4,6 +4,7 @@ import {
   formatScheduleTime,
 } from '../../use-cases/parent-student-schedule/parent-student-schedule-week'
 import { ParentScheduleAttendanceDto } from './parent-schedule-attendance.dto'
+import { ParentScheduleHomeworkDto } from './parent-schedule-homework.dto'
 
 export class ParentScheduleSessionDto {
   sessionId: number
@@ -17,6 +18,7 @@ export class ParentScheduleSessionDto {
   instructorName: string | null
   makeupNote: string | null
   attendance: ParentScheduleAttendanceDto | null
+  homework: ParentScheduleHomeworkDto | null
 
   static fromResult(result: ParentScheduleSession): ParentScheduleSessionDto {
     return {
@@ -31,6 +33,7 @@ export class ParentScheduleSessionDto {
       instructorName: result.instructorName,
       makeupNote: result.makeupNote,
       attendance: result.attendance ? ParentScheduleAttendanceDto.fromResult(result.attendance) : null,
+      homework: result.homework ? ParentScheduleHomeworkDto.fromResult(result.homework) : null,
     }
   }
 }

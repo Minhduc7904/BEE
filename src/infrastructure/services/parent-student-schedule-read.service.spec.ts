@@ -10,6 +10,8 @@ function row(overrides: Record<string, unknown> = {}) {
     startTime: new Date('1970-01-01T18:30:00.000Z'),
     endTime: new Date('1970-01-01T20:00:00.000Z'),
     makeupNote: null,
+    homeworkId: null,
+    homeworkContent: null,
     courseClass: { className: 'Lớp A1', room: null, instructor: null },
     attendances: [],
     ...overrides,
@@ -31,7 +33,7 @@ describe('PrismaParentStudentScheduleReadService', () => {
     })
   })
 
-  it('queries once, scoped to the student classes and joins only that student attendance', async () => {
+  it('queries once for enrolled or attended sessions and joins only that student attendance', async () => {
     const findMany = jest.fn().mockResolvedValue([])
     const service = new PrismaParentStudentScheduleReadService({
       classSession: { findMany },
@@ -46,13 +48,55 @@ describe('PrismaParentStudentScheduleReadService', () => {
       expect.objectContaining({
         where: {
           sessionDate: { gte: from, lte: to },
-          courseClass: { classStudents: { some: { studentId: 12 } } },
+          OR: [
+            { courseClass: { classStudents: { some: { studentId: 12 } } } },
+            { attendances: { some: { studentId: 12 } } },
+          ],
         },
         orderBy: [{ sessionDate: 'asc' }, { startTime: 'asc' }, { sessionId: 'asc' }],
       }),
     )
     const args = findMany.mock.calls[0][0]
     expect(args.select.attendances).toMatchObject({ where: { studentId: 12 }, take: 1 })
+    expect(args.select.homeworkContent).toMatchObject({
+      select: {
+        homeworkSubmits: {
+          where: { studentId: 12 },
+          take: 1,
+          select: { homeworkSubmitId: true, points: true },
+        },
+      },
+    })
+  })
+
+  it('maps an attended makeup session even when it belongs to another class', async () => {
+    const markedAt = new Date('2026-10-02T04:00:00.000Z')
+    const findMany = jest.fn().mockResolvedValue([
+      row({
+        sessionId: 1330,
+        classId: 152,
+        name: 'Buổi học bù',
+        courseClass: { className: 'Lớp học bù', room: null, instructor: null },
+        attendances: [{ attendanceId: 77, status: 'MAKEUP', markedAt, notes: 'Học bù lớp khác' }],
+      }),
+    ])
+    const service = new PrismaParentStudentScheduleReadService({
+      classSession: { findMany },
+    } as unknown as PrismaService)
+
+    const [item] = await service.listSessionsInRange(12, new Date(), new Date())
+
+    expect(item).toMatchObject({
+      sessionId: 1330,
+      classId: 152,
+      className: 'Lớp học bù',
+      attendance: {
+        attendanceId: 77,
+        status: 'MAKEUP',
+        markedAt,
+        notes: 'Học bù lớp khác',
+      },
+    })
   })
 
   it('maps a session without attendance to attendance null and blanks to null', async () => {
@@ -72,6 +116,36 @@ describe('PrismaParentStudentScheduleReadService', () => {
     expect(item.room).toBeNull()
     expect(item.instructorName).toBeNull()
     expect(item.makeupNote).toBeNull()
+    expect(item.homework).toBeNull()
+  })
+
+  it('distinguishes unassigned, not submitted, submitted ungraded and graded homework', async () => {
+    const findMany = jest.fn().mockResolvedValue([
+      row(),
+      row({ sessionId: 2, homeworkId: 20, homeworkContent: { homeworkSubmits: [] } }),
+      row({
+        sessionId: 3,
+        homeworkId: 21,
+        homeworkContent: { homeworkSubmits: [{ homeworkSubmitId: 31, points: null }] },
+      }),
+      row({
+        sessionId: 4,
+        homeworkId: 22,
+        homeworkContent: { homeworkSubmits: [{ homeworkSubmitId: 32, points: 8.5 }] },
+      }),
+    ])
+    const service = new PrismaParentStudentScheduleReadService({
+      classSession: { findMany },
+    } as unknown as PrismaService)
+
+    const items = await service.listSessionsInRange(12, new Date(), new Date())
+
+    expect(items.map((item) => item.homework)).toEqual([
+      null,
+      { homeworkId: 20, submission: null },
+      { homeworkId: 21, submission: { homeworkSubmitId: 31, points: null } },
+      { homeworkId: 22, submission: { homeworkSubmitId: 32, points: 8.5 } },
+    ])
   })
 
   it.each(['PRESENT', 'ABSENT', 'LATE', 'MAKEUP'])('maps attendance status %s', async (status) => {

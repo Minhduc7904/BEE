@@ -30,7 +30,12 @@ export class PrismaParentStudentScheduleReadService extends ParentStudentSchedul
     const rows = await this.prisma.classSession.findMany({
       where: {
         sessionDate: { gte: from, lte: to },
-        courseClass: { classStudents: { some: { studentId } } },
+        OR: [
+          { courseClass: { classStudents: { some: { studentId } } } },
+          // Học sinh có thể được điểm danh học bù ở một lớp chưa tham gia.
+          // Giữ session đó trong lịch nhưng vẫn chỉ lấy Attendance của em này.
+          { attendances: { some: { studentId } } },
+        ],
       },
       orderBy: [{ sessionDate: 'asc' }, { startTime: 'asc' }, { sessionId: 'asc' }],
       select: {
@@ -41,6 +46,19 @@ export class PrismaParentStudentScheduleReadService extends ParentStudentSchedul
         startTime: true,
         endTime: true,
         makeupNote: true,
+        homeworkId: true,
+        homeworkContent: {
+          select: {
+            homeworkSubmits: {
+              where: { studentId },
+              take: 1,
+              select: {
+                homeworkSubmitId: true,
+                points: true,
+              },
+            },
+          },
+        },
         courseClass: {
           select: {
             className: true,
@@ -65,6 +83,7 @@ export class PrismaParentStudentScheduleReadService extends ParentStudentSchedul
 
     return rows.map((row) => {
       const attendance = row.attendances[0]
+      const homeworkSubmit = row.homeworkContent?.homeworkSubmits[0]
       const instructorUser = row.courseClass.instructor?.user
       const instructorName = instructorUser ? `${instructorUser.lastName} ${instructorUser.firstName}`.trim() : ''
 
@@ -87,6 +106,18 @@ export class PrismaParentStudentScheduleReadService extends ParentStudentSchedul
               notes: attendance.notes || null,
             }
           : null,
+        homework:
+          row.homeworkId === null
+            ? null
+            : {
+                homeworkId: row.homeworkId,
+                submission: homeworkSubmit
+                  ? {
+                      homeworkSubmitId: homeworkSubmit.homeworkSubmitId,
+                      points: homeworkSubmit.points,
+                    }
+                  : null,
+              },
       }
     })
   }
