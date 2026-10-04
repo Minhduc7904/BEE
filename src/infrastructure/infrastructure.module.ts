@@ -114,6 +114,7 @@ import {
   DocumentMediaAltTextAiService,
   ExcelService,
   PrismaParentStudentResultsReadService,
+  PrismaParentStudentScheduleReadService,
   PrismaParentNotificationInboxRepository,
 } from './services'
 import { ImageExportService } from './services/image-export.service'
@@ -170,6 +171,7 @@ import {
   PushNotificationService as PushNotificationServicePort,
   ZaloService as ZaloServicePort,
   ParentStudentResultsReadService as ParentStudentResultsReadServicePort,
+  ParentStudentScheduleReadService as ParentStudentScheduleReadServicePort,
   ParentNotificationInboxRepository as ParentNotificationInboxRepositoryPort,
 } from 'src/application/interfaces'
 
@@ -198,6 +200,11 @@ import {
     {
       provide: ParentStudentResultsReadServicePort,
       useExisting: PrismaParentStudentResultsReadService,
+    },
+    PrismaParentStudentScheduleReadService,
+    {
+      provide: ParentStudentScheduleReadServicePort,
+      useExisting: PrismaParentStudentScheduleReadService,
     },
     AssistantShiftAssignmentExchangeEmailService,
     {
@@ -721,6 +728,7 @@ import {
   exports: [
     ParentNotificationInboxRepositoryPort,
     ParentStudentResultsReadServicePort,
+    ParentStudentScheduleReadServicePort,
     AchievementBoardSeoAiServicePort,
     BookSeoAiServicePort,
     AssistantShiftAssignmentExchangeEmailServicePort,

@@ -77,6 +77,7 @@ import { ReportApplicationModule } from './use-cases/report/report.application.m
 import { SeoTuitionPaymentApplicationModule } from './use-cases/seo-tuition-payment/seo-tuition-payment.application.module'
 import { BookApplicationModule } from './use-cases/book/book.application.module'
 import { ParentStudentResultsApplicationModule } from './use-cases/parent-student-results/parent-student-results.application.module'
+import { ParentStudentScheduleApplicationModule } from './use-cases/parent-student-schedule/parent-student-schedule.application.module'
 
 const modules = [
   // Auth & Account
@@ -93,6 +94,7 @@ const modules = [
   ParentProfileApplicationModule,
   ParentNotificationApplicationModule,
   ParentStudentResultsApplicationModule,
+  ParentStudentScheduleApplicationModule,
   AdminApplicationModule,
 
   // Role & Permission

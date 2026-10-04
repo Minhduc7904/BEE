@@ -34,6 +34,7 @@ import { ProfileStudentController } from './controllers/profile.student.controll
 import { ProfileParentController } from './controllers/profile.parent.controller'
 import { ParentNotificationController } from './controllers/parent-notification.parent.controller'
 import { ParentStudentResultsController } from './controllers/parent-student-results.controller'
+import { ParentStudentScheduleController } from './controllers/parent-student-schedule.controller'
 import { PermissionController } from './controllers/permission.controller'
 import { AdminController } from './controllers/admin.controller'
 import { AdminStudentController } from './controllers/super-admin.controller'
@@ -140,6 +141,7 @@ import { SocketLifecycleGateway } from './gateways/socket-lifecycle.gateway'
     ProfileParentController,
     ParentNotificationController,
     ParentStudentResultsController,
+    ParentStudentScheduleController,
     PermissionController,
     AdminController,
     AdminStudentController,
