@@ -90,6 +90,7 @@ describe('Parent authentication', () => {
         {
           studentId: 12,
           fullName: 'Nguyễn Minh An',
+          firstName: 'Minh An',
           grade: 8,
           school: undefined,
           avatarUrl: null,
