@@ -56,6 +56,7 @@ export class LoginParentRequestDto {
 export class ParentStudentSummaryDto {
   studentId: number
   fullName: string
+  firstName?: string
   grade: number
   school?: string
   avatarUrl: string | null
@@ -67,6 +68,7 @@ export class ParentStudentSummaryDto {
       fullName: student.user
         ? `${student.user.lastName} ${student.user.firstName}`.trim()
         : `Student #${student.studentId}`,
+      firstName: student.user?.firstName,
       grade: student.grade,
       school: student.school,
       avatarUrl,
