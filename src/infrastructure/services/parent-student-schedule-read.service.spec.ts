@@ -177,7 +177,14 @@ describe('PrismaParentStudentScheduleReadService', () => {
       timeOfDay: new Date('1970-01-01T19:00:00.000Z'),
     }
 
-    it('queries only classes the student is enrolled in, for sessions that have not ended', async () => {
+    const scope = {
+      OR: [
+        { courseClass: { classStudents: { some: { studentId: 12 } } } },
+        { attendances: { some: { studentId: 12 } } },
+      ],
+    }
+
+    it('queries enrolled classes and makeup sessions with attendance, for sessions that have not ended', async () => {
       const findFirst = jest.fn().mockResolvedValue(null)
       const service = new PrismaParentStudentScheduleReadService({
         classSession: { findFirst },
@@ -189,15 +196,35 @@ describe('PrismaParentStudentScheduleReadService', () => {
       expect(findFirst).toHaveBeenCalledWith(
         expect.objectContaining({
           where: {
-            courseClass: { classStudents: { some: { studentId: 12 } } },
-            OR: [{ sessionDate: { gt: clock.today } }, { sessionDate: clock.today, endTime: { gt: clock.timeOfDay } }],
+            AND: [
+              scope,
+              {
+                OR: [
+                  { sessionDate: { gt: clock.today } },
+                  { sessionDate: clock.today, endTime: { gt: clock.timeOfDay } },
+                ],
+              },
+            ],
           },
           orderBy: [{ sessionDate: 'asc' }, { startTime: 'asc' }, { sessionId: 'asc' }],
         }),
       )
     })
 
-    it('does not widen the scope to sessions only attended as makeup in another class', async () => {
+    it('uses the same student scope as the weekly schedule', async () => {
+      const findMany = jest.fn().mockResolvedValue([])
+      const findFirst = jest.fn().mockResolvedValue(null)
+      const service = new PrismaParentStudentScheduleReadService({
+        classSession: { findFirst, findMany },
+      } as unknown as PrismaService)
+
+      await service.findNextSession(12, clock)
+      await service.listSessionsInRange(12, new Date('2026-10-05T00:00:00.000Z'), new Date('2026-10-11T00:00:00.000Z'))
+
+      expect(findFirst.mock.calls[0][0].where.AND[0].OR).toEqual(findMany.mock.calls[0][0].where.OR)
+    })
+
+    it('scopes the attendance of the makeup match to the student, not other students', async () => {
       const findFirst = jest.fn().mockResolvedValue(null)
       const service = new PrismaParentStudentScheduleReadService({
         classSession: { findFirst },
@@ -205,7 +232,7 @@ describe('PrismaParentStudentScheduleReadService', () => {
 
       await service.findNextSession(12, clock)
 
-      expect(JSON.stringify(findFirst.mock.calls[0][0].where)).not.toContain('"attendances"')
+      expect(JSON.stringify(findFirst.mock.calls[0][0].where)).toContain('"attendances":{"some":{"studentId":12}}')
     })
 
     it('scopes attendance and homework submission to the student and maps the row', async () => {

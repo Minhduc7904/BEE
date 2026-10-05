@@ -60,6 +60,16 @@ function parentSessionSelect(studentId: number) {
   } satisfies Prisma.ClassSessionSelect
 }
 
+/**
+ * Buổi học thuộc phạm vi của học sinh: lớp em đang học, hoặc buổi học bù ở lớp
+ * khác mà em đã được điểm danh. Luôn chỉ lấy Attendance của chính em này.
+ */
+function studentSessionScope(studentId: number) {
+  return {
+    OR: [{ courseClass: { classStudents: { some: { studentId } } } }, { attendances: { some: { studentId } } }],
+  } satisfies Prisma.ClassSessionWhereInput
+}
+
 type ParentSessionRow = Prisma.ClassSessionGetPayload<{ select: ReturnType<typeof parentSessionSelect> }>
 
 @Injectable()
@@ -80,12 +90,7 @@ export class PrismaParentStudentScheduleReadService extends ParentStudentSchedul
     const rows = await this.prisma.classSession.findMany({
       where: {
         sessionDate: { gte: from, lte: to },
-        OR: [
-          { courseClass: { classStudents: { some: { studentId } } } },
-          // Học sinh có thể được điểm danh học bù ở một lớp chưa tham gia.
-          // Giữ session đó trong lịch nhưng vẫn chỉ lấy Attendance của em này.
-          { attendances: { some: { studentId } } },
-        ],
+        ...studentSessionScope(studentId),
       },
       orderBy: [{ sessionDate: 'asc' }, { startTime: 'asc' }, { sessionId: 'asc' }],
       select: parentSessionSelect(studentId),
@@ -97,10 +102,15 @@ export class PrismaParentStudentScheduleReadService extends ParentStudentSchedul
   async findNextSession(studentId: number, clock: ParentScheduleClock): Promise<ParentScheduleSession | null> {
     const row = await this.prisma.classSession.findFirst({
       where: {
-        // Chỉ lớp học sinh đang học; khác với lịch tuần, buổi học bù ở lớp khác không thuộc "buổi học tiếp theo".
-        courseClass: { classStudents: { some: { studentId } } },
-        OR: [{ sessionDate: { gt: clock.today } }, { sessionDate: clock.today, endTime: { gt: clock.timeOfDay } }],
+        AND: [
+          // Cùng phạm vi với lịch tuần: lớp học sinh đang học, hoặc buổi học bù ở lớp khác đã có điểm danh.
+          studentSessionScope(studentId),
+          {
+            OR: [{ sessionDate: { gt: clock.today } }, { sessionDate: clock.today, endTime: { gt: clock.timeOfDay } }],
+          },
+        ],
       },
+      // Buổi đang diễn ra đã bắt đầu nên luôn đứng trước mọi buổi tương lai; không có thì lấy buổi gần nhất.
       orderBy: [{ sessionDate: 'asc' }, { startTime: 'asc' }, { sessionId: 'asc' }],
       select: parentSessionSelect(studentId),
     })
