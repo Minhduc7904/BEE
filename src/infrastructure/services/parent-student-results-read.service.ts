@@ -7,12 +7,14 @@ import {
   ParentCompetitionSubmissionListItem,
   ParentHomeworkSubmissionDetail,
   ParentHomeworkSubmissionListItem,
+  ParentMonthlyResultItem,
   ParentStudentResultCursorPagination,
   ParentStudentResultsReadService,
   ParentStudentSubmissionCursorListResult,
   ParentStudentSubmissionStatistics,
   ParentSubmissionSectionScore,
 } from '../../application/interfaces'
+import { ParentResultType } from '../../shared/enums/parent-result-type.enum'
 import { PrismaService } from '../../prisma/prisma.service'
 
 const completedCompetitionStatuses: PrismaCompetitionSubmitStatus[] = [
@@ -266,6 +268,64 @@ export class PrismaParentStudentResultsReadService extends ParentStudentResultsR
       feedback: row.feedback,
       sectionScores: this.toSectionScores(row.competitionAnswers, row.competition.examId),
     }
+  }
+
+  async listMonthlyResults(studentId: number, from: Date, toExclusive: Date): Promise<ParentMonthlyResultItem[]> {
+    const [homeworkRows, competitionRows] = await this.prisma.$transaction([
+      this.prisma.homeworkSubmit.findMany({
+        where: { studentId, submitAt: { gte: from, lt: toExclusive } },
+        select: {
+          homeworkSubmitId: true,
+          submitAt: true,
+          points: true,
+          homeworkContent: { select: { learningItem: { select: { title: true } } } },
+          competitionSubmit: { select: { totalPoints: true, maxPoints: true } },
+        },
+      }),
+      this.prisma.competitionSubmit.findMany({
+        where: {
+          studentId,
+          homeworkSubmit: null,
+          status: { in: completedCompetitionStatuses },
+          // submittedAt = null không khớp khoảng thời gian nên không thuộc tháng nào.
+          submittedAt: { gte: from, lt: toExclusive },
+        },
+        select: {
+          competitionSubmitId: true,
+          submittedAt: true,
+          totalPoints: true,
+          maxPoints: true,
+          competition: { select: { title: true } },
+        },
+      }),
+    ])
+
+    const homework = homeworkRows.map((row) => ({
+      type: ParentResultType.HOMEWORK,
+      resultId: row.homeworkSubmitId,
+      title: row.homeworkContent.learningItem.title,
+      submittedAt: row.submitAt,
+      points: row.points ?? this.toNumber(row.competitionSubmit?.totalPoints),
+      maxPoints: row.competitionSubmit
+        ? this.toNumber(row.competitionSubmit.maxPoints)
+        : this.homeworkMaxPoints(row.points),
+    }))
+    const competitions = competitionRows.flatMap((row) =>
+      row.submittedAt
+        ? [
+            {
+              type: ParentResultType.COMPETITION,
+              resultId: row.competitionSubmitId,
+              title: row.competition.title,
+              submittedAt: row.submittedAt,
+              points: this.toNumber(row.totalPoints),
+              maxPoints: this.toNumber(row.maxPoints),
+            },
+          ]
+        : [],
+    )
+
+    return [...homework, ...competitions]
   }
 
   private competitionDetailSelect() {

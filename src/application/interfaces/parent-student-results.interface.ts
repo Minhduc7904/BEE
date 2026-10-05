@@ -1,3 +1,4 @@
+import type { ParentResultType } from '../../shared/enums/parent-result-type.enum'
 import type { ParentResultCursor } from './parent-result-cursor.interface'
 
 export interface ParentStudentResultCursorPagination {
@@ -66,6 +67,26 @@ export interface ParentCompetitionSubmissionDetail {
   sectionScores: ParentSubmissionSectionScore[]
 }
 
+/** One submitted result used by the monthly dashboard summary; homework and standalone competition are merged. */
+export interface ParentMonthlyResultItem {
+  type: ParentResultType
+  /** homeworkSubmitId for HOMEWORK, competitionSubmitId for COMPETITION. */
+  resultId: number
+  title: string
+  submittedAt: Date
+  points: number | null
+  maxPoints: number | null
+}
+
+export interface ParentResultsSummary {
+  month: number
+  year: number
+  totalResults: number
+  scoredResults: number
+  averageScore: number | null
+  latestResult: ParentMonthlyResultItem | null
+}
+
 export abstract class ParentStudentResultsReadService {
   abstract isStudentLinked(parentId: number, studentId: number): Promise<boolean>
 
@@ -92,4 +113,11 @@ export abstract class ParentStudentResultsReadService {
     studentId: number,
     competitionSubmitId: number,
   ): Promise<ParentCompetitionSubmissionDetail | null>
+
+  /**
+   * Lists every result submitted in [from, toExclusive): the student's HomeworkSubmit by submitAt plus standalone
+   * CompetitionSubmit (no linked HomeworkSubmit, status SUBMITTED or GRADED) by submittedAt. A CompetitionSubmit linked
+   * to a HomeworkSubmit is only represented by the homework item, so it is never counted twice.
+   */
+  abstract listMonthlyResults(studentId: number, from: Date, toExclusive: Date): Promise<ParentMonthlyResultItem[]>
 }

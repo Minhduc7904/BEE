@@ -1,11 +1,13 @@
 import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common'
 
 import type { AuthenticatedUser } from '../../application/interfaces'
+import { ParentMonthQueryDto } from '../../application/dtos/parent-student-dashboard'
 import {
   ParentCompetitionSubmissionDetailDto,
   ParentCompetitionSubmissionListItemDto,
   ParentHomeworkSubmissionDetailDto,
   ParentHomeworkSubmissionListItemDto,
+  ParentResultsSummaryDto,
   ParentStudentResultCursorQueryDto,
   ParentSubmissionStatisticsDto,
 } from '../../application/dtos/parent-student-results'
@@ -18,6 +20,7 @@ import {
   GetParentStudentHomeworkSubmissionDetailUseCase,
   GetParentStudentHomeworkSubmissionsUseCase,
   GetParentStudentHomeworkStatisticsUseCase,
+  GetParentStudentResultsSummaryUseCase,
 } from '../../application/use-cases/parent-student-results'
 import { AuthOnly } from '../../shared/decorators/permission.decorator'
 import { CurrentUser } from '../../shared/decorators/current-user.decorator'
@@ -33,7 +36,17 @@ export class ParentStudentResultsController {
     private readonly getCompetitionSubmissions: GetParentStudentCompetitionSubmissionsUseCase,
     private readonly getCompetitionStatistics: GetParentStudentCompetitionStatisticsUseCase,
     private readonly getCompetitionDetail: GetParentStudentCompetitionSubmissionDetailUseCase,
+    private readonly getResultsSummary: GetParentStudentResultsSummaryUseCase,
   ) {}
+
+  @Get('summary')
+  getSummary(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('studentId', ParseIntPipe) studentId: number,
+    @Query() query: ParentMonthQueryDto,
+  ): Promise<BaseResponseDto<ParentResultsSummaryDto>> {
+    return ExceptionHandler.execute(() => this.getResultsSummary.execute(user, studentId, query))
+  }
 
   @Get('homework-submissions')
   getHomeworkSubmissionList(

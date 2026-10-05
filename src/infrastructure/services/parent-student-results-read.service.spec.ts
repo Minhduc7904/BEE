@@ -219,4 +219,96 @@ describe('PrismaParentStudentResultsReadService', () => {
       }),
     )
   })
+
+  describe('listMonthlyResults', () => {
+    const from = new Date('2026-09-30T17:00:00.000Z')
+    const toExclusive = new Date('2026-10-31T17:00:00.000Z')
+
+    function serviceWith(homeworkRows: unknown[], competitionRows: unknown[]) {
+      const homeworkFindMany = jest.fn().mockReturnValue('homework-query')
+      const competitionFindMany = jest.fn().mockReturnValue('competition-query')
+      const transaction = jest.fn().mockResolvedValue([homeworkRows, competitionRows])
+      const service = new PrismaParentStudentResultsReadService({
+        homeworkSubmit: { findMany: homeworkFindMany },
+        competitionSubmit: { findMany: competitionFindMany },
+        $transaction: transaction,
+      } as unknown as PrismaService)
+      return { service, homeworkFindMany, competitionFindMany, transaction }
+    }
+
+    it('filters homework by submitAt and standalone completed competitions by submittedAt within the month', async () => {
+      const { service, homeworkFindMany, competitionFindMany } = serviceWith([], [])
+
+      await expect(service.listMonthlyResults(12, from, toExclusive)).resolves.toEqual([])
+
+      expect(homeworkFindMany).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { studentId: 12, submitAt: { gte: from, lt: toExclusive } } }),
+      )
+      expect(competitionFindMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            studentId: 12,
+            // Lượt thi gắn với HomeworkSubmit chỉ được tính ở phía homework.
+            homeworkSubmit: null,
+            status: { in: ['SUBMITTED', 'GRADED'] },
+            submittedAt: { gte: from, lt: toExclusive },
+          },
+        }),
+      )
+    })
+
+    it('maps homework and competition rows with the id of the matching detail', async () => {
+      const submittedAt = new Date('2026-10-04T13:15:00.000Z')
+      const { service } = serviceWith(
+        [
+          {
+            homeworkSubmitId: 456,
+            submitAt: submittedAt,
+            points: null,
+            homeworkContent: { learningItem: { title: 'Hàm số bậc hai' } },
+            competitionSubmit: { totalPoints: new Prisma.Decimal(9), maxPoints: new Prisma.Decimal(10) },
+          },
+          {
+            homeworkSubmitId: 457,
+            submitAt: submittedAt,
+            points: 80,
+            homeworkContent: { learningItem: { title: 'Bài viết tay' } },
+            competitionSubmit: null,
+          },
+        ],
+        [
+          {
+            competitionSubmitId: 789,
+            submittedAt,
+            totalPoints: new Prisma.Decimal('7.5'),
+            maxPoints: new Prisma.Decimal(10),
+            competition: { title: 'Thi thử' },
+          },
+        ],
+      )
+
+      await expect(service.listMonthlyResults(12, from, toExclusive)).resolves.toEqual([
+        { type: 'HOMEWORK', resultId: 456, title: 'Hàm số bậc hai', submittedAt, points: 9, maxPoints: 10 },
+        { type: 'HOMEWORK', resultId: 457, title: 'Bài viết tay', submittedAt, points: 80, maxPoints: 100 },
+        { type: 'COMPETITION', resultId: 789, title: 'Thi thử', submittedAt, points: 7.5, maxPoints: 10 },
+      ])
+    })
+
+    it('drops a competition without submittedAt so it can never count or be latest', async () => {
+      const { service } = serviceWith(
+        [],
+        [
+          {
+            competitionSubmitId: 1,
+            submittedAt: null,
+            totalPoints: new Prisma.Decimal(5),
+            maxPoints: new Prisma.Decimal(10),
+            competition: { title: 'Chưa nộp' },
+          },
+        ],
+      )
+
+      await expect(service.listMonthlyResults(12, from, toExclusive)).resolves.toEqual([])
+    })
+  })
 })
