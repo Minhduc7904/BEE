@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common'
-import { AttendanceStatus as PrismaAttendanceStatus } from '@prisma/client'
+import { AttendanceStatus as PrismaAttendanceStatus, Prisma } from '@prisma/client'
 
-import { ParentScheduleSession, ParentStudentScheduleReadService } from '../../application/interfaces'
+import {
+  ParentScheduleClock,
+  ParentScheduleSession,
+  ParentStudentScheduleReadService,
+} from '../../application/interfaces'
 import { AttendanceStatus } from '../../shared/enums/attendance-status.enum'
 import { PrismaService } from '../../prisma/prisma.service'
 
@@ -11,6 +15,52 @@ const attendanceStatusMap: Record<PrismaAttendanceStatus, AttendanceStatus> = {
   [PrismaAttendanceStatus.LATE]: AttendanceStatus.LATE,
   [PrismaAttendanceStatus.MAKEUP]: AttendanceStatus.MAKEUP,
 }
+
+function parentSessionSelect(studentId: number) {
+  return {
+    sessionId: true,
+    classId: true,
+    name: true,
+    sessionDate: true,
+    startTime: true,
+    endTime: true,
+    makeupNote: true,
+    homeworkId: true,
+    homeworkContent: {
+      select: {
+        homeworkSubmits: {
+          where: { studentId },
+          take: 1,
+          select: {
+            homeworkSubmitId: true,
+            points: true,
+          },
+        },
+      },
+    },
+    courseClass: {
+      select: {
+        className: true,
+        room: true,
+        instructor: {
+          select: { user: { select: { firstName: true, lastName: true } } },
+        },
+      },
+    },
+    attendances: {
+      where: { studentId },
+      take: 1,
+      select: {
+        attendanceId: true,
+        status: true,
+        markedAt: true,
+        notes: true,
+      },
+    },
+  } satisfies Prisma.ClassSessionSelect
+}
+
+type ParentSessionRow = Prisma.ClassSessionGetPayload<{ select: ReturnType<typeof parentSessionSelect> }>
 
 @Injectable()
 export class PrismaParentStudentScheduleReadService extends ParentStudentScheduleReadService {
@@ -38,87 +88,63 @@ export class PrismaParentStudentScheduleReadService extends ParentStudentSchedul
         ],
       },
       orderBy: [{ sessionDate: 'asc' }, { startTime: 'asc' }, { sessionId: 'asc' }],
-      select: {
-        sessionId: true,
-        classId: true,
-        name: true,
-        sessionDate: true,
-        startTime: true,
-        endTime: true,
-        makeupNote: true,
-        homeworkId: true,
-        homeworkContent: {
-          select: {
-            homeworkSubmits: {
-              where: { studentId },
-              take: 1,
-              select: {
-                homeworkSubmitId: true,
-                points: true,
-              },
-            },
-          },
-        },
-        courseClass: {
-          select: {
-            className: true,
-            room: true,
-            instructor: {
-              select: { user: { select: { firstName: true, lastName: true } } },
-            },
-          },
-        },
-        attendances: {
-          where: { studentId },
-          take: 1,
-          select: {
-            attendanceId: true,
-            status: true,
-            markedAt: true,
-            notes: true,
-          },
-        },
+      select: parentSessionSelect(studentId),
+    })
+
+    return rows.map((row) => this.toSession(row))
+  }
+
+  async findNextSession(studentId: number, clock: ParentScheduleClock): Promise<ParentScheduleSession | null> {
+    const row = await this.prisma.classSession.findFirst({
+      where: {
+        // Chỉ lớp học sinh đang học; khác với lịch tuần, buổi học bù ở lớp khác không thuộc "buổi học tiếp theo".
+        courseClass: { classStudents: { some: { studentId } } },
+        OR: [{ sessionDate: { gt: clock.today } }, { sessionDate: clock.today, endTime: { gt: clock.timeOfDay } }],
       },
+      orderBy: [{ sessionDate: 'asc' }, { startTime: 'asc' }, { sessionId: 'asc' }],
+      select: parentSessionSelect(studentId),
     })
 
-    return rows.map((row) => {
-      const attendance = row.attendances[0]
-      const homeworkSubmit = row.homeworkContent?.homeworkSubmits[0]
-      const instructorUser = row.courseClass.instructor?.user
-      const instructorName = instructorUser ? `${instructorUser.lastName} ${instructorUser.firstName}`.trim() : ''
+    return row ? this.toSession(row) : null
+  }
 
-      return {
-        sessionId: row.sessionId,
-        classId: row.classId,
-        name: row.name,
-        sessionDate: row.sessionDate,
-        startTime: row.startTime,
-        endTime: row.endTime,
-        className: row.courseClass.className,
-        room: row.courseClass.room || null,
-        instructorName: instructorName || null,
-        makeupNote: row.makeupNote || null,
-        attendance: attendance
-          ? {
-              attendanceId: attendance.attendanceId,
-              status: attendanceStatusMap[attendance.status],
-              markedAt: attendance.markedAt,
-              notes: attendance.notes || null,
-            }
-          : null,
-        homework:
-          row.homeworkId === null
-            ? null
-            : {
-                homeworkId: row.homeworkId,
-                submission: homeworkSubmit
-                  ? {
-                      homeworkSubmitId: homeworkSubmit.homeworkSubmitId,
-                      points: homeworkSubmit.points,
-                    }
-                  : null,
-              },
-      }
-    })
+  private toSession(row: ParentSessionRow): ParentScheduleSession {
+    const attendance = row.attendances[0]
+    const homeworkSubmit = row.homeworkContent?.homeworkSubmits[0]
+    const instructorUser = row.courseClass.instructor?.user
+    const instructorName = instructorUser ? `${instructorUser.lastName} ${instructorUser.firstName}`.trim() : ''
+
+    return {
+      sessionId: row.sessionId,
+      classId: row.classId,
+      name: row.name,
+      sessionDate: row.sessionDate,
+      startTime: row.startTime,
+      endTime: row.endTime,
+      className: row.courseClass.className,
+      room: row.courseClass.room || null,
+      instructorName: instructorName || null,
+      makeupNote: row.makeupNote || null,
+      attendance: attendance
+        ? {
+            attendanceId: attendance.attendanceId,
+            status: attendanceStatusMap[attendance.status],
+            markedAt: attendance.markedAt,
+            notes: attendance.notes || null,
+          }
+        : null,
+      homework:
+        row.homeworkId === null
+          ? null
+          : {
+              homeworkId: row.homeworkId,
+              submission: homeworkSubmit
+                ? {
+                    homeworkSubmitId: homeworkSubmit.homeworkSubmitId,
+                    points: homeworkSubmit.points,
+                  }
+                : null,
+            },
+    }
   }
 }

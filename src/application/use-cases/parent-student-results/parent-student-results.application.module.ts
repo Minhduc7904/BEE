@@ -8,6 +8,7 @@ import {
   GetParentStudentHomeworkSubmissionDetailUseCase,
   GetParentStudentHomeworkSubmissionsUseCase,
   GetParentStudentHomeworkStatisticsUseCase,
+  GetParentStudentResultsSummaryUseCase,
 } from '.'
 
 const useCases = [
@@ -17,6 +18,7 @@ const useCases = [
   GetParentStudentCompetitionSubmissionsUseCase,
   GetParentStudentCompetitionStatisticsUseCase,
   GetParentStudentCompetitionSubmissionDetailUseCase,
+  GetParentStudentResultsSummaryUseCase,
 ]
 
 @Module({

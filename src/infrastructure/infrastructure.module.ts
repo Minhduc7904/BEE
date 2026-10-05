@@ -116,6 +116,7 @@ import {
   ExcelService,
   PrismaParentStudentResultsReadService,
   PrismaParentStudentScheduleReadService,
+  PrismaParentStudentDashboardReadService,
   PrismaParentScheduleSessionDetailReadService,
   PrismaParentNotificationInboxRepository,
 } from './services'
@@ -174,6 +175,7 @@ import {
   ZaloService as ZaloServicePort,
   ParentStudentResultsReadService as ParentStudentResultsReadServicePort,
   ParentStudentScheduleReadService as ParentStudentScheduleReadServicePort,
+  ParentStudentDashboardReadService as ParentStudentDashboardReadServicePort,
   ParentScheduleSessionDetailReadService as ParentScheduleSessionDetailReadServicePort,
   ParentNotificationInboxRepository as ParentNotificationInboxRepositoryPort,
 } from 'src/application/interfaces'
@@ -208,6 +210,11 @@ import {
     {
       provide: ParentStudentScheduleReadServicePort,
       useExisting: PrismaParentStudentScheduleReadService,
+    },
+    PrismaParentStudentDashboardReadService,
+    {
+      provide: ParentStudentDashboardReadServicePort,
+      useExisting: PrismaParentStudentDashboardReadService,
     },
     PrismaParentScheduleSessionDetailReadService,
     {
@@ -742,6 +749,7 @@ import {
     ParentNotificationInboxRepositoryPort,
     ParentStudentResultsReadServicePort,
     ParentStudentScheduleReadServicePort,
+    ParentStudentDashboardReadServicePort,
     ParentScheduleSessionDetailReadServicePort,
     AchievementBoardSeoAiServicePort,
     BookSeoAiServicePort,

@@ -1,3 +1,5 @@
+import type { ParentScheduleClock } from '../../interfaces'
+import { ParentScheduleStatus } from '../../../shared/enums/parent-schedule-status.enum'
 import { ValidationException } from '../../../shared/exceptions/custom-exceptions'
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -29,6 +31,31 @@ export function resolveVietnamToday(now: Date): Date {
     day: '2-digit',
   }).format(now)
   return new Date(`${key}T00:00:00.000Z`)
+}
+
+/** Current wall-clock time in Asia/Ho_Chi_Minh as a TIME-column value (1970-01-01 UTC). */
+export function resolveVietnamClock(now: Date): ParentScheduleClock {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+    hourCycle: 'h23',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  }).format(now)
+  return {
+    today: resolveVietnamToday(now),
+    timeOfDay: new Date(`1970-01-01T${parts}.000Z`),
+  }
+}
+
+/** ONGOING when the session already started today; otherwise it starts later today or on a future date. */
+export function resolveScheduleStatus(
+  session: { sessionDate: Date; startTime: Date },
+  clock: ParentScheduleClock,
+): ParentScheduleStatus {
+  const startedToday =
+    session.sessionDate.getTime() === clock.today.getTime() && session.startTime.getTime() <= clock.timeOfDay.getTime()
+  return startedToday ? ParentScheduleStatus.ONGOING : ParentScheduleStatus.UPCOMING
 }
 
 export function resolveScheduleWeek(weekStart: string): ParentScheduleWeekRange {
