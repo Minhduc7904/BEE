@@ -140,20 +140,19 @@ describe('GetParentStudentScheduleWeekUseCase', () => {
     ])
   })
 
-  it('maps all four attendance statuses and preserves service ordering', async () => {
+  it('maps attendance statuses and type independently while preserving ordering', async () => {
     const markedAt = new Date('2026-09-28T13:45:10.000Z')
     const sessions = [
       AttendanceStatus.PRESENT,
       AttendanceStatus.ABSENT,
       AttendanceStatus.LATE,
-      AttendanceStatus.MAKEUP,
     ].map((status, index) =>
       session({
         sessionId: index + 1,
         room: 'P.201',
         instructorName: 'Nguyễn Văn An',
         makeupNote: 'Có thể học bù',
-        attendance: { attendanceId: 100 + index, status, markedAt, notes: 'Ghi chú' },
+        attendance: { attendanceId: 100 + index, status, attendanceType: index === 2 ? 'MAKEUP' : 'REGULAR', markedAt, notes: 'Ghi chú' },
       }),
     )
 
@@ -163,12 +162,11 @@ describe('GetParentStudentScheduleWeekUseCase', () => {
       query('2026-09-28'),
     )
 
-    expect(result.data?.sessions.map((item) => item.sessionId)).toEqual([1, 2, 3, 4])
+    expect(result.data?.sessions.map((item) => item.sessionId)).toEqual([1, 2, 3])
     expect(result.data?.sessions.map((item) => item.attendance?.status)).toEqual([
       'PRESENT',
       'ABSENT',
       'LATE',
-      'MAKEUP',
     ])
     expect(result.data?.sessions[0]).toMatchObject({
       room: 'P.201',
@@ -176,10 +174,12 @@ describe('GetParentStudentScheduleWeekUseCase', () => {
       makeupNote: 'Có thể học bù',
       attendance: {
         attendanceId: 100,
+        attendanceType: 'REGULAR',
         markedAt: '2026-09-28T13:45:10.000Z',
         notes: 'Ghi chú',
       },
     })
+    expect(result.data?.sessions[2].attendance?.attendanceType).toBe('MAKEUP')
   })
 })
 

@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common'
 import type { IAttendanceRepository } from 'src/domain/repositories/attendance.repository'
 import { AttendanceStatisticsDto } from '../../dtos/attendance/attendance-statistics.dto'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
-import { AttendanceStatus } from 'src/shared/enums'
+import { AttendanceStatus, AttendanceType } from 'src/shared/enums'
 
 @Injectable()
 export class GetAttendanceStatisticsBySessionUseCase {
@@ -21,7 +21,7 @@ export class GetAttendanceStatisticsBySessionUseCase {
         const present = attendances.data.filter(a => a.status === AttendanceStatus.PRESENT).length
         const absent = attendances.data.filter(a => a.status === AttendanceStatus.ABSENT).length
         const late = attendances.data.filter(a => a.status === AttendanceStatus.LATE).length
-        const makeup = attendances.data.filter(a => a.status === AttendanceStatus.MAKEUP).length
+        const makeup = attendances.data.filter(a => a.attendanceType === AttendanceType.MAKEUP).length
 
         const statistics = new AttendanceStatisticsDto({
             total,

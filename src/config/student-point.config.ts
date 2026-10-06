@@ -47,7 +47,6 @@ export const studentPointConfig = {
     eligibleStatuses: parseCsv(process.env.STUDENT_POINT_ATTENDANCE_ELIGIBLE_STATUSES, [
       'PRESENT',
       'LATE',
-      'MAKEUP',
     ]),
   },
   learningItemLearned: {

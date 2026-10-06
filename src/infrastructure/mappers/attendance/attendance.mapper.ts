@@ -3,7 +3,7 @@ import { Attendance } from '../../../domain/entities/attendance/attendance.entit
 import { ClassSessionMapper } from '../class/class-session.mapper'
 import { StudentMapper } from '../user/student.mapper'
 import { AdminMapper } from '../user/admin.mapper'
-import { AttendanceStatus } from 'src/shared/enums'
+import { AttendanceStatus, AttendanceType } from 'src/shared/enums'
 
 /**
  * Mapper class để convert từ Prisma Attendance model
@@ -21,6 +21,7 @@ export class AttendanceMapper {
             sessionId: prismaAttendance.sessionId,
             studentId: prismaAttendance.studentId,
             status: prismaAttendance.status as AttendanceStatus,
+            attendanceType: prismaAttendance.attendanceType as AttendanceType,
             markedAt: prismaAttendance.markedAt,
             updatedAt: prismaAttendance.updatedAt ?? undefined,
             notes: prismaAttendance.notes ?? null,

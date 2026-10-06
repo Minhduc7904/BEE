@@ -1,6 +1,7 @@
 // src/domain/entities/attendance/attendance.entity.ts
 
 import { AttendanceStatus } from '../../../shared/enums/attendance-status.enum'
+import { AttendanceType } from '../../../shared/enums/attendance-type.enum'
 import { ClassSession } from '../class-session/class-session.entity'
 import { Student } from '../user/student.entity'
 import { Admin } from '../user/admin.entity'
@@ -11,6 +12,7 @@ export class Attendance {
     sessionId: number
     studentId: number
     status: AttendanceStatus
+    attendanceType: AttendanceType
     markedAt: Date
     createdAt?: Date
     updatedAt: Date
@@ -30,6 +32,7 @@ export class Attendance {
         sessionId: number
         studentId: number
         status: AttendanceStatus
+        attendanceType?: AttendanceType
         markedAt?: Date
         createdAt?: Date
         updatedAt?: Date
@@ -44,6 +47,7 @@ export class Attendance {
         this.sessionId = data.sessionId
         this.studentId = data.studentId
         this.status = data.status
+        this.attendanceType = data.attendanceType ?? AttendanceType.REGULAR
         this.markedAt = data.markedAt || new Date()
         this.createdAt = data.createdAt
         this.updatedAt = data.updatedAt || new Date()
@@ -71,7 +75,7 @@ export class Attendance {
     }
 
     isMakeup(): boolean {
-        return this.status === AttendanceStatus.MAKEUP
+        return this.attendanceType === AttendanceType.MAKEUP
     }
 
     isMarked(): boolean {
@@ -124,10 +128,6 @@ export class Attendance {
         this.mark(AttendanceStatus.LATE, markerId, notes)
     }
 
-    markMakeup(markerId?: number, notes?: string): void {
-        this.mark(AttendanceStatus.MAKEUP, markerId, notes)
-    }
-
     updateNotes(notes: string): void {
         this.notes = notes
         this.updatedAt = new Date()
@@ -141,15 +141,13 @@ export class Attendance {
                 return 'Vắng mặt'
             case AttendanceStatus.LATE:
                 return 'Đi muộn'
-            case AttendanceStatus.MAKEUP:
-                return 'Học bù'
             default:
                 return 'Chưa xác định'
         }
     }
 
     isPositiveAttendance(): boolean {
-        return this.isPresent() || this.isMakeup()
+        return this.isPresent() || this.isLate()
     }
 
     isNegativeAttendance(): boolean {
@@ -160,8 +158,6 @@ export class Attendance {
         switch (this.status) {
             case AttendanceStatus.PRESENT:
                 return 1.0
-            case AttendanceStatus.MAKEUP:
-                return 0.8
             case AttendanceStatus.LATE:
                 return 0.5
             case AttendanceStatus.ABSENT:
@@ -205,6 +201,7 @@ export class Attendance {
             sessionId: this.sessionId,
             studentId: this.studentId,
             status: this.status,
+            attendanceType: this.attendanceType,
             markedAt: this.markedAt,
             notes: this.notes,
             markerId: this.markerId,
@@ -219,6 +216,7 @@ export class Attendance {
             sessionId: this.sessionId,
             studentId: this.studentId,
             status: this.status,
+            attendanceType: this.attendanceType,
             markedAt: this.markedAt,
             createdAt: this.createdAt,
             updatedAt: this.updatedAt,

@@ -77,7 +77,7 @@ describe('PrismaParentStudentScheduleReadService', () => {
         classId: 152,
         name: 'Buổi học bù',
         courseClass: { className: 'Lớp học bù', room: null, instructor: null },
-        attendances: [{ attendanceId: 77, status: 'MAKEUP', markedAt, notes: 'Học bù lớp khác' }],
+        attendances: [{ attendanceId: 77, status: 'PRESENT', attendanceType: 'MAKEUP', markedAt, notes: 'Học bù lớp khác' }],
       }),
     ])
     const service = new PrismaParentStudentScheduleReadService({
@@ -92,7 +92,8 @@ describe('PrismaParentStudentScheduleReadService', () => {
       className: 'Lớp học bù',
       attendance: {
         attendanceId: 77,
-        status: 'MAKEUP',
+        status: 'PRESENT',
+        attendanceType: 'MAKEUP',
         markedAt,
         notes: 'Học bù lớp khác',
       },
@@ -148,7 +149,7 @@ describe('PrismaParentStudentScheduleReadService', () => {
     ])
   })
 
-  it.each(['PRESENT', 'ABSENT', 'LATE', 'MAKEUP'])('maps attendance status %s', async (status) => {
+  it.each(['PRESENT', 'ABSENT', 'LATE'])('maps attendance status %s', async (status) => {
     const markedAt = new Date('2026-09-28T13:45:10.000Z')
     const findMany = jest.fn().mockResolvedValue([
       row({
@@ -157,7 +158,7 @@ describe('PrismaParentStudentScheduleReadService', () => {
           room: 'P.201',
           instructor: { user: { firstName: 'An', lastName: 'Nguyễn Văn' } },
         },
-        attendances: [{ attendanceId: 7, status, markedAt, notes: null }],
+        attendances: [{ attendanceId: 7, status, attendanceType: 'REGULAR', markedAt, notes: null }],
       }),
     ])
     const service = new PrismaParentStudentScheduleReadService({
@@ -168,6 +169,6 @@ describe('PrismaParentStudentScheduleReadService', () => {
 
     expect(item.room).toBe('P.201')
     expect(item.instructorName).toBe('Nguyễn Văn An')
-    expect(item.attendance).toEqual({ attendanceId: 7, status, markedAt, notes: null })
+    expect(item.attendance).toEqual({ attendanceId: 7, status, attendanceType: 'REGULAR', markedAt, notes: null })
   })
 })

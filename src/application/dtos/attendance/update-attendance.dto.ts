@@ -1,4 +1,4 @@
-import { AttendanceStatus } from 'src/shared/enums'
+import { AttendanceStatus, AttendanceType } from 'src/shared/enums'
 import { IsOptionalEnumValue, IsOptionalString } from 'src/shared/decorators/validate'
 
 /**
@@ -13,6 +13,9 @@ export class UpdateAttendanceDto {
    */
   @IsOptionalEnumValue(AttendanceStatus, 'Trạng thái điểm danh')
   status?: AttendanceStatus
+
+  @IsOptionalEnumValue(AttendanceType, 'Loại điểm danh')
+  attendanceType?: AttendanceType
 
   /**
    * Ghi chú
