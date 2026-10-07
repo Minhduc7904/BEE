@@ -1,7 +1,7 @@
 // src/domain/entities/attendance/attendance.entity.ts
 
-import { AttendanceStatus } from '../../../shared/enums/attendance-status.enum'
-import { AttendanceType } from '../../../shared/enums/attendance-type.enum'
+import { AttendanceStatus, AttendanceStatusLabels } from '../../../shared/enums/attendance-status.enum'
+import { AttendanceType, AttendanceTypeLabels } from '../../../shared/enums/attendance-type.enum'
 import { ClassSession } from '../class-session/class-session.entity'
 import { Student } from '../user/student.entity'
 import { Admin } from '../user/admin.entity'
@@ -134,20 +134,15 @@ export class Attendance {
     }
 
     getStatusLabel(): string {
-        switch (this.status) {
-            case AttendanceStatus.PRESENT:
-                return 'Có mặt'
-            case AttendanceStatus.ABSENT:
-                return 'Vắng mặt'
-            case AttendanceStatus.LATE:
-                return 'Đi muộn'
-            default:
-                return 'Chưa xác định'
-        }
+        return AttendanceStatusLabels[this.status] ?? 'Chưa xác định'
+    }
+
+    getAttendanceTypeLabel(): string {
+        return AttendanceTypeLabels[this.attendanceType] ?? 'Chưa xác định'
     }
 
     isPositiveAttendance(): boolean {
-        return this.isPresent() || this.isLate()
+        return this.isPresent()
     }
 
     isNegativeAttendance(): boolean {

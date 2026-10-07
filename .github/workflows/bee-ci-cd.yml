@@ -7,20 +7,44 @@ on:
     paths-ignore:
       - "**/*.md"
 
+  # Pull requests only run CI; the deploy job below runs for pushes to main.
+  pull_request:
+    branches:
+      - main
+
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: bee-production
-  cancel-in-progress: false
+  group: ${{ github.event_name == 'pull_request' && format('bee-pr-{0}', github.ref) || 'bee-production' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   ci:
     name: Build and test
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: ci_root_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pci_root_password"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      # Migration and makeup-group integration suites must run in CI; a missing URL fails instead of skipping.
+      REQUIRE_DB_INTEGRATION_TESTS: "true"
+      MIGRATION_IT_DATABASE_URL: mysql://root:ci_root_password@127.0.0.1:3306
+      MAKEUP_GROUP_IT_DATABASE_URL: mysql://root:ci_root_password@127.0.0.1:3306/bee_makeup_it
 
     steps:
       - name: Checkout source code
@@ -38,14 +62,30 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
 
-      - name: Build application
-        run: npm run build
+      - name: Lint (no autofix)
+        run: npm run lint:check
+
+      - name: Prepare makeup-group integration database
+        env:
+          DATABASE_URL: mysql://root:ci_root_password@127.0.0.1:3306/bee_makeup_it
+        run: |
+          mysql -h 127.0.0.1 -uroot -pci_root_password \
+            -e "CREATE DATABASE bee_makeup_it CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+          npx prisma migrate deploy
 
       - name: Run tests
         run: npm test -- --runInBand
 
+      - name: Run e2e tests
+        run: npm run test:e2e
+
+      - name: Build application
+        run: npm run build
+
   deploy:
     name: Deploy BEE to VPS
+    # Never deploy from a pull request.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs:
       - ci
 

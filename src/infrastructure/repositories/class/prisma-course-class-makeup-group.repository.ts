@@ -20,6 +20,10 @@ const WRITE_CONFLICT_OR_DEADLOCK = 'P2034'
 export class PrismaCourseClassMakeupGroupRepository implements ICourseClassMakeupGroupRepository {
   constructor(private readonly prisma: MakeupGroupPrismaClient) {}
 
+  async lockCourse(courseId: number): Promise<void> {
+    await this.prisma.$queryRaw`SELECT course_id FROM courses WHERE course_id = ${courseId} FOR UPDATE`
+  }
+
   async findClassesByCourse(courseId: number): Promise<CourseClassMakeupCandidate[]> {
     const rows = await this.prisma.courseClass.findMany({
       where: { courseId },
