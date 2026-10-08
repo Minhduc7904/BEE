@@ -1,7 +1,7 @@
 import { Attendance } from '../../../domain/entities/attendance/attendance.entity'
 import { PaginationResponseDto } from '../pagination/pagination-response.dto'
 import { StudentResponseDto } from '../student/student.dto'
-import { AttendanceStatus } from 'src/shared/enums'
+import { AttendanceStatus, AttendanceType } from 'src/shared/enums'
 import { ClassSessionResponseDto } from '../class-session/class-session.dto'
 import { TuitionPaymentResponseDto } from '../tuition-payment/tuition-payment.dto'
 import { HomeworkSubmitResponseDto } from '../homeworkSubmit/homework-submit.dto'
@@ -12,6 +12,8 @@ export class AttendanceResponseDto {
     studentId: number
     status: AttendanceStatus
     statusLabel: string
+    attendanceType: AttendanceType
+    attendanceTypeLabel: string
     markedAt: Date
     notes?: string | null
     updatedAt?: Date
@@ -35,6 +37,8 @@ export class AttendanceResponseDto {
         this.studentId = attendance.studentId
         this.status = attendance.status
         this.statusLabel = attendance.getStatusLabel()
+        this.attendanceType = attendance.attendanceType
+        this.attendanceTypeLabel = attendance.getAttendanceTypeLabel()
         this.markedAt = attendance.markedAt
         this.notes = attendance.notes
         this.updatedAt = attendance.updatedAt

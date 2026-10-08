@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common'
 import type { ICourseRepository } from '../../../domain/repositories/course.repository'
 import { ExcelService, ExcelColumn } from 'src/application/interfaces'
 import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
+import { AttendanceStatus, AttendanceType, AttendanceTypeLabels } from 'src/shared/enums'
 import { ExportCourseStudentsAttendanceOptionsDto } from '../../dtos/course/export-course-students-attendance-options.dto'
 import { CourseStudentsAttendanceQueryDto } from '../../dtos/course/course-students-attendance-query.dto'
 
@@ -45,10 +46,10 @@ export class ExportCourseStudentsAttendanceUseCase {
 
             // Calculate statistics
             const totalSessions = attendances.length
-            const presentCount = attendances.filter(a => a.status === 'PRESENT').length
-            const absentCount = attendances.filter(a => a.status === 'ABSENT').length
-            const lateCount = attendances.filter(a => a.status === 'LATE').length
-            const makeupCount = attendances.filter(a => a.status === 'MAKEUP').length
+            const presentCount = attendances.filter(a => a.status === AttendanceStatus.PRESENT).length
+            const absentCount = attendances.filter(a => a.status === AttendanceStatus.ABSENT).length
+            const lateCount = attendances.filter(a => a.status === AttendanceStatus.LATE).length
+            const makeupCount = attendances.filter(a => a.attendanceType === AttendanceType.MAKEUP).length
 
             return {
                 stt: index + 1,
@@ -126,7 +127,7 @@ export class ExportCourseStudentsAttendanceUseCase {
         columns.push({ header: 'Có mặt', key: 'presentCount', width: 12 })
         columns.push({ header: 'Vắng', key: 'absentCount', width: 12 })
         columns.push({ header: 'Muộn', key: 'lateCount', width: 12 })
-        columns.push({ header: 'Học bù', key: 'makeupCount', width: 12 })
+        columns.push({ header: AttendanceTypeLabels[AttendanceType.MAKEUP], key: 'makeupCount', width: 12 })
 
         return columns
     }

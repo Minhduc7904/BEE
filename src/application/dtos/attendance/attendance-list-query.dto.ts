@@ -1,5 +1,5 @@
 import { ListQueryDto } from '../pagination/list-query.dto'
-import { AttendanceStatus } from 'src/shared/enums'
+import { AttendanceStatus, AttendanceType } from 'src/shared/enums'
 import {
   AttendanceFilterOptions,
   AttendancePaginationOptions,
@@ -33,6 +33,9 @@ export class AttendanceListQueryDto extends ListQueryDto {
   @IsOptionalEnumValue(AttendanceStatus, 'Trạng thái điểm danh')
   status?: AttendanceStatus
 
+  @IsOptionalEnumValue(AttendanceType, 'Loại điểm danh')
+  attendanceType?: AttendanceType
+
   @IsOptional()
   @Type(() => Number)
   @IsInt({ message: 'Tháng phải là số nguyên' })
@@ -58,6 +61,7 @@ export class AttendanceListQueryDto extends ListQueryDto {
       studentId: this.studentId,
       classId: this.classId,
       status: this.status,
+      attendanceType: this.attendanceType,
       search: this.search,
       fromDate: this.fromDate,
       toDate: this.toDate,
@@ -67,7 +71,7 @@ export class AttendanceListQueryDto extends ListQueryDto {
   }
 
   toAttendancePaginationOptions(): AttendancePaginationOptions {
-    const allowedSortFields = ['attendanceId', 'markedAt', 'status']
+    const allowedSortFields = ['attendanceId', 'markedAt', 'status', 'attendanceType']
 
     const sortBy = allowedSortFields.includes(this.sortBy || '')
       ? this.sortBy

@@ -4,5 +4,5 @@ export * from './create-course-class.use-case';
 export * from './update-course-class.use-case';
 export * from './delete-course-class.use-case';
 export * from './search-course-classes.use-case';
-export * from './get-course-class-makeup-options.use-case';
-export * from './replace-course-class-makeup-options.use-case';
+export * from './get-course-class-makeup-group.use-case';
+export * from './replace-course-class-makeup-group.use-case';

@@ -1,5 +1,6 @@
 import {
   AttendanceStatus,
+  AttendanceType,
   CompetitionSubmitStatus,
   CourseEnrollmentStatus,
   CourseEnrollmentType,
@@ -1237,7 +1238,7 @@ async function seedStudentAcademicData(
     d(2026, 9, 28),
     d(2026, 10, 5),
   ]
-  const attendanceCycle = [AttendanceStatus.PRESENT, AttendanceStatus.ABSENT, AttendanceStatus.LATE, AttendanceStatus.MAKEUP]
+  const attendanceCycle = [AttendanceStatus.PRESENT, AttendanceStatus.ABSENT, AttendanceStatus.LATE]
   for (let s = 0; s < sessionDates.length; s++) {
     const sessionData = {
       name: `${DEV_SEED_MARKER} Buổi học ${s + 1} - Lớp Toán ${grade} HS${i + 1}`,
@@ -1260,7 +1261,8 @@ async function seedStudentAcademicData(
       status,
       markedAt: sessionDates[s],
       markerId: teacherAdminId,
-      notes: status === AttendanceStatus.MAKEUP ? `${DEV_SEED_MARKER} Học bù cho buổi trước.` : null,
+      attendanceType: i % 4 === 3 ? AttendanceType.MAKEUP : AttendanceType.REGULAR,
+      notes: i % 4 === 3 ? `${DEV_SEED_MARKER} Học bù cho buổi trước.` : null,
     }
     await prisma.attendance.upsert({
       where: { sessionId_studentId: { sessionId: sessionId(i, s), studentId: student.studentId } },

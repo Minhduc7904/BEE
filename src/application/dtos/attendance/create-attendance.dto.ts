@@ -1,5 +1,5 @@
-import { AttendanceStatus } from 'src/shared/enums'
-import { IsRequiredEnumValue, IsRequiredIdNumber, IsOptionalString } from 'src/shared/decorators/validate'
+import { AttendanceStatus, AttendanceType } from 'src/shared/enums'
+import { IsRequiredEnumValue, IsRequiredIdNumber, IsOptionalString, IsOptionalEnumValue } from 'src/shared/decorators/validate'
 
 /**
  * DTO tạo bản ghi điểm danh
@@ -29,6 +29,9 @@ export class CreateAttendanceDto {
    */
   @IsRequiredEnumValue(AttendanceStatus, 'Trạng thái điểm danh')
   status: AttendanceStatus
+
+  @IsOptionalEnumValue(AttendanceType, 'Loại điểm danh')
+  attendanceType?: AttendanceType
 
   /**
    * Ghi chú (tối đa 500 ký tự)
