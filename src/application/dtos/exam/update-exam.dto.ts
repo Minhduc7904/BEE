@@ -1,5 +1,5 @@
 // src/application/dtos/exam/update-exam.dto.ts
-import { IsOptionalString, IsOptionalInt, IsOptionalEnumValue, IsOptionalIdNumber, IsOptionalIntArray } from '../../../shared/decorators/validate'
+import { IsOptionalString, IsNullableString, IsOptionalInt, IsOptionalEnumValue, IsOptionalIdNumber, IsOptionalIntArray } from '../../../shared/decorators/validate'
 import { ExamVisibility, TypeOfExam } from '../../../shared/enums'
 
 export class UpdateExamDto {
@@ -39,11 +39,11 @@ export class UpdateExamDto {
   subjectId?: number
 
   /**
-   * URL video hướng dẫn giải
+   * URL video hướng dẫn giải (gửi null để xóa)
    * @example "https://youtube.com/watch?v=abc123"
    */
-  @IsOptionalString('URL video hướng dẫn', 500, 0)
-  solutionYoutubeUrl?: string
+  @IsNullableString('URL video hướng dẫn', 500, 0)
+  solutionYoutubeUrl?: string | null
 
   /**
    * Loại đề thi
