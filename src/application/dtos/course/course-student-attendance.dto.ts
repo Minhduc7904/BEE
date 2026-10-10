@@ -1,6 +1,6 @@
 // src/application/dtos/course/course-student-attendance.dto.ts
 import { PaginationResponseDto } from '../pagination/pagination-response.dto'
-import { AttendanceStatus } from 'src/shared/enums'
+import { AttendanceStatus, AttendanceType } from 'src/shared/enums'
 
 /**
  * Single attendance record DTO
@@ -12,6 +12,7 @@ export class AttendanceRecordDto {
     startTime: string // HH:mm
     endTime: string // HH:mm
     status: AttendanceStatus
+    attendanceType: AttendanceType
     markedAt: string // ISO datetime
     notes?: string
     className: string
@@ -28,6 +29,7 @@ export class AttendanceRecordDto {
         dto.startTime = attendance.classSession?.startTime || ''
         dto.endTime = attendance.classSession?.endTime || ''
         dto.status = attendance.status
+        dto.attendanceType = attendance.attendanceType
         dto.markedAt = attendance.markedAt ? attendance.markedAt.toISOString() : ''
         dto.notes = attendance.notes
         return dto
@@ -76,7 +78,7 @@ export class StudentAttendanceDto {
         dto.presentCount = attendances.filter(a => a.status === 'PRESENT').length
         dto.absentCount = attendances.filter(a => a.status === 'ABSENT').length
         dto.lateCount = attendances.filter(a => a.status === 'LATE').length
-        dto.makeupCount = attendances.filter(a => a.status === 'MAKEUP').length
+        dto.makeupCount = attendances.filter(a => a.attendanceType === 'MAKEUP').length
 
         // Map attendance records
         dto.attendances = attendances.map(a => AttendanceRecordDto.fromEntity(a))

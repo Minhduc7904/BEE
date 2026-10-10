@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { studentPointConfig } from 'src/config'
 import type { CreateStudentPointLogData, UnitOfWorkRepos } from 'src/domain/repositories'
-import { AttendanceStatus, NotificationLevel, NotificationType, PointType } from 'src/shared/enums'
+import { AttendanceStatus, AttendanceType, NotificationLevel, NotificationType, PointType } from 'src/shared/enums'
 import type { StudentPointLog } from 'src/domain/entities'
 import { BusinessNotificationQueueService } from 'src/application/use-cases/notification/business-notification-queue.service'
 
@@ -68,6 +68,7 @@ export class StudentPointService {
       studentId: number
       attendanceId: number
       status: AttendanceStatus | string
+      attendanceType?: AttendanceType | string
       sessionId?: number
     },
   ) {
@@ -84,6 +85,7 @@ export class StudentPointService {
         attendanceId: input.attendanceId,
         sessionId: input.sessionId,
         status: input.status,
+        attendanceType: input.attendanceType ?? AttendanceType.REGULAR,
       },
     })
   }
@@ -94,6 +96,7 @@ export class StudentPointService {
       studentId: number
       attendanceId: number
       status?: AttendanceStatus | string
+      attendanceType?: AttendanceType | string
       sessionId?: number
     },
   ) {
@@ -107,6 +110,7 @@ export class StudentPointService {
         attendanceId: input.attendanceId,
         sessionId: input.sessionId,
         status: input.status,
+        attendanceType: input.attendanceType ?? AttendanceType.REGULAR,
         removed: true,
       },
     })

@@ -48,7 +48,7 @@ export class ExportCourseStudentsAttendanceUseCase {
             const presentCount = attendances.filter(a => a.status === 'PRESENT').length
             const absentCount = attendances.filter(a => a.status === 'ABSENT').length
             const lateCount = attendances.filter(a => a.status === 'LATE').length
-            const makeupCount = attendances.filter(a => a.status === 'MAKEUP').length
+            const makeupCount = attendances.filter(a => a.attendanceType === 'MAKEUP').length
 
             return {
                 stt: index + 1,

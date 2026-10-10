@@ -4,7 +4,7 @@ import type { IUnitOfWork } from '../../../domain/repositories'
 import { CreateBulkAttendanceBySessionDto } from '../../dtos/attendance/create-bulk-attendance-by-session.dto'
 import { AttendanceResponseDto } from '../../dtos/attendance/attendance.dto'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
-import { AttendanceStatus, NotificationType, NotificationLevel, AttendanceStatusLabels } from 'src/shared/enums'
+import { AttendanceStatus, AttendanceType, NotificationType, NotificationLevel, AttendanceStatusLabels, AttendanceTypeLabels } from 'src/shared/enums'
 import type { CreateAttendanceData } from '../../../domain/interface/attendance/attendance.interface'
 import { ValidationException, NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 import { ACTION_KEYS } from '../../../shared/constants/action-key.constants'
@@ -88,6 +88,7 @@ Nếu con đăng ký nhầm lớp, hãy chọn "Liên hệ hỗ trợ" để tr�
             sessionId: dto.sessionId,
             studentId,
             status: dto.status || AttendanceStatus.PRESENT,
+            attendanceType: dto.attendanceType ?? AttendanceType.REGULAR,
             notes: dto.notes,
             markerId,
           }))
@@ -112,6 +113,7 @@ Nếu con đăng ký nhầm lớp, hãy chọn "Liên hệ hỗ trợ" để tr�
               studentId: attendance.studentId,
               attendanceId: attendance.attendanceId,
               status: attendance.status,
+              attendanceType: attendance.attendanceType,
               sessionId: attendance.sessionId,
             }),
           ),
@@ -153,14 +155,15 @@ Nếu con đăng ký nhầm lớp, hãy chọn "Liên hệ hỗ trợ" để tr�
         if (studentsToNotify.length > 0) {
           const defaultStatus = dto.status || AttendanceStatus.PRESENT
           const statusLabel = AttendanceStatusLabels[defaultStatus] || defaultStatus
+          const attendanceType = dto.attendanceType ?? AttendanceType.REGULAR
 
           const notificationDataList = studentsToNotify.map((cs) => ({
             userId: cs.student!.userId,
             title: 'Điểm danh mới',
-            message: `Bạn đã được điểm danh với trạng thái: ${statusLabel}`,
+            message: `Bạn đã được điểm danh với trạng thái: ${statusLabel}${attendanceType === AttendanceType.MAKEUP ? `; loại: ${AttendanceTypeLabels[attendanceType]}` : ''}`,
             type: NotificationType.ATTENDANCE,
             level: NotificationLevel.INFO,
-            data: { sessionId: dto.sessionId, status: defaultStatus },
+            data: { sessionId: dto.sessionId, status: defaultStatus, attendanceType },
           }))
 
           const attendanceIds = createdAttendances.map((attendance) => attendance.attendanceId)

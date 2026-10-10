@@ -17,7 +17,7 @@ function row(overrides: Record<string, unknown> = {}) {
     homeworkId: null,
     homeworkContent: null,
     attendances: [],
-    courseClass: { className: 'Đại 1 lớp 11F', room: null, instructor: null, makeupOptionsFrom: [] },
+    courseClass: { className: 'Đại 1 lớp 11F', room: null, instructor: null, makeupGroupMember: null },
     ...overrides,
   }
 }
@@ -48,9 +48,9 @@ describe('PrismaParentScheduleSessionDetailReadService', () => {
     expect(args.select.attendances).toMatchObject({ where: { studentId: 95 }, take: 1 })
     expect(args.select.attendances.select.marker).toBeDefined()
     expect(args.select.homeworkContent.select.homeworkSubmits).toMatchObject({ where: { studentId: 95 }, take: 1 })
-    expect(args.select.courseClass.select.makeupOptionsFrom).toMatchObject({
-      where: { makeupClass: { OR: [{ endDate: null }, { endDate: { gte: today } }] } },
-      orderBy: [{ makeupClass: { className: 'asc' } }, { makeupClassId: 'asc' }],
+    expect(args.select.courseClass.select.makeupGroupMember.select.makeupGroup.select.members).toMatchObject({
+      where: { courseClass: { OR: [{ endDate: null }, { endDate: { gte: today } }] } },
+      orderBy: [{ courseClass: { className: 'asc' } }, { classId: 'asc' }],
     })
   })
 
@@ -62,7 +62,7 @@ describe('PrismaParentScheduleSessionDetailReadService', () => {
     const findFirst = jest.fn().mockResolvedValue(
       row({
         makeupNote: '',
-        courseClass: { className: 'Lớp', room: '', instructor: admin('', ''), makeupOptionsFrom: [] },
+        courseClass: { className: 'Lớp', room: '', instructor: admin('', ''), makeupGroupMember: null },
       }),
     )
 
@@ -84,11 +84,24 @@ describe('PrismaParentScheduleSessionDetailReadService', () => {
       .fn()
       .mockResolvedValueOnce(
         row({
-          attendances: [{ attendanceId: 900, status: 'ABSENT', markedAt, notes: '', marker: admin('Nguyễn', 'Lan') }],
+          attendances: [
+            {
+              attendanceId: 900,
+              status: 'ABSENT',
+              attendanceType: 'REGULAR',
+              markedAt,
+              notes: '',
+              marker: admin('Nguyễn', 'Lan'),
+            },
+          ],
         }),
       )
       .mockResolvedValueOnce(
-        row({ attendances: [{ attendanceId: 901, status: 'LATE', markedAt, notes: 'Đến trễ', marker: null }] }),
+        row({
+          attendances: [
+            { attendanceId: 901, status: 'LATE', attendanceType: 'MAKEUP', markedAt, notes: 'Đến trễ', marker: null },
+          ],
+        }),
       )
     const service = build(findFirst)
 
@@ -98,6 +111,7 @@ describe('PrismaParentScheduleSessionDetailReadService', () => {
     expect(withMarker?.attendance).toEqual({
       attendanceId: 900,
       status: 'ABSENT',
+      attendanceType: 'REGULAR',
       markedAt,
       notes: null,
       markerName: 'Nguyễn Lan',
@@ -105,16 +119,19 @@ describe('PrismaParentScheduleSessionDetailReadService', () => {
     expect(withoutMarker?.attendance).toEqual({
       attendanceId: 901,
       status: 'LATE',
+      attendanceType: 'MAKEUP',
       markedAt,
       notes: 'Đến trễ',
       markerName: null,
     })
   })
 
-  it.each(['PRESENT', 'ABSENT', 'LATE', 'MAKEUP'])('maps attendance status %s', async (status) => {
+  it.each(['PRESENT', 'ABSENT', 'LATE'])('maps attendance status %s', async (status) => {
     const findFirst = jest.fn().mockResolvedValue(
       row({
-        attendances: [{ attendanceId: 1, status, markedAt: new Date(), notes: null, marker: null }],
+        attendances: [
+          { attendanceId: 1, status, attendanceType: 'REGULAR', markedAt: new Date(), notes: null, marker: null },
+        ],
       }),
     )
 
@@ -149,37 +166,53 @@ describe('PrismaParentScheduleSessionDetailReadService', () => {
     ])
   })
 
-  it('maps makeup options with optional fields and instructor names', async () => {
+  it('maps the other classes in the makeup group with optional fields and instructor names', async () => {
     const findFirst = jest.fn().mockResolvedValue(
       row({
         courseClass: {
           className: 'Đại 1 lớp 11F',
           room: null,
           instructor: null,
-          makeupOptionsFrom: [
-            {
-              makeupClass: {
-                classId: 153,
-                className: 'Đại 1 lớp 11G',
-                startDate: new Date('2026-09-01T00:00:00.000Z'),
-                endDate: new Date('2027-05-31T00:00:00.000Z'),
-                weeklySchedule: 'Thứ 7 - 08:00',
-                room: 'P305',
-                instructor: admin('Cô', 'Lan'),
-              },
+          makeupGroupMember: {
+            makeupGroup: {
+              members: [
+                {
+                  // Chính lớp của buổi học nằm trong nhóm nhưng không được trả như lớp học bù.
+                  courseClass: {
+                    classId: 152,
+                    className: 'Đại 1 lớp 11F',
+                    startDate: null,
+                    endDate: null,
+                    weeklySchedule: null,
+                    room: null,
+                    instructor: null,
+                  },
+                },
+                {
+                  courseClass: {
+                    classId: 153,
+                    className: 'Đại 1 lớp 11G',
+                    startDate: new Date('2026-09-01T00:00:00.000Z'),
+                    endDate: new Date('2027-05-31T00:00:00.000Z'),
+                    weeklySchedule: 'Thứ 7 - 08:00',
+                    room: 'P305',
+                    instructor: admin('Cô', 'Lan'),
+                  },
+                },
+                {
+                  courseClass: {
+                    classId: 154,
+                    className: 'Đại 1 lớp 11H',
+                    startDate: null,
+                    endDate: null,
+                    weeklySchedule: null,
+                    room: null,
+                    instructor: null,
+                  },
+                },
+              ],
             },
-            {
-              makeupClass: {
-                classId: 154,
-                className: 'Đại 1 lớp 11H',
-                startDate: null,
-                endDate: null,
-                weeklySchedule: null,
-                room: null,
-                instructor: null,
-              },
-            },
-          ],
+          },
         },
       }),
     )

@@ -1,15 +1,20 @@
 import { Injectable } from '@nestjs/common'
-import { AttendanceStatus as PrismaAttendanceStatus } from '@prisma/client'
+import { AttendanceStatus as PrismaAttendanceStatus, AttendanceType as PrismaAttendanceType } from '@prisma/client'
 
 import { ParentScheduleSessionDetail, ParentScheduleSessionDetailReadService } from '../../application/interfaces'
 import { AttendanceStatus } from '../../shared/enums/attendance-status.enum'
+import { AttendanceType } from '../../shared/enums/attendance-type.enum'
 import { PrismaService } from '../../prisma/prisma.service'
 
 const attendanceStatusMap: Record<PrismaAttendanceStatus, AttendanceStatus> = {
   [PrismaAttendanceStatus.PRESENT]: AttendanceStatus.PRESENT,
   [PrismaAttendanceStatus.ABSENT]: AttendanceStatus.ABSENT,
   [PrismaAttendanceStatus.LATE]: AttendanceStatus.LATE,
-  [PrismaAttendanceStatus.MAKEUP]: AttendanceStatus.MAKEUP,
+}
+
+const attendanceTypeMap: Record<PrismaAttendanceType, AttendanceType> = {
+  [PrismaAttendanceType.REGULAR]: AttendanceType.REGULAR,
+  [PrismaAttendanceType.MAKEUP]: AttendanceType.MAKEUP,
 }
 
 const adminNameSelect = {
@@ -70,6 +75,7 @@ export class PrismaParentScheduleSessionDetailReadService extends ParentSchedule
           select: {
             attendanceId: true,
             status: true,
+            attendanceType: true,
             markedAt: true,
             notes: true,
             marker: { select: adminNameSelect },
@@ -80,23 +86,32 @@ export class PrismaParentScheduleSessionDetailReadService extends ParentSchedule
             className: true,
             room: true,
             instructor: { select: adminNameSelect },
-            makeupOptionsFrom: {
-              where: {
-                makeupClass: {
-                  OR: [{ endDate: null }, { endDate: { gte: makeupEndDateFrom } }],
-                },
-              },
-              orderBy: [{ makeupClass: { className: 'asc' } }, { makeupClassId: 'asc' }],
+            // Nhóm học bù của lớp: các lớp còn lại trong nhóm (bỏ chính lớp này ở bước map) chưa kết thúc.
+            makeupGroupMember: {
               select: {
-                makeupClass: {
+                makeupGroup: {
                   select: {
-                    classId: true,
-                    className: true,
-                    startDate: true,
-                    endDate: true,
-                    weeklySchedule: true,
-                    room: true,
-                    instructor: { select: adminNameSelect },
+                    members: {
+                      where: {
+                        courseClass: {
+                          OR: [{ endDate: null }, { endDate: { gte: makeupEndDateFrom } }],
+                        },
+                      },
+                      orderBy: [{ courseClass: { className: 'asc' } }, { classId: 'asc' }],
+                      select: {
+                        courseClass: {
+                          select: {
+                            classId: true,
+                            className: true,
+                            startDate: true,
+                            endDate: true,
+                            weeklySchedule: true,
+                            room: true,
+                            instructor: { select: adminNameSelect },
+                          },
+                        },
+                      },
+                    },
                   },
                 },
               },
@@ -128,6 +143,7 @@ export class PrismaParentScheduleSessionDetailReadService extends ParentSchedule
         ? {
             attendanceId: attendance.attendanceId,
             status: attendanceStatusMap[attendance.status],
+            attendanceType: attendanceTypeMap[attendance.attendanceType],
             markedAt: attendance.markedAt,
             notes: attendance.notes || null,
             markerName: toDisplayName(attendance.marker),
@@ -145,15 +161,17 @@ export class PrismaParentScheduleSessionDetailReadService extends ParentSchedule
                   }
                 : null,
             },
-      makeupOptions: row.courseClass.makeupOptionsFrom.map(({ makeupClass }) => ({
-        classId: makeupClass.classId,
-        className: makeupClass.className,
-        startDate: makeupClass.startDate,
-        endDate: makeupClass.endDate,
-        weeklySchedule: makeupClass.weeklySchedule || null,
-        room: makeupClass.room || null,
-        instructorName: toDisplayName(makeupClass.instructor),
-      })),
+      makeupOptions: (row.courseClass.makeupGroupMember?.makeupGroup.members ?? [])
+        .filter(({ courseClass }) => courseClass.classId !== row.classId)
+        .map(({ courseClass }) => ({
+          classId: courseClass.classId,
+          className: courseClass.className,
+          startDate: courseClass.startDate,
+          endDate: courseClass.endDate,
+          weeklySchedule: courseClass.weeklySchedule || null,
+          room: courseClass.room || null,
+          instructorName: toDisplayName(courseClass.instructor),
+        })),
     }
   }
 }
