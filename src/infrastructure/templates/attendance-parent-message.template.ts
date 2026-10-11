@@ -6,6 +6,7 @@ export interface AttendanceParentMessageTemplateData {
   attendanceTimeLabel: string
   arrivalTime: string
   statusLabel: string
+  attendanceTypeLabel?: string
   makeupLine?: string
   homeworkLine?: string
   notes?: string
@@ -22,6 +23,7 @@ export class AttendanceParentMessageTemplate {
       `📅 NGÀY HỌC: ${data.sessionDate}${data.sessionTime ? ` (${data.sessionTime})` : ''}`,
       `${data.attendanceTimeLabel}: ${data.arrivalTime}`,
       `📌 TRẠNG THÁI: ${data.statusLabel}`,
+      data.attendanceTypeLabel ? `🔖 LOẠI ĐIỂM DANH: ${data.attendanceTypeLabel}` : '',
       data.makeupLine || '',
       data.homeworkLine || '',
       data.notes ? `📝 GHI CHÚ: ${data.notes}` : '',

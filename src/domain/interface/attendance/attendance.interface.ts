@@ -1,9 +1,10 @@
-import { AttendanceStatus } from 'src/shared/enums'
+import { AttendanceStatus, AttendanceType } from 'src/shared/enums'
 
 export interface CreateAttendanceData {
     sessionId: number
     studentId: number
     status: AttendanceStatus
+    attendanceType?: AttendanceType
     notes?: string
     markerId?: number
     parentNotified?: boolean
@@ -11,6 +12,7 @@ export interface CreateAttendanceData {
 
 export interface UpdateAttendanceData {
     status?: AttendanceStatus
+    attendanceType?: AttendanceType
     notes?: string
     markerId?: number
     parentNotified?: boolean
@@ -22,6 +24,7 @@ export interface AttendanceFilterOptions {
     studentId?: number
     classId?: number
     status?: AttendanceStatus
+    attendanceType?: AttendanceType
     search?: string
     fromDate?: string
     toDate?: string

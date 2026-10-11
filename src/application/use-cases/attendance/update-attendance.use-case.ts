@@ -9,7 +9,7 @@ import { ACTION_KEYS } from 'src/shared/constants/action-key.constants'
 import { AuditStatus } from 'src/shared/enums/audit-status.enum'
 import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
 import { CreateAndNotifyOneUseCase } from '../notification/create-and-notify-one.use-case'
-import { NotificationType, NotificationLevel, AttendanceStatusLabels } from 'src/shared/enums'
+import { NotificationType, NotificationLevel, AttendanceStatusLabels, AttendanceType, AttendanceTypeLabels } from 'src/shared/enums'
 import { SendAttendanceToParentUseCase } from './send-attendance-to-parent.use-case'
 import { StudentPointService } from 'src/application/services/student-point.service'
 
@@ -66,6 +66,7 @@ export class UpdateAttendanceUseCase {
 
       const data: UpdateAttendanceData = {}
       const statusChanged = dto.status !== undefined && dto.status !== existing.status
+      const attendanceTypeChanged = dto.attendanceType !== undefined && dto.attendanceType !== existing.attendanceType
 
       // Chỉ gán các trường thực sự thay đổi
       if (statusChanged) {
@@ -73,6 +74,9 @@ export class UpdateAttendanceUseCase {
 
         // Nếu chuyển sang trạng thái có mặt → cập nhật thời điểm điểm danh
         data.markedAt = new Date()
+      }
+      if (attendanceTypeChanged) {
+        data.attendanceType = dto.attendanceType
       }
 
       if (dto.notes !== undefined && dto.notes !== existing.notes) {
@@ -98,6 +102,7 @@ export class UpdateAttendanceUseCase {
         studentId: attendance.studentId,
         attendanceId: attendance.attendanceId,
         status: attendance.status,
+        attendanceType: attendance.attendanceType,
         sessionId: attendance.sessionId,
       })
 
@@ -118,19 +123,19 @@ export class UpdateAttendanceUseCase {
       const notification = {
         userId: student.userId,
         title: 'Cập nhật điểm danh',
-        message: `Điểm danh của bạn đã được cập nhật thành: ${statusLabel}`,
+        message: `Điểm danh của bạn đã được cập nhật thành: ${statusLabel}${attendance.attendanceType === AttendanceType.MAKEUP ? `; loại: ${AttendanceTypeLabels[attendance.attendanceType]}` : ''}`,
         type: NotificationType.ATTENDANCE,
         level: NotificationLevel.INFO,
-        data: { attendanceId: attendance.attendanceId, sessionId: attendance.sessionId, status: attendance.status },
+        data: { attendanceId: attendance.attendanceId, sessionId: attendance.sessionId, status: attendance.status, attendanceType: attendance.attendanceType },
       }
 
       await this.createAndNotifyOne.executeWithRepos(repos, notification, {
         sourceType: 'ATTENDANCE',
         sourceId: String(attendance.attendanceId),
         sourceEvent: 'UPDATED',
-        idempotencyKey: `attendance:${attendance.attendanceId}:student:updated:${attendance.status}`,
+        idempotencyKey: `attendance:${attendance.attendanceId}:student:updated:${attendance.status}:${attendance.attendanceType}`,
       })
-      if (statusChanged) {
+      if (statusChanged || attendanceTypeChanged) {
         await this.sendAttendanceToParentUseCase.executeWithRepos(repos, { attendanceId: attendance.attendanceId })
       }
 

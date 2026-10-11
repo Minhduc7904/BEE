@@ -1531,36 +1531,41 @@ model CourseClass {
   assistantShifts AssistantShift[]
   reports         Report[]
 
-  // Các lớp mà học sinh của lớp này có thể sang học bù (lớp này là lớp nguồn).
-  makeupOptionsFrom CourseClassMakeupOption[] @relation("MakeupSourceClass")
-  // Các cấu hình học bù đang dùng lớp này làm lớp học bù (lớp này là lớp đích).
-  makeupOptionsTo   CourseClassMakeupOption[] @relation("MakeupTargetClass")
+  // Nhóm học bù mà lớp này là thành viên; một lớp thuộc tối đa một nhóm.
+  makeupGroupMember CourseClassMakeupGroupMember?
 
   @@index([courseId], map: "idx_course_classes_course_id")
   @@map("courses_classes")
 }
 
-// Cấu hình lớp học bù: học sinh của lớp nguồn được phép sang học bù tại lớp đích.
-// Quan hệ có hướng (nguồn → đích); Admin quản lý, các ràng buộc cùng khóa học, không tự trỏ
-// và không tạo chu trình được kiểm tra ở use case vì MySQL/Prisma không biểu đạt được.
-model CourseClassMakeupOption {
-  // Lớp nguồn: lớp có học sinh cần học bù.
-  sourceClassId Int @map("source_class_id")
-  // Lớp đích: lớp học sinh có thể tham gia để học bù.
-  makeupClassId Int @map("makeup_class_id")
+// Nhóm các lớp có thể học bù cho nhau: học sinh của một lớp trong nhóm được sang học bù ở mọi lớp còn lại.
+// Nhóm có hiệu lực khi có ít nhất 2 lớp; ràng buộc các lớp cùng khóa học và dọn nhóm còn dưới 2 lớp do use case đảm bảo.
+model CourseClassMakeupGroup {
+  makeupGroupId Int @id @default(autoincrement()) @map("makeup_group_id")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  members CourseClassMakeupGroupMember[]
+
+  @@map("course_class_makeup_groups")
+}
+
+// Thành viên của nhóm học bù. Khóa chính là lớp nên một lớp chỉ thuộc tối đa một nhóm.
+model CourseClassMakeupGroupMember {
+  classId       Int @id @map("class_id")
+  makeupGroupId Int @map("makeup_group_id")
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
 
-  // Cascade: bản ghi liên kết không còn ý nghĩa khi lớp nguồn bị xóa.
-  sourceClass CourseClass @relation("MakeupSourceClass", fields: [sourceClassId], references: [classId], onDelete: Cascade)
-  // Cascade: bản ghi liên kết không còn ý nghĩa khi lớp đích bị xóa.
-  makeupClass CourseClass @relation("MakeupTargetClass", fields: [makeupClassId], references: [classId], onDelete: Cascade)
+  // Cascade: thành viên không còn ý nghĩa khi lớp bị xóa.
+  courseClass CourseClass            @relation(fields: [classId], references: [classId], onDelete: Cascade)
+  // Cascade: xóa nhóm thì xóa toàn bộ thành viên.
+  makeupGroup CourseClassMakeupGroup @relation(fields: [makeupGroupId], references: [makeupGroupId], onDelete: Cascade)
 
-  // Khóa chính ghép đảm bảo mỗi cặp nguồn → đích chỉ tồn tại một lần và phục vụ tra cứu theo lớp nguồn.
-  @@id([sourceClassId, makeupClassId])
-  // Phục vụ tra cứu ngược theo lớp đích (đọc graph và FK makeup_class_id).
-  @@index([makeupClassId], map: "idx_course_class_makeup_options_target")
-  @@map("course_class_makeup_options")
+  // Phục vụ đọc thành viên theo nhóm và FK makeup_group_id.
+  @@index([makeupGroupId], map: "idx_course_class_makeup_group_members_group_id")
+  @@map("course_class_makeup_group_members")
 }
 
 // Nhóm các ca trợ giảng có liên hệ tuần tự, ví dụ các buổi liên tiếp của cùng một lớp.
@@ -1834,6 +1839,10 @@ enum AttendanceStatus {
   PRESENT
   ABSENT
   LATE
+}
+
+enum AttendanceType {
+  REGULAR
   MAKEUP
 }
 
@@ -1842,6 +1851,7 @@ model Attendance {
   sessionId      Int              @map("session_id")
   studentId      Int              @map("student_id")
   status         AttendanceStatus @map("status") // present, absent, late
+  attendanceType AttendanceType   @default(REGULAR) @map("attendance_type")
   markedAt       DateTime         @map("marked_at") @db.Timestamp(0)
   notes          String?          @map("notes") @db.Text
   updatedAt      DateTime         @updatedAt @map("updated_at") @db.Timestamp(0)

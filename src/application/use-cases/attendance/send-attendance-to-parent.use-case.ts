@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { createHash } from 'crypto'
 import type { IUnitOfWork, UnitOfWorkRepos } from 'src/domain/repositories'
-import { AttendanceStatusLabels, AttendanceStatus, NotificationLevel, NotificationType } from 'src/shared/enums'
+import { AttendanceStatusLabels, AttendanceStatus, AttendanceType, AttendanceTypeLabels, NotificationLevel, NotificationType } from 'src/shared/enums'
 import { formatVnDate, formatVnDateTime, formatVnTime } from 'src/shared/utils/vietnam-date.util'
 import { AttendanceParentMessageTemplate } from 'src/infrastructure/templates/attendance-parent-message.template'
 import { BusinessNotificationQueueService } from '../notification/business-notification-queue.service'
@@ -112,6 +112,9 @@ export class SendAttendanceToParentUseCase {
       attendanceTimeLabel,
       arrivalTime,
       statusLabel,
+      attendanceTypeLabel: attendance.attendanceType === AttendanceType.MAKEUP
+        ? AttendanceTypeLabels[attendance.attendanceType]
+        : undefined,
       makeupLine,
       homeworkLine,
       notes: attendance.notes || undefined,
@@ -127,11 +130,12 @@ export class SendAttendanceToParentUseCase {
         attendanceId: String(attendance.attendanceId),
         studentId: String(attendance.studentId),
         status: attendance.status,
+        attendanceType: attendance.attendanceType,
       },
     }
     const digest = createHash('sha256').update(messageText).digest('hex').slice(0, 24)
     const queued = await this.queue.enqueueStudentAndParentsWithRepos(repos, {
-      idempotencyKey: `attendance:${attendance.attendanceId}:${attendance.status}:${digest}`,
+      idempotencyKey: `attendance:${attendance.attendanceId}:${attendance.status}:${attendance.attendanceType}:${digest}`,
       sourceType: 'ATTENDANCE',
       sourceId: String(attendance.attendanceId),
       sourceEvent: 'PARENT_NOTIFY',

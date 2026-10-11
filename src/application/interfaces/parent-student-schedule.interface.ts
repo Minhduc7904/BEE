@@ -1,8 +1,10 @@
 import type { AttendanceStatus } from '../../shared/enums/attendance-status.enum'
+import type { AttendanceType } from '../../shared/enums/attendance-type.enum'
 
 export interface ParentScheduleAttendance {
   attendanceId: number
   status: AttendanceStatus
+  attendanceType: AttendanceType
   markedAt: Date
   notes: string | null
 }

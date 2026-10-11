@@ -71,7 +71,8 @@ export class AttendanceController {
    * - sessionId: filter theo buổi học
    * - studentId: filter theo học sinh
    * - classId: filter theo lớp học
-   * - status: filter theo trạng thái (PRESENT, ABSENT, LATE, MAKEUP)
+   * - status: filter theo trạng thái (PRESENT, ABSENT, LATE)
+   * - attendanceType: filter theo loại điểm danh (REGULAR, MAKEUP)
    * - month: tháng để lấy thông tin học phí (1-12)
    * - year: năm để lấy thông tin học phí (2000-2100)
    * - fromDate: filter từ ngày (ISO format: YYYY-MM-DD)

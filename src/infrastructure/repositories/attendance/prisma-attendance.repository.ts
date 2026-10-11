@@ -22,6 +22,7 @@ export class PrismaAttendanceRepository implements IAttendanceRepository {
         sessionId: data.sessionId,
         studentId: data.studentId,
         status: data.status,
+        attendanceType: data.attendanceType,
         notes: data.notes,
         markerId: data.markerId,
         markedAt: new Date(),
@@ -162,6 +163,9 @@ export class PrismaAttendanceRepository implements IAttendanceRepository {
     if (filters?.status) {
       where.status = filters.status
     }
+    if (filters?.attendanceType) {
+      where.attendanceType = filters.attendanceType
+    }
 
     // Filter by classId through classSession relation
     if (filters?.classId !== undefined) {
@@ -225,11 +229,12 @@ export class PrismaAttendanceRepository implements IAttendanceRepository {
   }
 
   async findWithFilter(filters: AttendanceFilterOptions): Promise<Attendance[]> {
-    const { sessionId, studentId, studentIds, classId, status, fromDate, toDate } = filters
+    const { sessionId, studentId, studentIds, classId, status, attendanceType, fromDate, toDate } = filters
 
     const where: any = {
       ...(sessionId && { sessionId }),
       ...(status && { status }),
+      ...(attendanceType && { attendanceType }),
     }
 
     /**
@@ -419,6 +424,7 @@ export class PrismaAttendanceRepository implements IAttendanceRepository {
         sessionId: item.sessionId,
         studentId: item.studentId,
         status: item.status,
+        attendanceType: item.attendanceType,
         notes: item.notes,
         markerId: item.markerId,
         markedAt: new Date(),
@@ -457,6 +463,9 @@ export class PrismaAttendanceRepository implements IAttendanceRepository {
 
     if (filters?.status) {
       where.status = filters.status
+    }
+    if (filters?.attendanceType) {
+      where.attendanceType = filters.attendanceType
     }
 
     if (filters?.classId !== undefined) {
@@ -543,6 +552,10 @@ export class PrismaAttendanceRepository implements IAttendanceRepository {
       conditions.push('a.status = ?')
       params.push(filters.status)
     }
+    if (filters.attendanceType) {
+      conditions.push('a.attendance_type = ?')
+      params.push(filters.attendanceType)
+    }
 
     if (filters.classId !== undefined) {
       conditions.push('cs.class_id = ?')
@@ -594,6 +607,7 @@ export class PrismaAttendanceRepository implements IAttendanceRepository {
     const columnMap: Record<string, string> = {
       markedAt: 'a.marked_at',
       status: 'a.status',
+      attendanceType: 'a.attendance_type',
       studentId: 'a.student_id',
       sessionId: 'a.session_id',
     }

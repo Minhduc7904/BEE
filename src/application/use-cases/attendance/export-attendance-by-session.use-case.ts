@@ -55,6 +55,7 @@ export class ExportAttendanceBySessionUseCase {
       grade: attendance.student?.grade || '',
       email: attendance.student?.user.email || '',
       status: attendance.getStatusLabel(),
+      attendanceType: attendance.getAttendanceTypeLabel(),
       markedAt: this.formatDate(attendance.markedAt),
       notes: attendance.notes || '',
       makeupNote: attendance.makeupNote || '',
@@ -121,6 +122,7 @@ export class ExportAttendanceBySessionUseCase {
 
     // Status is always included after optional fields
     columns.push({ header: 'Trạng thái', key: 'status', width: 15 })
+    columns.push({ header: 'Loại điểm danh', key: 'attendanceType', width: 15 })
 
     if (options.includeMarkedAt !== false) {
       columns.push({ header: 'Thời gian điểm danh', key: 'markedAt', width: 20 })
