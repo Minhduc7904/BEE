@@ -22,6 +22,8 @@ import {
 import { CourseClassSearchQueryDto } from '../../application/dtos/course-class/course-class-search-query.dto'
 import { CourseClassMakeupGroupResponseDto } from '../../application/dtos/course-class/course-class-makeup-group-response.dto'
 import { ReplaceCourseClassMakeupGroupDto } from '../../application/dtos/course-class/replace-course-class-makeup-group.dto'
+import { CourseClassMakeupSessionsResponseDto } from '../../application/dtos/course-class/course-class-makeup-sessions-response.dto'
+import { CourseClassMakeupSessionsQueryDto } from '../../application/dtos/course-class/course-class-makeup-sessions-query.dto'
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
@@ -35,6 +37,7 @@ import {
     DeleteCourseClassUseCase,
     SearchCourseClassesUseCase,
     GetCourseClassMakeupGroupUseCase,
+    GetCourseClassMakeupSessionsUseCase,
     ReplaceCourseClassMakeupGroupUseCase,
 } from '../../application/use-cases/course-class'
 import { Injectable } from '@nestjs/common'
@@ -51,6 +54,7 @@ export class CourseClassController {
         private readonly deleteCourseClassUseCase: DeleteCourseClassUseCase,
         private readonly searchCourseClassesUseCase: SearchCourseClassesUseCase,
         private readonly getCourseClassMakeupGroupUseCase: GetCourseClassMakeupGroupUseCase,
+        private readonly getCourseClassMakeupSessionsUseCase: GetCourseClassMakeupSessionsUseCase,
         private readonly replaceCourseClassMakeupGroupUseCase: ReplaceCourseClassMakeupGroupUseCase,
     ) { }
 
@@ -120,6 +124,18 @@ export class CourseClassController {
     ): Promise<BaseResponseDto<CourseClassMakeupGroupResponseDto>> {
         return ExceptionHandler.execute(() =>
             this.getCourseClassMakeupGroupUseCase.execute(id)
+        )
+    }
+
+    @Get(':id/makeup-sessions')
+    @RequirePermission(PERMISSION_CODES.COURSE_CLASS.GET_BY_ID)
+    @HttpCode(HttpStatus.OK)
+    async getMakeupSessions(
+        @Param('id', ParseIntPipe) id: number,
+        @Query() query: CourseClassMakeupSessionsQueryDto,
+    ): Promise<BaseResponseDto<CourseClassMakeupSessionsResponseDto>> {
+        return ExceptionHandler.execute(() =>
+            this.getCourseClassMakeupSessionsUseCase.execute(id, query.weekStart)
         )
     }
 

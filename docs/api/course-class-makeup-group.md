@@ -123,3 +123,49 @@ Nếu tập lớp bạn gửi lên giống hệt tập hiện tại thì API tr�
 | `401` / `403` | Chưa đăng nhập hoặc thiếu permission. |
 | `404` | Lớp nguồn không tồn tại, hoặc có lớp trong danh sách không tồn tại (message nêu các ID thiếu). |
 | `409` | Có lớp đang thuộc nhóm học bù khác, hoặc bị xung đột với một lần lưu khác diễn ra đồng thời (`code`: `COURSE_CLASS_MAKEUP_GROUP_CONFLICT`). |
+
+## GET `/course-classes/:id/makeup-sessions?weekStart=YYYY-MM-DD`
+
+Liệt kê các buổi học có thể học bù cho nhau trong **một tuần**, suy ra từ nhóm học bù của lớp.
+
+- Permission: `course-class:get-by-id` (cùng quyền với `GET /course-classes/:id/makeup-group`).
+- `weekStart` bắt buộc, phải là một ngày Thứ Hai hợp lệ (`YYYY-MM-DD`); sai định dạng hoặc không phải Thứ Hai trả `400`. Tuần tính từ Thứ Hai đến Chủ Nhật theo cột `sessionDate`.
+- Quy tắc: buổi A của lớp `:id` có thể học bù cho buổi B khi B thuộc **lớp khác trong cùng nhóm hiệu lực** (từ 2 lớp) và B nằm **cùng tuần** với A. Buổi ngoài tuần không bao giờ ghép với nhau. Quan hệ đối xứng.
+- Lớp chưa thuộc nhóm hiệu lực: `groupId = null` và `sessions = []`. Lớp không tồn tại: `404`.
+- `sessions` là các buổi của lớp `:id` trong tuần; `makeupCandidates` là các buổi của lớp bạn trong nhóm cùng tuần, sắp theo ngày rồi giờ bắt đầu. `sessionDate` là chuỗi `YYYY-MM-DD`; `startTime`/`endTime` giữ nguyên định dạng như `GET /class-sessions`.
+
+```json
+{
+  "success": true,
+  "message": "Lấy các buổi học bù trong tuần thành công",
+  "data": {
+    "sourceClassId": 154,
+    "courseId": 3,
+    "groupId": 5,
+    "weekStart": "2026-10-12",
+    "weekEnd": "2026-10-18",
+    "sessions": [
+      {
+        "sessionId": 901,
+        "classId": 154,
+        "className": "Toán 10A",
+        "name": "Buổi 13/10",
+        "sessionDate": "2026-10-13",
+        "startTime": "1970-01-01T11:00:00.000Z",
+        "endTime": "1970-01-01T13:00:00.000Z",
+        "makeupCandidates": [
+          {
+            "sessionId": 905,
+            "classId": 155,
+            "className": "Toán 10B",
+            "name": "Buổi 15/10",
+            "sessionDate": "2026-10-15",
+            "startTime": "1970-01-01T11:00:00.000Z",
+            "endTime": "1970-01-01T13:00:00.000Z"
+          }
+        ]
+      }
+    ]
+  }
+}
+```

@@ -56,6 +56,8 @@ import {
 } from '../../application/use-cases/assistant-shift'
 import { PERMISSION_CODES } from '../../shared/constants/permissions/permission.codes'
 import { CurrentUser } from '../../shared/decorators/current-user.decorator'
+import type { AuthenticatedUser } from '../../shared/guards/auth.guard'
+import { ROLE_NAMES } from '../../shared/constants/roles.constant'
 import { RequirePermission } from '../../shared/decorators/permissions.decorator'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { renderAssistantShiftCheckInResultPage } from '../../infrastructure/templates/assistant-shift-check-in-result.template'
@@ -106,8 +108,15 @@ export class AssistantShiftController {
   @Post('base/copy')
   @RequirePermission(PERMISSION_CODES.ASSISTANT_SHIFT.COPY)
   @HttpCode(HttpStatus.CREATED)
-  copyBase(@Body() dto: CopyBaseAssistantShiftsDto) {
-    return ExceptionHandler.execute(() => this.copyBaseUseCase.execute(dto))
+  copyBase(@Body() dto: CopyBaseAssistantShiftsDto, @CurrentUser() user: AuthenticatedUser) {
+    // RequirePermission chỉ kiểm tra "một trong"; tạo buổi học cần thêm class-session:create (SUPER_ADMIN luôn được).
+    const canCreateClassSession =
+      user?.roles?.some((role) => role.name === ROLE_NAMES.SUPER_ADMIN) ||
+      user?.permissions?.some((permission) => permission.code === PERMISSION_CODES.CLASS_SESSION.CREATE) ||
+      false
+    return ExceptionHandler.execute(() =>
+      this.copyBaseUseCase.execute(dto, { adminId: user?.adminId, canCreateClassSession }),
+    )
   }
   @Get('series')
   @RequirePermission(PERMISSION_CODES.ASSISTANT_SHIFT.GET_ALL_BY_SERIES)

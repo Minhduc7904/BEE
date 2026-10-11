@@ -11,6 +11,7 @@ const COURSE_CLASS_USE_CASES = [
   courseClassUseCase.DeleteCourseClassUseCase,
   courseClassUseCase.SearchCourseClassesUseCase,
   courseClassUseCase.GetCourseClassMakeupGroupUseCase,
+  courseClassUseCase.GetCourseClassMakeupSessionsUseCase,
   courseClassUseCase.ReplaceCourseClassMakeupGroupUseCase,
 ]
 
