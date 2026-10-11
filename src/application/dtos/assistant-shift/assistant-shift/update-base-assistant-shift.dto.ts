@@ -1,8 +1,9 @@
-import { IsOptionalIdNumber, IsOptionalInt, IsOptionalString } from '../../../../shared/decorators/validate'
+import { IsOptionalInt, IsOptionalNullableIdNumber, IsOptionalString } from '../../../../shared/decorators/validate'
 
 export class UpdateBaseAssistantShiftDto {
-  @IsOptionalIdNumber('ID lớp')
-  classId?: number
+  /** `null` gỡ ca khỏi lớp; bỏ trường này thì giữ nguyên. */
+  @IsOptionalNullableIdNumber('ID lớp')
+  classId?: number | null
 
   @IsOptionalString('Tên ca', 200)
   name?: string

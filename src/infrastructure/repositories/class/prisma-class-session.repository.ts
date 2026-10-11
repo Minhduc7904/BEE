@@ -406,6 +406,28 @@ export class PrismaClassSessionRepository implements IClassSessionRepository {
         return ClassSessionMapper.toDomainClassSessions(prismaSessions)
     }
 
+    async findByClassIdsAndSessionDateRange(classIds: number[], fromDate: Date, toDate: Date): Promise<ClassSession[]> {
+        if (classIds.length === 0) return []
+
+        const prismaSessions = await this.prisma.classSession.findMany({
+            where: {
+                classId: { in: classIds },
+                sessionDate: { gte: fromDate, lte: toDate },
+            },
+            include: {
+                courseClass: {
+                    include: {
+                        course: true,
+                    },
+                },
+                homeworkContent: true,
+            },
+            orderBy: [{ sessionDate: 'asc' }, { startTime: 'asc' }, { sessionId: 'asc' }],
+        })
+
+        return ClassSessionMapper.toDomainClassSessions(prismaSessions)
+    }
+
     async findByDate(date: Date): Promise<ClassSession[]> {
         const start = new Date(date)
         start.setHours(0, 0, 0, 0)

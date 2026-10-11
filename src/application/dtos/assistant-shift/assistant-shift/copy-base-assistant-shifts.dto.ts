@@ -15,4 +15,8 @@ export class CopyBaseAssistantShiftsDto {
 
   @IsOptionalBoolean('Sao chép trạng thái điểm danh của phân công')
   copyAssignmentAttendanceStatus?: boolean
+
+  /** Tạo thêm buổi học (ClassSession) cho mỗi ca cơ sở đã gắn lớp. Cần quyền class-session:create. */
+  @IsOptionalBoolean('Tạo buổi học cho các lớp')
+  createClassSessions?: boolean
 }

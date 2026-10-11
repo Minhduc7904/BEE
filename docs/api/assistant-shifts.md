@@ -223,6 +223,7 @@ Ca cơ sở là mẫu lịch duy nhất trong tuần **20/07/2026 (Thứ Hai) đ
 
 - Permission: `assistant-shift:update`.
 - Chỉ áp dụng cho ca cơ sở. Client chỉ có thể đổi giờ/phút bằng `startTime`/`endTime`; ngày trong tuần giữ nguyên. Có thể đổi `classId`, `name`, `notes`, `requiredAssistantCount`.
+- `classId`: bỏ trường này thì giữ nguyên lớp; gửi `null` để gỡ ca khỏi lớp; gửi ID lớp không tồn tại trả `404`. Tạo ca cơ sở (`POST /assistant-shifts/base`) cũng kiểm tra lớp tồn tại.
 
 ```json
 { "startTime": "18:30", "endTime": "20:30" }
@@ -239,6 +240,13 @@ Ca cơ sở là mẫu lịch duy nhất trong tuần **20/07/2026 (Thứ Hai) đ
 - `ids` là danh sách ID ca cơ sở cần sao chép. `startPasteAt` và `endPasteAt` phải cùng tuần Thứ Hai–Chủ Nhật, ví dụ `2026-07-27` đến `2026-08-02`.
 - Ca được tạo là ca thường (`isBaseShift = false`), `isLocked = false`, không có cửa sổ tự đăng ký.
 - `notes` của ca cơ sở được copy sang ca thường mới. `copyAssignments` mặc định `true`; khi bật, copy admin được gắn. `copyAssignmentAttendanceStatus` mặc định `false`; khi bật cùng `copyAssignments`, assignment mới giữ attendance status của assignment nguồn. Lý do vắng và ghi chú quản lý luôn không copy.
+- `createClassSessions` mặc định `false`. Khi `true`, mỗi ca cơ sở có `classId` sinh thêm một buổi học (`class_sessions`) trong lớp đó, cùng transaction với việc tạo ca:
+  - Tên buổi mặc định `Buổi dd/mm` theo ngày Việt Nam của ca mới; `sessionDate` là ngày đó, `startTime`/`endTime` lấy từ giờ của ca.
+  - Buổi đã tồn tại (cùng lớp, cùng ngày, cùng giờ bắt đầu) được **bỏ qua**, nên paste lại không sinh buổi trùng. Trùng ca trợ giảng vẫn báo `409` cho cả đợt như trước.
+  - Ca không gắn lớp, hoặc lớp thuộc khóa học đã kết thúc (`isEnded`), không sinh buổi (vẫn tạo ca) và được đếm riêng trong response.
+  - Ghi audit `CREATE_CLASS_SESSION` cho từng buổi được tạo.
+  - Cần thêm quyền `class-session:create` (SUPER_ADMIN luôn được). Thiếu quyền mà bật cờ trả `403`, không tạo gì.
+- Response khi `createClassSessions = true` có thêm `createdSessionCount`, `skippedExistingSessionCount`, `skippedNoClassCount`, `skippedEndedCourseCount`; khi tắt chỉ có `copiedShiftCount` và `copiedAssignmentCount`.
 
 ```json
 {
@@ -246,7 +254,25 @@ Ca cơ sở là mẫu lịch duy nhất trong tuần **20/07/2026 (Thứ Hai) đ
   "startPasteAt": "2026-07-27T00:00:00+07:00",
   "endPasteAt": "2026-08-02T23:59:59+07:00",
   "copyAssignments": true,
-  "copyAssignmentAttendanceStatus": false
+  "copyAssignmentAttendanceStatus": false,
+  "createClassSessions": true
+}
+```
+
+Response (khi bật `createClassSessions`):
+
+```json
+{
+  "success": true,
+  "message": "Sao chép ca cơ sở thành công",
+  "data": {
+    "copiedShiftCount": 2,
+    "copiedAssignmentCount": 3,
+    "createdSessionCount": 1,
+    "skippedExistingSessionCount": 0,
+    "skippedNoClassCount": 1,
+    "skippedEndedCourseCount": 0
+  }
 }
 ```
 

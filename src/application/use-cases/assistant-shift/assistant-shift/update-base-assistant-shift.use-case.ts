@@ -21,6 +21,10 @@ export class UpdateBaseAssistantShiftUseCase {
         throw new NotFoundException('Ca cơ sở không tồn tại')
       }
 
+      if (dto.classId != null && !(await repos.courseClassRepository.findById(dto.classId))) {
+        throw new NotFoundException('Lớp học không tồn tại')
+      }
+
       const weekday = getBaseShiftWeekday(current.startAt)
       const startAt = createBaseShiftDate(weekday, dto.startTime ?? getBaseShiftTime(current.startAt))
       const endAt = createBaseShiftDate(weekday, dto.endTime ?? getBaseShiftTime(current.endAt))

@@ -16,6 +16,10 @@ export class CreateBaseAssistantShiftUseCase {
         throw new NotFoundException('Chuỗi ca không tồn tại')
       }
 
+      if (dto.classId != null && !(await repos.courseClassRepository.findById(dto.classId))) {
+        throw new NotFoundException('Lớp học không tồn tại')
+      }
+
       const startAt = createBaseShiftDate(dto.weekday, dto.startTime)
       const endAt = createBaseShiftDate(dto.weekday, dto.endTime)
       assertRange(startAt, endAt)

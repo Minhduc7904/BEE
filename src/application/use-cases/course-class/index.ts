@@ -6,3 +6,4 @@ export * from './delete-course-class.use-case';
 export * from './search-course-classes.use-case';
 export * from './get-course-class-makeup-group.use-case';
 export * from './replace-course-class-makeup-group.use-case';
+export * from './get-course-class-makeup-sessions.use-case';
