@@ -69,6 +69,12 @@ export class PrismaAttendanceRepository implements IAttendanceRepository {
         marker: {
           include: { user: true },
         },
+        makeupBy: {
+          include: { classSession: { include: { courseClass: true } } },
+        },
+        madeUpAbsences: {
+          include: { classSession: { include: { courseClass: true } } },
+        },
       },
     })
 
@@ -413,6 +419,46 @@ export class PrismaAttendanceRepository implements IAttendanceRepository {
 
     if (!prismaAttendance) return null
     return AttendanceMapper.toDomainAttendance(prismaAttendance)!
+  }
+
+  async findByStudentAndSessionIds(studentId: number, sessionIds: number[]): Promise<Attendance[]> {
+    if (sessionIds.length === 0) return []
+
+    const prismaAttendances = await this.prisma.attendance.findMany({
+      where: {
+        studentId: NumberUtil.ensureValidId(studentId, 'Student ID'),
+        sessionId: { in: sessionIds },
+      },
+      include: {
+        classSession: true,
+      },
+      orderBy: { attendanceId: 'asc' },
+    })
+
+    return AttendanceMapper.toDomainAttendances(prismaAttendances)
+  }
+
+  async findByMakeupByAttendanceId(attendanceId: number): Promise<Attendance[]> {
+    const id = NumberUtil.ensureValidId(attendanceId, 'Attendance ID')
+
+    const prismaAttendances = await this.prisma.attendance.findMany({
+      where: { makeupByAttendanceId: id },
+      include: {
+        classSession: true,
+      },
+      orderBy: { attendanceId: 'asc' },
+    })
+
+    return AttendanceMapper.toDomainAttendances(prismaAttendances)
+  }
+
+  async setMakeupByAttendanceId(ids: number[], value: number | null): Promise<void> {
+    if (ids.length === 0) return
+
+    await this.prisma.attendance.updateMany({
+      where: { attendanceId: { in: ids } },
+      data: { makeupByAttendanceId: value },
+    })
   }
 
   async createBulk(data: CreateAttendanceData[]): Promise<Attendance[]> {

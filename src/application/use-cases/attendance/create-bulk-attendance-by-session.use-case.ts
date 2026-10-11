@@ -13,6 +13,7 @@ import { RESOURCE_TYPES } from '../../../shared/constants/resource-type.constant
 import { CreateAndNotifyManyUseCase } from '../notification/create-and-notify-many.use-case'
 import { SendBulkAttendanceToParentUseCase } from './send-bulk-attendance-to-parent.use-case'
 import { StudentPointService } from 'src/application/services/student-point.service'
+import { AttendanceMakeupLinkService } from 'src/application/services/attendance-makeup-link.service'
 import { createHash } from 'crypto'
 
 @Injectable()
@@ -27,6 +28,7 @@ Nếu con đăng ký nhầm lớp, hãy chọn "Liên hệ hỗ trợ" để tr�
     private readonly createAndNotifyMany: CreateAndNotifyManyUseCase,
     private readonly sendBulkAttendanceToParentUseCase: SendBulkAttendanceToParentUseCase,
     private readonly studentPointService: StudentPointService,
+    private readonly attendanceMakeupLinkService: AttendanceMakeupLinkService,
   ) {}
 
   async execute(
@@ -107,6 +109,16 @@ Nếu con đăng ký nhầm lớp, hãy chọn "Liên hệ hỗ trợ" để tr�
          * =========================
          */
         const createdAttendances = await attendanceRepository.createBulk(bulkData)
+
+        // Tự nối liên kết học bù cho từng bản ghi vừa tạo (tuần tự để tránh tranh chấp khi nối cùng bản ghi Có mặt)
+        for (const attendance of createdAttendances) {
+          if (attendance.status === AttendanceStatus.PRESENT) {
+            await this.attendanceMakeupLinkService.linkAbsencesTo(repos, attendance)
+          } else if (attendance.status === AttendanceStatus.ABSENT) {
+            await this.attendanceMakeupLinkService.linkAbsenceToMakeup(repos, attendance)
+          }
+        }
+
         await Promise.all(
           createdAttendances.map((attendance) =>
             this.studentPointService.awardAttendancePoints(repos, {
@@ -177,11 +189,12 @@ Nếu con đăng ký nhầm lớp, hãy chọn "Liên hệ hỗ trợ" để tr�
             sourceEvent: 'BULK_CREATED',
             idempotencyKey: `attendance-bulk:${dto.sessionId}:${digest}:students`,
           })
-          await this.sendBulkAttendanceToParentUseCase.executeWithRepos(repos, {
-            attendanceIds,
-            note: CreateBulkAttendanceBySessionUseCase.FIRST_ATTENDANCE_NOTE,
-            includeZalo: false,
-          })
+          // TẠM TẮT: gửi tin phụ huynh khi điểm danh, sẽ xử lý sau
+          // await this.sendBulkAttendanceToParentUseCase.executeWithRepos(repos, {
+          //   attendanceIds,
+          //   note: CreateBulkAttendanceBySessionUseCase.FIRST_ATTENDANCE_NOTE,
+          //   includeZalo: false,
+          // })
 
           return {
             responses: createdAttendances.map((attendance) => AttendanceResponseDto.fromEntity(attendance)),

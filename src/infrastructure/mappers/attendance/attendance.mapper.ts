@@ -27,6 +27,7 @@ export class AttendanceMapper {
             notes: prismaAttendance.notes ?? null,
             markerId: prismaAttendance.markerId ?? null,
             parentNotified: prismaAttendance.parentNotified ?? false,
+            makeupByAttendanceId: prismaAttendance.makeupByAttendanceId ?? null,
             classSession: prismaAttendance.classSession
                 ? ClassSessionMapper.toDomainClassSession(prismaAttendance.classSession)
                 : undefined,
@@ -36,6 +37,13 @@ export class AttendanceMapper {
             marker: prismaAttendance.marker
                 ? AdminMapper.toDomainAdmin(prismaAttendance.marker)
                 : null,
+            // Chỉ map một cấp: makeupBy / madeUpAbsences không tải thêm quan hệ đệ quy.
+            makeupBy: prismaAttendance.makeupBy
+                ? AttendanceMapper.toDomainAttendance(prismaAttendance.makeupBy)
+                : undefined,
+            madeUpAbsences: prismaAttendance.madeUpAbsences
+                ? AttendanceMapper.toDomainAttendances(prismaAttendance.madeUpAbsences)
+                : undefined,
         })
     }
 

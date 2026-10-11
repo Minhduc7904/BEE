@@ -2,6 +2,9 @@ import { PrismaClient } from '@prisma/client'
 import type { IUnitOfWork, UnitOfWorkRepos } from '../../../domain/repositories'
 import { PrismaCourseClassMakeupGroupRepository } from '../../../infrastructure/repositories/class/prisma-course-class-makeup-group.repository'
 import { PrismaCourseClassRepository } from '../../../infrastructure/repositories/class/prisma-course-class.repository'
+import { PrismaClassSessionRepository } from '../../../infrastructure/repositories/class/prisma-class-session.repository'
+import { PrismaSessionMakeupRegistrationRepository } from '../../../infrastructure/repositories/class/prisma-session-makeup-registration.repository'
+import { SessionMakeupRegistrationSyncService } from '../../services/session-makeup-registration-sync.service'
 import { ReplaceCourseClassMakeupGroupDto } from '../../dtos/course-class/replace-course-class-makeup-group.dto'
 import { ConflictException } from '../../../shared/exceptions/custom-exceptions'
 import { ReplaceCourseClassMakeupGroupUseCase } from './replace-course-class-makeup-group.use-case'
@@ -47,13 +50,15 @@ describeWithDatabase('ReplaceCourseClassMakeupGroupUseCase (MySQL thật)', () =
             work({
               courseClassRepository: new PrismaCourseClassRepository(tx),
               courseClassMakeupGroupRepository: new PrismaCourseClassMakeupGroupRepository(tx),
+              classSessionRepository: new PrismaClassSessionRepository(tx),
+              sessionMakeupRegistrationRepository: new PrismaSessionMakeupRegistrationRepository(tx),
               adminAuditLogRepository: auditLogRepository,
             } as unknown as UnitOfWorkRepos),
           { maxWait: 10000, timeout: 30000, isolationLevel: options?.isolationLevel },
         ),
     }
 
-    useCase = new ReplaceCourseClassMakeupGroupUseCase(unitOfWork)
+    useCase = new ReplaceCourseClassMakeupGroupUseCase(unitOfWork, new SessionMakeupRegistrationSyncService())
   })
 
   afterAll(async () => {

@@ -8,6 +8,7 @@ import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
 import { CreateAndNotifyOneUseCase } from '../notification/create-and-notify-one.use-case'
 import { NotificationType, NotificationLevel } from 'src/shared/enums'
 import { StudentPointService } from 'src/application/services/student-point.service'
+import { AttendanceMakeupLinkService } from 'src/application/services/attendance-makeup-link.service'
 
 @Injectable()
 export class DeleteAttendanceUseCase {
@@ -16,6 +17,7 @@ export class DeleteAttendanceUseCase {
     private readonly unitOfWork: IUnitOfWork,
     private readonly createAndNotifyOne: CreateAndNotifyOneUseCase,
     private readonly studentPointService: StudentPointService,
+    private readonly attendanceMakeupLinkService: AttendanceMakeupLinkService,
   ) {}
 
   async execute(attendanceId: number, adminId?: number): Promise<BaseResponseDto<{ deleted: boolean }>> {
@@ -46,7 +48,16 @@ export class DeleteAttendanceUseCase {
         sessionId: existing.sessionId,
       })
 
+      // Lấy các buổi vắng đang được bản ghi này bù trước khi xóa (FK SetNull sẽ gỡ liên kết khi xóa)
+      const madeUpAbsences = await attendanceRepository.findByMakeupByAttendanceId(attendanceId)
+
       const deleted = await attendanceRepository.delete(attendanceId)
+
+      // Thử nối lại các buổi vắng đó sang bản ghi Có mặt khác
+      for (const absence of madeUpAbsences) {
+        absence.makeupByAttendanceId = null
+        await this.attendanceMakeupLinkService.linkAbsenceToMakeup(repos, absence, attendanceId)
+      }
 
       if (adminId) {
         await adminAuditLogRepository.create({

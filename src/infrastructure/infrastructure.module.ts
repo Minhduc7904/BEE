@@ -26,6 +26,7 @@ import {
   PrismaCourseRepository,
   PrismaCourseClassRepository,
   PrismaCourseClassMakeupGroupRepository,
+  PrismaSessionMakeupRegistrationRepository,
   PrismaLessonRepository,
   PrismaLearningItemRepository,
   PrismaStudentLearningItemRepository,
@@ -381,6 +382,11 @@ import {
     {
       provide: 'ICourseClassMakeupGroupRepository',
       useFactory: (prisma: PrismaService) => new PrismaCourseClassMakeupGroupRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: 'ISessionMakeupRegistrationRepository',
+      useFactory: (prisma: PrismaService) => new PrismaSessionMakeupRegistrationRepository(prisma),
       inject: [PrismaService],
     },
     {
@@ -807,6 +813,7 @@ import {
     'ICourseRepository',
     'ICourseClassRepository',
     'ICourseClassMakeupGroupRepository',
+    'ISessionMakeupRegistrationRepository',
     'ILessonRepository',
     'ILearningItemRepository',
     'IStudentLearningItemRepository',

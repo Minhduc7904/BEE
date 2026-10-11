@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 
 import * as courseClassUseCase from './'
 import { InfrastructureModule } from 'src/infrastructure/infrastructure.module'
+import { SessionMakeupRegistrationSyncService } from 'src/application/services/session-makeup-registration-sync.service'
 
 const COURSE_CLASS_USE_CASES = [
   courseClassUseCase.GetAllCourseClassUseCase,
@@ -13,6 +14,7 @@ const COURSE_CLASS_USE_CASES = [
   courseClassUseCase.GetCourseClassMakeupGroupUseCase,
   courseClassUseCase.GetCourseClassMakeupSessionsUseCase,
   courseClassUseCase.ReplaceCourseClassMakeupGroupUseCase,
+  SessionMakeupRegistrationSyncService,
 ]
 
 @Module({

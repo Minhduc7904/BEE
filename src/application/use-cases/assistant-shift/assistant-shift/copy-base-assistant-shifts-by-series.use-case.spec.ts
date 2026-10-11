@@ -1,6 +1,7 @@
 import type { IUnitOfWork } from 'src/domain/repositories'
 import { CopyBaseAssistantShiftsDto } from 'src/application/dtos'
 import { ConflictException, ForbiddenException, NotFoundException } from 'src/shared/exceptions/custom-exceptions'
+import type { SessionMakeupRegistrationSyncService } from 'src/application/services/session-makeup-registration-sync.service'
 import { CopyBaseAssistantShiftsBySeriesUseCase } from './copy-base-assistant-shifts-by-series.use-case'
 
 // Ca cơ sở nằm trong tuần mẫu Thứ Hai 20/07/2026 (giờ VN). Thứ Hai 07:00 VN = 00:00 UTC.
@@ -68,7 +69,11 @@ function setup(options: {
     adminAuditLogRepository: { create: jest.fn() },
   }
   const unitOfWork = { executeInTransaction: jest.fn((work: (r: typeof repos) => unknown) => work(repos)) }
-  const useCase = new CopyBaseAssistantShiftsBySeriesUseCase(unitOfWork as unknown as IUnitOfWork)
+  const sessionMakeupRegistrationSync = { syncForClasses: jest.fn(async () => undefined) }
+  const useCase = new CopyBaseAssistantShiftsBySeriesUseCase(
+    unitOfWork as unknown as IUnitOfWork,
+    sessionMakeupRegistrationSync as unknown as SessionMakeupRegistrationSyncService,
+  )
 
   const dtoFor = (ids: number[], createClassSessions?: boolean) =>
     ({
@@ -78,7 +83,7 @@ function setup(options: {
       ...(createClassSessions === undefined ? {} : { createClassSessions }),
     }) as CopyBaseAssistantShiftsDto
 
-  return { repos, unitOfWork, useCase, dtoFor }
+  return { repos, unitOfWork, useCase, dtoFor, sessionMakeupRegistrationSync }
 }
 
 const monday = (id: number, classId: number | null, overrides: Partial<BaseShiftFixture> = {}): BaseShiftFixture => ({
@@ -258,5 +263,35 @@ describe('CopyBaseAssistantShiftsBySeriesUseCase - tạo buổi học', () => {
     )
     expect(repos.classSessionRepository.create).not.toHaveBeenCalled()
     expect(repos.assistantShiftRepository.create).not.toHaveBeenCalled()
+  })
+})
+
+describe('CopyBaseAssistantShiftsBySeriesUseCase - đồng bộ cặp buổi học bù', () => {
+  it('có buổi mới được tạo: đồng bộ cặp học bù cho các lớp đó trong đúng tuần đích', async () => {
+    const { useCase, dtoFor, sessionMakeupRegistrationSync } = setup({
+      shifts: [monday(1, 10), monday(2, 11, { start: TUESDAY_07_00_VN, end: TUESDAY_09_00_VN })],
+      classes: [courseClass(10), courseClass(11)],
+    })
+
+    await useCase.execute(dtoFor([1, 2], true), { adminId: 7, canCreateClassSession: true })
+
+    expect(sessionMakeupRegistrationSync.syncForClasses).toHaveBeenCalledTimes(1)
+    const [, params] = sessionMakeupRegistrationSync.syncForClasses.mock.calls[0] as unknown as [
+      unknown,
+      { classIds: number[]; range: { from: Date; to: Date } },
+    ]
+    expect([...params.classIds].sort((a, b) => a - b)).toEqual([10, 11])
+    expect(params.range.from.toISOString()).toBe('2026-10-12T00:00:00.000Z')
+    expect(params.range.to.toISOString()).toBe('2026-10-13T00:00:00.000Z')
+  })
+
+  it('cờ tắt hoặc không tạo thêm buổi nào: không đồng bộ cặp học bù', async () => {
+    const off = setup({ shifts: [monday(1, 10)], classes: [courseClass(10)] })
+    await off.useCase.execute(off.dtoFor([1]), { adminId: 7, canCreateClassSession: true })
+    expect(off.sessionMakeupRegistrationSync.syncForClasses).not.toHaveBeenCalled()
+
+    const noClass = setup({ shifts: [monday(1, null)] })
+    await noClass.useCase.execute(noClass.dtoFor([1], true), { adminId: 7, canCreateClassSession: true })
+    expect(noClass.sessionMakeupRegistrationSync.syncForClasses).not.toHaveBeenCalled()
   })
 })

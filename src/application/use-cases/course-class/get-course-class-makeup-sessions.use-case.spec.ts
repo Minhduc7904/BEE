@@ -16,6 +16,7 @@ function setup(
     source?: { classId: number; courseId: number } | null
     groups?: Array<{ groupId: number; memberClassIds: number[] }>
     sessions?: ReturnType<typeof session>[]
+    registrations?: Array<{ sessionId: number; makeupSession: ReturnType<typeof session> }>
   } = {},
 ) {
   const source = options.source === undefined ? { classId: 10, courseId: 3 } : options.source
@@ -30,6 +31,9 @@ function setup(
     },
     classSessionRepository: {
       findByClassIdsAndSessionDateRange: jest.fn().mockResolvedValue(options.sessions ?? []),
+    },
+    sessionMakeupRegistrationRepository: {
+      findBySessionIds: jest.fn().mockResolvedValue(options.registrations ?? []),
     },
   }
   const unitOfWork = { executeInTransaction: jest.fn((work: (r: typeof repos) => unknown) => work(repos)) }
@@ -77,19 +81,21 @@ describe('GetCourseClassMakeupSessionsUseCase', () => {
     expect(repos.classSessionRepository.findByClassIdsAndSessionDateRange).not.toHaveBeenCalled()
   })
 
-  it('truy vấn buổi của mọi lớp trong nhóm đúng trong khoảng Thứ Hai đến Chủ Nhật', async () => {
+  it('đọc buổi của lớp nguồn trong đúng tuần Thứ Hai đến Chủ Nhật và cặp học bù từ bảng', async () => {
     const { repos, useCase } = setup({
       groups: [{ groupId: 5, memberClassIds: [10, 11] }],
-      sessions: [session(1, 10, '2026-10-13'), session(2, 11, '2026-10-15')],
+      sessions: [session(1, 10, '2026-10-13')],
+      registrations: [{ sessionId: 1, makeupSession: session(2, 11, '2026-10-15') }],
     })
 
     const response = await useCase.execute(10, '2026-10-12')
 
     expect(repos.classSessionRepository.findByClassIdsAndSessionDateRange).toHaveBeenCalledWith(
-      [10, 11],
+      [10],
       new Date('2026-10-12T00:00:00.000Z'),
       new Date('2026-10-18T00:00:00.000Z'),
     )
+    expect(repos.sessionMakeupRegistrationRepository.findBySessionIds).toHaveBeenCalledWith([1])
     expect(response.data).toMatchObject({ groupId: 5, weekStart: '2026-10-12', weekEnd: '2026-10-18' })
     expect(response.data?.sessions).toHaveLength(1)
     expect(response.data?.sessions[0].makeupCandidates).toEqual([

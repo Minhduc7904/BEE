@@ -14,6 +14,7 @@ import {
   ConflictException,
   NotFoundException,
 } from '../../../shared/exceptions/custom-exceptions'
+import type { SessionMakeupRegistrationSyncService } from '../../services/session-makeup-registration-sync.service'
 import { ReplaceCourseClassMakeupGroupUseCase } from './replace-course-class-makeup-group.use-case'
 
 const COURSE_ID = 20
@@ -72,12 +73,17 @@ function setup(params: { classes?: CourseClass[]; groups?: MakeupGroup[] } = {})
   const adminAuditLogRepository = {
     create: recorded('audit', () => undefined),
   }
+  const sessionMakeupRegistrationSync = { syncForClasses: recorded('sync', () => undefined) }
   const repos = { courseClassRepository, courseClassMakeupGroupRepository, adminAuditLogRepository }
   const executeInTransaction = jest.fn((work: (value: typeof repos) => Promise<unknown>) => work(repos))
   const unitOfWork = { executeInTransaction } as unknown as IUnitOfWork
 
   return {
-    useCase: new ReplaceCourseClassMakeupGroupUseCase(unitOfWork),
+    useCase: new ReplaceCourseClassMakeupGroupUseCase(
+      unitOfWork,
+      sessionMakeupRegistrationSync as unknown as SessionMakeupRegistrationSyncService,
+    ),
+    sessionMakeupRegistrationSync,
     calls,
     executeInTransaction,
     ...repos,
@@ -290,7 +296,16 @@ describe('ReplaceCourseClassMakeupGroupUseCase', () => {
 
       expect(scenario.executeInTransaction).toHaveBeenCalledTimes(1)
       expect(scenario.executeInTransaction.mock.calls[0][1]).toEqual({ isolationLevel: 'ReadCommitted' })
-      expect(scenario.calls).toEqual(['findSource', 'lock', 'findTargets', 'classes', 'groups', 'save', 'audit'])
+      expect(scenario.calls).toEqual([
+        'findSource',
+        'lock',
+        'findTargets',
+        'classes',
+        'groups',
+        'save',
+        'sync',
+        'audit',
+      ])
     })
 
     it('lỗi ghi audit làm cả transaction thất bại để UnitOfWork rollback', async () => {
@@ -328,5 +343,41 @@ describe('ReplaceCourseClassMakeupGroupUseCase', () => {
         }),
       )
     })
+  })
+})
+
+describe('ReplaceCourseClassMakeupGroupUseCase - đồng bộ cặp buổi học bù', () => {
+  it('đổi nhóm: đồng bộ cho lớp nguồn, lớp bạn cũ (kể cả lớp vừa rời nhóm) và lớp bạn mới, không giới hạn tuần', async () => {
+    const scenario = setup({ groups: [group(5, [1, 2])] })
+
+    await scenario.useCase.execute(1, dto([3]), ADMIN_ID)
+
+    expect(scenario.sessionMakeupRegistrationSync.syncForClasses).toHaveBeenCalledTimes(1)
+    const [, params] = scenario.sessionMakeupRegistrationSync.syncForClasses.mock.calls[0] as unknown as [
+      unknown,
+      { classIds: number[]; range?: unknown },
+    ]
+    expect([...params.classIds].sort((a, b) => a - b)).toEqual([1, 2, 3])
+    expect(params.range).toBeUndefined()
+  })
+
+  it('giải tán nhóm: vẫn đồng bộ cho các lớp của nhóm cũ để xóa cặp học bù', async () => {
+    const scenario = setup({ groups: [group(5, [1, 2])] })
+
+    await scenario.useCase.execute(1, dto([]), ADMIN_ID)
+
+    const [, params] = scenario.sessionMakeupRegistrationSync.syncForClasses.mock.calls[0] as unknown as [
+      unknown,
+      { classIds: number[] },
+    ]
+    expect([...params.classIds].sort((a, b) => a - b)).toEqual([1, 2])
+  })
+
+  it('nhóm không đổi: không đồng bộ', async () => {
+    const scenario = setup({ groups: [group(5, [1, 2])] })
+
+    await scenario.useCase.execute(1, dto([2]), ADMIN_ID)
+
+    expect(scenario.sessionMakeupRegistrationSync.syncForClasses).not.toHaveBeenCalled()
   })
 })

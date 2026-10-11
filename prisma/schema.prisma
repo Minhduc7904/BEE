@@ -1568,6 +1568,29 @@ model CourseClassMakeupGroupMember {
   @@map("course_class_makeup_group_members")
 }
 
+// Cặp buổi học có thể học bù cho nhau, được hệ thống tự đồng bộ khi buổi học hoặc nhóm học bù thay đổi.
+// Dòng (sessionId = A, makeupSessionId = B) nghĩa là buổi B có thể học bù cho buổi A; cặp luôn được lưu cả hai chiều.
+model SessionMakeupRegistration {
+  sessionMakeupRegistrationId Int @id @default(autoincrement()) @map("session_makeup_registration_id")
+
+  // Buổi được bù (buổi mà học sinh có thể vắng).
+  sessionId       Int @map("session_id")
+  // Buổi học bù được cho buổi trên (khác lớp, cùng nhóm học bù, cùng tuần).
+  makeupSessionId Int @map("makeup_session_id")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+
+  // Cascade: cặp không còn ý nghĩa khi một trong hai buổi bị xóa.
+  session       ClassSession @relation("SessionMakeupRegistrationSession", fields: [sessionId], references: [sessionId], onDelete: Cascade)
+  makeupSession ClassSession @relation("SessionMakeupRegistrationMakeupSession", fields: [makeupSessionId], references: [sessionId], onDelete: Cascade)
+
+  // Mỗi cặp có hướng chỉ tồn tại một lần.
+  @@unique([sessionId, makeupSessionId], map: "uq_session_makeup_registrations_pair")
+  // Phục vụ tra cứu các buổi mà một buổi học bù được và FK makeup_session_id.
+  @@index([makeupSessionId], map: "idx_session_makeup_registrations_makeup_session_id")
+  @@map("session_makeup_registrations")
+}
+
 // Nhóm các ca trợ giảng có liên hệ tuần tự, ví dụ các buổi liên tiếp của cùng một lớp.
 // Một ca độc lập không cần thuộc series nào.
 model AssistantShiftSeries {
@@ -1778,6 +1801,10 @@ model ClassSession {
   attendances     Attendance[]
   reports         Report[]
 
+  // Các cặp học bù mà buổi này là buổi được bù (buổi vắng) hoặc là buổi học bù.
+  makeupRegistrationsAsSession       SessionMakeupRegistration[] @relation("SessionMakeupRegistrationSession")
+  makeupRegistrationsAsMakeupSession SessionMakeupRegistration[] @relation("SessionMakeupRegistrationMakeupSession")
+
   @@index([classId], map: "idx_class_sessions_class_id")
   @@index([homeworkId], map: "idx_class_sessions_homework_id")
   @@index([sessionDate], map: "idx_class_sessions_date")
@@ -1862,8 +1889,16 @@ model Attendance {
   student        Student          @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
   marker         Admin?           @relation(fields: [markerId], references: [adminId], onDelete: SetNull)
 
+  // Chỉ dùng trên bản ghi Vắng: trỏ tới bản ghi Có mặt của cùng học sinh đã học bù cho buổi vắng này.
+  // Một bản ghi Có mặt có thể bù cho nhiều buổi vắng. SetNull: xóa bản ghi bù thì buổi vắng quay về chưa được bù.
+  makeupByAttendanceId Int?         @map("makeup_by_attendance_id")
+  makeupBy             Attendance?  @relation("AttendanceMakeup", fields: [makeupByAttendanceId], references: [attendanceId], onDelete: SetNull)
+  // Các bản ghi Vắng đang được bản ghi này học bù cho.
+  madeUpAbsences       Attendance[] @relation("AttendanceMakeup")
+
   @@unique([sessionId, studentId], map: "unique_attendance_record")
   @@index([studentId], map: "idx_attendances_student_id")
+  @@index([makeupByAttendanceId], map: "idx_attendances_makeup_by_attendance_id")
   @@index([markedAt], map: "idx_attendances_marked_at")
   @@map("attendances")
 }

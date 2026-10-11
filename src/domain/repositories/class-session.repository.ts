@@ -38,6 +38,11 @@ export interface IClassSessionRepository {
      * Sắp theo ngày rồi giờ bắt đầu.
      */
     findByClassIdsAndSessionDateRange(classIds: number[], fromDate: Date, toDate: Date): Promise<ClassSession[]>
+    /**
+     * Buổi học của các lớp; nếu có `range` thì chỉ lấy buổi có `sessionDate` trong [from, to] (cột DATE).
+     * Sắp theo ngày rồi giờ bắt đầu.
+     */
+    findByClassIds(classIds: number[], range?: { from: Date; to: Date }): Promise<ClassSession[]>
 
     // Count methods
     count(filters?: ClassSessionFilterOptions): Promise<number>

@@ -3,6 +3,7 @@ import type { IUnitOfWork } from 'src/domain/repositories'
 import { BaseResponseDto } from 'src/application/dtos/common/base-response.dto'
 import { CourseClassMakeupGroupResponseDto } from 'src/application/dtos/course-class/course-class-makeup-group-response.dto'
 import { ReplaceCourseClassMakeupGroupDto } from 'src/application/dtos/course-class/replace-course-class-makeup-group.dto'
+import { SessionMakeupRegistrationSyncService } from 'src/application/services/session-makeup-registration-sync.service'
 import { COURSE_CLASS_MAKEUP_GROUP_CONFLICT_CODE } from 'src/domain/interface/course-class/course-class-makeup-group.interface'
 import type { MakeupGroup } from 'src/domain/interface/course-class/course-class-makeup-group.interface'
 import { ACTION_KEYS } from 'src/shared/constants/action-key.constants'
@@ -23,6 +24,7 @@ export class ReplaceCourseClassMakeupGroupUseCase {
   constructor(
     @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
+    private readonly sessionMakeupRegistrationSync: SessionMakeupRegistrationSyncService,
   ) {}
 
   async execute(
@@ -139,6 +141,11 @@ export class ReplaceCourseClassMakeupGroupUseCase {
             },
           ]
         }
+
+        // Đồng bộ cặp buổi học bù cho mọi lớp trong nhóm cũ và nhóm mới (kể cả lớp vừa rời nhóm).
+        await this.sessionMakeupRegistrationSync.syncForClasses(repos, {
+          classIds: [...new Set([...currentPeerIds, ...makeupClassIds, source.classId])],
+        })
 
         await repos.adminAuditLogRepository.create({
           adminId,

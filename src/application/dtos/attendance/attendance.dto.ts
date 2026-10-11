@@ -5,6 +5,7 @@ import { AttendanceStatus, AttendanceType } from 'src/shared/enums'
 import { ClassSessionResponseDto } from '../class-session/class-session.dto'
 import { TuitionPaymentResponseDto } from '../tuition-payment/tuition-payment.dto'
 import { HomeworkSubmitResponseDto } from '../homeworkSubmit/homework-submit.dto'
+import { AttendanceMakeupLinkSummaryDto } from './attendance-makeup-link-summary.dto'
 
 export class AttendanceResponseDto {
     attendanceId: number
@@ -20,6 +21,14 @@ export class AttendanceResponseDto {
     markerId?: number | null
     markerName?: string
     parentNotified: boolean
+    /** Chỉ có ở bản ghi Vắng: ID bản ghi Có mặt đã học bù cho buổi vắng này (null nếu chưa được bù). */
+    makeupByAttendanceId: number | null
+    /** Bản ghi Vắng đã được học bù (ABSENT và có makeupByAttendanceId). */
+    isMadeUp: boolean
+    /** Bản ghi Có mặt đã học bù cho bản ghi này; chỉ có khi lấy chi tiết (GET /attendances/:id). */
+    makeupBy?: AttendanceMakeupLinkSummaryDto | null
+    /** Các buổi vắng mà bản ghi này đã học bù cho; chỉ có khi lấy chi tiết (GET /attendances/:id). */
+    madeUpAbsences?: AttendanceMakeupLinkSummaryDto[]
     student?: StudentResponseDto | null
     classSession?: ClassSessionResponseDto | null
     tuitionPayment?: TuitionPaymentResponseDto | null
@@ -45,6 +54,14 @@ export class AttendanceResponseDto {
         this.markerId = attendance.markerId
         this.markerName = attendance.getMarkerName()
         this.parentNotified = attendance.parentNotified
+        this.makeupByAttendanceId = attendance.makeupByAttendanceId ?? null
+        this.isMadeUp = attendance.status === AttendanceStatus.ABSENT && this.makeupByAttendanceId !== null
+        if (attendance.makeupBy) {
+            this.makeupBy = new AttendanceMakeupLinkSummaryDto(attendance.makeupBy)
+        }
+        if (attendance.madeUpAbsences) {
+            this.madeUpAbsences = attendance.madeUpAbsences.map((item) => new AttendanceMakeupLinkSummaryDto(item))
+        }
         if (attendance.classSession) {
             this.classSession = ClassSessionResponseDto.fromEntity(attendance.classSession)
         }

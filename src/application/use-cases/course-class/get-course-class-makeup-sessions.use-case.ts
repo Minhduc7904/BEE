@@ -5,7 +5,7 @@ import { CourseClassMakeupSessionsResponseDto } from 'src/application/dtos/cours
 import { NotFoundException } from 'src/shared/exceptions/custom-exceptions'
 import { resolveScheduleWeek } from '../parent-student-schedule/parent-student-schedule-week'
 import { findGroupOfClass, getEffectiveGroups } from './course-class-makeup-group.helper'
-import { buildCourseClassMakeupSessionsResponse } from './course-class-makeup-sessions.helper'
+import { buildCourseClassMakeupSessionsResponse, type MakeupSessionSource } from './course-class-makeup-sessions.helper'
 
 @Injectable()
 export class GetCourseClassMakeupSessionsUseCase {
@@ -27,17 +27,30 @@ export class GetCourseClassMakeupSessionsUseCase {
       const groupRepository = repos.courseClassMakeupGroupRepository
       const groups = getEffectiveGroups(await groupRepository.findGroupsByCourse(source.courseId))
       const group = findGroupOfClass(groups, source.classId)
-      const sessions = group
-        ? await repos.classSessionRepository.findByClassIdsAndSessionDateRange(group.memberClassIds, week.from, week.to)
+      const sourceSessions = group
+        ? await repos.classSessionRepository.findByClassIdsAndSessionDateRange([source.classId], week.from, week.to)
         : []
+      // Cặp buổi học bù đọc từ bảng session_makeup_registrations (được đồng bộ khi buổi học/nhóm thay đổi).
+      const registrations = await repos.sessionMakeupRegistrationRepository.findBySessionIds(
+        sourceSessions.map((session) => session.sessionId),
+      )
+      const makeupSessionsBySessionId = new Map<number, MakeupSessionSource[]>()
+      for (const registration of registrations) {
+        if (!registration.makeupSession) continue
+
+        const makeupSessions = makeupSessionsBySessionId.get(registration.sessionId) ?? []
+        makeupSessions.push(registration.makeupSession)
+        makeupSessionsBySessionId.set(registration.sessionId, makeupSessions)
+      }
       const classes = group ? await groupRepository.findClassesByCourse(source.courseId) : []
 
       return buildCourseClassMakeupSessionsResponse({
         sourceClassId: source.classId,
         courseId: source.courseId,
-        group,
+        groupId: group?.groupId ?? null,
         week,
-        sessions,
+        sourceSessions,
+        makeupSessionsBySessionId,
         classNameById: new Map(classes.map((courseClass) => [courseClass.classId, courseClass.className])),
       })
     })

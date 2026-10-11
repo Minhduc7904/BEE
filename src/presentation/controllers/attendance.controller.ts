@@ -19,6 +19,8 @@ import type { Response } from 'express'
 import { AttendanceListQueryDto } from '../../application/dtos/attendance/attendance-list-query.dto'
 import { CreateAttendanceDto } from '../../application/dtos/attendance/create-attendance.dto'
 import { UpdateAttendanceDto } from '../../application/dtos/attendance/update-attendance.dto'
+import { CheckInAttendanceDto } from '../../application/dtos/attendance/check-in-attendance.dto'
+import { AttendanceCheckInResponseDto } from '../../application/dtos/attendance/check-in-attendance-response.dto'
 import { CreateBulkAttendanceBySessionDto } from '../../application/dtos/attendance/create-bulk-attendance-by-session.dto'
 import { AttendanceListResponseDto, AttendanceResponseDto } from '../../application/dtos/attendance/attendance.dto'
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
@@ -41,6 +43,8 @@ import {
   ExportAttendanceImageUseCase,
   SendAttendanceToParentUseCase,
   ToggleParentNotifiedUseCase,
+  CheckInAttendanceUseCase,
+  CancelCheckInAttendanceUseCase,
 } from '../../application/use-cases/attendance'
 import { Injectable } from '@nestjs/common'
 
@@ -59,6 +63,8 @@ export class AttendanceController {
     private readonly exportAttendanceImageUseCase: ExportAttendanceImageUseCase,
     private readonly sendAttendanceToParentUseCase: SendAttendanceToParentUseCase,
     private readonly toggleParentNotifiedUseCase: ToggleParentNotifiedUseCase,
+    private readonly checkInAttendanceUseCase: CheckInAttendanceUseCase,
+    private readonly cancelCheckInAttendanceUseCase: CancelCheckInAttendanceUseCase,
   ) { }
 
   /**
@@ -115,6 +121,22 @@ export class AttendanceController {
       query.studentId = studentId
       return this.getAllAttendanceUseCase.execute(query)
     })
+  }
+
+  /**
+   * Điểm danh (check-in) một học sinh vào buổi học; hệ thống tự tính trạng thái và loại (Chính khóa / Học bù)
+   * POST /attendances/check-in
+   * Body: { sessionId, studentId }
+   * Phải đặt trước các route `:id` để không bị nhận nhầm là ID.
+   */
+  @Post('check-in')
+  @RequirePermission(PERMISSION_CODES.ATTENDANCE.CREATE, PERMISSION_CODES.ATTENDANCE.UPDATE)
+  @HttpCode(HttpStatus.OK)
+  async checkIn(
+    @Body() dto: CheckInAttendanceDto,
+    @CurrentUser('adminId') adminId?: number,
+  ): Promise<BaseResponseDto<AttendanceCheckInResponseDto>> {
+    return ExceptionHandler.execute(() => this.checkInAttendanceUseCase.execute(dto, adminId, adminId))
   }
 
   /**
@@ -179,6 +201,20 @@ export class AttendanceController {
     @CurrentUser('adminId') adminId?: number,
   ): Promise<BaseResponseDto<AttendanceResponseDto>> {
     return ExceptionHandler.execute(() => this.updateAttendanceUseCase.execute(id, dto, adminId))
+  }
+
+  /**
+   * Hủy điểm danh: chuyển bản ghi Có mặt về Vắng và tự gỡ / nối lại liên kết học bù
+   * POST /attendances/:id/cancel-check-in
+   */
+  @Post(':id/cancel-check-in')
+  @RequirePermission(PERMISSION_CODES.ATTENDANCE.UPDATE)
+  @HttpCode(HttpStatus.OK)
+  async cancelCheckIn(
+    @Param('id', ParseIntPipe) id: number,
+    @CurrentUser('adminId') adminId?: number,
+  ): Promise<BaseResponseDto<AttendanceCheckInResponseDto>> {
+    return ExceptionHandler.execute(() => this.cancelCheckInAttendanceUseCase.execute(id, adminId, adminId))
   }
 
   /**

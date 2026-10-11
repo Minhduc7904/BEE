@@ -126,11 +126,11 @@ Nếu tập lớp bạn gửi lên giống hệt tập hiện tại thì API tr�
 
 ## GET `/course-classes/:id/makeup-sessions?weekStart=YYYY-MM-DD`
 
-Liệt kê các buổi học có thể học bù cho nhau trong **một tuần**, suy ra từ nhóm học bù của lớp.
+Liệt kê các buổi học có thể học bù cho nhau trong **một tuần**, đọc từ bảng `session_makeup_registrations` (cặp buổi được hệ thống tự đồng bộ khi tạo/sửa buổi học, sao chép ca cơ sở có tạo buổi, hoặc đổi nhóm học bù; xóa buổi thì cặp bị xóa theo). Shape response không đổi.
 
 - Permission: `course-class:get-by-id` (cùng quyền với `GET /course-classes/:id/makeup-group`).
 - `weekStart` bắt buộc, phải là một ngày Thứ Hai hợp lệ (`YYYY-MM-DD`); sai định dạng hoặc không phải Thứ Hai trả `400`. Tuần tính từ Thứ Hai đến Chủ Nhật theo cột `sessionDate`.
-- Quy tắc: buổi A của lớp `:id` có thể học bù cho buổi B khi B thuộc **lớp khác trong cùng nhóm hiệu lực** (từ 2 lớp) và B nằm **cùng tuần** với A. Buổi ngoài tuần không bao giờ ghép với nhau. Quan hệ đối xứng.
+- Quy tắc: buổi A của lớp `:id` có thể học bù cho buổi B khi B thuộc **lớp khác trong cùng nhóm hiệu lực** (từ 2 lớp) và B nằm **cùng tuần** với A. Buổi ngoài tuần không bao giờ ghép với nhau. Quan hệ đối xứng; mỗi cặp được lưu hai chiều (`sessionId = A, makeupSessionId = B` nghĩa là B học bù được cho A).
 - Lớp chưa thuộc nhóm hiệu lực: `groupId = null` và `sessions = []`. Lớp không tồn tại: `404`.
 - `sessions` là các buổi của lớp `:id` trong tuần; `makeupCandidates` là các buổi của lớp bạn trong nhóm cùng tuần, sắp theo ngày rồi giờ bắt đầu. `sessionDate` là chuỗi `YYYY-MM-DD`; `startTime`/`endTime` giữ nguyên định dạng như `GET /class-sessions`.
 

@@ -15,6 +15,7 @@ import {
 import { BaseResponseDto, CopyBaseAssistantShiftsDto } from '../../../dtos'
 import type { AssistantShift } from '../../../../domain/entities'
 import type { IUnitOfWork, UnitOfWorkRepos } from '../../../../domain/repositories'
+import { SessionMakeupRegistrationSyncService } from '../../../services/session-makeup-registration-sync.service'
 import { copyBaseShiftTimeToWeek, getBaseShiftCopyTargetWeek } from './assistant-shift.use-case.helpers'
 import { buildClassSessionKey, buildClassSessionName, toClassSessionDate } from './copy-base-class-session.helper'
 
@@ -39,7 +40,10 @@ export interface CopyBaseClassSessionsResult {
 
 @Injectable()
 export class CopyBaseAssistantShiftsBySeriesUseCase {
-  constructor(@Inject('UNIT_OF_WORK') private readonly uow: IUnitOfWork) {}
+  constructor(
+    @Inject('UNIT_OF_WORK') private readonly uow: IUnitOfWork,
+    private readonly sessionMakeupRegistrationSync: SessionMakeupRegistrationSyncService,
+  ) {}
 
   async execute(dto: CopyBaseAssistantShiftsDto, options: CopyBaseAssistantShiftsOptions = {}) {
     const createClassSessions = dto.createClassSessions ?? false
@@ -203,6 +207,8 @@ export class CopyBaseAssistantShiftsBySeriesUseCase {
 
     let createdSessionCount = 0
     let skippedExistingSessionCount = 0
+    const createdClassIds = new Set<number>()
+    const createdDates: number[] = []
     for (const session of planned) {
       const key = buildClassSessionKey(session.classId, session.sessionDate, session.startTime)
       if (knownKeys.has(key)) {
@@ -213,6 +219,8 @@ export class CopyBaseAssistantShiftsBySeriesUseCase {
 
       const created = await repos.classSessionRepository.create(session)
       createdSessionCount += 1
+      createdClassIds.add(created.classId)
+      createdDates.push(created.sessionDate.getTime())
 
       if (adminId) {
         await repos.adminAuditLogRepository.create({
@@ -229,6 +237,14 @@ export class CopyBaseAssistantShiftsBySeriesUseCase {
           },
         })
       }
+    }
+
+    // Đồng bộ cặp buổi học bù cho các lớp vừa có buổi mới, trong các tuần đích
+    if (createdClassIds.size > 0) {
+      await this.sessionMakeupRegistrationSync.syncForClasses(repos, {
+        classIds: [...createdClassIds],
+        range: { from: new Date(Math.min(...createdDates)), to: new Date(Math.max(...createdDates)) },
+      })
     }
 
     return { createdSessionCount, skippedExistingSessionCount, skippedNoClassCount, skippedEndedCourseCount }

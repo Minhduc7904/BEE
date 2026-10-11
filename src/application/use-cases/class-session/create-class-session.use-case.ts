@@ -8,12 +8,14 @@ import { ConflictException } from 'src/shared/exceptions/custom-exceptions';
 import { ACTION_KEYS } from 'src/shared/constants/action-key.constants';
 import { AuditStatus } from 'src/shared/enums/audit-status.enum';
 import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants';
+import { SessionMakeupRegistrationSyncService } from 'src/application/services/session-makeup-registration-sync.service';
 
 @Injectable()
 export class CreateClassSessionUseCase {
   constructor(
     @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
+    private readonly sessionMakeupRegistrationSync: SessionMakeupRegistrationSyncService,
   ) { }
 
   async execute(
@@ -64,6 +66,12 @@ export class CreateClassSessionUseCase {
       };
 
       const classSession = await classSessionRepository.create(data);
+
+      // Đồng bộ cặp buổi học bù trong tuần của buổi vừa tạo
+      await this.sessionMakeupRegistrationSync.syncForClasses(repos, {
+        classIds: [classSession.classId],
+        range: { from: classSession.sessionDate, to: classSession.sessionDate },
+      });
 
       if (adminId) {
         await adminAuditLogRepository.create({

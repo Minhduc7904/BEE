@@ -9,9 +9,10 @@ import { ACTION_KEYS } from 'src/shared/constants/action-key.constants'
 import { AuditStatus } from 'src/shared/enums/audit-status.enum'
 import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
 import { CreateAndNotifyOneUseCase } from '../notification/create-and-notify-one.use-case'
-import { NotificationType, NotificationLevel, AttendanceStatusLabels, AttendanceType, AttendanceTypeLabels } from 'src/shared/enums'
+import { NotificationType, NotificationLevel, AttendanceStatus, AttendanceStatusLabels, AttendanceType, AttendanceTypeLabels } from 'src/shared/enums'
 import { SendAttendanceToParentUseCase } from './send-attendance-to-parent.use-case'
 import { StudentPointService } from 'src/application/services/student-point.service'
+import { AttendanceMakeupLinkService } from 'src/application/services/attendance-makeup-link.service'
 
 @Injectable()
 export class UpdateAttendanceUseCase {
@@ -21,6 +22,7 @@ export class UpdateAttendanceUseCase {
     private readonly createAndNotifyOne: CreateAndNotifyOneUseCase,
     private readonly sendAttendanceToParentUseCase: SendAttendanceToParentUseCase,
     private readonly studentPointService: StudentPointService,
+    private readonly attendanceMakeupLinkService: AttendanceMakeupLinkService,
   ) {}
 
   async execute(
@@ -74,6 +76,11 @@ export class UpdateAttendanceUseCase {
 
         // Nếu chuyển sang trạng thái có mặt → cập nhật thời điểm điểm danh
         data.markedAt = new Date()
+
+        // Có mặt / Muộn không phải buổi vắng nên không còn "đã được học bù"
+        if (dto.status !== AttendanceStatus.ABSENT && existing.makeupByAttendanceId != null) {
+          data.makeupByAttendanceId = null
+        }
       }
       if (attendanceTypeChanged) {
         data.attendanceType = dto.attendanceType
@@ -98,6 +105,26 @@ export class UpdateAttendanceUseCase {
       }
 
       const attendance = await attendanceRepository.update(attendanceId, data)
+
+      // Tự nối / gỡ liên kết học bù theo quy tắc nghiệp vụ
+      if (statusChanged) {
+        if (existing.status === AttendanceStatus.PRESENT) {
+          // Có mặt → trạng thái khác: gỡ các buổi vắng đã được bản ghi này bù và thử nối sang bản ghi khác
+          await this.attendanceMakeupLinkService.releaseMadeUpAbsences(repos, attendance.attendanceId)
+        }
+
+        if (attendance.status === AttendanceStatus.PRESENT) {
+          await this.attendanceMakeupLinkService.linkAbsencesTo(repos, attendance)
+        } else if (attendance.status === AttendanceStatus.ABSENT) {
+          await this.attendanceMakeupLinkService.linkAbsenceToMakeup(repos, attendance)
+        }
+      } else if (attendanceTypeChanged && attendance.status === AttendanceStatus.PRESENT) {
+        if (attendance.attendanceType === AttendanceType.MAKEUP) {
+          await this.attendanceMakeupLinkService.linkAbsencesTo(repos, attendance)
+        } else {
+          await this.attendanceMakeupLinkService.releaseMadeUpAbsences(repos, attendance.attendanceId)
+        }
+      }
       await this.studentPointService.awardAttendancePoints(repos, {
         studentId: attendance.studentId,
         attendanceId: attendance.attendanceId,
@@ -135,9 +162,10 @@ export class UpdateAttendanceUseCase {
         sourceEvent: 'UPDATED',
         idempotencyKey: `attendance:${attendance.attendanceId}:student:updated:${attendance.status}:${attendance.attendanceType}`,
       })
-      if (statusChanged || attendanceTypeChanged) {
-        await this.sendAttendanceToParentUseCase.executeWithRepos(repos, { attendanceId: attendance.attendanceId })
-      }
+      // TẠM TẮT: gửi tin phụ huynh khi điểm danh, sẽ xử lý sau
+      // if (statusChanged || attendanceTypeChanged) {
+      //   await this.sendAttendanceToParentUseCase.executeWithRepos(repos, { attendanceId: attendance.attendanceId })
+      // }
 
       return {
         response: new AttendanceResponseDto(attendance),

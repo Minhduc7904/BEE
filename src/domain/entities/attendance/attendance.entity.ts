@@ -21,11 +21,17 @@ export class Attendance {
     notes?: string | null
     markerId?: number | null
     parentNotified: boolean
+    /** Chỉ dùng trên bản ghi Vắng: bản ghi Có mặt đã học bù cho buổi vắng này. */
+    makeupByAttendanceId?: number | null
 
     // Navigation properties
     classSession?: ClassSession
     student?: Student
     marker?: Admin | null
+    /** Bản ghi Có mặt đã học bù cho bản ghi này (khi đã tải quan hệ). */
+    makeupBy?: Attendance | null
+    /** Các bản ghi Vắng mà bản ghi này đã học bù cho (khi đã tải quan hệ). */
+    madeUpAbsences?: Attendance[]
 
     constructor(data: {
         attendanceId: number
@@ -39,9 +45,12 @@ export class Attendance {
         notes?: string | null
         markerId?: number | null
         parentNotified?: boolean
+        makeupByAttendanceId?: number | null
         classSession?: ClassSession
         student?: Student
         marker?: Admin | null
+        makeupBy?: Attendance | null
+        madeUpAbsences?: Attendance[]
     }) {
         this.attendanceId = data.attendanceId
         this.sessionId = data.sessionId
@@ -55,9 +64,12 @@ export class Attendance {
         this.notes = data.notes
         this.markerId = data.markerId
         this.parentNotified = data.parentNotified ?? false
+        this.makeupByAttendanceId = data.makeupByAttendanceId ?? null
         this.classSession = data.classSession
         this.student = data.student
         this.marker = data.marker
+        this.makeupBy = data.makeupBy
+        this.madeUpAbsences = data.madeUpAbsences
     }
 
     /* ===================== DOMAIN METHODS ===================== */
@@ -200,6 +212,7 @@ export class Attendance {
             markedAt: this.markedAt,
             notes: this.notes,
             markerId: this.markerId,
+            makeupByAttendanceId: this.makeupByAttendanceId,
             createdAt: this.createdAt,
             updatedAt: this.updatedAt,
         }
@@ -217,9 +230,13 @@ export class Attendance {
             updatedAt: this.updatedAt,
             notes: this.notes,
             markerId: this.markerId,
+            parentNotified: this.parentNotified,
+            makeupByAttendanceId: this.makeupByAttendanceId,
             classSession: this.classSession,
             student: this.student,
             marker: this.marker,
+            makeupBy: this.makeupBy,
+            madeUpAbsences: this.madeUpAbsences,
         })
     }
 }

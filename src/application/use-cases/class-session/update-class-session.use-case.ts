@@ -8,12 +8,14 @@ import { BaseResponseDto } from '../../dtos/common/base-response.dto';
 import { ACTION_KEYS } from 'src/shared/constants/action-key.constants';
 import { AuditStatus } from 'src/shared/enums/audit-status.enum';
 import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants';
+import { SessionMakeupRegistrationSyncService } from 'src/application/services/session-makeup-registration-sync.service';
 
 @Injectable()
 export class UpdateClassSessionUseCase {
   constructor(
     @Inject('UNIT_OF_WORK')
     private readonly unitOfWork: IUnitOfWork,
+    private readonly sessionMakeupRegistrationSync: SessionMakeupRegistrationSyncService,
   ) { }
 
   async execute(
@@ -71,6 +73,16 @@ export class UpdateClassSessionUseCase {
       };
 
       const classSession = await classSessionRepository.update(sessionId, data);
+
+      // Đồng bộ cặp buổi học bù cho cả tuần cũ và tuần mới của buổi (chỉ khi ngày học thay đổi)
+      const oldDate = existingSession.sessionDate.getTime();
+      const newDate = classSession.sessionDate.getTime();
+      if (oldDate !== newDate) {
+        await this.sessionMakeupRegistrationSync.syncForClasses(repos, {
+          classIds: [classSession.classId],
+          range: { from: new Date(Math.min(oldDate, newDate)), to: new Date(Math.max(oldDate, newDate)) },
+        });
+      }
 
       if (adminId) {
         await adminAuditLogRepository.create({

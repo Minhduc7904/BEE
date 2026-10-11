@@ -3,7 +3,6 @@ import {
   CourseClassMakeupSessionItemDto,
   CourseClassMakeupSessionsResponseDto,
 } from '../../dtos/course-class/course-class-makeup-sessions-response.dto'
-import type { MakeupGroup } from '../../../domain/interface/course-class/course-class-makeup-group.interface'
 import type { ParentScheduleWeekRange } from '../parent-student-schedule/parent-student-schedule-week'
 import { formatScheduleDate } from '../parent-student-schedule/parent-student-schedule-week'
 
@@ -29,21 +28,22 @@ function compareSessions(left: MakeupSessionSource, right: MakeupSessionSource):
 }
 
 /**
- * Suy ra các buổi có thể học bù cho nhau trong một tuần.
+ * Dựng response các buổi học bù trong một tuần từ bảng `session_makeup_registrations` (không suy luận lúc đọc).
  *
- * - Chỉ nhóm học bù hiệu lực (từ 2 lớp) mới có quan hệ; `group = null` trả danh sách rỗng.
- * - Buổi A (lớp nguồn) có thể học bù cho buổi B khi B thuộc lớp khác cùng nhóm và B nằm cùng tuần với A.
- * - Buổi nằm ngoài tuần `week` bị loại, nên buổi khác tuần không bao giờ ghép được với nhau.
+ * - Chỉ nhóm học bù hiệu lực (từ 2 lớp) mới có quan hệ; `groupId = null` trả danh sách rỗng.
+ * - `sourceSessions`: các buổi của lớp nguồn trong tuần.
+ * - `makeupSessionsBySessionId`: với mỗi buổi nguồn, các buổi học bù được cho nó (đọc từ bảng).
  */
 export function buildCourseClassMakeupSessionsResponse(params: {
   sourceClassId: number
   courseId: number
-  group: MakeupGroup | null
+  groupId: number | null
   week: ParentScheduleWeekRange
-  sessions: MakeupSessionSource[]
+  sourceSessions: MakeupSessionSource[]
+  makeupSessionsBySessionId: Map<number, MakeupSessionSource[]>
   classNameById: Map<number, string>
 }): CourseClassMakeupSessionsResponseDto {
-  const { sourceClassId, courseId, group, week, sessions, classNameById } = params
+  const { sourceClassId, courseId, groupId, week, sourceSessions, makeupSessionsBySessionId, classNameById } = params
 
   const toItem = (session: MakeupSessionSource): CourseClassMakeupSessionItemDto =>
     new CourseClassMakeupSessionItemDto({
@@ -58,27 +58,21 @@ export function buildCourseClassMakeupSessionsResponse(params: {
 
   const base = { sourceClassId, courseId, weekStart: week.weekStart, weekEnd: week.weekEnd }
 
-  if (!group) {
+  if (groupId === null) {
     return new CourseClassMakeupSessionsResponseDto({ ...base, groupId: null, sessions: [] })
   }
 
-  const memberClassIds = new Set(group.memberClassIds)
-  const inWeek = sessions
-    .filter(
-      (session) =>
-        memberClassIds.has(session.classId) &&
-        session.sessionDate.getTime() >= week.from.getTime() &&
-        session.sessionDate.getTime() <= week.to.getTime(),
-    )
-    .sort(compareSessions)
-
-  const peerItems = inWeek.filter((session) => session.classId !== sourceClassId).map(toItem)
-
   return new CourseClassMakeupSessionsResponseDto({
     ...base,
-    groupId: group.groupId,
-    sessions: inWeek
-      .filter((session) => session.classId === sourceClassId)
-      .map((session) => new CourseClassMakeupSessionDto({ ...toItem(session), makeupCandidates: peerItems })),
+    groupId,
+    sessions: [...sourceSessions].sort(compareSessions).map(
+      (session) =>
+        new CourseClassMakeupSessionDto({
+          ...toItem(session),
+          makeupCandidates: [...(makeupSessionsBySessionId.get(session.sessionId) ?? [])]
+            .sort(compareSessions)
+            .map(toItem),
+        }),
+    ),
   })
 }

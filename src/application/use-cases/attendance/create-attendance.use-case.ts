@@ -13,6 +13,7 @@ import { NotificationType, NotificationLevel, AttendanceStatusLabels } from 'src
 import { SendAttendanceToParentUseCase } from './send-attendance-to-parent.use-case'
 import { AttendanceStatus, AttendanceType, AttendanceTypeLabels } from 'src/shared/enums'
 import { StudentPointService } from 'src/application/services/student-point.service'
+import { AttendanceMakeupLinkService } from 'src/application/services/attendance-makeup-link.service'
 
 @Injectable()
 export class CreateAttendanceUseCase {
@@ -22,6 +23,7 @@ export class CreateAttendanceUseCase {
     private readonly createAndNotifyOne: CreateAndNotifyOneUseCase,
     private readonly sendAttendanceToParentUseCase: SendAttendanceToParentUseCase,
     private readonly studentPointService: StudentPointService,
+    private readonly attendanceMakeupLinkService: AttendanceMakeupLinkService,
   ) {}
 
   async execute(
@@ -78,6 +80,14 @@ export class CreateAttendanceUseCase {
       }
 
       const attendance = await attendanceRepository.create(data)
+
+      // Tự nối / gỡ liên kết học bù: Có mặt → nối các buổi vắng được bù; Vắng → tìm buổi đã học bù
+      if (attendance.status === AttendanceStatus.PRESENT) {
+        await this.attendanceMakeupLinkService.linkAbsencesTo(repos, attendance)
+      } else if (attendance.status === AttendanceStatus.ABSENT) {
+        await this.attendanceMakeupLinkService.linkAbsenceToMakeup(repos, attendance)
+      }
+
       await this.studentPointService.awardAttendancePoints(repos, {
         studentId: attendance.studentId,
         attendanceId: attendance.attendanceId,
@@ -119,10 +129,11 @@ export class CreateAttendanceUseCase {
         sourceEvent: 'CREATED',
         idempotencyKey: `attendance:${attendance.attendanceId}:student:created`,
       })
-      await this.sendAttendanceToParentUseCase.executeWithRepos(repos, {
-        attendanceId: attendance.attendanceId,
-        includeZalo: dto.status !== AttendanceStatus.ABSENT,
-      })
+      // TẠM TẮT: gửi tin phụ huynh khi điểm danh, sẽ xử lý sau
+      // await this.sendAttendanceToParentUseCase.executeWithRepos(repos, {
+      //   attendanceId: attendance.attendanceId,
+      //   includeZalo: dto.status !== AttendanceStatus.ABSENT,
+      // })
 
       return {
         response: new AttendanceResponseDto(attendance),

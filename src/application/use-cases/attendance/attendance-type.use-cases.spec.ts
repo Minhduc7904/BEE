@@ -8,6 +8,7 @@ import type {
 import { AttendanceStatus, AttendanceType } from '../../../shared/enums'
 import { PointType } from '../../../shared/enums'
 import { StudentPointService } from '../../services/student-point.service'
+import { AttendanceMakeupLinkService } from '../../services/attendance-makeup-link.service'
 import { CreateAttendanceDto } from '../../dtos/attendance/create-attendance.dto'
 import { UpdateAttendanceDto } from '../../dtos/attendance/update-attendance.dto'
 import { CreateBulkAttendanceBySessionDto } from '../../dtos/attendance/create-bulk-attendance-by-session.dto'
@@ -75,6 +76,10 @@ function setup(studentIds: number[] = [100]) {
       store.set(id, next)
       return next
     }),
+    // Liên kết học bù được kiểm thử riêng; ở đây chưa có cặp buổi học bù nào nên không có gì để nối.
+    findByStudentAndSessionIds: jest.fn(async () => [] as Attendance[]),
+    findByMakeupByAttendanceId: jest.fn(async () => [] as Attendance[]),
+    setMakeupByAttendanceId: jest.fn(async () => undefined),
   }
 
   const studentPointLogRepository = {
@@ -149,6 +154,10 @@ function setup(studentIds: number[] = [100]) {
       })),
     },
     studentPointLogRepository,
+    sessionMakeupRegistrationRepository: {
+      findBySessionIds: jest.fn(async () => []),
+      findByMakeupSessionIds: jest.fn(async () => []),
+    },
     adminAuditLogRepository: { create: jest.fn().mockResolvedValue(undefined) },
   } as unknown as UnitOfWorkRepos
 
@@ -172,18 +181,21 @@ function setup(studentIds: number[] = [100]) {
       createAndNotifyOne as never,
       sendAttendanceToParent as never,
       pointService,
+      new AttendanceMakeupLinkService(),
     ),
     update: new UpdateAttendanceUseCase(
       unitOfWork,
       createAndNotifyOne as never,
       sendAttendanceToParent as never,
       pointService,
+      new AttendanceMakeupLinkService(),
     ),
     bulk: new CreateBulkAttendanceBySessionUseCase(
       unitOfWork,
       createAndNotifyMany as never,
       sendBulkAttendanceToParent as never,
       pointService,
+      new AttendanceMakeupLinkService(),
     ),
     pointFor: (studentId: number, attendanceId: number) =>
       pointLogs.get(`${studentId}:ATTENDANCE:ATTENDANCE:${attendanceId}`),
@@ -308,12 +320,20 @@ describe('UpdateAttendanceUseCase attendanceType', () => {
     expect(result.data).toMatchObject({ status: 'ABSENT', attendanceType: 'MAKEUP' })
   })
 
-  it('đổi riêng loại điểm danh vẫn thông báo phụ huynh một lần', async () => {
+  it('đổi riêng loại điểm danh không còn tự gửi tin cho phụ huynh (tạm tắt)', async () => {
     const ctx = await created(AttendanceType.REGULAR)
 
     await ctx.update.execute(1, updateDto({ attendanceType: AttendanceType.MAKEUP }), 5, ADMIN_ID)
 
-    expect(ctx.parentNotifications).toEqual([1])
+    expect(ctx.parentNotifications).toEqual([])
+  })
+
+  it('tạo điểm danh không tự gửi tin cho phụ huynh (tạm tắt)', async () => {
+    const ctx = setup()
+
+    await ctx.create.execute(createDto({ status: AttendanceStatus.PRESENT }), 5, ADMIN_ID)
+
+    expect(ctx.parentNotifications).toEqual([])
   })
 
   it('update lặp lại cùng dữ liệu không ghi, không thông báo và không trao điểm lần hai', async () => {
@@ -403,6 +423,15 @@ describe('CreateBulkAttendanceBySessionUseCase attendanceType', () => {
       status: 'LATE',
       attendanceType: 'MAKEUP',
     })
+  })
+
+  it('bulk không tự gửi tin cho phụ huynh (tạm tắt) nhưng vẫn thông báo cho học sinh', async () => {
+    const ctx = setup([100, 101])
+
+    await ctx.bulk.execute(bulkDto({}), 5, ADMIN_ID)
+
+    expect(ctx.sendBulkAttendanceToParent.executeWithRepos).not.toHaveBeenCalled()
+    expect(ctx.createAndNotifyMany.executeWithRepos).toHaveBeenCalledTimes(1)
   })
 
   it('bulk gắn attendanceType vào metadata điểm của từng học sinh', async () => {

@@ -17,6 +17,8 @@ export interface UpdateAttendanceData {
     markerId?: number
     parentNotified?: boolean
     markedAt?: Date
+    /** Bản ghi Có mặt đã học bù cho bản ghi Vắng này; `null` để gỡ liên kết. */
+    makeupByAttendanceId?: number | null
 }
 
 export interface AttendanceFilterOptions {

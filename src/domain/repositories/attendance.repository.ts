@@ -36,6 +36,21 @@ export interface IAttendanceRepository {
     toDate: Date,
   ): Promise<Attendance[]>
   
+  /**
+   * Bản ghi điểm danh của một học sinh ở các buổi học (kèm `classSession` để sắp xếp theo ngày/giờ).
+   */
+  findByStudentAndSessionIds(studentId: number, sessionIds: number[]): Promise<Attendance[]>
+
+  /**
+   * Các bản ghi Vắng đang được bản ghi `attendanceId` học bù cho.
+   */
+  findByMakeupByAttendanceId(attendanceId: number): Promise<Attendance[]>
+
+  /**
+   * Gán (hoặc gỡ khi `value = null`) `makeupByAttendanceId` cho các bản ghi.
+   */
+  setMakeupByAttendanceId(ids: number[], value: number | null): Promise<void>
+
   // Bulk operations
   createBulk(data: CreateAttendanceData[]): Promise<Attendance[]>
   updateBulk(updates: Array<{ id: number; data: UpdateAttendanceData }>): Promise<Attendance[]>
