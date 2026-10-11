@@ -6,6 +6,7 @@ import {
     ClassSessionFilterOptions,
     ClassSessionPaginationOptions,
     ClassSessionListResult,
+    ClassSessionNotificationMoment,
 } from '../interface/class-session/class-session.interface'
 
 export interface IClassSessionRepository {
@@ -43,6 +44,17 @@ export interface IClassSessionRepository {
      * Sắp theo ngày rồi giờ bắt đầu.
      */
     findByClassIds(classIds: number[], range?: { from: Date; to: Date }): Promise<ClassSession[]>
+
+    /**
+     * Buổi học của ngày `sessionDate` (cột DATE, nửa đêm UTC) còn ít nhất một mốc thông báo điểm danh chưa xử lý,
+     * kèm `courseClass`.
+     */
+    findForAttendanceNotification(sessionDate: Date): Promise<ClassSession[]>
+    /**
+     * Đánh dấu mốc đã xử lý bằng cập nhật có điều kiện (cột dấu đang null). Trả `true` khi chính lần gọi này
+     * giành được mốc, `false` nếu mốc đã được xử lý trước đó (chặn chạy trùng).
+     */
+    claimNotificationMoment(sessionId: number, moment: ClassSessionNotificationMoment, now: Date): Promise<boolean>
 
     // Count methods
     count(filters?: ClassSessionFilterOptions): Promise<number>

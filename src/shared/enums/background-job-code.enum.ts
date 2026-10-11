@@ -11,6 +11,7 @@ export enum BackgroundJobCode {
   USER_REFRESH_TOKEN_CLEANUP = 'USER_REFRESH_TOKEN_CLEANUP',
   NOTIFICATION_DELIVERY_DISPATCHER = 'NOTIFICATION_DELIVERY_DISPATCHER',
   BUSINESS_NOTIFICATION_OUTBOX_RELAY = 'BUSINESS_NOTIFICATION_OUTBOX_RELAY',
+  ATTENDANCE_SESSION_NOTIFIER = 'ATTENDANCE_SESSION_NOTIFIER',
 }
 
 export const BackgroundJobCodeLabels: Record<BackgroundJobCode, string> = {
@@ -22,4 +23,5 @@ export const BackgroundJobCodeLabels: Record<BackgroundJobCode, string> = {
   [BackgroundJobCode.USER_REFRESH_TOKEN_CLEANUP]: 'Dọn refresh token hết hạn',
   [BackgroundJobCode.NOTIFICATION_DELIVERY_DISPATCHER]: 'Điều phối notification nền',
   [BackgroundJobCode.BUSINESS_NOTIFICATION_OUTBOX_RELAY]: 'Chuyển tiếp outbox notification nghiệp vụ',
+  [BackgroundJobCode.ATTENDANCE_SESSION_NOTIFIER]: 'Thông báo điểm danh theo mốc buổi học',
 }

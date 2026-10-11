@@ -4,6 +4,7 @@ import { InfrastructureModule } from 'src/infrastructure/infrastructure.module'
 import { NotificationApplicationModule } from '../notification/notification.application.module'
 import { StudentPointService } from 'src/application/services/student-point.service'
 import { AttendanceMakeupLinkService } from 'src/application/services/attendance-makeup-link.service'
+import { AttendanceNotificationService } from 'src/application/services/attendance-notification.service'
 
 const ATTENDANCE_USE_CASES = [
   attendanceUseCases.CreateAttendanceUseCase,
@@ -22,8 +23,10 @@ const ATTENDANCE_USE_CASES = [
   attendanceUseCases.ToggleParentNotifiedUseCase,
   attendanceUseCases.CheckInAttendanceUseCase,
   attendanceUseCases.CancelCheckInAttendanceUseCase,
+  attendanceUseCases.SendSessionAttendanceNotificationsUseCase,
   StudentPointService,
   AttendanceMakeupLinkService,
+  AttendanceNotificationService,
 ]
 
 @Module({

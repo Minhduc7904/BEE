@@ -17,6 +17,10 @@ export class ClassSession {
     // Optional properties
     homeworkId?: number | null
     makeupNote?: string | null
+    /** Thời điểm job đã xử lý mốc start + 15 phút (null = chưa). */
+    absentReminderNotifiedAt?: Date | null
+    /** Thời điểm job đã xử lý mốc hết giờ (null = chưa). */
+    absenceSummaryNotifiedAt?: Date | null
 
     // Navigation properties
     courseClass?: CourseClass
@@ -33,6 +37,8 @@ export class ClassSession {
         updatedAt?: Date
         homeworkId?: number | null
         makeupNote?: string | null
+        absentReminderNotifiedAt?: Date | null
+        absenceSummaryNotifiedAt?: Date | null
         courseClass?: CourseClass
         homeworkContent?: HomeworkContent
     }) {
@@ -47,6 +53,8 @@ export class ClassSession {
 
     this.homeworkId = data.homeworkId ?? null
         this.makeupNote = data.makeupNote
+        this.absentReminderNotifiedAt = data.absentReminderNotifiedAt ?? null
+        this.absenceSummaryNotifiedAt = data.absenceSummaryNotifiedAt ?? null
         this.courseClass = data.courseClass
     this.homeworkContent = data.homeworkContent
     }
@@ -163,6 +171,8 @@ export class ClassSession {
             endTime: this.endTime,
             homeworkId: this.homeworkId,
             makeupNote: this.makeupNote,
+            absentReminderNotifiedAt: this.absentReminderNotifiedAt,
+            absenceSummaryNotifiedAt: this.absenceSummaryNotifiedAt,
             createdAt: this.createdAt,
             updatedAt: this.updatedAt,
         }
@@ -178,6 +188,8 @@ export class ClassSession {
             endTime: this.endTime,
             homeworkId: this.homeworkId,
             makeupNote: this.makeupNote,
+            absentReminderNotifiedAt: this.absentReminderNotifiedAt,
+            absenceSummaryNotifiedAt: this.absenceSummaryNotifiedAt,
             createdAt: this.createdAt,
             updatedAt: this.updatedAt,
             courseClass: this.courseClass,

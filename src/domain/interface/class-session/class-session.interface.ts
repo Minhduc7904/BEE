@@ -15,7 +15,14 @@ export interface UpdateClassSessionData {
     endTime?: Date;
     homeworkId?: number | null;
     makeupNote?: string;
+    /** Dấu đã gửi thông báo mốc start + 15 phút; `null` để đặt lại. */
+    absentReminderNotifiedAt?: Date | null;
+    /** Dấu đã gửi thông báo mốc hết giờ; `null` để đặt lại. */
+    absenceSummaryNotifiedAt?: Date | null;
 }
+
+/** Hai mốc thông báo điểm danh theo buổi học. */
+export type ClassSessionNotificationMoment = 'ABSENT_REMINDER' | 'ABSENCE_SUMMARY';
 
 export interface ClassSessionFilterOptions {
     classId?: number;

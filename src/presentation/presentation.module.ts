@@ -102,6 +102,7 @@ import { AssistantShiftReminderScheduler } from './scheduler/assistant-shift-rem
 import { RetentionCleanupScheduler } from './scheduler/retention-cleanup.scheduler'
 import { NotificationDeliveryScheduler } from './scheduler/notification-delivery.scheduler'
 import { BusinessNotificationOutboxScheduler } from './scheduler/business-notification-outbox.scheduler'
+import { AttendanceSessionNotificationScheduler } from './scheduler/attendance-session-notification.scheduler'
 import { AssistantShiftSeriesController } from './controllers/assistant-shift-series.controller'
 import { AssistantShiftController } from './controllers/assistant-shift.controller'
 import { AssistantShiftAssignmentController } from './controllers/assistant-shift-assignment.controller'
@@ -228,6 +229,7 @@ import { SocketLifecycleGateway } from './gateways/socket-lifecycle.gateway'
     RetentionCleanupScheduler,
     NotificationDeliveryScheduler,
     BusinessNotificationOutboxScheduler,
+    AttendanceSessionNotificationScheduler,
   ],
   exports: [
     // Export gateways for use cases to inject

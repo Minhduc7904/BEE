@@ -9,6 +9,7 @@ import { ACTION_KEYS } from 'src/shared/constants/action-key.constants';
 import { AuditStatus } from 'src/shared/enums/audit-status.enum';
 import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants';
 import { SessionMakeupRegistrationSyncService } from 'src/application/services/session-makeup-registration-sync.service';
+import { getSessionNotificationMoments } from './class-session-time.helper';
 
 @Injectable()
 export class UpdateClassSessionUseCase {
@@ -71,6 +72,19 @@ export class UpdateClassSessionUseCase {
         name: dto.name,
         makeupNote: dto.makeupNote,
       };
+
+      // Đổi ngày/giờ: xóa dấu đã gửi của các mốc thông báo điểm danh mà theo giờ mới vẫn chưa tới để job tính lại
+      const sessionDate = data.sessionDate ?? existingSession.sessionDate;
+      const timeChanged =
+        sessionDate.getTime() !== existingSession.sessionDate.getTime() ||
+        startTime.getTime() !== existingSession.startTime.getTime() ||
+        endTime.getTime() !== existingSession.endTime.getTime();
+      if (timeChanged) {
+        const now = new Date();
+        const moments = getSessionNotificationMoments({ sessionDate, startTime, endTime });
+        if (moments.reminderAt > now) data.absentReminderNotifiedAt = null;
+        if (moments.summaryAt > now) data.absenceSummaryNotifiedAt = null;
+      }
 
       const classSession = await classSessionRepository.update(sessionId, data);
 

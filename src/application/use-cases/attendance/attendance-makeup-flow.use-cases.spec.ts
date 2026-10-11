@@ -27,13 +27,27 @@ function setup() {
   const sendBulkAttendanceToParent = { executeWithRepos: jest.fn() }
   const pointService = world.studentPointService as never
   const notifyOne = world.createAndNotifyOne as never
+  const attendanceNotification = { enqueueAttendanceEvent: jest.fn().mockResolvedValue(true) }
 
   return {
     world,
     sendAttendanceToParent,
     sendBulkAttendanceToParent,
-    checkIn: new CheckInAttendanceUseCase(world.unitOfWork, notifyOne, pointService, world.linkService),
-    cancel: new CancelCheckInAttendanceUseCase(world.unitOfWork, notifyOne, pointService, world.linkService),
+    attendanceNotification,
+    checkIn: new CheckInAttendanceUseCase(
+      world.unitOfWork,
+      notifyOne,
+      pointService,
+      world.linkService,
+      attendanceNotification as never,
+    ),
+    cancel: new CancelCheckInAttendanceUseCase(
+      world.unitOfWork,
+      notifyOne,
+      pointService,
+      world.linkService,
+      attendanceNotification as never,
+    ),
     create: new CreateAttendanceUseCase(
       world.unitOfWork,
       notifyOne,
@@ -125,6 +139,28 @@ describe('CheckInAttendanceUseCase', () => {
     expect(world.studentPointService.awardAttendancePoints).not.toHaveBeenCalled()
   })
 
+  it('chuyển sang Có mặt: xếp hàng thông báo ARRIVED cho phụ huynh trong cùng transaction', async () => {
+    const { world, checkIn, attendanceNotification } = setup()
+
+    const result = await checkIn.execute(checkInDto(2), ADMIN_ID, ADMIN_ID)
+
+    expect(attendanceNotification.enqueueAttendanceEvent).toHaveBeenCalledTimes(1)
+    expect(attendanceNotification.enqueueAttendanceEvent).toHaveBeenCalledWith(
+      world.repos,
+      expect.objectContaining({ attendanceId: result.data!.attendanceId, status: AttendanceStatus.PRESENT }),
+      'ARRIVED',
+    )
+  })
+
+  it('đã Có mặt từ trước (nhánh idempotent): không xếp hàng thông báo', async () => {
+    const { world, checkIn, attendanceNotification } = setup()
+    world.seed(2, AttendanceStatus.PRESENT)
+
+    await checkIn.execute(checkInDto(2), ADMIN_ID, ADMIN_ID)
+
+    expect(attendanceNotification.enqueueAttendanceEvent).not.toHaveBeenCalled()
+  })
+
   it('Vắng đã được học bù rồi điểm danh tiếp: xóa liên kết riêng, bản ghi đã bù giữ Học bù', async () => {
     const { world, checkIn } = setup()
     const makeupId = world.seed(2, AttendanceStatus.PRESENT, { type: AttendanceType.MAKEUP })
@@ -204,6 +240,20 @@ describe('CancelCheckInAttendanceUseCase', () => {
     expect(world.studentPointService.awardAttendancePoints).toHaveBeenCalledWith(
       world.repos,
       expect.objectContaining({ attendanceId: makeupId, status: AttendanceStatus.ABSENT }),
+    )
+  })
+
+  it('hủy điểm danh: xếp hàng thông báo STATUS_CHANGED cho phụ huynh', async () => {
+    const { world, cancel, attendanceNotification } = setup()
+    const presentId = world.seed(2, AttendanceStatus.PRESENT)
+
+    await cancel.execute(presentId, ADMIN_ID, ADMIN_ID)
+
+    expect(attendanceNotification.enqueueAttendanceEvent).toHaveBeenCalledTimes(1)
+    expect(attendanceNotification.enqueueAttendanceEvent).toHaveBeenCalledWith(
+      world.repos,
+      expect.objectContaining({ attendanceId: presentId, status: AttendanceStatus.ABSENT }),
+      'STATUS_CHANGED',
     )
   })
 

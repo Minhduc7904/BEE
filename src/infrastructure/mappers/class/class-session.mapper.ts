@@ -27,6 +27,8 @@ export class ClassSessionMapper {
             updatedAt: prismaSession.updatedAt ?? undefined,
             homeworkId: prismaSession.homeworkId ?? null,
             makeupNote: prismaSession.makeupNote ?? null,
+            absentReminderNotifiedAt: prismaSession.absentReminderNotifiedAt ?? null,
+            absenceSummaryNotifiedAt: prismaSession.absenceSummaryNotifiedAt ?? null,
 
             courseClass: prismaSession.courseClass
                 ? CourseClassMapper.toDomainCourseClass(prismaSession.courseClass)

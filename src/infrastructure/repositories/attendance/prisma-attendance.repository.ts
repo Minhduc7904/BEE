@@ -452,6 +452,31 @@ export class PrismaAttendanceRepository implements IAttendanceRepository {
     return AttendanceMapper.toDomainAttendances(prismaAttendances)
   }
 
+  async findUnmadeUpAbsencesBySession(sessionId: number): Promise<Attendance[]> {
+    const id = NumberUtil.ensureValidId(sessionId, 'Session ID')
+
+    const prismaAttendances = await this.prisma.attendance.findMany({
+      where: {
+        sessionId: id,
+        status: 'ABSENT',
+        makeupByAttendanceId: null,
+      },
+      include: {
+        classSession: {
+          include: {
+            courseClass: true,
+          },
+        },
+        student: {
+          include: { user: true },
+        },
+      },
+      orderBy: { attendanceId: 'asc' },
+    })
+
+    return AttendanceMapper.toDomainAttendances(prismaAttendances)
+  }
+
   async setMakeupByAttendanceId(ids: number[], value: number | null): Promise<void> {
     if (ids.length === 0) return
 

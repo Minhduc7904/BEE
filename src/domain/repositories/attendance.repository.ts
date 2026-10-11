@@ -51,6 +51,12 @@ export interface IAttendanceRepository {
    */
   setMakeupByAttendanceId(ids: number[], value: number | null): Promise<void>
 
+  /**
+   * Bản ghi Vắng của buổi học mà học sinh chưa học bù (`makeupByAttendanceId = null`),
+   * kèm `student` (user) và `classSession` (courseClass).
+   */
+  findUnmadeUpAbsencesBySession(sessionId: number): Promise<Attendance[]>
+
   // Bulk operations
   createBulk(data: CreateAttendanceData[]): Promise<Attendance[]>
   updateBulk(updates: Array<{ id: number; data: UpdateAttendanceData }>): Promise<Attendance[]>

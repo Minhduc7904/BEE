@@ -66,6 +66,7 @@ enum BackgroundJobCode {
   USER_REFRESH_TOKEN_CLEANUP
   NOTIFICATION_DELIVERY_DISPATCHER
   BUSINESS_NOTIFICATION_OUTBOX_RELAY
+  ATTENDANCE_SESSION_NOTIFIER
 }
 
 // Vòng đời của một lần chạy job; chỉ application/scheduler được phép chuyển trạng thái.
@@ -1794,6 +1795,12 @@ model ClassSession {
   sessionDate DateTime @map("session_date") @db.Date // ngÃ y tá»• chá»©c buá»•i há»c
   startTime   DateTime @map("start_time") @db.Time // giá» báº¯t Ä‘áº§u
   endTime     DateTime @map("end_time") @db.Time // giá» káº¿t thÃºc
+
+  // Thời điểm job đã xử lý mốc "start + 15 phút" (gửi thông báo chưa đến lớp); null = chưa xử lý.
+  // Được đặt lại về null khi đổi ngày/giờ buổi học mà mốc mới vẫn chưa tới.
+  absentReminderNotifiedAt DateTime? @map("absent_reminder_notified_at") @db.Timestamp(0)
+  // Thời điểm job đã xử lý mốc "hết giờ" (gửi thông báo vắng mặt); null = chưa xử lý.
+  absenceSummaryNotifiedAt DateTime? @map("absence_summary_notified_at") @db.Timestamp(0)
 
   // Relations
   courseClass     CourseClass      @relation(fields: [classId], references: [classId], onDelete: Cascade)

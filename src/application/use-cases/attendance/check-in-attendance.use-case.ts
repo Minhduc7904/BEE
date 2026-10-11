@@ -17,6 +17,7 @@ import {
 } from 'src/shared/enums'
 import { StudentPointService } from 'src/application/services/student-point.service'
 import { AttendanceMakeupLinkService } from 'src/application/services/attendance-makeup-link.service'
+import { AttendanceNotificationService } from 'src/application/services/attendance-notification.service'
 import { CreateAndNotifyOneUseCase } from '../notification/create-and-notify-one.use-case'
 
 /**
@@ -36,6 +37,7 @@ export class CheckInAttendanceUseCase {
     private readonly createAndNotifyOne: CreateAndNotifyOneUseCase,
     private readonly studentPointService: StudentPointService,
     private readonly attendanceMakeupLinkService: AttendanceMakeupLinkService,
+    private readonly attendanceNotificationService: AttendanceNotificationService,
   ) {}
 
   async execute(
@@ -156,6 +158,9 @@ export class CheckInAttendanceUseCase {
 
       // Đọc lại để response có đủ quan hệ (makeupBy, madeUpAbsences)
       attendance = (await attendanceRepository.findById(attendance.attendanceId)) ?? attendance
+
+      // Thông báo nền cho phụ huynh (in-app + push + Zalo OA): con đã đến lớp. Nhánh đã Có mặt từ trước đã return ở trên.
+      await this.attendanceNotificationService.enqueueAttendanceEvent(repos, attendance, 'ARRIVED')
 
       return { attendance, linkedAbsenceCount }
     })

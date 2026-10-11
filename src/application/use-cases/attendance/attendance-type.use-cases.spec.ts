@@ -419,19 +419,15 @@ describe('CreateBulkAttendanceBySessionUseCase attendanceType', () => {
       ['LATE', 'MAKEUP'],
       ['LATE', 'MAKEUP'],
     ])
-    expect(ctx.createAndNotifyMany.executeWithRepos.mock.calls[0][1][0].data).toMatchObject({
-      status: 'LATE',
-      attendanceType: 'MAKEUP',
-    })
   })
 
-  it('bulk không tự gửi tin cho phụ huynh (tạm tắt) nhưng vẫn thông báo cho học sinh', async () => {
+  it('bulk không còn gửi in-app cho học sinh (chuyển sang job theo mốc buổi học) và không gửi phụ huynh', async () => {
     const ctx = setup([100, 101])
 
     await ctx.bulk.execute(bulkDto({}), 5, ADMIN_ID)
 
     expect(ctx.sendBulkAttendanceToParent.executeWithRepos).not.toHaveBeenCalled()
-    expect(ctx.createAndNotifyMany.executeWithRepos).toHaveBeenCalledTimes(1)
+    expect(ctx.createAndNotifyMany.executeWithRepos).not.toHaveBeenCalled()
   })
 
   it('bulk gắn attendanceType vào metadata điểm của từng học sinh', async () => {

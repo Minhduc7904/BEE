@@ -159,47 +159,43 @@ Nếu con đăng ký nhầm lớp, hãy chọn "Liên hệ hỗ trợ" để tr�
          * Gửi thông báo cho học sinh
          * =========================
          */
-        const createdStudentIds = createdAttendances.map((a) => a.studentId)
-        const studentsToNotify = classStudents.filter(
-          (s) => createdStudentIds.includes(s.studentId) && s.student?.userId,
-        )
+        // TẠM TẮT: chuyển sang job thông báo theo mốc buổi học
+        // const createdStudentIds = createdAttendances.map((a) => a.studentId)
+        // const studentsToNotify = classStudents.filter(
+        //   (s) => createdStudentIds.includes(s.studentId) && s.student?.userId,
+        // )
 
-        if (studentsToNotify.length > 0) {
-          const defaultStatus = dto.status || AttendanceStatus.PRESENT
-          const statusLabel = AttendanceStatusLabels[defaultStatus] || defaultStatus
-          const attendanceType = dto.attendanceType ?? AttendanceType.REGULAR
+        // const defaultStatus = dto.status || AttendanceStatus.PRESENT
+        // const statusLabel = AttendanceStatusLabels[defaultStatus] || defaultStatus
+        // const attendanceType = dto.attendanceType ?? AttendanceType.REGULAR
 
-          const notificationDataList = studentsToNotify.map((cs) => ({
-            userId: cs.student!.userId,
-            title: 'Điểm danh mới',
-            message: `Bạn đã được điểm danh với trạng thái: ${statusLabel}${attendanceType === AttendanceType.MAKEUP ? `; loại: ${AttendanceTypeLabels[attendanceType]}` : ''}`,
-            type: NotificationType.ATTENDANCE,
-            level: NotificationLevel.INFO,
-            data: { sessionId: dto.sessionId, status: defaultStatus, attendanceType },
-          }))
+        // const notificationDataList = studentsToNotify.map((cs) => ({
+        //   userId: cs.student!.userId,
+        //   title: 'Điểm danh mới',
+        //   message: `Bạn đã được điểm danh với trạng thái: ${statusLabel}${attendanceType === AttendanceType.MAKEUP ? `; loại: ${AttendanceTypeLabels[attendanceType]}` : ''}`,
+        //   type: NotificationType.ATTENDANCE,
+        //   level: NotificationLevel.INFO,
+        //   data: { sessionId: dto.sessionId, status: defaultStatus, attendanceType },
+        // }))
 
-          const attendanceIds = createdAttendances.map((attendance) => attendance.attendanceId)
-          const digest = createHash('sha256')
-            .update([...attendanceIds].sort((a, b) => a - b).join(','))
-            .digest('hex')
-            .slice(0, 24)
-          await this.createAndNotifyMany.executeWithRepos(repos, notificationDataList, {
-            sourceType: 'ATTENDANCE',
-            sourceId: `session:${dto.sessionId}:bulk:${digest}`,
-            sourceEvent: 'BULK_CREATED',
-            idempotencyKey: `attendance-bulk:${dto.sessionId}:${digest}:students`,
-          })
+        // const attendanceIds = createdAttendances.map((attendance) => attendance.attendanceId)
+        // const digest = createHash('sha256')
+        //   .update([...attendanceIds].sort((a, b) => a - b).join(','))
+        //   .digest('hex')
+        //   .slice(0, 24)
+        // await this.createAndNotifyMany.executeWithRepos(repos, notificationDataList, {
+        //   sourceType: 'ATTENDANCE',
+        //   sourceId: `session:${dto.sessionId}:bulk:${digest}`,
+        //   sourceEvent: 'BULK_CREATED',
+        //   idempotencyKey: `attendance-bulk:${dto.sessionId}:${digest}:students`,
+        // })
+
           // TẠM TẮT: gửi tin phụ huynh khi điểm danh, sẽ xử lý sau
           // await this.sendBulkAttendanceToParentUseCase.executeWithRepos(repos, {
           //   attendanceIds,
           //   note: CreateBulkAttendanceBySessionUseCase.FIRST_ATTENDANCE_NOTE,
           //   includeZalo: false,
           // })
-
-          return {
-            responses: createdAttendances.map((attendance) => AttendanceResponseDto.fromEntity(attendance)),
-          }
-        }
 
         return {
           responses: createdAttendances.map((attendance) => AttendanceResponseDto.fromEntity(attendance)),

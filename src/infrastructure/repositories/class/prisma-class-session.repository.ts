@@ -7,6 +7,7 @@ import type {
     ClassSessionFilterOptions,
     ClassSessionPaginationOptions,
     ClassSessionListResult,
+    ClassSessionNotificationMoment,
 } from '../../../domain/interface/class-session/class-session.interface'
 import { ClassSession } from '../../../domain/entities/class-session/class-session.entity'
 import { ClassSessionMapper } from '../../mappers/class/class-session.mapper'
@@ -477,6 +478,37 @@ export class PrismaClassSessionRepository implements IClassSessionRepository {
         })
 
         return ClassSessionMapper.toDomainClassSessions(prismaSessions)
+    }
+
+    async findForAttendanceNotification(sessionDate: Date): Promise<ClassSession[]> {
+        const prismaSessions = await this.prisma.classSession.findMany({
+            where: {
+                sessionDate,
+                OR: [{ absentReminderNotifiedAt: null }, { absenceSummaryNotifiedAt: null }],
+            },
+            include: {
+                courseClass: true,
+            },
+            orderBy: [{ startTime: 'asc' }, { sessionId: 'asc' }],
+        })
+
+        return ClassSessionMapper.toDomainClassSessions(prismaSessions)
+    }
+
+    async claimNotificationMoment(
+        sessionId: number,
+        moment: ClassSessionNotificationMoment,
+        now: Date,
+    ): Promise<boolean> {
+        const id = NumberUtil.ensureValidId(sessionId, 'Session ID')
+        const field = moment === 'ABSENT_REMINDER' ? 'absentReminderNotifiedAt' : 'absenceSummaryNotifiedAt'
+
+        const result = await this.prisma.classSession.updateMany({
+            where: { sessionId: id, [field]: null },
+            data: { [field]: now },
+        })
+
+        return result.count === 1
     }
 
     async count(filters?: ClassSessionFilterOptions): Promise<number> {
