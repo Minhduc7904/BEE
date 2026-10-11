@@ -1,4 +1,4 @@
-import { AttendanceStatus } from 'src/shared/enums'
+import { AttendanceStatus, AttendanceType } from 'src/shared/enums'
 import { IsRequiredIdNumber, IsOptionalEnumValue, IsOptionalString } from 'src/shared/decorators/validate'
 
 /**
@@ -21,6 +21,9 @@ export class CreateBulkAttendanceBySessionDto {
    */
   @IsOptionalEnumValue(AttendanceStatus, 'Trạng thái điểm danh')
   status?: AttendanceStatus
+
+  @IsOptionalEnumValue(AttendanceType, 'Loại điểm danh')
+  attendanceType?: AttendanceType
 
   /**
    * Ghi chú (tối đa 500 ký tự)

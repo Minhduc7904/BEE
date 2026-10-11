@@ -11,6 +11,7 @@ import { Visibility, VisibilityLabels } from '../enums/visibility.enum'
 import { PointType, PointTypeLabels } from '../enums/point-type.enum'
 import { CourseEnrollmentStatus, CourseEnrollmentStatusLabels } from '../enums/course-enrollment-status.enum'
 import { AttendanceStatus, AttendanceStatusLabels } from '../enums/attendance-status.enum'
+import { AttendanceType, AttendanceTypeLabels } from '../enums/attendance-type.enum'
 import { MediaType, MediaTypeLabels } from '../enums/media-type.enum'
 import { MediaStatus, MediaStatusLabels } from '../enums/media-status.enum'
 import { MediaVisibility, MediaVisibilityLabels } from '../enums/media-visibility.enum'
@@ -67,6 +68,10 @@ export const ENUM_VALUES = {
   ATTENDANCE_STATUS: {
     values: Object.values(AttendanceStatus),
     labels: AttendanceStatusLabels,
+  },
+  ATTENDANCE_TYPE: {
+    values: Object.values(AttendanceType),
+    labels: AttendanceTypeLabels,
   },
   MEDIA_TYPE: {
     values: Object.values(MediaType),

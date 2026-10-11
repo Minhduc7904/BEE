@@ -11,7 +11,7 @@ import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
 import { CreateAndNotifyOneUseCase } from '../notification/create-and-notify-one.use-case'
 import { NotificationType, NotificationLevel, AttendanceStatusLabels } from 'src/shared/enums'
 import { SendAttendanceToParentUseCase } from './send-attendance-to-parent.use-case'
-import { AttendanceStatus } from 'src/shared/enums'
+import { AttendanceStatus, AttendanceType, AttendanceTypeLabels } from 'src/shared/enums'
 import { StudentPointService } from 'src/application/services/student-point.service'
 
 @Injectable()
@@ -72,6 +72,7 @@ export class CreateAttendanceUseCase {
         sessionId: dto.sessionId,
         studentId: dto.studentId,
         status: dto.status,
+        attendanceType: dto.attendanceType ?? AttendanceType.REGULAR,
         notes: dto.notes,
         markerId,
       }
@@ -81,6 +82,7 @@ export class CreateAttendanceUseCase {
         studentId: attendance.studentId,
         attendanceId: attendance.attendanceId,
         status: attendance.status,
+        attendanceType: attendance.attendanceType,
         sessionId: attendance.sessionId,
       })
 
@@ -95,6 +97,7 @@ export class CreateAttendanceUseCase {
             sessionId: attendance.sessionId,
             studentId: attendance.studentId,
             status: attendance.status,
+            attendanceType: attendance.attendanceType,
           },
         })
       }
@@ -104,10 +107,10 @@ export class CreateAttendanceUseCase {
       const notification = {
         userId: student.userId,
         title: 'Điểm danh mới',
-        message: `Bạn đã được điểm danh với trạng thái: ${statusLabel}`,
+        message: `Bạn đã được điểm danh với trạng thái: ${statusLabel}${attendance.attendanceType === AttendanceType.MAKEUP ? `; loại: ${AttendanceTypeLabels[attendance.attendanceType]}` : ''}`,
         type: NotificationType.ATTENDANCE,
         level: NotificationLevel.INFO,
-        data: { attendanceId: attendance.attendanceId, sessionId: attendance.sessionId, status: attendance.status },
+        data: { attendanceId: attendance.attendanceId, sessionId: attendance.sessionId, status: attendance.status, attendanceType: attendance.attendanceType },
       }
 
       await this.createAndNotifyOne.executeWithRepos(repos, notification, {

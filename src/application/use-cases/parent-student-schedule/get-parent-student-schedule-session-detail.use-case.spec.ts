@@ -136,13 +136,13 @@ describe('GetParentStudentScheduleSessionDetailUseCase', () => {
     })
   })
 
-  it.each([AttendanceStatus.PRESENT, AttendanceStatus.ABSENT, AttendanceStatus.LATE, AttendanceStatus.MAKEUP])(
+  it.each([AttendanceStatus.PRESENT, AttendanceStatus.ABSENT, AttendanceStatus.LATE])(
     'returns attendance, homework and makeup options for status %s',
     async (status) => {
       const markedAt = new Date('2026-10-02T06:10:00.000Z')
       const { useCase } = setup(
         detail({
-          attendance: { attendanceId: 900, status, markedAt, notes: null, markerName: 'Cô Lan' },
+          attendance: { attendanceId: 900, status, attendanceType: 'MAKEUP', markedAt, notes: null, markerName: 'Cô Lan' },
           homework: { homeworkId: 21, submission: { homeworkSubmitId: 31, points: 8.5 } },
           makeupOptions: [
             {
@@ -163,6 +163,7 @@ describe('GetParentStudentScheduleSessionDetailUseCase', () => {
       expect(result.data?.attendance).toEqual({
         attendanceId: 900,
         status,
+        attendanceType: 'MAKEUP',
         markedAt: '2026-10-02T06:10:00.000Z',
         notes: null,
         markerName: 'Cô Lan',
@@ -181,6 +182,7 @@ describe('GetParentStudentScheduleSessionDetailUseCase', () => {
         attendance: {
           attendanceId: 1,
           status: AttendanceStatus.ABSENT,
+          attendanceType: 'REGULAR',
           markedAt: new Date('2026-10-02T06:10:00.000Z'),
           notes: null,
           markerName: null,

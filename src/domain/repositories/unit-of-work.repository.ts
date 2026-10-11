@@ -17,7 +17,7 @@ import { IClassSessionRepository } from './class-session.repository'
 import { IClassStudentRepository } from './class-student.repository'
 import { ICourseRepository } from './course.repository'
 import { ICourseClassRepository } from './course-class.repository'
-import { ICourseClassMakeupOptionRepository } from './course-class-makeup-option.repository'
+import { ICourseClassMakeupGroupRepository } from './course-class-makeup-group.repository'
 import { ICourseEnrollmentRepository } from './course-enrollment.repository'
 import { ILearningItemRepository } from './learning-item.repository'
 import { IStudentLearningItemRepository } from './student-learning-item.repository'
@@ -106,7 +106,7 @@ export interface UnitOfWorkRepos {
   classStudentRepository: IClassStudentRepository
   courseRepository: ICourseRepository
   courseClassRepository: ICourseClassRepository
-  courseClassMakeupOptionRepository: ICourseClassMakeupOptionRepository
+  courseClassMakeupGroupRepository: ICourseClassMakeupGroupRepository
   courseEnrollmentRepository: ICourseEnrollmentRepository
   learningItemRepository: ILearningItemRepository
   studentLearningItemRepository: IStudentLearningItemRepository

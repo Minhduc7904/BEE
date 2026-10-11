@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { createHash } from 'crypto'
 import { AttendanceParentMessageTemplate } from 'src/infrastructure/templates/attendance-parent-message.template'
-import { AttendanceStatus, AttendanceStatusLabels, NotificationLevel, NotificationType } from 'src/shared/enums'
+import { AttendanceStatus, AttendanceStatusLabels, AttendanceType, AttendanceTypeLabels, NotificationLevel, NotificationType } from 'src/shared/enums'
 import { formatVnDate, formatVnDateTime, formatVnTime } from 'src/shared/utils/vietnam-date.util'
 import type { IUnitOfWork, UnitOfWorkRepos } from 'src/domain/repositories'
 import { BusinessNotificationQueueService } from '../notification/business-notification-queue.service'
@@ -163,6 +163,9 @@ export class SendBulkAttendanceToParentUseCase {
               attendanceTimeLabel,
               arrivalTime,
               statusLabel,
+              attendanceTypeLabel: attendance.attendanceType === AttendanceType.MAKEUP
+                ? AttendanceTypeLabels[attendance.attendanceType]
+                : undefined,
               makeupLine,
               homeworkLine,
               notes: attendance.notes || undefined,

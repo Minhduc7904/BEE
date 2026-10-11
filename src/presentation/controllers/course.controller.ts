@@ -507,7 +507,7 @@ export class CourseController {
    * - toDate: string (ISO format YYYY-MM-DD) - Đến ngày
    *
    * Query params (optional):
-   * - status: AttendanceStatus - Filter by status (PRESENT, ABSENT, LATE, MAKEUP)
+   * - status: AttendanceStatus - Filter by status (PRESENT, ABSENT, LATE)
    * - search: string - Tìm kiếm theo tên, email, SĐT học sinh
    * - includeSchool: boolean (default: true)
    * - includeParentPhone: boolean (default: true)

@@ -1,18 +1,18 @@
 import { plainToInstance } from 'class-transformer'
 import { validate } from 'class-validator'
-import { ReplaceCourseClassMakeupOptionsDto } from './replace-course-class-makeup-options.dto'
+import { ReplaceCourseClassMakeupGroupDto } from './replace-course-class-makeup-group.dto'
 
 async function errorsFor(body: unknown) {
-  const dto = plainToInstance(ReplaceCourseClassMakeupOptionsDto, body)
+  const dto = plainToInstance(ReplaceCourseClassMakeupGroupDto, body)
   return validate(dto)
 }
 
-describe('ReplaceCourseClassMakeupOptionsDto', () => {
+describe('ReplaceCourseClassMakeupGroupDto', () => {
   it('chấp nhận danh sách ID dương', async () => {
     expect(await errorsFor({ makeupClassIds: [152, 153, 154] })).toHaveLength(0)
   })
 
-  it('chấp nhận mảng rỗng để xóa toàn bộ cấu hình', async () => {
+  it('chấp nhận mảng rỗng để đưa lớp ra khỏi nhóm', async () => {
     expect(await errorsFor({ makeupClassIds: [] })).toHaveLength(0)
   })
 
