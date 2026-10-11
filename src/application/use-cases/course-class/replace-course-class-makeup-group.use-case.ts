@@ -41,6 +41,9 @@ export class ReplaceCourseClassMakeupGroupUseCase {
           throw new NotFoundException(`Lớp học với ID ${classId} không tồn tại`)
         }
 
+        // Các lần lưu đồng thời cùng khóa học chạy lần lượt; lần sau thấy nhóm đã commit và bị từ chối bằng 409.
+        await groupRepository.lockCourse(source.courseId)
+
         const makeupClassIds = dto.makeupClassIds
 
         if (new Set(makeupClassIds).size !== makeupClassIds.length) {

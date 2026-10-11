@@ -9,6 +9,12 @@ import type {
  */
 export interface ICourseClassMakeupGroupRepository {
   /**
+   * Khóa dòng khóa học trong transaction hiện tại để các lần lưu nhóm đồng thời của cùng một khóa học
+   * chạy lần lượt: lần sau đọc trạng thái đã commit của lần trước và trả 409 thay vì ghi chồng lên nhau.
+   */
+  lockCourse(courseId: number): Promise<void>
+
+  /**
    * Mọi lớp thuộc khóa học, sắp xếp theo className rồi classId.
    */
   findClassesByCourse(courseId: number): Promise<CourseClassMakeupCandidate[]>

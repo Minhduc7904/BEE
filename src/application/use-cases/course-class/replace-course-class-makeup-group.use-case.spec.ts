@@ -63,6 +63,7 @@ function setup(params: { classes?: CourseClass[]; groups?: MakeupGroup[] } = {})
     findByIds: recorded('findTargets', (ids: number[]) => classes.filter((item) => ids.includes(item.classId))),
   }
   const courseClassMakeupGroupRepository = {
+    lockCourse: recorded('lock', () => undefined),
     findClassesByCourse: recorded('classes', () => classes.map((item) => candidate(item.classId))),
     findGroupsByCourse: recorded('groups', () => groups),
     saveGroup: recorded('save', (saved: { groupId: number | null }) => saved.groupId ?? NEW_GROUP_ID),
@@ -289,7 +290,7 @@ describe('ReplaceCourseClassMakeupGroupUseCase', () => {
 
       expect(scenario.executeInTransaction).toHaveBeenCalledTimes(1)
       expect(scenario.executeInTransaction.mock.calls[0][1]).toEqual({ isolationLevel: 'ReadCommitted' })
-      expect(scenario.calls).toEqual(['findSource', 'findTargets', 'classes', 'groups', 'save', 'audit'])
+      expect(scenario.calls).toEqual(['findSource', 'lock', 'findTargets', 'classes', 'groups', 'save', 'audit'])
     })
 
     it('lỗi ghi audit làm cả transaction thất bại để UnitOfWork rollback', async () => {
