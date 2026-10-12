@@ -317,7 +317,8 @@ describe('UpdateAttendanceUseCase attendanceType', () => {
       ADMIN_ID,
     )
 
-    expect(result.data).toMatchObject({ status: 'ABSENT', attendanceType: 'MAKEUP' })
+    // Vắng luôn là Chính khóa dù request gửi Học bù
+    expect(result.data).toMatchObject({ status: 'ABSENT', attendanceType: 'REGULAR' })
   })
 
   it('đổi riêng loại điểm danh không còn tự gửi tin cho phụ huynh (tạm tắt)', async () => {

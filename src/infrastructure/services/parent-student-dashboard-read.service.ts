@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common'
-import { AttendanceStatus as PrismaAttendanceStatus, TuitionPaymentStatus } from '@prisma/client'
+import {
+  AttendanceStatus as PrismaAttendanceStatus,
+  AttendanceType as PrismaAttendanceType,
+  TuitionPaymentStatus,
+} from '@prisma/client'
 
 import {
   ParentAttendanceStatusCounts,
@@ -28,21 +32,23 @@ export class PrismaParentStudentDashboardReadService extends ParentStudentDashbo
     toExclusive: Date,
   ): Promise<ParentAttendanceStatusCounts> {
     const groups = await this.prisma.attendance.groupBy({
-      by: ['status'],
+      by: ['status', 'attendanceType'],
       where: {
         studentId,
         classSession: { sessionDate: { gte: from, lt: toExclusive } },
       },
       _count: { _all: true },
     })
-    const countOf = (status: PrismaAttendanceStatus): number =>
-      groups.find((group) => group.status === status)?._count._all ?? 0
+    const countWhere = (predicate: (group: (typeof groups)[number]) => boolean): number =>
+      groups.filter(predicate).reduce((sum, group) => sum + group._count._all, 0)
+    const countOf = (status: PrismaAttendanceStatus): number => countWhere((group) => group.status === status)
 
     return {
       present: countOf(PrismaAttendanceStatus.PRESENT),
       absent: countOf(PrismaAttendanceStatus.ABSENT),
       late: countOf(PrismaAttendanceStatus.LATE),
-      makeup: countOf(PrismaAttendanceStatus.MAKEUP),
+      // Học bù là tập con của trạng thái Có mặt/Muộn, không phải trạng thái thứ tư.
+      makeup: countWhere((group) => group.attendanceType === PrismaAttendanceType.MAKEUP),
     }
   }
 

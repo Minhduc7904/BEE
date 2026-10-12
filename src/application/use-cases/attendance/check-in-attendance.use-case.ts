@@ -16,7 +16,10 @@ import {
   NotificationType,
 } from 'src/shared/enums'
 import { StudentPointService } from 'src/application/services/student-point.service'
-import { AttendanceMakeupLinkService } from 'src/application/services/attendance-makeup-link.service'
+import {
+  AttendanceMakeupLinkService,
+  normalizeAttendanceType,
+} from 'src/application/services/attendance-makeup-link.service'
 import { AttendanceNotificationService } from 'src/application/services/attendance-notification.service'
 import { CreateAndNotifyOneUseCase } from '../notification/create-and-notify-one.use-case'
 
@@ -27,7 +30,8 @@ import { CreateAndNotifyOneUseCase } from '../notification/create-and-notify-one
  * - Đã Có mặt: trả nguyên trạng (idempotent).
  * - Đang Vắng / Muộn: chuyển sang Có mặt, gỡ liên kết "đã được bù" của chính bản ghi.
  * - Chưa có bản ghi: tạo Có mặt, loại Chính khóa.
- * Sau đó nối các buổi vắng mà buổi này học bù được; nối được thì bản ghi thành Học bù.
+ * Loại điểm danh không tự nâng thành Học bù. Bản ghi Học bù (Muộn → Có mặt) giữ nguyên liên kết;
+ * bản ghi Vắng được chuẩn hóa về Chính khóa nên chuyển sang Có mặt vẫn là Chính khóa.
  */
 @Injectable()
 export class CheckInAttendanceUseCase {
@@ -80,6 +84,10 @@ export class CheckInAttendanceUseCase {
       let attendance = existing
         ? await attendanceRepository.update(existing.attendanceId, {
             status: AttendanceStatus.PRESENT,
+            attendanceType: normalizeAttendanceType(
+              AttendanceStatus.PRESENT,
+              normalizeAttendanceType(existing.status, existing.attendanceType),
+            ),
             markedAt: new Date(),
             markerId,
             // Có mặt không còn là buổi vắng nên không còn "đã được bù"
@@ -93,7 +101,11 @@ export class CheckInAttendanceUseCase {
             markerId,
           })
 
-      const linkedAbsenceCount = await this.attendanceMakeupLinkService.linkAbsencesTo(repos, attendance)
+      const { linkedAbsenceCount } = await this.attendanceMakeupLinkService.reconcile(
+        repos,
+        attendance,
+        existing ? { status: existing.status, attendanceType: existing.attendanceType } : null,
+      )
 
       await this.studentPointService.awardAttendancePoints(repos, {
         studentId: attendance.studentId,

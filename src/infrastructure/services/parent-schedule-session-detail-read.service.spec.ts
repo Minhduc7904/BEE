@@ -30,6 +30,20 @@ function build(findFirst: jest.Mock) {
 
 const today = new Date('2026-10-04T00:00:00.000Z')
 
+function makeupBy() {
+  return {
+    attendanceId: 950,
+    sessionId: 700,
+    classSession: {
+      classId: 31,
+      sessionDate: new Date('2026-10-09T00:00:00.000Z'),
+      startTime: new Date('1970-01-01T18:00:00.000Z'),
+      endTime: new Date('1970-01-01T19:30:00.000Z'),
+      courseClass: { className: 'Lớp bù' },
+    },
+  }
+}
+
 describe('PrismaParentScheduleSessionDetailReadService', () => {
   it('issues one scoped query with student-only attendance, homework and non-expired makeup classes', async () => {
     const findFirst = jest.fn().mockResolvedValue(null)
@@ -89,6 +103,8 @@ describe('PrismaParentScheduleSessionDetailReadService', () => {
               attendanceId: 900,
               status: 'ABSENT',
               attendanceType: 'REGULAR',
+              makeupByAttendanceId: 950,
+              makeupBy: makeupBy(),
               markedAt,
               notes: '',
               marker: admin('Nguyễn', 'Lan'),
@@ -99,7 +115,16 @@ describe('PrismaParentScheduleSessionDetailReadService', () => {
       .mockResolvedValueOnce(
         row({
           attendances: [
-            { attendanceId: 901, status: 'LATE', attendanceType: 'MAKEUP', markedAt, notes: 'Đến trễ', marker: null },
+            {
+              attendanceId: 901,
+              status: 'LATE',
+              attendanceType: 'MAKEUP',
+              makeupByAttendanceId: null,
+              makeupBy: null,
+              markedAt,
+              notes: 'Đến trễ',
+              marker: null,
+            },
           ],
         }),
       )
@@ -112,6 +137,17 @@ describe('PrismaParentScheduleSessionDetailReadService', () => {
       attendanceId: 900,
       status: 'ABSENT',
       attendanceType: 'REGULAR',
+      makeupByAttendanceId: 950,
+      isMadeUp: true,
+      makeupBy: {
+        attendanceId: 950,
+        sessionId: 700,
+        classId: 31,
+        className: 'Lớp bù',
+        sessionDate: new Date('2026-10-09T00:00:00.000Z'),
+        startTime: new Date('1970-01-01T18:00:00.000Z'),
+        endTime: new Date('1970-01-01T19:30:00.000Z'),
+      },
       markedAt,
       notes: null,
       markerName: 'Nguyễn Lan',
@@ -120,6 +156,9 @@ describe('PrismaParentScheduleSessionDetailReadService', () => {
       attendanceId: 901,
       status: 'LATE',
       attendanceType: 'MAKEUP',
+      makeupByAttendanceId: null,
+      isMadeUp: false,
+      makeupBy: null,
       markedAt,
       notes: 'Đến trễ',
       markerName: null,
@@ -130,7 +169,16 @@ describe('PrismaParentScheduleSessionDetailReadService', () => {
     const findFirst = jest.fn().mockResolvedValue(
       row({
         attendances: [
-          { attendanceId: 1, status, attendanceType: 'REGULAR', markedAt: new Date(), notes: null, marker: null },
+          {
+            attendanceId: 1,
+            status,
+            attendanceType: 'REGULAR',
+            makeupByAttendanceId: null,
+            makeupBy: null,
+            markedAt: new Date(),
+            notes: null,
+            marker: null,
+          },
         ],
       }),
     )

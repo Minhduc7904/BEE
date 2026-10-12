@@ -23,8 +23,9 @@ import { CreateAndNotifyOneUseCase } from '../notification/create-and-notify-one
  * Hủy điểm danh: chuyển bản ghi Có mặt về Vắng.
  *
  * - Chỉ áp dụng khi bản ghi đang Có mặt (khác thì `ConflictException`).
- * - Gỡ các buổi vắng đang được bản ghi này bù và thử nối chúng sang bản ghi Có mặt khác.
- * - Bản ghi vừa hủy (giờ là Vắng) được nối vào buổi đã học bù nếu có; nó giữ nguyên loại điểm danh hiện có.
+ * - Bản ghi vừa hủy (giờ là Vắng) bị ép về loại Chính khóa.
+ * - Gỡ các buổi vắng đang được bản ghi này bù và thử nối chúng sang bản ghi Học bù khác.
+ * - Bản ghi vừa hủy được nối vào buổi đã học bù nếu có.
  */
 @Injectable()
 export class CancelCheckInAttendanceUseCase {
@@ -70,14 +71,17 @@ export class CancelCheckInAttendanceUseCase {
 
       const attendance = await attendanceRepository.update(attendanceId, {
         status: AttendanceStatus.ABSENT,
+        attendanceType: AttendanceType.REGULAR,
         markedAt: new Date(),
         markerId,
         makeupByAttendanceId: null,
       })
 
       // Gỡ các buổi vắng đã được bản ghi này bù (thử nối sang bản ghi Có mặt khác), rồi nối chính bản ghi vừa hủy
-      const releasedAbsenceCount = await this.attendanceMakeupLinkService.releaseMadeUpAbsences(repos, attendanceId)
-      await this.attendanceMakeupLinkService.linkAbsenceToMakeup(repos, attendance)
+      const { releasedAbsenceCount } = await this.attendanceMakeupLinkService.reconcile(repos, attendance, {
+        status: existing.status,
+        attendanceType: existing.attendanceType,
+      })
 
       // Đồng bộ điểm thưởng điểm danh về 0 (idempotent theo attendanceId)
       await this.studentPointService.awardAttendancePoints(repos, {

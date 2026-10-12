@@ -3,36 +3,104 @@ import type { Attendance } from 'src/domain/entities/attendance/attendance.entit
 import type { UnitOfWorkRepos } from 'src/domain/repositories'
 import { AttendanceStatus, AttendanceType } from 'src/shared/enums'
 
+interface AttendanceKind {
+  status: AttendanceStatus
+  attendanceType: AttendanceType
+}
+
+export interface AttendanceMakeupReconcileResult {
+  /** Số buổi vắng vừa được nối vào bản ghi (khi bản ghi trở thành Có mặt/Muộn + Học bù). */
+  linkedAbsenceCount: number
+  /** Số buổi vắng vừa bị gỡ khỏi bản ghi (khi bản ghi không còn đủ điều kiện học bù). */
+  releasedAbsenceCount: number
+}
+
 /**
- * Nối / gỡ liên kết học bù giữa bản ghi Vắng và bản ghi Có mặt của cùng một học sinh.
+ * `MAKEUP` chỉ hợp lệ khi trạng thái cuối cùng là Có mặt hoặc Muộn.
+ * Bản ghi Vắng luôn là `REGULAR`, kể cả khi request gửi `MAKEUP`.
+ */
+export function normalizeAttendanceType(
+  status: AttendanceStatus,
+  attendanceType: AttendanceType | undefined | null,
+): AttendanceType {
+  if (status === AttendanceStatus.ABSENT) return AttendanceType.REGULAR
+
+  return attendanceType ?? AttendanceType.REGULAR
+}
+
+/** Bản ghi có thể đứng tên "đã học bù" cho các buổi vắng: Có mặt/Muộn và loại Học bù. */
+export function isMakeupTarget(attendance: AttendanceKind): boolean {
+  return (
+    (attendance.status === AttendanceStatus.PRESENT || attendance.status === AttendanceStatus.LATE) &&
+    attendance.attendanceType === AttendanceType.MAKEUP
+  )
+}
+
+/**
+ * Nối / gỡ liên kết học bù giữa bản ghi Vắng và bản ghi Có mặt/Muộn + Học bù của cùng một học sinh.
  *
- * - Bản ghi Vắng giữ `makeupByAttendanceId` trỏ tới bản ghi Có mặt đã học bù cho nó.
- * - Một bản ghi Có mặt có thể bù cho nhiều buổi vắng; khi nối được ít nhất một buổi vắng nó trở thành `MAKEUP`.
- * - Cặp buổi hợp lệ đọc từ `session_makeup_registrations`. Trạng thái Muộn không tham gia liên kết.
+ * - Bản ghi Vắng giữ `makeupByAttendanceId` trỏ tới bản ghi học bù cho nó.
+ * - Một bản ghi học bù có thể bù cho nhiều buổi vắng. Loại điểm danh do người dùng chọn;
+ *   service này không bao giờ tự nâng `REGULAR` thành `MAKEUP`.
+ * - Cặp buổi hợp lệ đọc từ `session_makeup_registrations`.
  *
  * Mọi hàm nhận `repos` để chạy trong transaction của use case gọi nó.
  */
 @Injectable()
 export class AttendanceMakeupLinkService {
   /**
-   * Điểm danh có mặt: gán `makeupByAttendanceId` của mọi bản ghi Vắng chưa được bù của cùng học sinh,
-   * ở các buổi mà buổi hiện tại học bù được, rồi đổi bản ghi hiện tại sang `MAKEUP` nếu nối được.
-   * Cập nhật trực tiếp `presentAttendance.attendanceType` để response phản ánh loại mới.
+   * Đồng bộ liên kết sau khi bản ghi đã được lưu với trạng thái/loại đã chuẩn hóa.
+   *
+   * @param previous trạng thái/loại trước thay đổi; `null` khi bản ghi vừa được tạo
+   */
+  async reconcile(
+    repos: UnitOfWorkRepos,
+    attendance: Attendance,
+    previous: AttendanceKind | null,
+  ): Promise<AttendanceMakeupReconcileResult> {
+    const result: AttendanceMakeupReconcileResult = { linkedAbsenceCount: 0, releasedAbsenceCount: 0 }
+    const eligible = isMakeupTarget(attendance)
+
+    // Chỉ bản ghi Vắng mới có thể "đã được bù"
+    if (attendance.status !== AttendanceStatus.ABSENT && attendance.makeupByAttendanceId != null) {
+      await this.clearOwnMakeupLink(repos, attendance.attendanceId)
+      attendance.makeupByAttendanceId = null
+    }
+
+    if (previous !== null && !eligible) {
+      result.releasedAbsenceCount = await this.releaseMadeUpAbsences(repos, attendance.attendanceId)
+    }
+
+    if (eligible) {
+      // Chuyển Có mặt ↔ Muộn khi vẫn là Học bù giữ nguyên các liên kết
+      if (previous === null || !isMakeupTarget(previous)) {
+        result.linkedAbsenceCount = await this.linkAbsencesTo(repos, attendance)
+      }
+    } else if (attendance.status === AttendanceStatus.ABSENT) {
+      await this.linkAbsenceToMakeup(repos, attendance)
+    }
+
+    return result
+  }
+
+  /**
+   * Nối mọi bản ghi Vắng chưa được bù của cùng học sinh, ở các buổi mà buổi hiện tại học bù được,
+   * vào bản ghi Có mặt/Muộn + Học bù này.
    *
    * @returns số buổi vắng đã được nối
    */
-  async linkAbsencesTo(repos: UnitOfWorkRepos, presentAttendance: Attendance): Promise<number> {
-    if (presentAttendance.status !== AttendanceStatus.PRESENT) return 0
+  async linkAbsencesTo(repos: UnitOfWorkRepos, makeupAttendance: Attendance): Promise<number> {
+    if (!isMakeupTarget(makeupAttendance)) return 0
 
     const registrations = await repos.sessionMakeupRegistrationRepository.findByMakeupSessionIds([
-      presentAttendance.sessionId,
+      makeupAttendance.sessionId,
     ])
     const absentSessionIds = registrations.map((registration) => registration.sessionId)
 
     if (absentSessionIds.length === 0) return 0
 
     const candidates = await repos.attendanceRepository.findByStudentAndSessionIds(
-      presentAttendance.studentId,
+      makeupAttendance.studentId,
       absentSessionIds,
     )
     const absences = candidates.filter(
@@ -45,25 +113,17 @@ export class AttendanceMakeupLinkService {
 
     await repos.attendanceRepository.setMakeupByAttendanceId(
       absences.map((absence) => absence.attendanceId),
-      presentAttendance.attendanceId,
+      makeupAttendance.attendanceId,
     )
-
-    if (presentAttendance.attendanceType !== AttendanceType.MAKEUP) {
-      await repos.attendanceRepository.update(presentAttendance.attendanceId, {
-        attendanceType: AttendanceType.MAKEUP,
-      })
-      presentAttendance.attendanceType = AttendanceType.MAKEUP
-    }
 
     return absences.length
   }
 
   /**
-   * Bản ghi Vắng xuất hiện: tìm bản ghi Có mặt của cùng học sinh ở các buổi học bù được cho buổi này,
-   * ưu tiên bản ghi đã là `MAKEUP`, sau đó sớm nhất (sessionDate, startTime, attendanceId).
-   * Gán `makeupByAttendanceId` cho bản ghi vắng và đổi bản ghi được chọn sang `MAKEUP` nếu chưa phải.
+   * Nối một bản ghi Vắng chưa được bù vào bản ghi Có mặt/Muộn + Học bù hợp lệ của cùng học sinh,
+   * ở các buổi học bù được cho buổi vắng. Ưu tiên sessionDate, startTime, rồi attendanceId tăng dần.
    *
-   * @param excludeAttendanceId bản ghi không được chọn (bản ghi vừa gỡ liên kết khỏi buổi vắng này)
+   * @param excludeAttendanceId bản ghi không được chọn (bản ghi vừa mất tư cách học bù)
    * @returns `true` nếu đã nối được
    */
   async linkAbsenceToMakeup(
@@ -84,9 +144,7 @@ export class AttendanceMakeupLinkService {
 
     const candidates = (
       await repos.attendanceRepository.findByStudentAndSessionIds(absentAttendance.studentId, makeupSessionIds)
-    ).filter(
-      (candidate) => candidate.status === AttendanceStatus.PRESENT && candidate.attendanceId !== excludeAttendanceId,
-    )
+    ).filter((candidate) => isMakeupTarget(candidate) && candidate.attendanceId !== excludeAttendanceId)
 
     if (candidates.length === 0) return false
 
@@ -95,16 +153,12 @@ export class AttendanceMakeupLinkService {
     await repos.attendanceRepository.setMakeupByAttendanceId([absentAttendance.attendanceId], chosen.attendanceId)
     absentAttendance.makeupByAttendanceId = chosen.attendanceId
 
-    if (chosen.attendanceType !== AttendanceType.MAKEUP) {
-      await repos.attendanceRepository.update(chosen.attendanceId, { attendanceType: AttendanceType.MAKEUP })
-    }
-
     return true
   }
 
   /**
    * Gỡ liên kết của mọi bản ghi Vắng đang trỏ tới `attendanceId`, rồi thử nối từng bản ghi vắng đó sang
-   * một bản ghi Có mặt khác (không nối lại về chính `attendanceId`).
+   * một bản ghi học bù khác (không nối lại về chính `attendanceId`).
    *
    * @returns số buổi vắng đã được gỡ
    */
@@ -126,10 +180,15 @@ export class AttendanceMakeupLinkService {
     return absences.length
   }
 
-  /**
-   * Xóa liên kết của chính bản ghi (khi bản ghi Vắng được điểm danh tiếp thì không còn "đã được bù").
-   * Bản ghi đã bù cho nó giữ nguyên `MAKEUP`.
-   */
+  /** Nối lại các bản ghi Vắng vừa mất liên kết (vd. do bản ghi học bù bị xóa) sang candidate khác. */
+  async relinkAbsences(repos: UnitOfWorkRepos, absences: Attendance[], excludeAttendanceId: number): Promise<void> {
+    for (const absence of absences) {
+      absence.makeupByAttendanceId = null
+      await this.linkAbsenceToMakeup(repos, absence, excludeAttendanceId)
+    }
+  }
+
+  /** Xóa liên kết của chính bản ghi (không còn là buổi vắng nên không còn "đã được bù"). */
   async clearOwnMakeupLink(repos: UnitOfWorkRepos, attendanceId: number): Promise<void> {
     await repos.attendanceRepository.setMakeupByAttendanceId([attendanceId], null)
   }
@@ -141,15 +200,8 @@ function sessionSortKey(attendance: Attendance): [number, string] {
   return [session ? session.sessionDate.getTime() : 0, session ? session.startTime.toISOString().slice(11, 19) : '']
 }
 
-/**
- * Ưu tiên bản ghi đã là MAKEUP, sau đó sớm nhất theo sessionDate, startTime, attendanceId.
- */
+/** Sớm nhất theo sessionDate, startTime, rồi attendanceId tăng dần. */
 function compareMakeupCandidates(left: Attendance, right: Attendance): number {
-  const leftMakeup = left.attendanceType === AttendanceType.MAKEUP ? 0 : 1
-  const rightMakeup = right.attendanceType === AttendanceType.MAKEUP ? 0 : 1
-
-  if (leftMakeup !== rightMakeup) return leftMakeup - rightMakeup
-
   const [leftDate, leftTime] = sessionSortKey(left)
   const [rightDate, rightTime] = sessionSortKey(right)
 

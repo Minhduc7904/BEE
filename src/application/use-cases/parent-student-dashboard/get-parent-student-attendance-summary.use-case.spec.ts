@@ -55,7 +55,7 @@ describe('GetParentStudentAttendanceSummaryUseCase', () => {
     expect(reader.countAttendanceByStatus).not.toHaveBeenCalled()
   })
 
-  it('counts all four statuses and rates PRESENT + LATE + MAKEUP', async () => {
+  it('derives total and rate from the three statuses and keeps makeup as a separate subset', async () => {
     const reader = service({ present: 8, absent: 2, late: 1, makeup: 1 })
 
     const result = await new GetParentStudentAttendanceSummaryUseCase(reader).execute(
@@ -70,13 +70,13 @@ describe('GetParentStudentAttendanceSummaryUseCase', () => {
       data: {
         month: 10,
         year: 2026,
-        total: 12,
+        total: 11,
         present: 8,
         absent: 2,
         late: 1,
         makeup: 1,
-        attended: 10,
-        attendanceRate: 83.33,
+        attended: 9,
+        attendanceRate: 81.82,
       },
     })
   })
@@ -125,5 +125,30 @@ describe('GetParentStudentAttendanceSummaryUseCase', () => {
       new Date('2026-12-01T00:00:00.000Z'),
       new Date('2027-01-01T00:00:00.000Z'),
     )
+  })
+
+  it('does not double-count LATE + MAKEUP or a made-up ABSENT record', async () => {
+    // 1 PRESENT(REGULAR), 1 LATE(MAKEUP), 1 PRESENT(MAKEUP), 1 ABSENT that was made up by another record
+    const reader = service({ present: 2, absent: 1, late: 1, makeup: 2 })
+
+    const result = await new GetParentStudentAttendanceSummaryUseCase(reader).execute(
+      parentIdentity,
+      12,
+      query(10, 2026),
+    )
+
+    expect(result.data).toMatchObject({ total: 4, attended: 3, makeup: 2, attendanceRate: 75 })
+  })
+
+  it('never exceeds a 100% rate when every record is a makeup record', async () => {
+    const reader = service({ present: 3, absent: 0, late: 1, makeup: 4 })
+
+    const result = await new GetParentStudentAttendanceSummaryUseCase(reader).execute(
+      parentIdentity,
+      12,
+      query(10, 2026),
+    )
+
+    expect(result.data).toMatchObject({ total: 4, attended: 4, makeup: 4, attendanceRate: 100 })
   })
 })

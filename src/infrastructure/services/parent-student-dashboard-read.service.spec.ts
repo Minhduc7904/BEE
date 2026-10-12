@@ -20,7 +20,7 @@ describe('PrismaParentStudentDashboardReadService', () => {
     const from = new Date('2026-10-01T00:00:00.000Z')
     const toExclusive = new Date('2026-11-01T00:00:00.000Z')
 
-    it('groups existing attendance records of the student by status within the session-date range', async () => {
+    it('groups existing attendance records of the student by status and type within the session-date range', async () => {
       const groupBy = jest.fn().mockResolvedValue([])
       const service = new PrismaParentStudentDashboardReadService({
         attendance: { groupBy },
@@ -29,7 +29,7 @@ describe('PrismaParentStudentDashboardReadService', () => {
       await service.countAttendanceByStatus(12, from, toExclusive)
 
       expect(groupBy).toHaveBeenCalledWith({
-        by: ['status'],
+        by: ['status', 'attendanceType'],
         where: { studentId: 12, classSession: { sessionDate: { gte: from, lt: toExclusive } } },
         _count: { _all: true },
       })
@@ -37,8 +37,8 @@ describe('PrismaParentStudentDashboardReadService', () => {
 
     it('maps groups to counts and defaults missing statuses to 0', async () => {
       const groupBy = jest.fn().mockResolvedValue([
-        { status: 'PRESENT', _count: { _all: 8 } },
-        { status: 'LATE', _count: { _all: 1 } },
+        { status: 'PRESENT', attendanceType: 'REGULAR', _count: { _all: 8 } },
+        { status: 'LATE', attendanceType: 'REGULAR', _count: { _all: 1 } },
       ])
       const service = new PrismaParentStudentDashboardReadService({
         attendance: { groupBy },
@@ -49,6 +49,26 @@ describe('PrismaParentStudentDashboardReadService', () => {
         absent: 0,
         late: 1,
         makeup: 0,
+      })
+    })
+
+    it('counts MAKEUP separately by type without double-counting statuses', async () => {
+      const groupBy = jest.fn().mockResolvedValue([
+        { status: 'PRESENT', attendanceType: 'REGULAR', _count: { _all: 5 } },
+        { status: 'PRESENT', attendanceType: 'MAKEUP', _count: { _all: 2 } },
+        { status: 'LATE', attendanceType: 'MAKEUP', _count: { _all: 1 } },
+        { status: 'LATE', attendanceType: 'REGULAR', _count: { _all: 1 } },
+        { status: 'ABSENT', attendanceType: 'REGULAR', _count: { _all: 3 } },
+      ])
+      const service = new PrismaParentStudentDashboardReadService({
+        attendance: { groupBy },
+      } as unknown as PrismaService)
+
+      await expect(service.countAttendanceByStatus(12, from, toExclusive)).resolves.toEqual({
+        present: 7,
+        absent: 3,
+        late: 2,
+        makeup: 3,
       })
     })
 

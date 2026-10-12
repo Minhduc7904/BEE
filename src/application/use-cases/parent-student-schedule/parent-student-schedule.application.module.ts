@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common'
 
 import { InfrastructureModule } from '../../../infrastructure/infrastructure.module'
 import {
-  GetParentStudentNextScheduleSessionUseCase,
+  GetParentStudentNextScheduleOverviewUseCase,
   GetParentStudentScheduleSessionDetailUseCase,
   GetParentStudentScheduleWeekUseCase,
 } from '.'
@@ -10,7 +10,7 @@ import {
 const useCases = [
   GetParentStudentScheduleWeekUseCase,
   GetParentStudentScheduleSessionDetailUseCase,
-  GetParentStudentNextScheduleSessionUseCase,
+  GetParentStudentNextScheduleOverviewUseCase,
 ]
 
 @Module({

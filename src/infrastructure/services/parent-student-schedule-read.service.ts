@@ -1,25 +1,15 @@
 import { Injectable } from '@nestjs/common'
-import { AttendanceStatus as PrismaAttendanceStatus, AttendanceType as PrismaAttendanceType, Prisma } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 
 import {
+  ParentNextScheduleClass,
+  ParentNextScheduleSession,
   ParentScheduleClock,
   ParentScheduleSession,
   ParentStudentScheduleReadService,
 } from '../../application/interfaces'
-import { AttendanceStatus } from '../../shared/enums/attendance-status.enum'
-import { AttendanceType } from '../../shared/enums/attendance-type.enum'
 import { PrismaService } from '../../prisma/prisma.service'
-
-const attendanceStatusMap: Record<PrismaAttendanceStatus, AttendanceStatus> = {
-  [PrismaAttendanceStatus.PRESENT]: AttendanceStatus.PRESENT,
-  [PrismaAttendanceStatus.ABSENT]: AttendanceStatus.ABSENT,
-  [PrismaAttendanceStatus.LATE]: AttendanceStatus.LATE,
-}
-
-const attendanceTypeMap: Record<PrismaAttendanceType, AttendanceType> = {
-  [PrismaAttendanceType.REGULAR]: AttendanceType.REGULAR,
-  [PrismaAttendanceType.MAKEUP]: AttendanceType.MAKEUP,
-}
+import { parentAttendanceSelect, toParentScheduleAttendance } from './parent-schedule-attendance.mapper'
 
 function parentSessionSelect(studentId: number) {
   return {
@@ -55,12 +45,23 @@ function parentSessionSelect(studentId: number) {
     attendances: {
       where: { studentId },
       take: 1,
+      select: parentAttendanceSelect,
+    },
+  } satisfies Prisma.ClassSessionSelect
+}
+
+/** Như `parentSessionSelect` nhưng kèm lịch tuần và ngày bắt đầu/kết thúc của lớp cho card "Buổi học tiếp theo". */
+function parentNextSessionSelect(studentId: number) {
+  const base = parentSessionSelect(studentId)
+
+  return {
+    ...base,
+    courseClass: {
       select: {
-        attendanceId: true,
-        status: true,
-        attendanceType: true,
-        markedAt: true,
-        notes: true,
+        ...base.courseClass.select,
+        weeklySchedule: true,
+        startDate: true,
+        endDate: true,
       },
     },
   } satisfies Prisma.ClassSessionSelect
@@ -77,6 +78,7 @@ function studentSessionScope(studentId: number) {
 }
 
 type ParentSessionRow = Prisma.ClassSessionGetPayload<{ select: ReturnType<typeof parentSessionSelect> }>
+type ParentNextSessionRow = Prisma.ClassSessionGetPayload<{ select: ReturnType<typeof parentNextSessionSelect> }>
 
 @Injectable()
 export class PrismaParentStudentScheduleReadService extends ParentStudentScheduleReadService {
@@ -105,7 +107,7 @@ export class PrismaParentStudentScheduleReadService extends ParentStudentSchedul
     return rows.map((row) => this.toSession(row))
   }
 
-  async findNextSession(studentId: number, clock: ParentScheduleClock): Promise<ParentScheduleSession | null> {
+  async findNextSession(studentId: number, clock: ParentScheduleClock): Promise<ParentNextScheduleSession | null> {
     const row = await this.prisma.classSession.findFirst({
       where: {
         AND: [
@@ -118,10 +120,56 @@ export class PrismaParentStudentScheduleReadService extends ParentStudentSchedul
       },
       // Buổi đang diễn ra đã bắt đầu nên luôn đứng trước mọi buổi tương lai; không có thì lấy buổi gần nhất.
       orderBy: [{ sessionDate: 'asc' }, { startTime: 'asc' }, { sessionId: 'asc' }],
-      select: parentSessionSelect(studentId),
+      select: parentNextSessionSelect(studentId),
     })
 
-    return row ? this.toSession(row) : null
+    return row ? this.toNextSession(row) : null
+  }
+
+  async listNonEndedEnrolledClasses(studentId: number, today: Date): Promise<ParentNextScheduleClass[]> {
+    const rows = await this.prisma.courseClass.findMany({
+      where: {
+        // Chỉ lớp có ClassStudent của học sinh; buổi học bù ở lớp khác không làm lớp đó thành lớp dự phòng.
+        classStudents: { some: { studentId } },
+        OR: [{ endDate: null }, { endDate: { gte: today } }],
+      },
+      orderBy: [{ classId: 'asc' }],
+      select: {
+        classId: true,
+        className: true,
+        weeklySchedule: true,
+        startDate: true,
+        endDate: true,
+        room: true,
+        instructor: {
+          select: { user: { select: { firstName: true, lastName: true } } },
+        },
+      },
+    })
+
+    return rows.map((row) => {
+      const instructorUser = row.instructor?.user
+      const instructorName = instructorUser ? `${instructorUser.lastName} ${instructorUser.firstName}`.trim() : ''
+
+      return {
+        classId: row.classId,
+        className: row.className,
+        weeklySchedule: row.weeklySchedule || null,
+        classStartDate: row.startDate,
+        classEndDate: row.endDate,
+        room: row.room || null,
+        instructorName: instructorName || null,
+      }
+    })
+  }
+
+  private toNextSession(row: ParentNextSessionRow): ParentNextScheduleSession {
+    return {
+      ...this.toSession(row),
+      classWeeklySchedule: row.courseClass.weeklySchedule || null,
+      classStartDate: row.courseClass.startDate,
+      classEndDate: row.courseClass.endDate,
+    }
   }
 
   private toSession(row: ParentSessionRow): ParentScheduleSession {
@@ -141,15 +189,7 @@ export class PrismaParentStudentScheduleReadService extends ParentStudentSchedul
       room: row.courseClass.room || null,
       instructorName: instructorName || null,
       makeupNote: row.makeupNote || null,
-      attendance: attendance
-        ? {
-            attendanceId: attendance.attendanceId,
-            status: attendanceStatusMap[attendance.status],
-            attendanceType: attendanceTypeMap[attendance.attendanceType],
-            markedAt: attendance.markedAt,
-            notes: attendance.notes || null,
-          }
-        : null,
+      attendance: attendance ? toParentScheduleAttendance(attendance) : null,
       homework:
         row.homeworkId === null
           ? null

@@ -21,8 +21,9 @@ export class GetParentStudentAttendanceSummaryUseCase {
     const { from, toExclusive } = getMonthDateOnlyRange(query.month, query.year)
     const counts = await this.dashboard.countAttendanceByStatus(studentId, from, toExclusive)
 
-    const total = counts.present + counts.absent + counts.late + counts.makeup
-    const attended = counts.present + counts.late + counts.makeup
+    // makeup là tập con của present/late nên không được cộng thêm (tránh đếm hai lần)
+    const total = counts.present + counts.absent + counts.late
+    const attended = counts.present + counts.late
     const summary: ParentAttendanceSummary = {
       month: query.month,
       year: query.year,

@@ -48,6 +48,7 @@ describe('Parent student dashboard HTTP routes', () => {
     isStudentLinked,
     listSessionsInRange: jest.fn().mockResolvedValue([]),
     findNextSession: jest.fn().mockResolvedValue(null),
+    listNonEndedEnrolledClasses: jest.fn().mockResolvedValue([]),
   }
   const sessionDetailReader = { findSessionDetail: jest.fn().mockResolvedValue(null) }
   const resultsReader = { isStudentLinked, listMonthlyResults: jest.fn().mockResolvedValue([]) }
@@ -228,13 +229,13 @@ describe('Parent student dashboard HTTP routes', () => {
       data: {
         month: 10,
         year: 2026,
-        total: 12,
+        total: 11,
         present: 8,
         absent: 2,
         late: 1,
         makeup: 1,
-        attended: 10,
-        attendanceRate: 83.33,
+        attended: 9,
+        attendanceRate: 81.82,
       },
     })
   })

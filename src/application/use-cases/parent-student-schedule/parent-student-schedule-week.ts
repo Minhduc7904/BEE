@@ -48,14 +48,14 @@ export function resolveVietnamClock(now: Date): ParentScheduleClock {
   }
 }
 
-/** ONGOING when the session already started today; otherwise it starts later today or on a future date. */
+/** IN_PROGRESS when the session already started today; otherwise it starts later today or on a future date. */
 export function resolveScheduleStatus(
   session: { sessionDate: Date; startTime: Date },
   clock: ParentScheduleClock,
 ): ParentScheduleStatus {
   const startedToday =
     session.sessionDate.getTime() === clock.today.getTime() && session.startTime.getTime() <= clock.timeOfDay.getTime()
-  return startedToday ? ParentScheduleStatus.ONGOING : ParentScheduleStatus.UPCOMING
+  return startedToday ? ParentScheduleStatus.IN_PROGRESS : ParentScheduleStatus.UPCOMING
 }
 
 export function resolveScheduleWeek(weekStart: string): ParentScheduleWeekRange {

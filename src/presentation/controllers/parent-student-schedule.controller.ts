@@ -2,14 +2,14 @@ import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common'
 
 import type { AuthenticatedUser } from '../../application/interfaces'
 import {
-  ParentNextScheduleSessionDto,
+  ParentNextScheduleOverviewDto,
   ParentScheduleSessionDetailDto,
   ParentScheduleWeekDto,
   ParentScheduleWeekQueryDto,
 } from '../../application/dtos/parent-student-schedule'
 import { BaseResponseDto } from '../../application/dtos/common/base-response.dto'
 import {
-  GetParentStudentNextScheduleSessionUseCase,
+  GetParentStudentNextScheduleOverviewUseCase,
   GetParentStudentScheduleSessionDetailUseCase,
   GetParentStudentScheduleWeekUseCase,
 } from '../../application/use-cases/parent-student-schedule'
@@ -23,7 +23,7 @@ export class ParentStudentScheduleController {
   constructor(
     private readonly getScheduleWeek: GetParentStudentScheduleWeekUseCase,
     private readonly getScheduleSessionDetail: GetParentStudentScheduleSessionDetailUseCase,
-    private readonly getNextScheduleSession: GetParentStudentNextScheduleSessionUseCase,
+    private readonly getNextScheduleOverview: GetParentStudentNextScheduleOverviewUseCase,
   ) {}
 
   @Get()
@@ -40,8 +40,8 @@ export class ParentStudentScheduleController {
   getNextSession(
     @CurrentUser() user: AuthenticatedUser,
     @Param('studentId', ParseIntPipe) studentId: number,
-  ): Promise<BaseResponseDto<ParentNextScheduleSessionDto | null>> {
-    return ExceptionHandler.execute(() => this.getNextScheduleSession.execute(user, studentId))
+  ): Promise<BaseResponseDto<ParentNextScheduleOverviewDto | null>> {
+    return ExceptionHandler.execute(() => this.getNextScheduleOverview.execute(user, studentId))
   }
 
   @Get(':sessionId')

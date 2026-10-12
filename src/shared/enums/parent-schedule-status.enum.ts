@@ -2,9 +2,10 @@
 
 /**
  * Parent Schedule Status Enum
- * Trạng thái buổi học tiếp theo của học sinh tại thời điểm hiện tại (Asia/Ho_Chi_Minh).
+ * Trạng thái thời gian của buổi học tiếp theo tại thời điểm hiện tại (Asia/Ho_Chi_Minh).
+ * Học bù không phải trạng thái thời gian; nó nằm ở AttendanceType của điểm danh.
  */
 export enum ParentScheduleStatus {
-  ONGOING = 'ONGOING',
+  IN_PROGRESS = 'IN_PROGRESS',
   UPCOMING = 'UPCOMING',
 }

@@ -4,7 +4,14 @@ import type { IUnitOfWork } from '../../../domain/repositories'
 import { CreateBulkAttendanceBySessionDto } from '../../dtos/attendance/create-bulk-attendance-by-session.dto'
 import { AttendanceResponseDto } from '../../dtos/attendance/attendance.dto'
 import { BaseResponseDto } from '../../dtos/common/base-response.dto'
-import { AttendanceStatus, AttendanceType, NotificationType, NotificationLevel, AttendanceStatusLabels, AttendanceTypeLabels } from 'src/shared/enums'
+import {
+  AttendanceStatus,
+  AttendanceType,
+  NotificationType,
+  NotificationLevel,
+  AttendanceStatusLabels,
+  AttendanceTypeLabels,
+} from 'src/shared/enums'
 import type { CreateAttendanceData } from '../../../domain/interface/attendance/attendance.interface'
 import { ValidationException, NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 import { ACTION_KEYS } from '../../../shared/constants/action-key.constants'
@@ -13,7 +20,10 @@ import { RESOURCE_TYPES } from '../../../shared/constants/resource-type.constant
 import { CreateAndNotifyManyUseCase } from '../notification/create-and-notify-many.use-case'
 import { SendBulkAttendanceToParentUseCase } from './send-bulk-attendance-to-parent.use-case'
 import { StudentPointService } from 'src/application/services/student-point.service'
-import { AttendanceMakeupLinkService } from 'src/application/services/attendance-makeup-link.service'
+import {
+  AttendanceMakeupLinkService,
+  normalizeAttendanceType,
+} from 'src/application/services/attendance-makeup-link.service'
 import { createHash } from 'crypto'
 
 @Injectable()
@@ -86,14 +96,18 @@ Nếu con đăng ký nhầm lớp, hãy chọn "Liên hệ hỗ trợ" để tr�
          */
         const bulkData: CreateAttendanceData[] = studentIds
           .filter((studentId) => !existingStudentIds.has(studentId))
-          .map((studentId) => ({
-            sessionId: dto.sessionId,
-            studentId,
-            status: dto.status || AttendanceStatus.PRESENT,
-            attendanceType: dto.attendanceType ?? AttendanceType.REGULAR,
-            notes: dto.notes,
-            markerId,
-          }))
+          .map((studentId) => {
+            const status = dto.status || AttendanceStatus.PRESENT
+
+            return {
+              sessionId: dto.sessionId,
+              studentId,
+              status,
+              attendanceType: normalizeAttendanceType(status, dto.attendanceType),
+              notes: dto.notes,
+              markerId,
+            }
+          })
 
         if (bulkData.length === 0) {
           return {
@@ -112,11 +126,7 @@ Nếu con đăng ký nhầm lớp, hãy chọn "Liên hệ hỗ trợ" để tr�
 
         // Tự nối liên kết học bù cho từng bản ghi vừa tạo (tuần tự để tránh tranh chấp khi nối cùng bản ghi Có mặt)
         for (const attendance of createdAttendances) {
-          if (attendance.status === AttendanceStatus.PRESENT) {
-            await this.attendanceMakeupLinkService.linkAbsencesTo(repos, attendance)
-          } else if (attendance.status === AttendanceStatus.ABSENT) {
-            await this.attendanceMakeupLinkService.linkAbsenceToMakeup(repos, attendance)
-          }
+          await this.attendanceMakeupLinkService.reconcile(repos, attendance, null)
         }
 
         await Promise.all(
@@ -190,12 +200,12 @@ Nếu con đăng ký nhầm lớp, hãy chọn "Liên hệ hỗ trợ" để tr�
         //   idempotencyKey: `attendance-bulk:${dto.sessionId}:${digest}:students`,
         // })
 
-          // TẠM TẮT: gửi tin phụ huynh khi điểm danh, sẽ xử lý sau
-          // await this.sendBulkAttendanceToParentUseCase.executeWithRepos(repos, {
-          //   attendanceIds,
-          //   note: CreateBulkAttendanceBySessionUseCase.FIRST_ATTENDANCE_NOTE,
-          //   includeZalo: false,
-          // })
+        // TẠM TẮT: gửi tin phụ huynh khi điểm danh, sẽ xử lý sau
+        // await this.sendBulkAttendanceToParentUseCase.executeWithRepos(repos, {
+        //   attendanceIds,
+        //   note: CreateBulkAttendanceBySessionUseCase.FIRST_ATTENDANCE_NOTE,
+        //   includeZalo: false,
+        // })
 
         return {
           responses: createdAttendances.map((attendance) => AttendanceResponseDto.fromEntity(attendance)),

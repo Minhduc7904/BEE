@@ -12,7 +12,14 @@ function row(overrides: Record<string, unknown> = {}) {
     makeupNote: null,
     homeworkId: null,
     homeworkContent: null,
-    courseClass: { className: 'Lớp A1', room: null, instructor: null },
+    courseClass: {
+      className: 'Lớp A1',
+      room: null,
+      instructor: null,
+      weeklySchedule: null,
+      startDate: null,
+      endDate: null,
+    },
     attendances: [],
     ...overrides,
   }
@@ -77,7 +84,17 @@ describe('PrismaParentStudentScheduleReadService', () => {
         classId: 152,
         name: 'Buổi học bù',
         courseClass: { className: 'Lớp học bù', room: null, instructor: null },
-        attendances: [{ attendanceId: 77, status: 'PRESENT', attendanceType: 'MAKEUP', markedAt, notes: 'Học bù lớp khác' }],
+        attendances: [
+          {
+            attendanceId: 77,
+            status: 'PRESENT',
+            attendanceType: 'MAKEUP',
+            makeupByAttendanceId: null,
+            makeupBy: null,
+            markedAt,
+            notes: 'Học bù lớp khác',
+          },
+        ],
       }),
     ])
     const service = new PrismaParentStudentScheduleReadService({
@@ -94,9 +111,115 @@ describe('PrismaParentStudentScheduleReadService', () => {
         attendanceId: 77,
         status: 'PRESENT',
         attendanceType: 'MAKEUP',
+        makeupByAttendanceId: null,
+        isMadeUp: false,
+        makeupBy: null,
         markedAt,
         notes: 'Học bù lớp khác',
       },
+    })
+  })
+
+  describe('isMadeUp / makeupBy', () => {
+    const makeupRow = {
+      attendanceId: 950,
+      sessionId: 700,
+      classSession: {
+        classId: 31,
+        sessionDate: new Date('2026-10-09T00:00:00.000Z'),
+        startTime: new Date('1970-01-01T18:00:00.000Z'),
+        endTime: new Date('1970-01-01T19:30:00.000Z'),
+        courseClass: { className: 'Lớp bù' },
+      },
+    }
+
+    function attendanceRow(overrides: Record<string, unknown>) {
+      return {
+        attendanceId: 7,
+        status: 'ABSENT',
+        attendanceType: 'REGULAR',
+        makeupByAttendanceId: null,
+        makeupBy: null,
+        markedAt: new Date('2026-09-28T13:45:10.000Z'),
+        notes: null,
+        ...overrides,
+      }
+    }
+
+    async function map(attendance: Record<string, unknown>) {
+      const findMany = jest.fn().mockResolvedValue([row({ attendances: [attendance] })])
+      const service = new PrismaParentStudentScheduleReadService({
+        classSession: { findMany },
+      } as unknown as PrismaService)
+      const [item] = await service.listSessionsInRange(12, new Date(), new Date())
+      return { item, findMany }
+    }
+
+    it('joins attendance.makeupBy.classSession.courseClass in the weekly schedule query', async () => {
+      const { findMany } = await map(attendanceRow({}))
+
+      expect(findMany.mock.calls[0][0].select.attendances.select.makeupBy).toEqual({
+        select: {
+          attendanceId: true,
+          sessionId: true,
+          classSession: {
+            select: {
+              classId: true,
+              sessionDate: true,
+              startTime: true,
+              endTime: true,
+              courseClass: { select: { className: true } },
+            },
+          },
+        },
+      })
+    })
+
+    it('marks an ABSENT attendance with a link as made up and exposes the class, date and time of the makeup', async () => {
+      const { item } = await map(attendanceRow({ makeupByAttendanceId: 950, makeupBy: makeupRow }))
+
+      expect(item.attendance).toMatchObject({
+        status: 'ABSENT',
+        makeupByAttendanceId: 950,
+        isMadeUp: true,
+        makeupBy: {
+          attendanceId: 950,
+          sessionId: 700,
+          classId: 31,
+          className: 'Lớp bù',
+          sessionDate: new Date('2026-10-09T00:00:00.000Z'),
+          startTime: new Date('1970-01-01T18:00:00.000Z'),
+          endTime: new Date('1970-01-01T19:30:00.000Z'),
+        },
+      })
+    })
+
+    it('does not mark an unlinked ABSENT attendance as made up', async () => {
+      const { item } = await map(attendanceRow({}))
+
+      expect(item.attendance).toMatchObject({ isMadeUp: false, makeupBy: null, makeupByAttendanceId: null })
+    })
+
+    it('does not infer made up from attendanceType or makeupNote', async () => {
+      const findMany = jest.fn().mockResolvedValue([
+        row({
+          makeupNote: 'Đã học bù',
+          attendances: [attendanceRow({ status: 'PRESENT', attendanceType: 'MAKEUP' })],
+        }),
+      ])
+      const service = new PrismaParentStudentScheduleReadService({
+        classSession: { findMany },
+      } as unknown as PrismaService)
+
+      const [item] = await service.listSessionsInRange(12, new Date(), new Date())
+
+      expect(item.attendance).toMatchObject({ attendanceType: 'MAKEUP', isMadeUp: false, makeupBy: null })
+    })
+
+    it('only ABSENT records can be made up even if a stale link exists on another status', async () => {
+      const { item } = await map(attendanceRow({ status: 'PRESENT', makeupByAttendanceId: 950, makeupBy: makeupRow }))
+
+      expect(item.attendance).toMatchObject({ isMadeUp: false, makeupBy: null })
     })
   })
 
@@ -158,7 +281,17 @@ describe('PrismaParentStudentScheduleReadService', () => {
           room: 'P.201',
           instructor: { user: { firstName: 'An', lastName: 'Nguyễn Văn' } },
         },
-        attendances: [{ attendanceId: 7, status, attendanceType: 'REGULAR', markedAt, notes: null }],
+        attendances: [
+          {
+            attendanceId: 7,
+            status,
+            attendanceType: 'REGULAR',
+            makeupByAttendanceId: null,
+            makeupBy: null,
+            markedAt,
+            notes: null,
+          },
+        ],
       }),
     ])
     const service = new PrismaParentStudentScheduleReadService({
@@ -169,7 +302,16 @@ describe('PrismaParentStudentScheduleReadService', () => {
 
     expect(item.room).toBe('P.201')
     expect(item.instructorName).toBe('Nguyễn Văn An')
-    expect(item.attendance).toEqual({ attendanceId: 7, status, attendanceType: 'REGULAR', markedAt, notes: null })
+    expect(item.attendance).toEqual({
+      attendanceId: 7,
+      status,
+      attendanceType: 'REGULAR',
+      makeupByAttendanceId: null,
+      isMadeUp: false,
+      makeupBy: null,
+      markedAt,
+      notes: null,
+    })
   })
 
   describe('findNextSession', () => {
@@ -248,6 +390,105 @@ describe('PrismaParentStudentScheduleReadService', () => {
       expect(args.select.attendances).toMatchObject({ where: { studentId: 12 }, take: 1 })
       expect(args.select.homeworkContent.select.homeworkSubmits).toMatchObject({ where: { studentId: 12 }, take: 1 })
       expect(session).toMatchObject({ sessionId: 123, classId: 12, className: 'Lớp A1', attendance: null })
+    })
+  })
+
+  describe('findNextSession class facts', () => {
+    const clock = {
+      today: new Date('2026-10-05T00:00:00.000Z'),
+      timeOfDay: new Date('1970-01-01T19:00:00.000Z'),
+    }
+
+    it('also selects the weekly schedule and class dates and joins attendance.makeupBy', async () => {
+      const findFirst = jest.fn().mockResolvedValue(null)
+      const service = new PrismaParentStudentScheduleReadService({
+        classSession: { findFirst },
+      } as unknown as PrismaService)
+
+      await service.findNextSession(12, clock)
+
+      const select = findFirst.mock.calls[0][0].select
+      expect(select.courseClass.select).toMatchObject({ weeklySchedule: true, startDate: true, endDate: true })
+      expect(select.attendances.select.makeupBy.select.classSession.select.courseClass).toEqual({
+        select: { className: true },
+      })
+    })
+
+    it('maps class facts next to the session fields', async () => {
+      const startDate = new Date('2026-09-01T00:00:00.000Z')
+      const findFirst = jest.fn().mockResolvedValue(
+        row({
+          courseClass: {
+            className: 'Lớp A1',
+            room: 'P.1',
+            instructor: null,
+            weeklySchedule: 'Thứ 2 - 18:30',
+            startDate,
+            endDate: null,
+          },
+        }),
+      )
+      const service = new PrismaParentStudentScheduleReadService({
+        classSession: { findFirst },
+      } as unknown as PrismaService)
+
+      await expect(service.findNextSession(12, clock)).resolves.toMatchObject({
+        sessionId: 1,
+        classWeeklySchedule: 'Thứ 2 - 18:30',
+        classStartDate: startDate,
+        classEndDate: null,
+      })
+    })
+  })
+
+  describe('listNonEndedEnrolledClasses', () => {
+    const today = new Date('2026-10-05T00:00:00.000Z')
+
+    it('reads only enrolled classes that have not ended, never classes reached only through attendance', async () => {
+      const findMany = jest.fn().mockResolvedValue([])
+      const service = new PrismaParentStudentScheduleReadService({
+        courseClass: { findMany },
+      } as unknown as PrismaService)
+
+      await service.listNonEndedEnrolledClasses(12, today)
+
+      expect(findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: {
+            classStudents: { some: { studentId: 12 } },
+            OR: [{ endDate: null }, { endDate: { gte: today } }],
+          },
+        }),
+      )
+    })
+
+    it('maps class facts and turns blank strings into null', async () => {
+      const findMany = jest.fn().mockResolvedValue([
+        {
+          classId: 3,
+          className: 'Lớp C',
+          weeklySchedule: '',
+          startDate: null,
+          endDate: new Date('2026-12-31T00:00:00.000Z'),
+          room: '',
+          instructor: { user: { firstName: 'An', lastName: 'Nguyễn' } },
+        },
+      ])
+      const service = new PrismaParentStudentScheduleReadService({
+        courseClass: { findMany },
+      } as unknown as PrismaService)
+
+      await expect(service.listNonEndedEnrolledClasses(12, today)).resolves.toEqual([
+        {
+          classId: 3,
+          className: 'Lớp C',
+          weeklySchedule: null,
+          classStartDate: null,
+          classEndDate: new Date('2026-12-31T00:00:00.000Z'),
+          room: null,
+          instructorName: 'Nguyễn An',
+        },
+      ])
     })
   })
 })
