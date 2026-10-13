@@ -220,6 +220,7 @@ export class DispatchNotificationDeliveriesUseCase {
       body: payload.message,
       data: {
         ...this.toPushData(payload.data),
+        type: String(job.type),
         notificationDispatchJobId: String(job.notificationDispatchJobId),
         ...(context.notification && { notificationId: String(context.notification.notificationId) }),
       },
@@ -240,10 +241,8 @@ export class DispatchNotificationDeliveriesUseCase {
     const permanentFailures = result.outcomes.filter(
       (outcome) => !outcome.success && !outcome.retryable && !invalidTokens.has(outcome.token),
     )
-    if (permanentFailures.length > 0) {
-      const errorCode = permanentFailures.find((outcome) => outcome.errorCode)?.errorCode ?? 'PUSH_SEND_FAILED'
-      return this.markDead(delivery, errorCode, `FCM từ chối vĩnh viễn ${permanentFailures.length} thiết bị`)
-    }
+    this.logPermanentPushFailures(delivery, permanentFailures)
+    // Token lỗi vĩnh viễn nhưng không phải token hỏng (vd APNs chưa cấu hình) được giữ nguyên, không làm hỏng thiết bị khác.
     if (retryableFailures.length > 0) {
       const errorCode = retryableFailures.find((outcome) => outcome.errorCode)?.errorCode ?? 'PUSH_SEND_FAILED'
       return this.retryOrDead(
@@ -255,14 +254,42 @@ export class DispatchNotificationDeliveriesUseCase {
     }
     if (result.successCount > 0) {
       const providerMessageId = result.outcomes.find((outcome) => outcome.success)?.messageId
-      await this.markSent(delivery.notificationDeliveryId, providerMessageId)
+      const partialError =
+        permanentFailures.length > 0
+          ? {
+              code: permanentFailures.find((outcome) => outcome.errorCode)?.errorCode ?? 'PUSH_PARTIAL_FAILURE',
+              message: `FCM từ chối vĩnh viễn ${permanentFailures.length} thiết bị, các thiết bị còn lại đã nhận`,
+            }
+          : undefined
+      await this.markSent(delivery.notificationDeliveryId, providerMessageId, partialError)
       return 'sent'
     }
     if (result.outcomes.length > 0 && result.outcomes.every((outcome) => invalidTokens.has(outcome.token))) {
       return this.skip(delivery, 'NO_ACTIVE_DEVICE')
     }
+    if (permanentFailures.length > 0) {
+      const errorCode = permanentFailures.find((outcome) => outcome.errorCode)?.errorCode ?? 'PUSH_SEND_FAILED'
+      return this.markDead(delivery, errorCode, `FCM từ chối vĩnh viễn ${permanentFailures.length} thiết bị`)
+    }
     const errorCode = result.outcomes.find((outcome) => outcome.errorCode)?.errorCode ?? 'PUSH_SEND_FAILED'
     return this.markDead(delivery, errorCode, 'FCM không trả về kết quả giao nhận hợp lệ')
+  }
+
+  private logPermanentPushFailures(delivery: NotificationDelivery, failures: Array<{ errorCode?: string }>): void {
+    if (failures.length === 0) return
+    const authFailures = failures.filter((failure) => failure.errorCode === 'messaging/third-party-auth-error')
+    if (authFailures.length > 0) {
+      this.logger.warn(
+        `Delivery #${delivery.notificationDeliveryId}: ${authFailures.length} thiết bị bị FCM từ chối do messaging/third-party-auth-error (APNs chưa cấu hình cho iOS?). Token được giữ nguyên.`,
+      )
+    }
+    const others = failures.filter((failure) => failure.errorCode !== 'messaging/third-party-auth-error')
+    if (others.length > 0) {
+      const codes = Array.from(new Set(others.map((failure) => failure.errorCode ?? 'unknown'))).join(', ')
+      this.logger.warn(
+        `Delivery #${delivery.notificationDeliveryId}: ${others.length} thiết bị bị FCM từ chối vĩnh viễn (${codes}). Token được giữ nguyên.`,
+      )
+    }
   }
 
   private toPushData(data?: Record<string, unknown>): Record<string, string> {
@@ -321,15 +348,19 @@ export class DispatchNotificationDeliveriesUseCase {
     }
   }
 
-  private async markSent(notificationDeliveryId: number, providerMessageId?: string): Promise<void> {
+  private async markSent(
+    notificationDeliveryId: number,
+    providerMessageId?: string,
+    partialError?: { code: string; message: string },
+  ): Promise<void> {
     await this.unitOfWork.executeInTransaction((repos) =>
       repos.notificationDeliveryRepository.update(notificationDeliveryId, {
         status: NotificationDeliveryStatus.SENT,
         sentAt: new Date(),
         pendingPushTokens: null,
         providerMessageId: providerMessageId ?? null,
-        lastErrorCode: null,
-        lastErrorMessage: null,
+        lastErrorCode: partialError?.code.slice(0, 100) ?? null,
+        lastErrorMessage: partialError?.message.slice(0, 1_000) ?? null,
         claimedBy: null,
         claimedAt: null,
         leaseExpiresAt: null,

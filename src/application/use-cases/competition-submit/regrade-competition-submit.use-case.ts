@@ -228,6 +228,7 @@ export class RegradeCompetitionSubmitUseCase {
           level: NotificationLevel.INFO,
           data: {
             competitionSubmitId: String(submitId),
+            studentId: String(submit.studentId),
             totalPoints: String(totalPoints),
             maxPoints: String(maxPoints),
             scorePercentage: String(scorePercentage),

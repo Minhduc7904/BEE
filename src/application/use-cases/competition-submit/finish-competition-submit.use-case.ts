@@ -280,6 +280,7 @@ export class FinishCompetitionSubmitUseCase {
           level: NotificationLevel.INFO,
           data: {
             competitionSubmitId: String(submitId),
+            studentId: String(studentId),
             totalPoints: String(totalPoints),
             maxPoints: String(maxPoints),
             scorePercentage: String(scorePercentage),

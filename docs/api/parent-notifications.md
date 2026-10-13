@@ -115,6 +115,34 @@ Cả ba endpoint trả cùng một dạng `data`:
 
 Cài đặt cũng được trả kèm ở login, register và `GET/PUT /api/parent/profile` dưới khóa `notificationSettings`.
 
+## Payload push (FCM)
+
+Mỗi push gửi kèm khối `notification` (`title`, `body`) để hệ điều hành tự hiển thị khi app ở nền hoặc đã tắt, và khối `data`
+(toàn bộ giá trị là chuỗi) để app điều hướng khi người dùng bấm vào:
+
+| Key                         | Ý nghĩa                                                                                                                                                                                                                                                                                                                                                                          |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `notificationId`            | ID notification IN_APP tương ứng. Có khi bản ghi IN_APP đã được tạo trước push (IN_APP luôn được xử lý trước).                                                                                                                                                                                                                                                                   |
+| `type`                      | `NotificationType` của thông báo (`ATTENDANCE`, `RESULT`, `TUITION`, `SYSTEM`, ...).                                                                                                                                                                                                                                                                                             |
+| `destinationType`           | Một trong `attendance_record`, `tuition_payment`, `exam_result`, `homework_result`, `schedule_session`, `notification`.                                                                                                                                                                                                                                                          |
+| `resourceId`                | ID tài nguyên đích (số nguyên dương dạng chuỗi), đi cùng `destinationType`.                                                                                                                                                                                                                                                                                                      |
+| `studentId`                 | Học sinh liên quan (nếu nguồn phát sinh có). Có ở điểm danh, học phí và kết quả bài thi. Hiện chưa có producer nào phát thông báo `homework_result` hay `schedule_session` riêng (`schedule_session` chỉ là destination dự phòng sau `attendance_record`, payload điểm danh đã có `studentId`). Producer mới phải gửi kèm `studentId`; thiếu thì app dùng chi tiết notification. |
+| `notificationDispatchJobId` | ID job điều phối, chỉ phục vụ truy vết.                                                                                                                                                                                                                                                                                                                                          |
+
+Các key metadata khác của notification (`attendanceId`, `paymentId`, ...) cũng được stringify và gửi kèm. App phải chịu được
+key thiếu hoặc sai kiểu: ưu tiên `destinationType` + `resourceId`, rồi `notificationId`, cuối cùng mở tab Thông báo.
+
+Cấu hình gửi: Android `priority=high`, TTL 24 giờ, `channelId` theo `FCM_ANDROID_CHANNEL_ID`, `tag=notificationId`; APNs
+`apns-priority=10`, `apns-push-type=alert`, `apns-expiration` = hiện tại + 24 giờ, `thread-id=type`.
+
+### Kết quả gửi theo từng thiết bị
+
+- Token hỏng (`registration-token-not-registered`, `invalid-registration-token`): xóa thiết bị.
+- Lỗi tạm thời (`server-unavailable`, `internal-error`, `quota-exceeded`, `unknown-error`): retry chỉ các token đó.
+- Lỗi vĩnh viễn khác (vd `messaging/third-party-auth-error` khi iOS chưa có APNs key trên Firebase): **không** xóa token,
+  chỉ ghi `lastErrorCode`. Delivery vẫn `SENT` nếu có ít nhất một thiết bị nhận được; chỉ `DEAD` khi không thiết bị nào nhận
+  được. Nhờ vậy sau khi upload APNs key, iOS nhận push mà không cần đăng ký lại.
+
 ## Cấu hình môi trường
 
 `NOTIFICATION_PUSH_ENABLED` điều khiển việc tạo và xử lý delivery `PUSH`; giữ `false` cho tới khi luồng Push

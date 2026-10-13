@@ -13,6 +13,8 @@ import { PushNotificationService } from '../../application/interfaces/push-notif
 const FIREBASE_APP_NAME = 'bee-fcm'
 // FCM cho phép tối đa 500 token cho mỗi lần gửi multicast.
 const FCM_MULTICAST_LIMIT = 500
+// Thông báo hết hạn sau 24 giờ nếu thiết bị không online để nhận.
+const PUSH_TTL_SECONDS = 24 * 60 * 60
 const INVALID_TOKEN_ERROR_CODES = new Set([
   'messaging/registration-token-not-registered',
   'messaging/invalid-registration-token',
@@ -105,16 +107,35 @@ export class FirebasePushService implements PushNotificationService {
   }
 
   private buildMessage(tokens: string[], message: PushNotificationMessage): MulticastMessage {
+    const notificationId = message.data?.notificationId
+    const threadId = message.data?.type
+    const expiresAtSeconds = Math.floor(Date.now() / 1000) + PUSH_TTL_SECONDS
+
     return {
       tokens,
       notification: { title: message.title, body: message.body },
       data: message.data,
       android: {
         priority: 'high',
-        notification: { channelId: this.config.androidChannelId },
+        ttl: PUSH_TTL_SECONDS * 1000,
+        notification: {
+          channelId: this.config.androidChannelId,
+          sound: 'default',
+          ...(notificationId && { tag: notificationId }),
+        },
       },
       apns: {
-        payload: { aps: { sound: 'default' } },
+        headers: {
+          'apns-priority': '10',
+          'apns-push-type': 'alert',
+          'apns-expiration': String(expiresAtSeconds),
+        },
+        payload: {
+          aps: {
+            sound: 'default',
+            ...(threadId && { 'thread-id': threadId }),
+          },
+        },
       },
     }
   }

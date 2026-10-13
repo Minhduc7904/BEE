@@ -195,6 +195,7 @@ describe('DispatchNotificationDeliveriesUseCase', () => {
           paymentId: '12',
           shouldShowReminderModal: 'true',
           context: '{"tab":"payments"}',
+          type: 'SYSTEM',
           notificationDispatchJobId: '1',
           notificationId: '41',
         },
@@ -260,10 +261,73 @@ describe('DispatchNotificationDeliveriesUseCase', () => {
     )
   })
 
-  it('không đánh dấu SENT khi một thiết bị bị FCM từ chối vĩnh viễn', async () => {
+  it('đánh dấu SENT và giữ token khi Android thành công còn iOS bị third-party-auth-error', async () => {
     const pushDelivery = new NotificationDelivery({
       ...delivery,
       notificationDeliveryId: 23,
+      channel: NotificationDeliveryChannel.PUSH,
+    })
+    evaluatePushEligibility.mockResolvedValue({ allowed: true })
+    findDevices.mockResolvedValue([{ fcmToken: 'token-android' }, { fcmToken: 'token-ios' }])
+    findNotification.mockResolvedValue(null)
+    sendToTokens.mockResolvedValue({
+      providerAvailable: true,
+      successCount: 1,
+      failureCount: 1,
+      invalidTokens: [],
+      outcomes: [
+        { token: 'token-android', success: true, messageId: 'message-1', retryable: false },
+        { token: 'token-ios', success: false, errorCode: 'messaging/third-party-auth-error', retryable: false },
+      ],
+    })
+    updateDelivery.mockResolvedValue(pushDelivery)
+
+    await expect(harness.process(pushDelivery)).resolves.toBe('sent')
+    expect(deleteDevices).not.toHaveBeenCalled()
+    expect(updateDelivery).toHaveBeenLastCalledWith(
+      pushDelivery.notificationDeliveryId,
+      expect.objectContaining({
+        status: NotificationDeliveryStatus.SENT,
+        pendingPushTokens: null,
+        lastErrorCode: 'messaging/third-party-auth-error',
+      }),
+    )
+  })
+
+  it('đánh dấu DEAD khi mọi thiết bị đều bị FCM từ chối vĩnh viễn', async () => {
+    const pushDelivery = new NotificationDelivery({
+      ...delivery,
+      notificationDeliveryId: 24,
+      channel: NotificationDeliveryChannel.PUSH,
+    })
+    evaluatePushEligibility.mockResolvedValue({ allowed: true })
+    findDevices.mockResolvedValue([{ fcmToken: 'token-1' }])
+    findNotification.mockResolvedValue(null)
+    sendToTokens.mockResolvedValue({
+      providerAvailable: true,
+      successCount: 0,
+      failureCount: 1,
+      invalidTokens: [],
+      outcomes: [{ token: 'token-1', success: false, errorCode: 'messaging/sender-id-mismatch', retryable: false }],
+    })
+    updateDelivery.mockResolvedValue(pushDelivery)
+
+    await expect(harness.process(pushDelivery)).resolves.toBe('dead')
+    expect(deleteDevices).not.toHaveBeenCalled()
+    expect(updateDelivery).toHaveBeenLastCalledWith(
+      pushDelivery.notificationDeliveryId,
+      expect.objectContaining({
+        status: NotificationDeliveryStatus.DEAD,
+        pendingPushTokens: null,
+        lastErrorCode: 'messaging/sender-id-mismatch',
+      }),
+    )
+  })
+
+  it('xóa token hỏng nhưng vẫn SENT nếu thiết bị khác nhận được', async () => {
+    const pushDelivery = new NotificationDelivery({
+      ...delivery,
+      notificationDeliveryId: 25,
       channel: NotificationDeliveryChannel.PUSH,
     })
     evaluatePushEligibility.mockResolvedValue({ allowed: true })
@@ -273,22 +337,24 @@ describe('DispatchNotificationDeliveriesUseCase', () => {
       providerAvailable: true,
       successCount: 1,
       failureCount: 1,
-      invalidTokens: [],
+      invalidTokens: ['token-2'],
       outcomes: [
         { token: 'token-1', success: true, messageId: 'message-1', retryable: false },
-        { token: 'token-2', success: false, errorCode: 'messaging/sender-id-mismatch', retryable: false },
+        {
+          token: 'token-2',
+          success: false,
+          errorCode: 'messaging/registration-token-not-registered',
+          retryable: false,
+        },
       ],
     })
     updateDelivery.mockResolvedValue(pushDelivery)
 
-    await expect(harness.process(pushDelivery)).resolves.toBe('dead')
+    await expect(harness.process(pushDelivery)).resolves.toBe('sent')
+    expect(deleteDevices).toHaveBeenCalledWith(['token-2'])
     expect(updateDelivery).toHaveBeenLastCalledWith(
       pushDelivery.notificationDeliveryId,
-      expect.objectContaining({
-        status: NotificationDeliveryStatus.DEAD,
-        pendingPushTokens: null,
-        lastErrorCode: 'messaging/sender-id-mismatch',
-      }),
+      expect.objectContaining({ status: NotificationDeliveryStatus.SENT, lastErrorCode: null }),
     )
   })
 
