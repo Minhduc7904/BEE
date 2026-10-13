@@ -1,18 +1,20 @@
 import { ConflictException, Inject, Injectable, Logger } from '@nestjs/common'
 import { randomUUID } from 'crypto'
 import type { NotificationDelivery } from '../../../domain/entities/notification'
-import type { IUnitOfWork } from '../../../domain/repositories'
+import type { IUnitOfWork, UnitOfWorkRepos } from '../../../domain/repositories'
 import {
   BackgroundJobCode,
   BackgroundJobRunStatus,
   NotificationDeliveryChannel,
   NotificationDeliveryStatus,
+  NotificationDestinationType,
   NotificationDispatchJobStatus,
 } from '../../../shared/enums'
 import { NotificationRealtimeService, PushNotificationService, ZaloService } from '../../interfaces'
 import { PushNotificationEligibilityService } from './push-notification-eligibility.service'
 import { NotificationDeliveryChannelPolicyService } from './notification-delivery-channel-policy.service'
 import { GetValidZaloAccessTokenUseCase } from '../zalo/get-valid-zalo-access-token.use-case'
+import { examResultCompetitionSubmitId, linkedHomeworkDestination } from './linked-homework-destination'
 
 const JOB_CONFIG = {
   code: BackgroundJobCode.NOTIFICATION_DELIVERY_DISPATCHER,
@@ -201,11 +203,13 @@ export class DispatchNotificationDeliveriesUseCase {
     const userId = delivery.recipient!.userId!
     const job = delivery.job!
     const payload = delivery.payload ?? job
+    const pushData = this.toPushData(payload.data)
     const context = await this.unitOfWork.executeInTransaction(async (repos) => ({
       devices: await repos.userDeviceRepository.findByUserIds([userId]),
       notification: await repos.notificationRepository.findByDispatchRecipientId(
         delivery.notificationDispatchRecipientId,
       ),
+      linkedHomeworkSubmit: await this.findLinkedHomeworkSubmit(repos, pushData),
     }))
     if (context.devices.length === 0) return this.skip(delivery, 'NO_ACTIVE_DEVICE')
 
@@ -219,7 +223,12 @@ export class DispatchNotificationDeliveriesUseCase {
       title: payload.title,
       body: payload.message,
       data: {
-        ...this.toPushData(payload.data),
+        ...pushData,
+        // Lượt thi của BTVN chỉ mở được qua chi tiết bài tập (xem linked-homework-destination).
+        ...(context.linkedHomeworkSubmit && {
+          destinationType: context.linkedHomeworkSubmit.type,
+          resourceId: String(context.linkedHomeworkSubmit.resourceId),
+        }),
         type: String(job.type),
         notificationDispatchJobId: String(job.notificationDispatchJobId),
         ...(context.notification && { notificationId: String(context.notification.notificationId) }),
@@ -273,6 +282,26 @@ export class DispatchNotificationDeliveriesUseCase {
     }
     const errorCode = result.outcomes.find((outcome) => outcome.errorCode)?.errorCode ?? 'PUSH_SEND_FAILED'
     return this.markDead(delivery, errorCode, 'FCM không trả về kết quả giao nhận hợp lệ')
+  }
+
+  private async findLinkedHomeworkSubmit(
+    repos: UnitOfWorkRepos,
+    data: Record<string, string>,
+  ): Promise<{ type: NotificationDestinationType; resourceId: number } | null> {
+    const resourceId = Number(data.resourceId)
+    const competitionSubmitId = examResultCompetitionSubmitId(
+      data.destinationType && Number.isSafeInteger(resourceId) && resourceId > 0
+        ? { type: data.destinationType, resourceId }
+        : null,
+    )
+    if (competitionSubmitId === null) return null
+    const homeworkSubmit = await repos.homeworkSubmitRepository.findByCompetitionSubmitId(competitionSubmitId)
+    return homeworkSubmit
+      ? linkedHomeworkDestination(
+          competitionSubmitId,
+          new Map([[competitionSubmitId, homeworkSubmit.homeworkSubmitId]]),
+        )
+      : null
   }
 
   private logPermanentPushFailures(delivery: NotificationDelivery, failures: Array<{ errorCode?: string }>): void {

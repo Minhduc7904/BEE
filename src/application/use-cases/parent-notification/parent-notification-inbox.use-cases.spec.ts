@@ -37,11 +37,69 @@ function mockInbox(overrides: Partial<ParentNotificationInboxRepository> = {}): 
     getStats: jest.fn().mockResolvedValue({ total: 1, unread: 1, read: 0 }),
     findOwnedById: jest.fn().mockResolvedValue(notification),
     markRead: jest.fn().mockResolvedValue({ notification: { ...notification, isRead: true }, changed: true }),
+    findHomeworkSubmitIdsByCompetitionSubmitIds: jest.fn().mockResolvedValue(new Map()),
     ...overrides,
   }
 }
 
 describe('Parent notification inbox use cases', () => {
+  const examResult = (notificationId: number, competitionSubmitId: number): ParentNotificationInboxItem => ({
+    ...notification,
+    notificationId,
+    type: NotificationType.RESULT,
+    data: {
+      competitionSubmitId: String(competitionSubmitId),
+      destinationType: 'exam_result',
+      resourceId: competitionSubmitId,
+    },
+  })
+
+  it('đổi đích exam_result của lượt thi đã gắn BTVN thành homework_result, giữ nguyên lượt thi độc lập', async () => {
+    const findHomeworkSubmitIdsByCompetitionSubmitIds = jest.fn().mockResolvedValue(new Map([[46089, 42296]]))
+    const inbox = mockInbox({
+      list: jest.fn().mockResolvedValue({
+        data: [examResult(1, 46089), examResult(2, 500), notification],
+        hasNext: false,
+        nextCursor: null,
+      }),
+      findHomeworkSubmitIdsByCompetitionSubmitIds,
+    })
+    const useCase = new GetParentNotificationsUseCase(inbox)
+
+    const response = await useCase.execute(identity, { limit: 20, toPagination: () => ({ after: null, limit: 20 }) })
+
+    expect(findHomeworkSubmitIdsByCompetitionSubmitIds).toHaveBeenCalledTimes(1)
+    expect(findHomeworkSubmitIdsByCompetitionSubmitIds).toHaveBeenCalledWith([46089, 500])
+    expect(response.data.map((item) => item.destination)).toEqual([
+      { type: 'homework_result', resourceId: 42296 },
+      { type: 'exam_result', resourceId: 500 },
+      { type: 'attendance_record', resourceId: 99 },
+    ])
+  })
+
+  it('chi tiết thông báo cũ (đã lưu exam_result) cũng trỏ sang chi tiết BTVN', async () => {
+    const inbox = mockInbox({
+      findOwnedById: jest.fn().mockResolvedValue(examResult(189210, 46089)),
+      findHomeworkSubmitIdsByCompetitionSubmitIds: jest.fn().mockResolvedValue(new Map([[46089, 42296]])),
+    })
+
+    const response = await new GetParentNotificationUseCase(inbox).execute(identity, 189210)
+
+    expect(response.data?.destination).toEqual({ type: 'homework_result', resourceId: 42296 })
+  })
+
+  it('không truy vấn liên kết BTVN khi trang không có đích exam_result', async () => {
+    const findHomeworkSubmitIdsByCompetitionSubmitIds = jest.fn()
+    const inbox = mockInbox({ findHomeworkSubmitIdsByCompetitionSubmitIds })
+
+    await new GetParentNotificationsUseCase(inbox).execute(identity, {
+      limit: 20,
+      toPagination: () => ({ after: null, limit: 20 }),
+    })
+
+    expect(findHomeworkSubmitIdsByCompetitionSubmitIds).not.toHaveBeenCalled()
+  })
+
   it('trả 400 cho cursor số nhưng vượt miền Date an toàn', () => {
     const query = new ParentNotificationInboxQueryDto()
     query.after = '999999999999999999999_42'

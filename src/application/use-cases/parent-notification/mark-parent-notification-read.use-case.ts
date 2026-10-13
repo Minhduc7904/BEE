@@ -6,6 +6,7 @@ import { BaseResponseDto, ParentNotificationInboxItemDto } from '../../dtos'
 import { NotificationChangeReason } from '../../../shared/enums'
 import { NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 import { requireParentInboxAccess } from './parent-notification-inbox-access'
+import { toParentNotificationInboxItemDto } from './parent-notification-inbox-items'
 
 @Injectable()
 export class MarkParentNotificationReadUseCase {
@@ -27,7 +28,7 @@ export class MarkParentNotificationReadUseCase {
     }
     return BaseResponseDto.success(
       'Đánh dấu thông báo đã đọc thành công',
-      ParentNotificationInboxItemDto.fromItem(result.notification),
+      await toParentNotificationInboxItemDto(result.notification, this.inbox),
     )
   }
 }

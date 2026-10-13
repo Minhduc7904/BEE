@@ -5,6 +5,7 @@ import { ParentNotificationInboxRepository } from '../../interfaces'
 import { CursorPageResponseDto } from '../../dtos/pagination/cursor-page-response.dto'
 import { ParentNotificationInboxItemDto, ParentNotificationInboxQueryDto } from '../../dtos'
 import { requireParentInboxAccess } from './parent-notification-inbox-access'
+import { toParentNotificationInboxItemDtos } from './parent-notification-inbox-items'
 
 @Injectable()
 export class GetParentNotificationsUseCase {
@@ -25,7 +26,7 @@ export class GetParentNotificationsUseCase {
     })
     return CursorPageResponseDto.success(
       'Lấy danh sách thông báo thành công',
-      result.data.map((item) => ParentNotificationInboxItemDto.fromItem(item)),
+      await toParentNotificationInboxItemDtos(result.data, this.inbox),
       result.hasNext,
       result.nextCursor,
       pagination.limit,

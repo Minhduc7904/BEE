@@ -51,6 +51,12 @@ export abstract class ParentNotificationInboxRepository {
   abstract getStats(userId: number): Promise<ParentNotificationInboxStats>
   abstract findOwnedById(userId: number, notificationId: number): Promise<ParentNotificationInboxItem | null>
   abstract markRead(userId: number, notificationId: number): Promise<MarkParentNotificationReadResult>
+
+  /**
+   * competitionSubmitId -> homeworkSubmitId cho các lượt thi đã gắn với bài tập về nhà. Lượt thi không gắn BTVN không
+   * có trong kết quả.
+   */
+  abstract findHomeworkSubmitIdsByCompetitionSubmitIds(competitionSubmitIds: number[]): Promise<Map<number, number>>
 }
 
 export function encodeParentNotificationCursor(createdAt: Date, notificationId: number): string {

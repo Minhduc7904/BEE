@@ -24,6 +24,7 @@ describe('DispatchNotificationDeliveriesUseCase', () => {
   const findDevices = jest.fn()
   const deleteDevices = jest.fn()
   const findNotification = jest.fn()
+  const findHomeworkSubmitByCompetitionSubmitId = jest.fn()
   const repos = {
     notificationRepository: {
       createForDispatchRecipient: createNotification,
@@ -32,6 +33,7 @@ describe('DispatchNotificationDeliveriesUseCase', () => {
     },
     notificationDeliveryRepository: { update: updateDelivery },
     userDeviceRepository: { findByUserIds: findDevices, deleteByTokens: deleteDevices },
+    homeworkSubmitRepository: { findByCompetitionSubmitId: findHomeworkSubmitByCompetitionSubmitId },
   }
   const unitOfWork = {
     executeInTransaction: jest.fn((callback) => callback(repos)),
@@ -201,6 +203,70 @@ describe('DispatchNotificationDeliveriesUseCase', () => {
         },
       }),
     )
+  })
+
+  describe('đích của kết quả bài thi', () => {
+    const resultDelivery = (competitionSubmitId: number) =>
+      new NotificationDelivery({
+        ...delivery,
+        channel: NotificationDeliveryChannel.PUSH,
+        payload: {
+          title: 'Kết quả bài thi',
+          message: '0/10',
+          type: 'RESULT' as any,
+          level: 'INFO' as any,
+          data: {
+            competitionSubmitId: String(competitionSubmitId),
+            studentId: '95',
+            destinationType: 'exam_result',
+            resourceId: competitionSubmitId,
+          },
+        },
+      })
+
+    beforeEach(() => {
+      evaluatePushEligibility.mockResolvedValue({ allowed: true })
+      findDevices.mockResolvedValue([{ fcmToken: 'token-1' }])
+      findNotification.mockResolvedValue({ notificationId: 189210 })
+      sendToTokens.mockResolvedValue({
+        providerAvailable: true,
+        successCount: 1,
+        failureCount: 0,
+        invalidTokens: [],
+        outcomes: [{ token: 'token-1', success: true, messageId: 'message-1', retryable: false }],
+      })
+    })
+
+    it('lượt thi đã gắn BTVN mở chi tiết bài tập (homework_result) thay vì bài thi độc lập', async () => {
+      findHomeworkSubmitByCompetitionSubmitId.mockResolvedValue({ homeworkSubmitId: 42296 })
+      const pushDelivery = resultDelivery(46089)
+      updateDelivery.mockResolvedValue(pushDelivery)
+
+      await expect(harness.process(pushDelivery)).resolves.toBe('sent')
+
+      expect(findHomeworkSubmitByCompetitionSubmitId).toHaveBeenCalledWith(46089)
+      expect(sendToTokens).toHaveBeenCalledWith(
+        ['token-1'],
+        expect.objectContaining({
+          data: expect.objectContaining({ destinationType: 'homework_result', resourceId: '42296' }),
+        }),
+      )
+    })
+
+    it('lượt thi độc lập giữ nguyên exam_result', async () => {
+      findHomeworkSubmitByCompetitionSubmitId.mockResolvedValue(null)
+      const pushDelivery = resultDelivery(500)
+      updateDelivery.mockResolvedValue(pushDelivery)
+
+      await expect(harness.process(pushDelivery)).resolves.toBe('sent')
+
+      expect(sendToTokens).toHaveBeenCalledWith(
+        ['token-1'],
+        expect.objectContaining({
+          data: expect.objectContaining({ destinationType: 'exam_result', resourceId: '500' }),
+        }),
+      )
+    })
   })
 
   it('chỉ retry token lỗi tạm thời sau multi-device partial success', async () => {

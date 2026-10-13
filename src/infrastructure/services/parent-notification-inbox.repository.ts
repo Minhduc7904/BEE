@@ -112,4 +112,18 @@ export class PrismaParentNotificationInboxRepository extends ParentNotificationI
     ])
     return { notification: row ? ParentNotificationInboxMapper.toReadModel(row) : null, changed: updated.count > 0 }
   }
+
+  async findHomeworkSubmitIdsByCompetitionSubmitIds(competitionSubmitIds: number[]): Promise<Map<number, number>> {
+    const ids = Array.from(new Set(competitionSubmitIds))
+    if (ids.length === 0) return new Map()
+    const rows = await this.prisma.homeworkSubmit.findMany({
+      where: { competitionSubmitId: { in: ids } },
+      select: { homeworkSubmitId: true, competitionSubmitId: true },
+    })
+    const result = new Map<number, number>()
+    for (const row of rows) {
+      if (row.competitionSubmitId !== null) result.set(row.competitionSubmitId, row.homeworkSubmitId)
+    }
+    return result
+  }
 }

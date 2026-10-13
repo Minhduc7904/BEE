@@ -57,6 +57,11 @@ Destination hỗ trợ: `attendance_record`, `tuition_payment`, `exam_result`, `
 `notification`. Học phí luôn trả `resourceId` là `paymentId`; dữ liệu cũ có `invoiceId` chỉ được chuẩn hóa khi đọc và không
 được lộ ra response.
 
+Kết quả bài thi: lượt thi gắn với bài tập về nhà (`CompetitionSubmit` có `HomeworkSubmit`) chỉ xem được qua chi tiết bài
+tập, vì chi tiết bài thi của phụ huynh chỉ phục vụ lượt thi độc lập. Thông báo kết quả được tạo lúc nộp bài (trước khi
+`HomeworkSubmit` tồn tại) nên lưu `exam_result`; inbox (list, chi tiết, mark-read) và payload push đổi đích này thành
+`homework_result` với `resourceId = homeworkSubmitId` khi lượt thi đã gắn BTVN, kể cả với thông báo đã lưu từ trước.
+
 ### Các endpoint khác
 
 - `GET /api/parent/notifications/stats`: trả `{ total, unread, read }` cho toàn tài khoản.
