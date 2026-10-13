@@ -11,6 +11,7 @@ import { DeduplicatedDisconnectIoAdapter } from './presentation/adapters/dedupli
 async function bootstrap() {
   dotenv.config()
 
+  
   const app = await NestFactory.create(AppModule, { rawBody: true })
   app.useWebSocketAdapter(new DeduplicatedDisconnectIoAdapter(app))
 
