@@ -1,21 +1,8 @@
 import { Injectable } from '@nestjs/common'
-import { AttendanceStatus as PrismaAttendanceStatus, AttendanceType as PrismaAttendanceType } from '@prisma/client'
 
 import { ParentScheduleSessionDetail, ParentScheduleSessionDetailReadService } from '../../application/interfaces'
-import { AttendanceStatus } from '../../shared/enums/attendance-status.enum'
-import { AttendanceType } from '../../shared/enums/attendance-type.enum'
 import { PrismaService } from '../../prisma/prisma.service'
-
-const attendanceStatusMap: Record<PrismaAttendanceStatus, AttendanceStatus> = {
-  [PrismaAttendanceStatus.PRESENT]: AttendanceStatus.PRESENT,
-  [PrismaAttendanceStatus.ABSENT]: AttendanceStatus.ABSENT,
-  [PrismaAttendanceStatus.LATE]: AttendanceStatus.LATE,
-}
-
-const attendanceTypeMap: Record<PrismaAttendanceType, AttendanceType> = {
-  [PrismaAttendanceType.REGULAR]: AttendanceType.REGULAR,
-  [PrismaAttendanceType.MAKEUP]: AttendanceType.MAKEUP,
-}
+import { parentAttendanceSelect, toParentScheduleAttendance } from './parent-schedule-attendance.mapper'
 
 const adminNameSelect = {
   user: { select: { firstName: true, lastName: true } },
@@ -73,11 +60,7 @@ export class PrismaParentScheduleSessionDetailReadService extends ParentSchedule
           where: { studentId },
           take: 1,
           select: {
-            attendanceId: true,
-            status: true,
-            attendanceType: true,
-            markedAt: true,
-            notes: true,
+            ...parentAttendanceSelect,
             marker: { select: adminNameSelect },
           },
         },
@@ -141,11 +124,7 @@ export class PrismaParentScheduleSessionDetailReadService extends ParentSchedule
       makeupNote: row.makeupNote || null,
       attendance: attendance
         ? {
-            attendanceId: attendance.attendanceId,
-            status: attendanceStatusMap[attendance.status],
-            attendanceType: attendanceTypeMap[attendance.attendanceType],
-            markedAt: attendance.markedAt,
-            notes: attendance.notes || null,
+            ...toParentScheduleAttendance(attendance),
             markerName: toDisplayName(attendance.marker),
           }
         : null,

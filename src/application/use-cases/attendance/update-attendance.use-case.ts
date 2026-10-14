@@ -9,10 +9,20 @@ import { ACTION_KEYS } from 'src/shared/constants/action-key.constants'
 import { AuditStatus } from 'src/shared/enums/audit-status.enum'
 import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
 import { CreateAndNotifyOneUseCase } from '../notification/create-and-notify-one.use-case'
-import { NotificationType, NotificationLevel, AttendanceStatus, AttendanceStatusLabels, AttendanceType, AttendanceTypeLabels } from 'src/shared/enums'
+import {
+  NotificationType,
+  NotificationLevel,
+  AttendanceStatus,
+  AttendanceStatusLabels,
+  AttendanceType,
+  AttendanceTypeLabels,
+} from 'src/shared/enums'
 import { SendAttendanceToParentUseCase } from './send-attendance-to-parent.use-case'
 import { StudentPointService } from 'src/application/services/student-point.service'
-import { AttendanceMakeupLinkService } from 'src/application/services/attendance-makeup-link.service'
+import {
+  AttendanceMakeupLinkService,
+  normalizeAttendanceType,
+} from 'src/application/services/attendance-makeup-link.service'
 
 @Injectable()
 export class UpdateAttendanceUseCase {
@@ -68,22 +78,28 @@ export class UpdateAttendanceUseCase {
 
       const data: UpdateAttendanceData = {}
       const statusChanged = dto.status !== undefined && dto.status !== existing.status
-      const attendanceTypeChanged = dto.attendanceType !== undefined && dto.attendanceType !== existing.attendanceType
+      // Trạng thái và loại cuối cùng; Vắng luôn là Chính khóa dù request gửi Học bù
+      const finalStatus = dto.status ?? existing.status
+      const finalAttendanceType = normalizeAttendanceType(
+        finalStatus,
+        dto.attendanceType ?? normalizeAttendanceType(existing.status, existing.attendanceType),
+      )
+      const attendanceTypeChanged = finalAttendanceType !== existing.attendanceType
 
       // Chỉ gán các trường thực sự thay đổi
       if (statusChanged) {
-        data.status = dto.status
+        data.status = finalStatus
 
         // Nếu chuyển sang trạng thái có mặt → cập nhật thời điểm điểm danh
         data.markedAt = new Date()
 
         // Có mặt / Muộn không phải buổi vắng nên không còn "đã được học bù"
-        if (dto.status !== AttendanceStatus.ABSENT && existing.makeupByAttendanceId != null) {
+        if (finalStatus !== AttendanceStatus.ABSENT && existing.makeupByAttendanceId != null) {
           data.makeupByAttendanceId = null
         }
       }
       if (attendanceTypeChanged) {
-        data.attendanceType = dto.attendanceType
+        data.attendanceType = finalAttendanceType
       }
 
       if (dto.notes !== undefined && dto.notes !== existing.notes) {
@@ -106,25 +122,14 @@ export class UpdateAttendanceUseCase {
 
       const attendance = await attendanceRepository.update(attendanceId, data)
 
-      // Tự nối / gỡ liên kết học bù theo quy tắc nghiệp vụ
-      if (statusChanged) {
-        if (existing.status === AttendanceStatus.PRESENT) {
-          // Có mặt → trạng thái khác: gỡ các buổi vắng đã được bản ghi này bù và thử nối sang bản ghi khác
-          await this.attendanceMakeupLinkService.releaseMadeUpAbsences(repos, attendance.attendanceId)
-        }
-
-        if (attendance.status === AttendanceStatus.PRESENT) {
-          await this.attendanceMakeupLinkService.linkAbsencesTo(repos, attendance)
-        } else if (attendance.status === AttendanceStatus.ABSENT) {
-          await this.attendanceMakeupLinkService.linkAbsenceToMakeup(repos, attendance)
-        }
-      } else if (attendanceTypeChanged && attendance.status === AttendanceStatus.PRESENT) {
-        if (attendance.attendanceType === AttendanceType.MAKEUP) {
-          await this.attendanceMakeupLinkService.linkAbsencesTo(repos, attendance)
-        } else {
-          await this.attendanceMakeupLinkService.releaseMadeUpAbsences(repos, attendance.attendanceId)
-        }
+      // Tự nối / gỡ liên kết học bù theo trạng thái và loại sau khi chuẩn hóa
+      if (statusChanged || attendanceTypeChanged) {
+        await this.attendanceMakeupLinkService.reconcile(repos, attendance, {
+          status: existing.status,
+          attendanceType: existing.attendanceType,
+        })
       }
+
       await this.studentPointService.awardAttendancePoints(repos, {
         studentId: attendance.studentId,
         attendanceId: attendance.attendanceId,
@@ -153,7 +158,12 @@ export class UpdateAttendanceUseCase {
         message: `Điểm danh của bạn đã được cập nhật thành: ${statusLabel}${attendance.attendanceType === AttendanceType.MAKEUP ? `; loại: ${AttendanceTypeLabels[attendance.attendanceType]}` : ''}`,
         type: NotificationType.ATTENDANCE,
         level: NotificationLevel.INFO,
-        data: { attendanceId: attendance.attendanceId, sessionId: attendance.sessionId, status: attendance.status, attendanceType: attendance.attendanceType },
+        data: {
+          attendanceId: attendance.attendanceId,
+          sessionId: attendance.sessionId,
+          status: attendance.status,
+          attendanceType: attendance.attendanceType,
+        },
       }
 
       await this.createAndNotifyOne.executeWithRepos(repos, notification, {

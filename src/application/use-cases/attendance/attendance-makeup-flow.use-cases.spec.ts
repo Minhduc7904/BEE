@@ -98,22 +98,44 @@ describe('CheckInAttendanceUseCase', () => {
     expect(world.get(result.data!.attendanceId)?.status).toBe(AttendanceStatus.PRESENT)
   })
 
-  it('nối buổi vắng đã bù được: bản ghi thành Học bù và response có madeUpAbsences', async () => {
+  it('check-in một học sinh còn buổi vắng bù được: bản ghi vẫn là Chính khóa và không nối gì', async () => {
     const { world, checkIn } = setup()
     const absenceId = world.seed(1, AttendanceStatus.ABSENT)
 
     const result = await checkIn.execute(checkInDto(2), ADMIN_ID, ADMIN_ID)
 
-    expect(result.data).toMatchObject({ attendanceType: 'MAKEUP', linkedAbsenceCount: 1 })
-    expect(world.get(absenceId)?.makeupByAttendanceId).toBe(result.data!.attendanceId)
-    expect(result.data!.madeUpAbsences).toEqual([
-      expect.objectContaining({ attendanceId: absenceId, sessionId: 1, sessionDate: '2026-10-13' }),
-    ])
+    expect(result.data).toMatchObject({ attendanceType: 'REGULAR', linkedAbsenceCount: 0 })
+    expect(world.get(absenceId)?.makeupByAttendanceId).toBeNull()
+    expect(result.data!.madeUpAbsences).toEqual([])
   })
 
-  it('học trước, vắng sau: điểm danh buổi 2 trước rồi bulk vắng buổi 1 thì tự nối', async () => {
-    const { world, checkIn, bulk } = setup()
-    const first = await checkIn.execute(checkInDto(2), ADMIN_ID, ADMIN_ID)
+  it('Muộn + Học bù check-in sang Có mặt: giữ Học bù và giữ nguyên các liên kết', async () => {
+    const { world, checkIn } = setup()
+    const lateId = world.seed(2, AttendanceStatus.LATE, { type: AttendanceType.MAKEUP })
+    const absenceId = world.seed(1, AttendanceStatus.ABSENT, { makeupBy: lateId })
+
+    const result = await checkIn.execute(checkInDto(2), ADMIN_ID, ADMIN_ID)
+
+    expect(result.data).toMatchObject({ attendanceId: lateId, status: 'PRESENT', attendanceType: 'MAKEUP' })
+    expect(world.get(absenceId)?.makeupByAttendanceId).toBe(lateId)
+  })
+
+  it('Vắng check-in sang Có mặt luôn là Chính khóa', async () => {
+    const { world, checkIn } = setup()
+    const absentId = world.seed(2, AttendanceStatus.ABSENT)
+
+    const result = await checkIn.execute(checkInDto(2), ADMIN_ID, ADMIN_ID)
+
+    expect(result.data).toMatchObject({ attendanceId: absentId, status: 'PRESENT', attendanceType: 'REGULAR' })
+  })
+
+  it('học trước, vắng sau: Có mặt + Học bù ở buổi 2 rồi bulk vắng buổi 1 thì tự nối', async () => {
+    const { world, create, bulk } = setup()
+    const first = await create.execute(
+      createDto({ sessionId: 2, status: AttendanceStatus.PRESENT, attendanceType: AttendanceType.MAKEUP }),
+      ADMIN_ID,
+      ADMIN_ID,
+    )
 
     await bulk.execute(
       Object.assign(new CreateBulkAttendanceBySessionDto(), { sessionId: 1, status: AttendanceStatus.ABSENT }),
@@ -222,7 +244,7 @@ describe('CheckInAttendanceUseCase', () => {
 })
 
 describe('CancelCheckInAttendanceUseCase', () => {
-  it('Có mặt về Vắng, gỡ buổi vắng đã được bù, bản ghi vừa hủy giữ loại điểm danh hiện có', async () => {
+  it('Có mặt + Học bù về Vắng: ép Chính khóa và gỡ buổi vắng đã được bù', async () => {
     const { world, cancel } = setup()
     const makeupId = world.seed(2, AttendanceStatus.PRESENT, { type: AttendanceType.MAKEUP })
     const absenceId = world.seed(1, AttendanceStatus.ABSENT, { makeupBy: makeupId })
@@ -232,7 +254,7 @@ describe('CancelCheckInAttendanceUseCase', () => {
     expect(result.data).toMatchObject({
       attendanceId: makeupId,
       status: 'ABSENT',
-      attendanceType: 'MAKEUP',
+      attendanceType: 'REGULAR',
       linkedAbsenceCount: 1,
       isMadeUp: false,
     })
@@ -261,7 +283,7 @@ describe('CancelCheckInAttendanceUseCase', () => {
     const { world, cancel } = setup()
     world.pair(1, 5)
     const makeupId = world.seed(2, AttendanceStatus.PRESENT, { type: AttendanceType.MAKEUP })
-    const otherId = world.seed(5, AttendanceStatus.PRESENT)
+    const otherId = world.seed(5, AttendanceStatus.LATE, { type: AttendanceType.MAKEUP })
     const absenceId = world.seed(1, AttendanceStatus.ABSENT, { makeupBy: makeupId })
 
     await cancel.execute(makeupId, ADMIN_ID, ADMIN_ID)
@@ -270,16 +292,27 @@ describe('CancelCheckInAttendanceUseCase', () => {
     expect(world.get(otherId)?.attendanceType).toBe(AttendanceType.MAKEUP)
   })
 
-  it('bản ghi vừa hủy tự nối vào buổi đã học bù nếu có', async () => {
+  it('bản ghi vừa hủy tự nối vào candidate Có mặt + Học bù nếu có', async () => {
+    const { world, cancel } = setup()
+    const makeupId = world.seed(1, AttendanceStatus.PRESENT, { type: AttendanceType.MAKEUP })
+    const cancelledId = world.seed(2, AttendanceStatus.PRESENT, { type: AttendanceType.REGULAR })
+
+    // Hủy buổi 2 thì buổi 2 (Vắng) được nối vào buổi 1 đã học bù.
+    const result = await cancel.execute(cancelledId, ADMIN_ID, ADMIN_ID)
+
+    expect(result.data).toMatchObject({ status: 'ABSENT', makeupByAttendanceId: makeupId, isMadeUp: true })
+    expect(world.get(makeupId)?.attendanceType).toBe(AttendanceType.MAKEUP)
+  })
+
+  it('bản ghi vừa hủy không nối vào candidate Chính khóa và không nâng nó thành Học bù', async () => {
     const { world, cancel } = setup()
     const regularId = world.seed(1, AttendanceStatus.PRESENT)
-    const makeupId = world.seed(2, AttendanceStatus.PRESENT, { type: AttendanceType.REGULAR })
+    const cancelledId = world.seed(2, AttendanceStatus.PRESENT)
 
-    // Buổi 1 và 2 cùng Có mặt: hủy buổi 2 thì buổi 2 (Vắng) được nối vào buổi 1 đã học.
-    const result = await cancel.execute(makeupId, ADMIN_ID, ADMIN_ID)
+    const result = await cancel.execute(cancelledId, ADMIN_ID, ADMIN_ID)
 
-    expect(result.data).toMatchObject({ status: 'ABSENT', makeupByAttendanceId: regularId, isMadeUp: true })
-    expect(world.get(regularId)?.attendanceType).toBe(AttendanceType.MAKEUP)
+    expect(result.data).toMatchObject({ status: 'ABSENT', makeupByAttendanceId: null, isMadeUp: false })
+    expect(world.get(regularId)?.attendanceType).toBe(AttendanceType.REGULAR)
   })
 
   it('chỉ hủy được khi đang Có mặt: Vắng hoặc Muộn bị ConflictException', async () => {
@@ -300,7 +333,24 @@ describe('CancelCheckInAttendanceUseCase', () => {
 })
 
 describe('CreateAttendanceUseCase liên kết học bù', () => {
-  it('tạo Có mặt nối buổi vắng và đổi sang Học bù ngay trong response', async () => {
+  it.each([AttendanceStatus.PRESENT, AttendanceStatus.LATE])(
+    'tạo %s + Học bù nối buổi vắng bù được',
+    async (status) => {
+      const { world, create } = setup()
+      const absenceId = world.seed(1, AttendanceStatus.ABSENT)
+
+      const result = await create.execute(
+        createDto({ sessionId: 2, status, attendanceType: AttendanceType.MAKEUP }),
+        ADMIN_ID,
+        ADMIN_ID,
+      )
+
+      expect(result.data).toMatchObject({ status, attendanceType: 'MAKEUP' })
+      expect(world.get(absenceId)?.makeupByAttendanceId).toBe(result.data!.attendanceId)
+    },
+  )
+
+  it('tạo Có mặt Chính khóa không tự thành Học bù và không nối buổi vắng', async () => {
     const { world, create } = setup()
     const absenceId = world.seed(1, AttendanceStatus.ABSENT)
 
@@ -310,13 +360,36 @@ describe('CreateAttendanceUseCase liên kết học bù', () => {
       ADMIN_ID,
     )
 
-    expect(result.data).toMatchObject({ attendanceType: 'MAKEUP' })
-    expect(world.get(absenceId)?.makeupByAttendanceId).toBe(result.data!.attendanceId)
+    expect(result.data).toMatchObject({ attendanceType: 'REGULAR' })
+    expect(world.get(absenceId)?.makeupByAttendanceId).toBeNull()
   })
 
-  it('tạo Vắng khi đã học trước thì tự được nối', async () => {
+  it('tạo Vắng + Học bù: ép về Chính khóa trước khi lưu, audit và điểm thưởng', async () => {
     const { world, create } = setup()
-    const presentId = world.seed(2, AttendanceStatus.PRESENT)
+
+    const result = await create.execute(
+      createDto({ sessionId: 1, status: AttendanceStatus.ABSENT, attendanceType: AttendanceType.MAKEUP }),
+      ADMIN_ID,
+      ADMIN_ID,
+    )
+
+    expect(result.data).toMatchObject({ status: 'ABSENT', attendanceType: 'REGULAR' })
+    expect(world.get(result.data!.attendanceId)?.attendanceType).toBe(AttendanceType.REGULAR)
+    expect(world.attendanceRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({ attendanceType: AttendanceType.REGULAR }),
+    )
+    expect(world.studentPointService.awardAttendancePoints).toHaveBeenCalledWith(
+      world.repos,
+      expect.objectContaining({ attendanceType: AttendanceType.REGULAR }),
+    )
+    expect(world.repos.adminAuditLogRepository.create).toHaveBeenCalledWith(
+      expect.objectContaining({ afterData: expect.objectContaining({ attendanceType: AttendanceType.REGULAR }) }),
+    )
+  })
+
+  it('tạo Vắng khi đã học bù trước (Có mặt/Muộn + Học bù) thì tự được nối', async () => {
+    const { world, create } = setup()
+    const makeupId = world.seed(2, AttendanceStatus.LATE, { type: AttendanceType.MAKEUP })
 
     const result = await create.execute(
       createDto({ sessionId: 1, status: AttendanceStatus.ABSENT }),
@@ -324,8 +397,22 @@ describe('CreateAttendanceUseCase liên kết học bù', () => {
       ADMIN_ID,
     )
 
-    expect(result.data).toMatchObject({ status: 'ABSENT', makeupByAttendanceId: presentId, isMadeUp: true })
-    expect(world.get(presentId)?.attendanceType).toBe(AttendanceType.MAKEUP)
+    expect(result.data).toMatchObject({ status: 'ABSENT', makeupByAttendanceId: makeupId, isMadeUp: true })
+    expect(world.get(makeupId)?.attendanceType).toBe(AttendanceType.MAKEUP)
+  })
+
+  it('tạo Vắng khi bản ghi ở buổi bù là Chính khóa thì không nối và không nâng loại', async () => {
+    const { world, create } = setup()
+    const regularId = world.seed(2, AttendanceStatus.PRESENT)
+
+    const result = await create.execute(
+      createDto({ sessionId: 1, status: AttendanceStatus.ABSENT }),
+      ADMIN_ID,
+      ADMIN_ID,
+    )
+
+    expect(result.data).toMatchObject({ status: 'ABSENT', makeupByAttendanceId: null, isMadeUp: false })
+    expect(world.get(regularId)?.attendanceType).toBe(AttendanceType.REGULAR)
   })
 
   it('không gửi tin phụ huynh (tạm tắt)', async () => {
@@ -338,12 +425,16 @@ describe('CreateAttendanceUseCase liên kết học bù', () => {
 })
 
 describe('CreateBulkAttendanceBySessionUseCase liên kết học bù', () => {
-  it('tạo Có mặt hàng loạt nối các buổi vắng chưa được bù của học sinh và đổi sang Học bù', async () => {
+  it('tạo Có mặt + Học bù hàng loạt nối các buổi vắng chưa được bù của học sinh', async () => {
     const { world, bulk } = setup()
     const absenceId = world.seed(1, AttendanceStatus.ABSENT)
 
     const result = await bulk.execute(
-      Object.assign(new CreateBulkAttendanceBySessionDto(), { sessionId: 2, status: AttendanceStatus.PRESENT }),
+      Object.assign(new CreateBulkAttendanceBySessionDto(), {
+        sessionId: 2,
+        status: AttendanceStatus.PRESENT,
+        attendanceType: AttendanceType.MAKEUP,
+      }),
       ADMIN_ID,
       ADMIN_ID,
     )
@@ -353,9 +444,39 @@ describe('CreateBulkAttendanceBySessionUseCase liên kết học bù', () => {
     expect(world.get(absenceId)?.makeupByAttendanceId).toBe(result.data![0].attendanceId)
   })
 
-  it('tạo vắng hàng loạt tự nối với bản ghi đã học ở buổi học bù', async () => {
+  it('tạo Có mặt hàng loạt không có loại thì là Chính khóa và không nối', async () => {
+    const { world, bulk } = setup()
+    const absenceId = world.seed(1, AttendanceStatus.ABSENT)
+
+    const result = await bulk.execute(
+      Object.assign(new CreateBulkAttendanceBySessionDto(), { sessionId: 2, status: AttendanceStatus.PRESENT }),
+      ADMIN_ID,
+      ADMIN_ID,
+    )
+
+    expect(result.data![0]).toMatchObject({ status: 'PRESENT', attendanceType: 'REGULAR' })
+    expect(world.get(absenceId)?.makeupByAttendanceId).toBeNull()
+  })
+
+  it('tạo Vắng + Học bù hàng loạt: ép Chính khóa', async () => {
+    const { bulk } = setup()
+
+    const result = await bulk.execute(
+      Object.assign(new CreateBulkAttendanceBySessionDto(), {
+        sessionId: 1,
+        status: AttendanceStatus.ABSENT,
+        attendanceType: AttendanceType.MAKEUP,
+      }),
+      ADMIN_ID,
+      ADMIN_ID,
+    )
+
+    expect(result.data![0]).toMatchObject({ status: 'ABSENT', attendanceType: 'REGULAR' })
+  })
+
+  it('tạo vắng hàng loạt tự nối với bản ghi Học bù đã học ở buổi học bù', async () => {
     const { world, bulk, sendBulkAttendanceToParent } = setup()
-    const presentId = world.seed(2, AttendanceStatus.PRESENT)
+    const presentId = world.seed(2, AttendanceStatus.PRESENT, { type: AttendanceType.MAKEUP })
 
     const result = await bulk.execute(
       Object.assign(new CreateBulkAttendanceBySessionDto(), { sessionId: 1, status: AttendanceStatus.ABSENT }),
@@ -383,18 +504,40 @@ describe('UpdateAttendanceUseCase (PUT) liên kết học bù', () => {
     expect(world.get(makeupId)?.attendanceType).toBe(AttendanceType.MAKEUP)
   })
 
-  it('Vắng đổi sang Có mặt nối các buổi vắng khác và thành Học bù', async () => {
+  it('Vắng đổi sang Có mặt không có loại: là Chính khóa, không nối các buổi vắng khác', async () => {
     const { world, update } = setup()
     const absence1 = world.seed(1, AttendanceStatus.ABSENT)
     const absence2 = world.seed(2, AttendanceStatus.ABSENT)
 
     const result = await update.execute(absence2, updateDto({ status: AttendanceStatus.PRESENT }), ADMIN_ID)
 
-    expect(result.data).toMatchObject({ attendanceType: 'MAKEUP' })
-    expect(world.get(absence1)?.makeupByAttendanceId).toBe(absence2)
+    expect(result.data).toMatchObject({ attendanceType: 'REGULAR' })
+    expect(world.get(absence1)?.makeupByAttendanceId).toBeNull()
   })
 
-  it('Có mặt đổi sang Vắng: gỡ buổi vắng đã bù và nối bản ghi này vào buổi đã học', async () => {
+  it('Có mặt + Học bù đổi sang Vắng: ép Chính khóa, gỡ buổi vắng đã bù và nối lại sang candidate khác', async () => {
+    const { world, update } = setup()
+    world.pair(1, 5)
+    const presentId = world.seed(2, AttendanceStatus.PRESENT, { type: AttendanceType.MAKEUP })
+    const otherId = world.seed(5, AttendanceStatus.PRESENT, { type: AttendanceType.MAKEUP })
+    const absenceId = world.seed(1, AttendanceStatus.ABSENT, { makeupBy: presentId })
+
+    const result = await update.execute(
+      presentId,
+      updateDto({ status: AttendanceStatus.ABSENT, attendanceType: AttendanceType.MAKEUP }),
+      ADMIN_ID,
+    )
+
+    expect(result.data).toMatchObject({ status: 'ABSENT', attendanceType: 'REGULAR' })
+    expect(world.get(presentId)?.attendanceType).toBe(AttendanceType.REGULAR)
+    expect(world.get(absenceId)?.makeupByAttendanceId).toBe(otherId)
+    expect(world.studentPointService.awardAttendancePoints).toHaveBeenCalledWith(
+      world.repos,
+      expect.objectContaining({ status: AttendanceStatus.ABSENT, attendanceType: AttendanceType.REGULAR }),
+    )
+  })
+
+  it('Có mặt + Học bù đổi sang Vắng mà không còn candidate: buổi vắng quay về chưa được bù', async () => {
     const { world, update } = setup()
     const presentId = world.seed(2, AttendanceStatus.PRESENT, { type: AttendanceType.MAKEUP })
     const absenceId = world.seed(1, AttendanceStatus.ABSENT, { makeupBy: presentId })
@@ -405,14 +548,30 @@ describe('UpdateAttendanceUseCase (PUT) liên kết học bù', () => {
     expect(world.get(presentId)?.status).toBe(AttendanceStatus.ABSENT)
   })
 
-  it('Có mặt đổi sang Muộn: gỡ các buổi vắng đã được bù', async () => {
+  it('Vắng gửi attendanceType = MAKEUP mà không đổi trạng thái: vẫn là Chính khóa, không đổi dữ liệu', async () => {
+    const { world, update } = setup()
+    const absenceId = world.seed(1, AttendanceStatus.ABSENT)
+
+    const result = await update.execute(
+      absenceId,
+      updateDto({ attendanceType: AttendanceType.MAKEUP }),
+      undefined,
+      ADMIN_ID,
+    )
+
+    expect(result.data).toMatchObject({ status: 'ABSENT', attendanceType: 'REGULAR' })
+    expect(world.attendanceRepository.update).not.toHaveBeenCalled()
+  })
+
+  it('Có mặt + Học bù đổi sang Muộn: giữ Học bù và giữ nguyên các liên kết', async () => {
     const { world, update } = setup()
     const presentId = world.seed(2, AttendanceStatus.PRESENT, { type: AttendanceType.MAKEUP })
     const absenceId = world.seed(1, AttendanceStatus.ABSENT, { makeupBy: presentId })
 
-    await update.execute(presentId, updateDto({ status: AttendanceStatus.LATE }), ADMIN_ID)
+    const result = await update.execute(presentId, updateDto({ status: AttendanceStatus.LATE }), ADMIN_ID)
 
-    expect(world.get(absenceId)?.makeupByAttendanceId).toBeNull()
+    expect(result.data).toMatchObject({ status: 'LATE', attendanceType: 'MAKEUP' })
+    expect(world.get(absenceId)?.makeupByAttendanceId).toBe(presentId)
   })
 
   it('đổi loại về Chính khóa gỡ mọi buổi vắng đang trỏ tới và không nối lại về chính nó', async () => {
@@ -437,7 +596,22 @@ describe('UpdateAttendanceUseCase (PUT) liên kết học bù', () => {
     expect(world.get(absenceId)?.makeupByAttendanceId).toBe(presentId)
   })
 
-  it('đổi cùng lúc Vắng sang Có mặt và loại Chính khóa: vẫn nối buổi vắng và kết quả là Học bù', async () => {
+  it('đổi cùng lúc Vắng sang Có mặt và loại Học bù: nối các buổi vắng khác', async () => {
+    const { world, update } = setup()
+    const absence1 = world.seed(1, AttendanceStatus.ABSENT)
+    const absence2 = world.seed(2, AttendanceStatus.ABSENT)
+
+    const result = await update.execute(
+      absence2,
+      updateDto({ status: AttendanceStatus.PRESENT, attendanceType: AttendanceType.MAKEUP }),
+      ADMIN_ID,
+    )
+
+    expect(result.data).toMatchObject({ status: 'PRESENT', attendanceType: 'MAKEUP', makeupByAttendanceId: null })
+    expect(world.get(absence1)?.makeupByAttendanceId).toBe(absence2)
+  })
+
+  it('đổi cùng lúc Vắng sang Có mặt và loại Chính khóa: không nối', async () => {
     const { world, update } = setup()
     const absence1 = world.seed(1, AttendanceStatus.ABSENT)
     const absence2 = world.seed(2, AttendanceStatus.ABSENT)
@@ -448,9 +622,8 @@ describe('UpdateAttendanceUseCase (PUT) liên kết học bù', () => {
       ADMIN_ID,
     )
 
-    expect(result.data).toMatchObject({ status: 'PRESENT', attendanceType: 'MAKEUP', makeupByAttendanceId: null })
-    expect(world.get(absence1)?.makeupByAttendanceId).toBe(absence2)
-    expect(world.get(absence2)?.attendanceType).toBe(AttendanceType.MAKEUP)
+    expect(result.data).toMatchObject({ status: 'PRESENT', attendanceType: 'REGULAR' })
+    expect(world.get(absence1)?.makeupByAttendanceId).toBeNull()
   })
 
   it('đổi cùng lúc Vắng đã được bù sang Có mặt và Học bù: xóa liên kết riêng, giữ Học bù', async () => {
@@ -484,7 +657,7 @@ describe('DeleteAttendanceUseCase liên kết học bù', () => {
     const { world, remove } = setup()
     world.pair(1, 5)
     const makeupId = world.seed(2, AttendanceStatus.PRESENT, { type: AttendanceType.MAKEUP })
-    const otherId = world.seed(5, AttendanceStatus.PRESENT)
+    const otherId = world.seed(5, AttendanceStatus.LATE, { type: AttendanceType.MAKEUP })
     const absenceId = world.seed(1, AttendanceStatus.ABSENT, { makeupBy: makeupId })
 
     await remove.execute(makeupId, ADMIN_ID)
@@ -492,6 +665,19 @@ describe('DeleteAttendanceUseCase liên kết học bù', () => {
     expect(world.get(makeupId)).toBeUndefined()
     expect(world.get(absenceId)?.makeupByAttendanceId).toBe(otherId)
     expect(world.get(otherId)?.attendanceType).toBe(AttendanceType.MAKEUP)
+  })
+
+  it('xóa bản ghi Có mặt + Học bù: không nối lại sang candidate Chính khóa', async () => {
+    const { world, remove } = setup()
+    world.pair(1, 5)
+    const makeupId = world.seed(2, AttendanceStatus.PRESENT, { type: AttendanceType.MAKEUP })
+    const regularId = world.seed(5, AttendanceStatus.PRESENT)
+    const absenceId = world.seed(1, AttendanceStatus.ABSENT, { makeupBy: makeupId })
+
+    await remove.execute(makeupId, ADMIN_ID)
+
+    expect(world.get(absenceId)?.makeupByAttendanceId).toBeNull()
+    expect(world.get(regularId)?.attendanceType).toBe(AttendanceType.REGULAR)
   })
 
   it('xóa bản ghi Có mặt mà không còn bản ghi khác thì buổi vắng quay về chưa được bù', async () => {

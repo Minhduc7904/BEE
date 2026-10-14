@@ -1,9 +1,17 @@
 import { Module } from '@nestjs/common'
 
 import { InfrastructureModule } from '../../../infrastructure/infrastructure.module'
-import { GetParentStudentScheduleSessionDetailUseCase, GetParentStudentScheduleWeekUseCase } from '.'
+import {
+  GetParentStudentNextScheduleOverviewUseCase,
+  GetParentStudentScheduleSessionDetailUseCase,
+  GetParentStudentScheduleWeekUseCase,
+} from '.'
 
-const useCases = [GetParentStudentScheduleWeekUseCase, GetParentStudentScheduleSessionDetailUseCase]
+const useCases = [
+  GetParentStudentScheduleWeekUseCase,
+  GetParentStudentScheduleSessionDetailUseCase,
+  GetParentStudentNextScheduleOverviewUseCase,
+]
 
 @Module({
   imports: [InfrastructureModule],

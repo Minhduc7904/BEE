@@ -53,11 +53,8 @@ export class DeleteAttendanceUseCase {
 
       const deleted = await attendanceRepository.delete(attendanceId)
 
-      // Thử nối lại các buổi vắng đó sang bản ghi Có mặt khác
-      for (const absence of madeUpAbsences) {
-        absence.makeupByAttendanceId = null
-        await this.attendanceMakeupLinkService.linkAbsenceToMakeup(repos, absence, attendanceId)
-      }
+      // Thử nối lại các buổi vắng đó sang bản ghi Học bù khác
+      await this.attendanceMakeupLinkService.relinkAbsences(repos, madeUpAbsences, attendanceId)
 
       if (adminId) {
         await adminAuditLogRepository.create({

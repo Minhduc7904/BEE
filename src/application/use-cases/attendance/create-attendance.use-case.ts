@@ -11,9 +11,12 @@ import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
 import { CreateAndNotifyOneUseCase } from '../notification/create-and-notify-one.use-case'
 import { NotificationType, NotificationLevel, AttendanceStatusLabels } from 'src/shared/enums'
 import { SendAttendanceToParentUseCase } from './send-attendance-to-parent.use-case'
-import { AttendanceStatus, AttendanceType, AttendanceTypeLabels } from 'src/shared/enums'
+import { AttendanceType, AttendanceTypeLabels } from 'src/shared/enums'
 import { StudentPointService } from 'src/application/services/student-point.service'
-import { AttendanceMakeupLinkService } from 'src/application/services/attendance-makeup-link.service'
+import {
+  AttendanceMakeupLinkService,
+  normalizeAttendanceType,
+} from 'src/application/services/attendance-makeup-link.service'
 
 @Injectable()
 export class CreateAttendanceUseCase {
@@ -74,19 +77,15 @@ export class CreateAttendanceUseCase {
         sessionId: dto.sessionId,
         studentId: dto.studentId,
         status: dto.status,
-        attendanceType: dto.attendanceType ?? AttendanceType.REGULAR,
+        attendanceType: normalizeAttendanceType(dto.status, dto.attendanceType),
         notes: dto.notes,
         markerId,
       }
 
       const attendance = await attendanceRepository.create(data)
 
-      // Tự nối / gỡ liên kết học bù: Có mặt → nối các buổi vắng được bù; Vắng → tìm buổi đã học bù
-      if (attendance.status === AttendanceStatus.PRESENT) {
-        await this.attendanceMakeupLinkService.linkAbsencesTo(repos, attendance)
-      } else if (attendance.status === AttendanceStatus.ABSENT) {
-        await this.attendanceMakeupLinkService.linkAbsenceToMakeup(repos, attendance)
-      }
+      // Học bù (Có mặt/Muộn + MAKEUP) nối các buổi vắng được bù; Vắng tìm buổi đã học bù
+      await this.attendanceMakeupLinkService.reconcile(repos, attendance, null)
 
       await this.studentPointService.awardAttendancePoints(repos, {
         studentId: attendance.studentId,
@@ -120,7 +119,12 @@ export class CreateAttendanceUseCase {
         message: `Bạn đã được điểm danh với trạng thái: ${statusLabel}${attendance.attendanceType === AttendanceType.MAKEUP ? `; loại: ${AttendanceTypeLabels[attendance.attendanceType]}` : ''}`,
         type: NotificationType.ATTENDANCE,
         level: NotificationLevel.INFO,
-        data: { attendanceId: attendance.attendanceId, sessionId: attendance.sessionId, status: attendance.status, attendanceType: attendance.attendanceType },
+        data: {
+          attendanceId: attendance.attendanceId,
+          sessionId: attendance.sessionId,
+          status: attendance.status,
+          attendanceType: attendance.attendanceType,
+        },
       }
 
       await this.createAndNotifyOne.executeWithRepos(repos, notification, {

@@ -46,6 +46,8 @@ describe('Attendance + makeup group HTTP contract (e2e)', () => {
           'ExportAttendanceImageUseCase',
           'SendAttendanceToParentUseCase',
           'ToggleParentNotifiedUseCase',
+          'CheckInAttendanceUseCase',
+          'CancelCheckInAttendanceUseCase',
         ]),
         ...mocksFor(courseClassUseCases, [
           'GetAllCourseClassUseCase',
@@ -55,6 +57,7 @@ describe('Attendance + makeup group HTTP contract (e2e)', () => {
           'DeleteCourseClassUseCase',
           'SearchCourseClassesUseCase',
           'GetCourseClassMakeupGroupUseCase',
+          'GetCourseClassMakeupSessionsUseCase',
           'ReplaceCourseClassMakeupGroupUseCase',
         ]),
       ],
@@ -91,7 +94,7 @@ describe('Attendance + makeup group HTTP contract (e2e)', () => {
   })
 
   afterAll(async () => {
-    await app.close()
+    if (app) await app.close()
   })
 
   beforeEach(() => {

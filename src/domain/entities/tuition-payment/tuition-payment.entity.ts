@@ -3,184 +3,185 @@
 import { TuitionPaymentStatus } from '../../../shared/enums'
 import { Course } from '../course/course.entity'
 import { Student } from '../user/student.entity'
+import { isTuitionOverdue, resolveTuitionDueDate } from './tuition-payment-due-date'
 
 export class TuitionPayment {
-    // =====================
-    // Core properties
-    // =====================
+  // =====================
+  // Core properties
+  // =====================
+  paymentId: number
+  studentId: number
+  amount: number | null // 💰 tiền phải đóng (VND), null = chưa xác định, 0 = miễn phí
+  status: TuitionPaymentStatus
+  createdAt: Date
+  updatedAt: Date
+
+  // =====================
+  // Optional business fields
+  // =====================
+  courseId?: number | null
+  month: number
+  year: number
+  paidAt?: Date | null
+  notes?: string | null
+
+  // =====================
+  // Navigation
+  // =====================
+  course?: Course | null
+  student?: Student
+
+  constructor(data: {
     paymentId: number
     studentId: number
-    amount: number | null // 💰 tiền phải đóng (VND), null = chưa xác định, 0 = miễn phí
+    amount?: number | null
     status: TuitionPaymentStatus
-    createdAt: Date
-    updatedAt: Date
 
-    // =====================
-    // Optional business fields
-    // =====================
     courseId?: number | null
     month: number
-    year: number 
+    year: number
     paidAt?: Date | null
     notes?: string | null
 
-    // =====================
-    // Navigation
-    // =====================
+    createdAt?: Date
+    updatedAt?: Date
+
     course?: Course | null
     student?: Student
+  }) {
+    this.paymentId = data.paymentId
+    this.studentId = data.studentId
+    this.amount = data.amount ?? null
+    this.status = data.status
 
-    constructor(data: {
-        paymentId: number
-        studentId: number
-        amount?: number | null
-        status: TuitionPaymentStatus
+    this.courseId = data.courseId ?? null
+    this.month = data.month
+    this.year = data.year
+    this.paidAt = data.paidAt ?? null
+    this.notes = data.notes ?? null
 
-        courseId?: number | null
-        month: number
-        year: number 
-        paidAt?: Date | null
-        notes?: string | null
+    this.createdAt = data.createdAt ?? new Date()
+    this.updatedAt = data.updatedAt ?? new Date()
 
-        createdAt?: Date
-        updatedAt?: Date
+    this.course = data.course ?? null
+    this.student = data.student
+  }
 
-        course?: Course | null
-        student?: Student
-    }) {
-        this.paymentId = data.paymentId
-        this.studentId = data.studentId
-        this.amount = data.amount ?? null
-        this.status = data.status
+  // =====================
+  // Domain state checks
+  // =====================
 
-        this.courseId = data.courseId ?? null
-        this.month = data.month 
-        this.year = data.year 
-        this.paidAt = data.paidAt ?? null
-        this.notes = data.notes ?? null
+  isPaid(): boolean {
+    return this.status === TuitionPaymentStatus.PAID
+  }
 
-        this.createdAt = data.createdAt ?? new Date()
-        this.updatedAt = data.updatedAt ?? new Date()
+  isUnpaid(): boolean {
+    return this.status === TuitionPaymentStatus.UNPAID
+  }
 
-        this.course = data.course ?? null
-        this.student = data.student
+  hasCourse(): boolean {
+    return !!this.courseId
+  }
+
+  hasPeriod(): boolean {
+    return this.month != null && this.year != null
+  }
+
+  // =====================
+  // Domain actions
+  // =====================
+
+  markPaid(at: Date = new Date(), notes?: string): void {
+    this.status = TuitionPaymentStatus.PAID
+    this.paidAt = at
+    this.updatedAt = new Date()
+
+    if (notes !== undefined) {
+      this.notes = notes
     }
+  }
 
-    // =====================
-    // Domain state checks
-    // =====================
+  markUnpaid(notes?: string): void {
+    this.status = TuitionPaymentStatus.UNPAID
+    this.paidAt = null
+    this.updatedAt = new Date()
 
-    isPaid(): boolean {
-        return this.status === TuitionPaymentStatus.PAID
+    if (notes !== undefined) {
+      this.notes = notes
     }
+  }
 
-    isUnpaid(): boolean {
-        return this.status === TuitionPaymentStatus.UNPAID
+  // =====================
+  // Business rules
+  // =====================
+
+  isOverdue(now: Date = new Date()): boolean {
+    if (!this.hasPeriod()) return false
+    if (this.isPaid()) return false
+
+    // hạn: cuối tháng học phí (Asia/Ho_Chi_Minh) – cùng định nghĩa với API tổng hợp học phí của phụ huynh
+    const { effectiveDueDate } = resolveTuitionDueDate({ month: this.month, year: this.year })
+    return isTuitionOverdue(effectiveDueDate, now)
+  }
+
+  getPeriodKey(): string | null {
+    if (!this.hasPeriod()) return null
+    return `${this.year}-${String(this.month).padStart(2, '0')}`
+  }
+
+  getStatusLabel(): string {
+    switch (this.status) {
+      case TuitionPaymentStatus.PAID:
+        return 'Đã đóng'
+      case TuitionPaymentStatus.UNPAID:
+        return 'Chưa đóng'
+      default:
+        return 'Không xác định'
     }
+  }
 
-    hasCourse(): boolean {
-        return !!this.courseId
+  // =====================
+  // Equality & helpers
+  // =====================
+
+  equals(other: TuitionPayment): boolean {
+    return this.paymentId === other.paymentId
+  }
+
+  clone(): TuitionPayment {
+    return new TuitionPayment({
+      paymentId: this.paymentId,
+      studentId: this.studentId,
+      amount: this.amount,
+      status: this.status,
+
+      courseId: this.courseId,
+      month: this.month,
+      year: this.year,
+      paidAt: this.paidAt,
+      notes: this.notes,
+
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+
+      course: this.course,
+      student: this.student,
+    })
+  }
+
+  toJSON() {
+    return {
+      paymentId: this.paymentId,
+      studentId: this.studentId,
+      courseId: this.courseId,
+      month: this.month,
+      year: this.year,
+      amount: this.amount,
+      status: this.status,
+      paidAt: this.paidAt,
+      notes: this.notes,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
     }
-
-    hasPeriod(): boolean {
-        return this.month != null && this.year != null
-    }
-
-    // =====================
-    // Domain actions
-    // =====================
-
-    markPaid(at: Date = new Date(), notes?: string): void {
-        this.status = TuitionPaymentStatus.PAID
-        this.paidAt = at
-        this.updatedAt = new Date()
-
-        if (notes !== undefined) {
-            this.notes = notes
-        }
-    }
-
-    markUnpaid(notes?: string): void {
-        this.status = TuitionPaymentStatus.UNPAID
-        this.paidAt = null
-        this.updatedAt = new Date()
-
-        if (notes !== undefined) {
-            this.notes = notes
-        }
-    }
-
-    // =====================
-    // Business rules
-    // =====================
-
-    isOverdue(now: Date = new Date()): boolean {
-        if (!this.hasPeriod()) return false
-        if (this.isPaid()) return false
-
-        // hạn: đầu tháng kế tiếp
-        const dueDate = new Date(this.year, this.month, 1)
-        return now > dueDate
-    }
-
-    getPeriodKey(): string | null {
-        if (!this.hasPeriod()) return null
-        return `${this.year}-${String(this.month).padStart(2, '0')}`
-    }
-
-    getStatusLabel(): string {
-        switch (this.status) {
-            case TuitionPaymentStatus.PAID:
-                return 'Đã đóng'
-            case TuitionPaymentStatus.UNPAID:
-                return 'Chưa đóng'
-            default:
-                return 'Không xác định'
-        }
-    }
-
-    // =====================
-    // Equality & helpers
-    // =====================
-
-    equals(other: TuitionPayment): boolean {
-        return this.paymentId === other.paymentId
-    }
-
-    clone(): TuitionPayment {
-        return new TuitionPayment({
-            paymentId: this.paymentId,
-            studentId: this.studentId,
-            amount: this.amount,
-            status: this.status,
-
-            courseId: this.courseId,
-            month: this.month,
-            year: this.year,
-            paidAt: this.paidAt,
-            notes: this.notes,
-
-            createdAt: this.createdAt,
-            updatedAt: this.updatedAt,
-
-            course: this.course,
-            student: this.student,
-        })
-    }
-
-    toJSON() {
-        return {
-            paymentId: this.paymentId,
-            studentId: this.studentId,
-            courseId: this.courseId,
-            month: this.month,
-            year: this.year,
-            amount: this.amount,
-            status: this.status,
-            paidAt: this.paidAt,
-            notes: this.notes,
-            createdAt: this.createdAt,
-            updatedAt: this.updatedAt,
-        }
-    }
+  }
 }
