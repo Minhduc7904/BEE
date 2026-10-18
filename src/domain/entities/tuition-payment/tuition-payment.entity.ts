@@ -24,6 +24,9 @@ export class TuitionPayment {
   year: number
   paidAt?: Date | null
   notes?: string | null
+  /** Thời điểm phụ huynh báo đã chuyển khoản; null = chưa báo. Chỉ là tín hiệu, không phải bằng chứng thanh toán. */
+  payerReportedTransferredAt?: Date | null
+  payerReportedTransferredByUserId?: number | null
 
   // =====================
   // Navigation
@@ -42,6 +45,8 @@ export class TuitionPayment {
     year: number
     paidAt?: Date | null
     notes?: string | null
+    payerReportedTransferredAt?: Date | null
+    payerReportedTransferredByUserId?: number | null
 
     createdAt?: Date
     updatedAt?: Date
@@ -59,6 +64,8 @@ export class TuitionPayment {
     this.year = data.year
     this.paidAt = data.paidAt ?? null
     this.notes = data.notes ?? null
+    this.payerReportedTransferredAt = data.payerReportedTransferredAt ?? null
+    this.payerReportedTransferredByUserId = data.payerReportedTransferredByUserId ?? null
 
     this.createdAt = data.createdAt ?? new Date()
     this.updatedAt = data.updatedAt ?? new Date()
@@ -79,6 +86,10 @@ export class TuitionPayment {
     return this.status === TuitionPaymentStatus.UNPAID
   }
 
+  hasPayerReportedTransfer(): boolean {
+    return this.payerReportedTransferredAt != null
+  }
+
   hasCourse(): boolean {
     return !!this.courseId
   }
@@ -94,6 +105,9 @@ export class TuitionPayment {
   markPaid(at: Date = new Date(), notes?: string): void {
     this.status = TuitionPaymentStatus.PAID
     this.paidAt = at
+    // Cờ báo chuyển khoản kết thúc khi khoản học phí đã PAID.
+    this.payerReportedTransferredAt = null
+    this.payerReportedTransferredByUserId = null
     this.updatedAt = new Date()
 
     if (notes !== undefined) {
@@ -160,6 +174,8 @@ export class TuitionPayment {
       year: this.year,
       paidAt: this.paidAt,
       notes: this.notes,
+      payerReportedTransferredAt: this.payerReportedTransferredAt,
+      payerReportedTransferredByUserId: this.payerReportedTransferredByUserId,
 
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
@@ -180,6 +196,8 @@ export class TuitionPayment {
       status: this.status,
       paidAt: this.paidAt,
       notes: this.notes,
+      payerReportedTransferredAt: this.payerReportedTransferredAt,
+      payerReportedTransferredByUserId: this.payerReportedTransferredByUserId,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
     }

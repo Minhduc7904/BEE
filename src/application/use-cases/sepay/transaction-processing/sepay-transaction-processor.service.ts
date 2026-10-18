@@ -176,8 +176,7 @@ export class SepayTransactionProcessorService {
     const updatedPaymentIntent = await repos.paymentIntentRepository.update(paymentIntent.paymentIntentId, {
       status: PaymentIntentStatus.PAID,
     })
-    const updatedTuitionPayment = await repos.tuitionPaymentRepository.update(tuitionPayment.paymentId, {
-      status: TuitionPaymentStatus.PAID,
+    const updatedTuitionPayment = await repos.tuitionPaymentRepository.markPaid(tuitionPayment.paymentId, {
       paidAt: input.transactionAt,
     })
     await repos.bankTransferTransactionRepository.updateReconciliation(bankTransferTransactionId, {

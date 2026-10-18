@@ -28,6 +28,8 @@ export class TuitionPaymentMapper {
 
       paidAt: prismaPayment.paidAt ?? null,
       notes: prismaPayment.notes ?? null,
+      payerReportedTransferredAt: prismaPayment.payerReportedTransferredAt ?? null,
+      payerReportedTransferredByUserId: prismaPayment.payerReportedTransferredByUserId ?? null,
 
       createdAt: prismaPayment.createdAt,
       updatedAt: prismaPayment.updatedAt,

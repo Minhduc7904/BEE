@@ -21,13 +21,35 @@ export interface CreateTuitionPaymentData {
  * ===== UPDATE =====
  */
 export interface UpdateTuitionPaymentData {
-  status?: TuitionPaymentStatus
+  /**
+   * Chỉ cho phép đưa về UNPAID. Chuyển UNPAID -> PAID bắt buộc đi qua
+   * `ITuitionPaymentRepository.markPaid` để cờ phụ huynh báo chuyển khoản luôn được dọn cùng lúc.
+   */
+  status?: TuitionPaymentStatus.UNPAID
   paidAt?: Date | null
   notes?: string
   courseId?: number | null
   month?: number | null
   year?: number | null
   amount?: number | null
+  payerReportedTransferredAt?: Date | null
+  payerReportedTransferredByUserId?: number | null
+}
+
+/** Dữ liệu xóa cờ phụ huynh báo chuyển khoản (dùng khi số tiền phải đóng thay đổi). */
+export const CLEAR_PAYER_REPORTED_TRANSFER: Pick<
+  UpdateTuitionPaymentData,
+  'payerReportedTransferredAt' | 'payerReportedTransferredByUserId'
+> = {
+  payerReportedTransferredAt: null,
+  payerReportedTransferredByUserId: null,
+}
+
+/** Dữ liệu chuyển khoản học phí UNPAID -> PAID. */
+export interface MarkTuitionPaymentPaidData {
+  paidAt: Date
+  /** Ghi chú mới (thay thế ghi chú hiện tại); bỏ trống để giữ nguyên. */
+  notes?: string
 }
 
 /**
@@ -46,6 +68,8 @@ export interface TuitionPaymentFilterOptions {
   grade?: number
   minAmount?: number
   maxAmount?: number
+  /** true = phụ huynh đã báo chuyển khoản, false = chưa báo; bỏ trống = tất cả. */
+  payerReportedTransferred?: boolean
 }
 
 /**

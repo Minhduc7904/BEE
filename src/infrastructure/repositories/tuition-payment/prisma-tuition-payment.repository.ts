@@ -3,6 +3,7 @@ import type { ITuitionPaymentRepository } from '../../../domain/repositories'
 import type {
   CreateTuitionPaymentData,
   UpdateTuitionPaymentData,
+  MarkTuitionPaymentPaidData,
   TuitionPaymentFilterOptions,
   TuitionPaymentPaginationOptions,
   TuitionPaymentListResult,
@@ -72,6 +73,43 @@ export class PrismaTuitionPaymentRepository implements ITuitionPaymentRepository
   }
 
 
+  async markPaid(id: number, data: MarkTuitionPaymentPaidData): Promise<TuitionPayment | null> {
+    const payment = await this.prisma.tuitionPayment.update({
+      where: { paymentId: NumberUtil.ensureValidId(id, 'Payment ID') },
+      data: {
+        status: TuitionPaymentStatus.PAID,
+        paidAt: data.paidAt,
+        ...(data.notes !== undefined ? { notes: data.notes } : {}),
+        // Cờ báo chuyển khoản kết thúc cùng lúc khoản học phí chuyển sang PAID.
+        payerReportedTransferredAt: null,
+        payerReportedTransferredByUserId: null,
+      },
+      include: {
+        student: { include: { user: true } },
+        course: true,
+      },
+    })
+
+    return TuitionPaymentMapper.toDomainTuitionPayment(payment) || null
+  }
+
+  async reportPayerTransferred(id: number, userId: number, reportedAt: Date): Promise<boolean> {
+    const result = await this.prisma.tuitionPayment.updateMany({
+      where: {
+        paymentId: NumberUtil.ensureValidId(id, 'Payment ID'),
+        status: TuitionPaymentStatus.UNPAID,
+        payerReportedTransferredAt: null,
+        amount: { gt: 0 },
+      },
+      data: {
+        payerReportedTransferredAt: reportedAt,
+        payerReportedTransferredByUserId: userId,
+      },
+    })
+
+    return result.count > 0
+  }
+
   async delete(id: number): Promise<boolean> {
     const paymentId = NumberUtil.ensureValidId(id, 'Payment ID')
 
@@ -124,6 +162,9 @@ export class PrismaTuitionPaymentRepository implements ITuitionPaymentRepository
     if (filters?.status) where.status = filters.status
     if (filters?.year) where.year = filters.year
     if (filters?.month) where.month = filters.month
+    if (filters?.payerReportedTransferred !== undefined) {
+      where.payerReportedTransferredAt = filters.payerReportedTransferred ? { not: null } : null
+    }
 
     if (filters?.fromPaidAt || filters?.toPaidAt) {
       where.paidAt = {}
@@ -585,6 +626,14 @@ export class PrismaTuitionPaymentRepository implements ITuitionPaymentRepository
       params.push(filters.month)
     }
 
+    if (filters.payerReportedTransferred !== undefined) {
+      conditions.push(
+        filters.payerReportedTransferred
+          ? 'tp.payer_reported_transferred_at IS NOT NULL'
+          : 'tp.payer_reported_transferred_at IS NULL',
+      )
+    }
+
     if (filters.fromPaidAt) {
       conditions.push('tp.paid_at >= ?')
       params.push(filters.fromPaidAt)
@@ -639,6 +688,7 @@ export class PrismaTuitionPaymentRepository implements ITuitionPaymentRepository
       createdAt: 'tp.created_at',
       updatedAt: 'tp.updated_at',
       paidAt: 'tp.paid_at',
+      payerReportedTransferredAt: 'tp.payer_reported_transferred_at',
       amount: 'tp.amount',
       year: 'tp.year',
       month: 'tp.month',

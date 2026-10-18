@@ -10,7 +10,10 @@ import {
 import { ACTION_KEYS } from 'src/shared/constants/action-key.constants'
 import { RESOURCE_TYPES } from 'src/shared/constants/resource-type.constants'
 import { AuditStatus } from 'src/shared/enums/audit-status.enum'
-import { UpdateTuitionPaymentData } from 'src/domain/interface/tuition-payment/tuition-payment.interface'
+import {
+  CLEAR_PAYER_REPORTED_TRANSFER,
+  UpdateTuitionPaymentData,
+} from 'src/domain/interface/tuition-payment/tuition-payment.interface'
 import { PaymentAttemptStatus, TuitionPaymentStatus, NotificationType, NotificationLevel } from 'src/shared/enums'
 import { CreateAndNotifyOneUseCase } from '../notification/create-and-notify-one.use-case'
 import { CreatePaymentIntentForCreatedTuitionPayment } from '../payment-intent/create-payment-intent-for-created-tuition-payment'
@@ -65,6 +68,9 @@ export class UpdateTuitionPaymentUseCase {
       const beforePaymentIntent =
         dto.amount === undefined ? null : await repos.paymentIntentRepository.findByTuitionPaymentId(tuitionPaymentId)
       const isAmountChanged = dto.amount !== undefined && dto.amount !== tuitionPayment.amount
+
+      // Số tiền đổi thì lần phụ huynh báo chuyển khoản trước đó (cho số tiền cũ) không còn ý nghĩa.
+      if (isAmountChanged) Object.assign(data, CLEAR_PAYER_REPORTED_TRANSFER)
 
       const updatedTuitionPayment = await repos.tuitionPaymentRepository.update(tuitionPaymentId, data)
       if (!updatedTuitionPayment) {

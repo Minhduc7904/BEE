@@ -1,4 +1,9 @@
-import { IsOptionalIdNumber, IsOptionalInt, IsOptionalEnumValue } from 'src/shared/decorators/validate'
+import {
+  IsOptionalBoolean,
+  IsOptionalIdNumber,
+  IsOptionalInt,
+  IsOptionalEnumValue,
+} from 'src/shared/decorators/validate'
 import { ListQueryDto } from '../pagination/list-query.dto'
 import { TuitionPaymentStatus } from 'src/shared/enums'
 import {
@@ -76,6 +81,14 @@ export class TuitionPaymentListQueryDto extends ListQueryDto {
   @IsOptionalInt('Số tiền tối đa', 0)
   maxAmount?: number
 
+  /**
+   * Filter by "phụ huynh báo đã chuyển khoản": true = đã báo, false = chưa báo. Chỉ dùng cho API quản trị.
+   * @optional
+   * @example true
+   */
+  @IsOptionalBoolean('Phụ huynh báo đã chuyển khoản')
+  payerReportedTransferred?: boolean
+
   // ======================
   // MAP → DOMAIN FILTER
   // ======================
@@ -90,6 +103,7 @@ export class TuitionPaymentListQueryDto extends ListQueryDto {
       grade: this.grade,
       minAmount: this.minAmount,
       maxAmount: this.maxAmount,
+      payerReportedTransferred: this.payerReportedTransferred,
       search: this.search,
 
       fromPaidAt: this.fromDate ? new Date(this.fromDate) : undefined,
@@ -102,9 +116,20 @@ export class TuitionPaymentListQueryDto extends ListQueryDto {
   // ======================
 
   toTuitionPaymentPaginationOptions(): TuitionPaymentPaginationOptions {
-    const allowedSortFields = ['paymentId', 'createdAt', 'updatedAt', 'paidAt', 'status', 'month', 'year']
+    const allowedSortFields = [
+      'paymentId',
+      'createdAt',
+      'updatedAt',
+      'paidAt',
+      'status',
+      'month',
+      'year',
+      'payerReportedTransferredAt',
+    ]
 
-    const sortBy = allowedSortFields.includes(this.sortBy || '') ? this.sortBy : 'createdAt'
+    // Lọc "Đã báo chuyển" mà không chọn sắp xếp: khoản mới báo gần nhất lên đầu để admin kiểm tra trước.
+    const defaultSortBy = this.payerReportedTransferred === true ? 'payerReportedTransferredAt' : 'createdAt'
+    const sortBy = allowedSortFields.includes(this.sortBy || '') ? this.sortBy : defaultSortBy
 
     return {
       page: this.page || 1,

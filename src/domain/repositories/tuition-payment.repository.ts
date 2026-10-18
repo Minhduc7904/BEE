@@ -2,6 +2,7 @@ import { TuitionPayment } from '../entities'
 import {
   CreateTuitionPaymentData,
   UpdateTuitionPaymentData,
+  MarkTuitionPaymentPaidData,
   TuitionPaymentFilterOptions,
   TuitionPaymentPaginationOptions,
   TuitionPaymentListResult,
@@ -18,6 +19,18 @@ export interface ITuitionPaymentRepository {
   findById(id: number): Promise<TuitionPayment | null>
   update(id: number, data: UpdateTuitionPaymentData): Promise<TuitionPayment | null>
   delete(id: number): Promise<boolean>
+
+  /**
+   * Đường chuyển trạng thái duy nhất UNPAID -> PAID: ghi PAID/paidAt và xóa cờ phụ huynh báo chuyển khoản
+   * trong cùng một câu lệnh UPDATE. Mọi luồng SePay, xác nhận thủ công và cập nhật hàng loạt phải dùng method này.
+   */
+  markPaid(id: number, data: MarkTuitionPaymentPaidData): Promise<TuitionPayment | null>
+
+  /**
+   * Ghi cờ phụ huynh báo đã chuyển khoản bằng conditional update nguyên tử
+   * (paymentId + status=UNPAID + chưa báo + amount > 0). Trả true nếu lần gọi này ghi được cờ.
+   */
+  reportPayerTransferred(id: number, userId: number, reportedAt: Date): Promise<boolean>
 
   
 

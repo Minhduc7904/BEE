@@ -19,7 +19,7 @@ import {
   TuitionPaymentStatusLabels,
 } from 'src/shared/enums'
 import { RESOURCE_TYPES, ACTION_KEYS } from 'src/shared/constants'
-import { UpdateTuitionPaymentData } from 'src/domain/interface'
+import { CLEAR_PAYER_REPORTED_TRANSFER, UpdateTuitionPaymentData } from 'src/domain/interface'
 import { TuitionPayment } from 'src/domain/entities/tuition-payment/tuition-payment.entity'
 import { CreateAndNotifyManyUseCase } from '../notification/create-and-notify-many.use-case'
 import { CreatePaymentIntentForCreatedTuitionPayment } from '../payment-intent/create-payment-intent-for-created-tuition-payment'
@@ -130,12 +130,18 @@ export class UpdateArrayBulkTuitionPaymentUseCase {
                 })
               }
 
-              if (paymentUpdate.status) {
-                data.status = paymentUpdate.status
+              // UNPAID -> PAID đi qua markPaid (bên dưới) để cờ phụ huynh báo chuyển khoản được dọn cùng lúc.
+              if (paymentUpdate.status === TuitionPaymentStatus.UNPAID) {
+                data.status = TuitionPaymentStatus.UNPAID
               }
 
               if (paymentUpdate.amount !== undefined) {
                 data.amount = paymentUpdate.amount
+              }
+
+              // Số tiền đổi thì lần phụ huynh báo chuyển khoản trước đó (cho số tiền cũ) không còn ý nghĩa.
+              if (isAmountChanged) {
+                Object.assign(data, CLEAR_PAYER_REPORTED_TRANSFER)
               }
 
               if (paymentUpdate.month !== undefined) data.month = paymentUpdate.month
@@ -154,7 +160,12 @@ export class UpdateArrayBulkTuitionPaymentUseCase {
                * Update payment
                * =========================
                */
-              const updatedPayment = await tuitionPaymentRepository.update(paymentUpdate.paymentId, data)
+              let updatedPayment = await tuitionPaymentRepository.update(paymentUpdate.paymentId, data)
+              if (updatedPayment && statusChangedToPaid) {
+                updatedPayment = await tuitionPaymentRepository.markPaid(paymentUpdate.paymentId, {
+                  paidAt: data.paidAt ?? tuitionPayment.paidAt ?? this.getDateWithoutTime(),
+                })
+              }
 
               if (updatedPayment) {
                 if (paymentUpdate.amount !== undefined) {

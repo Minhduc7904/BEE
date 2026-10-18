@@ -94,8 +94,7 @@ export class ConfirmManualTuitionPaymentUseCase {
               )
             : null
         const paidAt = dto.paidAt ? new Date(dto.paidAt) : (reconciliation?.latestTransactionAt ?? new Date())
-        const updatedTuitionPayment = await repos.tuitionPaymentRepository.update(tuitionPaymentId, {
-          status: TuitionPaymentStatus.PAID,
+        const updatedTuitionPayment = await repos.tuitionPaymentRepository.markPaid(tuitionPaymentId, {
           paidAt,
           notes: this.appendManualConfirmationNote(tuitionPayment.notes, dto),
         })

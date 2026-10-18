@@ -188,6 +188,8 @@ model User {
   // Đề nghị hành động do người dùng gửi hoặc nhận; giữ lịch sử quyết định độc lập với từng module nghiệp vụ.
   sentActionApprovalRequests     ActionApprovalRequest[]         @relation("ActionApprovalRequestRequester")
   receivedActionApprovalRequests ActionApprovalRequest[]         @relation("ActionApprovalRequestRecipient")
+  // Các khoản học phí mà tài khoản này (phụ huynh) đã báo là đã chuyển khoản; giữ khoản học phí khi user bị xóa.
+  reportedTuitionTransfers       TuitionPayment[]                @relation("TuitionPaymentPayerReporter")
 
   @@index([lastName, firstName], map: "idx_users_name")
   @@map("users")
@@ -2959,13 +2961,20 @@ model TuitionPayment {
   paidAt DateTime?            @map("paid_at") @db.Timestamp(0)
   notes  String?              @map("notes") @db.Text
 
+  // Phụ huynh báo đã chuyển khoản cho khoản học phí này; chỉ là tín hiệu để trung tâm kiểm tra, không phải bằng chứng thanh toán.
+  // Cờ thuộc khoản học phí (không thuộc QR/PaymentAttempt) và kết thúc khi khoản chuyển sang PAID hoặc khi số tiền phải đóng đổi.
+  payerReportedTransferredAt       DateTime? @map("payer_reported_transferred_at") @db.Timestamp(0)
+  // User phụ huynh đã báo; null khi chưa báo hoặc khi user bị xóa (SetNull).
+  payerReportedTransferredByUserId Int?      @map("payer_reported_transferred_by_user_id")
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
 
   // ðŸ”‘ RELATIONS (OPTIONAL PHáº¢I ÄI KÃˆM)
-  course        Course?        @relation(fields: [courseId], references: [courseId], onDelete: SetNull)
-  student       Student        @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
-  paymentIntent PaymentIntent?
+  course                     Course?        @relation(fields: [courseId], references: [courseId], onDelete: SetNull)
+  student                    Student        @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  payerReportedTransferredBy User?          @relation("TuitionPaymentPayerReporter", fields: [payerReportedTransferredByUserId], references: [userId], onDelete: SetNull)
+  paymentIntent              PaymentIntent?
 
   @@unique([studentId, month, year])
   // INDEXES (OK)
@@ -2973,6 +2982,7 @@ model TuitionPayment {
   @@index([courseId], map: "idx_tuition_payments_course_id")
   @@index([year, month], map: "idx_tuition_payments_year_month")
   @@index([status], map: "idx_tuition_payments_status")
+  @@index([status, payerReportedTransferredAt], map: "idx_tuition_payments_status_payer_reported")
   @@map("tuition_payments")
 }
 

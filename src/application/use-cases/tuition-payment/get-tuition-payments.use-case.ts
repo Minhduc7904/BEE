@@ -53,6 +53,8 @@ export class GetTuitionPaymentsUseCase {
         const filters = {
             ...query.toTuitionPaymentFilterOptions(),
             studentId,
+            // Cờ phụ huynh báo chuyển khoản chỉ dành cho quản trị; API học sinh không lọc theo cờ này.
+            payerReportedTransferred: undefined,
         }
         const pagination = query.toTuitionPaymentPaginationOptions()
         const result = await this.tuitionPaymentRepository.findAllWithPagination(pagination, filters)

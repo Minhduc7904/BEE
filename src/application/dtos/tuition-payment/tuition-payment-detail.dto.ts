@@ -11,6 +11,7 @@ import {
   PaymentIntentStatus,
 } from '../../../shared/enums'
 import { BankTransferTransactionResponseDto } from '../bank-transfer-transaction'
+import { AdminPayerReportedTransfer, toAdminPayerReportedTransfer } from './admin-payer-reported-transfer'
 import { TuitionPaymentResponseDto } from './tuition-payment.dto'
 
 export class TuitionPaymentAttemptDetailResponseDto {
@@ -85,8 +86,11 @@ export class TuitionPaymentIntentDetailResponseDto {
   }
 }
 
-export class TuitionPaymentDetailResponseDto extends TuitionPaymentResponseDto {
+export class TuitionPaymentDetailResponseDto extends TuitionPaymentResponseDto implements AdminPayerReportedTransfer {
   paymentIntent: TuitionPaymentIntentDetailResponseDto | null
+  payerReportedTransferred: boolean
+  payerReportedTransferredAt: Date | null
+  payerReportedTransferredByUserId: number | null
 
   static fromTuitionPayment(
     tuitionPayment: TuitionPayment,
@@ -98,6 +102,7 @@ export class TuitionPaymentDetailResponseDto extends TuitionPaymentResponseDto {
   ): TuitionPaymentDetailResponseDto {
     return {
       ...TuitionPaymentResponseDto.fromEntity(tuitionPayment),
+      ...toAdminPayerReportedTransfer(tuitionPayment),
       paymentIntent: paymentIntent
         ? TuitionPaymentIntentDetailResponseDto.fromPaymentIntent(paymentIntent, paymentAttempts)
         : null,

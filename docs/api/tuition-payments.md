@@ -390,3 +390,15 @@ Response:
 | `401` / `403` | Chưa đăng nhập hoặc thiếu permission tương ứng. |
 | `404` | Không tồn tại tuition payment. |
 | `422` | Cập nhật hoặc xác nhận thủ công cho tuition payment không còn `UNPAID`. |
+
+## Cờ "phụ huynh báo đã chuyển khoản" (API quản trị)
+
+Chỉ API quản trị trả cờ này; API học sinh (`/tuition-payments/my...`) không trả và bỏ qua bộ lọc cờ.
+
+- `GET /tuition-payments` (mỗi phần tử) và `GET /tuition-payments/:id` bổ sung:
+  - `payerReportedTransferred: boolean`
+  - `payerReportedTransferredAt: string | null`
+  - `payerReportedTransferredByUserId: number | null`
+- Bộ lọc `payerReportedTransferred=true|false` (bỏ trống = tất cả). Khi lọc `true` mà không truyền `sortBy`, kết quả mặc định sắp theo `payerReportedTransferredAt` giảm dần (khoản mới báo gần nhất trước).
+- `sortBy=payerReportedTransferredAt` được phép (có chỉ mục `(status, payer_reported_transferred_at)`).
+- Cờ chỉ là tín hiệu cần kiểm tra, không phải xác nhận tiền. Admin không có thao tác xóa cờ và không có notification/realtime cho thao tác báo chuyển khoản; xem chi tiết quy tắc ở `docs/api/parent-tuition-payments.md`.
