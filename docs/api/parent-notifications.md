@@ -57,6 +57,12 @@ Destination hỗ trợ: `attendance_record`, `tuition_payment`, `exam_result`, `
 `notification`. Học phí luôn trả `resourceId` là `paymentId`; dữ liệu cũ có `invoiceId` chỉ được chuẩn hóa khi đọc và không
 được lộ ra response.
 
+Thông báo điểm danh (nhắc vắng, tổng kết vắng, đã đến lớp, đổi trạng thái, và thông báo thủ công "gửi cho phụ huynh" của
+admin, cả đơn lẻ lẫn hàng loạt) luôn lưu `destinationType = schedule_session` và `resourceId = sessionId`, để app mở thẳng
+chi tiết buổi học `/parent/schedule/:sessionId` (đã gồm thông tin điểm danh của học sinh). Payload vẫn giữ `attendanceId`,
+`sessionId`, `studentId`, `status`, `attendanceType`. `attendance_record` chỉ còn là destination legacy: production không
+còn thông báo cũ mang destination này, server vẫn đọc được nhưng không producer nào phát mới.
+
 Kết quả bài thi: lượt thi gắn với bài tập về nhà (`CompetitionSubmit` có `HomeworkSubmit`) chỉ xem được qua chi tiết bài
 tập, vì chi tiết bài thi của phụ huynh chỉ phục vụ lượt thi độc lập. Thông báo kết quả được tạo lúc nộp bài (trước khi
 `HomeworkSubmit` tồn tại) nên lưu `exam_result`; inbox (list, chi tiết, mark-read) và payload push đổi đích này thành
@@ -131,7 +137,7 @@ Mỗi push gửi kèm khối `notification` (`title`, `body`) để hệ điều
 | `type`                      | `NotificationType` của thông báo (`ATTENDANCE`, `RESULT`, `TUITION`, `SYSTEM`, ...).                                                                                                                                                                                                                                                                                             |
 | `destinationType`           | Một trong `attendance_record`, `tuition_payment`, `exam_result`, `homework_result`, `schedule_session`, `notification`.                                                                                                                                                                                                                                                          |
 | `resourceId`                | ID tài nguyên đích (số nguyên dương dạng chuỗi), đi cùng `destinationType`.                                                                                                                                                                                                                                                                                                      |
-| `studentId`                 | Học sinh liên quan (nếu nguồn phát sinh có). Có ở điểm danh, học phí và kết quả bài thi. Hiện chưa có producer nào phát thông báo `homework_result` hay `schedule_session` riêng (`schedule_session` chỉ là destination dự phòng sau `attendance_record`, payload điểm danh đã có `studentId`). Producer mới phải gửi kèm `studentId`; thiếu thì app dùng chi tiết notification. |
+| `studentId`                 | Học sinh liên quan (nếu nguồn phát sinh có). Có ở điểm danh, học phí và kết quả bài thi. Thông báo điểm danh dùng `schedule_session` (`resourceId = sessionId`) và payload đã có `studentId`; hiện chưa có producer nào phát thông báo `homework_result` riêng. Producer mới phải gửi kèm `studentId`; thiếu thì app dùng chi tiết notification. |
 | `notificationDispatchJobId` | ID job điều phối, chỉ phục vụ truy vết.                                                                                                                                                                                                                                                                                                                                          |
 
 Các key metadata khác của notification (`attendanceId`, `paymentId`, ...) cũng được stringify và gửi kèm. App phải chịu được

@@ -128,7 +128,8 @@ describe('GetParentStudentAttendanceSummaryUseCase', () => {
   })
 
   it('does not double-count LATE + MAKEUP or a made-up ABSENT record', async () => {
-    // 1 PRESENT(REGULAR), 1 LATE(MAKEUP), 1 PRESENT(MAKEUP), 1 ABSENT that was made up by another record
+    // 1 PRESENT(REGULAR), 1 LATE(MAKEUP), 1 PRESENT(MAKEUP), 1 ABSENT not made up.
+    // An ABSENT already made up is excluded by the read service, so it never reaches absent/total.
     const reader = service({ present: 2, absent: 1, late: 1, makeup: 2 })
 
     const result = await new GetParentStudentAttendanceSummaryUseCase(reader).execute(
@@ -138,6 +139,19 @@ describe('GetParentStudentAttendanceSummaryUseCase', () => {
     )
 
     expect(result.data).toMatchObject({ total: 4, attended: 3, makeup: 2, attendanceRate: 75 })
+  })
+
+  it('a made-up absence leaves absent at 0 so the rate is not dragged down', async () => {
+    // 1 ABSENT made up by 1 PRESENT(MAKEUP): the read service returns only the makeup record.
+    const reader = service({ present: 1, absent: 0, late: 0, makeup: 1 })
+
+    const result = await new GetParentStudentAttendanceSummaryUseCase(reader).execute(
+      parentIdentity,
+      12,
+      query(10, 2026),
+    )
+
+    expect(result.data).toMatchObject({ total: 1, absent: 0, attended: 1, attendanceRate: 100 })
   })
 
   it('never exceeds a 100% rate when every record is a makeup record', async () => {

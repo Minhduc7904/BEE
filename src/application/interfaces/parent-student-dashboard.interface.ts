@@ -2,6 +2,7 @@ import type { DueDateSource } from '../../shared/enums/due-date-source.enum'
 
 export interface ParentAttendanceStatusCounts {
   present: number
+  /** Chỉ bản ghi Vắng chưa được học bù; buổi vắng đã bù không tính vào absent, total hay attended. */
   absent: number
   late: number
   /** Số bản ghi có AttendanceType.MAKEUP; là tập con của present/late, không cộng vào total. */
@@ -48,7 +49,9 @@ export abstract class ParentStudentDashboardReadService {
   /**
    * Counts the student's existing Attendance records per AttendanceStatus (and, separately, the MAKEUP
    * AttendanceType subset) for sessions whose date-only sessionDate falls in
-   * [from, toExclusive). Sessions without an Attendance record are not counted.
+   * [from, toExclusive). Sessions without an Attendance record are not counted. ABSENT records already made up
+   * (linked to a valid makeup record via makeupByAttendanceId) are excluded entirely, because the makeup
+   * record is counted in present/late.
    */
   abstract countAttendanceByStatus(
     studentId: number,

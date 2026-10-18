@@ -36,6 +36,13 @@ export class PrismaParentStudentDashboardReadService extends ParentStudentDashbo
       where: {
         studentId,
         classSession: { sessionDate: { gte: from, lt: toExclusive } },
+        // Buổi vắng đã được học bù (cùng điều kiện isMadeUp của lịch phụ huynh) không tính vào thống kê;
+        // bản ghi học bù của nó đã được đếm ở present/late.
+        NOT: {
+          status: PrismaAttendanceStatus.ABSENT,
+          makeupByAttendanceId: { not: null },
+          makeupBy: { isNot: null },
+        },
       },
       _count: { _all: true },
     })

@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { createHash } from 'crypto'
 import { AttendanceParentMessageTemplate } from 'src/infrastructure/templates/attendance-parent-message.template'
-import { AttendanceStatus, AttendanceStatusLabels, AttendanceType, AttendanceTypeLabels, NotificationLevel, NotificationType } from 'src/shared/enums'
+import { AttendanceStatus, AttendanceStatusLabels, AttendanceType, AttendanceTypeLabels, NotificationDestinationType, NotificationLevel, NotificationType } from 'src/shared/enums'
 import { formatVnDate, formatVnDateTime, formatVnTime } from 'src/shared/utils/vietnam-date.util'
 import type { IUnitOfWork, UnitOfWorkRepos } from 'src/domain/repositories'
 import { BusinessNotificationQueueService } from '../notification/business-notification-queue.service'
@@ -22,6 +22,7 @@ interface SendBulkAttendanceToParentResult {
 
 interface AttendanceNotificationJob {
   attendanceId: number
+  sessionId: number
   studentId: number
   parentZaloId: string | undefined
   messageText: string
@@ -91,7 +92,13 @@ export class SendBulkAttendanceToParentUseCase {
           message: job.messageText,
           type: NotificationType.ATTENDANCE,
           level: NotificationLevel.INFO,
-          data: { attendanceId: String(job.attendanceId), studentId: String(job.studentId) },
+          data: {
+            attendanceId: String(job.attendanceId),
+            sessionId: String(job.sessionId),
+            studentId: String(job.studentId),
+            destinationType: NotificationDestinationType.SCHEDULE_SESSION,
+            resourceId: job.sessionId,
+          },
         }
         return {
           studentId: job.studentId,
@@ -153,6 +160,7 @@ export class SendBulkAttendanceToParentUseCase {
 
           return {
             attendanceId: attendance.attendanceId,
+            sessionId: attendance.sessionId,
             studentId: attendance.studentId,
             parentZaloId,
             messageText: AttendanceParentMessageTemplate.render({

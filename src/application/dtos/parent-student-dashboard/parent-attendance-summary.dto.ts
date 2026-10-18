@@ -5,6 +5,7 @@ export class ParentAttendanceSummaryDto {
   year: number
   total: number
   present: number
+  /** Chỉ buổi vắng chưa được học bù; buổi vắng đã bù không nằm trong absent, total hay attended. */
   absent: number
   late: number
   makeup: number

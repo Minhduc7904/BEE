@@ -30,7 +30,11 @@ describe('PrismaParentStudentDashboardReadService', () => {
 
       expect(groupBy).toHaveBeenCalledWith({
         by: ['status', 'attendanceType'],
-        where: { studentId: 12, classSession: { sessionDate: { gte: from, lt: toExclusive } } },
+        where: {
+          studentId: 12,
+          classSession: { sessionDate: { gte: from, lt: toExclusive } },
+          NOT: { status: 'ABSENT', makeupByAttendanceId: { not: null }, makeupBy: { isNot: null } },
+        },
         _count: { _all: true },
       })
     })
@@ -69,6 +73,23 @@ describe('PrismaParentStudentDashboardReadService', () => {
         absent: 3,
         late: 2,
         makeup: 3,
+      })
+    })
+
+    it('excludes ABSENT records already made up from the query (only unlinked absences are counted)', async () => {
+      const groupBy = jest.fn().mockResolvedValue([{ status: 'ABSENT', attendanceType: 'REGULAR', _count: { _all: 1 } }])
+      const service = new PrismaParentStudentDashboardReadService({
+        attendance: { groupBy },
+      } as unknown as PrismaService)
+
+      const counts = await service.countAttendanceByStatus(12, from, toExclusive)
+
+      expect(counts.absent).toBe(1)
+      const where = groupBy.mock.calls[0][0].where
+      expect(where.NOT).toEqual({
+        status: 'ABSENT',
+        makeupByAttendanceId: { not: null },
+        makeupBy: { isNot: null },
       })
     })
 

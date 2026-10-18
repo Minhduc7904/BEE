@@ -1,7 +1,7 @@
 import { Attendance } from '../../domain/entities/attendance/attendance.entity'
 import { ClassSession } from '../../domain/entities/class-session/class-session.entity'
 import type { UnitOfWorkRepos } from '../../domain/repositories'
-import { AttendanceStatus, AttendanceType } from '../../shared/enums'
+import { AttendanceStatus, AttendanceType, NotificationDestinationType } from '../../shared/enums'
 import { AttendanceNotificationService } from './attendance-notification.service'
 
 const repos = {} as UnitOfWorkRepos
@@ -88,6 +88,27 @@ describe('AttendanceNotificationService.enqueueSessionMoment', () => {
     expect(input.targets[0].studentPayload.message).toBe('Bạn đã vắng buổi Buổi 7 lớp Toán 9A.')
   })
 
+  it.each(['ABSENT_REMINDER', 'ABSENCE_SUMMARY'] as const)(
+    '%s: payload phụ huynh và học sinh trỏ tới chi tiết buổi học (schedule_session)',
+    async (moment) => {
+      const { queue, service } = setup()
+
+      await service.enqueueSessionMoment(repos, session, moment, [attendance(1, 100)])
+
+      const target = queue.enqueueStudentAndParentsWithRepos.mock.calls[0][1].targets[0]
+      for (const payload of [target.parentPayload, target.studentPayload]) {
+        expect(payload.data).toMatchObject({
+          attendanceId: '1',
+          sessionId: '7',
+          studentId: '100',
+          event: moment,
+          destinationType: NotificationDestinationType.SCHEDULE_SESSION,
+          resourceId: 7,
+        })
+      }
+    },
+  )
+
   it('không có bản ghi vắng thì không xếp hàng', async () => {
     const { queue, service } = setup()
 
@@ -122,6 +143,26 @@ describe('AttendanceNotificationService.enqueueAttendanceEvent', () => {
     expect(input.targets[0].parentPayload.message).toContain('Con đã đến lớp lúc 18:05 (học bù).')
     expect(input.targets[0].zaloPayload).toBeDefined()
   })
+
+  it.each(['ARRIVED', 'STATUS_CHANGED'] as const)(
+    '%s: payload trỏ tới chi tiết buổi học (schedule_session) và giữ attendanceId',
+    async (event) => {
+      const { queue, service } = setup()
+
+      await service.enqueueAttendanceEvent(repos, attendance(5, 100), event)
+
+      const input = queue.enqueueStudentAndParentsWithRepos.mock.calls[0][1]
+      expect(input.data).toMatchObject({
+        attendanceId: '5',
+        sessionId: '7',
+        studentId: '100',
+        event,
+        destinationType: NotificationDestinationType.SCHEDULE_SESSION,
+        resourceId: 7,
+      })
+      expect(input.targets[0].parentPayload.data).toEqual(input.data)
+    },
+  )
 
   it('STATUS_CHANGED: nêu trạng thái mới; markedAt khác thì idempotencyKey khác', async () => {
     const { queue, service } = setup()

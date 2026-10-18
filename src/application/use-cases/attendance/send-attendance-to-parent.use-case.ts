@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { createHash } from 'crypto'
 import type { IUnitOfWork, UnitOfWorkRepos } from 'src/domain/repositories'
-import { AttendanceStatusLabels, AttendanceStatus, AttendanceType, AttendanceTypeLabels, NotificationLevel, NotificationType } from 'src/shared/enums'
+import { AttendanceStatusLabels, AttendanceStatus, AttendanceType, AttendanceTypeLabels, NotificationDestinationType, NotificationLevel, NotificationType } from 'src/shared/enums'
 import { formatVnDate, formatVnDateTime, formatVnTime } from 'src/shared/utils/vietnam-date.util'
 import { AttendanceParentMessageTemplate } from 'src/infrastructure/templates/attendance-parent-message.template'
 import { BusinessNotificationQueueService } from '../notification/business-notification-queue.service'
@@ -128,9 +128,12 @@ export class SendAttendanceToParentUseCase {
       level: NotificationLevel.INFO,
       data: {
         attendanceId: String(attendance.attendanceId),
+        sessionId: String(attendance.sessionId),
         studentId: String(attendance.studentId),
         status: attendance.status,
         attendanceType: attendance.attendanceType,
+        destinationType: NotificationDestinationType.SCHEDULE_SESSION,
+        resourceId: Number(attendance.sessionId),
       },
     }
     const digest = createHash('sha256').update(messageText).digest('hex').slice(0, 24)

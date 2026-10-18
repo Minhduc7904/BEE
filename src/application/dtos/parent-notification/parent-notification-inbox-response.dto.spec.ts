@@ -9,6 +9,17 @@ describe('resolveParentNotificationDestination', () => {
     })
   })
 
+  it('thông báo điểm danh mới: schedule_session thắng attendanceId trong cùng payload', () => {
+    expect(
+      resolveParentNotificationDestination({
+        attendanceId: '5',
+        sessionId: '7',
+        destinationType: 'schedule_session',
+        resourceId: 7,
+      }),
+    ).toEqual({ type: NotificationDestinationType.SCHEDULE_SESSION, resourceId: 7 })
+  })
+
   it('map metadata legacy và chuẩn hóa invoiceId cũ thành tuition payment', () => {
     expect(resolveParentNotificationDestination({ invoiceId: '18' })).toEqual({
       type: NotificationDestinationType.TUITION_PAYMENT,

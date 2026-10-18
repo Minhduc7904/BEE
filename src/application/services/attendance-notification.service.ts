@@ -4,7 +4,13 @@ import type { Attendance } from '../../domain/entities/attendance/attendance.ent
 import type { ClassSession } from '../../domain/entities/class-session/class-session.entity'
 import type { ClassSessionNotificationMoment } from '../../domain/interface/class-session/class-session.interface'
 import type { NotificationDeliveryPayload } from '../../domain/interface/notification-dispatch'
-import { AttendanceStatusLabels, AttendanceType, NotificationLevel, NotificationType } from '../../shared/enums'
+import {
+  AttendanceStatusLabels,
+  AttendanceType,
+  NotificationDestinationType,
+  NotificationLevel,
+  NotificationType,
+} from '../../shared/enums'
 import { formatVnDate, formatVnTime } from '../../shared/utils/vietnam-date.util'
 import {
   AttendanceSessionNotificationTemplate,
@@ -63,6 +69,8 @@ export class AttendanceNotificationService {
         status: attendance.status,
         attendanceType: attendance.attendanceType,
         event: moment,
+        destinationType: NotificationDestinationType.SCHEDULE_SESSION,
+        resourceId: Number(session.sessionId),
       }
       const parentPayload = this.payload(content.title, content.parentMessage, data)
 
@@ -126,6 +134,8 @@ export class AttendanceNotificationService {
       status: attendance.status,
       attendanceType: attendance.attendanceType,
       event,
+      destinationType: NotificationDestinationType.SCHEDULE_SESSION,
+      resourceId: Number(attendance.sessionId),
     })
 
     const queued = await this.queue.enqueueStudentAndParentsWithRepos(repos, {
