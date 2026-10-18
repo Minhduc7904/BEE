@@ -17,6 +17,10 @@ function noAvatarSummaryService(): ParentStudentSummaryService {
   } as never
 }
 
+function activeAccountDeletionService() {
+  return { isDeleted: jest.fn().mockResolvedValue(false) } as never
+}
+
 function linkedParent() {
   const parentUser = new User({
     userId: 1,
@@ -62,6 +66,7 @@ describe('Parent password recovery', () => {
         } as never,
       }),
       noAvatarSummaryService(),
+      activeAccountDeletionService(),
     )
 
     const result = await useCase.execute({ phone: '0392923661' })
@@ -79,6 +84,7 @@ describe('Parent password recovery', () => {
         parentRepository: { findByPhone: jest.fn().mockResolvedValue(parent) } as never,
       }),
       noAvatarSummaryService(),
+      activeAccountDeletionService(),
     )
 
     await expect(useCase.execute({ phone: '0392923661' })).rejects.toMatchObject({ status: 400 })
@@ -94,6 +100,7 @@ describe('Parent password recovery', () => {
         } as never,
       }),
       noAvatarSummaryService(),
+      activeAccountDeletionService(),
     )
 
     await expect(useCase.execute({ phone: '0392923661' })).rejects.toMatchObject({ status: 400 })

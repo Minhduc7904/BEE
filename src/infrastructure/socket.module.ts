@@ -12,6 +12,8 @@ import { StatusRealtimeService } from './services/socket/status-realtime.service
 import { TuitionPaymentIntentRealtimeService } from './services/socket/tuition-payment-intent-realtime.service'
 import { CoursePaymentIntentRealtimeService } from './services/socket/course-payment-intent-realtime.service'
 import { SocketParentStudentRevocationService } from './services/socket/socket-parent-student-revocation.service'
+import { SocketParentAccountRevocationService } from './services/socket/socket-parent-account-revocation.service'
+import { ParentAccountRealtimeRevocationService } from '../application/interfaces/parent-account-deletion.interface'
 import {
     NotificationRealtimeService as NotificationRealtimeServicePort,
     TuitionPaymentIntentRealtimeService as TuitionPaymentIntentRealtimeServicePort,
@@ -51,6 +53,8 @@ import {
         TuitionPaymentIntentRealtimeService,
         CoursePaymentIntentRealtimeService,
         SocketParentStudentRevocationService,
+        SocketParentAccountRevocationService,
+        { provide: ParentAccountRealtimeRevocationService, useExisting: SocketParentAccountRevocationService },
         { provide: ParentStudentRealtimeRevocationServicePort, useExisting: SocketParentStudentRevocationService },
         { provide: NotificationRealtimeServicePort, useExisting: NotificationRealtimeService },
         { provide: TuitionPaymentIntentRealtimeServicePort, useExisting: TuitionPaymentIntentRealtimeService },
@@ -65,6 +69,7 @@ import {
         TuitionPaymentIntentRealtimeServicePort,
         CoursePaymentIntentRealtimeServicePort,
         ParentStudentRealtimeRevocationServicePort,
+        ParentAccountRealtimeRevocationService,
         StatusRealtimeService,
     ],
 })

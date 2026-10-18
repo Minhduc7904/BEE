@@ -19,6 +19,10 @@ function createUnitOfWork(repos: Partial<UnitOfWorkRepos>): IUnitOfWork {
   }
 }
 
+function activeAccountDeletionService() {
+  return { isDeleted: jest.fn().mockResolvedValue(false) } as any
+}
+
 describe('Parent authentication', () => {
   it.each(['+84392923661', '84392923661'])('từ chối định dạng số %s', async (phone) => {
     const dto = plainToInstance(LoginParentRequestDto, {
@@ -47,6 +51,7 @@ describe('Parent authentication', () => {
           findByPhone: jest.fn().mockResolvedValue(new Parent({ parentId: 1, userId: 2, phone: '0392923661' })),
         } as UnitOfWorkRepos['parentRepository'],
       }),
+      activeAccountDeletionService(),
     )
 
     const result = await useCase.execute({ phone: '0392923661' })
@@ -79,6 +84,7 @@ describe('Parent authentication', () => {
           findAllByParentPhoneVariants: jest.fn().mockResolvedValue([student]),
         } as UnitOfWorkRepos['studentRepository'],
       }),
+      activeAccountDeletionService(),
     )
 
     const result = await useCase.execute({ phone: '0392923661' })
@@ -110,6 +116,7 @@ describe('Parent authentication', () => {
           existsByUsername: jest.fn().mockResolvedValue(true),
         } as UnitOfWorkRepos['userRepository'],
       }),
+      activeAccountDeletionService(),
     )
 
     await expect(useCase.execute({ phone: '0392923661' })).rejects.toMatchObject({
@@ -165,15 +172,16 @@ describe('Parent authentication', () => {
         getAccessTokenExpirationTime: jest.fn().mockReturnValue(3600),
       },
       { hashToken: jest.fn().mockResolvedValue('refresh-hash') },
+      activeAccountDeletionService(),
     )
 
     const result = await useCase.execute({ phone: '0392923661', password: 'Example123', deviceId: 'device-a' })
 
     // Đăng nhập gỡ mọi thiết bị khác, chỉ giữ thiết bị vừa gửi deviceId.
     expect(deleteOtherDevices).toHaveBeenCalledWith(2, 'device-a')
-    expect((result.data?.user as { notificationSettings?: { isEnabled: boolean | null } }).notificationSettings).toEqual(
-      expect.objectContaining({ isEnabled: null }),
-    )
+    expect(
+      (result.data?.user as { notificationSettings?: { isEnabled: boolean | null } }).notificationSettings,
+    ).toEqual(expect.objectContaining({ isEnabled: null }))
     expect(generateAccessToken).toHaveBeenCalledWith(expect.objectContaining({ userType: 'parent', parentId: 7 }))
     expect(createRefreshToken).toHaveBeenCalledWith(expect.objectContaining({ userId: 2, tokenHash: 'refresh-hash' }))
     expect(result.data?.tokens).toEqual({ accessToken: 'access', refreshToken: 'refresh', expiresIn: 3600 })
@@ -230,6 +238,7 @@ describe('Parent authentication', () => {
         } as UnitOfWorkRepos['parentStudentRepository'],
       }),
       { hashPassword: jest.fn().mockResolvedValue('hash') },
+      activeAccountDeletionService(),
     )
 
     const result = await useCase.execute({
@@ -265,6 +274,7 @@ describe('Parent authentication', () => {
         } as UnitOfWorkRepos['userRepository'],
       }),
       { hashPassword: jest.fn() },
+      activeAccountDeletionService(),
     )
 
     await expect(useCase.execute({ phone, password, firstName, lastName, studentIds })).rejects.toMatchObject({
@@ -287,6 +297,7 @@ describe('Parent authentication', () => {
         } as UnitOfWorkRepos['userRepository'],
       }),
       { hashPassword: jest.fn() },
+      activeAccountDeletionService(),
     )
 
     await expect(
@@ -319,6 +330,7 @@ describe('Parent authentication', () => {
         } as UnitOfWorkRepos['studentRepository'],
       }),
       { hashPassword: jest.fn() },
+      activeAccountDeletionService(),
     )
 
     await expect(

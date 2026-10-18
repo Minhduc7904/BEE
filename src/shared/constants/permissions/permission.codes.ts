@@ -127,6 +127,7 @@ export const PERMISSION_CODES = {
   },
   USER: {
     TOGGLE_ACTIVATION: 'user:toggle-activation',
+    MANAGE_ACCOUNT_DELETION: 'user:manage-account-deletion',
   },
   MEDIA: {
     UPLOAD: 'media:upload',
@@ -636,6 +637,7 @@ const PERMISSION_ACTION_LABELS_BY_KEY: Record<string, string> = {
   TOGGLE_ROLE_PERMISSION: 'Toggle role permission',
   GET_GROUPS: 'View groups',
   TOGGLE_ACTIVATION: 'Toggle activation',
+  MANAGE_ACCOUNT_DELETION: 'Manage account deletion',
   UPLOAD: 'Upload',
   DOWNLOAD: 'Download',
   DOWNLOAD_MY: 'Download my',

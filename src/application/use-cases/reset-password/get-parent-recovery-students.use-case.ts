@@ -1,18 +1,27 @@
 import { Inject, Injectable } from '@nestjs/common'
 import type { IUnitOfWork } from '../../../domain/repositories'
 import { BaseResponseDto, GetParentRecoveryStudentsDto, GetParentRecoveryStudentsResultDto } from '../../dtos'
-import { BusinessLogicException, NotFoundException } from '../../../shared/exceptions/custom-exceptions'
+import {
+  BusinessLogicException,
+  ForbiddenException,
+  NotFoundException,
+} from '../../../shared/exceptions/custom-exceptions'
 import { PhoneUtil } from '../../../shared/utils'
 import { ParentStudentSummaryService } from '../auth/parent'
+import { ParentAccountDeletionService } from '../auth/parent/parent-account-deletion.service'
 
 @Injectable()
 export class GetParentRecoveryStudentsUseCase {
   constructor(
     @Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork,
     private readonly studentSummaryService: ParentStudentSummaryService,
+    private readonly accountDeletionService: ParentAccountDeletionService,
   ) {}
 
   async execute(dto: GetParentRecoveryStudentsDto): Promise<BaseResponseDto<GetParentRecoveryStudentsResultDto>> {
+    if (await this.accountDeletionService.isDeleted(dto.phone)) {
+      throw new ForbiddenException('Tài khoản đã bị xóa. Vui lòng liên hệ bộ phận hỗ trợ.', 'ACCOUNT_DELETED')
+    }
     const verificationStudents = await this.unitOfWork.executeInTransaction(async (repos) => {
       const phone = PhoneUtil.normalizeVietnamesePhone(dto.phone)
       const parent = await repos.parentRepository.findByPhone(phone, {

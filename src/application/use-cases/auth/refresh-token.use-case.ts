@@ -55,6 +55,12 @@ export class RefreshTokenUseCase {
       if (!user) {
         throw new NotFoundException('Người dùng không tồn tại')
       }
+      if (user.deletedAt) {
+        throw new UnauthorizedException('Tài khoản đã bị xóa. Vui lòng liên hệ bộ phận hỗ trợ.', 'ACCOUNT_DELETED')
+      }
+      if (!user.isActive) {
+        throw new UnauthorizedException('Tài khoản đã bị vô hiệu hóa')
+      }
 
       // 7. Tạo JWT tokens mới
       const newTokenPayload = {

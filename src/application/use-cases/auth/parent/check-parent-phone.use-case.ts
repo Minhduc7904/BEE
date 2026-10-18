@@ -6,18 +6,27 @@ import {
   CheckParentPhoneResponseDto,
   ParentStudentSummaryDto,
 } from '../../../dtos'
-import { ConflictException, NotFoundException } from '../../../../shared/exceptions/custom-exceptions'
+import {
+  ConflictException,
+  ForbiddenException,
+  NotFoundException,
+} from '../../../../shared/exceptions/custom-exceptions'
 import { PhoneUtil } from '../../../../shared/utils'
 import { ParentStudentSummaryService } from './parent-student-summary.service'
+import { ParentAccountDeletionService } from './parent-account-deletion.service'
 
 @Injectable()
 export class CheckParentPhoneUseCase {
   constructor(
     @Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork,
+    private readonly accountDeletionService: ParentAccountDeletionService,
     private readonly studentSummaryService?: ParentStudentSummaryService,
   ) {}
 
   async execute(dto: CheckParentPhoneRequestDto): Promise<BaseResponseDto<CheckParentPhoneResponseDto>> {
+    if (await this.accountDeletionService.isDeleted(dto.phone)) {
+      throw new ForbiddenException('Tài khoản đã bị xóa. Vui lòng liên hệ bộ phận hỗ trợ.', 'ACCOUNT_DELETED')
+    }
     const result = await this.unitOfWork.executeInTransaction(async (repos) => {
       const phone = PhoneUtil.normalizeVietnamesePhone(dto.phone)
       const parent = await repos.parentRepository.findByPhone(phone)

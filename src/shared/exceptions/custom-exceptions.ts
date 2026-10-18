@@ -100,9 +100,12 @@ export class NotFoundException extends HttpException {
  * HTTP 401
  */
 export class UnauthorizedException extends HttpException {
-  constructor(message: string) {
-    super(message, HttpStatus.UNAUTHORIZED)
+  readonly code?: string
+
+  constructor(message: string, code?: string) {
+    super(code ? { message, code } : message, HttpStatus.UNAUTHORIZED)
     this.name = 'UnauthorizedException'
+    this.code = code
   }
 }
 
@@ -116,9 +119,12 @@ export class UnauthorizedException extends HttpException {
  * HTTP 403
  */
 export class ForbiddenException extends HttpException {
-  constructor(message: string) {
-    super(message, HttpStatus.FORBIDDEN)
+  readonly code?: string
+
+  constructor(message: string, code?: string) {
+    super(code ? { message, code } : message, HttpStatus.FORBIDDEN)
     this.name = 'ForbiddenException'
+    this.code = code
   }
 }
 

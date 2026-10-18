@@ -3,10 +3,11 @@ import { v4 as uuidv4 } from 'uuid'
 import type { IUnitOfWork } from '../../../../domain/repositories'
 import { JwtTokenService, PasswordService, TokenHashService } from '../../../interfaces'
 import { BaseResponseDto, LoginParentRequestDto, LoginResponseDto, ParentResponseDto, TokensDto } from '../../../dtos'
-import { UnauthorizedException } from '../../../../shared/exceptions/custom-exceptions'
+import { ForbiddenException, UnauthorizedException } from '../../../../shared/exceptions/custom-exceptions'
 import { PhoneUtil } from '../../../../shared/utils'
 import { ParentStudentSummaryService } from './parent-student-summary.service'
 import { loadParentNotificationSettings } from '../../parent-notification/parent-notification-access'
+import { ParentAccountDeletionService } from './parent-account-deletion.service'
 
 @Injectable()
 export class LoginParentUseCase {
@@ -15,10 +16,14 @@ export class LoginParentUseCase {
     @Inject('PASSWORD_SERVICE') private readonly passwordService: PasswordService,
     @Inject('JWT_TOKEN_SERVICE') private readonly jwtTokenService: JwtTokenService,
     @Inject('TOKEN_HASH_SERVICE') private readonly tokenHashService: TokenHashService,
+    private readonly accountDeletionService: ParentAccountDeletionService,
     private readonly studentSummaryService?: ParentStudentSummaryService,
   ) {}
 
   async execute(dto: LoginParentRequestDto): Promise<BaseResponseDto<LoginResponseDto>> {
+    if (await this.accountDeletionService.isDeleted(dto.phone)) {
+      throw new ForbiddenException('Tài khoản đã bị xóa. Vui lòng liên hệ bộ phận hỗ trợ.', 'ACCOUNT_DELETED')
+    }
     const result = await this.unitOfWork.executeInTransaction(async (repos) => {
       const phone = PhoneUtil.normalizeVietnamesePhone(dto.phone)
       const parent = await repos.parentRepository.findByPhone(phone, {
@@ -30,14 +35,18 @@ export class LoginParentUseCase {
         throw new UnauthorizedException('Số điện thoại hoặc mật khẩu không đúng')
       }
 
-      if (!parent.user.isActive) {
-        throw new UnauthorizedException('Tài khoản này đã bị khóa. Vui lòng liên hệ admin.')
-      }
-
       const isPasswordValid = await this.passwordService.comparePassword(dto.password, parent.user.passwordHash)
 
       if (!isPasswordValid) {
         throw new UnauthorizedException('Số điện thoại hoặc mật khẩu không đúng')
+      }
+
+      if (parent.user.deletedAt) {
+        throw new ForbiddenException('Tài khoản đã bị xóa. Vui lòng liên hệ bộ phận hỗ trợ.', 'ACCOUNT_DELETED')
+      }
+
+      if (!parent.user.isActive) {
+        throw new UnauthorizedException('Tài khoản này đã bị khóa. Vui lòng liên hệ admin.')
       }
 
       await repos.userRefreshTokenRepository.revokeAllUserTokens(parent.userId)

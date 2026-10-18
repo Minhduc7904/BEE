@@ -13,7 +13,7 @@ import { AuditStatus } from 'src/shared/enums'
 
 @Injectable()
 export class UpdateUserUseCase {
-  constructor(@Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork) { }
+  constructor(@Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork) {}
 
   async execute(userId: number, dto: UpdateUserDto): Promise<UserResponseDto> {
     return this.unitOfWork.executeInTransaction(async (repos) => {
@@ -21,6 +21,12 @@ export class UpdateUserUseCase {
       const user = await repos.userRepository.findById(userId)
       if (!user) {
         throw new NotFoundException(`User với ID ${userId} không tồn tại`)
+      }
+
+      if (user.deletedAt) {
+        throw new BusinessLogicException(
+          'Tài khoản đã xóa không thể kích hoạt lại. Hãy dùng luồng cho phép đăng ký mới.',
+        )
       }
 
       // 2. Kiểm tra unique constraints trước khi cập nhật
@@ -46,7 +52,11 @@ export class UpdateUserUseCase {
     })
   }
 
-  async toggleActivation(userId: number, adminId: number, userIdPerformingAction: number): Promise<BaseResponseDto<null>> {
+  async toggleActivation(
+    userId: number,
+    adminId: number,
+    userIdPerformingAction: number,
+  ): Promise<BaseResponseDto<null>> {
     return this.unitOfWork.executeInTransaction(async (repos) => {
       // 1. Tìm user
       const user = await repos.userRepository.findById(userId)
@@ -54,8 +64,14 @@ export class UpdateUserUseCase {
         throw new NotFoundException(`User với ID ${userId} không tồn tại`)
       }
 
-      const roles = await repos.roleRepository.getUserRoles(userId);
-      const isSupperAdmin = roles.some(role => role.roleId === 1);
+      if (user.deletedAt) {
+        throw new BusinessLogicException(
+          'Tài khoản đã xóa không thể kích hoạt lại. Hãy dùng luồng cho phép đăng ký mới.',
+        )
+      }
+
+      const roles = await repos.roleRepository.getUserRoles(userId)
+      const isSupperAdmin = roles.some((role) => role.roleId === 1)
       if (isSupperAdmin) {
         throw new BusinessLogicException('Bạn không thể vô hiệu hóa hoặc kích hoạt tài khoản của Super Admin')
       }

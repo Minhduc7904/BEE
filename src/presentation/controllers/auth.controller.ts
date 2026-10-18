@@ -1,4 +1,5 @@
-import { Body, Controller, HttpCode, HttpStatus, Injectable, Post } from '@nestjs/common'
+import { Body, Controller, HttpCode, HttpStatus, Injectable, Post, Req, Res } from '@nestjs/common'
+import type { Request, Response } from 'express'
 import {
   LogoutUseCase,
   RefreshTokenUseCase,
@@ -9,6 +10,7 @@ import {
   CheckParentPhoneUseCase,
   RegisterParentUseCase,
   LoginParentUseCase,
+  DeleteParentAccountPublicUseCase,
 } from '../../application/use-cases'
 import {
   RefreshTokenRequestDto,
@@ -27,8 +29,13 @@ import {
   RegisterParentDto,
   ParentResponseDto,
   LoginParentRequestDto,
+  DeleteParentAccountPublicDto,
+  DeleteParentAccountResponseDto,
 } from '../../application/dtos'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
+import { RateLimitExceededException } from '../../shared/exceptions/custom-exceptions'
+import { PhoneUtil } from '../../shared/utils'
+import { RecoveryRateLimitService } from '../services/recovery-rate-limit.service'
 
 @Injectable()
 @Controller('auth')
@@ -43,6 +50,8 @@ export class AuthController {
     private readonly checkParentPhoneUseCase: CheckParentPhoneUseCase,
     private readonly registerParentUseCase: RegisterParentUseCase,
     private readonly loginParentUseCase: LoginParentUseCase,
+    private readonly deleteParentAccountPublicUseCase: DeleteParentAccountPublicUseCase,
+    private readonly rateLimit: RecoveryRateLimitService,
   ) {}
 
   @Post('/parent/check-phone')
@@ -63,6 +72,22 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async loginParent(@Body() dto: LoginParentRequestDto): Promise<BaseResponseDto<LoginResponseDto>> {
     return ExceptionHandler.execute(() => this.loginParentUseCase.execute(dto))
+  }
+
+  @Post('/parent/account-deletion')
+  @HttpCode(HttpStatus.OK)
+  async deleteParentAccount(
+    @Body() dto: DeleteParentAccountPublicDto,
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<BaseResponseDto<DeleteParentAccountResponseDto>> {
+    const tracker = `${request.ip}:${PhoneUtil.normalizeVietnamesePhone(dto.phone)}`
+    const retryAfter = this.rateLimit.consume('parent-account-deletion', tracker, 5, 15 * 60_000)
+    if (retryAfter !== null) {
+      response.setHeader('Retry-After', retryAfter.toString())
+      throw new RateLimitExceededException('Bạn thao tác quá nhiều lần. Vui lòng thử lại sau')
+    }
+    return ExceptionHandler.execute(() => this.deleteParentAccountPublicUseCase.execute(dto))
   }
 
   // @Post('/admin/register')

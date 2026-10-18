@@ -21,6 +21,7 @@ export class User {
   lastLoginAt?: Date
   emailVerifiedAt?: Date
   updatedAt?: Date
+  deletedAt?: Date
 
   /* ===================== NAVIGATION PROPERTIES ===================== */
   userRoles?: UserRole[]
@@ -41,6 +42,7 @@ export class User {
     lastLoginAt?: Date
     emailVerifiedAt?: Date
     updatedAt?: Date
+    deletedAt?: Date
 
     userRoles?: UserRole[]
   }) {
@@ -59,6 +61,7 @@ export class User {
     this.lastLoginAt = data.lastLoginAt
     this.emailVerifiedAt = data.emailVerifiedAt
     this.updatedAt = data.updatedAt
+    this.deletedAt = data.deletedAt
 
     this.userRoles = data.userRoles
   }
@@ -135,6 +138,7 @@ export class User {
       lastLoginAt: this.lastLoginAt,
       createdAt: this.createdAt,
       updatedAt: this.updatedAt,
+      deletedAt: this.deletedAt,
     }
   }
 
@@ -155,6 +159,7 @@ export class User {
       lastLoginAt: this.lastLoginAt,
       emailVerifiedAt: this.emailVerifiedAt,
       updatedAt: this.updatedAt,
+      deletedAt: this.deletedAt,
       userRoles: this.userRoles,
     })
   }

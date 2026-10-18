@@ -9,21 +9,30 @@ import {
 } from '../../../dtos'
 import {
   ConflictException,
+  ForbiddenException,
   UniqueConstraintException,
   ValidationException,
 } from '../../../../shared/exceptions/custom-exceptions'
 import { PhoneUtil } from '../../../../shared/utils'
 import { ParentStudentSummaryService } from './parent-student-summary.service'
+import { ParentAccountDeletionService } from './parent-account-deletion.service'
 
 @Injectable()
 export class RegisterParentUseCase {
   constructor(
     @Inject('UNIT_OF_WORK') private readonly unitOfWork: IUnitOfWork,
     @Inject('PASSWORD_SERVICE') private readonly passwordService: PasswordService,
+    private readonly accountDeletionService: ParentAccountDeletionService,
     private readonly studentSummaryService?: ParentStudentSummaryService,
   ) {}
 
   async execute(dto: RegisterParentDto): Promise<BaseResponseDto<ParentResponseDto>> {
+    if (await this.accountDeletionService.isDeleted(dto.phone)) {
+      throw new ForbiddenException(
+        'Tài khoản đã bị xóa. Vui lòng liên hệ bộ phận hỗ trợ để đăng ký lại.',
+        'ACCOUNT_DELETED',
+      )
+    }
     try {
       const created = await this.unitOfWork.executeInTransaction(async (repos) => {
         const phone = PhoneUtil.normalizeVietnamesePhone(dto.phone)

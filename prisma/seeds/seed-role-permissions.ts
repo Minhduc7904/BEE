@@ -60,6 +60,9 @@ const ROLE_PERMISSIONS: RolePermissionMap = {
     PERMISSION_CODES.REPORT.GET_BY_ID,
     PERMISSION_CODES.REPORT.UPDATE,
     PERMISSION_CODES.REPORT.DELETE,
+
+    // Trợ giảng có thể cho phép số điện thoại đã xóa đăng ký tài khoản mới.
+    PERMISSION_CODES.USER.MANAGE_ACCOUNT_DELETION,
   ],
 
   [ROLE_NAMES.NOTIFICATION_SENDER]: [

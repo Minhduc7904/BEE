@@ -33,6 +33,7 @@ export interface UpdateUserData {
   lastLoginAt?: Date
   gender?: Gender | null
   dateOfBirth?: Date | null
+  deletedAt?: Date | null
 }
 
 export interface IUserRepository {

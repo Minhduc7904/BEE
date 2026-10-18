@@ -14,6 +14,12 @@ enum Gender {
   OTHER
 }
 
+// Nguồn phát sinh yêu cầu xóa tài khoản phụ huynh.
+enum ParentAccountDeletionSource {
+  APP
+  WEB
+}
+
 enum AuditStatus {
   SUCCESS // âœ… ThÃ nh cÃ´ng
   FAIL // âŒ Tháº¥t báº¡i
@@ -156,6 +162,7 @@ model User {
   dateOfBirth DateTime? @map("date_of_birth") @db.Date
 
   isActive    Boolean   @default(true) @map("is_active")
+  deletedAt   DateTime? @map("deleted_at") @db.Timestamp(0)
   lastLoginAt DateTime? @map("last_login_at") @db.Timestamp(0)
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamp(0)
   updatedAt   DateTime  @updatedAt @map("updated_at") @db.Timestamp(0)
@@ -190,9 +197,24 @@ model User {
   receivedActionApprovalRequests ActionApprovalRequest[]         @relation("ActionApprovalRequestRecipient")
   // Các khoản học phí mà tài khoản này (phụ huynh) đã báo là đã chuyển khoản; giữ khoản học phí khi user bị xóa.
   reportedTuitionTransfers       TuitionPayment[]                @relation("TuitionPaymentPayerReporter")
+  deletedParentAccount           DeletedParentAccount?           @relation("DeletedParentAccountUser")
 
   @@index([lastName, firstName], map: "idx_users_name")
   @@map("users")
+}
+
+// Tombstone một chiều để chặn đăng ký lại mà không lưu số điện thoại gốc.
+model DeletedParentAccount {
+  deletionId      Int                         @id @default(autoincrement()) @map("deletion_id")
+  phoneLookupHash String                      @unique(map: "uq_deleted_parent_accounts_phone_hash") @map("phone_lookup_hash") @db.VarChar(64)
+  anonymousUserId Int                         @unique(map: "uq_deleted_parent_accounts_anonymous_user") @map("anonymous_user_id")
+  source          ParentAccountDeletionSource
+  deletedAt       DateTime                    @map("deleted_at") @db.Timestamp(0)
+  createdAt       DateTime                    @default(now()) @map("created_at") @db.Timestamp(0)
+
+  anonymousUser User @relation("DeletedParentAccountUser", fields: [anonymousUserId], references: [userId], onDelete: Restrict)
+
+  @@map("deleted_parent_accounts")
 }
 
 enum NotificationType {

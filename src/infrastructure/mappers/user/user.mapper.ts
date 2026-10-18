@@ -28,6 +28,7 @@ export class UserMapper {
       emailVerifiedAt: prismaUser.emailVerifiedAt ?? undefined,
       lastLoginAt: prismaUser.lastLoginAt ?? undefined,
       updatedAt: prismaUser.updatedAt ?? undefined,
+      deletedAt: prismaUser.deletedAt ?? undefined,
       userRoles: Array.isArray(prismaUser.userRoles)
         ? UserRoleMapper.toDomainUserRoles(prismaUser.userRoles)
         : undefined,

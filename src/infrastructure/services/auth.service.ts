@@ -1,5 +1,5 @@
 import type { AuthService as AuthServicePort } from 'src/application/interfaces/auth.interface'
-import { Injectable, Inject, UnauthorizedException } from '@nestjs/common'
+import { HttpException, Injectable, Inject, UnauthorizedException } from '@nestjs/common'
 import { JwtTokenService } from './jwt.service'
 import type { IRoleRepository } from '../../domain/repositories/role.repository'
 import type { IUserRepository } from '../../domain/repositories/user.repository'
@@ -42,6 +42,12 @@ export class AuthService {
       const user = await this.userRepository.findById(payload.sub)
       if (!user) {
         throw new UnauthorizedException('Tài khoản không tồn tại')
+      }
+      if (user.deletedAt) {
+        throw new UnauthorizedException({
+          message: 'Tài khoản đã bị xóa. Vui lòng liên hệ bộ phận hỗ trợ.',
+          code: 'ACCOUNT_DELETED',
+        })
       }
       if (!user.isActive) {
         throw new UnauthorizedException('Tài khoản đã bị vô hiệu hóa')
@@ -95,6 +101,10 @@ export class AuthService {
 
       if (error instanceof JsonWebTokenError) {
         throw new UnauthorizedException('Token không hợp lệ')
+      }
+
+      if (error instanceof HttpException) {
+        throw error
       }
 
       // Handle other errors

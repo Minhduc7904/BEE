@@ -84,6 +84,7 @@ import { IBookRepository } from './book.repository'
 import { IBookCategoryRepository } from './book-category.repository'
 import { IBookSalesContactConfigurationRepository } from './book-sales-contact-configuration.repository'
 import { IResetPasswordTokenRepository } from './reset-password-token.repository'
+import { IParentAccountDeletionRepository } from './parent-account-deletion.repository'
 // src/domain/repositories/unit-of-work.repository.ts
 export interface UnitOfWorkRepos {
   userRepository: IUserRepository
@@ -171,6 +172,7 @@ export interface UnitOfWorkRepos {
   bookRepository: IBookRepository
   bookCategoryRepository: IBookCategoryRepository
   bookSalesContactConfigurationRepository: IBookSalesContactConfigurationRepository
+  parentAccountDeletionRepository: IParentAccountDeletionRepository
 }
 
 export interface IUnitOfWork {

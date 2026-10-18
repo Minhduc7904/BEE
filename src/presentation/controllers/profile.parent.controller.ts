@@ -15,9 +15,11 @@ import {
   LinkParentStudentUseCase,
   UnlinkParentStudentUseCase,
   UpdateParentProfileUseCase,
+  DeleteParentAccountUseCase,
 } from '../../application/use-cases'
 import { AuthOnly, CurrentUser } from '../../shared/decorators'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
+import { DeleteParentAccountDto, DeleteParentAccountResponseDto } from '../../application/dtos/auth/parent-account-deletion.dto'
 
 @Controller('parent/profile')
 export class ProfileParentController {
@@ -28,7 +30,18 @@ export class ProfileParentController {
     private readonly updateParentProfileUseCase: UpdateParentProfileUseCase,
     private readonly getParentStudentDetailUseCase: GetParentStudentDetailUseCase,
     private readonly unlinkParentStudentUseCase: UnlinkParentStudentUseCase,
+    private readonly deleteParentAccountUseCase: DeleteParentAccountUseCase,
   ) {}
+
+  @Post('delete-account')
+  @HttpCode(HttpStatus.OK)
+  @AuthOnly()
+  async deleteAccount(
+    @CurrentUser('userId') userId: number,
+    @Body() dto: DeleteParentAccountDto,
+  ): Promise<BaseResponseDto<DeleteParentAccountResponseDto>> {
+    return ExceptionHandler.execute(() => this.deleteParentAccountUseCase.execute(userId, dto))
+  }
 
   @Get()
   @HttpCode(HttpStatus.OK)

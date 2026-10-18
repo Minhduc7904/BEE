@@ -144,6 +144,8 @@ import supabaseConfig from '../config/supabase.config'
 import mistralConfig from '../config/mistral.config'
 import openaiConfig from '../config/openai.config'
 import sepayConfig from '../config/sepay.config'
+import { ParentAccountDeletionPhoneHasher } from '../application/interfaces/parent-account-deletion.interface'
+import { HmacParentAccountDeletionPhoneHasher } from './services/parent-account-deletion-phone-hasher.service'
 import {
   AchievementBoardSeoAiService as AchievementBoardSeoAiServicePort,
   BookSeoAiService as BookSeoAiServicePort,
@@ -707,6 +709,7 @@ import {
       provide: 'PASSWORD_SERVICE',
       useClass: PasswordService,
     },
+    { provide: ParentAccountDeletionPhoneHasher, useClass: HmacParentAccountDeletionPhoneHasher },
     {
       provide: 'JWT_TOKEN_SERVICE',
       useClass: JwtTokenService,
@@ -882,6 +885,7 @@ import {
     'IAssistantTaskProductSubmissionRepository',
     'IActionApprovalRequestRepository',
     'PASSWORD_SERVICE',
+    ParentAccountDeletionPhoneHasher,
     'JWT_TOKEN_SERVICE',
     'TOKEN_HASH_SERVICE',
     TokenService,

@@ -3,6 +3,7 @@ import type { SocketAuthService as SocketAuthServicePort } from 'src/application
 import { Injectable, UnauthorizedException } from '@nestjs/common'
 import { JwtTokenService } from '../jwt.service'
 import type { AuthenticatedUser } from '../auth.service'
+import { PrismaService } from '../../../prisma/prisma.service'
 
 /**
  * SocketAuthService
@@ -17,6 +18,7 @@ import type { AuthenticatedUser } from '../auth.service'
 export class SocketAuthService {
     constructor(
         private readonly jwtTokenService: JwtTokenService,
+        private readonly prisma: PrismaService,
     ) { }
 
     /**
@@ -29,6 +31,13 @@ export class SocketAuthService {
         try {
             // Use existing JWT token service to verify
             const payload = await this.jwtTokenService.verifyAccessToken(token)
+            const user = await this.prisma.user.findUnique({
+                where: { userId: payload.sub },
+                select: { isActive: true, deletedAt: true },
+            })
+            if (!user || !user.isActive || user.deletedAt) {
+                throw new UnauthorizedException('Account is inactive or deleted')
+            }
 
             // Return user information in standard format
             return {

@@ -103,6 +103,7 @@ jobs:
           VPS_USER: ${{ vars.VPS_USER }}
           VPS_BEE_DIR: ${{ vars.VPS_BEE_DIR }}
           VPS_CONFIG_DIR: ${{ vars.VPS_CONFIG_DIR }}
+          ACCOUNT_DELETION_HMAC_SECRET: ${{ secrets.ACCOUNT_DELETION_HMAC_SECRET }}
           REVISION: ${{ github.sha }}
         run: |
           set -euo pipefail
@@ -114,7 +115,12 @@ jobs:
           VPS_CONFIG_DIR="$(printf '%s' "$VPS_CONFIG_DIR" | tr -d '\r\n' | xargs)"
           REMOTE_SCRIPT="$VPS_CONFIG_DIR/scripts/deploy-bee.sh"
 
-          ssh \
+          if [[ ${#ACCOUNT_DELETION_HMAC_SECRET} -lt 32 ]]; then
+            echo "Missing or invalid ACCOUNT_DELETION_HMAC_SECRET." >&2
+            exit 1
+          fi
+
+          printf '%s\n' "$ACCOUNT_DELETION_HMAC_SECRET" | ssh \
             -p "$VPS_PORT" \
             -o BatchMode=yes \
             -o IdentitiesOnly=yes \
@@ -122,6 +128,16 @@ jobs:
             -o ServerAliveInterval=30 \
             -o ServerAliveCountMax=10 \
             "$VPS_USER@$VPS_HOST" \
-            "test -f '$REMOTE_SCRIPT' && \
+            "set -euo pipefail; \
+            IFS= read -r account_deletion_secret; \
+            env_file='$VPS_CONFIG_DIR/.env'; \
+            test -f \"\$env_file\"; \
+            if grep -q '^ACCOUNT_DELETION_HMAC_SECRET=' \"\$env_file\"; then \
+              sed -i \"s|^ACCOUNT_DELETION_HMAC_SECRET=.*$|ACCOUNT_DELETION_HMAC_SECRET=\$account_deletion_secret|\" \"\$env_file\"; \
+            else \
+              printf '\nACCOUNT_DELETION_HMAC_SECRET=%s\n' \"\$account_deletion_secret\" >> \"\$env_file\"; \
+            fi; \
+            unset account_deletion_secret; \
+            test -f '$REMOTE_SCRIPT' && \
             BEE_DIR='$VPS_BEE_DIR' VPS_DIR='$VPS_CONFIG_DIR' \
             bash '$REMOTE_SCRIPT' '$REVISION'"

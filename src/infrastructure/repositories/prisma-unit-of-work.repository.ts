@@ -126,6 +126,7 @@ export class PrismaUnitOfWork implements IUnitOfWork {
     let _bookRepository: UnitOfWorkRepos['bookRepository'] | undefined
     let _bookCategoryRepository: UnitOfWorkRepos['bookCategoryRepository'] | undefined
     let _bookSalesContactConfigurationRepository: UnitOfWorkRepos['bookSalesContactConfigurationRepository'] | undefined
+    let _parentAccountDeletionRepository: UnitOfWorkRepos['parentAccountDeletionRepository'] | undefined
 
     Object.defineProperty(repos, 'studentRepository', {
       get: () => (_studentRepository ??= new Repositories.PrismaStudentRepository(client)),
@@ -547,6 +548,12 @@ export class PrismaUnitOfWork implements IUnitOfWork {
         (_bookSalesContactConfigurationRepository ??= new Repositories.PrismaBookSalesContactConfigurationRepository(
           client,
         )),
+      enumerable: true,
+    })
+
+    Object.defineProperty(repos, 'parentAccountDeletionRepository', {
+      get: () =>
+        (_parentAccountDeletionRepository ??= new Repositories.PrismaParentAccountDeletionRepository(client)),
       enumerable: true,
     })
 

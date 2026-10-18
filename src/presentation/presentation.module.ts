@@ -114,6 +114,7 @@ import { AssistantTaskProductController } from './controllers/assistant-task-pro
 import { AssistantTaskProductSubmissionController } from './controllers/assistant-task-product-submission.controller'
 import { BookController } from './controllers/book.controller'
 import { SocketLifecycleGateway } from './gateways/socket-lifecycle.gateway'
+import { ParentAccountDeletionAdminController } from './controllers/parent-account-deletion-admin.controller'
 @Module({
   imports: [
     ApplicationModule, // ✅ lấy toàn bộ UseCase đã export
@@ -122,6 +123,7 @@ import { SocketLifecycleGateway } from './gateways/socket-lifecycle.gateway'
   ],
   controllers: [
     AuthController,
+    ParentAccountDeletionAdminController,
     ParentPasswordRecoveryController,
     RoleController,
     AdminAuditLogController,
