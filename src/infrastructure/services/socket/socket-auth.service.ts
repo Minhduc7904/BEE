@@ -37,6 +37,7 @@ export class SocketAuthService {
                 userType: payload.userType,
                 adminId: payload.adminId,
                 studentId: payload.studentId,
+                parentId: payload.parentId,
                 roles: [], // Will be populated by full auth flow if needed
                 permissions: [], // Will be populated by full auth flow if needed
             }

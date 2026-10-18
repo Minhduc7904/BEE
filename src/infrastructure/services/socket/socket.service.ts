@@ -165,16 +165,17 @@ export class SocketService {
     }
 
     /**
-     * Get online users count by type (admin/student)
+     * Get online users count by type (admin/student/parent)
      * Counts unique users from user:{id} rooms
      */
-    getOnlineUsersByType(): { admin: number; student: number; total: number } {
+    getOnlineUsersByType(): { admin: number; student: number; parent: number; total: number } {
         if (!this.server || !this.server.sockets || !this.server.sockets.adapter || !this.server.sockets.adapter.rooms) {
-            return { admin: 0, student: 0, total: 0 }
+            return { admin: 0, student: 0, parent: 0, total: 0 }
         }
 
         let adminCount = 0
         let studentCount = 0
+        let parentCount = 0
 
         // Iterate through all rooms to find user:{id} rooms
         this.server.sockets.adapter.rooms.forEach((socketIds, roomName) => {
@@ -191,6 +192,8 @@ export class SocketService {
                         adminCount++
                     } else if (userType === 'student') {
                         studentCount++
+                    } else if (userType === 'parent') {
+                        parentCount++
                     }
                 }
             }
@@ -199,7 +202,8 @@ export class SocketService {
         return {
             admin: adminCount,
             student: studentCount,
-            total: adminCount + studentCount,
+            parent: parentCount,
+            total: adminCount + studentCount + parentCount,
         }
     }
 
@@ -211,6 +215,7 @@ export class SocketService {
     getOnlineUsersStats(): {
         admin: { count: number; userIds: number[] }
         student: { count: number; userIds: number[] }
+        parent: { count: number; userIds: number[] }
         total: number
     } {
         this.logger.debug('Calculating online users statistics...')
@@ -218,12 +223,14 @@ export class SocketService {
             return {
                 admin: { count: 0, userIds: [] },
                 student: { count: 0, userIds: [] },
+                parent: { count: 0, userIds: [] },
                 total: 0,
             }
         }
 
         const adminUserIds: number[] = []
         const studentUserIds: number[] = []
+        const parentUserIds: number[] = []
 
         // Iterate through all rooms to find user:{id} rooms
         this.server.sockets.adapter.rooms.forEach((socketIds, roomName) => {
@@ -242,12 +249,14 @@ export class SocketService {
                         adminUserIds.push(userId)
                     } else if (userType === 'student') {
                         studentUserIds.push(userId)
+                    } else if (userType === 'parent') {
+                        parentUserIds.push(userId)
                     }
                 }
             }
         })
 
-        this.logger.debug(`Online Users Stats - Admins: ${adminUserIds.length}, Students: ${studentUserIds.length}`)
+        this.logger.debug(`Online Users Stats - Admins: ${adminUserIds.length}, Students: ${studentUserIds.length}, Parents: ${parentUserIds.length}`)
 
         return {
             admin: {
@@ -258,7 +267,11 @@ export class SocketService {
                 count: studentUserIds.length,
                 userIds: studentUserIds,
             },
-            total: adminUserIds.length + studentUserIds.length,
+            parent: {
+                count: parentUserIds.length,
+                userIds: parentUserIds,
+            },
+            total: adminUserIds.length + studentUserIds.length + parentUserIds.length,
         }
     }
 }

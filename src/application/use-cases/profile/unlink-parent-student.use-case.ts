@@ -1,13 +1,19 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 
 import type { AuthenticatedUser } from '../../interfaces'
+import { ParentStudentRealtimeRevocationService } from '../../interfaces/parent-student-realtime-revocation.interface'
 import type { IParentStudentRepository } from '../../../domain/repositories'
 import { BaseResponseDto } from '../../dtos'
 import { ForbiddenException, NotFoundException } from '../../../shared/exceptions/custom-exceptions'
 
 @Injectable()
 export class UnlinkParentStudentUseCase {
-  constructor(@Inject('IParentStudentRepository') private readonly parentStudentRepository: IParentStudentRepository) {}
+  private readonly logger = new Logger(UnlinkParentStudentUseCase.name)
+
+  constructor(
+    @Inject('IParentStudentRepository') private readonly parentStudentRepository: IParentStudentRepository,
+    private readonly realtimeRevocation: ParentStudentRealtimeRevocationService,
+  ) {}
 
   async execute(identity: AuthenticatedUser, studentId: number): Promise<BaseResponseDto<{ unlinked: boolean }>> {
     if (identity.userType !== 'parent' || !identity.parentId) {
@@ -19,7 +25,20 @@ export class UnlinkParentStudentUseCase {
     }
 
     await this.parentStudentRepository.delete(identity.parentId, studentId)
+    await this.revokeRealtimeAccess(identity.userId, studentId)
 
     return BaseResponseDto.success('Gỡ liên kết học sinh thành công', { unlinked: true })
+  }
+
+  /**
+   * Socket đã subscribe trước khi gỡ liên kết phải rời room ngay. Lỗi ở đây không được làm hỏng việc gỡ liên kết
+   * (REST luôn kiểm tra lại liên kết ở mỗi request) nên chỉ ghi log.
+   */
+  private async revokeRealtimeAccess(parentUserId: number, studentId: number): Promise<void> {
+    try {
+      await this.realtimeRevocation.revokeStudentAccess(parentUserId, studentId)
+    } catch (error) {
+      this.logger.warn(`Không thể thu hồi realtime của phụ huynh ${parentUserId} với học sinh ${studentId}: ${String(error)}`)
+    }
   }
 }

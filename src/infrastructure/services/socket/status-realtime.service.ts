@@ -29,6 +29,7 @@ export class StatusRealtimeService {
         this.socketService.emitToRoom('status-updates', SOCKET_EVENTS.SYSTEM.ONLINE_STATS_UPDATED, {
             admin: stats.admin.count,
             student: stats.student.count,
+            parent: stats.parent.count,
             total: stats.total,
             timestamp: new Date().toISOString(),
         })
@@ -39,6 +40,7 @@ export class StatusRealtimeService {
         return {
             admin: stats.admin.count,
             student: stats.student.count,
+            parent: stats.parent.count,
             total: stats.total,
         }
     }

@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common'
 
 import { InfrastructureModule } from '../../../infrastructure/infrastructure.module'
+import { SocketModule } from '../../../infrastructure/socket.module'
 import { AuthApplicationModule } from '../auth/auth.application.module'
 import { StudentProfileApplicationModule } from './student-profile.application.module'
 import { GetAvailableParentStudentsUseCase } from './get-available-parent-students.use-case'
@@ -20,7 +21,7 @@ const PARENT_PROFILE_USE_CASES = [
 ]
 
 @Module({
-  imports: [InfrastructureModule, AuthApplicationModule, StudentProfileApplicationModule],
+  imports: [InfrastructureModule, SocketModule, AuthApplicationModule, StudentProfileApplicationModule],
   providers: PARENT_PROFILE_USE_CASES,
   exports: PARENT_PROFILE_USE_CASES,
 })

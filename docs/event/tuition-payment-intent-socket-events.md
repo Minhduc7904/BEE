@@ -4,8 +4,10 @@
 
 - Socket.IO dùng root namespace: `ws(s)://<API host>/`.
 - Client gửi JWT trong Socket.IO handshake theo cơ chế hiện có của ứng dụng. `SocketLifecycleGateway` xác thực JWT và lưu actor ở `client.data.user`.
-- Chỉ actor có `studentId` mới dùng các event bên dưới. Không truyền `studentId` hoặc room name từ client.
-- Room riêng có dạng `tuition-payment-intent:{paymentIntentId}`. Gateway chỉ join sau khi use case xác minh intent thuộc tuition payment của học sinh đang đăng nhập.
+- Hai loại actor dùng các event bên dưới, danh tính lấy từ JWT (`client.data.user`), không bao giờ nhận `studentId`, `parentId` hoặc room name từ client:
+  - **Học sinh** (`studentId`): intent phải thuộc khoản học phí của chính học sinh.
+  - **Phụ huynh** (`userType = parent`, `parentId`): intent phải thuộc khoản học phí của học sinh có liên kết `ParentStudent` với phụ huynh. `SocketAuthService.validateToken` trả `parentId` từ JWT.
+- Room riêng có dạng `tuition-payment-intent:{paymentIntentId}`. Gateway chỉ join sau khi use case xác minh quyền theo actor ở trên.
 - Socket tự rời mọi room khi disconnect. FE nên chủ động unsubscribe khi đóng màn hình thanh toán hoặc đổi intent.
 - Lỗi chung phát qua event `error`: `{ message, code?, timestamp }`.
 
@@ -13,11 +15,11 @@
 
 | Event | Chiều | Sender | Recipient/room | Mục đích |
 | --- | --- | --- | --- | --- |
-| `tuition-payment:intent:subscribe` | FE → BE | Học sinh | Gateway | Xác minh ownership rồi join room intent. |
+| `tuition-payment:intent:subscribe` | FE → BE | Học sinh/phụ huynh | Gateway | Xác minh quyền rồi join room intent. |
 | `tuition-payment:intent:subscribed` | BE → FE | Gateway | Socket đã gửi subscribe | Xác nhận socket đã join room. |
-| `tuition-payment:intent:status` | BE → FE | Gateway | Socket đã gửi subscribe | Snapshot trạng thái intent ngay sau khi join, tránh khoảng trống giữa REST và subscribe. |
-| `tuition-payment:intent:unsubscribe` | FE → BE | Học sinh | Gateway | Rời room intent trên socket hiện tại. |
-| `tuition-payment:intent:unsubscribed` | BE → FE | Gateway | Socket đã gửi unsubscribe | Xác nhận đã rời room. |
+| `tuition-payment:intent:status` | BE → FE | Gateway | Socket đã gửi subscribe | Snapshot trạng thái intent **đọc lại sau khi join**, tránh khoảng trống giữa REST, join và event `paid`. |
+| `tuition-payment:intent:unsubscribe` | FE → BE | Học sinh/phụ huynh | Gateway | Rời room intent trên socket hiện tại. |
+| `tuition-payment:intent:unsubscribed` | BE → FE | Gateway | Socket đã gửi unsubscribe, hoặc socket của phụ huynh bị thu hồi quyền | Xác nhận đã rời room. Khi thu hồi quyền payload có thêm `reason: 'ACCESS_REVOKED'`. |
 | `tuition-payment:intent:paid` | BE → FE | Luồng đối soát | `tuition-payment-intent:{paymentIntentId}` | Báo tuition payment và payment intent đã thanh toán thành công. |
 
 ## `tuition-payment:intent:subscribe`
@@ -44,7 +46,19 @@
 }
 ```
 
-Gateway truy vấn trạng thái hiện tại bằng `GetMyTuitionPaymentIntentStatusUseCase`, kiểm tra `tuitionPayment.studentId === client.data.user.studentId`, sau đó mới join room. Intent không tồn tại hoặc thuộc học sinh khác không được join.
+Quy trình của gateway:
+
+1. Xác thực actor và quyền (học sinh: `GetMyTuitionPaymentIntentStatusUseCase`, kiểm tra `tuitionPayment.studentId === client.data.user.studentId`; phụ huynh: `GetParentTuitionPaymentIntentStatusUseCase`, kiểm tra liên kết `ParentStudent`). Intent không tồn tại hoặc không thuộc phạm vi actor thì không join và nhận event `error` với `code = TUITION_PAYMENT_INTENT_SUBSCRIBE_FAILED`.
+2. Join room.
+3. **Đọc lại snapshot sau khi join** rồi mới phát `subscribed` và `status`. Nếu thanh toán commit giữa bước 1 và bước 2, event `paid` đã phát khi socket chưa ở trong room, nhưng snapshot ở bước 3 vẫn là `PAID`. Nếu bước 3 lỗi (ví dụ liên kết vừa bị gỡ), socket rời room.
+
+Client coi `PAID` là trạng thái cuối: mọi snapshot hoặc event `PENDING` đến sau `PAID` phải bị bỏ qua.
+
+### Thu hồi quyền của phụ huynh
+
+Gateway ghi `{ [paymentIntentId]: studentId }` vào `socket.data.tuitionIntentStudents` cho socket phụ huynh. Khi phụ huynh gỡ liên kết học sinh, `UnlinkParentStudentUseCase` gọi `ParentStudentRealtimeRevocationService.revokeStudentAccess`; mọi socket của tài khoản đó rời các room thuộc học sinh bị gỡ và nhận `tuition-payment:intent:unsubscribed` với `reason: 'ACCESS_REVOKED'`. Lỗi thu hồi chỉ được ghi log, không làm hỏng việc gỡ liên kết (REST luôn kiểm tra lại liên kết ở mỗi request).
+
+Giới hạn: việc thu hồi dùng `fetchSockets()` nên chỉ phủ hết các instance khi triển khai nhiều instance với shared Socket.IO adapter. Với một instance (cấu hình hiện tại) không có khoảng trống.
 
 ## `tuition-payment:intent:unsubscribe`
 

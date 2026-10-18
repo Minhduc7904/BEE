@@ -12,6 +12,7 @@ const TUITION_PAYMENT_USE_CASES = [
   tuitionPaymentUseCase.GetTuitionPaymentByIdUseCase,
   tuitionPaymentUseCase.GetMyTuitionPaymentByIdUseCase,
   tuitionPaymentUseCase.GetMyTuitionPaymentIntentStatusUseCase,
+  tuitionPaymentUseCase.GetParentTuitionPaymentIntentStatusUseCase,
   tuitionPaymentUseCase.UpdateTuitionPaymentUseCase,
   tuitionPaymentUseCase.ConfirmManualTuitionPaymentUseCase,
   tuitionPaymentUseCase.ManualTuitionPaymentReconciliationService,

@@ -83,6 +83,7 @@ export abstract class BaseGateway {
         this.socketService.broadcast('online-stats-updated', {
             admin: stats.admin.count,
             student: stats.student.count,
+            parent: stats.parent.count,
             total: stats.total,
             timestamp: new Date().toISOString(),
         })
