@@ -161,13 +161,13 @@ describe('Parent student tuition HTTP routes', () => {
     ['another parent', 'parent-b'],
     ['a student token', 'student'],
   ])('returns 403 for %s on every route', async (_, token) => {
-    const responses = await Promise.all([
-      get(`${base(OWNED_STUDENT)}?status=UNPAID`, token),
-      get(`${base(OWNED_STUDENT)}/7`, token),
-      get(`${base(OWNED_STUDENT)}/7/payment-intent-status`, token),
-      get(`${base(OWNED_STUDENT)}/7/payment-instructions`, token),
-      post(`${base(OWNED_STUDENT)}/7/report-transferred`, token),
-    ])
+    const responses = [
+      await get(`${base(OWNED_STUDENT)}?status=UNPAID`, token),
+      await get(`${base(OWNED_STUDENT)}/7`, token),
+      await get(`${base(OWNED_STUDENT)}/7/payment-intent-status`, token),
+      await get(`${base(OWNED_STUDENT)}/7/payment-instructions`, token),
+      await post(`${base(OWNED_STUDENT)}/7/report-transferred`, token),
+    ]
 
     expect(responses.map((response) => response.status)).toEqual([403, 403, 403, 403, 403])
     expect(unitOfWork.executeInTransaction).not.toHaveBeenCalled()
