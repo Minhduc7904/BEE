@@ -16,3 +16,17 @@ export function IsOptionalResultCursor(label: string) {
     }),
   )
 }
+
+const TUITION_CURSOR_REGEX = /^\d+_\d+_\d+$/
+
+/** Cursor phân trang học phí dạng "{year}_{month}_{id}". */
+export function IsOptionalTuitionCursor(label: string) {
+  return applyDecorators(
+    Trim(),
+    EmptyToUndefined(),
+    IsOptional(),
+    Matches(TUITION_CURSOR_REGEX, {
+      message: VALIDATION_MESSAGES.FIELD_INVALID(label, 'dạng "{year}_{month}_{id}"'),
+    }),
+  )
+}

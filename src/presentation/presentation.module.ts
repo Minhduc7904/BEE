@@ -36,6 +36,7 @@ import { ParentNotificationController } from './controllers/parent-notification.
 import { ParentStudentResultsController } from './controllers/parent-student-results.controller'
 import { ParentStudentScheduleController } from './controllers/parent-student-schedule.controller'
 import { ParentStudentDashboardController } from './controllers/parent-student-dashboard.controller'
+import { ParentStudentTuitionController } from './controllers/parent-student-tuition.controller'
 import { PermissionController } from './controllers/permission.controller'
 import { AdminController } from './controllers/admin.controller'
 import { AdminStudentController } from './controllers/super-admin.controller'
@@ -145,6 +146,8 @@ import { SocketLifecycleGateway } from './gateways/socket-lifecycle.gateway'
     ParentStudentResultsController,
     ParentStudentScheduleController,
     ParentStudentDashboardController,
+    // Phải sau ParentStudentDashboardController: route tĩnh `tuition-payments/outstanding-summary` đăng ký trước `:paymentId`.
+    ParentStudentTuitionController,
     PermissionController,
     AdminController,
     AdminStudentController,

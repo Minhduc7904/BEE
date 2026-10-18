@@ -118,6 +118,7 @@ import {
   PrismaParentStudentResultsReadService,
   PrismaParentStudentScheduleReadService,
   PrismaParentStudentDashboardReadService,
+  PrismaParentStudentTuitionReadService,
   PrismaParentScheduleSessionDetailReadService,
   PrismaParentNotificationInboxRepository,
 } from './services'
@@ -177,6 +178,7 @@ import {
   ParentStudentResultsReadService as ParentStudentResultsReadServicePort,
   ParentStudentScheduleReadService as ParentStudentScheduleReadServicePort,
   ParentStudentDashboardReadService as ParentStudentDashboardReadServicePort,
+  ParentStudentTuitionReadService as ParentStudentTuitionReadServicePort,
   ParentScheduleSessionDetailReadService as ParentScheduleSessionDetailReadServicePort,
   ParentNotificationInboxRepository as ParentNotificationInboxRepositoryPort,
 } from 'src/application/interfaces'
@@ -216,6 +218,11 @@ import {
     {
       provide: ParentStudentDashboardReadServicePort,
       useExisting: PrismaParentStudentDashboardReadService,
+    },
+    PrismaParentStudentTuitionReadService,
+    {
+      provide: ParentStudentTuitionReadServicePort,
+      useExisting: PrismaParentStudentTuitionReadService,
     },
     PrismaParentScheduleSessionDetailReadService,
     {
@@ -756,6 +763,7 @@ import {
     ParentStudentResultsReadServicePort,
     ParentStudentScheduleReadServicePort,
     ParentStudentDashboardReadServicePort,
+    ParentStudentTuitionReadServicePort,
     ParentScheduleSessionDetailReadServicePort,
     AchievementBoardSeoAiServicePort,
     BookSeoAiServicePort,

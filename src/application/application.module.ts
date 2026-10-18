@@ -79,6 +79,7 @@ import { BookApplicationModule } from './use-cases/book/book.application.module'
 import { ParentStudentResultsApplicationModule } from './use-cases/parent-student-results/parent-student-results.application.module'
 import { ParentStudentScheduleApplicationModule } from './use-cases/parent-student-schedule/parent-student-schedule.application.module'
 import { ParentStudentDashboardApplicationModule } from './use-cases/parent-student-dashboard/parent-student-dashboard.application.module'
+import { ParentStudentTuitionApplicationModule } from './use-cases/parent-student-tuition/parent-student-tuition.application.module'
 
 const modules = [
   // Auth & Account
@@ -97,6 +98,7 @@ const modules = [
   ParentStudentResultsApplicationModule,
   ParentStudentScheduleApplicationModule,
   ParentStudentDashboardApplicationModule,
+  ParentStudentTuitionApplicationModule,
   AdminApplicationModule,
 
   // Role & Permission
