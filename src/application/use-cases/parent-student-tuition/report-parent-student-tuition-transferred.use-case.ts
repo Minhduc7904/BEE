@@ -39,13 +39,13 @@ export class ReportParentStudentTuitionTransferredUseCase {
   ): Promise<BaseResponseDto<ParentTuitionPaymentStatusSnapshotDto>> {
     await assertParentManagesStudent(identity, studentId, this.tuition)
 
-    await this.unitOfWork.executeInTransaction(async (repos) => {
+    const lostRace = await this.unitOfWork.executeInTransaction(async (repos) => {
       const payment = await repos.tuitionPaymentRepository.findById(paymentId)
       if (!payment || payment.studentId !== studentId) {
         throw new NotFoundException(`Không tìm thấy học phí với ID ${paymentId}`)
       }
       // Đã PAID hoặc đã báo trước đó: không ghi gì, snapshot bên dưới phản ánh trạng thái hiện hành.
-      if (payment.isPaid() || payment.hasPayerReportedTransfer()) return
+      if (payment.isPaid() || payment.hasPayerReportedTransfer()) return false
 
       TuitionPaymentIntentEligibility.assertPayable(payment)
       const intent = await repos.paymentIntentRepository.findByTuitionPaymentId(paymentId)
@@ -57,17 +57,17 @@ export class ReportParentStudentTuitionTransferredUseCase {
       }
 
       const written = await repos.tuitionPaymentRepository.reportPayerTransferred(paymentId, identity.userId, now)
-      if (written) return
-
-      // Không ghi được: khoản học phí vừa đổi trạng thái hoặc có lần báo khác thắng cuộc đua.
-      const current = await repos.tuitionPaymentRepository.findById(paymentId)
-      if (!current || current.isPaid() || current.hasPayerReportedTransfer()) return
-      throw new InvalidStateException('Học phí này hiện không thể báo đã chuyển khoản')
+      return !written
     })
 
+    // Đọc ngoài transaction để thấy dữ liệu đã commit: lần đọc trong transaction (REPEATABLE READ) vẫn là
+    // snapshot cũ nên không phân biệt được khoản vừa PAID hay có lần báo khác thắng cuộc đua.
     const snapshot = await this.tuition.findPaymentDetail(studentId, paymentId)
     if (!snapshot) {
       throw new NotFoundException(`Không tìm thấy học phí với ID ${paymentId}`)
+    }
+    if (lostRace && snapshot.status !== TuitionPaymentStatus.PAID && !snapshot.payerReportedTransferredAt) {
+      throw new InvalidStateException('Học phí này hiện không thể báo đã chuyển khoản')
     }
 
     return BaseResponseDto.success(

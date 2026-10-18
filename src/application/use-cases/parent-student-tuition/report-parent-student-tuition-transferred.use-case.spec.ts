@@ -144,9 +144,6 @@ describe('ReportParentStudentTuitionTransferredUseCase', () => {
     })
 
     it('returns the PAID snapshot when the payment became PAID before the conditional update', async () => {
-      tuitionPaymentRepository.findById
-        .mockResolvedValueOnce(payment())
-        .mockResolvedValueOnce(payment({ status: TuitionPaymentStatus.PAID }))
       reader.findPaymentDetail.mockResolvedValue(detail({ status: TuitionPaymentStatus.PAID, paidAt: NOW }))
 
       const response = await useCase.execute(parent, 12, 7, NOW)
@@ -156,9 +153,6 @@ describe('ReportParentStudentTuitionTransferredUseCase', () => {
     })
 
     it('returns the existing flag when a concurrent report won', async () => {
-      tuitionPaymentRepository.findById
-        .mockResolvedValueOnce(payment())
-        .mockResolvedValueOnce(payment({ payerReportedTransferredAt: REPORTED_AT }))
       reader.findPaymentDetail.mockResolvedValue(detail({ payerReportedTransferredAt: REPORTED_AT }))
 
       const response = await useCase.execute(parent, 12, 7, NOW)
@@ -167,7 +161,7 @@ describe('ReportParentStudentTuitionTransferredUseCase', () => {
     })
 
     it('fails with a business error when the payment is no longer reportable for another reason', async () => {
-      tuitionPaymentRepository.findById.mockResolvedValue(payment())
+      reader.findPaymentDetail.mockResolvedValue(detail())
 
       await expect(useCase.execute(parent, 12, 7, NOW)).rejects.toBeInstanceOf(InvalidStateException)
     })

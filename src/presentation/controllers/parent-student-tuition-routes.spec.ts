@@ -71,8 +71,8 @@ describe('Parent student tuition HTTP routes', () => {
 
   beforeAll(async () => {
     const useCaseClasses = [...Object.values(dashboardUseCases), ...Object.values(tuitionUseCases)].filter(
-      (value): value is new (...args: never[]) => unknown => typeof value === 'function',
-    )
+      (value) => typeof value === 'function',
+    ) as unknown as Array<new (...args: never[]) => unknown>
 
     const moduleRef = await Test.createTestingModule({
       // Cùng thứ tự với PresentationModule: route tĩnh outstanding-summary phải đăng ký trước `:paymentId`.

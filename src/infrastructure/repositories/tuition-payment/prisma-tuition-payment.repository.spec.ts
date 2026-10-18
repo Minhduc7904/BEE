@@ -95,7 +95,7 @@ describe('PrismaTuitionPaymentRepository payer-reported transfer flag', () => {
 
       const args = tuitionPayment.findMany.mock.calls[0][0]
       expect(args.where.payerReportedTransferredAt).toEqual(expected)
-      expect(args.orderBy).toEqual({ payerReportedTransferredAt: 'desc' })
+      expect(args.orderBy).toEqual([{ payerReportedTransferredAt: 'desc' }, { paymentId: 'desc' }])
     })
 
     it('adds no report condition when the filter is omitted', async () => {

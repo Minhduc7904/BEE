@@ -177,9 +177,8 @@ export class PrismaTuitionPaymentRepository implements ITuitionPaymentRepository
         where,
         skip,
         take: limit,
-        orderBy: {
-          [sortBy]: sortOrder,
-        },
+        // Khóa phụ paymentId giữ thứ tự ổn định khi nhiều dòng trùng giá trị sắp xếp (vd. cột cờ NULL hoặc cùng giây).
+        orderBy: [{ [sortBy]: sortOrder }, ...(sortBy === 'paymentId' ? [] : [{ paymentId: sortOrder }])],
         include: {
           student: {
             include: {
@@ -695,7 +694,7 @@ export class PrismaTuitionPaymentRepository implements ITuitionPaymentRepository
       status: 'tp.status',
     }
     const orderColumn = columnMap[sortBy] || 'tp.created_at'
-    const orderByClause = `ORDER BY ${orderColumn} ${sortOrder}`
+    const orderByClause = `ORDER BY ${orderColumn} ${sortOrder}, tp.payment_id ${sortOrder}`
 
     const baseFrom = `
       FROM tuition_payments tp

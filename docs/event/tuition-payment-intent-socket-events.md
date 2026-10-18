@@ -101,7 +101,7 @@ Event có thể bị mất khi socket disconnect hoặc khi hệ thống chạy 
 
 | Code | Khi nào |
 | --- | --- |
-| `STUDENT_REQUIRED` | JWT không đại diện cho học sinh. |
+| `STUDENT_OR_PARENT_REQUIRED` | JWT không đại diện cho học sinh hoặc phụ huynh. |
 | `INVALID_PAYMENT_INTENT_ID` | Payload không có số nguyên dương `paymentIntentId`. |
 | `TUITION_PAYMENT_INTENT_SUBSCRIBE_FAILED` | Intent không tồn tại, không thuộc học sinh, hoặc không thể đọc trạng thái. |
 

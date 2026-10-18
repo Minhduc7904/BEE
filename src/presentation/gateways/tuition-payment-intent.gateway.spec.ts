@@ -136,7 +136,7 @@ describe('TuitionPaymentIntentGateway', () => {
       await gateway.subscribeIntent(client, { paymentIntentId: 15 })
 
       expect(socketService.leaveRoom).toHaveBeenCalledWith(client, 'tuition-payment-intent:15')
-      expect(raw.data.tuitionIntentStudents).toEqual({})
+      expect((raw.data as Record<string, unknown>).tuitionIntentStudents).toEqual({})
       expect(emitted.map((item) => item.event)).toEqual(['error'])
     })
 
@@ -148,7 +148,7 @@ describe('TuitionPaymentIntentGateway', () => {
       gateway.unsubscribeIntent(client, { paymentIntentId: 15 })
 
       expect(socketService.leaveRoom).toHaveBeenCalledWith(client, 'tuition-payment-intent:15')
-      expect(raw.data.tuitionIntentStudents).toEqual({})
+      expect((raw.data as Record<string, unknown>).tuitionIntentStudents).toEqual({})
       expect(emitted.map((item) => item.event)).toEqual([EVENTS.INTENT_UNSUBSCRIBED])
     })
   })

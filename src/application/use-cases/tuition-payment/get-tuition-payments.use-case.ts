@@ -56,7 +56,12 @@ export class GetTuitionPaymentsUseCase {
             // Cờ phụ huynh báo chuyển khoản chỉ dành cho quản trị; API học sinh không lọc theo cờ này.
             payerReportedTransferred: undefined,
         }
-        const pagination = query.toTuitionPaymentPaginationOptions()
+        const requestedPagination = query.toTuitionPaymentPaginationOptions()
+        // Không để học sinh suy ra thứ tự/thời điểm phụ huynh báo chuyển khoản qua sắp xếp.
+        const pagination =
+            requestedPagination.sortBy === 'payerReportedTransferredAt'
+                ? { ...requestedPagination, sortBy: 'createdAt' }
+                : requestedPagination
         const result = await this.tuitionPaymentRepository.findAllWithPagination(pagination, filters)
         const paymentIntents = await Promise.all(
             result.data.map((tuitionPayment) =>
