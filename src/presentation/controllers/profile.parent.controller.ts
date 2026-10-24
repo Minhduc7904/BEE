@@ -16,7 +16,9 @@ import {
   UnlinkParentStudentUseCase,
   UpdateParentProfileUseCase,
   DeleteParentAccountUseCase,
+  ChangeParentPasswordUseCase,
 } from '../../application/use-cases'
+import { ChangePasswordDto } from '../../application/dtos/profile/change-password.dto'
 import { AuthOnly, CurrentUser } from '../../shared/decorators'
 import { ExceptionHandler } from '../../shared/utils/exception-handler.util'
 import { DeleteParentAccountDto, DeleteParentAccountResponseDto } from '../../application/dtos/auth/parent-account-deletion.dto'
@@ -31,7 +33,18 @@ export class ProfileParentController {
     private readonly getParentStudentDetailUseCase: GetParentStudentDetailUseCase,
     private readonly unlinkParentStudentUseCase: UnlinkParentStudentUseCase,
     private readonly deleteParentAccountUseCase: DeleteParentAccountUseCase,
+    private readonly changeParentPasswordUseCase: ChangeParentPasswordUseCase,
   ) {}
+
+  @Post('change-password')
+  @HttpCode(HttpStatus.OK)
+  @AuthOnly()
+  async changePassword(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: ChangePasswordDto,
+  ): Promise<BaseResponseDto<null>> {
+    return ExceptionHandler.execute(() => this.changeParentPasswordUseCase.execute(user, dto))
+  }
 
   @Post('delete-account')
   @HttpCode(HttpStatus.OK)

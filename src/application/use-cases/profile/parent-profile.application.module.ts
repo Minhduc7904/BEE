@@ -10,6 +10,7 @@ import { LinkParentStudentUseCase } from './link-parent-student.use-case'
 import { UpdateParentProfileUseCase } from './update-parent-profile.use-case'
 import { GetParentStudentDetailUseCase } from './get-parent-student-detail.use-case'
 import { UnlinkParentStudentUseCase } from './unlink-parent-student.use-case'
+import { ChangeParentPasswordUseCase } from './change-parent-password.use-case'
 
 const PARENT_PROFILE_USE_CASES = [
   GetParentProfileUseCase,
@@ -18,6 +19,7 @@ const PARENT_PROFILE_USE_CASES = [
   UpdateParentProfileUseCase,
   GetParentStudentDetailUseCase,
   UnlinkParentStudentUseCase,
+  ChangeParentPasswordUseCase,
 ]
 
 @Module({
